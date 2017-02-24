@@ -24,6 +24,57 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 warn_shown = 0
 
+function displayProc(proc)
+   print("<tr><th width=30%>User Name</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
+   print("<tr><th width=30%>Process PID/Name</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.pid .."&".. hostinfo2url(flow,"srv").. "\">".. proc.pid .. "/" .. proc.name .. "</A>")
+   print(" [son of <A HREF=\""..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.father_pid .. "\">" .. proc.father_pid .. "/" .. proc.father_name .."</A>]</td></tr>\n")
+
+   if(proc.actual_memory > 0) then
+      print("<tr><th width=30%>Average CPU Load</th><td colspan=2><span id=average_cpu_load_"..proc.pid..">")
+
+      cpu_load = round(proc.average_cpu_load, 2)..""
+      if(proc.average_cpu_load < 33) then
+	     if(proc.average_cpu_load == 0) then proc.average_cpu_load = "< 1" end
+		print("<font color=green>"..cpu_load.." %</font>")
+	 elseif(proc.average_cpu_load < 66) then
+		print("<font color=orange><b>"..cpu_load.." %</b></font>")
+	 else
+		print("<font color=red><b>"..cpu_load.." %</b></font>")
+	 end
+      print(" </span></td></tr>\n")
+
+      print("<tr><th width=30%>I/O Wait Time Percentage</th><td colspan=2><span id=percentage_iowait_time_"..proc.pid..">")
+
+      cpu_load = round(proc.percentage_iowait_time, 2)..""
+      if(proc.percentage_iowait_time < 33) then
+	     if(proc.percentage_iowait_time == 0) then proc.percentage_iowait_time = "< 1" end
+		print("<font color=green>"..cpu_load.." %</font>")
+	 elseif(proc.percentage_iowait_time < 66) then
+		print("<font color=orange><b>"..cpu_load.." %</b></font>")
+	 else
+		print("<font color=red><b>"..cpu_load.." %</b></font>")
+	 end
+      print(" </span></td></tr>\n")
+
+
+      print("<tr><th width=30%>Memory Actual / Peak</th><td colspan=2><span id=memory_"..proc.pid..">".. bytesToSize(proc.actual_memory) .. " / ".. bytesToSize(proc.peak_memory) .. " [" .. round((proc.actual_memory*100)/proc.peak_memory, 1) .."%]</span></td></tr>\n")
+      print("<tr><th width=30%>VM Page Faults</th><td colspan=2><span id=page_faults_"..proc.pid..">")
+      if(proc.num_vm_page_faults > 0) then
+	 print("<font color=red><b>"..proc.num_vm_page_faults.."</b></font>")
+      else
+	 print("<font color=green>"..proc.num_vm_page_faults.."</font>")
+      end
+      print("</span></td></tr>\n")
+   end
+
+   if(proc.actual_memory == 0) then
+      if(warn_shown == 0) then
+	 warn_shown = 1
+	 print('<tr><th colspan=2><i class="fa fa-warning fa-lg" style="color: #B94A48;"></i> Process information report is limited unless you use ntopng with <A HREF="http://www.ntop.org/products/nprobe/">nProbe</A> and the sprobe plugin</th></tr>\n')
+	 end
+   end
+end
+
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -85,7 +136,11 @@ else
    print("<table class=\"table table-bordered table-striped\">\n")
    if (ifstats.vlan and (flow["vlan"] ~= nil)) then
       print("<tr><th width=30%>")
-      print('VLAN ID')
+      if(ifstats.sprobe) then
+	 print('Source Id')
+      else
+	 print('VLAN ID')
+      end
 
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
@@ -124,6 +179,7 @@ else
 
    if(flow["verdict.pass"] == false) then print("<strike>") end
    print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/")
+   if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
    print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
    print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
    print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
@@ -267,7 +323,7 @@ else
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
-     '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" title="Computed as TCP Window Size / RTT">'..
+     '<a href="#" data-toggle="tooltip" title="Computed as TCP Window Size / RTT">'..
      "Max (Estimated) TCP Throughput</a><td nowrap> Client <i class=\"fa fa-arrow-right\"></i> Server: ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
      print("</td><td> Client <i class=\"fa fa-arrow-left\"></i> Server: ")
@@ -338,6 +394,7 @@ else
       print("<tr><th width=30%>Flow Status</th><td colspan=2>"..getFlowStatus(flow["flow.status"]).."</td></tr>\n")
    end
 
+   if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>Actual / Peak Throughput</th><td width=20%>")
       if (throughput_type == "bps") then
 	 print("<span id=throughput>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
@@ -353,6 +410,25 @@ else
 
       print("</td><td><span id=thpt_load_chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
       print("</td></tr>\n")
+   else
+      if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
+	 print('<tr><th colspan=3><div id="sprobe"></div>')
+	 width  = 1024
+	 height = 200
+	 url = ntop.getHttpPrefix().."/lua/sprobe_flow_data.lua?flow_key="..flow_key
+	 dofile(dirs.installdir .. "/scripts/lua/inc/sprobe.lua")
+	 print('</th></tr>\n')
+      end
+
+      if(flow.client_process ~= nil) then
+	 print("<tr><th colspan=3 class=\"info\">Client Process Information</th></tr>\n")
+	 displayProc(flow.client_process)
+      end
+      if(flow.server_process ~= nil) then
+	 print("<tr><th colspan=3 class=\"info\">Server Process Information</th></tr>\n")
+	 displayProc(flow.server_process)
+      end
+   end
 
    if(flow["protos.dns.last_query"] ~= nil) then
       print("<tr><th width=30%>DNS Query</th><td colspan=2>")
@@ -371,10 +447,6 @@ else
 
    if(flow["bittorrent_hash"] ~= nil) then
       print("<tr><th>BitTorrent hash</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
-   end
-
-   if(flow["protos.ssh.client_signature"] ~= nil) then
-      print("<tr><th>SSH Signature</th><td>Client: "..flow["protos.ssh.client_signature"].."</td><td>Server: "..flow["protos.ssh.server_signature"].."</td></tr>\n")
    end
 
    if(flow["protos.http.last_url"] ~= nil) then
@@ -606,6 +678,21 @@ print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			srv2cli_packets = rsp["srv2cli.packets"];
 			throughput = rsp["throughput_raw"];
 			bytes = rsp["bytes"];
+
+	 /* **************************************** */
+	 // Processes information update, based on the pid
+
+	 for (var pid in rsp["processes"]) {
+	    var proc = rsp["processes"][pid]
+	    // console.log(pid);
+	    // console.log(proc);
+	    if (proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
+	    if (proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
+	    if (proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
+	    if (proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
+	 }
+
+			/* **************************************** */
 
 			var values = thptChart.text().split(",");
 			values.shift();

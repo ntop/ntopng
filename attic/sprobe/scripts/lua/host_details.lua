@@ -45,7 +45,6 @@ family = nil
 prefs = ntop.getPrefs()
 
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
-local labelKey = host_info["host"].."@"..host_info["vlan"]
 
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPHeader('text/html; charset=iso-8859-1')
@@ -53,6 +52,35 @@ if((host_name == nil) or (host_ip == nil)) then
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host parameter is missing (internal error ?)</div>")
    return
+end
+
+if _POST["flow_rate_alert_threshold"] ~= nil then
+   if (tonumber(_POST["flow_rate_alert_threshold"]) ~= nil) then
+     page = "config"
+     val = ternary(_POST["flow_rate_alert_threshold"] ~= "0", _POST["flow_rate_alert_threshold"], "25")
+     ntop.setCache('ntopng.prefs.'..host_name..':'..tostring(host_vlan)..'.flow_rate_alert_threshold', val)
+     interface.loadHostAlertPrefs(host_ip, host_vlan)
+   end
+end
+if _POST["syn_alert_threshold"] ~= nil then
+   if (tonumber(_POST["syn_alert_threshold"]) ~= nil) then
+     page = "config"
+     val = ternary(_POST["syn_alert_threshold"] ~= "0", _POST["syn_alert_threshold"], "10")
+     ntop.setCache('ntopng.prefs.'..host_name..':'..tostring(host_vlan)..'.syn_alert_threshold', val)
+     interface.loadHostAlertPrefs(host_ip, host_vlan)
+   end
+end
+if _POST["flows_alert_threshold"] ~= nil then
+   if (tonumber(_POST["flows_alert_threshold"]) ~= nil) then
+     page = "config"
+     val = ternary(_POST["flows_alert_threshold"] ~= "0", _POST["flows_alert_threshold"], "32768")
+     ntop.setCache('ntopng.prefs.'..host_name..':'..tostring(host_vlan)..'.flows_alert_threshold', val)
+     interface.loadHostAlertPrefs(host_ip, host_vlan)
+   end
+end
+if _POST["re_arm_minutes"] ~= nil then
+     page = "config"
+     ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, hostkey), _POST["re_arm_minutes"])
 end
 
 if(protocol_id == nil) then protocol_id = "" end
@@ -73,23 +101,6 @@ if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) t
 end
 
 only_historical = false
-
-local host_pool_id
-if (host ~= nil) then
-   if (isAdministrator() and (_POST["pool"] ~= nil)) then
-      host_pool_id = _POST["pool"]
-      local prev_pool = tostring(host["host_pool_id"])
-
-      if host_pool_id ~= prev_pool then
-         local key = host2member(host["ip"], host["vlan"])
-         host_pools_utils.deletePoolMember(ifId, prev_pool, key)
-         host_pools_utils.addPoolMember(ifId, host_pool_id, key)
-         interface.reloadHostPools()
-      end
-   else
-     host_pool_id = tostring(host["host_pool_id"])
-   end
-end
 
 if(host == nil) then
    if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
@@ -316,6 +327,16 @@ if(not(isLoopback(ifname))) then
 end
 end
 
+if(host.systemhost) then
+if(page == "sprobe") then
+  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
+else
+   if(ifstats.sprobe) then
+      print("<li><a href=\""..url.."&page=sprobe\"><i class=\"fa fa-flag fa-lg\"></i></a></li>")
+   end
+end
+end
+
 if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
@@ -344,11 +365,13 @@ if host["localhost"] == true then
    end
 end
 
-if ((isAdministrator()) and (host["ip"] ~= nil)) then
-   if(page == "config") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-   elseif interface.isPcapDumpInterface() == false then
-      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
+if ((host["ip"] ~= nil) and host['localhost']) then
+   if((host["ip"] ~= nil) and (areAlertsEnabled())) then
+      if(page == "config") then
+	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+      elseif interface.isPcapDumpInterface() == false then
+	 print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
+      end
    end
 end
 
@@ -372,7 +395,37 @@ if((page == "overview") or (page == nil)) then
 	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
 	    end
        end
-   print('</td></tr>')
+
+      if(host["localhost"] == true and is_packetdump_enabled) then
+	 dump_status = host["dump_host_traffic"]
+
+	 if(_POST["dump_traffic"] ~= nil) then
+	    if(_POST["dump_traffic"] == "true") then
+	       dump_status = true
+	    else
+	       dump_status = false
+	    end
+	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
+	    interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
+	 end
+
+	 if(dump_status) then
+	    dump_traffic_checked = 'checked="checked"'
+	    dump_traffic_value = "false" -- Opposite
+	 else
+	    dump_traffic_checked = ""
+	    dump_traffic_value = "true" -- Opposite
+	 end
+
+	 if(isAdministrator()) then
+	 print [[
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	 print('<input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname)..'&page=packetdump&'..hostinfo2url(host_info)..'">Dump Traffic</a> </input>')
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('</form>')
+	 end
+	 print('</td></tr>')
+      end
 
       if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
 	 local ports = find_mac_snmp_ports(host["mac"])
@@ -407,33 +460,118 @@ if((page == "overview") or (page == nil)) then
 	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
       end
 
-      if((host["city"] ~= nil) and (host["city"] ~= "")) then
-         print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
-      end
-
-      print[[&nbsp;&nbsp;<span>Host Pool <a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
-      print("</td><td></td></tr>")
+      local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
+      print(' <a href="'.. ntop.getHttpPrefix().. '/lua/hosts_stats.lua?pool=' .. host["host_pool_id"] ..'">')
+      print('<span class="label label-default">Pool: '..pool_name.."</span>")
+      print('</a>')
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
       end
    end
+   
+   if((host["city"] ~= nil) and (host["city"] ~= "")) then
+      print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
+   end
+
+   drop_host_traffic = _POST["drop_host_traffic"]
+   host_key = hostinfo2hostkey(host_info)
+   if(drop_host_traffic ~= nil) then
+      if(drop_host_traffic == "false") then
+	 ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
+      else
+	 ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
+      end
+
+      interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+   else
+      drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+      if(drop_host_traffic == nil) then drop_host_traffic = "false" end
+   end
+
+   print('</td></tr>')
 
    if(ifstats.vlan and (host["vlan"] ~= nil)) then
       print("<tr><th>")
-      print('VLAN ID')
+
+      if(ifstats.sprobe) then
+	 print('Source Id')
+      else
+	 print('VLAN ID')
+      end
+
       print("</th><td colspan=2>"..host["vlan"].."</td></tr>\n")
    end
 
-   if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
-      print("<tr>")
-      if(host["os"] ~= "") then
-         print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td><td></td>\n")
+   if(ifstats.inline and (host.localhost or host.systemhost)) then
+      print("<tr><th>Host Traffic Policy</th><td>")
+
+      print[[<a class="btn btn-default btn-xs" href="]]
+      print(ntop.getHttpPrefix())
+      print[[/lua/if_stats.lua?page=filtering&pool=]]
+      print(tostring(host["host_pool_id"]))
+      print[[#protocols">Modify Host Pool policy</a>]]
+      print('</td>')
+
+      print('<td>')
+      if(host["localhost"] == true) then
+	 drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+	 if(drop_traffic == "true") then
+	    drop_traffic_checked = 'checked="checked"'
+	    drop_traffic_value = "false" -- Opposite
+	 else
+	    drop_traffic_checked = ""
+	    drop_traffic_value = "true" -- Opposite
+	 end
+
+	 print[[<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	 print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('</form>')
       else
-         print("<th></th><td></td>\n")
+	 print('&nbsp;')
       end
-      print("</tr>")
+
+      print('</td></tr></tr>')
    end
+
+   if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
+   print("<tr>")
+   if(host["os"] ~= "") then
+     print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td>\n")
+   else
+     print("<th></th><td></td>\n")
+   end
+
+   if(ifstats.inline and (host.localhost or host.systemhost) and isAdministrator()) then
+	 host_quota_value = host["host_quota_mb"]
+
+         if(_POST["host_quota"] ~= nil) then
+	    if(_POST["host_quota"] == "") then
+	       -- default: unlimited
+	       host_quota_value = "0"
+	    else
+	       host_quota_value = _POST["host_quota"]
+	    end
+
+	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
+	    interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
+	 end
+	 print [[<td><form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	 print('<input type="hidden"/>Host quota &nbsp;<input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="')print(tostring(host_quota_value))
+         print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print('</form>')
+	 print('</td></tr>')
+   else
+     print("<td></td></tr>")
+   end
+end
+
+local labelKey = host_info["host"].."@"..host_info["vlan"]
+
+if(_POST["custom_icon"] ~=nil) then
+ setHostIcon(labelKey, _POST["custom_icon"])
+end
 
    if((host["asn"] ~= nil) and (host["asn"] > 0)) then
       print("<tr><th>ASN</th><td>")
@@ -467,8 +605,33 @@ if((page == "overview") or (page == nil)) then
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">Blacklisted Host</span>') end
 
       print(getHostIcon(labelKey))
-      print("</td><td></td>\n")
+      print("</td>\n")
    end
+
+
+if(host["ip"] ~= nil) then
+    if(isAdministrator()) then
+       print("<td>")
+
+       print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+       print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
+      if(host["label"] ~= nil) then print(host["label"]) end
+print("\"></input>")
+
+pickIcon(labelKey, host["mac"])
+
+print [[
+	 &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
+print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
+print [[</form>
+</td></tr>
+   ]]
+end
+    else
+--       print("<td colspan=2>"..host_info["host"].."</td></tr>")
+    end
+
 
 if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>Alerts</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
@@ -516,9 +679,8 @@ end
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
    end
 
-   if(host["info"] ~= nil) then print("<tr><th>Info</th><td colspan=2>"..host["info"].."</td></tr>\n") end
-   
    if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>Download<A></td></tr>\n") end
+
 
 
    print("</table>\n")
@@ -1278,8 +1440,10 @@ end
 print (hostinfo2url(host_info)..'";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
+if(ifstats.sprobe) then show_sprobe = true else show_sprobe = false end
 if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
 -- Set the host table option
+if(show_sprobe) then print ('flow_rows_option["sprobe"] = true;\n') end
 if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
 
@@ -1308,6 +1472,31 @@ for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
 end
 
 dt_buttons = dt_buttons .. "</ul></div>']"
+
+if(show_sprobe) then
+print [[
+  //console.log(url_update);
+   flow_rows_option["sprobe"] = true;
+   flow_rows_option["type"] = 'host';
+   $("#table-flows").datatable({
+      url: url_update ,
+      buttons: ]] print(dt_buttons) print[[,
+      rowCallback: function ( row ) { return flow_table_setID(row); },
+         showPagination: true,
+]]
+-- Set the preference table
+preference = tablePreferences("rows_number",_GET["perPage"])
+if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
+
+print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
+
+
+print('title: "'..active_flows_msg..'",')
+
+  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+  prefs = ntop.getPrefs()
+  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
+else
 
 print [[
   flow_rows_option["type"] = 'host';
@@ -1359,11 +1548,17 @@ print [[
 				 },]]
 
 if(show_vlan) then
+
+if(ifstats.sprobe) then
+   print('{ title: "Source Id",\n')
+else
    if(ifstats.vlan) then
      print('{ title: "VLAN",\n')
    end
+end
 
-   print [[
+
+print [[
          field: "column_vlan",
          sortable: true,
                  css: {
@@ -1371,7 +1566,7 @@ if(show_vlan) then
            }
 
          },
-   ]]
+]]
 end
 print [[
 			     {
@@ -1423,6 +1618,7 @@ print [[
 
    ]]
 
+end
 elseif(page == "categories") then
 print [[
       <table class="table table-bordered table-striped">
@@ -1776,154 +1972,141 @@ elseif(page == "alerts") then
       host_name, "host")
 
 elseif (page == "config") then
-
-   if(not isAdministrator()) then
-      return
+   local re_arm_minutes = ""
+   
+   if(isAdministrator()) then
+      trigger_alerts = _POST["trigger_alerts"]
+      if(trigger_alerts ~= nil) then
+         if(trigger_alerts == "true") then
+	    ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), hostkey)
+	    interface.enableHostAlerts(host_ip, host_vlan)
+         else
+	    ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), hostkey, trigger_alerts)
+	    interface.disableHostAlerts(host_ip, host_vlan)
+         end
+      end
    end
 
-   if(host["localhost"] == true and is_packetdump_enabled) then
-      local dump_status = host["dump_host_traffic"]
-
-      if(_POST["dump_traffic"] ~= nil) then
-         if(_POST["dump_traffic"] == "true") then
-            dump_status = true
-         else
-            dump_status = false
-         end
-         interface.select(ifname) -- if we submitted a form, nothing is select()ed
-         interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
-      end
-
-      if(dump_status) then
-         dump_traffic_checked = 'checked="checked"'
-         dump_traffic_value = "false" -- Opposite
+   local flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
+   local syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
+   local flows_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold'
+   
+   if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
+      ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
+      flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
+   else
+      local v = ntop.getPref(flow_rate_alert_thresh)
+      if v ~= nil and v ~= "" then
+	 flow_rate_alert_thresh = v
       else
-         dump_traffic_checked = ""
-         dump_traffic_value = "true" -- Opposite
+	 flow_rate_alert_thresh = 25
       end
    end
 
-   if(_POST["custom_icon"] ~= nil) then
-      setHostIcon(labelKey, _POST["custom_icon"])
-   end
-
-   print[[
-   <table class="table table-bordered table-striped">
-      <tr>
-         <th>Host Alias</th>
-         <td>
-            <form class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
-   if(host["label"] ~= nil) then print(host["label"]) end
-   print[["></input> ]]
-   pickIcon(labelKey, host["mac"])
-   print [[
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-            </form>
-         </td>
-      </tr>
-      <tr>
-         <th>Host Pool</th>
-         <td>
-            <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
-               <select name="pool" class="form-control" style="width:20em; display:inline;">]]
-   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
-      print[[<option value="]] print(pool.id) print[["]]
-      if pool.id == host_pool_id then
-         print[[ selected]]
-      end
-      print[[>]] print(pool.name) print[[</option>]]
-   end
-   print[[
-               </select>&nbsp;
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-            </form>
-         </td>
-      </tr>
-      <tr>
-         <th>Dump Host Traffic</th>
-         <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
-               <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
-                  <i class="fa fa-hdd-o fa-lg"></i>
-                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">Dump Traffic</a>
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
-         </td>
-      </tr>]]
-
-   if(ifstats.inline and (host.localhost or host.systemhost)) then
-      -- Traffic policy
-      drop_host_traffic = _POST["drop_host_traffic"]
-      host_key = hostinfo2hostkey(host_info)
-      if(drop_host_traffic ~= nil) then
-         if(drop_host_traffic == "false") then
-            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         else
-            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
-         end
-
-         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+   if _POST["syn_alert_threshold"] ~= nil and _POST["syn_alert_threshold"] ~= "" then
+      ntop.setPref(syn_alert_thresh, _POST["syn_alert_threshold"])
+      syn_alert_thresh = _POST["syn_alert_threshold"]
+   else
+      local v = ntop.getPref(syn_alert_thresh)
+      if v ~= nil and v ~= "" then
+	 syn_alert_thresh = v
       else
-         drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         if(drop_host_traffic == nil) then drop_host_traffic = "false" end
+	 syn_alert_thresh = 10
       end
-
-      print("<tr><th>Host Traffic Policy</th><td>")
-
-      if(host["localhost"] == true) then
-         drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         if(drop_traffic == "true") then
-            drop_traffic_checked = 'checked="checked"'
-            drop_traffic_value = "false" -- Opposite
-         else
-            drop_traffic_checked = ""
-            drop_traffic_value = "true" -- Opposite
-         end
-
-         print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
-         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('</form>')
+   end
+   if _POST["flows_alert_threshold"] ~= nil and _POST["flows_alert_threshold"] ~= "" then
+      ntop.setPref(flows_alert_thresh, _POST["flows_alert_threshold"])
+      flows_alert_thresh = _POST["flows_alert_threshold"]
+   else
+      local v = ntop.getPref(flows_alert_thresh)
+      if v ~= nil and v ~= "" then
+	 flows_alert_thresh = v
+      else
+	 flows_alert_thresh = 32768
       end
+   end
 
-      print[[<a class="btn btn-default btn-sm" href="]]
-      print(ntop.getHttpPrefix())
-      print[[/lua/if_stats.lua?page=filtering&pool=]]
-      print(tostring(host["host_pool_id"]))
-      print[[#protocols">Modify Host Pool Policy</a>]]
-      print('</td></tr>')
+   re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, hostkey))
+   if re_arm_minutes == "" then re_arm_minutes=default_re_arm_minutes end
 
-      -- Host quota
-      local host_quota_value = host["host_quota_mb"]
+   print("<table class=\"table table-striped table-bordered\">\n")
+   print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
+   print [[<td>]]
+   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
+   print(tostring(flow_rate_alert_thresh))
+   print [["></input>
+	&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+    </form>
+<small>
+    Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
+</small>]]
+  print[[
+    </td></tr>
+       ]]
 
-      if(_POST["host_quota"] ~= nil) then
-         if(_POST["host_quota"] == "") then
-            -- default: unlimited
-            host_quota_value = "0"
-         else
-            host_quota_value = _POST["host_quota"]
-         end
+       print("<tr><th width=250>Host SYN Alert Threshold</th>\n")
+      print [[<td>]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
+         print(tostring(syn_alert_thresh))
+         print [["></input>
+      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+    </form>
+<small>
+    Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
+</small>]]
+  print[[
+    </td></tr>
+       ]]
 
-         interface.select(ifname) -- if we submitted a form, nothing is select()ed
-         interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
-      end
+       print("<tr><th width=250>Host Flows Threshold</th>\n")
+      print [[<td>]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
+         print(tostring(flows_alert_thresh))
+         print [["></input>
+      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+    </form>
+<small>
+    Max number of flows over which a host is considered a flooder. Default: 32768.<br>
+</small>]]
+  print[[
+    </td></tr>
+       ]]
+    local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), hostkey)
+    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+       alerts_checked = 'checked="checked"'
+       alerts_value = "false" -- Opposite
+    else
+       alerts_checked = ""
+       alerts_value = "true" -- Opposite
+    end
 
-      print [[<th>Host Quota</th>
-      <td>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-            <input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="]] print(tostring(host_quota_value))
-      print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+    print [[
+         <tr><th>Host Alerts</th><td nowrap>
+         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input type="hidden" name="tab" value="alerts_preferences">]]
+      print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for host '..host_ip..'</input>')
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print('</form>')
-      print('</td></tr>')
-   end
+      print('</td>')
+      print [[</tr>]]
 
-   print[[
-   </table>]]
+   print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+         <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
+         <td>
+            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
+            &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+            <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+         </td>
+      </form></tr>]]
+
+    print("</table>")
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then
@@ -1938,9 +2121,259 @@ if(host_vlan and (host_vlan > 0)) then
    host_url = host_url.."&vlan="..host_vlan
    host_key = host_key.."@"..host_vlan
 end
-drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+drawRRD(ifId, host_key, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
+elseif(page == "sprobe") then
+
+
+print [[
+  <br>
+  <!-- Left Tab -->
+  <div class="tabbable tabs-left">
+
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#Users" data-toggle="tab">Users</a></li>
+      <li><a href="#Processes" data-toggle="tab">Processes</a></li>
+      <li ><a href="#Tree" data-toggle="tab">Tree</a></li>
+    </ul>
+
+    <!-- Tab content-->
+    <div class="tab-content">
+]]
+
+print [[
+      <div class="tab-pane active" id="Users">
+      Show :
+          <div class="btn-group btn-toggle btn-sm" data-toggle="buttons" id="show_users">
+            <label class="btn btn-default btn-sm active">
+              <input type="radio" name="show_users" value="All">All</label>
+            <label class="btn btn-default btn-sm">
+              <input type="radio" name="show_users" value="Client" checked="">Client</label>
+            <label class="btn btn-default btn-sm">
+              <input type="radio" name="show_users" value="Server" checked="">Server</label>
+          </div>
+        Aggregated by :
+          <div class="btn-group">
+            <button id="aggregation_users_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
+            Traffic <span class="caret"></span></button>
+            <ul class="dropdown-menu" id="aggregation_users">
+            <li><a>Traffic</a></li>
+            <li><a>Active memory</a></li>
+            <!-- <li><a>Latency</a></li> -->
+            </ul>
+          </div><!-- /btn-group -->
+         <br/>
+         <br/>
+        <table class="table table-bordered table-striped">
+          <tr>
+            <th class="text-center span3">Top Users</th>
+            <td class="span3"><div class="pie-chart" id="topUsers"></div></td>
+
+          </tr>
+        </table>
+      </div> <!-- Tab Users-->
+]]
+
+print [[
+      <div class="tab-pane" id="Processes">
+      Show :
+          <div class="btn-group btn-toggle btn-sm" data-toggle="buttons" id="show_processes">
+            <label class="btn btn-default btn-sm active">
+              <input type="radio" name="show_processes" value="All">All</label>
+            <label class="btn btn-default btn-sm">
+              <input type="radio" name="show_processes" value="Client" checked="">Client</label>
+            <label class="btn btn-default btn-sm">
+              <input type="radio" name="show_processes" value="Server" checked="">Server</label>
+          </div>
+        Aggregated by :
+          <div class="btn-group">
+            <button id="aggregation_processes_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Traffic <span class="caret"></span></button>
+            <ul class="dropdown-menu" id="aggregation_processes">
+            <li><a>Traffic</a></li>
+            <li><a>Active memory</a></li>
+            <!-- <li><a>Latency</a></li> -->
+            </ul>
+          </div><!-- /btn-group -->
+         <br/>
+         <br/>
+        <table class="table table-bordered table-striped">
+          <tr>
+            <th class="text-center span3">Top Processes</th>
+             <td class="span3"><div class="pie-chart" id="topProcess"></div></td>
+
+          </tr>
+        </table>
+      </div> <!-- Tab Processes-->
+]]
+
+print [[
+      <div class="tab-pane" id="Tree">
+
+        Show :
+          <div class="btn-group btn-toggle btn-sm" data-toggle="buttons" id="show_tree">
+            <label class="btn btn-default btn-sm active">
+              <input type="radio" name="show_tree" value="All">All</label>
+            <label class="btn btn-default btn-sm">
+              <input type="radio" name="show_tree" value="Client" checked="">Client</label>
+            <label class="btn btn-default btn-sm">
+              <input type="radio" name="show_tree" value="Server" checked="">Server</label>
+          </div>
+        Aggregated by :
+          <div class="btn-group">
+            <button id="aggregation_tree_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Traffic <span class="caret"></span></button>
+            <ul class="dropdown-menu" id="aggregation_tree">
+            <li><a>Traffic</a></li>
+            <li><a>Active memory</a></li>
+            <!-- <li><a>Latency</a></li> -->
+            </ul>
+          </div><!-- /btn-group -->
+         <br/>
+         <br/>
+        <table class="table table-bordered table-striped">
+          <tr>
+            <th class="text-center span3">Processes Traffic Tree
+            </th>
+             <td class="span3">
+              <div id="sequence_sunburst" >
+                <div id="sequence_processTree" class="sequence"></div>
+                <div id="chart_processTree" class="chart"></div>
+                <div align="center" class="info">Mouse over to show the process information or double click to show more information.</div>
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </div> <!-- Tab Tree-->
+]]
+
+print [[
+    </div> <!-- End Tab content-->
+  </div> <!-- End Left Tab -->
+
+
+]]
+
+ print [[
+
+        <link href="/css/sequence_sunburst.css" rel="stylesheet">
+        <script src="/js/sequence_sunburst.js"></script>
+
+        <script type='text/javascript'>
+        // Default value
+        var sprobe_debug = false;
+        var processes;
+        var processes_type = "bytes";
+        var processes_filter = "All";
+        var users;
+        var users_type = "bytes";
+        var users_filter = "All";
+        var tree;
+        var tree_type = "bytes";
+        var tree_filter = "All";
+
+
+]]
+
+-- Users graph javascript
+print [[
+      users = do_pie("#topUsers", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/host_sflow_distro.lua', { distr: users_type, sflowdistro_mode: "user", sflow_filter: users_filter , ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
+
+print [[
+
+  $('#aggregation_users li > a').click(function(e){
+    $('#aggregation_users_displayed').html(this.innerHTML+' <span class="caret"></span>');
+
+    if(this.innerHTML == "Active memory") {
+      users_type= "memory"
+    } else if(this.innerHTML == "Latency") {
+      users_type = "latency";
+    } else  {
+      users_type = "bytes";
+    }
+    if(sprobe_debug) { alert("]]
+print (ntop.getHttpPrefix())
+print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&sflow_filter="+users_filter); }
+    users.setUrlParams({ type: users_type, mode: "user", sflow_filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+    }); ]]
+
+print [[
+$("#show_users input:radio").change(function() {
+    users_filter = this.value
+    if(sprobe_debug) { alert("users_type: "+users_type+"\n users_filter: "+users_filter); }
+    if(sprobe_debug) { alert("url: ]]
+print (ntop.getHttpPrefix())
+print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&sflow_filter="+users_filter); }
+    users.setUrlParams({ type: users_type, mode: "user", sflow_filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+});]]
+
+
+-- Processes graph javascritp
+
+print [[
+processes = do_pie("#topProcess", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/host_sflow_distro.lua', { distr: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter , ifid: "]] print(ifId.."")print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
+
+print [[
+
+  $('#aggregation_processes li > a').click(function(e){
+    $('#aggregation_processes_displayed').html(this.innerHTML+' <span class="caret"></span>');
+
+    if(this.innerHTML == "Active memory") {
+      processes_type= "memory"
+    } else if(this.innerHTML == "Latency") {
+      processes_type = "latency";
+    } else  {
+      processes_type = "bytes";
+    }
+    if(sprobe_debug) { alert(this.innerHTML+"-"+processes_type); }
+    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter , ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+    }); ]]
+
+print [[
+$("#show_processes input:radio").change(function() {
+    processes_filter = this.value
+    if(sprobe_debug) { alert("processes_type: "+processes_type+"\n processes_filter: "+processes_filter); }
+    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+});]]
+
+
+-- Processes Tree graph javascript
+print [[
+  tree = do_sequence_sunburst("chart_processTree","sequence_processTree",refresh,']]
+print (ntop.getHttpPrefix())
+print [[/lua/sflow_tree.lua',{distr: "bytes" , sflow_filter: tree_filter ]] print (','.. hostinfo2json(host_info)) print [[ },"","Bytes"); ]]
+
+print [[
+
+  $('#aggregation_tree li > a').click(function(e){
+    $('#aggregation_tree_displayed').html(this.innerHTML+' <span class="caret"></span>');
+
+    if(this.innerHTML == "Active memory") {
+      tree_type= "memory"
+    } else if(this.innerHTML == "Latency") {
+      tree_type = "latency";
+    } else  {
+      tree_type = "bytes";
+    }
+    if(sprobe_debug) { alert(this.innerHTML+"-"+tree_type); }
+    tree[0].setUrlParams({type: tree_type , sflow_filter: tree_filter ]] print (','.. hostinfo2json(host_info).." }") print [[ );
+    }); ]]
+
+print [[
+
+  $("#show_tree input:radio").change(function() {
+    tree_filter = this.value
+    if(sprobe_debug) { alert("tree_type: "+tree_type+"\ntree_filter: "+tree_filter); }
+    tree[0].setUrlParams({type: tree_type , sflow_filter: tree_filter]] print (','.. hostinfo2json(host_info).." }") print [[ );
+});]]
+
+print [[ </script>]]
+
+-- End Sprobe Page
 end
 end
 

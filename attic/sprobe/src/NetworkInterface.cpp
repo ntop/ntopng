@@ -144,7 +144,7 @@ NetworkInterface::NetworkInterface(const char *name,
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
-    running = false, inline_interface = false, db = NULL;
+    running = false, sprobe_interface = false, inline_interface = false, db = NULL;
 
     if((!isViewInterface) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
 #ifdef NTOPNG_PRO
@@ -167,7 +167,7 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   networkStats = NULL;
-  
+
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
@@ -186,32 +186,6 @@ NetworkInterface::NetworkInterface(const char *name,
     throw "Not enough memory";
 
   alertLevel = alertsManager->getNumAlerts(true);
-
-#ifdef linux
-  /*
-    A bit aggressive but as people usually
-    ignore warnings let's be proactive
-  */
-  if(ifname
-     && (!isViewInterface)
-     && (!strstr(ifname, ":"))
-     && (!strstr(ifname, ".pcap"))
-     && strncmp(ifname, "lo", 2)
-     ) {
-    char buf[64], ifaces[128], *tmp, *iface;
-
-    snprintf(ifaces, sizeof(ifaces), "%s", ifname);
-    iface = strtok_r(ifaces, ",", &tmp);
-
-    while(iface != NULL) {
-      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", iface);
-      system(buf);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s", buf);
-      iface = strtok_r(NULL, ",", &tmp);
-    }
-  }
-#endif  
-
 }
 
 /* **************************************************** */
@@ -220,7 +194,7 @@ void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
-    inline_interface = false, has_vlan_packets = false,
+    sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, numSubInterfaces = 0,
@@ -228,7 +202,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
-    has_vlan_packets = false,
+    sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
@@ -1202,8 +1176,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
         u_int8_t icmp_type = l4[0];
         u_int8_t icmp_code = l4[1];
 
-        if((flow->get_cli_host() && flow->get_cli_host()->isLocalHost())
-	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
+        if((flow->get_cli_host()->isLocalHost()) && (flow->get_srv_host()->isLocalHost())) {
           /* Set correct direction in localhost ping */
           if((icmp_type == 8) ||                  /* ICMP Echo [RFC792] */
             (icmp_type == 128))                   /* ICMPV6 Echo Request [RFC4443] */
@@ -1485,7 +1458,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max-len: %u].", h->len, ifMTU);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
 #ifdef linux
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Use: sudo ethtool -K %s gro off gso off tso off", ifname);
 #endif
       mtuWarningShown = true;
     }
@@ -1850,7 +1823,7 @@ void NetworkInterface::shutdown() {
 void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1, has_vlan_packets = false;
-  running = false, inline_interface = false;
+  running = false, sprobe_interface = false, inline_interface = false;
 
   getStats()->cleanup();
 
@@ -2206,8 +2179,6 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
   struct in_addr  a4;
   struct in6_addr a6;
   Host *h = NULL;
-
-  if(!host_ip) return(NULL);
 
   /* Check if address is invalid */
   if((inet_pton(AF_INET, (const char*)host_ip, &a4) == 0)
@@ -3493,6 +3464,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
+  lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",   get_has_vlan_packets());
 

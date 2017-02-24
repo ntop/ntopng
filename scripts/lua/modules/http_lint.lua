@@ -195,12 +195,6 @@ local function validateIfaceLocalStatsMode(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateProcessesStatsMode(mode)
-   local modes = {"table", "timeline"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateDirection(mode)
    local modes = {"sent", "recv"}
 
@@ -580,7 +574,6 @@ local known_parameters = {
    ["pid_mode"]                =  validatePidMode,               -- pid mode for pid_stats.lua
    ["pid_name"]                =  validateSingleWord,            -- A process name
    ["pid"]                     =  validateNumber,                -- A process ID
-   ["procstats_mode"]          =  validateProcessesStatsMode,    -- A mode for processes_stats.lua
    ["sflowdistro_mode"]        =  validateSflowDistroMode,       -- A mode for host_sflow_distro
    ["distr"]                   =  validateSflowDistroType,       -- A type for host_sflow_distro
    ["sflow_filter"]            =  validateSflowFilter,           -- sflow host filter
@@ -761,7 +754,6 @@ local known_parameters = {
    ["addvlan"]                 =  validateBool,                  -- True if VLAN must be added to the result
    ["http_mode"]               =  validateHttpMode,              -- HTTP mode for host_http_breakdown.lua
    ["refresh"]                 =  validateNumber,                -- top flow refresh in seconds, index.lua
-   ["sprobe"]                  =  validateEmpty,                 -- sankey.lua
    ["always_show_hist"]        =  validateBool,                  -- host_details.lua
    ["task_id"]                 =  validateSingleWord,            -- get_nbox_data
    ["host_stats"]              =  validateBool,                  -- host_get_json

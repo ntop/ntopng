@@ -71,8 +71,17 @@ print [[
 	 	             css: {
 			        textAlign: 'center'
 			     }
-				 }, {
-			     title: "VLAN",
+				 }, {]]
+
+			       ifstats = interface.getStats()
+
+if(ifstats.sprobe) then
+   print('title: "Source Id",\n')
+else
+   print('title: "VLAN",\n')
+end
+
+print [[
 				 field: "column_vlan",
 				 sortable: true,
 	 	             css: {

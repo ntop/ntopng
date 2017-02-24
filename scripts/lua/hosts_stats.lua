@@ -250,16 +250,11 @@ print [[
 			  ]]
 
 if(show_vlan) then
-if(ifstats.sprobe) then
-   print('{ title: "Source Id",\n')
-else
    if(ifstats.vlan) then
-     print('{ title: "VLAN",\n')
+      print('{ title: "VLAN",\n')
    end
-end
 
-
-print [[
+   print [[
 				 field: "column_vlan",
 				 sortable: true,
 	 	             css: {
@@ -267,7 +262,7 @@ print [[
 			     }
 
 				 },
-]]
+   ]]
 end
 
 print [[
