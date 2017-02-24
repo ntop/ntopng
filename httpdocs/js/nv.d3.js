@@ -14347,6 +14347,12 @@ nv.models.stackedAreaChart = function() {
             chart.update = function() { container.transition().duration(duration).call(chart); };
             chart.container = this;
 
+            // Display No Data message if there's nothing to show.
+            if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+                nv.utils.noData(chart, container)
+                return chart;
+            }
+
             state
                 .setter(stateSetter(data), chart.update)
                 .getter(stateGetter(data))
@@ -14366,13 +14372,8 @@ nv.models.stackedAreaChart = function() {
                 }
             }
 
-            // Display No Data message if there's nothing to show.
-            if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
-                nv.utils.noData(chart, container)
-                return chart;
-            } else {
-                container.selectAll('.nv-noData').remove();
-            }
+            container.selectAll('.nv-noData').remove();
+
             // Setup Scales
             x = stacked.xScale();
             y = stacked.yScale();
