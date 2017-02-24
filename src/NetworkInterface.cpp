@@ -198,7 +198,7 @@ NetworkInterface::NetworkInterface(const char *name,
      && (!strstr(ifname, ".pcap"))
      && strncmp(ifname, "lo", 2)
      ) {
-    char buf[64], ifaces[128], *tmp, iface;
+    char buf[64], ifaces[128], *tmp, *iface;
 
     snprintf(ifaces, sizeof(ifaces), "%s", ifname);
     iface = strtok_r(ifaces, ",", &tmp);
