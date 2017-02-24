@@ -84,8 +84,10 @@ print [[</font>
 ]]
 
 if interface.isPcapDumpInterface() == false then
-   key = 'ntopng.prefs.'..ifname..'.speed'
-   maxSpeed = ntop.getCache(key)
+   if(ifname ~= nil) then
+     key = 'ntopng.prefs.'..ifname..'.speed'
+     maxSpeed = ntop.getCache(key)
+   end
    -- io.write(maxSpeed)
    if((maxSpeed == "") or (maxSpeed == nil)) then
       -- if the speed in not custom we try to read the speed from the interface
