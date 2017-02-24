@@ -1477,6 +1477,24 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
   if(strncmp(ifname, "zc:", 3) == 0) ifname = &ifname[3];
 
+  if(strchr(ifname, ',')) {
+    /* These are interfaces with , (e.g. eth0,eth1) */
+    char ifaces[128], *iface, *tmp;
+    u_int32_t speed = 0;
+    
+    snprintf(ifaces, sizeof(ifaces), "%s", ifname);
+    iface = strtok_r(ifaces, ",", &tmp);
+
+    while(iface) {
+      u_int32_t thisSpeed = getMaxIfSpeed(iface);
+
+      if(thisSpeed > speed) speed = thisSpeed;
+      iface = strtok_r(NULL, ",", &tmp);
+    }
+
+    return(speed);
+  }
+  
   memset(&ifr, 0, sizeof(struct ifreq));
 
   sock = socket(PF_INET, SOCK_DGRAM, 0);
