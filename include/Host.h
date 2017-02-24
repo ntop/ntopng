@@ -45,6 +45,7 @@ class Host : public GenericHost {
   IpAddress ip;
   Mutex *m;
   Mac *mac;
+  u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt, nextSitesUpdate;
 #ifdef NTOPNG_PRO
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
