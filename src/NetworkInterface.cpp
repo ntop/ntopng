@@ -1202,7 +1202,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
         u_int8_t icmp_type = l4[0];
         u_int8_t icmp_code = l4[1];
 
-        if((flow->get_cli_host()->isLocalHost()) && (flow->get_srv_host()->isLocalHost())) {
+        if((flow->get_cli_host() && flow->get_cli_host()->isLocalHost())
+	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
           /* Set correct direction in localhost ping */
           if((icmp_type == 8) ||                  /* ICMP Echo [RFC792] */
             (icmp_type == 128))                   /* ICMPV6 Echo Request [RFC4443] */
