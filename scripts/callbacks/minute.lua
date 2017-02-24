@@ -132,6 +132,8 @@ if(tostring(snmp_devices_rrd_creation) == "1") then
    end
 end
 
+local snmp_to_dump = {}
+
 -- id = 0
 for _,_ifname in pairs(ifnames) do
    interface.select(_ifname)
@@ -443,7 +445,8 @@ for _,_ifname in pairs(ifnames) do
 
 	 -- Save SNMP stats every 5 minutes
 	 if(tostring(snmp_devices_rrd_creation) == "1") then
-	    snmp_update_rrds(ifstats.id, verbose)
+	    -- See below
+	    snmp_to_dump[#snmp_to_dump + 1] = ifstats.id
 	 end
       end -- if(diff
    end -- if(good interface type
@@ -476,4 +479,12 @@ if prefs.is_active_local_hosts_cache_enabled then
       end
 
    end
+end
+
+-- Check for SNMP to dump
+for i, ifid in pairs(snmp_to_dump) do
+   local available_time = 60 - (os.time() - when)
+
+   -- We must complete within the minute
+   snmp_update_rrds(ifid, available_time, verbose)
 end
