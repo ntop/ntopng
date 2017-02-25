@@ -2557,7 +2557,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
 
   if(!m
      || m->idle()
-     || ((r->vlan_id && (*(r->vlan_id) != m->get_vlan_id())))
+     || ((*(r->vlan_id) && (*(r->vlan_id) != m->get_vlan_id())))
      || (r->skipSpecialMacs && m->isSpecialMac())
      || (r->hostMacsOnly && m->getNumHosts() == 0))
     return(false); /* false = keep on walking */
