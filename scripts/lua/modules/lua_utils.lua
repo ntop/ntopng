@@ -1353,13 +1353,12 @@ end
 --          hostinfo2url(flow[key],"srv"), return an url based on the server host information in the flow table
 --
 
-function hostinfo2url(host_info,host_type)
+function hostinfo2url(host_info,host_type,novlan)
   local rsp = ''
   -- local version = 0
   local version = 1
 
   if(host_type == "cli") then
-
     if(host_info["cli.ip"] ~= nil) then
       rsp = rsp..'host='..host_info["cli.ip"]
     end
@@ -1383,14 +1382,15 @@ function hostinfo2url(host_info,host_type)
     elseif(host_info["mac"] ~= nil) then
       rsp = rsp..'host='..host_info["mac"]
     end
-
   end
 
-  if((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0)) then
-    if(version == 0) then
-      rsp = rsp..'&vlan='..tostring(host_info["vlan"])
-    elseif(version == 1) then
-      rsp = rsp..'@'..tostring(host_info["vlan"])
+  if(novlan == nil) then
+    if((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0)) then
+      if(version == 0) then
+        rsp = rsp..'&vlan='..tostring(host_info["vlan"])
+      elseif(version == 1) then
+        rsp = rsp..'@'..tostring(host_info["vlan"])
+      end
     end
   end
 
@@ -2830,6 +2830,15 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed)
     return res.flows
   else
     return {}
+  end
+end
+
+function stripVlan(name)
+  local key = string.split(name, "@")
+  if(key ~= nil) then
+     return(key[1])
+  else
+     return(name)
   end
 end
 

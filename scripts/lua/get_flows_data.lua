@@ -379,7 +379,7 @@ for _key, _value in pairsByValues(vals, funct) do
    end
 
    if(value["cli.allowed_host"]) then
-      src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. abbreviateString(cli_name, 20)
+      src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. abbreviateString(stripVlan(cli_name), 20)
       if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fa fa-flag'></i>" end
 
    -- Flow username
@@ -400,12 +400,12 @@ for _key, _value in pairsByValues(vals, funct) do
       src_port=""
          end
    else
-     src_key = abbreviateString(cli_name, 20)
+     src_key = abbreviateString(stripVlan(cli_name), 20)
      src_port=":"..value["cli.port"]
    end
 
    if(value["srv.allowed_host"]) then
-   dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. abbreviateString(srv_name, 20)
+   dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. abbreviateString(stripVlan(srv_name), 20)
    if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fa fa-flag'></i>" end
    dst_key = dst_key .. "</A>"
 
