@@ -2332,15 +2332,27 @@ end
 -- Add here the icons you guess based on the Mac address
 local guess_icon_keys = {
   ["dell inc."] = "fa-desktop",
+  ["vmware, inc."] = "fa-desktop",
+  ["xensource, inc."] = "fa-desktop",
+  ["lanner electronics, inc."] = "fa-desktop",
+  ["nexcom international co., ltd."] = "fa-desktop",
   ["apple, inc."] = "fa-apple",
-  ["cisco systems, Inc"] = "fa-arrows",
+  ["cisco systems, inc"] = "fa-arrows",
   ["juniper networks"] = "fa-arrows",
+  ["brocade communications systems, inc."] = "fa-arrows",
+  ["force10 networks, inc."] = "fa-arrows",
+  ["huawei technologies co.,ltd"] = "fa-arrows",
+  ["alcatel-lucent ipd"] = "fa-arrows",
+  ["arista networks, inc."] = "fa-arrows",
+  ["3com corporation"] = "fa-arrows",
+  ["routerboard.com"] = "fa-arrows",
+  ["extreme networks"] = "fa-arrows",
   ["xerox corporation"] = "fa-print"
 }
 
 function guessHostIcon(key)
-   local m = get_manufacturer_mac(key)
-   local icon = guess_icon_keys[string.lower(m)]
+   local m = string.lower(get_manufacturer_mac(key))
+   local icon = guess_icon_keys[m]
 
    if((icon ~= nil) and (icon ~= "")) then
       return(" <i class='fa "..icon.." fa-lg'></i>")
