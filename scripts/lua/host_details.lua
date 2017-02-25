@@ -438,7 +438,7 @@ if((page == "overview") or (page == nil)) then
 	 print('VLAN ID')
       end
 
-      print("</th><td colspan=2>"..host["vlan"].."</td></tr>\n")
+      print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
    end
 
    if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
