@@ -151,32 +151,38 @@ else
    pool_ = ""
 end
 
+if(_GET["vlan"] ~= nil) then
+  vlan_title = " [VLAN ".._GET["vlan"].."]"
+else
+  vlan_title = ""
+end
+
 if(mode == "all") then
-	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
-	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n')
-	elseif ( pool_ ~= "" ) then print('title: "All Hosts '..pool_..'",\n')
-	else print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
+	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
+	elseif ( os_ ~= "" ) then print('title: "All '..os_..vlan_title..' Hosts",\n')
+	elseif ( pool_ ~= "" ) then print('title: "All Hosts '..pool_..vlan_title..'",\n')
+	else print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
 	end
 elseif(mode == "local") then
-	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n')
-	elseif ( pool_ ~= "" ) then print('title: "Local Hosts '..pool_..'",\n')
-	else  print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
+	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
+	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..vlan_title..' Hosts",\n')
+	elseif ( pool_ ~= "" ) then print('title: "Local Hosts '..pool_..vlan_title..'",\n')
+	else  print('title: "Local '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
 	end
 elseif(mode == "remote") then
-	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n')
-	elseif ( pool_ ~= "" ) then print('title: "Remote Hosts '..pool_..'",\n')
-	else print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
+	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
+	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..vlan_title..' Hosts",\n')
+	elseif ( pool_ ~= "" ) then print('title: "Remote Hosts '..pool_..vlan_title..'",\n')
+	else print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
 	end
 else
-   print('title: "Local Networks'..country..'",\n')
+   print('title: "Local Networks'..country..vlan_title..'",\n')
 end
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
 
