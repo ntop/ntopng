@@ -2174,7 +2174,7 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
   Mac *m = (Mac*)h;
 
   if((info->m == NULL)
-     && (m->get_vlan_id() == info->vlan_id)
+     && ((info->vlan_id == 0) || (m->get_vlan_id() == info->vlan_id))
      && (!memcmp(info->mac, m->get_mac(), 6))
      ) {
     info->m = m;
