@@ -172,6 +172,7 @@ bool Flow::skipProtocolFamilyCategorization(u_int16_t proto_id) {
 void Flow::categorizeFlow() {
   bool toRequest = false, toQuery = false;
   char *what;
+  int ip4_0, ip4_1, ip4_2, ip4_3;
 
   if(skipProtocolFamilyCategorization(ndpiDetectedProtocol.protocol)
      && skipProtocolFamilyCategorization(ndpiDetectedProtocol.master_protocol)) {
@@ -195,6 +196,7 @@ void Flow::categorizeFlow() {
      || (!strchr(what, '.'))
      || strstr(what, ".arpa")
      || (strlen(what) < 4)
+     || (sscanf(what, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4)
      )
     return;
   
@@ -435,14 +437,14 @@ void Flow::processDetectedProtocol() {
 	      if(at != NULL) {
 		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
-
-		if(ntop->get_flashstart()) /* Cache category */
-		  ntop->get_flashstart()->findCategory((char*)ndpiFlow->host_server_name,
-						       &categorization.category,
-						       true);
 	      }
 	    }
 	  }
+
+	  if(ntop->get_flashstart()) /* Cache category */
+	    ntop->get_flashstart()->findCategory((char*)ndpiFlow->host_server_name,
+						 &categorization.category,
+						 true);
 	}
       }
     }
@@ -2404,8 +2406,12 @@ void Flow::checkFlowCategory() {
   if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
     return;
 
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Category: %d", categorization.category.categories[0]);
-
+  if((cli_host && (!cli_host->IsAllowedTrafficCategory(&categorization.category)))
+     || (srv_host && (!srv_host->IsAllowedTrafficCategory(&categorization.category)))) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Discarding flow tieh category %d", categorization.category.categories[0]);
+    setDropVerdict();
+  }
+    
   /* TODO: use category to emit verdict */
 #if 0
   {

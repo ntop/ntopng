@@ -247,10 +247,16 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
     HASH_FIND_STR(domain_cache, name, entry);
 
     if(entry) {
-      entry->last_use = time(NULL), entry->query_in_progress = false;
-      if(category) memcpy(&entry->categories, category, sizeof(struct site_categories));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s]", name,
-				   category2str(category, buf, sizeof(buf)));
+      entry->last_use = time(NULL);
+
+      if(category) {
+	memcpy(&entry->categories, category, sizeof(struct site_categories));
+	entry->query_in_progress = false;
+      }
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s][query_in_progress: %s]", name,
+				   category2str(category, buf, sizeof(buf)),
+				   entry->query_in_progress ? "True" : "False");
       m.unlock(__FILE__, __LINE__);
       return(true);
     }
@@ -262,7 +268,7 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
     if(category)
       memcpy(&entry->categories, category, sizeof(struct site_categories)), entry->query_in_progress = false;
     else
-      memset(&entry->categories, 0, sizeof(struct site_categories)), entry->query_in_progress = true;
+      memset(&entry->categories, 0, sizeof(struct site_categories)) /*, entry->query_in_progress = true */;
 
     HASH_ADD_STR(domain_cache, domain, entry);
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s [%s]", name,
@@ -312,8 +318,9 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 
       entry->last_use = time(NULL);
       if(category) memcpy(category, &entry->categories, sizeof(struct site_categories));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s]",
-				   name, category2str(&entry->categories, buf, sizeof(buf)));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s][query_in_progress: %s]",
+				   name, category2str(&entry->categories, buf, sizeof(buf)),
+				   entry->query_in_progress ? "True" : "False");
       m.unlock(__FILE__, __LINE__);
       return(true);
     }

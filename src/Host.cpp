@@ -1644,6 +1644,12 @@ void Host::setMDSNInfo(char *str) {
       set_host_label(info, true);
       return;
     }
-  }
-  
+  }  
+}
+
+/* *************************************** */
+
+bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
+  /* This is a stub */
+  return(true); // TODO
 }

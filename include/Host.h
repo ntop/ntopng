@@ -210,6 +210,7 @@ class Host : public GenericHost {
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   static void splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
+  bool IsAllowedTrafficCategory(struct site_categories *category);
 };
 
 #endif /* _HOST_H_ */
