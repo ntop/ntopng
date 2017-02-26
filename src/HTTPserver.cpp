@@ -238,7 +238,7 @@ static int is_authorized(const struct mg_connection *conn,
   */
   if(!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) {
     if(request_info->query_string) {
-      get_qsvar(request_info, "user", username, username_len);
+      get_qsvar(request_info, "username", username, username_len);
       get_qsvar(request_info, "password", password, sizeof(password));
     }
 

@@ -197,12 +197,12 @@ void Flow::categorizeFlow() {
      || (strlen(what) < 4)
      )
     return;
-
+  
   if(!categorization.categorized_requested)
     categorization.categorized_requested = true, toRequest = true, toQuery = true;
   else if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
     toRequest = true;
-
+  
   if(toRequest) {
     if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
 					    &categorization.category, toQuery))
@@ -537,7 +537,6 @@ void Flow::processDetectedProtocol() {
      /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
      && (l7proto != NDPI_PROTOCOL_DNS))
     freeDPIMemory();
-
 }
 
 /* *************************************** */
@@ -2404,6 +2403,8 @@ bool Flow::dumpFlowTraffic() {
 void Flow::checkFlowCategory() {
   if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
     return;
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Category: %d", categorization.category.categories[0]);
 
   /* TODO: use category to emit verdict */
 #if 0
