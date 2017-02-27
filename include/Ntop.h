@@ -49,7 +49,6 @@ class Ntop {
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
-  AlertsBuilder *alertsBuilder;
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer of Redis server. */
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
@@ -367,7 +366,6 @@ class Ntop {
   inline Prefs*            getPrefs()                { return(prefs);               };
   inline RuntimePrefs*     getRuntimePrefs()         { return(runtimeprefs);        };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
-  inline AlertsBuilder*    getAlertsBuilder()        { return(alertsBuilder);       };
 
 #ifdef NTOPNG_PRO
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };

@@ -28,6 +28,7 @@ class Flow;
 
 class AlertsManager : protected StoreManager {
  private:
+  AlertsBuilder *builder;
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
@@ -45,10 +46,10 @@ class AlertsManager : protected StoreManager {
 		  const char *alert_origin, const char *alert_target);
   int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id, char **alert_json);
-  int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+  int storeAlert(time_t when, AlertEntity alert_entity, const char *alert_entity_value,
+		 AlertType alert_type, AlertLevel alert_severity,
 		 const char *alert_origin, const char *alert_target,
-		 bool check_maximum);
+		 const char *alert_json, bool check_maximum);
 
   const char* getAlertEntity(AlertEntity alert_entity);
   const char* getAlertLevel(AlertLevel alert_severity);
@@ -104,7 +105,10 @@ class AlertsManager : protected StoreManager {
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
-  ~AlertsManager() {};
+  ~AlertsManager();
+
+  inline AlertsBuilder* getAlertsBuilder() { return builder; }
+  inline NetworkInterface* getNetworkInterface() { return StoreManager::getNetworkInterface(); }
 
 #ifdef NOTUSED
   int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
@@ -131,11 +135,8 @@ class AlertsManager : protected StoreManager {
 			      char **output_json) {
     return engageReleaseHostAlert(h, engaged_alert_id, 0, alert_type, (AlertLevel)0, NULL, NULL, false /* release */, NULL, output_json);
   };
-  int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-		     Host *alert_origin, Host *alert_target);
-  inline int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
-  }
+  int storeHostAlert(Host *h, time_t when, AlertType alert_type, AlertLevel alert_severity,
+		     Host *alert_origin, Host *alert_target, const char *alert_json);
 
   int getHostAlerts(Host *h,
 		    lua_State* vm, AddressTree *allowed_hosts,
@@ -155,7 +156,7 @@ class AlertsManager : protected StoreManager {
   /*
     ========== FLOW alerts API =========
    */
-  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, time_t when, const char *alert_json);
+  int storeFlowAlert(Flow *f, time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   inline int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
 			   u_int32_t start_offset, u_int32_t end_offset) {
     return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
@@ -179,7 +180,9 @@ class AlertsManager : protected StoreManager {
 			      char **output_json) {
     return engageReleaseNetworkAlert(cidr, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL, output_json);
   };
-  int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  inline int storeNetworkAlert(const char *cidr, time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeAlert(when, alert_entity_network, cidr, alert_type, alert_severity, NULL, NULL, alert_json, true);
+  }
 
   /*
     ========== INTERFACE alerts API ======
@@ -197,7 +200,10 @@ class AlertsManager : protected StoreManager {
 				   char **output_json) {
     return engageReleaseInterfaceAlert(n, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL, output_json);
   };
-  int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  inline int storeInterfaceAlert(NetworkInterface *n, time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool check_max) {
+    /* TODO interface alert entity value */
+    return storeAlert(when, alert_entity_interface, "TODO", alert_type, alert_severity, NULL, NULL, alert_json, check_max);
+  }
 
   
   inline int getAlerts(lua_State* vm, AddressTree *allowed_hosts,

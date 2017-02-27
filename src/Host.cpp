@@ -221,14 +221,10 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       }
 
       if(blacklisted_host) {
-  AlertsBuilder *builder = ntop->getAlertsBuilder();
-  json_object *alert = builder->json_alert(alert_level_error, getInterface(), time(NULL));
-  builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_HOST_BLACKLISTED);
-  const char* msg = json_object_to_json_string(alert);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
-
-	iface->getAlertsManager()->storeHostAlert(this, alert_malware_detection, alert_level_error, msg);
-  json_object_put(alert);
+  AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+  char* alert_json = builder->createHostBlacklisted(NULL, this);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
+  free(alert_json);
       }
     }
 
@@ -1028,77 +1024,43 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     if(ntop->getUptime() < 10 /* sec */) return;
 #endif
 
-    AlertsBuilder *builder = ntop->getAlertsBuilder();
-    json_object *alert = builder->json_alert(alert_level_error, getInterface(), time(NULL));
-    json_object *detail;
-    if (syn_sent) {
-      detail = builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_SYN_FLOOD_ATTACKER);
-    } else {
-      detail = builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_SYN_FLOOD_VICTIM);
-      json_object_object_add(detail, "attacker", builder->json_host(f->get_srv_host()));
-    }
-    json_object *attack_counter = json_object_new_object();
-    json_object_object_add(detail, "attackCounter", attack_counter);
-    json_object_object_add(attack_counter, "currentHits", json_object_new_int64(counter->getCurrentHits()));
-    json_object_object_add(attack_counter, "duration", json_object_new_int64(counter->getOverThresholdDuration()));
+    AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+    char* alert_json;
 
-    const char* msg = json_object_to_json_string(alert);
-    ntop->getTrace()->traceEvent(TRACE_INFO, "SynFlood: %s", msg);
+    if (syn_sent)
+      alert_json = builder->createHostSynFloodAttacker(NULL, this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
+    else
+      alert_json = builder->createHostSynFloodVictim(NULL, this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
 
-    /* the f->get_srv_host() is just a guess */
-    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg,
-					      syn_sent ? this /* .. we are the cause of the trouble */ : f->get_srv_host(),
-					      syn_sent ? f->get_srv_host() /* .. the srve is a victim .. */: this);
-    json_object_put(alert);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "SynFlood: %s", alert_json);
+    free(alert_json);
   }
 }
 
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  AlertLevel severity = alert_level_error;
-  AlertsBuilder *builder = ntop->getAlertsBuilder();
-  time_t when = time(NULL);
-  json_object *alert = builder->json_alert(severity, getInterface(), when);
+  AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
   
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
     if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
-      builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_FLOW_FLOOD_ATTACKER);
-
-      const char* msg = json_object_to_json_string(alert);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Under scan attack: %s", msg);
-
-      iface->getAlertsManager()->engageHostAlert(this,
-						 (char*)"scan_attacker", time(NULL),
-						 alert_flow_flood, severity,
-						 this /* the originator of the alert, i.e., the cause of the trouble */,
-						 NULL /* the target of the alert, possibly many hosts */,
-             msg);
+      char* alert_json = builder->createHostFlowFloodAttacker(ALERT_KEY_HOST_SCAN_ATTACKER, this);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", alert_json);
+      free(alert_json);
       flow_flood_attacker_alert = true;
     }
   } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
-      builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_FLOW_FLOOD_VICTIM);
-
-      const char* msg = json_object_to_json_string(alert);
-
-      iface->getAlertsManager()->engageHostAlert(this,
-						 (char*)"scan_victim", when,
-						 alert_flow_flood, severity,
-						 NULL /* presently we don't know the originator(s) of the alert ... */,
-						 this /* ... but we can say that we're the victim ... */,
-             msg);
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
+      char* alert_json = builder->createHostFlowFloodVictim(ALERT_KEY_HOST_SCAN_VICTIM, this);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Under scan attack: %s", alert_json);
+      free(alert_json);
       flow_flood_victim_alert = true;
     }
   }
-
-  json_object_put(alert);
 }
 
 /* *************************************** */
@@ -1230,14 +1192,9 @@ void Host::updateStats(struct timeval *tv) {
   }
 
   if(isAboveQuota() && triggerAlerts()) {
-    AlertsBuilder *builder = ntop->getAlertsBuilder();
-    json_object *alert = builder->json_alert(alert_level_error, getInterface(), time(NULL));
-    builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_ABOVE_QUOTA);
-
-    const char *msg = json_object_to_json_string(alert);
-
-    iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
-    json_object_put(alert);
+    AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+    char* alert_json = builder->createHostAboveQuota(NULL, this);
+    free(alert_json);
   }
 }
 
@@ -1410,7 +1367,8 @@ void Host::incLowGoodputFlows(bool asClient) {
   if(alert && (!good_low_flow_detected)) {
 #if 0
     AlertLevel severity = alert_level_error;
-    AlertsBuilder *builder = ntop->getAlertsBuilder();
+    /* TODO This must be adapted! */
+    AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
     time_t when = time(NULL);
     json_object *alert = builder->json_alert(severity, getInterface(), when);
 

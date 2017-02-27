@@ -24,6 +24,7 @@
 
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
+  builder = NULL;
 
   snprintf(filePath, sizeof(filePath), "%s/%d/alerts/",
            ntop->get_working_dir(), ifid);
@@ -64,7 +65,14 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   snprintf(queue_name, sizeof(queue_name), ALERTS_MANAGER_QUEUE_NAME, ifid);
 
+  builder = new AlertsBuilder(this);
   refreshCachedNumAlerts();
+}
+
+/* **************************************************** */
+
+AlertsManager::~AlertsManager() {
+  if (builder) delete builder;
 }
 
 /* **************************************************** */
@@ -202,11 +210,11 @@ int AlertsManager::openStore() {
 
 /* **************************************************** */
 #ifdef NOTUSED
-int AlertsManager::storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+int AlertsManager::storeAlert(time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
-  u_int now = (u_int)time(NULL);
+  u_int now = (u_int)when;
   now = now - (now % 60);  // reduce the cardinality by doing minute bins
 
   if(!store_initialized || !store_opened)
@@ -453,18 +461,40 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
       /* make room by deleting the oldest alert matching the input criteria */
       deleteOldestAlert(alert_entity, alert_entity_value, table_name, max_num - 1);
 
-      AlertsBuilder *builder = ntop->getAlertsBuilder();
-      json_object *alert = builder->json_alert(alert_level_error, getNetworkInterface(), time(NULL));
-      builder->json_entity_detail(alert, alert_entity, alert_entity_value, JSON_ALERT_DETAIL_TOO_MANY_ALERTS, getNetworkInterface());      
+      AlertsBuilder *builder = getAlertsBuilder();
+      char* alert_json = NULL;
 
-      const char* msg = json_object_to_json_string(alert);
+      switch (alert_entity) {
+	case alert_entity_interface:
+	  alert_json = builder->createInterfaceTooManyAlerts(NULL);
+	  break;
+	case alert_entity_network:
+	  alert_json = builder->createNetworkTooManyAlerts(NULL, alert_entity_value);
+	  break;
+	case alert_entity_flow:
+	  /* TODO flow cannot be null! */
+	  puts(alert_entity_value);
+	  //~ alert_json = builder->createFlowTooManyAlerts(NULL);
+	  break;
+	case alert_entity_host: {
+	  char *host_ip;
+	  u_int16_t vlan_id = 0;
+	  char buf[64];
+	  Host *host;
 
-      storeAlert(alert_entity, alert_entity_value,
-		 alert_too_many_alerts, alert_level_error, msg,
-		 NULL, NULL,
-		 false /* force store alert, do not check maximum here */);
+	  Utils::getHostVlanInfo((char*)alert_entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
+	  host = iface->getHost(host_ip, vlan_id);
+	  if (host != NULL)
+	    builder->createHostTooManyAlerts(NULL, host);
+	  else
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", alert_entity_value, host_ip, vlan_id);
+	  break;
+	} default:
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unsupported entity %d = %s", alert_entity, alert_entity_value);
+      }
 
-      json_object_put(alert);
+      if (alert_json)
+	free(alert_json);
     }
   }
 }
@@ -869,10 +899,10 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
 
 /* **************************************************** */
 
-int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
+int AlertsManager::storeAlert(time_t when, AlertEntity alert_entity, const char *alert_entity_value,
 			      AlertType alert_type, AlertLevel alert_severity,
-			      const char *alert_json,
 			      const char *alert_origin, const char *alert_target,
+			      const char *alert_json,
 			      bool check_maximum) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
@@ -895,7 +925,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     m.lock(__FILE__, __LINE__);
 
     if(sqlite3_prepare(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(time(NULL)))
+       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
        || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
        || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
        || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_entity))
@@ -929,8 +959,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
 /* **************************************************** */
 
-int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
-				  AlertLevel alert_severity, time_t when,
+int AlertsManager::storeFlowAlert(Flow *f, time_t when, AlertType alert_type,
+				  AlertLevel alert_severity,
 				  const char *alert_json) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
@@ -1148,15 +1178,16 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 
 /* ******************************************* */
 
-int AlertsManager::storeHostAlert(Host *h,
-				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				  Host *alert_origin, Host *alert_target) {
+int AlertsManager::storeHostAlert(Host *h, time_t when,
+				  AlertType alert_type, AlertLevel alert_severity,
+				  Host *alert_origin, Host *alert_target,
+				  const char *alert_json) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
 
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
-  return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
+  return storeAlert(when, alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
 		    isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		    isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
 		    true);

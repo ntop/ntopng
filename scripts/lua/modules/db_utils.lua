@@ -752,7 +752,6 @@ function checkOpenFiles()
    local num_interfaces = 0
    for _, i in pairs(interfaces) do num_interfaces = num_interfaces + 1 end
 
-   local alert_severity = alertSeverity("warning")
    local alert_type = alertType("open_files_limit_too_small")
    local alert_id = "open_files_limit_too_small"
 
@@ -796,12 +795,12 @@ function checkOpenFiles()
       local engaged_alerts = alert_cache["num_alerts_engaged"]
 
       if open_files_too_small == true then
-	 interface.engageAlert(alert_id, alert_type, alert_severity, alertEntity("interface"))
-	 engaged_alerts = engaged_alerts + 1
+         interface.engageInterfaceTooManyOpenFiles(alert_id, ifid)
+         engaged_alerts = engaged_alerts + 1
       else
-	 if engaged_alerts > 0 then
-	    interface.releaseAlert(alert_id, alert_type, alertEntity("interface"))
-	 end
+         if engaged_alerts > 0 then
+            interface.releaseInterfaceAlert(alert_id, alert_type, tostring(ifid))
+         end
       end
 
       if engaged_alerts > 0 then

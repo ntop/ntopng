@@ -4805,87 +4805,51 @@ static int ntop_interface_store_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static inline int engage_release_entity_alert(json_object *alert, lua_State* vm,
-        AlertType alert_type, AlertLevel alert_severity,
-        AlertEntity entity, const char *entity_value,
-        bool engage, const char *engaged_alert_id, time_t when) {
-  AlertsManager *am;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *msg_buf;
-  int ret = -1;
+static inline int ntop_interface_release_interface_alert(lua_State *vm) {
+  const char *alert_key;
+  const char *ifname;
+  AlertType alert_type;
+  NetworkInterface *iface;  
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if((!ntop_interface)
-     || ((am = ntop_interface->getAlertsManager()) == NULL))
-    return(-1);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_key = lua_tostring(vm, 1);
 
-  if(engage)
-    msg_buf = strdup(json_object_to_json_string(alert));
-  else
-    /* Will be possibly set later by releaseAlert */
-    msg_buf = NULL;
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_type = (AlertType) lua_tointeger(vm, 2);
 
-  switch(entity) {
-    case alert_entity_interface:
-      if (engage)
-        ret = am->engageInterfaceAlert(ntop_interface, engaged_alert_id, when,
-              alert_type, alert_severity, msg_buf);
-      else
-        ret = am->releaseInterfaceAlert(ntop_interface, engaged_alert_id, alert_type,
-              &msg_buf);
-      break;
-    case alert_entity_network:
-      if (engage)
-        ret = am->engageNetworkAlert(entity_value, engaged_alert_id, when,
-              alert_type, alert_severity, msg_buf);
-      else
-        ret = am->releaseNetworkAlert(entity_value, engaged_alert_id, alert_type,
-              &msg_buf);
-      break;
-    case alert_entity_host: {
-      char *host_ip;
-      u_int16_t vlan_id = 0;
-      char buf[64];
-      Host *host;
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  ifname = lua_tostring(vm, 3);
 
-      Utils::getHostVlanInfo((char*)entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
-      host = ntop_interface->getHost(host_ip, vlan_id);
-      if (host != NULL) {
-        if (engage)
-          ret = am->engageHostAlert(host, engaged_alert_id, when,
-                alert_type, alert_severity, NULL, NULL, msg_buf);
-        else
-          ret = am->releaseHostAlert(host, engaged_alert_id, alert_type,
-                &msg_buf);
-      } else {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", entity_value, host_ip, vlan_id);
-        ret = -1;
-      }
-      break;
-    }
-    default:
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unhandled entity: %d", entity);
+  iface = ntop->getNetworkInterface(vm, ifname);
+
+  if (iface == NULL)
+    return(CONST_LUA_ERROR);
+
+  char *alert_json = NULL;
+  if (iface->getAlertsManager()->releaseInterfaceAlert(iface, alert_key, alert_type, &alert_json) == -1)
+    return(CONST_LUA_ERROR);
+
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
+  } else {
+    lua_pushnil(vm);
   }
 
-  if (ret >= 0)
-    lua_pushstring(vm, msg_buf);
-  else
-    lua_pushnil(vm);
-
-  if (msg_buf)  free(msg_buf);
-  return ret;
+  return(CONST_LUA_OK);
 }
 
-/* ****************************************** */
-
-static int ntop_interface_engage_release_alert(lua_State* vm, bool engage) {
-  char *engaged_alert_id;
-  int next_id;
+static inline int ntop_interface_release_host_alert(lua_State *vm) {
+  const char *alert_key;
+  const char *hostname;
   AlertType alert_type;
-  AlertLevel alert_severity;
-  AlertEntity entity;
-  const char* entity_value;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+  Host *host;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int ret;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4893,124 +4857,228 @@ static int ntop_interface_engage_release_alert(lua_State* vm, bool engage) {
     return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  engaged_alert_id = (char*)lua_tostring(vm, 1);
+  alert_key = lua_tostring(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  alert_type = (AlertType)lua_tonumber(vm, 2);
+  alert_type = (AlertType) lua_tointeger(vm, 2);
 
-  if (engage) {
-    if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    alert_severity = (AlertLevel)lua_tonumber(vm, 3);
-    next_id = 4;
-  } else {
-    next_id = 3;
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  hostname = lua_tostring(vm, 3);
+
+  Utils::getHostVlanInfo((char*)hostname, &host_ip, &vlan_id, buf, sizeof(buf));
+  host = ntop_interface->getHost(host_ip, vlan_id);
+  if (host == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", hostname, host_ip, vlan_id);
+    return(CONST_LUA_ERROR);
   }
 
-  if(ntop_lua_check(vm, __FUNCTION__, next_id, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  entity = (AlertEntity)lua_tonumber(vm, next_id);
-  next_id++;
+  char *alert_json = NULL;
+  if (ntop_interface->getAlertsManager()->releaseHostAlert(host, alert_key, alert_type, &alert_json) == -1)
+    return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, next_id+1) == LUA_TSTRING) {
-    entity_value = lua_tostring(vm, next_id+1);
-    next_id++;
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
   } else {
-    entity_value = "";
+    lua_pushnil(vm);
   }
 
-  /* Alert stuff */
-  time_t when = time(0);
-  AlertsBuilder *builder = ntop->getAlertsBuilder();
-  json_object *alert = builder->json_alert(alert_severity, ntop_interface, when);
-
-  /* TODO possibly add details */
-  ret = engage_release_entity_alert(alert, vm, alert_type, alert_severity,
-          entity, entity_value, engage, engaged_alert_id, when);
-
-  json_object_put(alert);
-
-  return (ret >= 0) ? CONST_LUA_OK : CONST_LUA_ERROR;
+  return(CONST_LUA_OK);
 }
 
-/* ****************************************** */
-
-static inline int ntop_interface_engage_alert(lua_State* vm) {
-  return ntop_interface_engage_release_alert(vm, true);
-}
-
-/* ****************************************** */
-
-static inline int ntop_interface_release_alert(lua_State* vm) {
-  return ntop_interface_engage_release_alert(vm, false);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_engage_release_threshold_alert(lua_State* vm, bool engage) {
-  const char *engaged_alert_id;
-  AlertEntity entity;
-  AlertType alert_type = alert_threshold_exceeded;
-  AlertLevel alert_severity = alert_level_error;
-  const char *entity_value;
-  const char *alarmable;
-  const char *op;
-  u_long threshold, value;
-  int ret;
+static inline int ntop_interface_release_network_alert(lua_State *vm) {
+  const char *alert_key;
+  const char *network;
+  AlertType alert_type;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
-    return(CONST_LUA_ERROR); 
-  
+    return(CONST_LUA_ERROR);
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  engaged_alert_id = (char*)lua_tostring(vm, 1);
+  alert_key = lua_tostring(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  entity = (AlertEntity)lua_tonumber(vm, 2);
+  alert_type = (AlertType) lua_tointeger(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  entity_value = lua_tostring(vm, 3);
+  network = lua_tostring(vm, 3);
 
-  if(engage) {
-    if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
-    alarmable = lua_tostring(vm, 4);
+  char *alert_json = NULL;
+  if (ntop_interface->getAlertsManager()->releaseNetworkAlert(network, alert_key, alert_type, &alert_json) == -1)
+    return(CONST_LUA_ERROR);
 
-    if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    value = lua_tonumber(vm, 5);
-
-    if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_ERROR);
-    op = lua_tostring(vm, 6);
-
-    if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    threshold = lua_tonumber(vm, 7);
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
+  } else {
+    lua_pushnil(vm);
   }
 
-  time_t when = time(0);
-  AlertsBuilder *builder = ntop->getAlertsBuilder();
-  json_object *alert = builder->json_alert(alert_severity, ntop_interface, when);
-  if (engage) {
-    json_object *detail = builder->json_threshold_cross_detail(alert, entity, entity_value, ntop_interface);
-    builder->json_threshold_cross_fill(detail, alarmable, op, value, threshold);
-  }
-
-  ret = engage_release_entity_alert(alert, vm, alert_type, alert_severity,
-          entity, entity_value, engage, engaged_alert_id, when);
-
-  json_object_put(alert);
-
-  return (ret >= 0) ? CONST_LUA_OK : CONST_LUA_ERROR;
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-static inline int ntop_interface_engage_threshold_alert(lua_State* vm) {
-  return ntop_interface_engage_release_threshold_alert(vm, true);
+static inline int ntop_interface_engage_threshold_alert_params(lua_State *vm, const char **alert_key,
+      const char **entity, const char **alarmable, u_int32_t *value, const char **op, u_int32_t *threshold) {
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  *alert_key = lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  *entity = lua_tostring(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  *alarmable = lua_tostring(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  *value = lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  *op = lua_tostring(vm, 5);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  *threshold = lua_tonumber(vm, 6);
+
+  return(CONST_LUA_OK);
+}
+
+static inline int ntop_interface_engage_host_threshold_alert(lua_State* vm) {
+  const char *engaged_alert_id;
+  const char *entity_value;
+  const char *alarmable;
+  const char *op;
+  u_int32_t threshold, value;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+  Host *host;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if (ntop_interface_engage_threshold_alert_params(vm, &engaged_alert_id, &entity_value,
+    &alarmable, &value, &op, &threshold) == CONST_LUA_ERROR)
+    return(CONST_LUA_ERROR);
+
+  Utils::getHostVlanInfo((char*)entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
+  host = ntop_interface->getHost(host_ip, vlan_id);
+  if (host == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", entity_value, host_ip, vlan_id);
+    return(CONST_LUA_ERROR);
+  }
+
+  AlertsBuilder *builder = ntop_interface->getAlertsManager()->getAlertsBuilder();
+  char *alert_json = builder->createHostThresholdCross(engaged_alert_id, host, alarmable, op, value, threshold);
+
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
+  } else {
+    lua_pushnil(vm);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+static inline int ntop_interface_engage_network_threshold_alert(lua_State* vm) {
+  const char *engaged_alert_id;
+  const char *network;
+  const char *alarmable;
+  const char *op;
+  u_int32_t threshold, value;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if (ntop_interface_engage_threshold_alert_params(vm, &engaged_alert_id, &network,
+    &alarmable, &value, &op, &threshold) == CONST_LUA_ERROR)
+    return(CONST_LUA_ERROR);
+
+  AlertsBuilder *builder = ntop_interface->getAlertsManager()->getAlertsBuilder();
+  char *alert_json = builder->createNetworkThresholdCross(engaged_alert_id, network, alarmable, op, value, threshold);
+
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
+  } else {
+    lua_pushnil(vm);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+static inline int ntop_interface_engage_interface_threshold_alert(lua_State* vm) {
+  const char *engaged_alert_id;
+  const char *entity_value;
+  const char *alarmable;
+  const char *op;
+  u_int32_t threshold, value;
+  NetworkInterface *ntop_interface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_interface_engage_threshold_alert_params(vm, &engaged_alert_id, &entity_value,
+    &alarmable, &value, &op, &threshold) == CONST_LUA_ERROR)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface = ntop->getNetworkInterface(vm, entity_value);
+
+  if (ntop_interface == NULL)
+    return(CONST_LUA_ERROR);
+
+  AlertsBuilder *builder = ntop_interface->getAlertsManager()->getAlertsBuilder();
+  char *alert_json = builder->createInterfaceThresholdCross(engaged_alert_id, alarmable, op, value, threshold);
+
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
+  } else {
+    lua_pushnil(vm);
+  }
+
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-static inline int ntop_interface_release_threshold_alert(lua_State* vm) {
-  return ntop_interface_engage_release_threshold_alert(vm, false);
+static int ntop_interface_engage_interface_too_many_open_files(lua_State *vm) {
+  const char *engaged_alert_id;
+  const char *ifname;
+  NetworkInterface *ntop_interface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  engaged_alert_id = lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  ifname = lua_tostring(vm, 2);
+
+  ntop_interface = ntop->getNetworkInterface(vm, ifname);
+
+  if (ntop_interface == NULL)
+    return(CONST_LUA_ERROR);
+
+  AlertsBuilder *builder = ntop_interface->getAlertsManager()->getAlertsBuilder();
+  char *alert_json = builder->createInterfaceTooManyOpenFiles(engaged_alert_id);
+
+  if (alert_json) {
+    lua_pushstring(vm, alert_json);
+    free(alert_json);
+  } else {
+    lua_pushnil(vm);
+  }
+
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -5626,10 +5694,19 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "queryAlertsRaw",       ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",   ntop_interface_query_flow_alerts_raw    },
 
-  { "engageAlert",          ntop_interface_engage_alert             },
-  { "releaseAlert",         ntop_interface_release_alert            },
-  { "engageThresholdAlert", ntop_interface_engage_threshold_alert   },
-  { "releaseThresholdAlert",ntop_interface_release_threshold_alert  },
+  /* Generic release alert methods */
+  { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
+  { "releaseHostAlert",     ntop_interface_release_host_alert       },
+  { "releaseNetworkAlert",  ntop_interface_release_network_alert    },
+
+  /* Specific engage alert methods */
+  /*    Interface */
+  { "engageInterfaceTooManyOpenFiles",    ntop_interface_engage_interface_too_many_open_files },
+  { "engageInterfaceThresholdCrossAlert", ntop_interface_engage_interface_threshold_alert },
+  /*    Host */
+  { "engageHostThresholdCrossAlert",      ntop_interface_engage_host_threshold_alert      },
+  /*    Network */
+  { "engageNetworkThresholdCrossAlert",   ntop_interface_engage_network_threshold_alert   },
 
   { "enableHostAlerts",     ntop_interface_host_enable_alerts       },
   { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
