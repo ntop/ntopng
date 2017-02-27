@@ -1,0 +1,85 @@
+WebSockets in ntopng
+--------------------
+WebSockets are a full-duplex technology to exchange client-server data in an asynchronous
+way. In the current implementation, WebSockets are used into ntopng to reduce server load by
+sending multiple requests on a single TCP connection. WebSockets are a precious
+resource since each WebSocket connection is handled by a separate thread, which is
+kept busy as long as the the connnection is alive. For this reason, ntopng limits the
+maximum amount of available WebSockets threads. This number is controlled by the constraint
+*SERVER_MAX_WEBSOCKET_THREADS*.
+
+When a client needs to retrieve data asynchronously, first it tries to enstablish a WebSocket
+connection. If it's available, it will be used. Otherwise a 503 code is returned and the client
+will try to use standard AJAX requests.
+
+In order to use WebSockets, both client and server support must be implemented.
+
+Client Side API
+---------------
+On the client side, the NtopngWebSocket Javascript class can be used.
+
+This example snippet implements the logic to automatically try the WebSocket connection
+first, then fall back to standard AJAX request.
+
+```
+/* Instantiate a connection object */
+var connection = new NtopngWebSocket("127.0.0.1:3000");
+
+/* Bind the connection to an endpoint, specifying the URL parameters */
+connection.connect("network_load.lua", { iffilter: "1" });
+
+/* Specify a poll interval in milliseconds to contact the server */
+connection.poll(3000);
+
+/* Setup a message listener */
+connection.onmessage = function(json_data) {
+  ...handle json_data object
+}
+```
+
+The `127.0.0.1:3000` part can be dynamically populated by this lua code: `print(_SERVER["Host"]..ntop.getHttpPrefix())`.
+
+Server Side API
+---------------
+On the server side, a standard LUA script can define some callbacks to be implement the WebSocket
+interactions.
+
+- `onWsInit()` it's called as soon as the WebSocket connection is enstablished. This is the right
+  place to setup connection-global status or to abort unwanted connections. URL parameters are
+  also available here through the _GET table.
+
+- `onWsReady()` it's called when the connection is ready to send application data. This is the right
+  place to begin sending some data to the client.
+
+- `onWsMessage(message)` it's called when a new message is received from the client. Usually the server
+  will interpret the request and reply with some content.
+
+These callbacks can terminate the connection in any moment by returning `false`. Sending data to the
+server is performed by a simple `print(data)`. In the current implementation, the `print` actually sends a
+WebSocket message, so data should be buffered manually by the lua script before printing it.
+
+Since scripts can either be invoked by WebSockets or by a standard AJAX request, a pattern to support both of the
+connection types is shown in the following snippet:
+
+```
+-- My WebSocket and AJAX module
+
+function serveRequest()
+  -- read the _GET parameters
+  ..
+  res = {}
+  res.some_data = some_value
+  ..
+  -- send the result message
+  print(json.encode(res, nil, 1))
+end
+
+function onWsMessage(message)
+   serveRequest()
+end
+
+if not isWebsocketConnection() then
+   sendHTTPHeader('application/json; charset=iso-8859-1')
+   serveRequest()
+end
+```

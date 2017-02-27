@@ -33,103 +33,6 @@ extern "C" {
 
 static HTTPserver *httpserver;
 
-/* ****************************************** */
-
-/* The total number of threads to use in mongoose */
-#define SERVER_NUM_THREADS 16
-
-/* The maximum number of threads to dedicate do WebSocket connections */
-#define SERVER_MAX_WEBSOCKET_THREADS 4
-
-/* The maximum number of active connections (busy threads) per host */
-#define SERVER_MAX_THREADS_PER_HOST 8
-
-/* ****************************************** */
-
-class ConnectionsLimiter {
-  private:
-    Mutex *mutex;
-    int active_threads;
-    int active_websockets;
-    struct {
-      uint32_t ip;
-      int port;
-      bool websocket;
-    } active_hosts[SERVER_NUM_THREADS];
-
-  public:
-    ConnectionsLimiter() {
-      mutex = new Mutex();
-      active_threads = 0;
-      active_websockets = 0;
-      memset(active_hosts, 0, sizeof(active_hosts));
-    }
-
-    ~ConnectionsLimiter() {
-      delete mutex;
-    }
-
-    bool connectHost(uint32_t ip, int port, bool is_websocket) {
-      bool success = true;
-
-      mutex->lock(__FILE__, __LINE__);
-
-      if (((is_websocket) && (active_websockets >= SERVER_MAX_WEBSOCKET_THREADS)) ||
-          (active_threads >= SERVER_NUM_THREADS)) {
-        success = false;
-      } else {
-        int num_hits = 0;
-        for (int i=0; i<active_threads; i++) {
-          if (active_hosts[i].ip == ip)
-            num_hits++;
-        }
-
-        if (num_hits >= SERVER_MAX_THREADS_PER_HOST)
-          success = false;
-      }
-
-      if (success) {
-        active_hosts[active_threads].ip = ip;
-        active_hosts[active_threads].port = port;
-
-        if (is_websocket) {
-          active_hosts[active_threads].websocket = true;
-          active_websockets++;
-        } else {
-          active_hosts[active_threads].websocket = false;
-        }
-        
-        active_threads++;
-      }
-
-      mutex->unlock(__FILE__, __LINE__);
-
-      return success;
-    }
-
-    void disconnectHost(uint32_t ip, int port) {
-      mutex->lock(__FILE__, __LINE__);
-
-      for (int i=0; i<active_threads; i++) {
-        if ((active_hosts[i].ip == ip) && (active_hosts[i].port == port)) {
-          bool is_websocket = active_hosts[i].websocket;
-
-          memmove(&active_hosts[i], &active_hosts[i+1], (active_threads - i - 1) * sizeof(active_hosts[0]));
-          memset(&active_hosts[--active_threads], 0, sizeof(active_hosts[0]));
-
-          if (is_websocket)
-            active_websockets--;
-
-          break;
-        }
-      }
-
-      mutex->unlock(__FILE__, __LINE__);
-    }
-};
-
-/* ****************************************** */
-
 /*
  * Send error message back to a client.
  */
@@ -919,9 +822,9 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   int stat_rc;
   char num_threads[4];
 
-  limiter = new ConnectionsLimiter();
+  limiter = new HTTPlimiter();
 
-  snprintf(num_threads, sizeof(num_threads), "%d", SERVER_NUM_THREADS);
+  snprintf(num_threads, sizeof(num_threads), "%d", HTTP_SERVER_NUM_THREADS);
 
   static char *http_options[] = {
     (char*)"listening_ports", ports,

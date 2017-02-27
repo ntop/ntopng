@@ -253,6 +253,7 @@ using namespace std;
 #include "MacManufacturers.h"
 #include "AddressResolution.h"
 #include "HTTPBL.h"
+#include "HTTPlimiter.h"
 #include "HTTPserver.h"
 #include "RuntimePrefs.h"
 #include "Paginator.h"

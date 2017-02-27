@@ -26,14 +26,13 @@
 
 /* Global used for enabling/disabling user authentication */
 extern bool enable_users_login;
-class ConnectionsLimiter;
 
 class HTTPserver {
  private:
   char *docs_dir, *scripts_dir;
   struct mg_context *httpd_v4;
   bool ssl_enabled;
-  ConnectionsLimiter *limiter;
+  HTTPlimiter *limiter;
 
  public:
   HTTPserver(const char *_docs_dir, const char *_scripts_dir);
@@ -44,7 +43,7 @@ class HTTPserver {
   inline char*     get_docs_dir()    { return(docs_dir);    };
   inline char*     get_scripts_dir() { return(scripts_dir); };
   inline bool      is_ssl_enabled()  { return(ssl_enabled); };
-  inline ConnectionsLimiter* get_connections_limiter() { return limiter; };
+  inline HTTPlimiter* get_connections_limiter() { return limiter; };
 };
 
 extern int send_error(struct mg_connection *conn, int status, const char *reason, const char *fmt, ...);
