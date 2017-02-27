@@ -650,6 +650,7 @@ local known_parameters = {
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids
    ["search"]                  =  validateBool,                  -- When set, a search should be performed
+   ["search_flows"]            =  validateBool,                  -- When set, a flow search should be performed
    ["criteria"]                =  validateLookingGlassCriteria,  -- A looking glass criteria
    ["row_id"]                  =  validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
