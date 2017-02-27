@@ -1670,26 +1670,32 @@ u_int32_t Utils::macHash(u_int8_t *mac) {
 
 /* https://en.wikipedia.org/wiki/Multicast_address */
 bool Utils::isSpecialMac(u_int8_t *mac) {
-  u_int16_t v2 = (mac[0] << 8) + mac[1];
-  u_int32_t v3 = (mac[0] << 16) + (mac[1] << 8) + mac[2];
+  u_int8_t zero[6] = { 0, 0, 0, 0, 0, 0 };
 
-  switch(v3) {
-  case 0x01000C:
-  case 0x0180C2:
-  case 0x01005E:
-  case 0x010CCD:
-  case 0x011B19:
+  if(memcmp(mac, zero, 6) == 0)
     return(true);
+  else {
+    u_int16_t v2 = (mac[0] << 8) + mac[1];
+    u_int32_t v3 = (mac[0] << 16) + (mac[1] << 8) + mac[2];
+    
+    switch(v3) {
+    case 0x01000C:
+    case 0x0180C2:
+    case 0x01005E:
+    case 0x010CCD:
+    case 0x011B19:
+      return(true);
+    }
+    
+    switch(v2) {
+    case 0xFFFF:
+    case 0x3333:
+      return(true);
+      break;
+    }
+    
+    return(false);
   }
-
-  switch(v2) {
-  case 0xFFFF:
-  case 0x3333:
-    return(true);
-    break;
-  }
-
-  return(false);
 }
 
 /* ****************************************************** */

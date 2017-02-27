@@ -384,6 +384,7 @@
 #define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
 #define CONST_PROFILES_PREFS               "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS            "ntopng.profiles_counters.ifid_%i"
+#define CONST_MAC_LAST_SEEN                "ntopng.mac_last_seen.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
 #define HOST_POOL_IDS_KEY                  "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY              "ntopng.prefs.%u.host_pools.members.%s"
