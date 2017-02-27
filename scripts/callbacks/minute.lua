@@ -482,9 +482,9 @@ if prefs.is_active_local_hosts_cache_enabled then
 end
 
 -- Check for SNMP to dump
-for i, ifid in pairs(snmp_to_dump) do
-   local available_time = 60 - (os.time() - when)
+local time_threshold = when - (when % 60) + 60
 
+for i, ifid in pairs(snmp_to_dump) do
    -- We must complete within the minute
-   snmp_update_rrds(ifid, available_time, verbose)
+   snmp_update_rrds(ifid, time_threshold, verbose)
 end
