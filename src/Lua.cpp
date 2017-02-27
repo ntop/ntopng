@@ -3727,6 +3727,9 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING))  return(CONST_LUA_ERROR);
   oid = (char*)lua_tostring(vm, 3);
 
+  /* Optional timeout: take the minimum */
+  if(lua_type(vm, 4) == LUA_TNUMBER) timeout = min(timeout, (u_int)lua_tointeger(vm, 4));
+
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   if(sock < 0) return(CONST_LUA_ERROR);

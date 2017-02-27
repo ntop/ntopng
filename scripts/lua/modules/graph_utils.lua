@@ -194,6 +194,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
        host_or_network = string.gsub(host_or_network, 'pool:', '')
        rrdname = host_pools_utils.getRRDBase(ifid, "")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'snmp:') then
+       host_or_network = string.gsub(host_or_network, 'snmp:', '')
+       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/snmpstats/")
    else
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
