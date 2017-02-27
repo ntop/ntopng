@@ -60,13 +60,14 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 Mac::~Mac() {
   /* TODO: decide if it is useful to dump mac stats to redis */
   if(!special_mac) {
-    char buf[64], buf1[64], when[16];
+    char buf[64], buf1[64], buf2[64], when[16];
     
     iface->decNumL2Devices();
 
     snprintf(buf, sizeof(buf), CONST_MAC_LAST_SEEN, iface->get_id());
     snprintf(when, sizeof(when), "%u", time(NULL));
-    ntop->getRedis()->hashSet(buf, Utils::formatMac(mac, buf1, sizeof(buf1)), when);
+    snprintf(buf2, sizeof(buf2), "%s@%d", Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
+    ntop->getRedis()->hashSet(buf, buf2, when);
   }
 
 #ifdef DEBUG
