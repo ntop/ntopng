@@ -27,7 +27,16 @@ end
 local timediff = epoch_end - epoch_begin + 1
 
 local totals = { ["count"] = {}, ["timespan"] = timediff, ["status"] = "ok" }
-local versions  = { [4] = 'IPv4', [6] = 'IPv6' }
+local versions
+local isv6 = isIPv6Address(_GET["host"])
+
+if(isv6) then
+   versions  = { [6] = 'IPv6' }
+   totals["count"]['IPv4'] = { ["tot_flows"] = 0, ["tot_bytes"] = 0, ["tot_packets"] = 0 }
+else
+   versions  = { [4] = 'IPv4' }
+   totals["count"]['IPv6'] = { ["tot_flows"] = 0, ["tot_bytes"] = 0, ["tot_packets"] = 0 }
+end
 
 headerShown = false
 

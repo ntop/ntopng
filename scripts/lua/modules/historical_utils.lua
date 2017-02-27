@@ -267,17 +267,20 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
    if not interface.isPacketInterface() then
       displacement = "9"
    end
-
 	  print [[
 
      <div class="row">
 
        <div class='col-md-3'>
-	 Download flows:
-          <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">IPv4</a>&nbsp;
-          <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">IPv6</a>
-       </div>]]
+	 Download flows: ]]
 
+	  if(ipv4_enabled) then	     
+	     print [[ <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">IPv4</a>&nbsp;]]
+	  else
+             print [[<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">IPv6</a>]]
+	end
+
+	print [[</div>]]
 	  if interface.isPacketInterface() then
        print[[ <div class='col-md-2'>
 	       Extract pcap: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
@@ -375,6 +378,8 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    local breadcrumb_root = "interface"
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
+   local isv6 = isIPv6Address(host)
+   
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_begin="..epoch_begin
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_end="..epoch_end
 
@@ -446,7 +451,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
   <div id="flows-per-pair-container"> </div>
 </div>
 
-]] historicalDownloadButtonsBar("pcap-button-top-talkers", "historical-container") print [[
+]] historicalDownloadButtonsBar("pcap-button-top-talkers", "historical-container", not(isv6), isv6) print [[
 
 <script type="text/javascript">
 ]] commonJsUtils() print[[
@@ -819,6 +824,7 @@ end
 function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
    local breadcrumb_root = "interface"
    local top_apps_url_params=""
+   local isv6 = isIPv6Address(host)
    top_apps_url_params = top_apps_url_params.."&epoch_begin="..epoch_begin
    top_apps_url_params = top_apps_url_params.."&epoch_end="..epoch_end
    if host and host ~= "" then
@@ -861,7 +867,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
   <div id="flows-per-pair-by-app-container"> </div>
 </div>
 
-]] historicalDownloadButtonsBar("pcap-button-top-protocols", "historical-apps-container") print [[
+]] historicalDownloadButtonsBar("pcap-button-top-protocols", "historical-apps-container", not(isv6), isv) print [[
 
 <script type="text/javascript">
 var totalRows = -1;
@@ -1417,7 +1423,8 @@ end
 function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
    -- prepare some attributes that will be attached to divs
    local div_data = ""
-
+   local isv6 = isIPv6Address(host)
+   
    if ifId ~= "" and ifId ~= nil then
       _GET["ifid"] = ifId
       div_data = div_data..' ifid="'..tostring(ifId)..'" '
@@ -1462,8 +1469,15 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
 <div class="container-fluid" id="historical-flows-container">
   <ul class="nav nav-tabs" role="tablist">
     <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> Summary </a> </li>
-    <li class="disabled"> <a href="#tab-ipv4" role="tab"> IPv4 </a> </li>
-    <li class="disabled"> <a href="#tab-ipv6" role="tab"> IPv6 </a> </li>
+]]
+
+if(not(isv6)) then 
+    print '<li class="disabled"> <a href="#tab-ipv4" role="tab"> IPv4 </a> </li>'
+else
+    print '<li class="disabled"> <a href="#tab-ipv6" role="tab"> IPv6 </a> </li>'
+end
+
+print [[
   </ul>
 
   <div class="tab-content">
@@ -1488,23 +1502,32 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
         </table>
       </div>
     </div>
+]]
 
-
+if(not(isv6)) then
+   print [[
     <div class="tab-pane fade" id="tab-ipv4" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows4"></div>
 ]] historicalDownloadButtonsBar('flows_v4', 'tab-ipv4',
 				true,
-				true) print[[
+				false) print[[
     </div>
+]]
 
+else
+   print [[
     <div class="tab-pane fade" id="tab-ipv6" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows6"></div>
 ]] historicalDownloadButtonsBar('flows_v6', 'tab-ipv6',
-				true,
+				false,
 				true
 			       ) print[[
     </div>
+]]
 
+end
+
+print [[
   </div>
 </div>
 
