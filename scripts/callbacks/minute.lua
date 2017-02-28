@@ -116,20 +116,12 @@ flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creatio
 host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
 snmp_devices_rrd_creation = ntop.getCache("ntopng.prefs.snmp_devices_rrd_creation")
 
-if(tostring(flow_devices_rrd_creation) == "1") then
-   local info = ntop.getInfo()
-
-   if(info["version.enterprise_edition"] ~= true) then
-      flow_devices_rrd_creation = "0"
-   end
+if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
+   flow_devices_rrd_creation = "0"
 end
 
-if(tostring(snmp_devices_rrd_creation) == "1") then
-   local info = ntop.getInfo()
-
-   if(info["version.enterprise_edition"] ~= true) then
-      snmp_devices_rrd_creation = "0"
-   end
+if(tostring(snmp_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
+   snmp_devices_rrd_creation = "0"
 end
 
 local snmp_to_dump = {}
