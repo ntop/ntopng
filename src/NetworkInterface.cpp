@@ -2341,7 +2341,7 @@ struct flowHostRetriever {
   char *country;
   int ndpi_proto;
   sortField sorter;
-  LocationPolicy location;
+  LocationPolicy location;  /* Not used in flow_search_walker */
   u_int16_t *vlan_id;
   char *osFilter;
   u_int32_t *asnFilter;
@@ -2364,6 +2364,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   int ndpi_proto;
   u_int16_t port;
   int16_t local_network_id;
+  LocationPolicy client_policy;
+  LocationPolicy server_policy;
 
   if(retriever->actNumEntries >= retriever->maxNumEntries)
     return(true); /* Limit reached */
@@ -2393,15 +2395,17 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && f->get_srv_host()->get_local_network_id() != local_network_id)
       return(false); /* false = keep on walking */
 
-    if(retriever->location == location_local_only) {
-      if((!f->get_cli_host()->isLocalHost())
-	 || (!f->get_srv_host()->isLocalHost()))
+    if(retriever->pag
+       && retriever->pag->clientMode(&client_policy)
+       && (((client_policy == location_local_only) && (!f->get_cli_host()->isLocalHost()))
+        || ((client_policy == location_remote_only) && (f->get_cli_host()->isLocalHost()))))
 	return(false); /* false = keep on walking */
-    } else if(retriever->location == location_remote_only) {
-      if((f->get_cli_host()->isLocalHost())
-	 || (f->get_srv_host()->isLocalHost()))
+
+    if(retriever->pag
+       && retriever->pag->serverMode(&server_policy)
+       && (((server_policy == location_local_only) && (!f->get_srv_host()->isLocalHost()))
+        || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
 	return(false); /* false = keep on walking */
-    }
 
     retriever->elems[retriever->actNumEntries].flow = f;
 
@@ -2672,6 +2676,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 int NetworkInterface::getFlows(lua_State* vm,
 			       AddressTree *allowed_hosts,
 			       Host *host, int ndpi_proto,
@@ -2747,12 +2752,13 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   return(retriever.actNumEntries);
 }
+#endif
 
 /* **************************************************** */
 
 int NetworkInterface::getFlows(lua_State* vm,
 			       AddressTree *allowed_hosts,
-			       LocationPolicy location, Host *host,
+			       Host *host,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
   int (*sorter)(const void *_a, const void *_b);
@@ -2764,10 +2770,16 @@ int NetworkInterface::getFlows(lua_State* vm,
     return(-1);
   }
 
-  highDetails = p->detailedResults() ? details_high : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
+  LocationPolicy client_mode;
+  LocationPolicy server_mode;
+  p->clientMode(&client_mode);
+  p->serverMode(&server_mode);
+  bool local_hosts = ((client_mode == location_local_only) && (server_mode == location_local_only));
+
+  highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
   retriever.pag = p;
-  retriever.host = host, retriever.location = location;
+  retriever.host = host, retriever.location = location_all;
   retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize(), retriever.allowed_hosts = allowed_hosts;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 

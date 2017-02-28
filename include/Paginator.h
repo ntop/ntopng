@@ -32,6 +32,8 @@ class Paginator {
   int l7proto_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
+  LocationPolicy client_mode;
+  LocationPolicy server_mode;
 
  public:
   Paginator();
@@ -62,6 +64,22 @@ class Paginator {
 
   inline bool localNetworkFilter(int16_t *f) const {
     if(local_network_filter) { (*f) = local_network_filter; return true; } return false;
+  }
+
+  inline bool clientMode(LocationPolicy *f) const {
+    if(client_mode) { (*f) = client_mode; return true; } return false;
+  }
+
+  inline bool serverMode(LocationPolicy *f) const {
+    if(server_mode) { (*f) = server_mode; return true; } return false;
+  }
+
+  inline void setClientMode(LocationPolicy v) {
+    client_mode = v;
+  }
+
+  inline void setServerMode(LocationPolicy v) {
+    server_mode = v;
   }
 };
 

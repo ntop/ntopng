@@ -330,12 +330,14 @@ class NetworkInterface {
 		       u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
+#ifdef NOTUSED
   int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
 		Host *host, int ndpi_proto, LocationPolicy location,
 		char *sortColumn, u_int32_t maxHits,
 		u_int32_t toSkip, bool a2zSortOrder);
+#endif
   int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
-		LocationPolicy location, Host *host,
+		Host *host,
 		Paginator *p);
   void getLocalHostActivity(lua_State* vm, const char * host);
 

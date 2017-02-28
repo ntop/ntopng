@@ -19,6 +19,8 @@ application_filter = ""
 hosts = _GET["hosts"]
 host = _GET["host"]
 vhost = _GET["vhost"]
+flowhosts_type = _GET["flowhosts_type"]
+flowhosts_type_filter = ""
 
 network_id = _GET["network"]
 
@@ -26,6 +28,15 @@ prefs = ntop.getPrefs()
 interface.select(ifname)
 ifstats = interface.getStats()
 ndpistats = interface.getnDPIStats()
+
+local filter_base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
+local filter_url_params = {}
+
+function getPageUrl(params, base_url)
+   local base_url = base_url or filter_base_url
+   local params = params or filter_url_params
+   return base_url .. "?" .. table.tconcat(params, "=", "&")
+end
 
 if (network_id ~= nil) then
 network_name = ntop.getNetworkNameById(tonumber(network_id))
@@ -61,54 +72,40 @@ print [[
 end
 
 if (page == "flows" or page == nil) then
-num_param = 0
+
 print [[
       <hr>
       <div id="table-flows"></div>
 	 <script>
-   var url_update = "]] 
-
-print(ntop.getHttpPrefix()) 
-
-print [[/lua/get_flows_data.lua]]
+   var url_update = "]]
 
 if(application ~= nil) then
-   print("?application="..application)
-   num_param = num_param + 1
+   filter_url_params["application"] = application
    application_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
 if(host ~= nil) then
-  if(num_param > 0) then print("&") else print("?") end
-   print("host="..host)
-   num_param = num_param + 1
+  filter_url_params["host"] = host
 end
 
 if(vhost ~= nil) then
-  if(num_param > 0) then print("&") else print("?") end
-   print("vhost="..vhost)
-   num_param = num_param + 1
+  filter_url_params["vhost"] = vhost
 end
 
 if(hosts ~= nil) then
-  if (num_param > 0) then
-    print("&")
-  else
-    print("?")
-  end
-  print("hosts="..hosts)
-  num_param = num_param + 1
+  filter_url_params["hosts"] = hosts
 end
 
 if(network_id ~= nil) then
-  if (num_param > 0) then
-    print("&")
-  else
-    print("?")
-  end
-  print("network="..network_id)
-  num_param = num_param + 1
+  filter_url_params["network"] = network_id
 end
+
+if(flowhosts_type ~= nil) then
+  filter_url_params["flowhosts_type"] = flowhosts_type
+  flowhosts_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+print(getPageUrl(filter_url_params, ntop.getHttpPrefix().."/lua/get_flows_data.lua"))
 
 print ('";')
 
@@ -154,19 +151,10 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
 
 print ('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
 
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua')
-
-n = 0
-if(host ~= nil) then print('?host='..host) n = n + 1 end
-if(vhost ~= nil) then
-   if(n == 0) then print("?") else print("&") end
-   print('vhost='..vhost)
-end
-if(network_id ~= nil) then 
-   if(n == 0) then print("?") else print("&") end
-   print('network='..network_id) 
-end
-
+print('<li><a href="')
+local application_filter_params = table.clone(filter_url_params)
+application_filter_params["application"] = nil
+print(getPageUrl(application_filter_params))
 print('">All Proto</a></li>')
 
 for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
@@ -174,15 +162,35 @@ for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    if(key == application) then
       class_active = ' class="active"'
    end
-   print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?application=' .. key)
-   if(host ~= nil) then print('&host='..host) end
-   if(vhost ~= nil) then print('&vhost='..vhost) end
-   if(network_id ~= nil) then print('&network='..network_id) end
+   print('<li '..class_active..'><a href="')
+   application_filter_params["application"] = key
+   print(getPageUrl(application_filter_params))
    print('">'..key..'</a></li>')
 end
 
+local flowhosts_type_params = table.clone(filter_url_params)
+flowhosts_type_params["flowhosts_type"] = nil
 
-print("</ul> </div>' ],\n")
+print("</ul> </div>'")
+print[[, '\
+   <div class="btn-group pull-right">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Hosts]] print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">All Hosts</a></li>\]]
+for _, htype in ipairs({
+   {"local_only", "Local Only"},
+   {"remote_only", "Remote Only"},
+   {"local_origin_remote_target", "Local Client - Remote Server"},
+   {"remote_origin_local_target", "Local Server - Remote Client"}}) do
+
+   flowhosts_type_params["flowhosts_type"] = htype[1]
+   print[[<li><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">]] print(htype[2]) print[[</a></li>]]
+end
+print[[\
+      </ul>\
+   </div>\
+']]
+print(" ],\n")
 
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_top.inc")

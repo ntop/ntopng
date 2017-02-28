@@ -39,6 +39,8 @@ Paginator::Paginator() {
   l7proto_filter = NDPI_PROTOCOL_UNKNOWN;
   port_filter = 0;
   local_network_filter = 0;
+  client_mode = location_all;
+  server_mode = location_all;
 
   /*
     TODO MISSING
@@ -85,6 +87,22 @@ void Paginator::readOptions(lua_State *L, int index) {
 	} else if(!strcmp(key, "hostFilter")) {
 	  if(host_filter) free(host_filter);
 	  host_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "clientMode")) {
+	  const char* value = lua_tostring(L, -1);
+	  if (!strcmp(value, "local"))
+	    client_mode = location_local_only;
+	  else if (!strcmp(value, "remote"))
+	    client_mode = location_remote_only;
+	  else
+	    client_mode = location_all;
+	} else if(!strcmp(key, "serverMode")) {
+	  const char* value = lua_tostring(L, -1);
+	  if (!strcmp(value, "local"))
+	    server_mode = location_local_only;
+	  else if (!strcmp(value, "remote"))
+	    server_mode = location_remote_only;
+	  else
+	    server_mode = location_all;
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;

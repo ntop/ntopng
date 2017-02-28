@@ -27,6 +27,7 @@ port        = _GET["port"]
 application = _GET["application"]
 network_id  = _GET["network"]
 vhost       = _GET["vhost"]
+flowhosts_type       = _GET["flowhosts_type"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
@@ -96,6 +97,22 @@ local paginfo = {
 if application ~= nil and application ~= "" then
    paginfo["l7protoFilter"] = interface.getnDPIProtoId(application)
    --print(paginfo["l7protoFilter"].." / "..application)
+end
+
+if not isEmptyString(flowhosts_type) then
+   if flowhosts_type == "local_origin_remote_target" then
+      paginfo["clientMode"] = "local"
+      paginfo["serverMode"] = "remote"
+   elseif flowhosts_type == "local_only" then
+      paginfo["clientMode"] = "local"
+      paginfo["serverMode"] = "local"
+   elseif flowhosts_type == "remote_origin_local_target" then
+      paginfo["clientMode"] = "remote"
+      paginfo["serverMode"] = "local"
+   elseif flowhosts_type == "remote_only" then
+      paginfo["clientMode"] = "remote"
+      paginfo["serverMode"] = "remote"
+   end
 end
 
 local flows_stats = interface.getFlowsInfo(host, paginfo)
