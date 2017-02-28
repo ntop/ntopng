@@ -224,6 +224,13 @@ if(filter_url_params.network ~= nil) then
 else
    print('buttons: [ ')
 
+   local more_buttons
+   if (filter_url_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
+      more_buttons = '<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>'
+   else
+      more_buttons = ''
+   end
+
    -- Ip version selector
    local ipversion_params = table.clone(filter_url_params)
    ipversion_params["version"] = nil
@@ -236,6 +243,7 @@ else
             <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(ipversion_params)); print[[">IPv4 Only</a></li>\
             <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(ipversion_params)); print[[">IPv6 Only</a></li>\
          </ul>\
+         ]] print(more_buttons) print[[
       </div>\
    ']]
 
@@ -247,13 +255,19 @@ else
    hosts_filter_params.mode = nil
    hosts_filter_params.pool = nil
    print (getPageUrl(hosts_filter_params))
-   print ('">All Hosts</a></li><li><a href="')
+   print ('">All Hosts</a></li>')
 
    hosts_filter_params.mode = "local"
+   print('<li')
+   if mode == hosts_filter_params.mode then print(' class="active"') end
+   print('><a href="')
    print (getPageUrl(hosts_filter_params))
-   print ('">Local Hosts Only</a></li><li><a href="')
+   print ('">Local Hosts Only</a></li>')
 
    hosts_filter_params.mode = "remote"
+   print('<li')
+   if mode == hosts_filter_params.mode then print(' class="active"') end
+   print('><a href="')
    print (getPageUrl(hosts_filter_params))
    print ('">Remote Hosts Only</a></li>')
 
@@ -261,18 +275,14 @@ else
    hosts_filter_params.mode = nil
    hosts_filter_params.pool = nil
    print('<li role="separator" class="divider"></li>')
-   for _, pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
-      hosts_filter_params.pool = pool.id
-      print('<li><a href="'..getPageUrl(hosts_filter_params)..'">Host Pool '..(pool.name)..'</li>')
-   end
-   local more_buttons
-   if (filter_url_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
-      more_buttons = '<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>'
-   else
-      more_buttons = ''
+   for _, _pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
+      hosts_filter_params.pool = _pool.id
+      print('<li')
+      if pool == _pool.id then print(' class="active"') end
+      print('><a href="'..getPageUrl(hosts_filter_params)..'">Host Pool '..(_pool.name)..'</li>')
    end
 
-   print('</ul>'..more_buttons..'</div>\'')
+   print('</ul></div>\'')
    
    print(' ],')
 end
