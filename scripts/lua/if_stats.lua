@@ -1044,7 +1044,7 @@ end
 
          if (_POST["blocked_categories"] ~= nil)  then
             local sites_categories = split(_POST["blocked_categories"], ",")
-            shaper_utils.setBlockedSitesCategories(ifid, sites_categories)
+            shaper_utils.setBlockedSitesCategories(ifid, target_pool, sites_categories)
          end
       end
 
@@ -1189,7 +1189,7 @@ end
 local sites_categories = ntop.getSiteCategories()
 if sites_categories ~= nil then
    -- flashstart is enabled here
-   local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid)
+   local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid, selected_pool.id)
 
    print[[<br><br>
       <b>Flashstart Categories</b><br>

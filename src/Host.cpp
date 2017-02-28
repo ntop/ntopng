@@ -1650,6 +1650,27 @@ void Host::setMDSNInfo(char *str) {
 /* *************************************** */
 
 bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
-  /* This is a stub */
-  return(true); // TODO
+#ifdef NTOPNG_PRO
+  if(! ntop->get_flashstart())
+    return(true);
+
+  L7Policy_t *policy = l7Policy; /*
+				    Cache value so that even if updateHostL7Policy()
+				    runs in the meantime, we're consistent with the policer
+				 */
+
+  for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
+    if(category->categories[i] == 0) break;
+
+    u_int8_t cat_id = category->categories[i];
+
+    if((cat_id < MAX_NUM_MAPPED_CATEGORIES) &&  /* Check if category id is valid */
+       (policy->blocked_categories[cat_id]))    /* Check if the category id is blocked */
+      return(false);
+  }
+
+  return(true);
+#else
+  return(true);
+#endif
 }
