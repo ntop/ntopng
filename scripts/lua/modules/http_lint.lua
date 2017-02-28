@@ -124,19 +124,15 @@ local function validatePort(p)
    end
 end
 
-local function validatePath(p)
-   -- path should not contain dots
-   if string.find(p, "%.") == nil then
-      return true
-   else
-      return false
-   end
-end
-
 local function validateUnchecked(p)
    -- base validation is already performed by C side.
    -- you should use this function as last resort
    return true
+end
+
+local function validateAbsolutePath(p)
+   -- An absolute path. Let it pass for now
+   return validateUnchecked(p)
 end
 
 -- #################################################################
@@ -699,8 +695,8 @@ local known_parameters = {
    ["slack_webhook"]                               =  validateUnchecked,
    ["nagios_nsca_host"]                            =  validateUnchecked,
    ["nagios_nsca_port"]                            =  validatePort,
-   ["nagios_send_nsca_executable"]                 =  validatePath,
-   ["nagios_send_nsca_config"]                     =  validatePath,
+   ["nagios_send_nsca_executable"]                 =  validateAbsolutePath,
+   ["nagios_send_nsca_config"]                     =  validateAbsolutePath,
    ["nagios_host_name"]                            =  validateUnchecked,
    ["nagios_service_name"]                         =  validateUnchecked,
    ["nbox_user"]                                   =  validateSingleWord,
