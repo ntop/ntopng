@@ -36,7 +36,7 @@ Paginator::Paginator() {
   /* int */
   max_hits = CONST_MAX_NUM_HITS;
   to_skip = 0;
-  l7proto_filter = NDPI_PROTOCOL_UNKNOWN; /* FIXME filtering UNKNOWN protocol has no effect */
+  l7proto_filter = -1;
   port_filter = 0;
   local_network_filter = 0;
   ip_version = 0;

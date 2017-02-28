@@ -56,7 +56,7 @@ class Paginator {
   }
 
   inline bool l7protoFilter(int *f) const {
-    if(l7proto_filter) { (*f) = l7proto_filter; return true; } return false;
+    if(l7proto_filter >= 0) { (*f) = l7proto_filter; return true; } return false;
   }
 
   inline bool portFilter(u_int16_t *f) const {
