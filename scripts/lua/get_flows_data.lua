@@ -27,7 +27,8 @@ port        = _GET["port"]
 application = _GET["application"]
 network_id  = _GET["network"]
 vhost       = _GET["vhost"]
-flowhosts_type       = _GET["flowhosts_type"]
+flowhosts_type  = _GET["flowhosts_type"]
+ipversion       = _GET["version"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
@@ -113,6 +114,10 @@ if not isEmptyString(flowhosts_type) then
       paginfo["clientMode"] = "remote"
       paginfo["serverMode"] = "remote"
    end
+end
+
+if not isEmptyString(ipversion) then
+   paginfo["ipVersion"] = tonumber(ipversion)
 end
 
 local flows_stats = interface.getFlowsInfo(host, paginfo)

@@ -21,6 +21,7 @@ criteria    = _GET["criteria"]
 -- Host comparison parameters
 mode        = _GET["mode"]
 tracked     = _GET["tracked"]
+ipversion   = _GET["version"]
 
 -- Used when filtering by ASn, VLAN or network
 asn          = _GET["asn"]
@@ -117,7 +118,7 @@ end
 
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 	                           country, os_, tonumber(vlan), tonumber(asn),
-				   tonumber(network), mac, tonumber(pool)) -- false = little details
+				   tonumber(network), mac, tonumber(pool), tonumber(ipversion)) -- false = little details
 --io.write("hello\n")
 --tprint(hosts_stats)
 --io.write("---\n")

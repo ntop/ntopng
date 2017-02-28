@@ -21,6 +21,8 @@ host = _GET["host"]
 vhost = _GET["vhost"]
 flowhosts_type = _GET["flowhosts_type"]
 flowhosts_type_filter = ""
+ipversion = _GET["version"]
+ipversion_filter = ""
 
 network_id = _GET["network"]
 
@@ -35,7 +37,10 @@ local filter_url_params = {}
 function getPageUrl(params, base_url)
    local base_url = base_url or filter_base_url
    local params = params or filter_url_params
-   return base_url .. "?" .. table.tconcat(params, "=", "&")
+   for _,_ in pairs(params) do
+      return base_url .. "?" .. table.tconcat(params, "=", "&")
+   end
+   return base_url
 end
 
 if (network_id ~= nil) then
@@ -96,6 +101,11 @@ if(hosts ~= nil) then
   filter_url_params["hosts"] = hosts
 end
 
+if(ipversion ~= nil) then
+  filter_url_params["version"] = ipversion
+  ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
 if(network_id ~= nil) then
   filter_url_params["network"] = network_id
 end
@@ -149,8 +159,37 @@ print [[",
 -- Automatic default sorted. NB: the column must be exists.
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
-print ('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+print ('buttons: [')
 
+-- begin buttons
+
+-- Local / Remote hosts selector
+local flowhosts_type_params = table.clone(filter_url_params)
+flowhosts_type_params["flowhosts_type"] = nil
+
+print[['\
+   <div class="btn-group">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Hosts]] print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">All Hosts</a></li>\]]
+for _, htype in ipairs({
+   {"local_only", "Local Only"},
+   {"remote_only", "Remote Only"},
+   {"local_origin_remote_target", "Local Client - Remote Server"},
+   {"remote_origin_local_target", "Local Server - Remote Client"}}) do
+
+   flowhosts_type_params["flowhosts_type"] = htype[1]
+   print[[<li]]
+   if htype[1] == flowhosts_type then print(' class="active"') end
+   print[[><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">]] print(htype[2]) print[[</a></li>]]
+end
+print[[\
+      </ul>\
+   </div>\
+']]
+
+-- L7 Application
+print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
 print('<li><a href="')
 local application_filter_params = table.clone(filter_url_params)
 application_filter_params["application"] = nil
@@ -168,30 +207,26 @@ for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    print('">'..key..'</a></li>')
 end
 
-local flowhosts_type_params = table.clone(filter_url_params)
-flowhosts_type_params["flowhosts_type"] = nil
-
 print("</ul> </div>'")
+
+-- Ip version selector
+local ipversion_params = table.clone(filter_url_params)
+ipversion_params["version"] = nil
+
 print[[, '\
    <div class="btn-group pull-right">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Hosts]] print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">IP Version]] print(ipversion_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">All Hosts</a></li>\]]
-for _, htype in ipairs({
-   {"local_only", "Local Only"},
-   {"remote_only", "Remote Only"},
-   {"local_origin_remote_target", "Local Client - Remote Server"},
-   {"remote_origin_local_target", "Local Server - Remote Client"}}) do
-
-   flowhosts_type_params["flowhosts_type"] = htype[1]
-   print[[<li><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">]] print(htype[2]) print[[</a></li>]]
-end
-print[[\
+         <li><a href="]] print(getPageUrl(ipversion_params)) print[[">All Versions</a></li>\
+         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(ipversion_params)); print[[">IPv4 Only</a></li>\
+         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(ipversion_params)); print[[">IPv6 Only</a></li>\
       </ul>\
    </div>\
 ']]
-print(" ],\n")
 
+-- end buttons
+
+print(" ],\n")
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_top.inc")
 

@@ -21,9 +21,24 @@ mac          = _GET["mac"]
 os_          = _GET["os"]
 community    = _GET["community"]
 pool         = _GET["pool"]
+ipversion    = _GET["version"]
+ipversion_filter = ""
+
+local filter_base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
+local filter_url_params = {}
 
 mode = _GET["mode"]
-if(mode == nil) then mode = "all" end
+if isEmptyString(mode) then
+   mode = "all"
+else
+   filter_url_params["mode"] = mode
+end
+
+hosts_filter = ''
+
+if ((mode ~= "all") or (not isEmptyString(pool))) then
+   hosts_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
 
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -64,10 +79,7 @@ print [[
 end
 
 -- build the current filter url
-local filter_base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
-local filter_url_params = {}
 
-filter_url_params["mode"] = mode
 filter_url_params["os"] = os_
 filter_url_params["asn"] = asn
 filter_url_params["community"] = community
@@ -93,9 +105,17 @@ else
    network_name = ""
 end
 
+if not isEmptyString(ipversion) then
+   filter_url_params["version"] = ipversion
+   ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
 function getPageUrl(params, base_url)
    local base_url = base_url or filter_base_url
-   return base_url .. "?" .. table.tconcat(params, "=", "&")
+   for _,_ in pairs(params) do
+      return base_url .. "?" .. table.tconcat(params, "=", "&")
+   end
+   return base_url
 end
 
 print [[
@@ -202,11 +222,30 @@ if(filter_url_params.network ~= nil) then
    print('<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A>')
    print('\' ],')
 else
+   print('buttons: [ ')
+
+   -- Ip version selector
+   local ipversion_params = table.clone(filter_url_params)
+   ipversion_params["version"] = nil
+
+   print[['\
+      <div class="btn-group pull-right">\
+         <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">IP Version]] print(ipversion_filter) print[[<span class="caret"></span></button>\
+         <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+            <li><a href="]] print(getPageUrl(ipversion_params)) print[[">All Versions</a></li>\
+            <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(ipversion_params)); print[[">IPv4 Only</a></li>\
+            <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(ipversion_params)); print[[">IPv6 Only</a></li>\
+         </ul>\
+      </div>\
+   ']]
+
+   -- Hosts filter
    local hosts_filter_params = table.clone(filter_url_params)
 
-   print('buttons: [ \'<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts'..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
 
    hosts_filter_params.mode = nil
+   hosts_filter_params.pool = nil
    print (getPageUrl(hosts_filter_params))
    print ('">All Hosts</a></li><li><a href="')
 
@@ -220,6 +259,7 @@ else
 
    -- Host pools
    hosts_filter_params.mode = nil
+   hosts_filter_params.pool = nil
    print('<li role="separator" class="divider"></li>')
    for _, pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
       hosts_filter_params.pool = pool.id
@@ -232,7 +272,9 @@ else
       more_buttons = ''
    end
 
-   print('</ul>'..more_buttons..'</div>\' ],')
+   print('</ul>'..more_buttons..'</div>\'')
+   
+   print(' ],')
 end
 
 print [[

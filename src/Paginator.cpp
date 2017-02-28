@@ -36,9 +36,10 @@ Paginator::Paginator() {
   /* int */
   max_hits = CONST_MAX_NUM_HITS;
   to_skip = 0;
-  l7proto_filter = NDPI_PROTOCOL_UNKNOWN;
+  l7proto_filter = NDPI_PROTOCOL_UNKNOWN; /* FIXME filtering UNKNOWN protocol has no effect */
   port_filter = 0;
   local_network_filter = 0;
+  ip_version = 0;
   client_mode = location_all;
   server_mode = location_all;
 
@@ -118,6 +119,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))
 	  local_network_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "ipVersion"))
+	  ip_version = lua_tointeger(L, -1);
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;
