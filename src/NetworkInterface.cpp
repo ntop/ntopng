@@ -2914,7 +2914,6 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   } else {
     retriever->mac = NULL;
   }
-}
 
   retriever->allowed_hosts = allowed_hosts, retriever->location = location,
   retriever->country = countryFilter, retriever->vlan_id = vlan_id,
