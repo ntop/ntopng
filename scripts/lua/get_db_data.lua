@@ -10,7 +10,7 @@ require "db_utils"
 local json = require ("dkjson")
 
 local ifId        = _GET["ifid"]
-local host        = _GET["host"]
+local host        = _GET["host"] or ""
 local epoch_end   = tonumber(_GET["epoch_end"]   or os.time())
 local epoch_begin = tonumber(_GET["epoch_begin"] or epoch_end - 3600)
 local l4proto     = _GET["l4proto"]
@@ -28,7 +28,7 @@ local timediff = epoch_end - epoch_begin + 1
 
 local totals = { ["count"] = {}, ["timespan"] = timediff, ["status"] = "ok" }
 local versions
-local isv6 = isIPv6Address(_GET["host"])
+local isv6 = isIPv6Address(host)
 
 if(isv6) then
    versions  = { [6] = 'IPv6' }
@@ -43,7 +43,7 @@ headerShown = false
 -- os.execute("sleep 30") -- this is to test slow responses
 
 for k,v in pairs(versions) do
-   local res = getNumFlows(ifId, k, _GET["host"], _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["epoch_begin"], _GET["epoch_end"])
+   local res = getNumFlows(ifId, k, host, _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["epoch_begin"], _GET["epoch_end"])
 
    if res == nil or res[1] == nil then
       totals["status"] = "error"
