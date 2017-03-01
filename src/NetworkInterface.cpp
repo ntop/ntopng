@@ -2335,7 +2335,7 @@ struct flowHostRetriever {
   /* Search criteria */
   AddressTree *allowed_hosts;
   Host *host;
-  Mac *mac;
+  u_int8_t *mac;
   char *manufacturer;
   bool skipSpecialMacs, hostMacsOnly;
   char *country;
@@ -2466,7 +2466,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      (r->networkFilter && *(r->networkFilter) != h->get_local_network_id()) ||
      (r->networkFilter && *(r->networkFilter) != h->get_local_network_id()) ||
      (r->hostMacsOnly  && h->getMac() && h->getMac()->isSpecialMac())       ||
-     (r->mac           && (h->getMac() != r->mac))                          ||
+     (r->mac           && (! h->getMac()->equal(r->vlan_id ? *(r->vlan_id) : 0, r->mac)))                ||
      (r->poolFilter    && *(r->poolFilter)    != h->get_host_pool())        ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))))
@@ -2896,6 +2896,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 				u_int16_t *pool_filter,
 				bool hostMacsOnly, char *sortColumn) {
   u_int32_t maxHits;
+  u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
@@ -2908,12 +2909,12 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   memset(retriever, 0, sizeof(struct flowHostRetriever));
 
   if(mac_filter) {
-    u_int8_t macAddr[6];
-
     Utils::parseMac(macAddr, mac_filter);
-
-    retriever->mac = macs_hash->get(vlan_id ? *vlan_id : 0, (const u_int8_t*)macAddr);
+    retriever->mac = macAddr;
+  } else {
+    retriever->mac = NULL;
   }
+}
 
   retriever->allowed_hosts = allowed_hosts, retriever->location = location,
   retriever->country = countryFilter, retriever->vlan_id = vlan_id,
