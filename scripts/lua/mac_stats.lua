@@ -112,7 +112,7 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(manufacturer_params)) print[[">All Manufacturers</a></li>\
    ]]
 
-   for manuf, count in pairsByValues(interface.getMacManufacturers(), rev) do
+   for manuf, count in pairsByKeys(interface.getMacManufacturers(), asc) do
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
