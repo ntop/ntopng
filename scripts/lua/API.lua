@@ -109,13 +109,6 @@ function restoreHost(host_ip)
 function getFlowsInfo()
 
 --! @memberof interface
---! @memberof interface
---! @brief Get the flow information (minimal details) of network interface for local hosts.
---! @details Same as getFlowsInfo() but restricted to local hosts only
---! @return An hashtable containing the flow information of network interface with minimal details, and number of hits.
-function getLocalFlowsInfo()
-
---! @memberof interface
 --! @brief Get the flow peers information identified by key of network interface.
 --! @details For more information please read the @ref ntop_get_interface_find_flow_by_key documentation.
 --! @tparam number key The flow key.

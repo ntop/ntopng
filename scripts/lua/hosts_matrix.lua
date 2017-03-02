@@ -58,7 +58,7 @@ end
 
 interface.select(ifname)
 hosts_stats = interface.getLocalHostsInfo()
-flows_stats = interface.getLocalFlowsInfo()
+flows_stats = interface.getFlowsInfo(nil, {clientMode="local", serverMode="local"})
 hosts_stats = hosts_stats["hosts"]
 flows_stats = flows_stats["flows"]
 

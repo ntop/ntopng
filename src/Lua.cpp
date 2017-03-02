@@ -1532,7 +1532,7 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_flows(lua_State* vm, LocationPolicy *location) {
+static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL;
@@ -1557,22 +1557,12 @@ static int ntop_get_interface_flows(lua_State* vm, LocationPolicy *location) {
   if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
 
-  if (location != NULL) {
-    /* Location override */
-    p->setClientMode(*location);
-    p->setServerMode(*location);
-  }
-
   if(ntop_interface)
     numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), host, p);
 
   if(p) delete p;
   return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
-
-static int ntop_get_interface_flows_info(lua_State* vm)        { return(ntop_get_interface_flows(vm, NULL));          }
-static int ntop_get_interface_local_flows_info(lua_State* vm)  { LocationPolicy p=location_local_only; return(ntop_get_interface_flows(vm, &p));   }
-static int ntop_get_interface_remote_flows_info(lua_State* vm) { LocationPolicy p=location_remote_only; return(ntop_get_interface_flows(vm, &p));  }
 
 /* ****************************************** */
 
@@ -5538,8 +5528,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
-  { "getLocalFlowsInfo",      ntop_get_interface_local_flows_info },
-  { "getRemoteFlowsInfo",     ntop_get_interface_remote_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowKey",             ntop_get_interface_flow_key   },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

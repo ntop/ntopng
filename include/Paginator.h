@@ -78,14 +78,6 @@ class Paginator {
   inline bool serverMode(LocationPolicy *f) const {
     if(server_mode) { (*f) = server_mode; return true; } return false;
   }
-
-  inline void setClientMode(LocationPolicy v) {
-    client_mode = v;
-  }
-
-  inline void setServerMode(LocationPolicy v) {
-    server_mode = v;
-  }
 };
 
 #endif
