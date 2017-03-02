@@ -2559,7 +2559,8 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
      || m->idle()
      || ((*(r->vlan_id) && (*(r->vlan_id) != m->get_vlan_id())))
      || (r->skipSpecialMacs && m->isSpecialMac())
-     || (r->hostMacsOnly && m->getNumHosts() == 0))
+     || (r->hostMacsOnly && m->getNumHosts() == 0)
+     || (r->manufacturer && strcmp(r->manufacturer, m->get_manufacturer() ? m->get_manufacturer() : "") != 0))
     return(false); /* false = keep on walking */
 
   r->elems[r->actNumEntries].macValue = m;
@@ -2965,7 +2966,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
 int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 			       u_int16_t vlan_id, bool skipSpecialMacs,
-			       bool hostMacsOnly,
+			       bool hostMacsOnly, const char *manufacturer,
 			       char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
@@ -2979,6 +2980,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 
   retriever->vlan_id = &vlan_id, retriever->skipSpecialMacs = skipSpecialMacs,
     retriever->hostMacsOnly = hostMacsOnly, retriever->actNumEntries = 0,
+    retriever->manufacturer = (char *)manufacturer,
     retriever->maxNumEntries = maxHits,
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
@@ -4806,7 +4808,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
 int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 				       bool skipSpecialMacs,
-				       bool hostMacsOnly,
+				       bool hostMacsOnly, const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4814,7 +4816,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, sortColumn) < 0) {
+  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, manufacturer, sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -4843,6 +4845,51 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
   lua_pushstring(vm, "macs");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  enablePurge(false);
+
+  // finally free the elements regardless of the sorted kind
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
+/* **************************************** */
+
+int NetworkInterface::getActiveMacManufacturers(lua_State* vm, u_int16_t vlan_id,
+		       bool skipSpecialMacs,
+		       bool hostMacsOnly, u_int32_t maxHits) {
+  struct flowHostRetriever retriever;
+
+  disablePurge(false);
+
+  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, NULL, (char*)"column_manufacturer") < 0) {
+    enablePurge(false);
+    return -1;
+  }
+
+  lua_newtable(vm);
+
+  const char *cur_manuf = NULL;
+  u_int32_t cur_count = 0;
+  for(int i = 0; i<(int)retriever.actNumEntries && i < (int)maxHits; i++) {
+    Mac *m = retriever.elems[i].macValue;
+
+    const char *manufacturer = m->get_manufacturer();
+    if (manufacturer != NULL) {
+      if (cur_manuf != manufacturer) {
+        if (cur_manuf != NULL)
+          lua_push_int32_table_entry(vm, cur_manuf, cur_count);
+
+        cur_manuf = manufacturer;
+        cur_count = 1;
+      } else {
+        cur_count++;
+      }
+    }
+  }
+  if (cur_manuf != NULL)
+    lua_push_int32_table_entry(vm, cur_manuf, cur_count);
 
   enablePurge(false);
 
