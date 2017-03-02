@@ -633,6 +633,7 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
 static int ntop_get_interface_macs_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_mac";
+  const char* manufacturer = NULL;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_id = 0;
   bool a2zSortOrder = true,
@@ -658,6 +659,10 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 	    }
 	    if(lua_type(vm, 7) == LUA_TBOOLEAN) {
 	      hostMacsOnly = lua_toboolean(vm, 7) ? true : false;
+
+        if(lua_type(vm, 8) == LUA_TSTRING) {
+          manufacturer = lua_tostring(vm, 8);
+        }
 	    }
 	  }
 	}
@@ -667,7 +672,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm, vlan_id, skipSpecialMacs,
-				      hostMacsOnly,
+				      hostMacsOnly, manufacturer,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -693,6 +698,38 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
   if((!ntop_interface)
      || (!mac)
      || (!ntop_interface->getMacInfo(vm, mac, vlan_id)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int32_t maxHits = CONST_MAX_NUM_HITS;
+  u_int16_t vlan_id = 0;
+  bool skipSpecialMacs = false, hostMacsOnly = false;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    vlan_id = (u_int16_t)lua_tonumber(vm, 1);
+
+    if(lua_type(vm, 2) == LUA_TNUMBER) {
+      maxHits = (u_int16_t)lua_tonumber(vm, 2);
+
+      if(lua_type(vm, 3) == LUA_TBOOLEAN) {
+        skipSpecialMacs = lua_toboolean(vm, 3) ? true : false;
+
+        if(lua_type(vm, 4) == LUA_TBOOLEAN) {
+          hostMacsOnly = lua_toboolean(vm, 4) ? true : false;
+        }
+      }
+    }
+  }
+
+  if(!ntop_interface ||
+     ntop_interface->getActiveMacManufacturers(vm, vlan_id, skipSpecialMacs,
+				      hostMacsOnly,maxHits) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -5537,6 +5574,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Mac */
   { "getMacsInfo",                    ntop_get_interface_macs_info },
   { "getMacInfo",                     ntop_get_interface_mac_info },
+  { "getMacManufacturers",            ntop_get_interface_macs_manufacturers },
 
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },

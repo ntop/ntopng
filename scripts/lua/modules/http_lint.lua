@@ -532,6 +532,7 @@ local known_parameters = {
    ["entity_val"]              =  validateUnchecked,             -- An alert entity value
    ["custom_name"]             =  validateUnchecked,             -- A custom interface name
    ["full_name"]               =  validateUnchecked,             -- A user full name
+   ["manufacturer"]            =  validateUnchecked,             -- A MAC manufacturer
    ["query"]                   =  validateUnchecked,             -- This field should be used to perform partial queries.
                                                                  -- It up to the script to implement proper validation.
                                                                  -- In NO case query should be executed directly without validation.
