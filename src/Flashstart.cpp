@@ -511,12 +511,16 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
     if(!strncmp(txt, "BLACKLIST:", 10)) {
       category = &txt[10], rc = 1;
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] %s=%s", qname, category);
-    } else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
 
-    ntop->getRedis()->setTrafficFilteringAddress(qname, category);
-    /* Do not swap the lines as category buffer wll be modified */
-    setCategory(&c, category);
+      ntop->getRedis()->setTrafficFilteringAddress(qname, category);
+      /* Do not swap the lines as category buffer wll be modified */
+      setCategory(&c, category);      
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
+      memset(&c, 0, sizeof(struct site_categories));
+      c.categories[0] = NTOP_UNKNOWN_CATEGORY_ID;
+    }
+    
     cacheDomainCategory(qname, &c, true);
   }
 
