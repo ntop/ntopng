@@ -433,7 +433,7 @@ function printUsers()
      print('<tr><th colspan=2 class="info">Authentication</th></tr>')
      local labels = {"Local","LDAP","LDAP/Local"}
      local values = {"local","ldap","ldap_local"}
-     local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "search_path", "user_group", "admin_group"}
+     local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group"}
      local showElementArray = {false, true, true}
      local javascriptAfterSwitch = "";
      javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
