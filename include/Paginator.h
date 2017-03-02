@@ -32,6 +32,9 @@ class Paginator {
   int l7proto_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
+  u_int8_t ip_version /* Either 4 or 6 */;
+  LocationPolicy client_mode;
+  LocationPolicy server_mode;
 
  public:
   Paginator();
@@ -53,7 +56,7 @@ class Paginator {
   }
 
   inline bool l7protoFilter(int *f) const {
-    if(l7proto_filter) { (*f) = l7proto_filter; return true; } return false;
+    if(l7proto_filter >= 0) { (*f) = l7proto_filter; return true; } return false;
   }
 
   inline bool portFilter(u_int16_t *f) const {
@@ -62,6 +65,26 @@ class Paginator {
 
   inline bool localNetworkFilter(int16_t *f) const {
     if(local_network_filter) { (*f) = local_network_filter; return true; } return false;
+  }
+  
+  inline bool ipVersion(u_int8_t *f) const {
+    if(ip_version) { (*f) = ip_version; return true; } return false;
+  }
+
+  inline bool clientMode(LocationPolicy *f) const {
+    if(client_mode) { (*f) = client_mode; return true; } return false;
+  }
+
+  inline bool serverMode(LocationPolicy *f) const {
+    if(server_mode) { (*f) = server_mode; return true; } return false;
+  }
+
+  inline void setClientMode(LocationPolicy v) {
+    client_mode = v;
+  }
+
+  inline void setServerMode(LocationPolicy v) {
+    server_mode = v;
   }
 };
 
