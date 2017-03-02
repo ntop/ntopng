@@ -47,8 +47,7 @@ local function validateChoiceInline(choices)
 end
 
 local function validateSingleWord(w)
-   if ((string.find(w, "%=") ~= nil) or
-       (string.find(w, "% ") ~= nil)) then
+if (string.find(w, "% ") ~= nil) then
       return false
    else
       return true

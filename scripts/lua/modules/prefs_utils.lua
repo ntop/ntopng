@@ -151,7 +151,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         if _input_type == "number" then
           style["width"] = "8em"
         else
-          style["width"] = "18em"
+          style["width"] = "20em"
         end
         style["margin-left"] = "auto"
       else
