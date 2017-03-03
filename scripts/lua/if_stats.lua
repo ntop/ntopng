@@ -34,12 +34,12 @@ ifid = _GET["ifid"]
 ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
-function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_clss)
+function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class)
    print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if(can_edit) then
-      print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
+      print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value) end
       print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">Save</button>]]
    else

@@ -120,7 +120,7 @@ class Prefs {
   time_t pro_edition_demo_ends_at();
   inline char* get_local_networks()                     { if (!local_networks_set) return NULL; return(local_networks); };
   inline FILE* get_log_fd()                             { return(logFd);                  };
-  inline LocationPolicy get_host_stickness()            { return(sticky_hosts);           };
+  inline LocationPolicy get_host_stickiness()            { return(sticky_hosts);           };
   inline void disable_dns_resolution()                  { enable_dns_resolution = false;  };
   inline void resolve_all_hosts()                       { resolve_all_host_ip = true;     };
   inline bool is_dns_resolution_enabled_for_all_hosts() { return(resolve_all_host_ip);    };

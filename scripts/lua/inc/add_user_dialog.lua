@@ -186,7 +186,7 @@ else -- a captive portal user is being added
 
 <div class="row">
   <div class='col-md-6'>
-    <small>The host pool that will be associated to the user upon successfull authentication.</small>
+    <small>The host pool that will be associated to the user upon successful authentication.</small>
   </div>
   <div class='col-md-6'>
     <small>The authentication can be perpetual or can expire after the specified time.</small>

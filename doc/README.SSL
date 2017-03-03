@@ -7,7 +7,7 @@ In order to use SSL with ntopng (i.e. HTTPS) you need to
    make cert
 
 3. OPTIONAL
-   Depending on the disribution and packager you might need
+   Depending on the distribution and packager you might need
    this optional step. 
 
    Copy in the directory where ntopng is running

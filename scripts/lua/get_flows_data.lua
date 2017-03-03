@@ -87,7 +87,7 @@ interface.select(ifname)
 local a2z = false
 if(sortOrder == "desc") then a2z = false else a2z = true end
 
-local paginfo = {
+local pageinfo = {
    ["sortColumn"] = sortColumn, ["toSkip"] = to_skip, ["maxHits"] = perPage,
    ["a2zSortOrder"] = a2z,
    ["hostFilter"] = host,
@@ -96,8 +96,8 @@ local paginfo = {
 }
 
 if application ~= nil and application ~= "" then
-   paginfo["l7protoFilter"] = interface.getnDPIProtoId(application)
-   --print(paginfo["l7protoFilter"].." / "..application)
+   pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+   --print(pageinfo["l7protoFilter"].." / "..application)
 end
 
 if not isEmptyString(flowhosts_type) then
@@ -120,7 +120,7 @@ if not isEmptyString(ipversion) then
    paginfo["ipVersion"] = tonumber(ipversion)
 end
 
-local flows_stats = interface.getFlowsInfo(host, paginfo)
+local flows_stats = interface.getFlowsInfo(host, pageinfo)
 local total = flows_stats["numFlows"]
 flows_stats = flows_stats["flows"]
 

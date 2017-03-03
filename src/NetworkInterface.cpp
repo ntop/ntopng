@@ -2882,7 +2882,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, AddressTree *all
   memset(&retriever, 0, sizeof(retriever));
 
   // there's not even the need to use the retriever or to sort results here
-  // we use the retriever just to leverage on the exising code.
+  // we use the retriever just to leverage on the existing code.
   retriever.allowed_hosts = allowed_hosts, retriever.location = location_all;
   retriever.actNumEntries = 0, retriever.maxNumEntries = getHostsHashSize();
   retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
@@ -4449,7 +4449,7 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  * lua params:
  *    activityID  - ID of the activity to apply for filtered bytes
  *    filterID    - ID of the filter to apply to the flow for activity recording
- *    *parametes  - parameters to pass to the filter - See below
+ *    *parameters  - parameters to pass to the filter - See below
  *
  * SMA/WMA filter params:
  *    edge         - moving average edge to trigger activity

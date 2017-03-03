@@ -14,11 +14,11 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 local ifid = _GET["ifid"]
 local pool_id = _GET["pool"]
 local res = {data={}, sort={{"column_", "asc"}}, totalRows=0}
-local currpage = tonumber(_GET["currentPage"]) or 1
+local curpage = tonumber(_GET["currentPage"]) or 1
 local perpage = tonumber(_GET["perPage"]) or 10
 local member_filter = _GET["member"]
 
-local start_i = (currpage-1) * perpage
+local start_i = (curpage-1) * perpage
 local stop_i = start_i + perpage - 1
 local i = 0
 

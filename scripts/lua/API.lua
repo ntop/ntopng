@@ -199,7 +199,7 @@ function delCache(key)
 --! @brief Get the members of a redis set identified by key.
 --! @details For more information please read the @ref ntop_get_set_members_redis documentation.
 --! @tparam string key The redis key.
---! @return An hashtabele containing the member of a redis set identified by key if the set exists.
+--! @return An hashtable containing the member of a redis set identified by key if the set exists.
 function getMembersCache(key)
 
 --! @memberof ntop
@@ -310,7 +310,7 @@ function exists(path)
 --! @brief Scan the input directory and return the list of files.
 --! @details For more information please read the @ref ntop_list_dir_files documentation.
 --! @tparam string path The absolute path of directory.
---! @return An hastable containing the list of files of the input directory.
+--! @return An hashtable containing the list of files of the input directory.
 function readdir(path)
 
 ------------------ ZMQ ------------------
@@ -393,7 +393,7 @@ function getUserGroup()
 
 --! @memberof ntop
 --! @brief Get the user allowed networks.
---! @details Return the stored allowed netwroks (i.e. the networks this user can see) for the given user.
+--! @details Return the stored allowed networks (i.e. the networks this user can see) for the given user.
 --! @return The user allowed networks
 function getAllowedNetworks()
 

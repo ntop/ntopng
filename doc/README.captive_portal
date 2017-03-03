@@ -6,7 +6,7 @@ network and keep intruders out. When using ntopng in inline mode
 (see README.inline for more information) you can enable the
 captive portal from the ntop preferences menu (note that you need
 to make sure you have started ntopng on HTTP port 80). At this point
-the comunications between the two bridged interfaces can happen only
+the communications between the two bridged interfaces can happen only
 for the known hosts.
 
 
@@ -26,10 +26,10 @@ computers and start thinking in terms of humans.
 
 When creating a captive portal user, ntopng will ask you to 
 create a network pool that is a set of assets falling under the same
-administrative domaain. They can be identified both by IP and MAC
+administrative domain. They can be identified both by IP and MAC
 address. A captive portal user is bound to exactly one network pool.
 During captive portal creation, you can specify how long an asset
-can be bound to a user, either permanently or temporarely (e.g. until
+can be bound to a user, either permanently or temporarily (e.g. until
 midnight). As long as an asset is bound to a user, it does not need
 to authenticate all the time it accesses the network but only
 at the first access. 

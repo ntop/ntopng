@@ -23,7 +23,7 @@
       {% if i == report.rows then %}
         <th class='col-sm-1 text-right'>{{report.values[1][i]}}</th> <!-- Total -->
       {% else %}
-        {% if report.values[1][i].highlited then %}
+        {% if report.values[1][i].highlighted then %}
           <td class='col-sm-1 text-right' ><div style="width:65%;"><span style="color: #FF5454;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></span></div></td>
         {% else %}
           <td class='col-sm-1 text-right' ><div style="width:65%;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></div></td>

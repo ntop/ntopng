@@ -137,7 +137,7 @@ static void* packetPollLoop(void* ptr) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s", 
 				       path, pcap_error_buffer);
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packes from pcap file %s", path);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
 	  iface->set_pcap_handle(pcap_handle);
 	  break;
 	}

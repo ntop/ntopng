@@ -176,7 +176,7 @@ static int ntop_get_default_interface_name(lua_State* vm) {
     lua_pushstring(vm,
 		   ntop->getNetworkInterface(ifname)->get_name());
   } else {
-    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constaint */
+    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constraint */
 					      0)->get_name());
   }
   return(CONST_LUA_OK);
@@ -843,7 +843,7 @@ static int ntop_is_dir(lua_State* vm) {
 
 /**
  * @brief Check if the file is exists and is not empty
- * @details Simple check for existance + non empty file
+ * @details Simple check for existence + non empty file
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK
@@ -895,7 +895,7 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 
 /**
  * @brief Return the epoch of the file last change
- * @details This function return that time (epoch) of the last chnge on a file, or -1 if the file does not exist.
+ * @details This function return that time (epoch) of the last change on a file, or -1 if the file does not exist.
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK
@@ -1130,7 +1130,7 @@ static int remove_recursively(const char * path) {
 }
 
 /**
- * @brief Scan the input directory, removes it and its contets.
+ * @brief Scan the input directory, removes it and its contents.
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
@@ -1308,7 +1308,7 @@ static int ntop_del_set_member_redis(lua_State* vm) {
 
 /**
  * @brief Get the members of a redis set.
- * @details Get the set key form the lua stack and push the mambers name into lua stack.
+ * @details Get the set key form the lua stack and push the members name into lua stack.
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
@@ -1823,7 +1823,7 @@ static int ntop_interface_refresh_num_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_correalate_host_activity(lua_State* vm) {
+static int ntop_correlate_host_activity(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -2973,7 +2973,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   lua_createtable(vm, 0, ds_cnt);
 
   for(i=0; i<ds_cnt; i++) {
-    /* a single serie table, preallocated */
+    /* a single series table, preallocated */
     lua_createtable(vm, npoints, 0);
     p = data + i;
 
@@ -2985,7 +2985,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
       lua_rawseti(vm, -2, j+1);
     }
 
-    /* add the single serie to the series table */
+    /* add the single series to the series table */
     lua_setfield(vm, -2, names[i]);
     rrd_freemem(names[i]);
   }
@@ -5523,7 +5523,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
-  { "correlateHostActivity",  ntop_correalate_host_activity },
+  { "correlateHostActivity",  ntop_correlate_host_activity },
   { "similarHostActivity",    ntop_similar_host_activity },
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
@@ -5935,18 +5935,18 @@ static char* http_encode(char *str) {
 /* ****************************************** */
 
 void Lua::purifyHTTPParameter(char *param) {
-  char *ampercent;
+  char *ampersand;
 
-  if((ampercent = strchr(param, '%')) != NULL) {
+  if((ampersand = strchr(param, '%')) != NULL) {
     /* We allow only a few chars, removing all the others */
 
-    if((ampercent[1] != 0) && (ampercent[2] != 0)) {
+    if((ampersand[1] != 0) && (ampersand[2] != 0)) {
       char c;
-      char b = ampercent[3];
+      char b = ampersand[3];
 
-      ampercent[3] = '\0';
-      c = (char)strtol(&ampercent[1], NULL, 16);
-      ampercent[3] = b;
+      ampersand[3] = '\0';
+      c = (char)strtol(&ampersand[1], NULL, 16);
+      ampersand[3] = b;
 
       switch(c) {
       case '/':
@@ -5976,14 +5976,14 @@ void Lua::purifyHTTPParameter(char *param) {
       default:
 	if(!Utils::isPrintableChar(c)) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '0x%02x' in URI [%s]", c, param);
-	  ampercent[0] = '\0';
+	  ampersand[0] = '\0';
 	  return;
 	}
       }
 
-      purifyHTTPParameter(&ampercent[3]);
+      purifyHTTPParameter(&ampersand[3]);
     } else
-      ampercent[0] = '\0';
+      ampersand[0] = '\0';
   }
 }
 

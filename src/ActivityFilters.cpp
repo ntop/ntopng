@@ -316,7 +316,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
 					  activity_filter_status * status, Flow * flow,
 					  const struct timeval *when,
 					  bool cli2srv, uint16_t payload_len) {
-  // Assert local client host begins connetion 
+  // Assert local client host begins connection 
   Host * host = flow->get_cli_host();
   int f_count = 0;
   u_int32_t f_pkts = 0;
@@ -362,7 +362,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
 
 /* ********************************************************************** */
 
-/* This fitler is just for testing purposes. */
+/* This filter is just for testing purposes. */
 static bool activity_filter_fun_metrics_test(const activity_filter_config * config,
 					     activity_filter_status * status, Flow * flow,
 					     const struct timeval *when,

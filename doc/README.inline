@@ -73,7 +73,7 @@ to the Internet, and a WiFi interface (wlan0) to which network clients
 can attach.
 
 In this setup you need to configure the interfaces as described below. The
-notes are for Debian-based distributinons such as Raspbian.
+notes are for Debian-based distributions such as Raspbian.
 
 $ cat /etc/network/interfaces
 ...

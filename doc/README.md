@@ -23,7 +23,7 @@ apps as follows:
 nprobe --zmq "tcp://*:5556" -i ethX -n none -b 2
 
 You can instruct ntopng to merge onto the same interface multiple endpoints by
-seperating them with a comma. Example:
+separating them with a comma. Example:
 
 ntopng -i tcp://127.0.0.1:5556,tcp://192.168.0.1:5556
 
@@ -62,7 +62,7 @@ Using ntopng from Windows
 Defaults
 --------
 The ntopng default user is 'admin' (without ') and the default
-passoword is also 'admin' (without ')
+password is also 'admin' (without ')
 
 
 Resetting admin user password
@@ -88,7 +88,7 @@ ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002
 Using Interface Views
 ---------------------
 Suppose you want to start ntopng as follows "-i eth0 -i eth1". ntopng will show you traffic
-of these two interfaces without any merge so you can see exactly what happens on each inteface.
+of these two interfaces without any merge so you can see exactly what happens on each interface.
 If you also need an aggregated view of both interfaces you can start ntopng
 as "ntopng -i eth0 -i eth1 -i view:eth0,eth1" so ntopng will create a virtual interface
 that merges information from the two physical interfaces.

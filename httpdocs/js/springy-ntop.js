@@ -68,7 +68,7 @@
 		this.target = target;
 		this.data = (data !== undefined) ? data : {};
 
-	// Edge data field used by layout alorithm
+	// Edge data field used by layout algorithm
 	// this.data.length
 	// this.data.type
 	};

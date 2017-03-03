@@ -342,7 +342,7 @@ jQuery.fn.springy = function(params) {
 				/* ------------- End ntop patch ------------- */
 			} else {
 				// Currently we just ignore any labels if the image object is set. One might want to extend this logic to allow for both, or other composite nodes.
-				var src = node.data.image.src;  // There should probably be a sanity check here too, but un-src-ed images aren't exaclty a disaster.
+				var src = node.data.image.src;  // There should probably be a sanity check here too, but un-src-ed images aren't exactly a disaster.
 				if (src in nodeImages) {
 					if (nodeImages[src].loaded) {
 						// Our image is loaded, so it's safe to draw

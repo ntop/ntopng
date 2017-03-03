@@ -48,7 +48,7 @@ elseif _POST["pool_to_delete"] ~= nil then
     shaper_utils.flushPoolRules(ifId, pool_id)
   end
 
-  -- Note: this will also realod the shaping rules
+  -- Note: this will also reload the shaping rules
   interface.reloadHostPools()
 elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool"]

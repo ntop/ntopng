@@ -391,7 +391,7 @@ function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, en
 
    -- SLICE
    local slice_offset = 0
-   local sclice_limit = 100
+   local slice_limit = 100
    if tonumber(offset) >= 0 then slice_offset = offset end
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
@@ -487,7 +487,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
 
    -- SLICE
    local slice_offset = 0
-   local sclice_limit = 100
+   local slice_limit = 100
    if tonumber(offset) >= 0 then slice_offset = offset end
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
@@ -589,7 +589,7 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, be
 
    -- SLICE
    local slice_offset = 0
-   local sclice_limit = 100
+   local slice_limit = 100
    if tonumber(offset) >= 0 then slice_offset = offset end
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
@@ -672,7 +672,7 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
 
    -- SLICE
    local slice_offset = 0
-   local sclice_limit = 100
+   local slice_limit = 100
    if tonumber(offset) >= 0 then slice_offset = offset end
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "

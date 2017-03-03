@@ -54,7 +54,7 @@ var g_enumSubPL = {
 };
 //enum contente le configurazioni di colore per le sub polyline
 var g_ColorSubPL = ['#00FFFF', //Cyan
-        '#64FF21', //LigthGreen
+        '#64FF21', //LightGreen
         '#FF4500' //Red
         ];
 

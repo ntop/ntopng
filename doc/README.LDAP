@@ -28,7 +28,7 @@ are handled. Examples are:
 Ports 389 and 636 are the default ports for ldap and ldaps, respectively.
 
 * LDAP Anonymous Binding
-An LDAP server, during the bining phase, can request binding
+An LDAP server, during the binding phase, can request binding
 credential to the client.
 If no binding credentials are requested by the server, then the field
 "LDAP Anonymous Binding" has to be set to "on". Alternatively, if the
@@ -47,12 +47,12 @@ In case "LDAP Anonymous Binding" is disabled, a binding password has
 to be provided in this field.
 
 * LDAP Search Path
-The "LDAP Srearch Path" indicates the root of the tree among which
+The "LDAP Search Path" indicates the root of the tree among which
 users and groups are searched. 
 An example is:
 dc=example,dc=com
 Assuming the field is populated with the example above, then an
-hypotetical user "foo" will be searched in the subtress having root
+hypothetical user "foo" will be searched in the subtress having root
 dc=example,dc=com.
 
 * LDAP User Group

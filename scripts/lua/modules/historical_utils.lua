@@ -213,13 +213,13 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 function removeAllFavourites(stats_type, favourite_type, select_id){
   $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=del_all&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     success:function(data){
-      // remove all the exising options...
+      // remove all the existing options...
       $('#'+select_id).find('option').remove();
 
       // and hide the container div...
       $('#' + select_id).parent().closest('div').hide();
 
-     // refresh the right breacrumb
+     // refresh the right breadcrumb
      if (stats_type == "top_talkers"){
        if(favourite_type == "talker"){
 	 $('.bc-item-add.talker').show();
@@ -354,7 +354,7 @@ print[[
   });
 ]]
 
-else -- either the nbox integration is disabled or the user doesn't have admin privilieges
+else -- either the nbox integration is disabled or the user doesn't have admin privileges
 
    print[[
   $('#extract_pcap_]] print(button_id) print[[').click(function (event)
@@ -475,10 +475,10 @@ var refreshBreadCrumbHost = function(host){
   // append a pair of li to the breadcrumb: the first is shown if the host has not been added to the favourites,
   // the second is shown if it has been added...
 
-  // first pair: shown if the host has not been favourited
+  // first pair: shown if the host has not been favorited
   $("#bc-talkers").append('<li class="bc-item-add talker">' + host + ' talkers <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
 
-  // second pair: shown if the host has been favourited
+  // second pair: shown if the host has been favorited
   $("#bc-talkers").append('<li class="bc-item-remove talker">' + host + ' talkers <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
@@ -516,9 +516,9 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
   $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
   $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">' + peer1 + ' talkers</a></li>');
 
-  // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case
+  // here we append to li: one will be shown if the pair of peers is favorited, the other is shown in the opposite case
 
-  // first li: shown if the pair has been favourited
+  // first li: shown if the pair has been favorited
   var bc_talkers_li_text = 'Applications between ' + peer1 + ' and ' + peer2;
   if (typeof l7_proto_id !== "undefined"){
     bc_talkers_li_text = '<a onclick="populateAppsPerHostsPairTable(\'' + peer1 + '\',\'' + peer2 + '\');">' + bc_talkers_li_text + '</a>';
@@ -892,10 +892,10 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
     $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
     $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">' + app + ' talkers</a></li>');
 
-    // append two li: one is to be shown when the favourites has not beena added;
+    // append two li: one is to be shown when the favourites has not been added;
     // the other is shown when the favourites has been added
 
-    // first li: there is no exising favorited peer --> app pair saved
+    // first li: there is no existing favorited peer --> app pair saved
     var bc_apps_text = app + ' talkers with ' + peer1;
     if (typeof peer2 !== "undefined"){
       bc_apps_text = '<a onclick="populatePeersPerHostByApplication(\'' + peer1 + '\',\'' + proto_id + '\');">' + bc_apps_text + '</a>';
@@ -903,7 +903,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
 
     $("#bc-apps").append('<li class="bc-app-item-add host-peers-by-app">' + bc_apps_text + ' <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
 
-    // second li: there is an already exising favorited peer --> app pair saved
+    // second li: there is an already existing favorited peer --> app pair saved
     $("#bc-apps").append('<li class="bc-app-item-remove host-peers-by-app"> ' + bc_apps_text + ' <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu

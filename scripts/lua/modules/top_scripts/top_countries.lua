@@ -20,7 +20,7 @@ if (ntop.isPro()) then
 end
 
 local function getTopCountries(ifid, ifname)
-  -- cap the maximum # of entries at 10. Use treshold, but no not use delta
+  -- cap the maximum # of entries at 10. Use threshold, but no not use delta
   -- do not filter by col or by val (nil, nil).
   -- column is top_countries_intf.key
   -- key is top_countries_intf.JSONkey

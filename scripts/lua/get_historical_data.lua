@@ -26,7 +26,7 @@ if peer2 and not peer1 then
 	peer2 = nil
 end
 
--- this is to retrieve L7 appliation data
+-- this is to retrieve L7 application data
 local l7_proto_id = _GET["l7_proto_id"]
 
 -- and this to focus only on a certain l4 proto

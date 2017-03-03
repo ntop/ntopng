@@ -322,7 +322,7 @@ alert_functions_description = {
     ["idle"]    = "Idle time since last packet sent (seconds)",	
     ["packets"] = "Packets delta (sent + received)",
     ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
-    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
+    ["throughput"]   = "Average throughput (sent + received) [Mbps]",
 }
 
 network_alert_functions_description = {
@@ -457,7 +457,7 @@ end
 function round(num, idp) return tonumber(string.format("%." .. (idp or 0) .. "f", num)) end
 --function round(num) return math.floor(num+.5) end
 
--- Note that the function below returns a string as returnong a number
+-- Note that the function below returns a string as returning a number
 -- would not help as a new float would be returned
 function toint(num)
    return string.format("%u", num)
@@ -747,7 +747,7 @@ host_categories = {
       ["kidstimewasting"] = "KidGames",
       ["audio-video"] = "AudioVideo",
       ["books"] = "Books",
-      ["government"] = "Gouvernment",
+      ["government"] = "Government",
       ["malware"] = "Malware",
       ["medical"] = "Medicine",
       ["ann"] = "Ads",
@@ -2180,7 +2180,7 @@ function printTCPFlags(flags)
    if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
 end
 
--- convert the integer carrying TCP flags in a more conventient lua table
+-- convert the integer carrying TCP flags in a more convenient lua table
 function TCPFlags2table(flags)
    local res = {["FIN"] = 0, ["SYN"] = 0, ["RST"] = 0, ["PSH"] = 0, ["ACK"] = 0, ["URG"] = 0}
    if(hasbit(flags,0x01)) then res["FIN"] = 1 end
@@ -2479,7 +2479,7 @@ end
 
 -- ###########################################
 
--- IMPORTANT: keep it in sync wiht sortField (ntop_typedefs.h)
+-- IMPORTANT: keep it in sync with sortField (ntop_typedefs.h)
 --            AND host_search_walker:NetworkInterface.cpp
 --            AND NetworkInterface::getFlows()
 looking_glass_criteria = {

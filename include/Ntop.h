@@ -403,8 +403,8 @@ class Ntop {
   void initRedis();
   void initElasticSearch();
 
-  inline u_int32_t getStartime()        { return((u_int32_t)start_time); }
-  inline char*     getStartimeString()  { return(epoch_buf);             }
+  inline u_int32_t getStarttime()        { return((u_int32_t)start_time); }
+  inline char*     getStarttimeString()  { return(epoch_buf);             }
   inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
   inline int getUdpSock()               { return(udp_socket); }
 

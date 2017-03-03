@@ -513,7 +513,7 @@ local function validateLookingGlassCriteria(c)
 end
 
 local function validateTopModule(m)
-   -- TODO check for existance?
+   -- TODO check for existence?
    return validateSingleWord(m)
 end
 
@@ -652,7 +652,7 @@ local known_parameters = {
    ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
    ["port"]                    =  validatePort,                  -- An application port
    ["ntopng_license"]          =  validateSingleWord,            -- ntopng licence string
-   ["syn_alert_threshold"]     =  validateEmptyOr(validateNumber),                -- Threashold to trigger a syn alert
+   ["syn_alert_threshold"]     =  validateEmptyOr(validateNumber),                -- Threshold to trigger a syn alert
    ["flows_alert_threshold"]   =  validateEmptyOr(validateNumber),                --
    ["flow_rate_alert_threshold"] =  validateEmptyOr(validateNumber),              --
    ["re_arm_minutes"]          =  validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
@@ -855,7 +855,7 @@ local function validateSpecialParameter(param, value)
 end
 
 function http_lint.validationError(t, param, value, message)
-   -- TODO gracefull exit
+   -- TODO graceful exit
    local s_id
    if t == _GET then s_id = "_GET" else s_id = "_POST" end
    error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. value .. "\" parameter error: " .. message)

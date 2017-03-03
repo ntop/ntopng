@@ -38,7 +38,7 @@ AlertCounter::AlertCounter(u_int32_t _max_num_hits_sec,
 void AlertCounter::init() {
   time_last_hit = time_last_alert_reported = 0;
   num_hits_rcvd_last_second = 0;
-  last_trepassed_threshold = 0, num_trepassed_threshold = 0;
+  last_trespassed_threshold = 0, num_trespassed_threshold = 0;
   num_hits_since_first_alert = 0;
 }
 
@@ -53,21 +53,21 @@ bool AlertCounter::incHits(time_t when) {
   num_hits_rcvd_last_second++, num_hits_since_first_alert++, time_last_hit = when;
 
   if((num_hits_rcvd_last_second > max_num_hits_sec) 
-     && (last_trepassed_threshold != when)) {
-    num_trepassed_threshold++, last_trepassed_threshold = when;
+     && (last_trespassed_threshold != when)) {
+    num_trespassed_threshold++, last_trespassed_threshold = when;
 
 #ifdef ALERT_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Trepass [num: %u][last: %u][now: %u][duration: %u]",
-				 num_trepassed_threshold, last_trepassed_threshold, when,
+				 num_trespassed_threshold, last_trespassed_threshold, when,
 				 over_threshold_duration_sec);
 #endif
           
-    if(num_trepassed_threshold > over_threshold_duration_sec) {
+    if(num_trespassed_threshold > over_threshold_duration_sec) {
 #ifdef ALERT_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Alarm triggered [num: %u][last: %u][now: %u][duration: %u]",
-				   num_trepassed_threshold, last_trepassed_threshold, when,
+				   num_trespassed_threshold, last_trespassed_threshold, when,
 				   over_threshold_duration_sec);
 #endif
 
@@ -75,7 +75,7 @@ bool AlertCounter::incHits(time_t when) {
 #ifdef ALERT_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, 
 				     "Alert emitted [num: %u][now: %u][duration: %u][tot_hits: %u]",
-				     num_trepassed_threshold, when, 
+				     num_trespassed_threshold, when, 
 				     over_threshold_duration_sec, num_hits_since_first_alert);
 #endif
 	time_last_alert_reported = when;

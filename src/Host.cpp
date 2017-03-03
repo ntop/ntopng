@@ -608,7 +608,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 /* ***************************************** */
 
 /*
-  As this method can be called from Lua, in order to avoid concurency issues
+  As this method can be called from Lua, in order to avoid concurrency issues
   we need to lock/unlock
 */
 void Host::setName(char *name) {
@@ -673,7 +673,7 @@ bool Host::idle() {
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
-  switch(ntop->getPrefs()->get_host_stickness()) {
+  switch(ntop->getPrefs()->get_host_stickiness()) {
   case location_none:
     break;
 
@@ -1629,7 +1629,7 @@ void Host::setMDSNInfo(char *str) {
     NULL
   };
   
-  if(strstr(str, ".ip6.arpa")) return; /* Ingnored for the time being */
+  if(strstr(str, ".ip6.arpa")) return; /* Ignored for the time being */
 
   for(int i=0; tokens[i] != NULL; i++) {
     if(strstr(str, tokens[i])) {

@@ -33,7 +33,7 @@ end
 
 -----------------------------------
 
-function getAggretationValue(flow,flow_key,type)
+function getAggregationValue(flow,flow_key,type)
   l_how = 0;
   process_key = "client_process"
   bytes_key = "cli2srv.bytes"
@@ -127,7 +127,7 @@ else
   -- Default values
   aggregated_flows = {}
   father_process = {}
-  cildren_proess = {}
+  children_process = {}
   num = 0
   filter_client = 0
   filter_server = 0
@@ -157,14 +157,14 @@ else
       if (filter_client == 1) and (flow["cli.ip"] == host) and (flow["client_process"] ~= nil) then 
         client_id = flow["client_process"]["pid"]
 
-        client_how = getAggretationValue(flow,key,"client")
+        client_how = getAggregationValue(flow,key,"client")
         setAggregatedFlow(client_id,flow["client_process"]["father_pid"],flow["client_process"]["father_name"],flow["client_process"][what],client_how,"client")
       end
         
       if (filter_server == 1) and (flow["srv.ip"] == host) and (flow["server_process"] ~= nil) then 
         server_id = flow["server_process"]["pid"]
 
-        server_how = getAggretationValue(flow,key,"server")
+        server_how = getAggregationValue(flow,key,"server")
         setAggregatedFlow(server_id,flow["server_process"]["father_pid"],flow["server_process"]["father_name"],flow["server_process"][what],server_how,"server")
       end
 
@@ -172,7 +172,7 @@ else
   end 
 
   father_process = {}
-  cildren_proess = {}
+  children_process = {}
   num = 0
   tot = 0
   for key, value in pairs(aggregated_flows) do

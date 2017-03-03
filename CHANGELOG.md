@@ -20,10 +20,10 @@
 	- nBox integration to request pcaps of monitored flows
 	- Apache Kafka flows export
 - Extended and improved traffic *monitoring*:
-	- TCP sessions trhoughput estimations and state breakdown (e.g., established, reset, etc.)
+	- TCP sessions throughput estimations and state breakdown (e.g., established, reset, etc.)
 	- Goodput monitoring
 	- Trends detection
-	- Highligh of low-goodput flows and hosts
+	- Highlight of low-goodput flows and hosts
 	- Added hosts top-visited sites
 - Built-in support for:
 	- GRE detunnelling
@@ -52,7 +52,7 @@
 - Added support for Linux TUN/TAP devices in TUN mode
 - Extended and improved supported OSes: EdgeOS, Centos 6/7, Ubuntu 12.04/14.04, Debian, Windows x64, Raspbian (Raspberry)
 - Extended and improved supported architectures: x86, x86-64, MIPS, ARM.
-- Documentation and User Guide significanly improved
+- Documentation and User Guide significantly improved
 - Added a great deal of READMEs, including ElasticSearch, bridging, traffic shaping and policing, NetBeans development
 - Improved stability both under normal and high network loads
 - Fixed tens of minor bugs 

@@ -294,7 +294,7 @@ void Ntop::start() {
   snprintf(epoch_buf, sizeof(epoch_buf), "%u", (u_int32_t)start_time);
 
   string_to_replace[i].key = CONST_HTTP_PREFIX_STRING, string_to_replace[i].val = ntop->getPrefs()->get_http_prefix(); i++;
-  string_to_replace[i].key = CONST_NTOP_STARTUP_EPOCH, string_to_replace[i].val = ntop->getStartimeString(); i++;
+  string_to_replace[i].key = CONST_NTOP_STARTUP_EPOCH, string_to_replace[i].val = ntop->getStarttimeString(); i++;
   string_to_replace[i].key = NULL, string_to_replace[i].val = NULL;
 
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));

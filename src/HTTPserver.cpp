@@ -131,7 +131,7 @@ static void set_cookie(const struct mg_connection *conn,
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
 	    "Set-Cookie: session=%s; path=/; max-age=%u; HttpOnly\r\n"  // Session ID
-	    "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by Javascript code
+	    "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by JavaScript code
 	    "Location: %s%s\r\n\r\n",
 	    session_id, HTTP_SESSION_DURATION,
 	    user, HTTP_SESSION_DURATION,
@@ -293,7 +293,7 @@ static int is_authorized(const struct mg_connection *conn,
   // do_auto_logout() is the getter for the command-line specified
   // preference that defaults to true (i.e., auto_logout is enabled by default)
   // If do_auto_logout() is disabled, then the runtime auto logout preference
-  // is taken into accout.
+  // is taken into account.
   // If do_auto_logout() is false, then the auto logout is disabled regardless
   // of runtime preferences.
   if(ntop->getPrefs()->do_auto_logout() && strncmp(buf, (char*)"1", 1) == 0) {
@@ -384,7 +384,7 @@ static void redirect_to_login(struct mg_connection *conn,
 
 /* ****************************************** */
 
-/* Redirect user to a coutersy page that is used when database schema is being updated.
+/* Redirect user to a courtesy page that is used when database schema is being updated.
    In the cookie, store the original URL we came from, so that after the authorization
    we could redirect back.
 */

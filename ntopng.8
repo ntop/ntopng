@@ -233,7 +233,7 @@ Both netmask and CIDR notation may be used, even mixed together, for instance
 "131.114.21.0/24,10.0.0.0/255.0.0.0".
 
 .It \-u|\-\-no\-promisc
-Disable promiscous mode when capturing from network interfaces (by default promiscuous mode is used).
+Disable promiscuous mode when capturing from network interfaces (by default promiscuous mode is used).
 
 .It \-p|\-\-ndpi\-protocols\ <file>.protos
 This parameter is used to specify a nDPI protocol file.
@@ -329,7 +329,7 @@ Force ntopng to use the HTML/lua files installed on the specified directory. Thi
 Enable tap interfaces to dump packets on. If not specified, traffic can be dumped only on disk but not sent live to apps.
 
 .It \-N|\-\-instance-name\ <name>
-Assign <name> to this ntopng instance. Such information is used to uniquely indetify the data source and thus it's responsability of the ntopng user to make sure that the name is unique across all the ntopng instances. If this option is not set, we assume as instance name the hostname where this ntopng instance is running.
+Assign <name> to this ntopng instance. Such information is used to uniquely identify the data source and thus its responsibility of the ntopng user to make sure that the name is unique across all the ntopng instances. If this option is not set, we assume as instance name the hostname where this ntopng instance is running.
 
 .It \-Z|\-\-http\-prefix\ <prefix>
 HTTP prefix to be prepended to URLs. This is useful when using ntopng behind a proxy.
@@ -347,7 +347,7 @@ Do not use trailing shashes in the HTTP prefix.
 Terminate ntopng when the input pcap file is over (debug only).
 
 .It \-\-zmq\-encrypt\-pwd
-This is the passowrd used by the symmetric encryption on the probe side. Note that in case you have multiple ZMQ endpoints, the same password is used for all of them.
+This is the password used by the symmetric encryption on the probe side. Note that in case you have multiple ZMQ endpoints, the same password is used for all of them.
 
 .It \-\-capture\-direction
 Specify the packet capture direction for packet capture interfaces (no ZMQ).

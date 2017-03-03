@@ -12,7 +12,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 print [[
 <html>
 <head>
-<title>ntopng hostpot detect</title>
+<title>ntopng hotspot detect</title>
 <meta http-equiv="refresh" Content="0; url=]] 
 
 print(ntop.getHttpPrefix().."/lua/captive_portal.lua")

@@ -57,7 +57,7 @@ Redis::~Redis() {
 void Redis::reconnectRedis() {
   struct timeval timeout = { 1, 500000 }; // 1.5 seconds
   redisReply *reply;
-  u_int num_attemps = 10;
+  u_int num_attempts = 10;
 
   operational = false;
 
@@ -78,13 +78,13 @@ void Redis::reconnectRedis() {
     }
   }
 
-  while(redis && num_attemps > 0) {
+  while(redis && num_attempts > 0) {
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
       sleep(1);
-      num_attemps--;
+      num_attempts--;
     } else
       break;
   }
@@ -614,18 +614,18 @@ int Redis::twoOperators(const char *operation, char *op1, char *op2) {
 
 /* **************************************** */
 
-int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existance, bool localHost) {
+int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existence, bool localHost) {
   if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
     if(hostname == NULL) return(-1);
     return(pushHost(TRAFFIC_FILTERING_CACHE, TRAFFIC_FILTERING_TO_RESOLVE,
-		    hostname, dont_check_for_existance, localHost));
+		    hostname, dont_check_for_existence, localHost));
   } else
     return(0);
 }
 
 /* **************************************** */
 
-int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existance, bool localHost) {
+int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool localHost) {
   if(!ntop->getPrefs()->is_dns_resolution_enabled()) return(0);
   if(hostname == NULL) return(-1);
 
@@ -642,13 +642,13 @@ int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existance, bool
       return(-1);
   }
   
-  return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existance, localHost));
+  return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existence, localHost));
 }
 
 /* **************************************** */
 
 int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
-		    bool dont_check_for_existance, bool localHost) {
+		    bool dont_check_for_existence, bool localHost) {
   int rc = 0;
   char key[CONST_MAX_LEN_REDIS_KEY];
   bool found;
@@ -660,7 +660,7 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 
   l->lock(__FILE__, __LINE__);
 
-  if(dont_check_for_existance)
+  if(dont_check_for_existence)
     found = false;
   else {
     /*
@@ -817,7 +817,7 @@ int Redis::getAddressTrafficFiltering(char *numeric_ip,
   } else {
     /* We need to extend expire */
 
-    expire(numeric_ip, TRAFFIC_FILTERING_CACHE_DURATIION /* expire */);
+    expire(numeric_ip, TRAFFIC_FILTERING_CACHE_DURATION /* expire */);
   }
 
   return(rc);
@@ -853,7 +853,7 @@ int Redis::setTrafficFilteringAddress(char *numeric_ip, char *httpbl) {
   char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), "%s.%s", TRAFFIC_FILTERING_CACHE, numeric_ip);
-  return(set(key, httpbl, TRAFFIC_FILTERING_CACHE_DURATIION));
+  return(set(key, httpbl, TRAFFIC_FILTERING_CACHE_DURATION));
 }
 
 /* **************************************** */
@@ -1290,7 +1290,7 @@ int Redis::lpop(const char *queue_name, char ***elements, u_int num_elements) {
 
   l->lock(__FILE__, __LINE__);
   num_requests++;
-  // make a redis pipeline that pops multile elements
+  // make a redis pipeline that pops multiple elements
   // with just 1 redis command (so we pay only one RTT
   // and the operation is atomic)
   /*

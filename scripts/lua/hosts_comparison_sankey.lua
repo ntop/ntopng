@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 sendHTTPHeader('application/json')
--- Defaul value
+-- Default value
 local debug = false
 interface.select(ifname)
 ifstats = interface.getStats()

@@ -747,7 +747,7 @@ local flow_fields_description = {
     ["MYSQL_DB"] = "MySQL database in use",
     ["MYSQL_QUERY"] = "MySQL Query",
     ["MYSQL_RESPONSE"] = "MySQL server response",
-    ["MYSQL_APPL_LATENCY_USEC"] = "MySQL request->response latecy (usec)",
+    ["MYSQL_APPL_LATENCY_USEC"] = "MySQL request->response latency (usec)",
 
     ["SRC_AS_PATH_1"] = "Src AS path position 1",
     ["SRC_AS_PATH_2"] = "Src AS path position 2",
@@ -957,7 +957,7 @@ local flow_fields_description = {
     ['SIP_RTP_L4_DST_PORT'] = "SIP RTP stream dest port",
     ['SIP_RESPONSE_CODE'] = "SIP failure response code",
     ['SIP_REASON_CAUSE'] = "SIP Cancel/Bye/Failure reason cause",
-    ['SIP_C_IP'] = "SIP C IP adresses",
+    ['SIP_C_IP'] = "SIP C IP addresses",
     ['SIP_CALL_STATE'] = "Sip Call State",
 
     -- S1AP

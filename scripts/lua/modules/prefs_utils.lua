@@ -89,7 +89,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         ntop.setPref(k, v_s)
         value = v_s
       end
-      -- least but not last we ascynchronously notify the runtime ntopng instance for changes
+      -- least but not last we asynchronously notify the runtime ntopng instance for changes
       notifyNtopng(key)
     end
   else

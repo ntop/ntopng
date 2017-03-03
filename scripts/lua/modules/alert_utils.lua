@@ -179,7 +179,7 @@ function re_arm_alert(alarm_source, alarmed_metric, ifname)
       re_arm_minutes = default_re_arm_minutes
    end
    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
-   -- we don't care about key contents, we just care about its exsistance
+   -- we don't care about key contents, we just care about its existence
    if re_arm_minutes == 0 then
       return  -- don't want to re arm the alert
    end
@@ -383,7 +383,7 @@ end
 
 function check_network_alert(ifname, network_name, mode, key, old_table, new_table)
    if(verbose) then
-        io.write("check_newtowrk_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
+        io.write("check_network_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
         io.write("new:\n")
         tprint(new_table)
         io.write("old:\n")
@@ -785,7 +785,7 @@ function performAlertsQuery(statement, what, opts)
    elseif what == "historical-flows" then
       res = interface.queryFlowAlertsRaw(statement, query)
    else
-      error("Invald alert subject: "..what)
+      error("Invalid alert subject: "..what)
    end
 
    -- trigger counters refresh
@@ -1281,7 +1281,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    end
 
    if(show_entity) then
-      -- these fields will be used to perfom queries
+      -- these fields will be used to perform queries
       _GET["entity"] = alertEntity(show_entity)
       _GET["entity_val"] = alert_source
    end
@@ -1738,7 +1738,7 @@ function getCurrentStatus() {
       print[[
          // must wait for modalDeleteAlertsStatus to be created
          $(function() {
-            var status_reset = ]] print(status_reset) --[[ this is necessary because of status parameter inconsinstency after tab switch ]] print[[;
+            var status_reset = ]] print(status_reset) --[[ this is necessary because of status parameter inconsistency after tab switch ]] print[[;
             var tabid;
             
             if ((status_reset) || (getCurrentStatus() == "")) {

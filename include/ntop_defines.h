@@ -146,7 +146,7 @@
 #define DROP_HOST_TRAFFIC       "ntopng.prefs.drop_host_traffic"
 #define DUMP_HOST_TRAFFIC       "ntopng.prefs.dump_host_traffic"
 #define HOST_TRAFFIC_QUOTA      "ntopng.prefs.hosts_quota"
-#define TRAFFIC_FILTERING_CACHE_DURATIION  43200 /* 12 h */
+#define TRAFFIC_FILTERING_CACHE_DURATION  43200 /* 12 h */
 #define DNS_CACHE_DURATION                 3600  /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION         3600  /*  1 h */
 #define CONST_ALERT_PROBING_TIME            120  /* 2 mins */
@@ -626,13 +626,13 @@
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
 #define ES_MAX_QUEUE_LEN              32768
 
-/* Unkown values for host groups */
+/* Unknown values for host groups */
 #define UNKNOWN_COUNTRY       ""
 #define UNKNOWN_OS            ""
 #define UNKNOWN_ASN           "Private ASN"
 #define UNKNOWN_LOCAL_NETWORK "Remote Networks"
 
-/* Macroes */
+/* Macros */
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
 #define _STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(!!(COND))*2-1]

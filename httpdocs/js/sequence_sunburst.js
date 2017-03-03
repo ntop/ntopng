@@ -69,7 +69,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   ///////////////////////////////////////////////////////////
   // UPDATE FUNCIONTS ////////////////////////////////////
   ///////////////////////////////////////////////////////////
-  this.falshUpdate = function (start,end) {
+  this.flashUpdate = function (start,end) {
     arc_group.selectAll("path").style("opacity", start)
     .transition().duration(200).style("opacity", end);
   }
@@ -378,7 +378,7 @@ SequenceSunburst.prototype.setUrlParams = function(url_params) {
 
 SequenceSunburst.prototype.forceUpdate = function(url_params) {  
   // this.stopInterval();
-  this.falshUpdate(0,1);
+  this.flashUpdate(0,1);
   this.update();
   // this.startInterval();
 }

@@ -333,7 +333,7 @@ else
 
   
    if((flow["cli2srv.trend"] ~= nil) and false) then
-     print("<tr><th width=30%>Througput Trend</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
+     print("<tr><th width=30%>Throughput Trend</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
      print(flow["cli2srv.trend"])
      print("</td><td>"..flow["cli.ip"].." <i class=\"fa fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
      print(flow["srv2cli.trend"])
@@ -622,7 +622,7 @@ print [[/lua/flow_stats.lua',
 			$('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
 			pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
 
-			/* 50 is the same threashold specified in FLOW_GOODPUT_THRESHOLD */
+			/* 50 is the same threshold specified in FLOW_GOODPUT_THRESHOLD */
 			if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
 
 			$('#goodput_percentage').html(pctg);

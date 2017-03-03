@@ -218,7 +218,7 @@ bool MySQLDB::createDBSchema() {
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 
-    // We trasfer old table contents into the new schema
+    // We transfer old table contents into the new schema
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv4` "
 	     "SELECT * FROM `%sv4_%u`",
 	     ntop->getPrefs()->get_mysql_tablename(),
@@ -337,7 +337,7 @@ bool MySQLDB::createDBSchema() {
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     ipvers[i]);
     if(exec_sql_query(&mysql, sql, true, true) > 0){
-      // if here, the table has enging InnoDB so we want to modify that to MyISAM
+      // if here, the table has engine InnoDB so we want to modify that to MyISAM
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "MySQL schema update. Altering table %sv%hu: "
@@ -619,7 +619,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully connected to MySQL [%s:%s] for interface %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s:%s] for interface %s",
 			       ntop->getPrefs()->get_mysql_host(),
 			       ntop->getPrefs()->get_mysql_user(),
 			       iface->get_name());
@@ -632,7 +632,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
 /*
   Locking is necessary when multiple queries are executed
-  simulatenously (e.g. via Lua)
+  simultaneously (e.g. via Lua)
 */
 int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 			    bool doReconnect, bool ignoreErrors,
@@ -677,7 +677,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     // we want to return the number of rows which is more informative
     // than a simple 0
     if((result = mysql_store_result(&mysql)) == NULL)
-      rc = 0;  // unable to retrieve the result but still the query succeded
+      rc = 0;  // unable to retrieve the result but still the query succeeded
     else {
       rc = mysql_num_rows(result);
       ntop->getTrace()->traceEvent(TRACE_INFO,

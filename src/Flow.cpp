@@ -273,7 +273,7 @@ void Flow::dumpFlowAlert() {
     case status_slow_application_header: /* 2 */
     case status_slow_data_exchange: /* 3 */
     case status_low_goodput: /* 4 */
-    case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similaria */
+    case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similar */
       /* Don't log them for the time being otherwise we'll have too many flows */
       do_dump = false;
       break;
@@ -1033,7 +1033,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
 				       bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
 
-	// update the old values with the newely calculated ones
+	// update the old values with the newly calculated ones
 	bytes_thpt_cli2srv         = bytes_msec_cli2srv;
 	bytes_thpt_srv2cli         = bytes_msec_srv2cli;
 	goodput_bytes_thpt_cli2srv = goodput_bytes_msec_cli2srv;
@@ -1071,7 +1071,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	if((cli2srv_goodput_bytes+srv2cli_goodput_bytes) > 0) {
 	  char buf[256];
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodpt long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
 				       print(buf, sizeof(buf)),
 				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
 				       goodputTrend.getTrendMsg(),
@@ -1438,7 +1438,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_float_table_entry(vm, "throughput_pps",       pkts_thpt);
     lua_push_int_table_entry(vm,   "throughput_trend_pps", pkts_thpt_trend);
 
-    // thoughut stats cli2srv and srv2cli breakdown
+    // throughput stats cli2srv and srv2cli breakdown
     lua_push_float_table_entry(vm, "throughput_cli2srv_bps", bytes_thpt_cli2srv);
     lua_push_float_table_entry(vm, "throughput_srv2cli_bps", bytes_thpt_srv2cli);
     lua_push_float_table_entry(vm, "throughput_cli2srv_pps", pkts_thpt_cli2srv);

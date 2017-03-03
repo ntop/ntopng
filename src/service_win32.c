@@ -1096,7 +1096,7 @@ void WINAPI serviceMain(DWORD dwArgc, LPTSTR *lpszArgv)
 
   // Do it! In ServiceStart, we'll send additional status reports to the
   // service control manager, especially the SERVICE_RUNNING report once
-  // our JVM is initiallized and ready to be invoked.
+  // our JVM is initialized and ready to be invoked.
   ServiceStart(dwNewArgc, lpszNewArgv);
 
   // Release the allocated storage used by our arg list. Java programmers

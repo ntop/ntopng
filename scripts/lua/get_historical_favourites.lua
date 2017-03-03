@@ -25,7 +25,7 @@ if peer and not host then
    peer = nil
 end
 
--- this is to retrieve L7 appliation data
+-- this is to retrieve L7 application data
 local l7_proto_id = _GET["l7_proto_id"]
 
 -- specify the type of stats

@@ -172,7 +172,7 @@ void PeriodicActivities::minuteActivitiesLoop() {
 
     if(now >= next_run) {
       /* 
-	 We need to make sure that minute actitivies 
+	 We need to make sure that minute activities 
 	 (e.g. 60 sec interface traffic stats) 
 	 are completed when we call runScript()
 	 that needs to make sure that such data

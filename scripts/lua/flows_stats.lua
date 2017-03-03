@@ -132,7 +132,7 @@ print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
--- prepare the page title that slighly changes depending on
+-- prepare the page title that slightly changes depending on
 -- the kind of interface
 local active_msg = "Active "
 

@@ -837,7 +837,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
  * @param password  Password to be used on post or NULL if missing
  * @param url       URL where to post data to
  * @param json      The content of the POST
- * @return true if post was successfull, false otherwise.
+ * @return true if post was successful, false otherwise.
  */
 
 static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
@@ -1324,7 +1324,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   /* Second, sort the list by file size */
   dirlist.sort(dir_size_compare);
 
-  /* Third, trasverse list and delete until we go below quota */
+  /* Third, traverse list and delete until we go below quota */
   for (it = dirlist.begin(); it != dirlist.end(); ++it) {
     stat((*it)->d_name, &st);
     unlink((*it)->d_name);

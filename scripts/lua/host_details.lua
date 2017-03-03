@@ -304,7 +304,7 @@ else
 end
 
 if(false) then
--- NOTE: code temporarely disabled
+-- NOTE: code temporarily disabled
 if(not(isLoopback(ifname))) then
    if(page == "jaccard") then
       print("<li class=\"active\"><a href=\"#\">Similarity</a></li>\n")
@@ -667,7 +667,7 @@ var ndx = crossfilter(content),
     protocolDim  = ndx.dimension(function(d) {return d.l7proto;}),
     trafficDim = ndx.dimension(function(d) {return Math.floor(d.traffic/10);}),
     nameDim  = ndx.dimension(function(d) {return d.name;});
-    // actually this script expects input data to be aggregated by host, otherwise we are making the sum of logarithmns here
+    // actually this script expects input data to be aggregated by host, otherwise we are making the sum of logarithms here
     trafficPerl7proto = protocolDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficPerhost = nameDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficHist    = trafficDim.group().reduceCount();
@@ -969,7 +969,7 @@ if host["localhost"] == true then
          <input type="radio" name="showmode" value="bg" onclick="if(this.value != curmode) setShowMode(this.value);"> Background Traffic
       </div>
 
-      <div id="userctivityContainer"></div>
+      <div id="useractivityContainer"></div>
 
       <div style='margin-bottom:1em;'>
 	 Resolution:&nbsp;
@@ -1046,7 +1046,7 @@ print [[
 	    if (newstep != curstep) {
 	       // hard reset
 	       curstep = newstep;
-	       $('#userctivity').remove();
+	       $('#useractivity').remove();
 
 	       if (context) {
 		  context.stop();
@@ -1055,11 +1055,11 @@ print [[
 		  delete context;
 	       }
 
-	       var div = $('<div id="userctivity"></div>')
+	       var div = $('<div id="useractivity"></div>')
 		  .css("margin", "2em 0 1em 0")
 		  .css("position", "relative")
 		  .css("width", HorizonGraphWidth);
-	       $('#userctivityContainer').append(div);
+	       $('#useractivityContainer').append(div);
 
 	       context = cubism.context().size(HorizonGraphWidth).step(curstep*1000);
 	       horizon = context.horizon();
@@ -1072,7 +1072,7 @@ print [[
 	    } else {
 	       // soft reset
 	       d3.selectAll(".horizon").remove();
-	       $('#userctivity').empty();
+	       $('#useractivity').empty();
 	    }
 	 }
 
@@ -1095,7 +1095,7 @@ print [[
                   });
 		  if (metrics.length > 0) {
 		     // data
-		     d3.select("#userctivity")
+		     d3.select("#useractivity")
 			.selectAll(".horizon")
 			.data(metrics)
 			.enter().append("div", ".bottom")
@@ -1103,20 +1103,20 @@ print [[
 			.call(horizon.format(function(x) { return formatBytes(x,2); }));
 
 		     // bottom axis
-		     d3.select("#userctivity")
+		     d3.select("#useractivity")
 			.append("div")
 			.attr("class", "axis")
 			.call(context.axis().orient("bottom"));
 
 		     // vertical line on mousemove
-		     d3.select("#userctivity")
+		     d3.select("#useractivity")
 			.append("div")
 			.attr("class", "rule")
 			.call(context.rule());
 
 		     context.start();
 		  } else {
-		     $('#userctivity').text("No data so far");
+		     $('#useractivity').text("No data so far");
 		  }
                }
             });
@@ -1125,7 +1125,7 @@ print [[
          setShowMode("updown", 300);
       </script>
       <p>
-      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
+      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user traffic (e.g. web page access)
 <br>and background traffic (e.g. your email client periodically checks for email presence). Host traffic sent (upload)<br>
 is marked as negative value in <font color=blue>blue</font>, traffic received (download) is marked as positive in <font color=green>green</font>.
    </td></tr> ]]
@@ -1611,7 +1611,7 @@ print [[
 ]]
 
 elseif(page == "jaccard") then
--- NOTE: code temporarely disabled
+-- NOTE: code temporarily disabled
 
 print [[
 <div id="prg" class="container">
@@ -2180,7 +2180,7 @@ print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode
 });]]
 
 
--- Processes graph javascritp
+-- Processes graph javascript
 
 print [[
 processes = do_pie("#topProcess", ']]
