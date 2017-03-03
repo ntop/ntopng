@@ -957,7 +957,7 @@ local flow_fields_description = {
     ['SIP_RTP_L4_DST_PORT'] = "SIP RTP stream dest port",
     ['SIP_RESPONSE_CODE'] = "SIP failure response code",
     ['SIP_REASON_CAUSE'] = "SIP Cancel/Bye/Failure reason cause",
-    ['SIP_C_IP'] = "SIP C IP adresses",
+    ['SIP_C_IP'] = "SIP C IP addresses",
     ['SIP_CALL_STATE'] = "Sip Call State",
 
     -- S1AP
