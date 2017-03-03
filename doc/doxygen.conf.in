@@ -1014,7 +1014,7 @@ USE_HTAGS              = NO
 VERBATIM_HEADERS       = NO
 
 # If the CLANG_ASSISTED_PARSING tag is set to YES, then doxygen will use the
-# clang parser (see: http://clang.llvm.org/) for more acurate parsing at the
+# clang parser (see: http://clang.llvm.org/) for more accurate parsing at the
 # cost of reduced performance. This can be particularly helpful with template
 # rich C++ code for which doxygen's built-in parser lacks the necessary type
 # information.
