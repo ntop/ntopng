@@ -176,7 +176,7 @@ static int ntop_get_default_interface_name(lua_State* vm) {
     lua_pushstring(vm,
 		   ntop->getNetworkInterface(ifname)->get_name());
   } else {
-    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constaint */
+    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constraint */
 					      0)->get_name());
   }
   return(CONST_LUA_OK);
