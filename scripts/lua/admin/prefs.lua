@@ -54,6 +54,7 @@ if(haveAdminPrivileges()) then
    
    local menu_subpages = {
       {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
+      {id="auth",          label="Authentication",       advanced=false, pro_only=true,   disabled=false},
       {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
       {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
       {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
@@ -62,7 +63,8 @@ if(haveAdminPrivileges()) then
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
       {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
       {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
-      {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
+      {id="snmp",          label="SNMP",                 advanced=true,  pro_only=true,   disabled=false},
+      {id="nbox",          label="nBox Integration",     advanced=false, pro_only=true,   disabled=false},
    }
 
 if(info["version.enterprise_edition"]) then
@@ -429,94 +431,80 @@ function printUsers()
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
-  if ntop.isPro() then
-     print('<tr><th colspan=2 class="info">Authentication</th></tr>')
-     local labels = {"Local","LDAP","LDAP/Local"}
-     local values = {"local","ldap","ldap_local"}
-     local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group"}
-     local showElementArray = {false, true, true}
-     local javascriptAfterSwitch = "";
-     javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"none\");\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-     local retVal = multipleTableButtonPrefs("Authentication Method",
-					     "Local (Local only), LDAP (LDAP server only), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication).",
-					     labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,
-					     elementToSwitch, showElementArray, javascriptAfterSwitch)
-
-     local showElements = true;
-     if ntop.getPref("ntopng.prefs.auth_type") == "local" then
-	showElements = false
-     end
-
-     local labels_account = {"Posix","sAMAccount"}
-     local values_account = {"posix","samaccount"}
-     multipleTableButtonPrefs("LDAP Accounts Type",
-			      "Choose your account type",
-			      labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
-
-     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "ldap_server_address", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}})
-
-     local elementToSwitchBind = {"bind_dn","bind_pwd"}
-     toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
-
-     local showEnabledAnonymousBind = false
-     if ntop.getPref("ntopng.prefs.ldap.anonymous_bind") == "0" then
-	showEnabledAnonymousBind = true
-     end
-     local showElementsBind = showElements
-     if showElements == true then
-	showElementsBind = showEnabledAnonymousBind
-     end
-     -- These two fields are necessary to prevent chrome from filling in LDAP username and password with saved credentials
-     -- Chrome, in fact, ignores the autocomplete=off on the input field. The input fill-in triggers un-necessary are-you-sure leave message
-     print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
-     print('<input style="display:none;" type="password" name="_" data-ays-ignore="true" />')
-     --
-     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}})
-     prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
-
-     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
-     prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
-     prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
-
-  end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
-
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form>
-  <script>
-    function save_button_users(){
-      if(typeof $("#id-toggle-multiple_ldap_authentication").val() !== 'undefined'
-          && $("#id-toggle-multiple_ldap_authentication").val() != "local") {
-        var field = $("#id_input_server").val();
+    </form>]]
+end
 
-        if((field.substring(0, 7) != "ldap://") && (field.substring(0, 8) != "ldaps://")) {
-          alert("Invalid LDAP Server Address Value: missing \"ldap://\" or \"ldaps://\" at beginning.");
-          return false;
-        }
+-- ================================================================================
 
-        var new_field = field.replace('ldaps://', '');
-        new_field = new_field.replace('ldap://', '');
-        var res = new_field.split(":");
-        if(res.length != 2){
-          alert("Invalid LDAP Server Address Value: missing ldap server address or port number.");
-          return false;
-        }
-      }
+function printAuthentication()
+  if not ntop.isPro() then return end
 
-      /* do submit */
-      return true;
-    }
-  </script>
-  ]]
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">Authentication</th></tr>')
+  local labels = {"Local","LDAP","LDAP/Local"}
+  local values = {"local","ldap","ldap_local"}
+  local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group"}
+  local showElementArray = {false, true, true}
+  local javascriptAfterSwitch = "";
+  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
+  local retVal = multipleTableButtonPrefs("Authentication Method",
+           "Local (Local only), LDAP (LDAP server only), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication).",
+           labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,
+           elementToSwitch, showElementArray, javascriptAfterSwitch)
+
+  local showElements = true;
+  if ntop.getPref("ntopng.prefs.auth_type") == "local" then
+  showElements = false
+  end
+
+  local labels_account = {"Posix","sAMAccount"}
+  local values_account = {"posix","samaccount"}
+  multipleTableButtonPrefs("LDAP Accounts Type",
+        "Choose your account type",
+        labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
+
+  prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "ldap_server_address", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}})
+
+  local elementToSwitchBind = {"bind_dn","bind_pwd"}
+  toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
+
+  local showEnabledAnonymousBind = false
+    if ntop.getPref("ntopng.prefs.ldap.anonymous_bind") == "0" then
+  showEnabledAnonymousBind = true
+  end
+  local showElementsBind = showElements
+  if showElements == true then
+    showElementsBind = showEnabledAnonymousBind
+  end
+  -- These two fields are necessary to prevent chrome from filling in LDAP username and password with saved credentials
+  -- Chrome, in fact, ignores the autocomplete=off on the input field. The input fill-in triggers un-necessary are-you-sure leave message
+  print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
+  print('<input style="display:none;" type="password" name="_" data-ays-ignore="true" />')
+  --
+  prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}})
+  prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
+
+  prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
+  prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
+  prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+  print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
+  print('</form>')
 end
 
 -- ================================================================================
@@ -621,12 +609,6 @@ function printStatsRrds()
     toggleTableButtonPrefs("Host Pools Timeseries",
 			 "Toggle the creation of bytes and nDPI timeseries for defined Host Pools.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")
-
-    toggleTableButtonPrefs("SNMP Devices Timeseries",
-			 "Toggle the creation of bytes timeseries for each port of the SNMP devices. For each device port" ..
-			 " will be created an RRD with ingress/egress bytes.",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_snmp_rrds", "ntopng.prefs.snmp_devices_rrd_creation", "0",
-			    not info["version.enterprise_edition"])
   end
 
   toggleTableButtonPrefs("Category Timeseries",
@@ -682,6 +664,26 @@ function printLogging()
         "Off", "0", "danger",
         "toggle_access_log", "ntopng.prefs.enable_access_log", "0")
 
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>
+  </table>]]
+end
+
+function printSnmp()
+  if not ntop.isPro() then return end
+
+  print('<form method="post">')
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">SNMP</th></tr>')
+
+  toggleTableButtonPrefs("SNMP Devices Timeseries",
+			 "Toggle the creation of bytes timeseries for each port of the SNMP devices. For each device port" ..
+			 " will be created an RRD with ingress/egress bytes.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_snmp_rrds", "ntopng.prefs.snmp_devices_rrd_creation", "0",
+			    not info["version.enterprise_edition"])
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
 
@@ -784,11 +786,17 @@ end
 if(tab == "users") then
    printUsers()
 end
+if(tab == "auth") then
+   printAuthentication()
+end
 if(tab == "ifaces") then
    printInterfaces()
 end
 if(tab == "logging") then
    printLogging()
+end
+if(tab == "snmp") then
+   printSnmp()
 end
 
 print[[
