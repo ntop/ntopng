@@ -127,7 +127,7 @@ else
   -- Default values
   aggregated_flows = {}
   father_process = {}
-  cildren_proess = {}
+  children_process = {}
   num = 0
   filter_client = 0
   filter_server = 0
@@ -172,7 +172,7 @@ else
   end 
 
   father_process = {}
-  cildren_proess = {}
+  children_process = {}
   num = 0
   tot = 0
   for key, value in pairs(aggregated_flows) do
