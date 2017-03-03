@@ -892,7 +892,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
     $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
     $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">' + app + ' talkers</a></li>');
 
-    // append two li: one is to be shown when the favourites has not beena added;
+    // append two li: one is to be shown when the favourites has not been added;
     // the other is shown when the favourites has been added
 
     // first li: there is no exising favorited peer --> app pair saved
