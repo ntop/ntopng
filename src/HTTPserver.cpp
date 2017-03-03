@@ -293,7 +293,7 @@ static int is_authorized(const struct mg_connection *conn,
   // do_auto_logout() is the getter for the command-line specified
   // preference that defaults to true (i.e., auto_logout is enabled by default)
   // If do_auto_logout() is disabled, then the runtime auto logout preference
-  // is taken into accout.
+  // is taken into account.
   // If do_auto_logout() is false, then the auto logout is disabled regardless
   // of runtime preferences.
   if(ntop->getPrefs()->do_auto_logout() && strncmp(buf, (char*)"1", 1) == 0) {
