@@ -6,7 +6,7 @@ network and keep intruders out. When using ntopng in inline mode
 (see README.inline for more information) you can enable the
 captive portal from the ntop preferences menu (note that you need
 to make sure you have started ntopng on HTTP port 80). At this point
-the comunications between the two bridged interfaces can happen only
+the communications between the two bridged interfaces can happen only
 for the known hosts.
 
 
