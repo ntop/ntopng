@@ -132,7 +132,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   local with_activity = extra.with_activity
   local orig_resol = resolution
 
-  -- check resolution consinstency
+  -- check resolution consistency
   if rawstep > resolution then
     -- TODO i18n should be available
     --~ return {error=i18n('error_rrd_low_resolution', {prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_rrds"})}
