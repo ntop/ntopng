@@ -385,7 +385,7 @@ if((page == "overview") or (page == nil)) then
    print('</td></tr>')
 
       if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"])
+	 local ports = find_mac_snmp_ports(host["mac"], ifId)
 
 	 if(ports ~= nil) then
 	    local rsps = 1
@@ -397,8 +397,11 @@ if((page == "overview") or (page == nil)) then
 	    if(rsps > 1) then
 	    	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
 	    	    for host,port in pairs(ports) do
-		    	       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host="..host.."'>"..ntop.getResolvedAddress(host).."</A></td>")
-			       	       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port.."'>"..port.."</td></tr>\n")
+                       local trunk
+
+                       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
+	    	       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host.."'>"..ntop.getResolvedAddress(host).."</A></td>")
+	       	       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..port.name.."</span>"..trunk.."</A></td></tr>\n")
 		    end
 	    end
 	 end
