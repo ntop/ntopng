@@ -608,7 +608,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 /* ***************************************** */
 
 /*
-  As this method can be called from Lua, in order to avoid concurency issues
+  As this method can be called from Lua, in order to avoid concurrency issues
   we need to lock/unlock
 */
 void Host::setName(char *name) {
