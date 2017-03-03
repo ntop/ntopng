@@ -219,7 +219,7 @@ function removeAllFavourites(stats_type, favourite_type, select_id){
       // and hide the container div...
       $('#' + select_id).parent().closest('div').hide();
 
-     // refresh the right breacrumb
+     // refresh the right breadcrumb
      if (stats_type == "top_talkers"){
        if(favourite_type == "talker"){
 	 $('.bc-item-add.talker').show();
