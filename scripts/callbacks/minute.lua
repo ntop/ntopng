@@ -11,7 +11,6 @@ if (ntop.isPro()) then
    require("minute")
 
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   require "snmp_utils"
 end
 
 require "lua_utils"
@@ -114,17 +113,10 @@ host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
 host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
-snmp_devices_rrd_creation = ntop.getCache("ntopng.prefs.snmp_devices_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
    flow_devices_rrd_creation = "0"
 end
-
-if(tostring(snmp_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
-   snmp_devices_rrd_creation = "0"
-end
-
-local snmp_to_dump = {}
 
 -- id = 0
 for _,_ifname in pairs(ifnames) do
@@ -434,12 +426,6 @@ for _,_ifname in pairs(ifnames) do
 	 if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1")) then
 	    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
 	 end
-
-	 -- Save SNMP stats every 5 minutes
-	 if(tostring(snmp_devices_rrd_creation) == "1") then
-	    -- See below
-	    snmp_to_dump[#snmp_to_dump + 1] = ifstats.id
-	 end
       end -- if(diff
    end -- if(good interface type
 end -- for ifname,_ in pairs(ifnames) do
@@ -471,12 +457,4 @@ if prefs.is_active_local_hosts_cache_enabled then
       end
 
    end
-end
-
--- Check for SNMP to dump
-local time_threshold = when - (when % 60) + 60
-
-for i, ifid in pairs(snmp_to_dump) do
-   -- We must complete within the minute
-   snmp_update_rrds(ifid, time_threshold, verbose)
 end

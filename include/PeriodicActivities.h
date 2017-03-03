@@ -26,7 +26,7 @@
 
 class PeriodicActivities {
  private:
-  pthread_t housekeepingLoop, secondLoop, minuteLoop, hourLoop, dayLoop;
+  pthread_t housekeepingLoop, secondLoop, minuteLoop, fiveMinutesLoop, hourLoop, dayLoop;
 
   u_int32_t roundTime(u_int32_t now, u_int32_t rounder);
   void runScript(char *path, u_int32_t when);
@@ -40,6 +40,7 @@ class PeriodicActivities {
   void housekeepingActivitiesLoop();
   void secondActivitiesLoop();
   void minuteActivitiesLoop();
+  void fiveMinutesActivitiesLoop();
   void hourActivitiesLoop();
   void dayActivitiesLoop();
 };

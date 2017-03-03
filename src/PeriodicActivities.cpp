@@ -44,6 +44,7 @@ PeriodicActivities::~PeriodicActivities() {
 static void* housekeepingStartLoop(void* ptr) {  ((PeriodicActivities*)ptr)->housekeepingActivitiesLoop(); return(NULL); }
 static void* secondStartLoop(void* ptr)       {  ((PeriodicActivities*)ptr)->secondActivitiesLoop(); return(NULL); }
 static void* minuteStartLoop(void* ptr)       {  ((PeriodicActivities*)ptr)->minuteActivitiesLoop(); return(NULL); }
+static void* fiveMinutesStartLoop(void* ptr)  {  ((PeriodicActivities*)ptr)->fiveMinutesActivitiesLoop(); return(NULL); }
 static void* hourStartLoop(void* ptr)         {  ((PeriodicActivities*)ptr)->hourActivitiesLoop(); return(NULL);   }
 static void* dayStartLoop(void* ptr)          {  ((PeriodicActivities*)ptr)->dayActivitiesLoop(); return(NULL);    }
 
@@ -67,6 +68,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   pthread_create(&housekeepingLoop, NULL, housekeepingStartLoop, (void*)this);
   pthread_create(&secondLoop, NULL, secondStartLoop, (void*)this);
   pthread_create(&minuteLoop, NULL, minuteStartLoop, (void*)this);
+  pthread_create(&fiveMinutesLoop, NULL, fiveMinutesStartLoop, (void*)this);
   pthread_create(&hourLoop,   NULL, hourStartLoop,   (void*)this);
   pthread_create(&dayLoop,    NULL, dayStartLoop,    (void*)this);
 }
@@ -180,6 +182,28 @@ void PeriodicActivities::minuteActivitiesLoop() {
           
       runScript(script, next_run);
       next_run = roundTime(now, 60);
+    }
+
+    sleep(1);
+  }
+}
+
+/* ******************************************* */
+
+void PeriodicActivities::fiveMinutesActivitiesLoop() {
+  char script[MAX_PATH];
+  u_int32_t next_run = (u_int32_t)time(NULL);
+
+  next_run = roundTime(next_run, 300);
+
+  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), FIVE_MINUTES_SCRIPT_PATH);
+
+  while(!ntop->getGlobals()->isShutdown()) {
+    u_int now = (u_int)time(NULL);
+
+    if(now >= next_run) {
+      runScript(script, now);
+      next_run = roundTime(now, 300);
     }
 
     sleep(1);

@@ -64,7 +64,7 @@ if(haveAdminPrivileges()) then
       {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
       {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
       {id="snmp",          label="SNMP",                 advanced=true,  pro_only=true,   disabled=false},
-      {id="nbox",          label="nBox Integration",     advanced=false, pro_only=true,   disabled=false},
+      {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
    }
 
 if(info["version.enterprise_edition"]) then
