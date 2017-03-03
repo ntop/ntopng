@@ -57,7 +57,7 @@ Redis::~Redis() {
 void Redis::reconnectRedis() {
   struct timeval timeout = { 1, 500000 }; // 1.5 seconds
   redisReply *reply;
-  u_int num_attemps = 10;
+  u_int num_attempts = 10;
 
   operational = false;
 
@@ -78,13 +78,13 @@ void Redis::reconnectRedis() {
     }
   }
 
-  while(redis && num_attemps > 0) {
+  while(redis && num_attempts > 0) {
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
       sleep(1);
-      num_attemps--;
+      num_attempts--;
     } else
       break;
   }
