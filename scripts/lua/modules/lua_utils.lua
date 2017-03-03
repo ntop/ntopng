@@ -322,7 +322,7 @@ alert_functions_description = {
     ["idle"]    = "Idle time since last packet sent (seconds)",	
     ["packets"] = "Packets delta (sent + received)",
     ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
-    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
+    ["throughput"]   = "Average throughput (sent + received) [Mbps]",
 }
 
 network_alert_functions_description = {
