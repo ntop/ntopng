@@ -34,7 +34,7 @@ end
 
 -----------------------------------
 
-function getAggretationValue(flow,flow_key,type)
+function getAggregationValue(flow,flow_key,type)
   l_how = 0;
   process_key = "client_process"
   bytes_key = "cli2srv.bytes"
@@ -162,7 +162,7 @@ else
     if ((client_process == 1))then
       current_what = flow["client_process"][what].." (client)"
       
-      value = getAggretationValue(flow,key,"client")
+      value = getAggregationValue(flow,key,"client")
       setAggregatedFlow(current_what,flow["cli.ip"],value,flow["client_process"][what])
       
       if (debug) then io.write("Find client_process:"..current_what..", Value:"..value..", Process:"..flow["client_process"]["name"]..",Pid:"..flow["client_process"]["pid"]..",Url:"..what_array[current_what]["url"].."\n"); end
@@ -171,7 +171,7 @@ else
     if(server_process == 1) then
       current_what = flow["server_process"][what].." (server)"
       
-      value = getAggretationValue(flow,key,"server")
+      value = getAggregationValue(flow,key,"server")
       setAggregatedFlow(current_what,flow["srv.ip"],value,flow["server_process"][what])
       
       if (debug) then io.write("Find server_process:"..current_what..", Value:"..value..", Process:"..flow["server_process"]["name"]..",Pid:"..flow["server_process"]["pid"]..",Url:"..what_array[current_what]["url"].."\n"); end
