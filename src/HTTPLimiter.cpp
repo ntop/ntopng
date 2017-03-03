@@ -25,10 +25,12 @@ HTTPlimiter::HTTPlimiter() {
   mutex = new Mutex();
   active_threads = 0;
   active_websockets = 0;
-  memset(active_hosts, 0, sizeof(active_hosts));
+  if((active_hosts = (ActiveRemoteWebHost*)calloc(Utils::getNumHTTPServerThreads(), sizeof(ActiveRemoteWebHost))) == NULL)
+    throw "Not enough memory";
 }
 
 HTTPlimiter::~HTTPlimiter() {
+  if(active_hosts) free(active_hosts);
   delete mutex;
 }
 
@@ -37,8 +39,8 @@ bool HTTPlimiter::connectHost(uint32_t ip, int port, bool is_websocket) {
 
   mutex->lock(__FILE__, __LINE__);
 
-  if (((is_websocket) && (active_websockets >= HTTP_SERVER_MAX_WEBSOCKET_THREADS)) ||
-      (active_threads >= HTTP_SERVER_NUM_THREADS)) {
+  if (((is_websocket) && (active_websockets >= Utils::getNumHTTPWebSocketServerThreads()))
+      || (active_threads >= Utils::getNumHTTPServerThreads())) {
     success = false;
   } else {
     int num_hits = 0;
@@ -47,7 +49,7 @@ bool HTTPlimiter::connectHost(uint32_t ip, int port, bool is_websocket) {
         num_hits++;
     }
 
-    if (num_hits >= HTTP_SERVER_MAX_THREADS_PER_HOST)
+    if (num_hits >= Utils::getMaxNumHTTPServerThreadsPerHost())
       success = false;
   }
 

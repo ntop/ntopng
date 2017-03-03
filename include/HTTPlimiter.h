@@ -24,16 +24,18 @@
 
 #include "ntop_includes.h"
 
+typedef struct {
+  uint32_t ip;
+  int port;
+  bool websocket;
+} ActiveRemoteWebHost;
+
 class HTTPlimiter {
   private:
     Mutex *mutex;
     int active_threads;
     int active_websockets;
-    struct {
-      uint32_t ip;
-      int port;
-      bool websocket;
-    } active_hosts[HTTP_SERVER_NUM_THREADS];
+    ActiveRemoteWebHost *active_hosts;
 
   public:
     HTTPlimiter();

@@ -824,7 +824,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   limiter = new HTTPlimiter();
 
-  snprintf(num_threads, sizeof(num_threads), "%d", HTTP_SERVER_NUM_THREADS);
+  snprintf(num_threads, sizeof(num_threads), "%u", Utils::getNumHTTPServerThreads());
 
   static char *http_options[] = {
     (char*)"listening_ports", ports,
@@ -940,6 +940,13 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   /* ***************************** */
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Web server threads: %u servers, "
+			       "%u websocket servers, "
+			       "%u maximum servers per host",
+			       Utils::getNumHTTPServerThreads(),
+			       Utils::getNumHTTPWebSocketServerThreads(),
+			       Utils::getMaxNumHTTPServerThreadsPerHost());
 
   if(use_http)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on port(s) %s", 

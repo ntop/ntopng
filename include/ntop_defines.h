@@ -95,14 +95,16 @@
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 
-/* The total number of threads to use in mongoose */
-#define HTTP_SERVER_NUM_THREADS 16
+/* The minimum and maximum number of threads to use in mongoose */
+#define HTTP_SERVER_MAX_THREADS           16
+#define HTTP_SERVER_MIN_THREADS           4
 
 /* The maximum number of threads to dedicate do WebSocket connections */
 #define HTTP_SERVER_MAX_WEBSOCKET_THREADS 4
 
-/* The maximum number of active connections (busy threads) per host */
-#define HTTP_SERVER_MAX_THREADS_PER_HOST 8
+/* The minimum and maximum number of active connections (busy threads) per host */
+#define HTTP_SERVER_MAX_THREADS_PER_HOST  8
+#define HTTP_SERVER_MIN_THREADS_PER_HOST  2
 
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
 #define NDPI_MIN_NUM_PACKETS      10
