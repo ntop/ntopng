@@ -235,12 +235,12 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   if start < epoch_start then
     local toskip = math.min(math.ceil((epoch_start - start) / rawstep), npoints)
     local prevtime = start + rawstep * (toskip-1)
-    local aligment = (1 - (epoch_start - prevtime) / rawstep)
+    local alignment = (1 - (epoch_start - prevtime) / rawstep)
 
     -- skip starting rows
     src_idx = toskip + 1
     for_each_counter_do_update(integr_ctrs, function (value, col)
-      return value + rawdata[col][toskip] * aligment
+      return value + rawdata[col][toskip] * alignment
     end)
   end
 
