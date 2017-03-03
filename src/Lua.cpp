@@ -895,7 +895,7 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 
 /**
  * @brief Return the epoch of the file last change
- * @details This function return that time (epoch) of the last chnge on a file, or -1 if the file does not exist.
+ * @details This function return that time (epoch) of the last change on a file, or -1 if the file does not exist.
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK
