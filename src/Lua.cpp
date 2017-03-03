@@ -5935,18 +5935,18 @@ static char* http_encode(char *str) {
 /* ****************************************** */
 
 void Lua::purifyHTTPParameter(char *param) {
-  char *ampercent;
+  char *ampersand;
 
-  if((ampercent = strchr(param, '%')) != NULL) {
+  if((ampersand = strchr(param, '%')) != NULL) {
     /* We allow only a few chars, removing all the others */
 
-    if((ampercent[1] != 0) && (ampercent[2] != 0)) {
+    if((ampersand[1] != 0) && (ampersand[2] != 0)) {
       char c;
-      char b = ampercent[3];
+      char b = ampersand[3];
 
-      ampercent[3] = '\0';
-      c = (char)strtol(&ampercent[1], NULL, 16);
-      ampercent[3] = b;
+      ampersand[3] = '\0';
+      c = (char)strtol(&ampersand[1], NULL, 16);
+      ampersand[3] = b;
 
       switch(c) {
       case '/':
@@ -5976,14 +5976,14 @@ void Lua::purifyHTTPParameter(char *param) {
       default:
 	if(!Utils::isPrintableChar(c)) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '0x%02x' in URI [%s]", c, param);
-	  ampercent[0] = '\0';
+	  ampersand[0] = '\0';
 	  return;
 	}
       }
 
-      purifyHTTPParameter(&ampercent[3]);
+      purifyHTTPParameter(&ampersand[3]);
     } else
-      ampercent[0] = '\0';
+      ampersand[0] = '\0';
   }
 }
 
