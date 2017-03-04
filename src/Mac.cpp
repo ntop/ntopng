@@ -65,7 +65,7 @@ Mac::~Mac() {
     iface->decNumL2Devices();
 
     snprintf(buf, sizeof(buf), CONST_MAC_LAST_SEEN, iface->get_id());
-    snprintf(when, sizeof(when), "%u", time(NULL));
+    snprintf(when, sizeof(when), "%lu", time(NULL));
     snprintf(buf2, sizeof(buf2), "%s@%d", Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
     ntop->getRedis()->hashSet(buf, buf2, when);
   }
