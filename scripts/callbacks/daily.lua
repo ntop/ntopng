@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 require "blacklist_utils"
+local callback_utils = require "callback_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
@@ -19,38 +20,25 @@ end
 -- TODO: make 30 configurable
 harvestJSONTopTalkers(30)
 
+local verbose = ntop.verboseTrace()
+local ifnames = interface.getIfNames()
+
 -- Scan "day" alerts
-for _, ifname in pairs(interface.getIfNames()) do
+callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
    scanAlerts("day", ifname)
-end
+end)
 
-local debug = false
 local delete_keys = true
-
-function harverstExpiredMySQLFlows(ifname, mysql_retention)
-   sql = "DELETE FROM flowsv4 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
-   interface.execSQLQuery(sql)
-   if(debug) then io.write(sql.."\n") end
-
-   sql = "DELETE FROM flowsv6 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
-   interface.execSQLQuery(sql)
-   if(debug) then io.write(sql.."\n") end
-end
-
 
 begin = os.clock()
 t = os.time()-86400
 
 if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
-   debug = true
+   verbose = true
    t = t + 86400
 end
 
-if(debug) then sendHTTPHeader('text/plain') end
+if(verbose) then sendHTTPHeader('text/plain') end
 
 when = os.date("%y%m%d", t)
 
@@ -61,14 +49,12 @@ mysql_retention = os.time() - 86400*tonumber(mysql_retention)
 minute_top_talkers_retention = ntop.getCache("ntopng.prefs.minute_top_talkers_retention")
 if((minute_top_talkers_retention == nil) or (minute_top_talkers_retention == "")) then minute_top_talkers_retention = "365" end
 
-ifnames = interface.getIfNames()
-for _,_ifname in pairs(ifnames) do
-   interface.select(_ifname)
+callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
    interface_id = getInterfaceId(_ifname)
 
    ntop.deleteMinuteStatsOlderThan(interface_id, tonumber(minute_top_talkers_retention))
 
-   harverstExpiredMySQLFlows(_ifname, mysql_retention)
+   callback_utils.harverstExpiredMySQLFlows(_ifname, mysql_retention, verbose)
 
    hosts_stats = interface.getHostsInfo(false --[[ don't show details --]])
    hosts_stats = hosts_stats["hosts"]
@@ -80,7 +66,6 @@ for _,_ifname in pairs(ifnames) do
    if(interface.getInterfaceDumpDiskPolicy() == true) then
       ntop.deleteDumpFiles(interface_id)
    end
-end
-
+end)
 
 loadHostBlackList()

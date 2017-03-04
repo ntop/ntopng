@@ -7,14 +7,18 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "alert_utils"
+local callback_utils = require "callback_utils"
 
 if (ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
   require("hourly")
 end
 
+local verbose = ntop.verboseTrace()
+local ifnames = interface.getIfNames()
+
 -- Scan "hour" alerts
-for _, ifname in pairs(interface.getIfNames()) do
+callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
    scanAlerts("hour", ifname)
-end
+end)
 

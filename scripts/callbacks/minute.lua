@@ -17,87 +17,22 @@ require "lua_utils"
 require "graph_utils"
 require "top_structure"
 local host_pools_utils = require "host_pools_utils"
+local callback_utils = require "callback_utils"
 
 prefs = ntop.getPrefs()
--- ########################################################
-
-function foreachHost(ifname, callback)
-   local hostbase
-   
-   interface.select(ifname)
-   -- ifstats = interface.getStats()
-   
-   hosts_stats = interface.getLocalHostsInfo(false)
-   hosts_stats = hosts_stats["hosts"]
-   for hostname, hoststats in pairs(hosts_stats) do
-      local host = interface.getHostInfo(hostname)
-
-      if(host == nil) then
-         if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..hostname.." !!!!\n") end
-      else
-         if(verbose) then
-            print ("["..__FILE__()..":"..__LINE__().."] [" .. hostname .. "][local: ")
-            print(tostring(host["localhost"]))
-            print("]" .. (hoststats["bytes.sent"]+hoststats["bytes.rcvd"]) .. "]\n")
-         end
-	 
-         if(host.localhost) then
-            local keypath = getPathFromKey(hostname)
-            hostbase = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
-
-            if(not(ntop.exists(hostbase))) then
-               if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", hostbase, '\n') end
-               ntop.mkdir(hostbase)
-            end
-         else
-            hostbase = nil
-         end
-         
-         callback(hostname, host, hoststats, hostbase)
-      end
-   end
-end
-
--- ########################################################
-
-function saveLocalHostsActivity(hostname, host, hoststats, hostbase)
-   if host.localhost then
-      local actStats = interface.getHostActivity(hostname)
-      if actStats then
-         local hostsbase = fixPath(hostbase .. "/activity")
-         if(not(ntop.exists(hostsbase))) then
-            if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating host activity directory ", hostsbase, '\n') end
-            ntop.mkdir(hostsbase)
-         end
-
-         for act, val in pairs(actStats) do
-            name = fixPath(hostsbase .. "/" .. act .. ".rrd")
-
-            -- up, down, background bytes
-            createActivityRRDCounter(name, verbose)
-            ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. tolongint(val.background))
-
-            if(verbose) then
-               print("["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..' ['..val.up.."/"..val.down.."/"..val.background..']\n')
-            end
-         end
-      end
-   end
-end
 
 -- ########################################################
 
 when = os.time()
 
 local verbose = ntop.verboseTrace()
+local ifnames = interface.getIfNames()
 
 -- Scan "minute" alerts
-for _, ifname in pairs(interface.getIfNames()) do
+callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
    scanAlerts("min", ifname)
-end
+end)
 
-ifnames = interface.getIfNames()
-num_ifaces = 0
 verbose = false
 
 if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
@@ -118,14 +53,7 @@ if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) 
    flow_devices_rrd_creation = "0"
 end
 
--- id = 0
-for _,_ifname in pairs(ifnames) do
-   interface.select(_ifname)
-   ifstats = interface.getStats()
-
-   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]\n") end
-
-   if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
+callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
       -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
       do
         -- Dump topTalkers every minute
@@ -225,7 +153,7 @@ for _,_ifname in pairs(ifnames) do
             local networks_aggr = {}
 	    local vlans_aggr    = {}
 
-	    foreachHost(_ifname, function (hostname, host, hoststats, hostbase)
+	    callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hoststats, hostbase)
 			   -- Aggregate VLAN stats
 			   local host_vlan = hoststats["vlan"]
 			   if host_vlan ~= nil and host_vlan ~= 0 then
@@ -418,7 +346,7 @@ for _,_ifname in pairs(ifnames) do
 
 	    -- Save host activity stats only if flow activities are actually enabled
 	    if prefs.is_flow_activity_enabled == true then
-	       foreachHost(_ifname, saveLocalHostsActivity)
+	       callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity)
 	    end
 	 end -- if rrd
 
@@ -427,8 +355,7 @@ for _,_ifname in pairs(ifnames) do
 	    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
 	 end
       end -- if(diff
-   end -- if(good interface type
-end -- for ifname,_ in pairs(ifnames) do
+end) -- foreachInterface
 
 -- check MySQL open files status
 -- NOTE: performed on startup.lua

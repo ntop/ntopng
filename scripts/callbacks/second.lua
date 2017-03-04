@@ -11,6 +11,7 @@ end
 
 require "lua_utils"
 require "graph_utils"
+local callback_utils = require "callback_utils"
 
 -- Toggle debug
 enable_second_debug = false
@@ -23,16 +24,11 @@ if(enable_second_debug) then
    sendHTTPHeader('text/plain')
 end
 
-ifnames = interface.getIfNames()
+local ifnames = interface.getIfNames()
 
-for _,ifname in pairs(ifnames) do
-   a = string.ends(ifname, ".pcap")
-   if(not(a)) then
+callback_utils.foreachInterface(ifnames, enable_second_debug, function(_ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
-      interface.select(ifname)
-      ifstats = interface.getStats()
       -- tprint(ifstats)
-      dirs = ntop.getDirs()
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
       --io.write(basedir.."\n")
@@ -56,5 +52,4 @@ for _,ifname in pairs(ifnames) do
 	-- Packet interface
 	makeRRD(basedir, ifname, "drops", 1, ifstats.stats.drops)
       end
-   end
-end -- for _,ifname in pairs(ifnames) do
+end)
