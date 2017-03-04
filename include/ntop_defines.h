@@ -612,7 +612,7 @@
 
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
 #define PREF_LDAP_ACCOUNT_TYPE        "ntopng.prefs.ldap.account_type"
-#define PREF_LDAP_SERVER              "ntopng.prefs.ldap.server"
+#define PREF_LDAP_SERVER              "ntopng.prefs.ldap.ldap_server_address"
 #define PREF_LDAP_BIND_ANONYMOUS      "ntopng.prefs.ldap.anonymous_bind"
 #define PREF_LDAP_BIND_DN             "ntopng.prefs.ldap.bind_dn"
 #define PREF_LDAP_BIND_PWD            "ntopng.prefs.ldap.bind_pwd"
