@@ -137,77 +137,83 @@ print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 now = os.time()
 vals = {}
 
+local protocol_name = nil
+
+if((protocol ~= nil) and (protocol ~= "")) then
+   protocol_name = interface.getnDPIProtoName(tonumber(protocol))
+end
+
 num = 0
 if(hosts_stats ~= nil) then
    for key, value in pairs(hosts_stats) do
-      num = num + 1
-      postfix = string.format("0.%04u", num)
+      ok = true
 
-      --[[
-	 if((protocol ~= nil) and (ok == true)) then
+      if(protocol_name ~= nil) then
 	 info = interface.getHostInfo(key)
-
-	 if((info == nil) or (info["ndpi"][protocol] == nil)) then
-	 ok = false
+	 -- tprint(info["ndpi"])
+	 if((info == nil) or (info["ndpi"][protocol_name] == nil)) then
+	    ok = false
 	 end
-	 end
-      --]]
+      end
+      
+      if(ok) then
+	 num = num + 1
+	 postfix = string.format("0.%04u", num)
 
+	 -- io.write("==>"..key.."\n")
+	 -- tprint(hosts_stats[key])
+	 -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
-      -- io.write("==>"..key.."\n")
-      -- tprint(hosts_stats[key])
-      -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
+	 if(sortColumn == "column_") then
+	    vals[key] = key -- hosts_stats[key]["ipkey"]
+	 elseif(sortColumn == "column_name") then
+	    hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
+	    vals[hosts_stats[key]["name"]..postfix] = key
+	 elseif(sortColumn == "column_since") then
+	    vals[(now-hosts_stats[key]["seen.first"])+postfix] = key
+	 elseif(sortColumn == "column_alerts") then
+	    vals[hosts_stats[key]["num_alerts"]+postfix] = key
+	    -- print("["..key.."=".. hosts_stats[key]["num_alerts"].."]\n")
+	 elseif(sortColumn == "column_family") then
+	    vals[(now-hosts_stats[key]["family"])+postfix] = key
+	 elseif(sortColumn == "column_last") then
+	    vals[(now-hosts_stats[key]["seen.last"]+1)+postfix] = key
+	 elseif(sortColumn == "column_category") then
+	    if(hosts_stats[key]["category"] == nil) then hosts_stats[key]["category"] = "" end
+	    vals[hosts_stats[key]["category"]..postfix] = key
+	 elseif(sortColumn == "column_httpbl") then
+	    if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
+	    vals[hosts_stats[key]["httpbl"]..postfix] = key
+	 elseif(sortColumn == "column_asn") then
+	    vals[hosts_stats[key]["asn"]..postfix] = key
+	 elseif(sortColumn == "column_country") then
+	    vals[hosts_stats[key]["country"]..postfix] = key
+	 elseif(sortColumn == "column_vlan") then
+	    vals[hosts_stats[key]["vlan"]..postfix] = key
+	 elseif(sortColumn == "column_num_flows") then
+	    local t = hosts_stats[key]["active_flows.as_client"]+hosts_stats[key]["active_flows.as_server"]
+	    vals[t+postfix] = key
+	 elseif(sortColumn == "column_traffic") then
+	    vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
+	 elseif(sortColumn == "column_thpt") then
+	    vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
+	 elseif(sortColumn == "column_queries") then
+	    vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
+	 elseif(sortColumn == "column_ip") then
+	    vals[hosts_stats[key]["ipkey"]+postfix] = key
+	    -- looking_glass_criteria
+	 elseif(criteria ~= nil) then
+	    -- io.write("==> "..criteria.."\n")
+	    if(sortColumn == "column_"..criteria) then
+	       local c = hosts_stats[key]["criteria"]
 
-      if(sortColumn == "column_") then
-	 vals[key] = key -- hosts_stats[key]["ipkey"]
-      elseif(sortColumn == "column_name") then
-	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
-	 vals[hosts_stats[key]["name"]..postfix] = key
-      elseif(sortColumn == "column_since") then
-	 vals[(now-hosts_stats[key]["seen.first"])+postfix] = key
-      elseif(sortColumn == "column_alerts") then
-	 vals[hosts_stats[key]["num_alerts"]+postfix] = key
-	 -- print("["..key.."=".. hosts_stats[key]["num_alerts"].."]\n")
-      elseif(sortColumn == "column_family") then
-	 vals[(now-hosts_stats[key]["family"])+postfix] = key
-      elseif(sortColumn == "column_last") then
-	 vals[(now-hosts_stats[key]["seen.last"]+1)+postfix] = key
-      elseif(sortColumn == "column_category") then
-	 if(hosts_stats[key]["category"] == nil) then hosts_stats[key]["category"] = "" end
-	 vals[hosts_stats[key]["category"]..postfix] = key
-      elseif(sortColumn == "column_httpbl") then
-	 if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
-	 vals[hosts_stats[key]["httpbl"]..postfix] = key
-      elseif(sortColumn == "column_asn") then
-	 vals[hosts_stats[key]["asn"]..postfix] = key
-      elseif(sortColumn == "column_country") then
-	 vals[hosts_stats[key]["country"]..postfix] = key
-      elseif(sortColumn == "column_vlan") then
-	 vals[hosts_stats[key]["vlan"]..postfix] = key
-      elseif(sortColumn == "column_num_flows") then
-	 local t = hosts_stats[key]["active_flows.as_client"]+hosts_stats[key]["active_flows.as_server"]
-	 vals[t+postfix] = key
-      elseif(sortColumn == "column_traffic") then
-	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
-      elseif(sortColumn == "column_thpt") then
-	 vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
-      elseif(sortColumn == "column_queries") then
-	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
-      elseif(sortColumn == "column_ip") then
-	 vals[hosts_stats[key]["ipkey"]+postfix] = key
-	 -- looking_glass_criteria
-      elseif(criteria ~= nil) then
-	 -- io.write("==> "..criteria.."\n")
-	 if(sortColumn == "column_"..criteria) then
-	    local c = hosts_stats[key]["criteria"]
-
-	    if(c ~= nil) then
-	       vals[c[criteria_key]+postfix] = key
-	       --io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
+	       if(c ~= nil) then
+		  vals[c[criteria_key]+postfix] = key
+		  --io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
+	       end
 	    end
 	 end
       end
-
    end
 end
 

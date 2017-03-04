@@ -177,29 +177,37 @@ else
   vlan_title = ""
 end
 
+local protocol_name = nil
+
+if((protocol ~= nil) and (protocol ~= "")) then
+   protocol_name = interface.getnDPIProtoName(tonumber(protocol))
+end
+
+if(protocol_name == nil) then protocol_name = protocol end
+
 if(mode == "all") then
-	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
+	if ( country ~= "" ) then print('title: "All '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "All '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	elseif ( mac ~= "" ) then print('title: "All local '..protocol_name..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..vlan_title..' Hosts",\n')
 	elseif ( pool_ ~= "" ) then print('title: "All Hosts '..pool_..vlan_title..'",\n')
-	else print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	else print('title: "All '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
 	end
 elseif(mode == "local") then
-	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
+	if ( country ~= "" ) then print('title: "Local '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Local local '..protocol_name..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..vlan_title..' Hosts",\n')
 	elseif ( pool_ ~= "" ) then print('title: "Local Hosts '..pool_..vlan_title..'",\n')
-	else  print('title: "Local '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	else  print('title: "Local '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
 	end
 elseif(mode == "remote") then
-	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
+	if ( country ~= "" ) then print('title: "Remote '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol_name..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..vlan_title..' Hosts",\n')
 	elseif ( pool_ ~= "" ) then print('title: "Remote Hosts '..pool_..vlan_title..'",\n')
-	else print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..vlan_title..'",\n')
+	else print('title: "Remote '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
 	end
 else
    print('title: "Local Networks'..country..vlan_title..'",\n')
