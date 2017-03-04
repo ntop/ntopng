@@ -502,7 +502,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 
   // payload[payload_size] = '\0';
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
-  
+
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
@@ -519,6 +519,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
       const char *key   = json_object_iter_peek_name(&it);
       json_object *v    = json_object_iter_peek_value(&it);
       const char *value = json_object_get_string(v);
+      bool add_to_additional_fields = false;
 
       if((key != NULL) && (value != NULL)) {
         int key_id;
@@ -541,7 +542,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 
               if((additional_key != NULL) && (additional_value != NULL)) {
 		json_object_object_add(flow.additional_fields, additional_key, json_object_new_string(additional_value));
-	      }
+	     }
 	      json_object_iter_next(&additional_it);
             }
           }
@@ -658,9 +659,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  break;
 	case INPUT_SNMP:
 	  flow.inIndex = atoi(value);
+	  add_to_additional_fields = true;
 	  break;
 	case OUTPUT_SNMP:
 	  flow.outIndex = atoi(value);
+	  add_to_additional_fields = true;
 	  break;
         case SRC_PROC_PID:
           iface->enable_sprobe(); /* We're collecting system flows */
@@ -694,7 +697,6 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case SRC_PROC_PCTG_IOWAIT:
           flow.src_process.percentage_iowait_time = ((float)atol(value))/((float)100);
           break;
-
         case DST_PROC_PID:
           iface->enable_sprobe(); /* We're collecting system flows */
           flow.dst_process.pid = atoi(value);
@@ -743,11 +745,23 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  flow.bittorrent_hash = strdup(value);
 	  break;
 
+	case IPV4_NEXT_HOP:
+	  if(strcmp(value, "0.0.0.0")) add_to_additional_fields = true;
+	  break;
+
+	case IPV4_SRC_MASK:
+	case IPV4_DST_MASK:
+	  if(strcmp(value, "0")) add_to_additional_fields = true;
+	  break;
+
         default:
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
-          json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
+	  add_to_additional_fields = true;
           break;
         } /* switch */
+
+	if(add_to_additional_fields)
+	  json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
 
 	if(additional_o) json_object_put(additional_o);
       } /* if */

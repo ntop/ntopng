@@ -118,9 +118,10 @@ end
 
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 	                           country, os_, tonumber(vlan), tonumber(asn),
-				   tonumber(network), mac, tonumber(pool), tonumber(ipversion)) -- false = little details
---io.write("hello\n")
---tprint(hosts_stats)
+				   tonumber(network), mac,
+				   tonumber(pool), tonumber(ipversion)) -- false = little details
+
+-- tprint(hosts_stats)
 --io.write("---\n")
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
