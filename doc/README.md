@@ -88,7 +88,7 @@ ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002
 Using Interface Views
 ---------------------
 Suppose you want to start ntopng as follows "-i eth0 -i eth1". ntopng will show you traffic
-of these two interfaces without any merge so you can see exactly what happens on each inteface.
+of these two interfaces without any merge so you can see exactly what happens on each interface.
 If you also need an aggregated view of both interfaces you can start ntopng
 as "ntopng -i eth0 -i eth1 -i view:eth0,eth1" so ntopng will create a virtual interface
 that merges information from the two physical interfaces.
