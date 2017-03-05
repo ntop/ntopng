@@ -47,7 +47,7 @@ In case "LDAP Anonymous Binding" is disabled, a binding password has
 to be provided in this field.
 
 * LDAP Search Path
-The "LDAP Srearch Path" indicates the root of the tree among which
+The "LDAP Search Path" indicates the root of the tree among which
 users and groups are searched. 
 An example is:
 dc=example,dc=com
