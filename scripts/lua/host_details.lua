@@ -969,7 +969,7 @@ if host["localhost"] == true then
          <input type="radio" name="showmode" value="bg" onclick="if(this.value != curmode) setShowMode(this.value);"> Background Traffic
       </div>
 
-      <div id="userctivityContainer"></div>
+      <div id="useractivityContainer"></div>
 
       <div style='margin-bottom:1em;'>
 	 Resolution:&nbsp;
@@ -1046,7 +1046,7 @@ print [[
 	    if (newstep != curstep) {
 	       // hard reset
 	       curstep = newstep;
-	       $('#userctivity').remove();
+	       $('#useractivity').remove();
 
 	       if (context) {
 		  context.stop();
@@ -1055,11 +1055,11 @@ print [[
 		  delete context;
 	       }
 
-	       var div = $('<div id="userctivity"></div>')
+	       var div = $('<div id="useractivity"></div>')
 		  .css("margin", "2em 0 1em 0")
 		  .css("position", "relative")
 		  .css("width", HorizonGraphWidth);
-	       $('#userctivityContainer').append(div);
+	       $('#useractivityContainer').append(div);
 
 	       context = cubism.context().size(HorizonGraphWidth).step(curstep*1000);
 	       horizon = context.horizon();
@@ -1072,7 +1072,7 @@ print [[
 	    } else {
 	       // soft reset
 	       d3.selectAll(".horizon").remove();
-	       $('#userctivity').empty();
+	       $('#useractivity').empty();
 	    }
 	 }
 
@@ -1095,7 +1095,7 @@ print [[
                   });
 		  if (metrics.length > 0) {
 		     // data
-		     d3.select("#userctivity")
+		     d3.select("#useractivity")
 			.selectAll(".horizon")
 			.data(metrics)
 			.enter().append("div", ".bottom")
@@ -1103,20 +1103,20 @@ print [[
 			.call(horizon.format(function(x) { return formatBytes(x,2); }));
 
 		     // bottom axis
-		     d3.select("#userctivity")
+		     d3.select("#useractivity")
 			.append("div")
 			.attr("class", "axis")
 			.call(context.axis().orient("bottom"));
 
 		     // vertical line on mousemove
-		     d3.select("#userctivity")
+		     d3.select("#useractivity")
 			.append("div")
 			.attr("class", "rule")
 			.call(context.rule());
 
 		     context.start();
 		  } else {
-		     $('#userctivity').text("No data so far");
+		     $('#useractivity').text("No data so far");
 		  }
                }
             });
