@@ -1125,7 +1125,7 @@ print [[
          setShowMode("updown", 300);
       </script>
       <p>
-      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
+      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user traffic (e.g. web page access)
 <br>and background traffic (e.g. your email client periodically checks for email presence). Host traffic sent (upload)<br>
 is marked as negative value in <font color=blue>blue</font>, traffic received (download) is marked as positive in <font color=green>green</font>.
    </td></tr> ]]
