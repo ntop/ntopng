@@ -559,7 +559,7 @@ function printInMemory()
 			  "This value regulates how often ntopng will update these statistics. "..
 			  "Larger values are less computationally intensive and tend to average out minor variations. "..
 			  "Smaller values are more computationally intensive and tend to highlight minor variations. "..
-			  "Values in the order of few secods are safe. " ..
+			  "Values in the order of few seconds are safe. " ..
 			  "Default: 5 seconds.",
 		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=3600, tformat="smh" --[[ TODO check min/max ]]})
 
