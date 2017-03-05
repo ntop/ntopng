@@ -632,7 +632,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
 /*
   Locking is necessary when multiple queries are executed
-  simulatenously (e.g. via Lua)
+  simultaneously (e.g. via Lua)
 */
 int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 			    bool doReconnect, bool ignoreErrors,
