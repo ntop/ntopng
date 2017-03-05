@@ -1308,7 +1308,7 @@ static int ntop_del_set_member_redis(lua_State* vm) {
 
 /**
  * @brief Get the members of a redis set.
- * @details Get the set key form the lua stack and push the mambers name into lua stack.
+ * @details Get the set key form the lua stack and push the members name into lua stack.
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
