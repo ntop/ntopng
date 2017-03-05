@@ -423,7 +423,7 @@ function printUsers()
   end
   prefsInputFieldPrefs("Google APIs Browser Key",
 		       "Graphical hosts geomaps are based on Google Maps APIs. Google recently changed Maps API access policies "..
-		       "and now requires a browser API key to be sumbitted for every request. Detailed information on how to obtain an API key "..
+		       "and now requires a browser API key to be submitted for every request. Detailed information on how to obtain an API key "..
 		       "<a href=\"https://googlegeodevelopers.blogspot.it/2016-17/06/building-for-scale-updates-to-google.html\">can be found here</a>. "..
                        "Once obtained, the API key can be placed in this field."
 		       ,
