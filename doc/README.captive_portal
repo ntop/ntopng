@@ -26,7 +26,7 @@ computers and start thinking in terms of humans.
 
 When creating a captive portal user, ntopng will ask you to 
 create a network pool that is a set of assets falling under the same
-administrative domaain. They can be identified both by IP and MAC
+administrative domain. They can be identified both by IP and MAC
 address. A captive portal user is bound to exactly one network pool.
 During captive portal creation, you can specify how long an asset
 can be bound to a user, either permanently or temporarely (e.g. until
