@@ -36,11 +36,11 @@ class AlertCounter {
  private:
   u_int32_t max_num_hits_sec; /**< Threshold above which we trigger an alert. */
   u_int32_t num_hits_since_first_alert; /**< Number of hits since the first one that contributed to generate an alert. */
-  u_int8_t over_threshold_duration_sec; /**< Consecutive duration of threshold trepassing before triggering an alert. */
+  u_int8_t over_threshold_duration_sec; /**< Consecutive duration of threshold trespassing before triggering an alert. */
   time_t time_last_hit; /**< Time of last hit received. */ 
   time_t time_last_alert_reported; /**< Time of last alert issued. */ 
-  time_t last_trepassed_threshold; /**< Time of last event that trepassed the threshold. */
-  u_int32_t num_trepassed_threshold; /**< Number of consecutives threshold trepassing. */
+  time_t last_trespassed_threshold; /**< Time of last event that trespassed the threshold. */
+  u_int32_t num_trespassed_threshold; /**< Number of consecutives threshold trespassing. */
   u_int32_t num_hits_rcvd_last_second; /**< Number of hits reported in the last second. */ 
   
   void init();
