@@ -475,10 +475,10 @@ var refreshBreadCrumbHost = function(host){
   // append a pair of li to the breadcrumb: the first is shown if the host has not been added to the favourites,
   // the second is shown if it has been added...
 
-  // first pair: shown if the host has not been favourited
+  // first pair: shown if the host has not been favorited
   $("#bc-talkers").append('<li class="bc-item-add talker">' + host + ' talkers <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
 
-  // second pair: shown if the host has been favourited
+  // second pair: shown if the host has been favorited
   $("#bc-talkers").append('<li class="bc-item-remove talker">' + host + ' talkers <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
@@ -516,9 +516,9 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
   $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
   $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">' + peer1 + ' talkers</a></li>');
 
-  // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case
+  // here we append to li: one will be shown if the pair of peers is favorited, the other is shown in the opposite case
 
-  // first li: shown if the pair has been favourited
+  // first li: shown if the pair has been favorited
   var bc_talkers_li_text = 'Applications between ' + peer1 + ' and ' + peer2;
   if (typeof l7_proto_id !== "undefined"){
     bc_talkers_li_text = '<a onclick="populateAppsPerHostsPairTable(\'' + peer1 + '\',\'' + peer2 + '\');">' + bc_talkers_li_text + '</a>';
