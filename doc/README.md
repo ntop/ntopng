@@ -62,7 +62,7 @@ Using ntopng from Windows
 Defaults
 --------
 The ntopng default user is 'admin' (without ') and the default
-passoword is also 'admin' (without ')
+password is also 'admin' (without ')
 
 
 Resetting admin user password
