@@ -23,7 +23,7 @@
 	- TCP sessions trhoughput estimations and state breakdown (e.g., established, reset, etc.)
 	- Goodput monitoring
 	- Trends detection
-	- Highligh of low-goodput flows and hosts
+	- Highlight of low-goodput flows and hosts
 	- Added hosts top-visited sites
 - Built-in support for:
 	- GRE detunnelling
