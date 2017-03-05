@@ -785,7 +785,7 @@ function performAlertsQuery(statement, what, opts)
    elseif what == "historical-flows" then
       res = interface.queryFlowAlertsRaw(statement, query)
    else
-      error("Invald alert subject: "..what)
+      error("Invalid alert subject: "..what)
    end
 
    -- trigger counters refresh
