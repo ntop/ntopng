@@ -88,7 +88,7 @@ function aysUpdateForm(form_selector) {
 
 /*
  * This should be triggered when you manually update some input into a form
- * monitored by ays. It will recheck the form to determine form dirtyness.
+ * monitored by ays. It will recheck the form to determine form dirtiness.
  */
 function aysRecheckForm(form_selector) {
   $(form_selector).trigger('checkform.areYouSure');
