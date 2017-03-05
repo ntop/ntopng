@@ -46,7 +46,7 @@ end
 ------------------------
 
 
--- Defaul value
+-- Default value
 interface.select(ifname)
 aggregation = "ndpi"
 
