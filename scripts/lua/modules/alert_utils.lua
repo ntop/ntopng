@@ -383,7 +383,7 @@ end
 
 function check_network_alert(ifname, network_name, mode, key, old_table, new_table)
    if(verbose) then
-        io.write("check_newtowrk_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
+        io.write("check_network_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
         io.write("new:\n")
         tprint(new_table)
         io.write("old:\n")

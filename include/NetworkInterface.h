@@ -178,7 +178,7 @@ class NetworkInterface {
  public:
   /**
   * @brief A Constructor
-  * @details Creating a new NeworkInteface with all instance variables set to NULL.
+  * @details Creating a new NetworkInteface with all instance variables set to NULL.
   *
   * @return A new instance of NetworkInteface.
   */
