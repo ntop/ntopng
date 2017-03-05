@@ -354,7 +354,7 @@ print[[
   });
 ]]
 
-else -- either the nbox integration is disabled or the user doesn't have admin privilieges
+else -- either the nbox integration is disabled or the user doesn't have admin privileges
 
    print[[
   $('#extract_pcap_]] print(button_id) print[[').click(function (event)
