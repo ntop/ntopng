@@ -1034,7 +1034,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
 				       bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
 
-	// update the old values with the newely calculated ones
+	// update the old values with the newly calculated ones
 	bytes_thpt_cli2srv         = bytes_msec_cli2srv;
 	bytes_thpt_srv2cli         = bytes_msec_srv2cli;
 	goodput_bytes_thpt_cli2srv = goodput_bytes_msec_cli2srv;
