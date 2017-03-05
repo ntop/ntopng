@@ -337,7 +337,7 @@ bool MySQLDB::createDBSchema() {
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     ipvers[i]);
     if(exec_sql_query(&mysql, sql, true, true) > 0){
-      // if here, the table has enging InnoDB so we want to modify that to MyISAM
+      // if here, the table has engine InnoDB so we want to modify that to MyISAM
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "MySQL schema update. Altering table %sv%hu: "
