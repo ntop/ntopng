@@ -1281,7 +1281,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    end
 
    if(show_entity) then
-      -- these fields will be used to perfom queries
+      -- these fields will be used to perform queries
       _GET["entity"] = alertEntity(show_entity)
       _GET["entity_val"] = alert_source
    end
