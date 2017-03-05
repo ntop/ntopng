@@ -2180,7 +2180,7 @@ function printTCPFlags(flags)
    if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
 end
 
--- convert the integer carrying TCP flags in a more conventient lua table
+-- convert the integer carrying TCP flags in a more convenient lua table
 function TCPFlags2table(flags)
    local res = {["FIN"] = 0, ["SYN"] = 0, ["RST"] = 0, ["PSH"] = 0, ["ACK"] = 0, ["URG"] = 0}
    if(hasbit(flags,0x01)) then res["FIN"] = 1 end
