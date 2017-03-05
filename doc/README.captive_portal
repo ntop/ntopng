@@ -29,7 +29,7 @@ create a network pool that is a set of assets falling under the same
 administrative domain. They can be identified both by IP and MAC
 address. A captive portal user is bound to exactly one network pool.
 During captive portal creation, you can specify how long an asset
-can be bound to a user, either permanently or temporarely (e.g. until
+can be bound to a user, either permanently or temporarily (e.g. until
 midnight). As long as an asset is bound to a user, it does not need
 to authenticate all the time it accesses the network but only
 at the first access. 

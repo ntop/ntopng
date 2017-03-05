@@ -304,7 +304,7 @@ else
 end
 
 if(false) then
--- NOTE: code temporarely disabled
+-- NOTE: code temporarily disabled
 if(not(isLoopback(ifname))) then
    if(page == "jaccard") then
       print("<li class=\"active\"><a href=\"#\">Similarity</a></li>\n")
@@ -1611,7 +1611,7 @@ print [[
 ]]
 
 elseif(page == "jaccard") then
--- NOTE: code temporarely disabled
+-- NOTE: code temporarily disabled
 
 print [[
 <div id="prg" class="container">
