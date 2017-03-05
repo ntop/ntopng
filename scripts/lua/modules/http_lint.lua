@@ -855,7 +855,7 @@ local function validateSpecialParameter(param, value)
 end
 
 function http_lint.validationError(t, param, value, message)
-   -- TODO gracefull exit
+   -- TODO graceful exit
    local s_id
    if t == _GET then s_id = "_GET" else s_id = "_POST" end
    error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. value .. "\" parameter error: " .. message)
