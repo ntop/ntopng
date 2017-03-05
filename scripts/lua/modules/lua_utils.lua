@@ -457,7 +457,7 @@ end
 function round(num, idp) return tonumber(string.format("%." .. (idp or 0) .. "f", num)) end
 --function round(num) return math.floor(num+.5) end
 
--- Note that the function below returns a string as returnong a number
+-- Note that the function below returns a string as returning a number
 -- would not help as a new float would be returned
 function toint(num)
    return string.format("%u", num)
