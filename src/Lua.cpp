@@ -1823,7 +1823,7 @@ static int ntop_interface_refresh_num_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_correalate_host_activity(lua_State* vm) {
+static int ntop_correlate_host_activity(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -5523,7 +5523,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
-  { "correlateHostActivity",  ntop_correalate_host_activity },
+  { "correlateHostActivity",  ntop_correlate_host_activity },
   { "similarHostActivity",    ntop_similar_host_activity },
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
