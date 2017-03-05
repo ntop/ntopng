@@ -673,7 +673,7 @@ bool Host::idle() {
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
-  switch(ntop->getPrefs()->get_host_stickness()) {
+  switch(ntop->getPrefs()->get_host_stickiness()) {
   case location_none:
     break;
 
