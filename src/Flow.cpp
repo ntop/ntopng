@@ -1439,7 +1439,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_float_table_entry(vm, "throughput_pps",       pkts_thpt);
     lua_push_int_table_entry(vm,   "throughput_trend_pps", pkts_thpt_trend);
 
-    // thoughut stats cli2srv and srv2cli breakdown
+    // throughput stats cli2srv and srv2cli breakdown
     lua_push_float_table_entry(vm, "throughput_cli2srv_bps", bytes_thpt_cli2srv);
     lua_push_float_table_entry(vm, "throughput_srv2cli_bps", bytes_thpt_srv2cli);
     lua_push_float_table_entry(vm, "throughput_cli2srv_pps", pkts_thpt_cli2srv);

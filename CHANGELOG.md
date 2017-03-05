@@ -20,7 +20,7 @@
 	- nBox integration to request pcaps of monitored flows
 	- Apache Kafka flows export
 - Extended and improved traffic *monitoring*:
-	- TCP sessions trhoughput estimations and state breakdown (e.g., established, reset, etc.)
+	- TCP sessions throughput estimations and state breakdown (e.g., established, reset, etc.)
 	- Goodput monitoring
 	- Trends detection
 	- Highlight of low-goodput flows and hosts
