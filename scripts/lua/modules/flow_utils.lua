@@ -747,7 +747,7 @@ local flow_fields_description = {
     ["MYSQL_DB"] = "MySQL database in use",
     ["MYSQL_QUERY"] = "MySQL Query",
     ["MYSQL_RESPONSE"] = "MySQL server response",
-    ["MYSQL_APPL_LATENCY_USEC"] = "MySQL request->response latecy (usec)",
+    ["MYSQL_APPL_LATENCY_USEC"] = "MySQL request->response latency (usec)",
 
     ["SRC_AS_PATH_1"] = "Src AS path position 1",
     ["SRC_AS_PATH_2"] = "Src AS path position 2",
