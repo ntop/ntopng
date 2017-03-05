@@ -114,7 +114,7 @@ function password_md5 {
     local admin_md5=`echo -n admin | md5sum | cut -c 1-32`
     if [[ $admin_md5 != "21232f297a57a5a743894a0e4a801fc3" ]]
     then
-	echo "md5sum not working as expexted"
+	echo "md5sum not working as expected"
 	return 1
     fi
     NTOPNG_PASSWORD_MD5=`echo -n $NTOPNG_PASSWORD | md5sum | cut -c 1-32`
