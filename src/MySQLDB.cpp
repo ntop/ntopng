@@ -619,7 +619,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully connected to MySQL [%s:%s] for interface %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s:%s] for interface %s",
 			       ntop->getPrefs()->get_mysql_host(),
 			       ntop->getPrefs()->get_mysql_user(),
 			       iface->get_name());
