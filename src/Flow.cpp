@@ -1072,7 +1072,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	if((cli2srv_goodput_bytes+srv2cli_goodput_bytes) > 0) {
 	  char buf[256];
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodpt long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
 				       print(buf, sizeof(buf)),
 				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
 				       goodputTrend.getTrendMsg(),
