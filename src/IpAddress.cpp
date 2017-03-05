@@ -239,7 +239,7 @@ json_object* IpAddress::getJSONObject() {
 /* ******************************************* */
 
 /**
- * @brief Check if the host matches the specifed host tree
+ * @brief Check if the host matches the specified host tree
  *
  * @param ptree     The hosts allowed to be accessed.
  * @return true if the host matches the ptre, false otherwise.
