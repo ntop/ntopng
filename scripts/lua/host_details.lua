@@ -667,7 +667,7 @@ var ndx = crossfilter(content),
     protocolDim  = ndx.dimension(function(d) {return d.l7proto;}),
     trafficDim = ndx.dimension(function(d) {return Math.floor(d.traffic/10);}),
     nameDim  = ndx.dimension(function(d) {return d.name;});
-    // actually this script expects input data to be aggregated by host, otherwise we are making the sum of logarithmns here
+    // actually this script expects input data to be aggregated by host, otherwise we are making the sum of logarithms here
     trafficPerl7proto = protocolDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficPerhost = nameDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficHist    = trafficDim.group().reduceCount();
