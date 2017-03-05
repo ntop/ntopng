@@ -239,7 +239,9 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
 
 bool Flashstart::cacheDomainCategory(char *name, struct site_categories *category, bool check_if_present) {
   struct domain_cache_entry *entry;
+#ifdef DEBUG_CATEGORIZATION
   char buf[64];
+#endif
 
   m.lock(__FILE__, __LINE__);
 
@@ -254,9 +256,11 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
 	entry->query_in_progress = false;
       }
 
+#ifdef DEBUG_CATEGORIZATION
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s][query_in_progress: %s]", name,
 				   category2str(category, buf, sizeof(buf)),
 				   entry->query_in_progress ? "True" : "False");
+#endif
       m.unlock(__FILE__, __LINE__);
       return(true);
     }
@@ -268,12 +272,14 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
     if(category)
       memcpy(&entry->categories, category, sizeof(struct site_categories)), entry->query_in_progress = false;
     else
-      memset(&entry->categories, 0, sizeof(struct site_categories)) /*, entry->query_in_progress = true */;
+      memset(&entry->categories, 0, sizeof(struct site_categories)), entry->query_in_progress = true;
 
     HASH_ADD_STR(domain_cache, domain, entry);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s [%s]", name,
-				 category2str(category, buf, sizeof(buf)));
-
+#ifdef DEBUG_CATEGORIZATION
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s [%s][%s]", name,
+				 category2str(category, buf, sizeof(buf)),
+				  entry->query_in_progress ? "IN PROGRESS" : "");
+#endif
     if(++num_cached_entries > CACHED_ENTRIES_THRESHOLD)
       purgeCache(MAX_CATEGORY_CACHE_DURATION);
   }
@@ -314,13 +320,17 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
     HASH_FIND_STR(domain_cache, name, entry);
     if(entry != NULL) {
       /* Entry found */
+#ifdef DEBUG_CATEGORIZATION
       char buf[64];
+#endif
 
       entry->last_use = time(NULL);
       if(category) memcpy(category, &entry->categories, sizeof(struct site_categories));
+#ifdef DEBUG_CATEGORIZATION
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s][query_in_progress: %s]",
 				   name, category2str(&entry->categories, buf, sizeof(buf)),
 				   entry->query_in_progress ? "True" : "False");
+#endif
       m.unlock(__FILE__, __LINE__);
       return(true);
     }
@@ -334,8 +344,10 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 #endif
 
       setCategory(category, buf);
+#ifdef DEBUG_CATEGORIZATION
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Caching %s as [%s]", name,
 				   category2str(category, buf, sizeof(buf)));
+#endif
       m.unlock(__FILE__, __LINE__);
       cacheDomainCategory(name, category, false);
 
@@ -442,7 +454,9 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
   u_int domain_len = strlen(domain), query_len;
   int i, n;
 
+#ifdef DEBUG_CATEGORIZATION
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Sending request for %s", domain);
+#endif
 
   if(cacheDomainCategory(domain, NULL, true))
     return;
@@ -510,13 +524,17 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
 
     if(!strncmp(txt, "BLACKLIST:", 10)) {
       category = &txt[10], rc = 1;
+#ifdef DEBUG_CATEGORIZATION
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] %s=%s", qname, category);
+#endif
 
       ntop->getRedis()->setTrafficFilteringAddress(qname, category);
       /* Do not swap the lines as category buffer wll be modified */
       setCategory(&c, category);      
     } else {
+#ifdef DEBUG_CATEGORIZATION
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
+#endif
       memset(&c, 0, sizeof(struct site_categories));
       c.categories[0] = NTOP_UNKNOWN_CATEGORY_ID;
     }
@@ -580,30 +598,35 @@ void Flashstart::startLoop() {
     bool rsp;
     u_int numLoops = 0;
 
-    /* 1 - Tell flashstart that we want to issue DNS queries */
-    snprintf(url,sizeof(url), format, user, pwd);
-
-    rsp = Utils::httpGet(url, ret, sizeof(ret)-1);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Called %s [rsp: %s]",
-				 url, rsp ? ret : "ERROR");
-
-    if(rsp) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for Flashstart to initialize. Please wait...");
-
-      while(true) {
-	queryFlashstart((char*)"ntop.org");
-	if(recvResponses(1000) > 0)
-	  break;
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, ".");
-	if(++numLoops == 10) {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize Flashstart");
-	  return;
-	}
-      }
+    if(numDnsServers == 1) { 
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flashstart ready to serve requests...");
+      pthread_create(&flashstartThreadLoop, NULL, flashstartThreadInfiniteLoop, (void*)this);
+   } else {
+      /* 1 - Tell flashstart that we want to issue DNS queries */
+      snprintf(url,sizeof(url), format, user, pwd);
 
-      if(!syncClassification)
-	pthread_create(&flashstartThreadLoop, NULL, flashstartThreadInfiniteLoop, (void*)this);
+      rsp = Utils::httpGet(url, ret, sizeof(ret)-1);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Called %s [rsp: %s]",
+				   url, rsp ? ret : "ERROR");
+
+      if(rsp) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for Flashstart to initialize. Please wait...");
+
+	while(true) {
+	  queryFlashstart((char*)"ntop.org");
+	  if(recvResponses(1000) > 0)
+	    break;
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, ".");
+	  if(++numLoops == 10) {
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize Flashstart");
+	    return;
+	  }
+	}
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flashstart ready to serve requests...");
+
+	if(!syncClassification)
+	  pthread_create(&flashstartThreadLoop, NULL, flashstartThreadInfiniteLoop, (void*)this);
+      }
     }
   }
 }

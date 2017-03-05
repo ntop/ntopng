@@ -170,7 +170,7 @@ bool Flow::skipProtocolFamilyCategorization(u_int16_t proto_id) {
 /* *************************************** */
 
 void Flow::categorizeFlow() {
-  bool toRequest = false, toQuery = false;
+  bool toQuery = false;
   char *what;
   int ip4_0, ip4_1, ip4_2, ip4_3;
 
@@ -201,14 +201,12 @@ void Flow::categorizeFlow() {
     return;
   
   if(!categorization.categorized_requested)
-    categorization.categorized_requested = true, toRequest = true, toQuery = true;
-  else if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
-    toRequest = true;
+    categorization.categorized_requested = true, toQuery = true;
   
-  if(toRequest) {
-    if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
-					    &categorization.category, toQuery))
-      checkFlowCategory();
+  if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
+					  &categorization.category, toQuery)) {
+    checkFlowCategory();
+    categorization.categorized_requested = false;
   }
 }
 
@@ -441,8 +439,9 @@ void Flow::processDetectedProtocol() {
 	    }
 	  }
 
-	  if(ntop->get_flashstart()) /* Cache category */
-	    ntop->get_flashstart()->findCategory((char*)ndpiFlow->host_server_name,
+	  if(ntop->get_flashstart()
+	     && (categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)) /* Cache category */
+	    ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain((char*)ndpiFlow->host_server_name),
 						 &categorization.category,
 						 true);
 	}
@@ -1360,7 +1359,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
-    lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
+    lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
     lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
 
     if(protocol == IPPROTO_TCP) {
@@ -1800,7 +1799,8 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
   if(iface->is_bridge_interface())
-    json_object_object_add(my_object, "PASS_VERDICT", json_object_new_boolean(passVerdict ? (json_bool)1 : (json_bool)0));
+    json_object_object_add(my_object, "verdict.pass",
+			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 
   return(my_object);
 }
@@ -2403,15 +2403,28 @@ bool Flow::dumpFlowTraffic() {
 /* *************************************** */
 
 void Flow::checkFlowCategory() {
-  if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
+  if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID) {
+#ifdef DEBUG_CATEGORIZATION
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "PASS flow with UNKNOWN category");
+#endif
     return;
+  } else
+    categorization.categorized_requested = false; /* Answer received */
 
   if((cli_host && (!cli_host->IsAllowedTrafficCategory(&categorization.category)))
      || (srv_host && (!srv_host->IsAllowedTrafficCategory(&categorization.category)))) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Discarding flow tieh category %d", categorization.category.categories[0]);
+#ifdef DEBUG_CATEGORIZATION
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "DROP flow with category %s", 
+				 ntop->get_flashstart()->getCategoryName(categorization.category.categories[0]));
+#endif
     setDropVerdict();
+  } else {
+#ifdef DEBUG_CATEGORIZATION
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "PASS flow with category %s", 
+				 ntop->get_flashstart()->getCategoryName(categorization.category.categories[0]));
+#endif
   }
-    
+
   /* TODO: use category to emit verdict */
 #if 0
   {

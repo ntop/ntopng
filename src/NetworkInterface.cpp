@@ -1306,14 +1306,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       ndpi_flow = flow->get_ndpi_flow();
 
       /*
-      DNS-over-TCP flows may carry zero-payload TCP segments
-      e.g., during three-way-handshake, or when acknowledging.
-      Make sure only non-zero-payload segments are processed.
+	DNS-over-TCP flows may carry zero-payload TCP segments
+	e.g., during three-way-handshake, or when acknowledging.
+	Make sure only non-zero-payload segments are processed.
       */
       if((payload_len > 0) && payload) {
 	/*
-	DNS-over-TCP has a 2-bytes field with DNS payload length
-	at the beginning. See RFC1035 section 4.2.2. TCP usage.
+	  DNS-over-TCP has a 2-bytes field with DNS payload length
+	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
 	u_int8_t dns_offset = l4_proto == IPPROTO_TCP && payload_len > 1 ? 2 : 0;
 
@@ -1378,11 +1378,22 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	    u_int8_t shaper_ingress, shaper_engress;
 	    char buf[64];
 
-	    flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
-	    ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
-					 flow->get_detected_protocol_name(buf, sizeof(buf)),
-					 shaper_ingress, shaper_engress);
-	    pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
+	    /*
+	      In case of uncategorized DNS requests we need to temporarely
+	      drop traffic until a decision is made
+	    */
+
+	    if(flow->isCategorizationOngoing()
+	       && (ndpi_get_lower_proto(flow->get_detected_protocol()) == NDPI_PROTOCOL_DNS)) {
+	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** DROPPING UNCATEGORIZED DNS ***"); */
+	      pass_verdict = false;
+	    } else {
+	      flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
+	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
+					   flow->get_detected_protocol_name(buf, sizeof(buf)),
+					   shaper_ingress, shaper_engress);
+	      pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
+	    }
 	}
     }
 #endif
