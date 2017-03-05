@@ -362,7 +362,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
 
 /* ********************************************************************** */
 
-/* This fitler is just for testing purposes. */
+/* This filter is just for testing purposes. */
 static bool activity_filter_fun_metrics_test(const activity_filter_config * config,
 					     activity_filter_status * status, Flow * flow,
 					     const struct timeval *when,
