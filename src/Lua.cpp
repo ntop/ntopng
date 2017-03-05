@@ -843,7 +843,7 @@ static int ntop_is_dir(lua_State* vm) {
 
 /**
  * @brief Check if the file is exists and is not empty
- * @details Simple check for existance + non empty file
+ * @details Simple check for existence + non empty file
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK

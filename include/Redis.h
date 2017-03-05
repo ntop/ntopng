@@ -52,7 +52,7 @@ class Redis {
   int oneOperator(const char *operation, char *key);
   int twoOperators(const char *operation, char *op1, char *op2);
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
-	       bool dont_check_for_existance, bool localHost);
+	       bool dont_check_for_existence, bool localHost);
   int popHost(const char* ns_list, char *hostname, u_int hostname_len);
   void addToCache(char *key, char *value, u_int expire_secs);
   bool isCacheable(char *key);
@@ -81,10 +81,10 @@ class Redis {
   int zIncr(char *key, char *member);
   int zTrim(char *key, u_int trim_len);
   int zRevRange(const char *pattern, char ***keys_p);
-  int pushHostToResolve(char *hostname, bool dont_check_for_existance, bool localHost);
+  int pushHostToResolve(char *hostname, bool dont_check_for_existence, bool localHost);
   int popHostToResolve(char *hostname, u_int hostname_len);
 
-  int pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existance, bool localHost);
+  int pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existence, bool localHost);
   int popHostToTrafficFiltering(char *hostname, u_int hostname_len);
 
   char* getTrafficFilteringCategory(char *numeric_ip, char *buf, u_int buf_len, bool query_httpbl_if_unknown);

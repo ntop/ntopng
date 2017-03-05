@@ -614,18 +614,18 @@ int Redis::twoOperators(const char *operation, char *op1, char *op2) {
 
 /* **************************************** */
 
-int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existance, bool localHost) {
+int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existence, bool localHost) {
   if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
     if(hostname == NULL) return(-1);
     return(pushHost(TRAFFIC_FILTERING_CACHE, TRAFFIC_FILTERING_TO_RESOLVE,
-		    hostname, dont_check_for_existance, localHost));
+		    hostname, dont_check_for_existence, localHost));
   } else
     return(0);
 }
 
 /* **************************************** */
 
-int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existance, bool localHost) {
+int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool localHost) {
   if(!ntop->getPrefs()->is_dns_resolution_enabled()) return(0);
   if(hostname == NULL) return(-1);
 
@@ -642,13 +642,13 @@ int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existance, bool
       return(-1);
   }
   
-  return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existance, localHost));
+  return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existence, localHost));
 }
 
 /* **************************************** */
 
 int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
-		    bool dont_check_for_existance, bool localHost) {
+		    bool dont_check_for_existence, bool localHost) {
   int rc = 0;
   char key[CONST_MAX_LEN_REDIS_KEY];
   bool found;
@@ -660,7 +660,7 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 
   l->lock(__FILE__, __LINE__);
 
-  if(dont_check_for_existance)
+  if(dont_check_for_existence)
     found = false;
   else {
     /*

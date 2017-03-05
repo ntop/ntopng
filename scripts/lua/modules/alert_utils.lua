@@ -179,7 +179,7 @@ function re_arm_alert(alarm_source, alarmed_metric, ifname)
       re_arm_minutes = default_re_arm_minutes
    end
    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
-   -- we don't care about key contents, we just care about its exsistance
+   -- we don't care about key contents, we just care about its existence
    if re_arm_minutes == 0 then
       return  -- don't want to re arm the alert
    end

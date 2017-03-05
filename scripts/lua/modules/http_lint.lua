@@ -513,7 +513,7 @@ local function validateLookingGlassCriteria(c)
 end
 
 local function validateTopModule(m)
-   -- TODO check for existance?
+   -- TODO check for existence?
    return validateSingleWord(m)
 end
 
