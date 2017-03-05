@@ -52,7 +52,7 @@
 - Added support for Linux TUN/TAP devices in TUN mode
 - Extended and improved supported OSes: EdgeOS, Centos 6/7, Ubuntu 12.04/14.04, Debian, Windows x64, Raspbian (Raspberry)
 - Extended and improved supported architectures: x86, x86-64, MIPS, ARM.
-- Documentation and User Guide significanly improved
+- Documentation and User Guide significantly improved
 - Added a great deal of READMEs, including ElasticSearch, bridging, traffic shaping and policing, NetBeans development
 - Improved stability both under normal and high network loads
 - Fixed tens of minor bugs 
