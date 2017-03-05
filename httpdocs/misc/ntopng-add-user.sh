@@ -153,7 +153,7 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
-if [ $# != 3 ]  # usename password fullname
+if [ $# != 3 ]  # username password fullname
 then
     # TODO: handle fullname with spaces
     print_usage
