@@ -1192,12 +1192,11 @@ if sites_categories ~= nil then
    local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid, selected_pool.id)
 
    print[[<br><br>
-      <b>Flashstart Categories</b><br>
       <table>
          <tr>
-            <td style="padding-right:1em;">Select the categories to block</td>
+            <td valign=top style="padding-right:1em;">Content categories<br>to <b>block</b>:</td>
             <td><select id="flashstart_to_block" title="Select a category to block it" name="sites_categories" style="width:25em; height:10em;" multiple>]]
-   for cat_id, cat_name in pairs(sites_categories) do
+   for cat_id, cat_name in pairsByValues(sites_categories, asc) do
       print[[<option value="]] print(cat_id.."") print[["]]
       if blocked_categories[cat_id] then
          print(" selected")
