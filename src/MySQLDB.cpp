@@ -677,7 +677,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     // we want to return the number of rows which is more informative
     // than a simple 0
     if((result = mysql_store_result(&mysql)) == NULL)
-      rc = 0;  // unable to retrieve the result but still the query succeded
+      rc = 0;  // unable to retrieve the result but still the query succeeded
     else {
       rc = mysql_num_rows(result);
       ntop->getTrace()->traceEvent(TRACE_INFO,
