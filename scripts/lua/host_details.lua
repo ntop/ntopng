@@ -2180,7 +2180,7 @@ print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode
 });]]
 
 
--- Processes graph javascritp
+-- Processes graph javascript
 
 print [[
 processes = do_pie("#topProcess", ']]

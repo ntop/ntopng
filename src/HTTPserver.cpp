@@ -131,7 +131,7 @@ static void set_cookie(const struct mg_connection *conn,
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
 	    "Set-Cookie: session=%s; path=/; max-age=%u; HttpOnly\r\n"  // Session ID
-	    "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by Javascript code
+	    "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by JavaScript code
 	    "Location: %s%s\r\n\r\n",
 	    session_id, HTTP_SESSION_DURATION,
 	    user, HTTP_SESSION_DURATION,
