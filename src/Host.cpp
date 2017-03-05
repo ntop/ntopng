@@ -1629,7 +1629,7 @@ void Host::setMDSNInfo(char *str) {
     NULL
   };
   
-  if(strstr(str, ".ip6.arpa")) return; /* Ingnored for the time being */
+  if(strstr(str, ".ip6.arpa")) return; /* Ignored for the time being */
 
   for(int i=0; tokens[i] != NULL; i++) {
     if(strstr(str, tokens[i])) {
