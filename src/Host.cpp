@@ -889,11 +889,11 @@ bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
 
 bool Host::deserialize(char *json_str, char *key) {
   json_object *o, *obj;
-  enum json_tokener_error jerr = json_tokener_success;
+  enum json_tokenizer_error jerr = json_tokenizer_success;
 
-  if((o = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
+  if((o = json_tokenizer_parse_verbose(json_str, &jerr)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-				 json_tokener_error_desc(jerr),
+				 json_tokenizer_error_desc(jerr),
 				 key,
 				 json_str);
     return(false);

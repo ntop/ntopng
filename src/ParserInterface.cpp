@@ -423,13 +423,13 @@ int ParserInterface::getKeyId(char *sym) {
 
 u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
-  enum json_tokener_error jerr = json_tokener_success;
+  enum json_tokenizer_error jerr = json_tokenizer_success;
   NetworkInterface * iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
 
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
-  o = json_tokener_parse_verbose(payload, &jerr);
+  o = json_tokenizer_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
@@ -480,7 +480,7 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
-				   json_tokener_error_desc(jerr),
+				   json_tokenizer_error_desc(jerr),
 				   payload_size,
 				   payload);
     }
@@ -495,7 +495,7 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
 
 u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
-  enum json_tokener_error jerr = json_tokener_success;
+  enum json_tokenizer_error jerr = json_tokenizer_success;
   ZMQ_Flow flow;
   IpAddress ip_aux; /* used to check empty IPs */
   NetworkInterface * iface = (NetworkInterface*)data;
@@ -503,7 +503,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
   // payload[payload_size] = '\0';
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
-  o = json_tokener_parse_verbose(payload, &jerr);
+  o = json_tokenizer_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
@@ -523,7 +523,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 
       if((key != NULL) && (value != NULL)) {
         int key_id;
-	json_object *additional_o = json_tokener_parse(value);
+	json_object *additional_o = json_tokenizer_parse(value);
 
 	/* FIX: the key can either be numeric of a string */
 	key_id = getKeyId((char*)key);
@@ -788,7 +788,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
-				   json_tokener_error_desc(jerr),
+				   json_tokenizer_error_desc(jerr),
 				   payload_size,
 				   payload);
     }
@@ -803,14 +803,14 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 
 u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
-  enum json_tokener_error jerr = json_tokener_success;
+  enum json_tokenizer_error jerr = json_tokenizer_success;
   NetworkInterface * iface = (NetworkInterface*)data;
   sFlowInterfaceStats stats;
 
   // payload[payload_size] = '\0';
 
   memset(&stats, 0, sizeof(stats));
-  o = json_tokener_parse_verbose(payload, &jerr);
+  o = json_tokenizer_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
@@ -855,7 +855,7 @@ u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
-				   json_tokener_error_desc(jerr),
+				   json_tokenizer_error_desc(jerr),
 				   payload_size,
 				   payload);
     }
