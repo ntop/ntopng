@@ -817,7 +817,7 @@ int Redis::getAddressTrafficFiltering(char *numeric_ip,
   } else {
     /* We need to extend expire */
 
-    expire(numeric_ip, TRAFFIC_FILTERING_CACHE_DURATIION /* expire */);
+    expire(numeric_ip, TRAFFIC_FILTERING_CACHE_DURATION /* expire */);
   }
 
   return(rc);
@@ -853,7 +853,7 @@ int Redis::setTrafficFilteringAddress(char *numeric_ip, char *httpbl) {
   char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), "%s.%s", TRAFFIC_FILTERING_CACHE, numeric_ip);
-  return(set(key, httpbl, TRAFFIC_FILTERING_CACHE_DURATIION));
+  return(set(key, httpbl, TRAFFIC_FILTERING_CACHE_DURATION));
 }
 
 /* **************************************** */
