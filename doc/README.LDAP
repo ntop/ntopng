@@ -52,7 +52,7 @@ users and groups are searched.
 An example is:
 dc=example,dc=com
 Assuming the field is populated with the example above, then an
-hypotetical user "foo" will be searched in the subtress having root
+hypothetical user "foo" will be searched in the subtress having root
 dc=example,dc=com.
 
 * LDAP User Group
