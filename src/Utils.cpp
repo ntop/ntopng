@@ -1324,7 +1324,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   /* Second, sort the list by file size */
   dirlist.sort(dir_size_compare);
 
-  /* Third, trasverse list and delete until we go below quota */
+  /* Third, traverse list and delete until we go below quota */
   for (it = dirlist.begin(); it != dirlist.end(); ++it) {
     stat((*it)->d_name, &st);
     unlink((*it)->d_name);
