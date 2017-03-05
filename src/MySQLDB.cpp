@@ -218,7 +218,7 @@ bool MySQLDB::createDBSchema() {
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 
-    // We trasfer old table contents into the new schema
+    // We transfer old table contents into the new schema
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv4` "
 	     "SELECT * FROM `%sv4_%u`",
 	     ntop->getPrefs()->get_mysql_tablename(),
