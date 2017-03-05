@@ -1130,7 +1130,7 @@ static int remove_recursively(const char * path) {
 }
 
 /**
- * @brief Scan the input directory, removes it and its contets.
+ * @brief Scan the input directory, removes it and its contents.
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
