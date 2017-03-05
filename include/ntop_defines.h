@@ -626,7 +626,7 @@
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
 #define ES_MAX_QUEUE_LEN              32768
 
-/* Unkown values for host groups */
+/* Unknown values for host groups */
 #define UNKNOWN_COUNTRY       ""
 #define UNKNOWN_OS            ""
 #define UNKNOWN_ASN           "Private ASN"
