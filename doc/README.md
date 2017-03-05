@@ -23,7 +23,7 @@ apps as follows:
 nprobe --zmq "tcp://*:5556" -i ethX -n none -b 2
 
 You can instruct ntopng to merge onto the same interface multiple endpoints by
-seperating them with a comma. Example:
+separating them with a comma. Example:
 
 ntopng -i tcp://127.0.0.1:5556,tcp://192.168.0.1:5556
 
