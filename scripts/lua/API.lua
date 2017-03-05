@@ -393,7 +393,7 @@ function getUserGroup()
 
 --! @memberof ntop
 --! @brief Get the user allowed networks.
---! @details Return the stored allowed netwroks (i.e. the networks this user can see) for the given user.
+--! @details Return the stored allowed networks (i.e. the networks this user can see) for the given user.
 --! @return The user allowed networks
 function getAllowedNetworks()
 
