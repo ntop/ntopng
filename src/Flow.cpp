@@ -275,7 +275,7 @@ void Flow::dumpFlowAlert() {
     case status_slow_application_header: /* 2 */
     case status_slow_data_exchange: /* 3 */
     case status_low_goodput: /* 4 */
-    case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similaria */
+    case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similar */
       /* Don't log them for the time being otherwise we'll have too many flows */
       do_dump = false;
       break;

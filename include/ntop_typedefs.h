@@ -195,7 +195,7 @@ typedef enum {
   status_slow_data_exchange /* 3 */,
   status_low_goodput /* 4 */,
   status_suspicious_tcp_syn_probing /* 5 */,
-  status_tcp_connection_issues /* 6 - i.e. too many retransmission, ooo... or similaria */,
+  status_tcp_connection_issues /* 6 - i.e. too many retransmission, ooo... or similar */,
   status_suspicious_tcp_probing /* 7 */,
   status_flow_when_interface_alerted /* 8 */,
   status_tcp_connection_refused /* 9 */,  
