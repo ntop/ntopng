@@ -384,7 +384,7 @@ static void redirect_to_login(struct mg_connection *conn,
 
 /* ****************************************** */
 
-/* Redirect user to a coutersy page that is used when database schema is being updated.
+/* Redirect user to a courtesy page that is used when database schema is being updated.
    In the cookie, store the original URL we came from, so that after the authorization
    we could redirect back.
 */
