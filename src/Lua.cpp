@@ -2973,7 +2973,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   lua_createtable(vm, 0, ds_cnt);
 
   for(i=0; i<ds_cnt; i++) {
-    /* a single serie table, preallocated */
+    /* a single series table, preallocated */
     lua_createtable(vm, npoints, 0);
     p = data + i;
 
@@ -2985,7 +2985,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
       lua_rawseti(vm, -2, j+1);
     }
 
-    /* add the single serie to the series table */
+    /* add the single series to the series table */
     lua_setfield(vm, -2, names[i]);
     rrd_freemem(names[i]);
   }
