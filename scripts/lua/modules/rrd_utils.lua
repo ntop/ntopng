@@ -184,7 +184,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   -- use same table to avoid allocation overhead; Please take care not to cross src_idx with dst_idx
   local src_idx = 1 -- this will be used to read the original data
   local dst_idx = 1 -- this will be used to write the integrated data, in order to avoid further allocations
-  local integr_ctrs = create_counters()
+  local integer_ctrs = create_counters()
   local time_sum = epoch_start
 
   -- Pre-declare callbacks to improve performance while looping
@@ -213,7 +213,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   local function c_fill_remaining (value, col)
     rawdata[col][dst_idx] = value
     
-    -- will zero integr_ctrs for next intervals
+    -- will zero integer_ctrs for next intervals
     return 0
   end
   
@@ -239,7 +239,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
     -- skip starting rows
     src_idx = toskip + 1
-    for_each_counter_do_update(integr_ctrs, function (value, col)
+    for_each_counter_do_update(integer_ctrs, function (value, col)
       return value + rawdata[col][toskip] * alignment
     end)
   end
@@ -271,7 +271,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
       prefix_slice = prefix_t / rawstep
 
       times[dst_idx] = time_sum
-      for_each_counter_do_update(integr_ctrs, c_dump_slice)
+      for_each_counter_do_update(integer_ctrs, c_dump_slice)
 
       if with_activity then
         if traffic_in_step > 0 then
@@ -287,7 +287,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
       time_sum = time_sum + resolution
     else
       -- Accumulate partial slices of traffic
-      for_each_counter_do_update(integr_ctrs, c_accumulate_partial)
+      for_each_counter_do_update(integer_ctrs, c_accumulate_partial)
 
       if(with_activity and (traffic_in_step > 0)) then
         activity_secs = activity_secs + rawstep
@@ -300,12 +300,12 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
   -- case RRD end is before epoch_end
   while time_sum <= epoch_end do
-    -- Save integr_ctrs result
+    -- Save integer_ctrs result
     set_resolution(curtime, time_sum)
     times[dst_idx] = time_sum
     if with_activity then activity[dst_idx] = activity_secs; activity_secs = 0 end
     --~ assert(dst_idx < src_idx)
-    for_each_counter_do_update(integr_ctrs, c_fill_remaining)
+    for_each_counter_do_update(integer_ctrs, c_fill_remaining)
     dst_idx = dst_idx + 1
     curtime = time_sum
     time_sum = time_sum + resolution
@@ -315,7 +315,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
   -- nullify remaining data to free table entries
   while dst_idx <= npoints do
-    for_each_counter_do_update(integr_ctrs, c_fill_nil)
+    for_each_counter_do_update(integer_ctrs, c_fill_nil)
     dst_idx = dst_idx + 1
   end
 
