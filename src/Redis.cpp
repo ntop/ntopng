@@ -1290,7 +1290,7 @@ int Redis::lpop(const char *queue_name, char ***elements, u_int num_elements) {
 
   l->lock(__FILE__, __LINE__);
   num_requests++;
-  // make a redis pipeline that pops multile elements
+  // make a redis pipeline that pops multiple elements
   // with just 1 redis command (so we pay only one RTT
   // and the operation is atomic)
   /*
