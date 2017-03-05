@@ -2479,7 +2479,7 @@ end
 
 -- ###########################################
 
--- IMPORTANT: keep it in sync wiht sortField (ntop_typedefs.h)
+-- IMPORTANT: keep it in sync with sortField (ntop_typedefs.h)
 --            AND host_search_walker:NetworkInterface.cpp
 --            AND NetworkInterface::getFlows()
 looking_glass_criteria = {
