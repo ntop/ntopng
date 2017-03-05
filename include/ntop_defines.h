@@ -632,7 +632,7 @@
 #define UNKNOWN_ASN           "Private ASN"
 #define UNKNOWN_LOCAL_NETWORK "Remote Networks"
 
-/* Macroes */
+/* Macros */
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
 #define _STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(!!(COND))*2-1]
