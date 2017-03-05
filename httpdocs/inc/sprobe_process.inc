@@ -9,7 +9,7 @@
 			  .nodes(d3.values(nodes))
 			  .links(links)
 			  .size([width, height])
-			  .linkDistance(120) // Arc lenght
+			  .linkDistance(120) // Arc length
 			  .charge(-400)
 			  .on("tick", tick)
 			  .start();
