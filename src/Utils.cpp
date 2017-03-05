@@ -837,7 +837,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
  * @param password  Password to be used on post or NULL if missing
  * @param url       URL where to post data to
  * @param json      The content of the POST
- * @return true if post was successfull, false otherwise.
+ * @return true if post was successful, false otherwise.
  */
 
 static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
