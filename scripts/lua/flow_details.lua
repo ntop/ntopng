@@ -622,7 +622,7 @@ print [[/lua/flow_stats.lua',
 			$('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
 			pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
 
-			/* 50 is the same threashold specified in FLOW_GOODPUT_THRESHOLD */
+			/* 50 is the same threshold specified in FLOW_GOODPUT_THRESHOLD */
 			if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
 
 			$('#goodput_percentage').html(pctg);
