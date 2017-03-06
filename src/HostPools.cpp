@@ -246,7 +246,7 @@ void HostPools::loadFromRedis() {
   char buf[32];
   char *value;
   json_object *obj;
-  enum json_tokener_error jerr = json_tokener_success;
+  enum json_tokenizer_error jerr = json_tokenizer_success;
   Redis *redis = ntop->getRedis();
 
   snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
@@ -262,9 +262,9 @@ void HostPools::loadFromRedis() {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
-	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
+	if((obj = json_tokenizer_parse_verbose(value, &jerr)) == NULL) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-		  json_tokener_error_desc(jerr),
+		  json_tokenizer_error_desc(jerr),
 		  key,
 		  value);
 	} else {

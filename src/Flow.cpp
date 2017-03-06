@@ -1708,15 +1708,15 @@ json_object* Flow::flow2json() {
 
   if(json_info && strcmp(json_info, "{}")) {
     json_object *o;
-    enum json_tokener_error jerr = json_tokener_success;
+    enum json_tokenizer_error jerr = json_tokenizer_success;
 
-    if((o = json_tokener_parse_verbose(json_info, &jerr)) != NULL) {
+    if((o = json_tokenizer_parse_verbose(json_info, &jerr)) != NULL) {
       json_object_object_add(my_object, "json", o);
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO,
 				   "JSON Parse error [%s]: %s "
 				   " adding as a plain string",
-				   json_tokener_error_desc(jerr),
+				   json_tokenizer_error_desc(jerr),
 				   json_info);
       /* Experimental to attempt to fix https://github.com/ntop/ntopng/issues/522 */
       json_object_object_add(my_object, "json", json_object_new_string(json_info));

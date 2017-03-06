@@ -1414,8 +1414,8 @@ static int ntop_zmq_receive(lua_State* vm) {
     payload[h.size] = '\0';
 
     if(size > 0) {
-      enum json_tokener_error jerr = json_tokener_success;
-      json_object *o = json_tokener_parse_verbose(payload, &jerr);
+      enum json_tokenizer_error jerr = json_tokenizer_success;
+      json_object *o = json_tokenizer_parse_verbose(payload, &jerr);
 
       if(o != NULL) {
 	struct json_object_iterator it = json_object_iter_begin(o);
@@ -1433,7 +1433,7 @@ static int ntop_zmq_receive(lua_State* vm) {
 	json_object_put(o);
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s]: %s",
-				     json_tokener_error_desc(jerr),
+				     json_tokenizer_error_desc(jerr),
 				     payload);
 
       lua_pushfstring(vm, "%s", payload);
