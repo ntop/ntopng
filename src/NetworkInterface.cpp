@@ -771,9 +771,9 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
-    AlertsBuilder *builder = alertsManager->getAlertsBuilder();
+    AlertsWriter *builder = alertsManager->getAlertsWriter();
 
-    char * alert_json = builder->createInterfaceTooManyFlows(ALERT_KEY_INTERFACE_APP_MISCONFIGURATION);
+    char * alert_json = builder->storeInterfaceTooManyFlows();
     free(alert_json);
 
     tooManyFlowsAlertTriggered = true;
@@ -784,10 +784,7 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 
 void NetworkInterface::triggerTooManyHostsAlert() {
   if(!tooManyHostsAlertTriggered) {
-    alertsManager->releaseInterfaceAlert(this,
-					 ALERT_KEY_INTERFACE_APP_MISCONFIGURATION,
-					 alert_app_misconfiguration,
-					 NULL);
+    alertsManager->getAlertsWriter()->storeInterfaceTooManyHosts();
     tooManyHostsAlertTriggered = true;
   }
 }

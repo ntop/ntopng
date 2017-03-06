@@ -221,8 +221,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       }
 
       if(blacklisted_host) {
-  AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
-  char* alert_json = builder->createHostBlacklisted(NULL, this);
+  AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+  char* alert_json = builder->storeHostBlacklisted(this);
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
   free(alert_json);
       }
@@ -1024,13 +1024,13 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     if(ntop->getUptime() < 10 /* sec */) return;
 #endif
 
-    AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+    AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
     char* alert_json;
 
     if (syn_sent)
-      alert_json = builder->createHostSynFloodAttacker(NULL, this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
+      alert_json = builder->storeHostSynFloodAttacker(this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
     else
-      alert_json = builder->createHostSynFloodVictim(NULL, this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
+      alert_json = builder->storeHostSynFloodVictim(this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SynFlood: %s", alert_json);
     free(alert_json);
@@ -1040,13 +1040,13 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+  AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
   
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
     if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
-      char* alert_json = builder->createHostFlowFloodAttacker(ALERT_KEY_HOST_SCAN_ATTACKER, this);
+      char* alert_json = builder->engageHostFlowFloodAttacker(this);
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", alert_json);
       free(alert_json);
       flow_flood_attacker_alert = true;
@@ -1055,7 +1055,7 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
-      char* alert_json = builder->createHostFlowFloodVictim(ALERT_KEY_HOST_SCAN_VICTIM, this);
+      char* alert_json = builder->engageHostFlowFloodVictim(this);
       ntop->getTrace()->traceEvent(TRACE_INFO, "Under scan attack: %s", alert_json);
       free(alert_json);
       flow_flood_victim_alert = true;
@@ -1073,10 +1073,7 @@ void Host::decNumFlows(bool as_client) {
       num_active_flows_as_client--;
 
       if(num_active_flows_as_client <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_attacker_alert) {
-	iface->getAlertsManager()->releaseHostAlert(this,
-						    (char*)"scan_attacker",
-						    alert_flow_flood,
-						    &msg);
+	msg = iface->getAlertsManager()->getAlertsWriter()->releaseHostFlowFloodAttacker(this);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
 	flow_flood_attacker_alert = false;
       }
@@ -1087,10 +1084,7 @@ void Host::decNumFlows(bool as_client) {
       num_active_flows_as_server--;
 
       if(num_active_flows_as_server <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_victim_alert) {
-	iface->getAlertsManager()->releaseHostAlert(this,
-						    (char*)"scan_victim",
-						    alert_flow_flood,
-						    &msg);
+	msg = iface->getAlertsManager()->getAlertsWriter()->releaseHostFlowFloodVictim(this);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
 	flow_flood_victim_alert = false;
       }
@@ -1192,8 +1186,8 @@ void Host::updateStats(struct timeval *tv) {
   }
 
   if(isAboveQuota() && triggerAlerts()) {
-    AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
-    char* alert_json = builder->createHostAboveQuota(NULL, this);
+    AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+    char* alert_json = builder->storeHostAboveQuota(this);
     free(alert_json);
   }
 }
@@ -1368,7 +1362,7 @@ void Host::incLowGoodputFlows(bool asClient) {
 #if 0
     AlertLevel severity = alert_level_error;
     /* TODO This must be adapted! */
-    AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+    AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
     time_t when = time(NULL);
     json_object *alert = builder->json_alert(severity, getInterface(), when);
 

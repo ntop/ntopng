@@ -27,8 +27,10 @@
 class Flow;
 
 class AlertsManager : protected StoreManager {
+ friend class AlertsWriter;
+
  private:
-  AlertsBuilder *builder;
+  AlertsWriter *writer;
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
@@ -103,20 +105,9 @@ class AlertsManager : protected StoreManager {
   bool isValidNetwork(const char *cidr);
   bool isValidInterface(NetworkInterface *n);
 
- public:
-  AlertsManager(int interface_id, const char *db_filename);
-  ~AlertsManager();
+ protected:
 
-  inline AlertsBuilder* getAlertsBuilder() { return builder; }
-  inline NetworkInterface* getNetworkInterface() { return StoreManager::getNetworkInterface(); }
-
-#ifdef NOTUSED
-  int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
-  int storeAlert(lua_State *L, int index);
-#endif
-
-  inline bool makeRoomRequested() { return(make_room); };
-  void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
+  /* Writer API */
 
   /*
     ========== HOST alerts API =========
@@ -138,32 +129,11 @@ class AlertsManager : protected StoreManager {
   int storeHostAlert(Host *h, time_t when, AlertType alert_type, AlertLevel alert_severity,
 		     Host *alert_origin, Host *alert_target, const char *alert_json);
 
-  int getHostAlerts(Host *h,
-		    lua_State* vm, AddressTree *allowed_hosts,
-		    u_int32_t start_offset, u_int32_t end_offset,
-		    bool engaged);
-  
-  int getHostAlerts(const char *host_ip, u_int16_t vlan_id,
-		    lua_State* vm, AddressTree *allowed_hosts,
-		    u_int32_t start_offset, u_int32_t end_offset,
-		    bool engaged);
-
-  int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
-  int getNumHostAlerts(Host *h, bool engaged);
-  int getNumHostFlowAlerts(const char *host_ip, u_int16_t vlan_id);
-  int getNumHostFlowAlerts(Host *h);
-
   /*
     ========== FLOW alerts API =========
    */
   int storeFlowAlert(Flow *f, time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
-  inline int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
-			   u_int32_t start_offset, u_int32_t end_offset) {
-    return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
-  };
-  inline int getNumFlowAlerts() {
-    return getNumFlowAlerts(NULL);
-  };
+
   /*
     ========== NETWORK alerts API ======
    */
@@ -205,6 +175,50 @@ class AlertsManager : protected StoreManager {
     return storeAlert(when, alert_entity_interface, "TODO", alert_type, alert_severity, NULL, NULL, alert_json, check_max);
   }
 
+ public:
+  AlertsManager(int interface_id, const char *db_filename);
+  ~AlertsManager();
+
+  inline AlertsWriter* getAlertsWriter() { return writer; }
+  inline NetworkInterface* getNetworkInterface() { return StoreManager::getNetworkInterface(); }
+
+#ifdef NOTUSED
+  int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int storeAlert(lua_State *L, int index);
+#endif
+
+  inline bool makeRoomRequested() { return(make_room); };
+  void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
+
+  /*
+    ========== HOST alerts API =========
+   */
+
+  int getHostAlerts(Host *h,
+		    lua_State* vm, AddressTree *allowed_hosts,
+		    u_int32_t start_offset, u_int32_t end_offset,
+		    bool engaged);
+  
+  int getHostAlerts(const char *host_ip, u_int16_t vlan_id,
+		    lua_State* vm, AddressTree *allowed_hosts,
+		    u_int32_t start_offset, u_int32_t end_offset,
+		    bool engaged);
+
+  int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
+  int getNumHostAlerts(Host *h, bool engaged);
+  int getNumHostFlowAlerts(const char *host_ip, u_int16_t vlan_id);
+  int getNumHostFlowAlerts(Host *h);
+
+  /*
+    ========== FLOW alerts API =========
+   */
+  inline int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
+			   u_int32_t start_offset, u_int32_t end_offset) {
+    return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
+  };
+  inline int getNumFlowAlerts() {
+    return getNumFlowAlerts(NULL);
+  };
   
   inline int getAlerts(lua_State* vm, AddressTree *allowed_hosts,
 		       u_int32_t start_offset, u_int32_t end_offset,

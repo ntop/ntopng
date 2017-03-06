@@ -21,10 +21,54 @@
 
 #include "ntop_includes.h"
 
-u_long AlertsBuilder::next_alert_id = 0;
-Mutex AlertsBuilder::mutex;
+/* Used internally */
+#define ALERT_KEY_THRESHOLD_CROSS_FORMAT "%s_%s"
+#define ALERT_KEY_HOST_SCAN_ATTACKER "scan_attacker"
+#define ALERT_KEY_HOST_SCAN_VICTIM "scan_victim"
+#define ALERT_KEY_INTERFACE_APP_MISCONFIGURATION "app_misconfiguration"
+#define ALERT_KEY_OPEN_FILES_LIMIT "open_files_limit_too_small"
 
-void AlertsBuilder::setStartingAlertId(u_long alert_id) {
+/* SUBJECTS */
+#define JSON_ALERT_SUBJECT "subject"
+#define JSON_ALERT_SUBJECT_HOST "hostAlert"
+#define JSON_ALERT_SUBJECT_INTERFACE "interfaceAlert"
+#define JSON_ALERT_SUBJECT_NETWORK "networkAlert"
+#define JSON_ALERT_SUBJECT_FLOW "flowAlert"
+
+/* Generic */
+#define JSON_ALERT_DETAIL "detail"
+#define JSON_ALERT_DETAIL_THRESHOLD_CROSS "thresholdCross"
+#define JSON_ALERT_TIMESTAMP_END "timestampEnd"
+#define JSON_ALERT_DETAIL_ABOVE_QUOTA "aboveQuota"
+#define JSON_ALERT_DETAIL_TOO_MANY_ALERTS "tooManyAlerts"
+
+/* Host */
+#define JSON_ALERT_DETAIL_HOST_BLACKLISTED "hostBlacklisted"
+#define JSON_ALERT_DETAIL_FLOW_FLOOD_ATTACKER "flowFloodAttacker"
+#define JSON_ALERT_DETAIL_FLOW_FLOOD_VICTIM "flowFloodVictim"
+#define JSON_ALERT_DETAIL_SYN_FLOOD_ATTACKER "synFloodAttacker"
+#define JSON_ALERT_DETAIL_SYN_FLOOD_VICTIM "synFloodVictim"
+#define JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_ATTACKER "flowLowGoodputAttacker"
+#define JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_VICTIM "flowLowGoodputVictim"
+#define JSON_ALERT_DETAIL_HOST_LOW_GOODPUT_FLOWS "lowGoodputFlows"
+
+/* Interface */
+#define JSON_ALERT_DETAIL_APP_MISCONFIGURATION "appMisconfiguration"
+#define JSON_ALERT_APP_MISCONFIGURATION_SETTING "setting"
+#define JSON_ALERT_APP_MISCONFIGURATION_FLOWS "numFlows"
+#define JSON_ALERT_APP_MISCONFIGURATION_HOSTS "numHosts"
+#define JSON_ALERT_APP_MISCONFIGURATION_MYSQL_OPEN_FILES "numOpenMysqlFilesLimit"
+
+/* Flow */
+#define JSON_ALERT_DETAIL_FLOW_PROBING "flowProbing"
+#define JSON_ALERT_DETAIL_FLOW_BLACKLISTED_HOSTS "flowBlacklistedHosts"
+#define JSON_ALERT_DETAIL_FLOW_MALWARE_SITE "flowMalwareSite"
+#define JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE "alertedInterface"
+
+u_long AlertsWriter::next_alert_id = 0;
+Mutex AlertsWriter::mutex;
+
+void AlertsWriter::setStartingAlertId(u_long alert_id) {
   mutex.lock(__FILE__, __LINE__);
   next_alert_id = alert_id;
   mutex.unlock(__FILE__, __LINE__);
@@ -32,13 +76,13 @@ void AlertsBuilder::setStartingAlertId(u_long alert_id) {
 
 /* Exposed Methods */
 
-AlertsBuilder::AlertsBuilder(AlertsManager *am) {
+AlertsWriter::AlertsWriter(AlertsManager *am) {
   this->am = am;
 }
 
 /* Flow Alerts */
 
-char* AlertsBuilder::complex_flow_alert(Flow *flow, const AlertType type, const AlertLevel severity,
+char* AlertsWriter::createGenericFlowAlert(Flow *flow, const AlertType type, const AlertLevel severity,
     json_object *detail, const char *detail_name) {
   time_t when = time(0);
 
@@ -57,31 +101,25 @@ char* AlertsBuilder::complex_flow_alert(Flow *flow, const AlertType type, const 
   return msg;
 }
 
-char* AlertsBuilder::simple_flow_alert(Flow *flow, const AlertType type, const AlertLevel severity,
-    const char *detail_name) {
-  json_object *detail_json = json_object_new_object();
-  return complex_flow_alert(flow, type, severity, detail_json, detail_name);
+char* AlertsWriter::storeFlowProbing(Flow *flow, AlertType probingType) {
+  return createGenericFlowAlert(flow, probingType, alert_level_warning, json_object_new_object(), JSON_ALERT_DETAIL_FLOW_PROBING);
 }
 
-char* AlertsBuilder::createFlowProbing(Flow *flow, AlertType probingType) {
-  return simple_flow_alert(flow, probingType, alert_level_warning, JSON_ALERT_DETAIL_FLOW_PROBING);
+char* AlertsWriter::storeFlowBlacklistedHosts(Flow *flow) {
+  return createGenericFlowAlert(flow, alert_dangerous_host, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_FLOW_BLACKLISTED_HOSTS);
 }
 
-char* AlertsBuilder::createFlowBlacklistedHosts(Flow *flow) {
-  return simple_flow_alert(flow, alert_dangerous_host, alert_level_error, JSON_ALERT_DETAIL_FLOW_BLACKLISTED_HOSTS);
+char* AlertsWriter::storeFlowAlertedInterface(Flow *flow) {
+  return createGenericFlowAlert(flow, alert_dangerous_host, alert_level_warning, json_object_new_object(), JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE);
 }
 
-char* AlertsBuilder::createFlowAlertedInterface(Flow *flow) {
-  return simple_flow_alert(flow, alert_dangerous_host, alert_level_warning, JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE);
-}
-
-char* AlertsBuilder::createFlowTooManyAlerts(Flow *flow) {
-  return simple_flow_alert(flow, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+char* AlertsWriter::storeFlowTooManyAlerts(Flow *flow) {
+  return createGenericFlowAlert(flow, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
 }
 
 /* Interface Alerts */
 
-char* AlertsBuilder::complex_interface_alert(const char *alert_key,
+char* AlertsWriter::createGenericInterfaceAlert(const char *alert_key,
     const AlertType type, const AlertLevel severity,
     json_object *detail, const char *detail_name) {
   time_t when = time(0);
@@ -105,43 +143,55 @@ char* AlertsBuilder::complex_interface_alert(const char *alert_key,
   return msg;
 }
 
-char* AlertsBuilder::simple_interface_alert(const char *alert_key, const AlertType type, const AlertLevel severity,
-    const char *detail_name) {
-  json_object *detail_json = json_object_new_object();
-  return complex_interface_alert(alert_key, type, severity, detail_json, detail_name);
-}
-
-char* AlertsBuilder::createInterfaceThresholdCross(const char *alert_key,
+char* AlertsWriter::engageInterfaceThresholdCross(const char *time_period,
     const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold) {
+  char alert_key[32];
+  snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
+
   json_object *detail_json = json_threshold_cross(alarmable, op, value, threshold);
-  return complex_interface_alert(alert_key, alert_threshold_exceeded, alert_level_error, detail_json, JSON_ALERT_DETAIL_THRESHOLD_CROSS);
+  return createGenericInterfaceAlert(alert_key, alert_threshold_exceeded, alert_level_error, detail_json, JSON_ALERT_DETAIL_THRESHOLD_CROSS);
 }
 
-char* AlertsBuilder::createInterfaceTooManyAlerts(const char *alert_key) {
-  return simple_interface_alert(alert_key, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+char* AlertsWriter::releaseInterfaceThresholdCross(const char *time_period, const char *alarmable) {
+  char alert_key[32];
+  snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
+  
+  char *alert_json = NULL;
+  am->releaseInterfaceAlert(am->getNetworkInterface(), alert_key, alert_threshold_exceeded, &alert_json);
+  return alert_json;
 }
 
-char* AlertsBuilder::createInterfaceTooManyFlows(const char *alert_key) {
+char* AlertsWriter::storeInterfaceTooManyAlerts() {
+  return createGenericInterfaceAlert(NULL, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+}
+
+char* AlertsWriter::storeInterfaceTooManyFlows() {
   json_object *detail_json = json_object_new_object();
   json_app_misconfiguration_setting_add(detail_json, JSON_ALERT_APP_MISCONFIGURATION_FLOWS);
-  return complex_interface_alert(alert_key, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+  return createGenericInterfaceAlert(NULL, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
 }
 
-char* AlertsBuilder::createInterfaceTooManyHosts(const char *alert_key) {
+char* AlertsWriter::storeInterfaceTooManyHosts() {
   json_object *detail_json = json_object_new_object();
   json_app_misconfiguration_setting_add(detail_json, JSON_ALERT_APP_MISCONFIGURATION_HOSTS);
-  return complex_interface_alert(alert_key, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+  return createGenericInterfaceAlert(NULL, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
 }
 
-char* AlertsBuilder::createInterfaceTooManyOpenFiles(const char *alert_key) {
+char* AlertsWriter::engageInterfaceTooManyOpenFiles() {
   json_object *detail_json = json_object_new_object();
   json_app_misconfiguration_setting_add(detail_json, JSON_ALERT_APP_MISCONFIGURATION_MYSQL_OPEN_FILES);
-  return complex_interface_alert(alert_key, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+  return createGenericInterfaceAlert(ALERT_KEY_OPEN_FILES_LIMIT, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+}
+
+char* AlertsWriter::releaseInterfaceTooManyOpenFiles() {
+  char *alert_json = NULL;
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_OPEN_FILES_LIMIT, alert_app_misconfiguration, &alert_json);
+  return alert_json;
 }
 
 /* Network Alerts */
 
-char* AlertsBuilder::complex_network_alert(const char *alert_key, const char *network,
+char* AlertsWriter::createGenericNetworkAlert(const char *alert_key, const char *network,
     const AlertType type, const AlertLevel severity,
     json_object *detail, const char *detail_name) {
   time_t when = time(0);
@@ -165,26 +215,31 @@ char* AlertsBuilder::complex_network_alert(const char *alert_key, const char *ne
   return msg;
 }
 
-char* AlertsBuilder::simple_network_alert(const char *alert_key, const char *network,
-    const AlertType type, const AlertLevel severity,
-    const char *detail_name) {
-  json_object *detail_json = json_object_new_object();
-  return complex_network_alert(alert_key, network, type, severity, detail_json, detail_name);
-}
-
-char* AlertsBuilder::createNetworkThresholdCross(const char *alert_key, const char *network,
+char* AlertsWriter::engageNetworkThresholdCross(const char *time_period, const char *network,
     const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold) {
+  char alert_key[32];
+  snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
+
   json_object *detail_json = json_threshold_cross(alarmable, op, value, threshold);
-  return complex_network_alert(alert_key, network, alert_threshold_exceeded, alert_level_error, detail_json, JSON_ALERT_DETAIL_THRESHOLD_CROSS);
+  return createGenericNetworkAlert(alert_key, network, alert_threshold_exceeded, alert_level_error, detail_json, JSON_ALERT_DETAIL_THRESHOLD_CROSS);
 }
 
-char* AlertsBuilder::createNetworkTooManyAlerts(const char *alert_key, const char *network) {
-  return simple_network_alert(alert_key, network, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+char* AlertsWriter::releaseNetworkThresholdCross(const char *time_period, const char *network, const char *alarmable) {
+  char alert_key[32];
+  snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
+  
+  char *alert_json = NULL;
+  am->releaseNetworkAlert(network, alert_key, alert_threshold_exceeded, &alert_json);
+  return alert_json;
+}
+
+char* AlertsWriter::storeNetworkTooManyAlerts(const char *network) {
+  return createGenericNetworkAlert(NULL, network, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
 }
 
 /* Host Alerts */
 
-char* AlertsBuilder::complex_host_alert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
+char* AlertsWriter::createGenericHostAlert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
       json_object *detail, const char*detail_name, Host *source, Host *target) {
   time_t when = time(0);
 
@@ -207,30 +262,41 @@ char* AlertsBuilder::complex_host_alert(const char *alert_key, Host *host, const
   return msg;
 }
 
-char* AlertsBuilder::simple_host_alert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity, const char *detail_name) {
+char* AlertsWriter::simple_host_alert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity, const char *detail_name) {
   json_object *detail_json = json_object_new_object();
-  return complex_host_alert(alert_key, host, type, severity, detail_json, detail_name, NULL, NULL);
+  return createGenericHostAlert(alert_key, host, type, severity, detail_json, detail_name, NULL, NULL);
 }
 
-char* AlertsBuilder::createHostThresholdCross(const char *alert_key, Host *host,
+char* AlertsWriter::engageHostThresholdCross(const char *time_period, Host *host,
     const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold) {
+  char alert_key[32];
+  snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
   json_object *detail_json = json_threshold_cross(alarmable, op, value, threshold);
-  return complex_host_alert(alert_key, host, alert_threshold_exceeded, alert_level_error, detail_json, JSON_ALERT_DETAIL_THRESHOLD_CROSS, NULL, NULL);
+  return createGenericHostAlert(alert_key, host, alert_threshold_exceeded, alert_level_error, detail_json, JSON_ALERT_DETAIL_THRESHOLD_CROSS, NULL, NULL);
 }
 
-char* AlertsBuilder::createHostTooManyAlerts(const char *alert_key, Host *host) {
-  return simple_host_alert(alert_key, host, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+char* AlertsWriter::releaseHostThresholdCross(const char *time_period, Host *host, const char *alarmable) {
+  char alert_key[32];
+  snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
+  
+  char *alert_json = NULL;
+  am->releaseHostAlert(host, alert_key, alert_threshold_exceeded, &alert_json);
+  return alert_json;
 }
 
-char* AlertsBuilder::createHostAboveQuota(const char *alert_key, Host *host) {
-  return simple_host_alert(alert_key, host, alert_quota, alert_level_error, JSON_ALERT_DETAIL_ABOVE_QUOTA);
+char* AlertsWriter::storeHostTooManyAlerts(Host *host) {
+  return simple_host_alert(NULL, host, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
 }
 
-char* AlertsBuilder::createHostBlacklisted(const char *alert_key, Host *host) {
-  return simple_host_alert(alert_key, host, alert_malware_detection, alert_level_error, JSON_ALERT_DETAIL_HOST_BLACKLISTED);
+char* AlertsWriter::storeHostAboveQuota(Host *host) {
+  return simple_host_alert(NULL, host, alert_quota, alert_level_error, JSON_ALERT_DETAIL_ABOVE_QUOTA);
 }
 
-char* AlertsBuilder::attack_host_alert(const char *alert_key, Host *host, Host *attacker, Host *victim,
+char* AlertsWriter::storeHostBlacklisted(Host *host) {
+  return simple_host_alert(NULL, host, alert_malware_detection, alert_level_error, JSON_ALERT_DETAIL_HOST_BLACKLISTED);
+}
+
+char* AlertsWriter::attack_host_alert(const char *alert_key, Host *host, Host *attacker, Host *victim,
     u_int32_t current_hits, u_int32_t duration) {
   const char *detail_name = (host == attacker) ? JSON_ALERT_DETAIL_SYN_FLOOD_ATTACKER : JSON_ALERT_DETAIL_SYN_FLOOD_VICTIM;
 
@@ -243,32 +309,43 @@ char* AlertsBuilder::attack_host_alert(const char *alert_key, Host *host, Host *
   if (host == victim)
     json_object_object_add(detail, "attacker", json_host(attacker));
 
-  return complex_host_alert(alert_key, host, alert_syn_flood, alert_level_error, detail, detail_name, attacker, victim);
+  return createGenericHostAlert(alert_key, host, alert_syn_flood, alert_level_error, detail, detail_name, attacker, victim);
 }
 
-char* AlertsBuilder::createHostSynFloodAttacker(const char *alert_key, Host *host,
+char* AlertsWriter::storeHostSynFloodAttacker(Host *host,
     Host *victim, u_int32_t current_hits, u_int32_t duration) {
-  return attack_host_alert(alert_key, host, host, victim, current_hits, duration);
+  return attack_host_alert(NULL, host, host, victim, current_hits, duration);
 }
 
-char* AlertsBuilder::createHostSynFloodVictim(const char *alert_key, Host *host,
+char* AlertsWriter::storeHostSynFloodVictim(Host *host,
     Host *attacker, u_int32_t current_hits, u_int32_t duration) {
-  return attack_host_alert(alert_key, host, attacker, host, current_hits, duration);
+  return attack_host_alert(NULL, host, attacker, host, current_hits, duration);
 }
 
-char* AlertsBuilder::createHostFlowFloodAttacker(const char *alert_key, Host *host) {
-  json_object *detail = json_object_new_object();
-  return complex_host_alert(alert_key, host, alert_flow_flood, alert_level_error, detail, JSON_ALERT_DETAIL_FLOW_FLOOD_ATTACKER, host, NULL);
+char* AlertsWriter::engageHostFlowFloodAttacker(Host *host) {
+  return createGenericHostAlert(ALERT_KEY_HOST_SCAN_ATTACKER, host, alert_flow_flood, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_FLOW_FLOOD_ATTACKER, host, NULL);
 }
 
-char* AlertsBuilder::createHostFlowFloodVictim(const char *alert_key, Host *host) {
+char* AlertsWriter::releaseHostFlowFloodAttacker(Host *host) {
+  char *alert_json = NULL;
+  am->releaseHostAlert(host, ALERT_KEY_HOST_SCAN_ATTACKER, alert_flow_flood, &alert_json);
+  return alert_json;
+}
+
+char* AlertsWriter::engageHostFlowFloodVictim(Host *host) {
   json_object *detail = json_object_new_object();
-  return complex_host_alert(alert_key, host, alert_flow_flood, alert_level_error, detail, JSON_ALERT_DETAIL_FLOW_FLOOD_VICTIM, NULL, host);
+  return createGenericHostAlert(ALERT_KEY_HOST_SCAN_VICTIM, host, alert_flow_flood, alert_level_error, detail, JSON_ALERT_DETAIL_FLOW_FLOOD_VICTIM, NULL, host);
+}
+
+char* AlertsWriter::releaseHostFlowFloodVictim(Host *host) {
+  char *alert_json = NULL;
+  am->releaseHostAlert(host, ALERT_KEY_HOST_SCAN_VICTIM, alert_flow_flood, &alert_json);
+  return alert_json;
 }
 
 /* Internal Methods */
 
-json_object* AlertsBuilder::json_generic_alert(AlertLevel severity, time_t start_time) {
+json_object* AlertsWriter::json_generic_alert(AlertLevel severity, time_t start_time) {
   const char *level = "";
 
   switch(severity) {
@@ -290,24 +367,24 @@ json_object* AlertsBuilder::json_generic_alert(AlertLevel severity, time_t start
   return alert;
 }
 
-json_object* AlertsBuilder::json_interface(NetworkInterface *iface) {
+json_object* AlertsWriter::json_interface(NetworkInterface *iface) {
   json_object *iface_json = json_object_new_object();
   json_object_object_add(iface_json, "id", json_object_new_int64(iface->get_id()));
   json_object_object_add(iface_json, "name", json_object_new_string(iface->get_name()));
   return iface_json;
 }
 
-json_object* AlertsBuilder::json_flow(Flow *flow) {
+json_object* AlertsWriter::json_flow(Flow *flow) {
   return flow->flow2alert();
 }
 
-json_object* AlertsBuilder::json_network(const char *cidr) {
+json_object* AlertsWriter::json_network(const char *cidr) {
   json_object *network_json = json_object_new_object();
   json_object_object_add(network_json, "cidr", json_object_new_string(cidr));
   return network_json;
 }
 
-json_object* AlertsBuilder::json_protocol(ndpi_protocol proto, const char *name) {
+json_object* AlertsWriter::json_protocol(ndpi_protocol proto, const char *name) {
   json_object *proto_json = json_object_new_object();
 
   json_object_object_add(proto_json, "name", json_object_new_string(name));
@@ -316,7 +393,7 @@ json_object* AlertsBuilder::json_protocol(ndpi_protocol proto, const char *name)
   return proto_json;
 }
 
-json_object* AlertsBuilder::json_ip(IpAddress *ip) {
+json_object* AlertsWriter::json_ip(IpAddress *ip) {
   char buf[64];
   char *ip_str;
 
@@ -327,7 +404,7 @@ json_object* AlertsBuilder::json_ip(IpAddress *ip) {
   return json;
 }
 
-json_object* AlertsBuilder::json_host(Host *host) {
+json_object* AlertsWriter::json_host(Host *host) {
   char buf[96];
   char ipbuf[64];
   IpAddress *host_ip = host->get_ip();
@@ -358,37 +435,37 @@ json_object* AlertsBuilder::json_host(Host *host) {
 
 /* Utilities */
 
-json_object* AlertsBuilder::json_alert(AlertLevel severity, NetworkInterface *iface, time_t start_time) {
+json_object* AlertsWriter::json_alert(AlertLevel severity, NetworkInterface *iface, time_t start_time) {
   json_object *alert = json_generic_alert(severity, start_time);
   json_object_object_add(alert, "interface", json_interface(iface));
   return alert;
 }
 
-json_object* AlertsBuilder::json_alert_ends(json_object *alert, time_t end_time) {
+json_object* AlertsWriter::json_alert_ends(json_object *alert, time_t end_time) {
   json_object_object_add(alert, JSON_ALERT_TIMESTAMP_END, json_object_new_int64(end_time));
   return alert;
 }
 
-json_object* AlertsBuilder::json_alert_set_vlan(json_object *alert, u_int16_t vlan_id) {
+json_object* AlertsWriter::json_alert_set_vlan(json_object *alert, u_int16_t vlan_id) {
   json_object_object_add(alert, "vlan", json_object_new_int64(vlan_id));
   return alert;
 }
 
-json_object* AlertsBuilder::json_subject_add(json_object *alert, json_object *subject, const char *subject_value) {
+json_object* AlertsWriter::json_subject_add(json_object *alert, json_object *subject, const char *subject_value) {
   json_object *container = json_object_new_object();
   json_object_object_add(alert, JSON_ALERT_SUBJECT, container);
   json_object_object_add(container, subject_value, subject);
   return container;
 }
 
-json_object* AlertsBuilder::json_detail_add(json_object *subject, json_object *detail, const char *detail_value) {
+json_object* AlertsWriter::json_detail_add(json_object *subject, json_object *detail, const char *detail_value) {
   json_object *detail_container = json_object_new_object();
   json_object_object_add(subject, JSON_ALERT_DETAIL, detail_container);
   json_object_object_add(detail_container, detail_value, detail);
   return detail_container;
 }
 
-json_object* AlertsBuilder::json_app_misconfiguration_setting_add(json_object* detail_json, const char* setting_value) {
+json_object* AlertsWriter::json_app_misconfiguration_setting_add(json_object* detail_json, const char* setting_value) {
   json_object *setting = json_object_new_object();
   json_object_object_add(detail_json, JSON_ALERT_APP_MISCONFIGURATION_SETTING, setting);
   json_object *setting_obj = json_object_new_object();
@@ -396,7 +473,7 @@ json_object* AlertsBuilder::json_app_misconfiguration_setting_add(json_object* d
   return setting_obj;
 }
 
-json_object* AlertsBuilder::json_threshold_cross(const char *alarmable,
+json_object* AlertsWriter::json_threshold_cross(const char *alarmable,
     const char *op, u_long value, u_long threshold) {
   json_object *detail = json_object_new_object();
   json_object_object_add(detail, "alarmable", json_object_new_string(alarmable));
@@ -408,26 +485,26 @@ json_object* AlertsBuilder::json_threshold_cross(const char *alarmable,
 
 /* Subject builders */
 
-json_object* AlertsBuilder::json_interface_subject() {
+json_object* AlertsWriter::json_interface_subject() {
   json_object *interface_subject = json_object_new_object();
   return interface_subject;
 }
 
-json_object* AlertsBuilder::json_flow_subject(Flow *flow_obj) {
+json_object* AlertsWriter::json_flow_subject(Flow *flow_obj) {
   json_object *flow_subject = json_object_new_object();
   json_object *flow = json_flow(flow_obj);
   json_object_object_add(flow_subject, "flow", flow);
   return flow_subject;
 }
 
-json_object* AlertsBuilder::json_network_subject(const char *cidr) {
+json_object* AlertsWriter::json_network_subject(const char *cidr) {
   json_object *network_subject = json_object_new_object();
   json_object *network = json_network(cidr);
   json_object_object_add(network_subject, "network", network);
   return network_subject;
 }
 
-json_object* AlertsBuilder::json_host_subject(Host *host_obj) {
+json_object* AlertsWriter::json_host_subject(Host *host_obj) {
   json_object *host_subject = json_object_new_object();
   json_object *host = json_host(host_obj);
   json_object_object_add(host_subject, "host", host);

@@ -293,13 +293,13 @@ void Flow::dumpFlowAlert() {
     }
 
     if(do_dump && cli_host && srv_host) {
-      AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+      AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
       char* alert_json;
 
       if (is_probing)
-        alert_json = builder->createFlowProbing(this, aType);
+        alert_json = builder->storeFlowProbing(this, aType);
       else
-        alert_json = builder->createFlowAlertedInterface(this);
+        alert_json = builder->storeFlowAlertedInterface(this);
       free(alert_json);
     }
 
@@ -316,9 +316,9 @@ void Flow::checkBlacklistedFlow() {
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
 
-      AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+      AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
 
-      char* alert_json = builder->createFlowBlacklistedHosts(this);
+      char* alert_json = builder->storeFlowBlacklistedHosts(this);
       free(alert_json);
     }
 
@@ -1774,7 +1774,7 @@ json_object* Flow::flow2json() {
 json_object* Flow::flow2alert() {
   char buf[32];
   json_object *flow = json_object_new_object();
-  AlertsBuilder *builder = iface->getAlertsManager()->getAlertsBuilder();
+  AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
 
   /* Meta */
   snprintf(buf, sizeof(buf), "%u", key());

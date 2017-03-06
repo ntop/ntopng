@@ -24,7 +24,7 @@
 
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
-  builder = NULL;
+  writer = NULL;
 
   snprintf(filePath, sizeof(filePath), "%s/%d/alerts/",
            ntop->get_working_dir(), ifid);
@@ -65,14 +65,14 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   snprintf(queue_name, sizeof(queue_name), ALERTS_MANAGER_QUEUE_NAME, ifid);
 
-  builder = new AlertsBuilder(this);
+  writer = new AlertsWriter(this);
   refreshCachedNumAlerts();
 }
 
 /* **************************************************** */
 
 AlertsManager::~AlertsManager() {
-  if (builder) delete builder;
+  if (writer) delete writer;
 }
 
 /* **************************************************** */
@@ -461,20 +461,20 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
       /* make room by deleting the oldest alert matching the input criteria */
       deleteOldestAlert(alert_entity, alert_entity_value, table_name, max_num - 1);
 
-      AlertsBuilder *builder = getAlertsBuilder();
+      AlertsWriter *writer = getAlertsWriter();
       char* alert_json = NULL;
 
       switch (alert_entity) {
 	case alert_entity_interface:
-	  alert_json = builder->createInterfaceTooManyAlerts(NULL);
+	  alert_json = writer->storeInterfaceTooManyAlerts();
 	  break;
 	case alert_entity_network:
-	  alert_json = builder->createNetworkTooManyAlerts(NULL, alert_entity_value);
+	  alert_json = writer->storeNetworkTooManyAlerts(alert_entity_value);
 	  break;
 	case alert_entity_flow:
 	  /* TODO flow cannot be null! */
 	  puts(alert_entity_value);
-	  //~ alert_json = builder->createFlowTooManyAlerts(NULL);
+	  //~ alert_json = writer->storeFlowTooManyAlerts(NULL);
 	  break;
 	case alert_entity_host: {
 	  char *host_ip;
@@ -485,7 +485,7 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 	  Utils::getHostVlanInfo((char*)alert_entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
 	  host = iface->getHost(host_ip, vlan_id);
 	  if (host != NULL)
-	    builder->createHostTooManyAlerts(NULL, host);
+	    writer->storeHostTooManyAlerts(host);
 	  else
 	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", alert_entity_value, host_ip, vlan_id);
 	  break;
@@ -660,7 +660,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
            alert_json);
     } else {
       /* Set end timestamp and regen alert string */
-      json_object_object_add(alert, JSON_ALERT_TIMESTAMP_END, json_object_new_int64(when));
+      writer->json_alert_ends(alert, when);
       free(alert_json);
       alert_json = strdup(json_object_to_json_string(alert));
       json_object_put(alert);
