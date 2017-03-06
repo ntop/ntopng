@@ -2936,7 +2936,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   if(retriever == NULL)
     return -1;
 
-  if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) hostMacsOnly = false;
+  if(! isPacketInterface()) hostMacsOnly = false;
   
   maxHits = getHostsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))

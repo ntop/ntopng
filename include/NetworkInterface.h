@@ -198,7 +198,7 @@ class NetworkInterface {
   /* calling virtual in constructors/destructors should be avoided
      See C++ FAQ Lite covers this in section 23.7
   */
-  inline virtual bool isPacketInterface()      { return(true); }
+  inline virtual bool isPacketInterface()      { return(strcmp(get_type(), CONST_INTERFACE_TYPE_FLOW) != 0); }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
