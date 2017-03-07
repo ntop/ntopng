@@ -314,7 +314,7 @@ if test ".${ac_cv_lib_GeoIP_GeoIP_record_by_ipnum}" = ".yes" &&
      dnl> Download databases
      DOWNLOAD_GEOIP=1
    else
-     AC_DEFINE_UNQUOTED(HAVE_GEOIP_IPv6, 1, [GeoIP not supported: library too old, plase upgrade first])
+     AC_DEFINE_UNQUOTED(HAVE_GEOIP_IPv6, 1, [GeoIP not supported: library too old, please upgrade first])
    fi
 else
 AC_MSG_RESULT(Build ntop without geolocation - GeoIP (http://www.maxmind.com/))
