@@ -221,8 +221,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       }
 
       if(blacklisted_host) {
-  AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
-  char* alert_json = builder->storeHostBlacklisted(this);
+  AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
+  char* alert_json = writer->storeHostBlacklisted(this);
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
   free(alert_json);
       }
@@ -1024,13 +1024,13 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     if(ntop->getUptime() < 10 /* sec */) return;
 #endif
 
-    AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+    AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
     char* alert_json;
 
     if (syn_sent)
-      alert_json = builder->storeHostSynFloodAttacker(this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
+      alert_json = writer->storeHostSynFloodAttacker(this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
     else
-      alert_json = builder->storeHostSynFloodVictim(this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
+      alert_json = writer->storeHostSynFloodVictim(this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SynFlood: %s", alert_json);
     free(alert_json);
@@ -1040,13 +1040,13 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+  AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
   
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
     if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
-      char* alert_json = builder->engageHostFlowFloodAttacker(this);
+      char* alert_json = writer->engageHostFlowFloodAttacker(this);
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", alert_json);
       free(alert_json);
       flow_flood_attacker_alert = true;
@@ -1055,7 +1055,7 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
-      char* alert_json = builder->engageHostFlowFloodVictim(this);
+      char* alert_json = writer->engageHostFlowFloodVictim(this);
       ntop->getTrace()->traceEvent(TRACE_INFO, "Under scan attack: %s", alert_json);
       free(alert_json);
       flow_flood_victim_alert = true;
@@ -1186,8 +1186,8 @@ void Host::updateStats(struct timeval *tv) {
   }
 
   if(isAboveQuota() && triggerAlerts()) {
-    AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
-    char* alert_json = builder->storeHostAboveQuota(this);
+    AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
+    char* alert_json = writer->storeHostAboveQuota(this);
     free(alert_json);
   }
 }
@@ -1362,11 +1362,11 @@ void Host::incLowGoodputFlows(bool asClient) {
 #if 0
     AlertLevel severity = alert_level_error;
     /* TODO This must be adapted! */
-    AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+    AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
     time_t when = time(NULL);
-    json_object *alert = builder->json_alert(severity, getInterface(), when);
+    json_object *alert = writer->json_alert(severity, getInterface(), when);
 
-    json_object *detail = builder->json_host_detail(alert, this, asClient ? JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_VICTIM : JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_ATTACKER);
+    json_object *detail = writer->json_host_detail(alert, this, asClient ? JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_VICTIM : JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_ATTACKER);
     json_object_object_add(detail, JSON_ALERT_DETAIL_HOST_LOW_GOODPUT_FLOWS, json_object_new_int64(HOST_LOW_GOODPUT_THRESHOLD));
     const char* msg = json_object_to_json_string(alert);
 

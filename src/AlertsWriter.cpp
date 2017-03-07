@@ -41,6 +41,7 @@
 #define JSON_ALERT_TIMESTAMP_END "timestampEnd"
 #define JSON_ALERT_DETAIL_ABOVE_QUOTA "aboveQuota"
 #define JSON_ALERT_DETAIL_TOO_MANY_ALERTS "tooManyAlerts"
+#define JSON_ALERT_DETAIL_TOO_MANY_FLOW_ALERTS "tooManyFlowAlerts"
 
 /* Host */
 #define JSON_ALERT_DETAIL_HOST_BLACKLISTED "hostBlacklisted"
@@ -64,6 +65,16 @@
 #define JSON_ALERT_DETAIL_FLOW_BLACKLISTED_HOSTS "flowBlacklistedHosts"
 #define JSON_ALERT_DETAIL_FLOW_MALWARE_SITE "flowMalwareSite"
 #define JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE "alertedInterface"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE "probingType"
+/*    Flow Probing */
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SLOW_TCP "slow_tcp_connection"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SLOW_APP_HEADER "slow_application_header"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_LOW_GOODPUT "low_goodput"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SLOW_DATA "slow_data_exchange"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_TCP_ISSUES "tcp_connection_issues"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SYN_PROBING "syn_probing"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_TCP_PROBING "tcp_probing"
+#define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_CON_REFUSED "tcp_connection_refused"
 
 u_long AlertsWriter::next_alert_id = 0;
 Mutex AlertsWriter::mutex;
@@ -101,8 +112,55 @@ char* AlertsWriter::createGenericFlowAlert(Flow *flow, const AlertType type, con
   return msg;
 }
 
-char* AlertsWriter::storeFlowProbing(Flow *flow, AlertType probingType) {
-  return createGenericFlowAlert(flow, probingType, alert_level_warning, json_object_new_object(), JSON_ALERT_DETAIL_FLOW_PROBING);
+char* AlertsWriter::storeFlowProbing(Flow *flow, FlowStatus flow_status) {
+  AlertType alert_type;
+  const char *probing_type;
+
+  switch(flow_status) {
+    case status_slow_tcp_connection:
+      alert_type = alert_flow_misbehaviour;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SLOW_TCP;
+      break;
+    case status_slow_application_header:
+      alert_type = alert_flow_misbehaviour;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SLOW_APP_HEADER;
+      break;
+    case status_low_goodput:
+      alert_type = alert_flow_misbehaviour;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_LOW_GOODPUT;
+      break;
+    case status_slow_data_exchange:
+      alert_type = alert_flow_misbehaviour;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SLOW_DATA;
+      break;
+    case status_tcp_connection_issues:
+      alert_type = alert_flow_misbehaviour;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_TCP_ISSUES;
+      break;
+
+    case status_suspicious_tcp_syn_probing:
+      alert_type = alert_suspicious_activity;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_SYN_PROBING;
+      break;
+    case status_suspicious_tcp_probing:
+      alert_type = alert_suspicious_activity;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_TCP_PROBING;
+      break;
+    case status_tcp_connection_refused:
+      alert_type = alert_suspicious_activity;
+      probing_type = JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_CON_REFUSED;
+      break;
+
+    default:
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown flow status %d", flow_status);
+      alert_type = alert_flow_misbehaviour;
+      probing_type = "";
+  }
+
+  json_object *detail = json_object_new_object();
+  json_object_object_add(detail, JSON_ALERT_DETAIL_FLOW_PROBING_TYPE, json_object_new_string(probing_type));
+
+  return createGenericFlowAlert(flow, alert_type, alert_level_warning, detail, JSON_ALERT_DETAIL_FLOW_PROBING);
 }
 
 char* AlertsWriter::storeFlowBlacklistedHosts(Flow *flow) {
@@ -111,10 +169,6 @@ char* AlertsWriter::storeFlowBlacklistedHosts(Flow *flow) {
 
 char* AlertsWriter::storeFlowAlertedInterface(Flow *flow) {
   return createGenericFlowAlert(flow, alert_dangerous_host, alert_level_warning, json_object_new_object(), JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE);
-}
-
-char* AlertsWriter::storeFlowTooManyAlerts(Flow *flow) {
-  return createGenericFlowAlert(flow, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
 }
 
 /* Interface Alerts */
@@ -163,6 +217,10 @@ char* AlertsWriter::releaseInterfaceThresholdCross(const char *time_period, cons
 
 char* AlertsWriter::storeInterfaceTooManyAlerts() {
   return createGenericInterfaceAlert(NULL, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+}
+
+char* AlertsWriter::storeInterfaceTooManyFlowAlerts() {
+  return createGenericInterfaceAlert(NULL, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_FLOW_ALERTS);
 }
 
 char* AlertsWriter::storeInterfaceTooManyFlows() {

@@ -142,13 +142,11 @@ class AlertsWriter {
         json_object *detail, const char *detail_name);
 
     /* Flow Alerts */
-    char* storeFlowProbing(Flow *flow, AlertType probingType);
+    char* storeFlowProbing(Flow *flow, FlowStatus flow_status);
 
     char* storeFlowBlacklistedHosts(Flow *flow);
 
     char* storeFlowAlertedInterface(Flow *flow);
-
-    char* storeFlowTooManyAlerts(Flow *flow);
 
     /* Interface Alerts */
     char* engageInterfaceThresholdCross(const char *time_period,
@@ -156,6 +154,8 @@ class AlertsWriter {
     char* releaseInterfaceThresholdCross(const char *time_period, const char *alarmable);
 
     char* storeInterfaceTooManyAlerts();
+
+    char* storeInterfaceTooManyFlowAlerts();
 
     char* storeInterfaceTooManyFlows();
 

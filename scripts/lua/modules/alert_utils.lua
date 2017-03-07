@@ -124,7 +124,7 @@ function makeAlertDescription(alert)
    end
 
    local function too_many_alerts(entity_str)
-      return "Too many "..entity_str.." alerts. Oldest alerts will be overwritten unless you delete some alerts or increase their maximum number."
+      return "Too many "..entity_str..". Oldest alerts will be overwritten unless you delete some alerts or increase their maximum number."
    end
 
    local function attack_counter_str(counter, is_attacker)
@@ -173,7 +173,7 @@ function makeAlertDescription(alert)
 
       local ssl_cert = flow.sslCertificate
       if (ssl_cert ~= nil) then
-         parts[#parts + 1] = "[<a href='http://"..ssl_cert.."'>"..ssl_cert.."</a>]"
+         parts[#parts + 1] = " [<a href='http://"..ssl_cert.."'>"..ssl_cert.."</a>]"
       end
 
       return table.concat(parts)
@@ -208,6 +208,32 @@ function makeAlertDescription(alert)
       return table.concat(parts)
    end
 
+   local function flow_probing(flow, interface, probing_type)
+      local prefix
+
+      if probing_type == "slow_tcp_connection" then
+         prefix = "Slow TCP Connection"
+      elseif probing_type == "slow_application_header" then
+         prefix = "Slow Application Header"
+      elseif probing_type == "low_goodput" then
+         prefix = "Low Goodput"
+      elseif probing_type == "slow_data_exchange" then
+         prefix = "Slow Data Exchange (Slowloris?)"
+      elseif probing_type == "tcp_connection_issues" then
+         prefix = "TCP Connection Issues"
+      elseif probing_type == "syn_probing" then
+         prefix = "Suspicious TCP SYN Probing (or server port down)"
+      elseif probing_type == "tcp_probing" then
+         prefix = "Suspicious TCP Probing"
+      elseif probing_type == "tcp_connection_refused" then
+         prefix = "TCP connection refused"
+      else
+         -- unknown status
+         prefix = "Flow Probing"
+      end
+      return prefix.." "..flow_hosts(flow, interface)
+   end
+
    local subject_type, subject = any_of(alert.subject)
    if (subject_type == nil) then return nil end
 
@@ -226,7 +252,9 @@ function makeAlertDescription(alert)
       if detail_type == "thresholdCross" then
          return threshold_cross("interface "..link, detail)
       elseif detail_type == "tooManyAlerts" then
-         return too_many_alerts("iterface "..link)
+         return too_many_alerts("iterface "..link.." alerts")
+      elseif detail_type == "tooManyFlowAlerts" then
+         return too_many_alerts("<i>flow</i> alerts on iterface "..link)
       elseif detail_type == "appMisconfiguration" then
          local setting = detail.setting
          if (setting == nil) then return nil end
@@ -246,7 +274,10 @@ function makeAlertDescription(alert)
       if detail_type == "alertedInterface" then
          return "Interface "..interface_link(interface).." was alerted "..link
       elseif detail_type == "flowProbing" then
-         return flow_hosts(flow, interface).." "..link
+         local probing_type = detail.probingType
+         if (probing_type == nil) then return nil end
+
+         return flow_probing(flow, interface, probing_type).." "..link
       elseif detail_type == "blacklistedHosts" then
          return flow_hosts(flow, interface).." "..link
       --[[elseif detail_type == "flowMalwareSite" then
@@ -261,7 +292,7 @@ function makeAlertDescription(alert)
       if detail_type == "thresholdCross" then
          return threshold_cross("network "..link, detail)
       elseif detail_type == "tooManyAlerts" then
-         return too_many_alerts("network "..link)
+         return too_many_alerts("network "..link.." alerts")
       end
    elseif subject_type == "hostAlert" then
       local host = subject.host
@@ -272,7 +303,7 @@ function makeAlertDescription(alert)
       if detail_type == "thresholdCross" then
          return threshold_cross("host "..link, detail)
       elseif detail_type == "tooManyAlerts" then
-         return too_many_alerts("host "..link)
+         return too_many_alerts("host "..link.." alerts")
       elseif detail_type == "aboveQuota" then
          return "Host "..link.." is above quota"
       elseif detail_type == "flowFloodAttacker" then

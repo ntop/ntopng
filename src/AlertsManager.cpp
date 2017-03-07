@@ -472,9 +472,7 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 	  alert_json = writer->storeNetworkTooManyAlerts(alert_entity_value);
 	  break;
 	case alert_entity_flow:
-	  /* TODO flow cannot be null! */
-	  puts(alert_entity_value);
-	  //~ alert_json = writer->storeFlowTooManyAlerts(NULL);
+	  alert_json = writer->storeInterfaceTooManyFlowAlerts();
 	  break;
 	case alert_entity_host: {
 	  char *host_ip;

@@ -771,9 +771,9 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
-    AlertsWriter *builder = alertsManager->getAlertsWriter();
+    AlertsWriter *writer = alertsManager->getAlertsWriter();
 
-    char * alert_json = builder->storeInterfaceTooManyFlows();
+    char * alert_json = writer->storeInterfaceTooManyFlows();
     free(alert_json);
 
     tooManyFlowsAlertTriggered = true;

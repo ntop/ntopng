@@ -257,13 +257,8 @@ void Flow::dumpFlowAlert() {
   FlowStatus status = getFlowStatus();
 
   if((!isFlowAlerted()) && (status != status_normal)) {
-    char buf[128], *f = print(buf, sizeof(buf));
-    AlertType aType;
-    const char *msg = Utils::flowStatus2str(status, &aType);
     bool do_dump = true;
     bool is_probing = true;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
 
     switch(status) {
     case status_normal:
@@ -283,7 +278,6 @@ void Flow::dumpFlowAlert() {
     case status_suspicious_tcp_probing:     /* 7 */
     case status_tcp_connection_refused: /* 9 */
       do_dump = ntop->getPrefs()->are_probing_alerts_enabled();
-      is_probing = true;
       break;
 
     case status_flow_when_interface_alerted /* 8 */:
@@ -293,13 +287,16 @@ void Flow::dumpFlowAlert() {
     }
 
     if(do_dump && cli_host && srv_host) {
-      AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+      AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
       char* alert_json;
 
       if (is_probing)
-        alert_json = builder->storeFlowProbing(this, aType);
+        alert_json = writer->storeFlowProbing(this, status);
       else
-        alert_json = builder->storeFlowAlertedInterface(this);
+        alert_json = writer->storeFlowAlertedInterface(this);
+
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Flow alert: %s", alert_json);
+
       free(alert_json);
     }
 
@@ -316,9 +313,9 @@ void Flow::checkBlacklistedFlow() {
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
 
-      AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+      AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
 
-      char* alert_json = builder->storeFlowBlacklistedHosts(this);
+      char* alert_json = writer->storeFlowBlacklistedHosts(this);
       free(alert_json);
     }
 
@@ -1774,7 +1771,7 @@ json_object* Flow::flow2json() {
 json_object* Flow::flow2alert() {
   char buf[32];
   json_object *flow = json_object_new_object();
-  AlertsWriter *builder = iface->getAlertsManager()->getAlertsWriter();
+  AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
 
   /* Meta */
   snprintf(buf, sizeof(buf), "%u", key());
@@ -1786,9 +1783,9 @@ json_object* Flow::flow2alert() {
   }
 
   if (get_cli_host())
-    json_object_object_add(flow, "clientHost", builder->json_host(get_cli_host()));
+    json_object_object_add(flow, "clientHost", writer->json_host(get_cli_host()));
   if (get_srv_host())
-    json_object_object_add(flow, "serverHost", builder->json_host(get_srv_host()));
+    json_object_object_add(flow, "serverHost", writer->json_host(get_srv_host()));
 
   json_object_object_add(flow, "clientPort", json_object_new_int64(ntohs(cli_port)));
   json_object_object_add(flow, "serverPort", json_object_new_int64(ntohs(srv_port)));
@@ -1800,7 +1797,7 @@ json_object* Flow::flow2alert() {
   if(ndpiDetectedProtocol.master_protocol == 0)
     ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.protocol;
 
-  json_object_object_add(flow, "protocol", builder->json_protocol(ndpiDetectedProtocol, get_protocol_name()));
+  json_object_object_add(flow, "protocol", writer->json_protocol(ndpiDetectedProtocol, get_protocol_name()));
 
   /* Stats */
   json_object *cli2srv = json_object_new_object();
