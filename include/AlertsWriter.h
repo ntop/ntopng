@@ -76,15 +76,68 @@ class AlertsWriter {
     static json_object* json_alert_ends(json_object *alert, time_t end_time);
 
     /* Generic methods */
+
+    /**
+     * @brief Create an interface alert.
+     * @details A generic function to engage/store an alert for an interface.
+     *
+     * @param alert_key if NULL, a stored alert will be generated. If not NULL, it will be used as a key to identify an engaged alert internally.
+     * @param type internal type of the alert for categorization.
+     * @param severity internal severity of the alert.
+     * @param detail a JSON object with an alert specific structure.
+     * @param detail_name a unique string to indentify the specific alert in JSON.
+     *
+     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
+     */
     char* createGenericInterfaceAlert(const char *alert_key, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name);
 
+    /**
+     * @brief Create an host alert.
+     * @details A generic function to engage/store an alert for an host.
+     *
+     * @param alert_key if NULL, a stored alert will be generated. If not NULL, it will be used as a key to identify an engaged alert internally.
+     * @param host pointer to an Host object, which is the subject of the alert.
+     * @param type internal type of the alert for categorization.
+     * @param severity internal severity of the alert.
+     * @param detail a JSON object with an alert specific structure.
+     * @param detail_name a unique string to indentify the specific alert in JSON.
+     * @param source a pointer to the logical source of the alert, NULL if there is no associated alert source.
+     * @param target a pointer to the logical target of the alert, NULL if there is no associated alert target.
+     *
+     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
+     */
     char* createGenericHostAlert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name, Host *source, Host *target);
 
+    /**
+     * @brief Create a network alert.
+     * @details A generic function to engage/store an alert for a local network.
+     *
+     * @param alert_key if NULL, a stored alert will be generated. If not NULL, it will be used as a key to identify an engaged alert internally.
+     * @param network a network in the CIDR notation, which is the subject of the alert.
+     * @param type internal type of the alert for categorization.
+     * @param severity internal severity of the alert.
+     * @param detail a JSON object with an alert specific structure.
+     * @param detail_name a unique string to indentify the specific alert in JSON.
+     *
+     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
+     */
     char* createGenericNetworkAlert(const char *alert_key, const char *network, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name);
 
+    /**
+     * @brief Create a flow alert.
+     * @details A generic function to store an alert for a flow.
+     *
+     * @param flow a pointer to a Flow object, which is the subject of the alert.
+     * @param type internal type of the alert for categorization.
+     * @param severity internal severity of the alert.
+     * @param detail a JSON object with an alert specific structure.
+     * @param detail_name a unique string to indentify the specific alert in JSON.
+     *
+     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
+     */
     char* createGenericFlowAlert(Flow *flow, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name);
 
