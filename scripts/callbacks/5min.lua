@@ -295,7 +295,7 @@ end)
 -- This must be placed at the end of the script
 if(tostring(snmp_devices_rrd_creation) == "1") then
   -- We must complete within the 5 minutes
-  local time_threshold = when - (when % 300) + 300
+  local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 
   callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     snmp_update_rrds(ifstats.id, time_threshold, verbose)
