@@ -28,6 +28,7 @@ Grouper::Grouper(sortField sf){
   group_id_set = false;
   group_id_s = NULL;
   group_label = NULL;
+  table_index = 1;
   memset(&stats, 0, sizeof(stats));
 }
 
@@ -188,17 +189,13 @@ void Grouper::lua(lua_State* vm) {
   lua_push_float_table_entry(vm, "throughput_trend_bps_diff", max_val(stats.throughput_trend_bps_diff, 0));
   lua_push_str_table_entry(vm,   "country", strlen(stats.country) ? stats.country : (char*)"");
 
-  if(sorter == column_mac){ // special case for mac
+  if(sorter == column_mac) // special case for mac
     lua_push_str_table_entry(vm, "id", group_label);
-    lua_pushstring(vm, group_label);
-  } else if(!group_id_s){ // integer group id
+  else if(!group_id_s){ // integer group id
     lua_push_int32_table_entry(vm, "id", group_id_i);
-    lua_pushinteger(vm, group_id_i);
   } else { // string group id
     lua_push_str_table_entry(vm, "id", group_id_s);
-    lua_pushstring(vm, group_id_s);
   }
 
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  lua_rawseti(vm, -2, table_index++); /* Use indexes to preserve order */
 }

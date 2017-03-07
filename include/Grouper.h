@@ -43,6 +43,7 @@ class Grouper {
  private:
   sortField sorter;
 
+  int table_index;
   int64_t group_id_i;
   bool group_id_set;
   char *group_id_s;

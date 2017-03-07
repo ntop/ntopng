@@ -277,7 +277,7 @@ for key,value in pairs(stats_by_group_col) do
    v = stats_by_group_col[key]    
    if((key ~= nil) and (v ~= nil)) then
       if(sortColumn == "column_id") then
-	 vals[key] = key
+	 vals[key] = v["id"]
       elseif(sortColumn == "column_name") then
 	 vals[key] = v["name"]
       elseif(sortColumn == "column_hosts") then
@@ -309,11 +309,21 @@ else
    funct = rev
 end
 
-num = 0
-for _key, _value in pairsByValues(vals, funct) do
-   if((_key ~= nil) and (not(_key == ""))) then
-      value = stats_by_group_col[_key]
+local iterator
+if sortColumn == "column_id" then
+   -- Sort for this column is already provided by C, only the sort order can be reversed here
+   iterator = pairsByKeys
+else
+   -- We provide our own sort
+   iterator = pairsByValues
+end
 
+num = 0
+for _key, _val in iterator(vals, funct) do
+   value = stats_by_group_col[_key]
+
+   -- e.g. this is empty for hosts without a country
+   if not isEmptyString(value["id"]) then
       if(to_skip > 0) then
          to_skip = to_skip-1
       else
