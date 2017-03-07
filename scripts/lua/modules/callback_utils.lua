@@ -11,7 +11,7 @@ local callback_utils = {}
 
 -- ########################################################
 
--- Iterates available interfaces, exclusing PCAP interfaces.
+-- Iterates available interfaces, excluding PCAP interfaces.
 -- Each valid interface is select-ed and passed to the callback.
 function callback_utils.foreachInterface(ifnames, verbose, callback)
   for _,_ifname in pairs(ifnames) do

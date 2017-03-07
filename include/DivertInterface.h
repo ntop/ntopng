@@ -21,8 +21,8 @@
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 
-#ifndef _DIVERT_INTEFACE_H_
-#define _DIVERT_INTEFACE_H_
+#ifndef _DIVERT_INTERFACE_H_
+#define _DIVERT_INTERFACE_H_
 
 #include "ntop_includes.h"
 
@@ -39,7 +39,7 @@ class DivertInterface : public NetworkInterface {
   void startPacketPolling();
 };
 
-#endif /* _DIVERT_INTEFACE_H_ */
+#endif /* _DIVERT_INTERFACE_H_ */
 
 #endif /* defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__) */
 

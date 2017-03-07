@@ -178,9 +178,9 @@ class NetworkInterface {
  public:
   /**
   * @brief A Constructor
-  * @details Creating a new NetworkInteface with all instance variables set to NULL.
+  * @details Creating a new NetworkInterface with all instance variables set to NULL.
   *
-  * @return A new instance of NetworkInteface.
+  * @return A new instance of NetworkInterface.
   */
   NetworkInterface();
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);

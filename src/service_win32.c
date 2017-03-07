@@ -225,7 +225,7 @@ extern "C" {
   //
   //  PARAMETERS:
   //    target - pointer to the string to be allocated and created
-  //    start  - zero-based offest into the list to the first arg value used to
+  //    start  - zero-based offset into the list to the first arg value used to
   //             build the list.
   //    argc - length of the argument list
   //    argv - array of strings, the argument list.
@@ -909,7 +909,7 @@ void runService(int argc, char ** argv)
   lpszArgv = argv;
 #endif
 
-  AddToMessageLog("Starting ntopg");
+  AddToMessageLog("Starting ntopng");
 
   _tprintf(TEXT("Running %s.\n"), TEXT(SZSERVICEDISPLAYNAME));
 

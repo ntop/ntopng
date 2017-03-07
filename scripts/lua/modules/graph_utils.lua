@@ -412,7 +412,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	 if(typeof talkers_loaded == 'undefined'
              && typeof protocols_loaded == 'undefined'
              && typeof flows_loaded == 'undefined'){
-	   window.location.reload(); /* do not reload, it'a annoying */
+	   window.location.reload(); /* do not reload, it's annoying */
 	 }
        }, 60*1000);
        </script>]]

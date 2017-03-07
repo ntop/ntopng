@@ -172,7 +172,7 @@ given they are provided in a comma-separated list and with the "view:" prefix
 If a collector endpoint is specified,
 .B ntopng
 open a ZeroMQ connection to the specified endpoint as a subscriber whose format
-is  <ZMQ endpoint>. In this case ntopng acts as a client that subscribes to the remote endopoint and fetches flows. If you want the remote probe to send flows to ntopng (as in NetFlow), (you need to add a 'c' at the collector endpoint in ntopng. Example: tcp://127.0.0.1:5556c (ntopng expects to receive flows on 127.0.0.1:5556) and tcp://127.0.0.1:5556 (ntopng connects to 127.0.0.1:5556 to receive flows).
+is  <ZMQ endpoint>. In this case ntopng acts as a client that subscribes to the remote endpoint and fetches flows. If you want the remote probe to send flows to ntopng (as in NetFlow), (you need to add a 'c' at the collector endpoint in ntopng. Example: tcp://127.0.0.1:5556c (ntopng expects to receive flows on 127.0.0.1:5556) and tcp://127.0.0.1:5556 (ntopng connects to 127.0.0.1:5556 to receive flows).
 Note that you can specify multiple endpoint, commas separated list, in order
 to instruct
 .B ntopng
@@ -213,7 +213,7 @@ Directory where lua scripts reside. Default: scripts.
 Directory where callback scripts reside. Default: scripts/callbacks.
 
 .It \-w|\-\-http\-port\ <[:]http_port[,<alt_http_port>]>
-Sets the HTTP port of the embedded web server. If set to 0, the http server will be disabled. If you prepend a : before the port (i.e. -w :80) ntopng will listen to the loopback address. You can specify a second HTTP port so that ntopng can isten on both ports. Example -w 80,3000 will start ntopn on both port 80 adn 3000. Note that for enabling the captive portal (not available on the community edition) you need to start ntopng on port 80.
+Sets the HTTP port of the embedded web server. If set to 0, the http server will be disabled. If you prepend a : before the port (i.e. -w :80) ntopng will listen to the loopback address. You can specify a second HTTP port so that ntopng can isten on both ports. Example -w 80,3000 will start ntopng on both port 80 adn 3000. Note that for enabling the captive portal (not available on the community edition) you need to start ntopng on port 80.
 NOTE: omitting the -w option won't disable http: ntopng will fallback to the default http port.
 
 .It \-W|\-\-https\-port\ <[:]https_port>
@@ -354,7 +354,7 @@ Specify the packet capture direction for packet capture interfaces (no ZMQ).
 Supported values are: 0=RX+TX (default), 1=RX only, 2=TX only
 
 .It \-\-online\-license\-check
-In case the license does not match (e.g. you are running ntopng on a VM/container) you can use this option to check your license instead of using the local license file. Using this option we make sure that changes in yoru system do not interfere with license check (thing that we cannot guarantee with file-based licenses).
+In case the license does not match (e.g. you are running ntopng on a VM/container) you can use this option to check your license instead of using the local license file. Using this option we make sure that changes in your system do not interfere with license check (thing that we cannot guarantee with file-based licenses).
 
 .It  \-\-print\-ndpi\-protocols
 Print the list of nDPI protocols supported by the ntopng instance

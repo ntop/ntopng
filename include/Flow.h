@@ -421,11 +421,11 @@ class Flow : public GenericHashEntry {
   }
 
 #ifdef NTOPNG_PRO
-  void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_engress) {
+  void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {
     if(src2dst_direction)
-      *shaper_ingress = flowShaperIds.cli2srv.ingress, *shaper_engress = flowShaperIds.cli2srv.egress;
+      *shaper_ingress = flowShaperIds.cli2srv.ingress, *shaper_egress = flowShaperIds.cli2srv.egress;
     else
-      *shaper_ingress = flowShaperIds.srv2cli.ingress, *shaper_engress = flowShaperIds.srv2cli.egress;
+      *shaper_ingress = flowShaperIds.srv2cli.ingress, *shaper_egress = flowShaperIds.srv2cli.egress;
   }
 #endif
 };

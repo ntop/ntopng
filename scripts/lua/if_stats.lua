@@ -1781,7 +1781,7 @@ print [[";
               .addClass("label label-danger")
               .html("[" + Math.round(rsp.flow_export_drops / rsp.flow_export_count * 100 * 1000) / 1000 + "%]");
           } else {
-            /* If rsp.flow_export_count means that only drops have been occuring so it is meaningless to print a pct */
+            /* If rsp.flow_export_count means that only drops have been occurring so it is meaningless to print a pct */
             $('#exported_flows_drops_pct').removeClass().html("");
           }
         } else {
