@@ -21,6 +21,47 @@
 
 #include "ntop_includes.h"
 
+/* **************************************************** */
+
+static void* dequeueLoop(void* ptr) {
+  return(((AlertsManager*)ptr)->dequeueLoop());
+}
+
+/* **************************************************** */
+
+void* AlertsManager::dequeueLoop() {
+  bool found;
+  void *elem;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s()", __FUNCTION__);
+
+  if(ntop->getGlobals()->isShutdown() || ntop->getPrefs()->are_alerts_disabled())
+    return(NULL);
+
+  while(!ntop->getGlobals()->isShutdown()) {
+    found = false;
+
+    if(alertsQueue->dequeue((&elem))) {
+      found = true;
+
+	// TODO: do stuff with elem and don't forget to possibly dispose its memory
+    }
+
+    if(found == 0)
+      sleep(1);
+
+  }
+
+  return(NULL);
+}
+
+/* **************************************************** */
+
+void AlertsManager::startDequeueLoop() {
+  pthread_create(&dequeueThreadLoop, NULL, ::dequeueLoop, (void*)this);
+}
+
+/* **************************************************** */
 
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
@@ -65,14 +106,18 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   snprintf(queue_name, sizeof(queue_name), ALERTS_MANAGER_QUEUE_NAME, ifid);
 
-  writer = new AlertsWriter(this);
+  if((writer = new AlertsWriter(this)) == NULL
+     || ((alertsQueue = new SPSCQueue()) == NULL))
+    throw "Not enough memory";
+
   refreshCachedNumAlerts();
 }
 
 /* **************************************************** */
 
 AlertsManager::~AlertsManager() {
-  if (writer) delete writer;
+  if(writer)      delete writer;
+  if(alertsQueue) delete alertsQueue;
 }
 
 /* **************************************************** */

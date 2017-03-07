@@ -25,11 +25,16 @@
 #include "ntop_includes.h"
 
 class Flow;
+class SPSCQueue;
 
 class AlertsManager : protected StoreManager {
  friend class AlertsWriter;
 
  private:
+  SPSCQueue *alertsQueue;
+  pthread_t dequeueThreadLoop;
+  Mutex producersMutex;
+ 
   AlertsWriter *writer;
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
@@ -178,6 +183,9 @@ class AlertsManager : protected StoreManager {
  public:
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager();
+
+  virtual void *dequeueLoop();
+  void startDequeueLoop();
 
   inline AlertsWriter* getAlertsWriter() { return writer; }
   inline NetworkInterface* getNetworkInterface() { return StoreManager::getNetworkInterface(); }
