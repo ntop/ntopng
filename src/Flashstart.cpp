@@ -257,7 +257,7 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
       }
 
 #ifdef DEBUG_CATEGORIZATION
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s][query_in_progress: %s]", name,
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Found on cache %s [%s][query_in_progress: %s]", name,
 				   category2str(category, buf, sizeof(buf)),
 				   entry->query_in_progress ? "True" : "False");
 #endif
@@ -276,7 +276,7 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
 
     HASH_ADD_STR(domain_cache, domain, entry);
 #ifdef DEBUG_CATEGORIZATION
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s [%s][%s]", name,
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Cached %s [%s][%s]", name,
 				 category2str(category, buf, sizeof(buf)),
 				  entry->query_in_progress ? "IN PROGRESS" : "");
 #endif
@@ -327,7 +327,7 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
       entry->last_use = time(NULL);
       if(category) memcpy(category, &entry->categories, sizeof(struct site_categories));
 #ifdef DEBUG_CATEGORIZATION
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s][query_in_progress: %s]",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Found on cache %s [%s][query_in_progress: %s]",
 				   name, category2str(&entry->categories, buf, sizeof(buf)),
 				   entry->query_in_progress ? "True" : "False");
 #endif
@@ -345,7 +345,7 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 
       setCategory(category, buf);
 #ifdef DEBUG_CATEGORIZATION
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Caching %s as [%s]", name,
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Caching %s as [%s]", name,
 				   category2str(category, buf, sizeof(buf)));
 #endif
       m.unlock(__FILE__, __LINE__);
