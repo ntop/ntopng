@@ -48,7 +48,7 @@
   - BATMAN (<http://www.open-mesh.org/projects/open-mesh/wiki/BATMANConcept>)
   - TZSP (TaZmen Sniffer Protocol)
 - Added SIP and RTP protocols information in flow details
-- Additional MAC-based host calassification
+- Additional MAC-based host classification
 - Added support for Linux TUN/TAP devices in TUN mode
 - Extended and improved supported OSes: EdgeOS, Centos 6/7, Ubuntu 12.04/14.04, Debian, Windows x64, Raspbian (Raspberry)
 - Extended and improved supported architectures: x86, x86-64, MIPS, ARM.
