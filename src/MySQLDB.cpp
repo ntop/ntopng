@@ -251,7 +251,7 @@ bool MySQLDB::createDBSchema() {
 	   ntop->getPrefs()->get_mysql_tablename());
   exec_sql_query(&mysql, sql, true, true);
 
-  // Add an extra column with the interface id to speed up certain quer
+  // Add an extra column with the interface id to speed up certain query
   snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
 	   ntop->getPrefs()->get_mysql_tablename());
   exec_sql_query(&mysql, sql, true, true);
