@@ -13,7 +13,7 @@ to save as many fields as he/she wish.
 This integer number can be obtained using the helper function alertType as follows:
 
 alertType("under_attack"))
-alertType("tcp_syn_floow"))
+alertType("tcp_syn_flood"))
 alertType("flows_flood"))
 
 'alert_severity' must be an integer number that uniquely identifies the alert severity.
