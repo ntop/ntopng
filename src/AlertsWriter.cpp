@@ -76,15 +76,6 @@
 #define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_TCP_PROBING "tcp_probing"
 #define JSON_ALERT_DETAIL_FLOW_PROBING_TYPE_CON_REFUSED "tcp_connection_refused"
 
-u_long AlertsWriter::next_alert_id = 0;
-Mutex AlertsWriter::mutex;
-
-void AlertsWriter::setStartingAlertId(u_long alert_id) {
-  mutex.lock(__FILE__, __LINE__);
-  next_alert_id = alert_id;
-  mutex.unlock(__FILE__, __LINE__);
-}
-
 /* Exposed Methods */
 
 AlertsWriter::AlertsWriter(AlertsManager *am) {
@@ -414,12 +405,7 @@ json_object* AlertsWriter::json_generic_alert(AlertLevel severity, time_t start_
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown alert severity %d", severity);
   }
 
-  mutex.lock(__FILE__, __LINE__);
-  u_long alert_id = next_alert_id++;
-  mutex.unlock(__FILE__, __LINE__);
-
   json_object *alert = json_object_new_object();
-  json_object_object_add(alert, "id", json_object_new_int64(alert_id));
   json_object_object_add(alert, "timestampStart", json_object_new_int64(start_time));
   json_object_object_add(alert, "severity", json_object_new_string(level));
   return alert;

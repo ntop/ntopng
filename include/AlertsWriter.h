@@ -30,9 +30,6 @@ class Flow;
 class AlertsWriter {
   friend class Flow;
 
-  static Mutex mutex;
-  static u_long next_alert_id;
-
   private:
     AlertsManager *am;
 
@@ -71,7 +68,6 @@ class AlertsWriter {
 
   public:
     AlertsWriter(AlertsManager *am);
-    static void setStartingAlertId(u_long alert_id);
 
     static json_object* json_alert_ends(json_object *alert, time_t end_time);
 
