@@ -80,8 +80,31 @@ void MacManufacturers::init() {
 	HASH_FIND(hh, mac_manufacturers, mac, 3, s);
 	if(!s) {
 	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
+	    int i, j;
+	    
 	    memcpy(s->mac_manufacturer, mac, 3);
-	    s->manufacturer_name = strdup(manuf);
+	    s->manufacturer_name = (char*)malloc(strlen(manuf)+1);
+
+	    /* TODO: reduce memory usage for recurrent manufacturers */
+	    if(s->manufacturer_name) {
+	      /* 
+		 We need to zap chars like ' and " that
+		 can corrupt html
+	      */
+	      for(i=0, j=0; manuf[i] != '\0'; i++) {
+		switch(manuf[i]) {
+		case '"':
+		case '\'':
+		  break;
+		  
+		default:
+		  s->manufacturer_name[j++] = manuf[i];
+		}
+	      }
+
+	      s->manufacturer_name[j++] = '\0';
+	    }
+	    
 	    sscanf(tab, "%8s", short_name);
 	    s->short_name = strdup(short_name);
 	    HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
