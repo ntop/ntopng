@@ -1375,7 +1375,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	pass_verdict = flow->isPassVerdict();
 
 	if(pass_verdict) {
-	    u_int8_t shaper_ingress, shaper_engress;
+	    u_int8_t shaper_ingress, shaper_egress;
 	    char buf[64];
 
 	    /*
@@ -1388,11 +1388,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** DROPPING UNCATEGORIZED DNS ***"); */
 	      pass_verdict = false;
 	    } else {
-	      flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
+	      flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_egress);
 	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
 					   flow->get_detected_protocol_name(buf, sizeof(buf)),
-					   shaper_ingress, shaper_engress);
-	      pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
+					   shaper_ingress, shaper_egress);
+	      pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
 	    }
 	}
     }
