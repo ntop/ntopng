@@ -1174,7 +1174,7 @@ static int ntop_gettimemsec(lua_State* vm) {
 /* ****************************************** */
 
 /**
- * @brief Lua-equivaled ot C inet_ntoa
+ * @brief Lua-equivalent ot C inet_ntoa
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
