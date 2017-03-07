@@ -1379,7 +1379,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	    char buf[64];
 
 	    /*
-	      In case of uncategorized DNS requests we need to temporarely
+	      In case of uncategorized DNS requests we need to temporarily
 	      drop traffic until a decision is made
 	    */
 
