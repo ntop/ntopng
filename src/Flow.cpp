@@ -257,12 +257,8 @@ void Flow::dumpFlowAlert() {
   FlowStatus status = getFlowStatus();
 
   if((!isFlowAlerted()) && (status != status_normal)) {
-    char buf[128], *f = print(buf, sizeof(buf));
-    AlertType aType;
-    const char *msg = Utils::flowStatus2str(status, &aType);
     bool do_dump = true;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
+    bool is_probing = true;
 
     switch(status) {
     case status_normal:
@@ -286,33 +282,17 @@ void Flow::dumpFlowAlert() {
 
     case status_flow_when_interface_alerted /* 8 */:
       do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
+      is_probing = false;
       break;
     }
 
     if(do_dump && cli_host && srv_host) {
-      char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+      AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-	       msg, /* TODO: remove string and save numeric status */
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_name(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
-	       print(fbuf, sizeof(fbuf)));
-
-      iface->getAlertsManager()->storeFlowAlert(this, aType, alert_level_warning, alert_msg);
+      if (is_probing)
+        writer->storeFlowProbing(this, status);
+      else
+        writer->storeFlowAlertedInterface(this);
     }
 
     setFlowAlerted();
@@ -327,35 +307,10 @@ void Flow::checkBlacklistedFlow() {
        && srv_host
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
-      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+      AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
 
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-	       cli_host->isBlacklisted() ? "blacklisted" : "",
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_name(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
-	       srv_host->isBlacklisted() ? "blacklisted" : "",
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
-	       print(fbuf, sizeof(fbuf)));
-
-      /* force the vlan in the alert source and target */
-      if(!strstr(c, "@")) sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-      if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
-      iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
-						alert_level_error, alert_msg);
+      writer->storeFlowBlacklistedHosts(this);
     }
 
     blacklist_alarm_emitted = true;
@@ -1803,6 +1758,69 @@ json_object* Flow::flow2json() {
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 
   return(my_object);
+}
+
+/* *************************************** */
+
+json_object* Flow::flow2alert() {
+  char buf[32];
+  json_object *flow = json_object_new_object();
+  AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
+
+  /* Meta */
+  snprintf(buf, sizeof(buf), "%u", key());
+  json_object_object_add(flow, "ref", json_object_new_string(buf));
+
+  if(protocol == IPPROTO_TCP) {
+    printTCPflags(getTcpFlags(), buf, sizeof(buf));
+    json_object_object_add(flow, "tcpFlags", json_object_new_string(buf));
+  }
+
+  if (get_cli_host())
+    json_object_object_add(flow, "clientHost", writer->json_host(get_cli_host()));
+  if (get_srv_host())
+    json_object_object_add(flow, "serverHost", writer->json_host(get_srv_host()));
+
+  json_object_object_add(flow, "clientPort", json_object_new_int64(ntohs(cli_port)));
+  json_object_object_add(flow, "serverPort", json_object_new_int64(ntohs(srv_port)));
+
+  if(isSSL() && protos.ssl.certificate)
+    json_object_object_add(flow, "sslCertificate", json_object_new_string(protos.ssl.certificate));
+
+  /* Protocol */
+  if(ndpiDetectedProtocol.master_protocol == 0)
+    ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.protocol;
+
+  json_object_object_add(flow, "protocol", writer->json_protocol(ndpiDetectedProtocol, get_protocol_name()));
+
+  /* Stats */
+  json_object *cli2srv = json_object_new_object();
+  json_object *srv2cli = json_object_new_object();
+  json_object_object_add(flow, "clientToServerStats", cli2srv);
+  json_object_object_add(flow, "serverToClientStats", srv2cli);
+
+  json_object_object_add(cli2srv, "packets", json_object_new_int64(cli2srv_packets));
+  json_object_object_add(srv2cli, "packets", json_object_new_int64(srv2cli_packets));
+  json_object_object_add(cli2srv, "bytes", json_object_new_int64(cli2srv_bytes));
+  json_object_object_add(srv2cli, "bytes", json_object_new_int64(srv2cli_bytes));
+
+  if(protocol == IPPROTO_TCP) {
+    json_object *cli2srvTCP = json_object_new_object();
+    json_object *srv2cliTCP = json_object_new_object();
+    json_object_object_add(cli2srv, "tcpStats", cli2srvTCP);
+    json_object_object_add(srv2cli, "tcpStats", srv2cliTCP);
+
+    json_object_object_add(cli2srvTCP, "outOfOrder", json_object_new_int64(tcp_stats_s2d.pktOOO));
+    json_object_object_add(srv2cliTCP, "outOfOrder", json_object_new_int64(tcp_stats_d2s.pktOOO));
+
+    json_object_object_add(cli2srvTCP, "lost", json_object_new_int64(tcp_stats_s2d.pktLost));
+    json_object_object_add(srv2cliTCP, "lost", json_object_new_int64(tcp_stats_d2s.pktLost));
+
+    json_object_object_add(cli2srvTCP, "retransmissions", json_object_new_int64(tcp_stats_s2d.pktRetr));
+    json_object_object_add(srv2cliTCP, "retransmissions", json_object_new_int64(tcp_stats_d2s.pktRetr));
+  }
+
+  return flow;
 }
 
 /* *************************************** */

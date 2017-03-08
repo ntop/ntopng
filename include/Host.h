@@ -138,6 +138,7 @@ class Host : public GenericHost {
   inline float get_longitude()                 { return(longitude);        }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
+  char* get_host_key(char *buf, u_int buf_len);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   bool idle();
   void lua(lua_State* vm, AddressTree * ptree, bool host_details,

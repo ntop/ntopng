@@ -166,8 +166,6 @@ class NetworkInterface {
 	      bool (*walker)(GenericHashEntry *h, void *user_data),
 	      void *user_data);
 
-  void disablePurge(bool on_flows);
-  void enablePurge(bool on_flows);
   u_int32_t getHostsHashSize();
   u_int32_t getFlowsHashSize();
   u_int32_t getMacsHashSize();
@@ -244,6 +242,9 @@ class NetworkInterface {
   u_int64_t getCheckPointNumPackets();
   u_int64_t getCheckPointNumBytes();
   u_int32_t getCheckPointNumPacketDrops();
+
+  void disablePurge(bool on_flows);
+  void enablePurge(bool on_flows);
 
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
@@ -440,7 +441,10 @@ class NetworkInterface {
 		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
 		      u_int32_t last_pps, u_int32_t last_bps);
   void getFlowsStatus(lua_State *vm);
-  void startDBLoop() { if(db) db->startDBLoop(); };
+  inline void startLoops() {
+    if(db) db->startDBLoop();
+    if(alertsManager) alertsManager->startDequeueLoop();
+  };
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
   inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
   inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };

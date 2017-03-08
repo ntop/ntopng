@@ -84,7 +84,6 @@ class Utils {
   static u_int32_t timeval2usec(const struct timeval *tv);
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
-  static const char* flowStatus2str(FlowStatus s, AlertType *aType);
   static char* formatMac(u_int8_t *mac, char *buf, u_int buf_len);
   static void  parseMac(u_int8_t *mac, const char *symMac);
   static u_int32_t macHash(u_int8_t *mac);
@@ -101,7 +100,11 @@ class Utils {
   static inline u_int64_t toUs(struct timeval *t) { return(((u_int64_t)t->tv_sec)*1000000+((u_int64_t)t->tv_usec)); };
   static void replacestr(char *line, const char *search, const char *replace);	  
   static u_int32_t getHostManagementIPv4Address();
+  static void getHostVlanInfo(char* lua_ip, char** host_ip,
+			       u_int16_t* vlan_id,
+			       char *buf, u_int buf_len);
   static bool isInterfaceUp(char *ifname);
+  static size_t strlcpy(char *dst, const char *src, size_t size);
 };
 
 #endif /* _UTILS_H_ */

@@ -1391,7 +1391,7 @@ void Ntop::registerInterface(NetworkInterface *_if) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
 				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
-    _if->startDBLoop();
+    _if->startLoops();
   } else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
 };

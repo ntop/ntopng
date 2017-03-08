@@ -20,6 +20,333 @@ default_re_arm_minutes = 1
 
 -- ##############################################################################
 
+local function operatorToSymbol(operator)
+   local op
+
+   if(operator == "gt") then
+      op = ">"
+   else
+      if(operator == "lt") then
+         op = "<"
+      else
+         op = "=="
+      end
+   end
+
+   return op
+end
+
+-- ##############################################################################
+
+function makeAlertDescription(alert)
+   local function any_of(container)
+      if container == nil then
+         return nil
+      end
+
+      for k,v in pairs(container) do
+         if ((k == nil) or (v == nil)) then
+            return nil
+         else
+            return k, v
+         end
+      end
+   end
+
+   local function host_name(host)
+      local name
+      local _
+   
+      if host.name then
+         name = host.name
+      else
+         local address = host.address
+         if (address == nil) then return nil end
+         _, name = any_of(address)
+      end
+
+      return name
+   end
+
+   local function interface_link(interface)
+      local name = interface.name
+      if (name == nil) then return nil end
+
+      local id = interface.id
+      if (id == nil) then return nil end
+
+      return "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..id.."'>"..name.."</a>"
+   end
+
+   local function network_link(network)
+      local cidr = network.cidr
+      if (cidr == nil) then return nil end
+
+      local network_stats = interface.getNetworksStats()
+      if not network_stats[cidr] then return nil end
+
+      local network_id = network_stats[cidr].network_id
+
+      return "<a href='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?network="..network_id.."'>"..cidr.."</a>"
+   end
+
+   local function host_link(host, interface)
+      local ref = host.ref
+      if (ref == nil) then return nil end
+
+      local parts = {}
+      parts[#parts + 1] = "<a href='"
+      parts[#parts + 1] = ntop.getHttpPrefix()
+      parts[#parts + 1] = "/lua/host_details.lua?host="
+      parts[#parts + 1] = ref
+
+      if interface ~= nil then
+         parts[#parts + 1] = "&ifid="
+         parts[#parts + 1] = interface.id
+      end
+
+      parts[#parts + 1] = "'>"
+      parts[#parts + 1] = host_name(host)
+      parts[#parts + 1] = "</a>"
+
+      return table.concat(parts)
+   end
+
+   local function threshold_cross(entity_str, detail_value)
+      local threshold = detail_value.threshold
+      if (threshold == nil) then return nil end
+      local value = detail_value.value
+      if (value == nil) then return nil end
+      local operator = detail_value.operator
+      if (operator == nil) then return nil end
+      local alarmable = detail_value.alarmable
+      if (alarmable == nil) then return nil end
+
+      local opsym = operatorToSymbol(operator)
+
+      return "Threshold <b>"..alarmable.."</b> crossed by "..entity_str.." [".. value .. " " .. opsym .. " " .. threshold .."]"
+   end
+
+   local function too_many_alerts(entity_str)
+      return "Too many "..entity_str..". Oldest alerts will be overwritten unless you delete some alerts or increase their maximum number."
+   end
+
+   local function attack_counter_str(counter, is_attacker)
+      local currentHits = counter.currentHits
+      if (currentHits == nil) then return nil end
+      local duration = counter.duration
+      if (duration == nil) then return nil end
+
+      local parts = {}
+      parts[#parts + 1] = "["
+      parts[#parts + 1] = currentHits
+      parts[#parts + 1] = " SYN "
+
+      if is_attacker then
+         parts[#parts + 1] = "sent"
+      else
+         parts[#parts + 1] = "received"
+      end
+
+      parts[#parts + 1] = " in the last "
+      parts[#parts + 1] = duration
+      parts[#parts + 1] = " sec"
+      parts[#parts + 1] = "]"
+
+      return table.concat(parts)
+   end
+
+   local function flow_status(flow)
+      local protocol = flow.protocol
+      if (protocol == nil) then return nil end
+
+      local parts = {}
+      parts[#parts + 1] = "[proto: "..(protocol.master).."."..(protocol.sub).."/"..(protocol.name).."]"
+
+      local clientToServerStats = flow.clientToServerStats
+      local serverToClientStats = flow.serverToClientStats
+      if ((clientToServerStats ~= nil) and (serverToClientStats ~= nil)) then
+         parts[#parts + 1] = "["..clientToServerStats.packets.."/"..serverToClientStats.packets.." pkts]"
+         parts[#parts + 1] = "["..clientToServerStats.bytes.."/"..serverToClientStats.bytes.." bytes]"
+      end
+
+      local tcp_flags = flow.tcpFlags
+      if (tcp_flags ~= nil) then
+         parts[#parts + 1] = "[flags: "..tcp_flags.."]"
+      end
+
+      local ssl_cert = flow.sslCertificate
+      if (ssl_cert ~= nil) then
+         parts[#parts + 1] = " [<a href='http://"..ssl_cert.."'>"..ssl_cert.."</a>]"
+      end
+
+      return table.concat(parts)
+   end
+
+   local function flow_hosts(flow, interface)
+      local client = flow.clientHost
+      if (client == nil) then return nil end
+      local server = flow.serverHost
+      if (server == nil) then return nil end
+      local clientPort = flow.clientPort
+      if (clientPort == nil) then return nil end
+      local serverPort = flow.serverPort
+      if (serverPort == nil) then return nil end
+
+      local parts = {}
+
+      if client.isBlacklisted == true then
+         parts[#parts + 1] = "<b>blacklisted</b> "
+      end
+      parts[#parts + 1] = host_link(client, interface)
+      parts[#parts + 1] = ":"
+      parts[#parts + 1] = clientPort
+      parts[#parts + 1] = " &gt "
+      if server.isBlacklisted == true then
+         parts[#parts + 1] = "<b>blacklisted</b> "
+      end
+      parts[#parts + 1] = host_link(server, interface)
+      parts[#parts + 1] = ":"
+      parts[#parts + 1] = serverPort
+
+      return table.concat(parts)
+   end
+
+   local function flow_probing(flow, interface, probing_type)
+      local prefix
+
+      if probing_type == "slow_tcp_connection" then
+         prefix = "Slow TCP Connection"
+      elseif probing_type == "slow_application_header" then
+         prefix = "Slow Application Header"
+      elseif probing_type == "low_goodput" then
+         prefix = "Low Goodput"
+      elseif probing_type == "slow_data_exchange" then
+         prefix = "Slow Data Exchange (Slowloris?)"
+      elseif probing_type == "tcp_connection_issues" then
+         prefix = "TCP Connection Issues"
+      elseif probing_type == "syn_probing" then
+         prefix = "Suspicious TCP SYN Probing (or server port down)"
+      elseif probing_type == "tcp_probing" then
+         prefix = "Suspicious TCP Probing"
+      elseif probing_type == "tcp_connection_refused" then
+         prefix = "TCP connection refused"
+      else
+         -- unknown status
+         prefix = "Flow Probing"
+      end
+      return prefix.." "..flow_hosts(flow, interface)
+   end
+
+   local subject_type, subject = any_of(alert.subject)
+   if (subject_type == nil) then return nil end
+
+   local detail_type, detail = any_of(subject.detail)
+   if (detail_type == nil) then return nil end
+
+   -- can be null
+   local interface = alert.interface
+
+   if subject_type == "interfaceAlert" then
+      -- cannot be null here
+      if (interface == nil) then return nil end
+      local link = interface_link(interface)
+      if (link == nil) then return nil end
+
+      if detail_type == "thresholdCross" then
+         return threshold_cross("interface "..link, detail)
+      elseif detail_type == "tooManyAlerts" then
+         return too_many_alerts("iterface "..link.." alerts")
+      elseif detail_type == "tooManyFlowAlerts" then
+         return too_many_alerts("<i>flow</i> alerts on iterface "..link)
+      elseif detail_type == "appMisconfiguration" then
+         local setting_type, setting = any_of(detail.setting)
+         if (setting_type == nil) then return nil end
+
+         if setting_type == "numFlows" then
+            return "Interface "..link.." has too many flows. Please extend the --max-num-flows/-X command line option"
+         elseif setting_type == "numHosts" then
+            return "Interface "..link.." has too many hosts. Please extend the --max-num-hosts/-x command line option"
+         elseif setting_type == "numOpenMysqlFilesLimit" then
+            return "Interface "..link..": "..i18n("alert_messages.open_files_limit_too_small")
+         end
+      end
+   elseif subject_type == "flowAlert" then
+      local flow = subject.flow
+      if (flow == nil) then return nil end
+      local link = flow_status(flow)
+      if (link == nil) then return nil end
+
+      if detail_type == "alertedInterface" then
+         return "Interface "..interface_link(interface).." was alerted "..link
+      elseif detail_type == "flowProbing" then
+         local probing_type = detail.probingType
+         if (probing_type == nil) then return nil end
+
+         return flow_probing(flow, interface, probing_type).." "..link
+      elseif detail_type == "flowBlacklistedHosts" then
+         return flow_hosts(flow, interface).." "..link
+      --[[elseif detail_type == "flowMalwareSite" then
+         return flow_hosts(flow).." "..link]]
+      end
+   elseif subject_type == "networkAlert" then
+      local network = subject.network
+      if (network == nil) then return nil end
+      local link = network_link(network)
+      if (link == nil) then return nil end
+
+      if detail_type == "thresholdCross" then
+         return threshold_cross("network "..link, detail)
+      elseif detail_type == "tooManyAlerts" then
+         return too_many_alerts("network "..link.." alerts")
+      end
+   elseif subject_type == "hostAlert" then
+      local host = subject.host
+      if (host == nil) then return nil end
+      local link = host_link(host, interface)
+      if (link == nil) then return nil end
+
+      if detail_type == "thresholdCross" then
+         return threshold_cross("host "..link, detail)
+      elseif detail_type == "tooManyAlerts" then
+         return too_many_alerts("host "..link.." alerts")
+      elseif detail_type == "aboveQuota" then
+         return "Host "..link.." is above quota"
+      elseif detail_type == "flowFloodAttacker" then
+         return "Host "..link.." is a possible scanner"
+      elseif detail_type == "flowFloodVictim" then
+         return "Host "..link.." is possibly under scan attack"
+      elseif detail_type == "hostBlacklisted" then
+         return "Malicious host "..link
+      elseif detail_type == "synFloodAttacker" then
+         local attack_counter = detail.attackCounter
+         if (attack_counter == nil) then return nil end
+         local counter_stats = attack_counter_str(attack_counter, true)
+         if (counter_stats == nil) then return nil end
+         return "Host "..link.." is a SYN flooder "..counter_stats
+      elseif detail_type == "synFloodVictim" then
+         local attack_counter = detail.attackCounter
+         if (attack_counter == nil) then return nil end
+         local counter_stats = attack_counter_str(attack_counter, false)
+         if (counter_stats == nil) then return nil end
+         local host_attacker = detail.attacker
+         if (host_attacker == nil) then return nil end
+         local attacker_link = host_link(host_attacker)
+         if (attacker_link == nil) then return nil end
+
+         return "Host "..link.." is under SYN flood attack by host "..attacker_link.." "..counter_stats
+      --[[elseif ((detail_type == "flowLowGoodputAttacker") or
+              (detail_type == "flowLowGoodputVictim")) then
+         local num_flows = detail.lowGoodputFlows
+         if (num_flows == nil) then return nil end
+
+         return "Host "..link.." has "..num_flows.." low goodput flows"]]
+      end
+   end
+
+   return nil
+end
+
 function bytes(old, new, interval)
     -- io.write(debug.traceback().."\n")
     if(verbose) then print("bytes("..interval..")") end
@@ -199,6 +526,25 @@ end
 
 -- #################################################################
 
+function releaseThresholdCrossAlert(time_span, metric, alert_source)
+   local source = getAlertSource(nil, alert_source)
+   local entity = source.source
+   local entity_value = source.value
+
+   if entity == "interface" then
+      return interface.releaseInterfaceThresholdCrossAlert(time_span, entity_value, metric)
+   elseif entity == "host" then
+      return interface.releaseHostThresholdCrossAlert(time_span, entity_value, metric)
+   elseif entity == "network" then
+      return interface.releaseNetworkThresholdCrossAlert(time_span, entity_value, metric)
+   else
+      io.write("releaseAlert: Unknown entity "..entity.."\n")
+      return nil
+   end
+end
+
+-- #################################################################
+
 function delete_re_arming_alerts(alert_source, ifid)
      for k2, alarmed_metric in pairs(alarmable_metrics) do
 	 local re_arm_key = get_re_arm_alerts_temporary_key(ifid, alert_source, alarmed_metric)
@@ -208,7 +554,6 @@ end
 
 function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
-   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    delete_re_arming_alerts(alert_source, ifid)
@@ -221,17 +566,7 @@ function delete_alert_configuration(alert_source, ifname)
 	    if ntop.isPro() then
 	       ntop.withdrawNagiosAlert(alert_source, timespan, metric, "OK, alarm deactivated")
 	    end
-	    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	       is_host = true
-	    -- check if this is a subnet
-	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    -- finally assume it's an interface alert
-	    else
-	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    end
+       releaseThresholdCrossAlert(timespan, metric, alert_source)
 	 end
 	 ntop.delHashCache(key, alert_source)
       end
@@ -245,11 +580,10 @@ function delete_alert_configuration(alert_source, ifname)
 end
 
 function refresh_alert_configuration(alert_source, ifname, timespan, alerts_string)
+   local alert_type   = 2 -- alert_threshold_exceeded
    if tostring(alerts_string) == nil then return nil end
    if is_allowed_timespan(timespan) == false then return nil end
    local ifid = getInterfaceId(ifname)
-   local alert_level  = 2 -- alert_level_error
-   local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 
@@ -281,14 +615,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
       timespan = timespan[1]
       for k2, metric in pairs(alarmable_metrics) do
 	 if new_alert_ids[timespan.."_"..metric] ~= true then
-	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	       is_host = true
-	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	    else
-	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    end
+	    releaseThresholdCrossAlert(timespan, metric, alert_source)
 	 end
       end
    end
@@ -310,8 +637,6 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
         print("<p>--------------------------------------------<p>\n")
     end
 
-   local alert_level  = 2 -- alert_level_error
-   local alert_type   = 2 -- alert_threshold_exceeded
    local alert_status     -- to be set later
 
     old = j.decode(old_json, 1, nil)
@@ -330,25 +655,16 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
             -- if(verbose) then ("<b>"..s.."</b><br>\n") end
             t = string.split(s, ";")
 
-            if(t[2] == "gt") then
-                op = ">"
-            else
-                if(t[2] == "lt") then
-                    op = "<"
-                else
-                    op = "=="
-                end
-            end
+            op = operatorToSymbol(t[2])
 
 	    -- This is where magic happens: loadstring() evaluates the string
             local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
-	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
 	       alert_status = 1 -- alert on
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."'>"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
+          local alert_msg
 
 	       -- only if the alert is not in its re-arming period...
 	       if not is_alert_re_arming(key, t[1], ifname) then
@@ -356,12 +672,13 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, t[1], ifname)
 		  -- and send it to ntopng
-		  interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
-		  if ntop.isPro() then
+		  interface.engageHostThresholdCrossAlert(mode, key, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
+        -- TODO move this code
+		  --~ if ntop.isPro() and (alert_msg ~= nil) then
 		     -- possibly send the alert to nagios as well
-		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					  mode, t[1], alert_msg)
-		  end
+		     --~ ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					  --~ mode, t[1], alert_msg)
+		  --~ end
 	       else
 		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
 	       end
@@ -370,7 +687,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 	       alert_status = 2 -- alert off
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
 	       if not is_alert_re_arming(key, t[1], ifname) then
-		  interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
+		  interface.releaseHostThresholdCrossAlert(mode, key, t[1]--[[allarmable]])
 		  if ntop.isPro() then
 		     ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					      mode, t[1], "service OK")
@@ -390,9 +707,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         tprint(old_table)
     end
 
-   local alert_level = 2 -- alert_level_error
    local alert_status = 1 -- alert_on
-   local alert_type = 2 -- alert_threshold_exceeded
 
     deltas = {}
     local delta_names = {'ingress', 'egress', 'inner'}
@@ -416,33 +731,24 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             -- if(verbose) then ("<b>"..s.."</b><br>\n") end
             local t = string.split(s, ";")
 
-            if(t[2] == "gt") then
-                op = ">"
-            else
-                if(t[2] == "lt") then
-                    op = "<"
-                else
-                    op = "=="
-                end
-            end
+            op = operatorToSymbol(t[2])
 
 	    -- This is where magic happens: loadstring() evaluates the string
             local what = "val = deltas['"..t[1].."']; if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
 
-	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical'>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-
+                local alert_msg
                 if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, t[1], ifname)
-		    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
-                    if ntop.isPro() then
+                    interface.engageNetworkThresholdCrossAlert(mode, network_name, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
+                    -- TODO move this code
+                    --~ if ntop.isPro() and (alert_msg ~= nil) then
                         -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
-                    end
+		       --~ ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+                    --~ end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end
@@ -450,7 +756,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if not is_alert_re_arming(network_name, t[1], ifname) then
-		   interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+		   interface.releaseNetworkThresholdCrossAlert(mode, network_name, t[1]--[[allarmable]])
 		   if ntop.isPro() then
 		      ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
 		   end
@@ -468,9 +774,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
 
-    local alert_level  = 2 -- alert_level_error
     local alert_status = 1 -- alert_on
-    local alert_type   = 2 -- alert_threshold_exceeded
 
     -- Needed because Lua. loadstring() won't work otherwise.
     old = old_table
@@ -488,35 +792,24 @@ function check_interface_alert(ifname, mode, old_table, new_table)
         for _,s in pairs(tokens) do
             -- if(verbose) then ("<b>"..s.."</b><br>\n") end
             t = string.split(s, ";")
-
-            if(t[2] == "gt") then
-                op = ">"
-            else
-                if(t[2] == "lt") then
-                    op = "<"
-                else
-                    op = "=="
-                end
-            end
+            op = operatorToSymbol(t[2])
 
 	    -- This is where magic happens: loadstring() evaluates the string
             local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
-	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
-                "'>"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-
+               local alert_msg
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, t[1], ifname)
-		    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
-                    if ntop.isPro() then
+                    interface.engageInterfaceThresholdCrossAlert(mode, ifname, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
+                    -- TODO move this code
+                    --~ if ntop.isPro() and (alert_msg ~= nil) then
                         -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
-                    end
+		       --~ ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+                    --~ end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end
@@ -524,8 +817,8 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if not is_alert_re_arming(ifname_clean, t[1], ifname) then
-		   interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+                if not is_alert_re_arming(ifname, t[1], ifname) then
+         interface.releaseInterfaceThresholdCrossAlert(mode, tostring(getInterfaceId(ifname)), t[1]--[[allarmable]])
 		   if ntop.isPro() then
 		      ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
 		   end
@@ -1007,7 +1300,7 @@ end
 
 -- This function makes a consistent abstraction on entities
 function getAlertSource(entity, entity_value, alt_name)
-   if entity == "host" then
+   if ((entity == "host") or (string.find(entity_value, "@") ~= nil)) then
       local host_name
 
       if alt_name then
@@ -1021,6 +1314,7 @@ function getAlertSource(entity, entity_value, alt_name)
          source = "host",
          title = "Host",
          label = "Host " .. host_name,
+         value = entity_value,
          friendly_value = host_name,
       }
    else
@@ -1037,21 +1331,24 @@ function getAlertSource(entity, entity_value, alt_name)
             source = "network",
             title = "Network",
             label = "Network " .. network_name,
+            value = entity_value,
             friendly_value = network_name,
          }
-      else
+      elseif string.find(entity_value, "iface_") == 1 then
          local interface_name
+         local ifid = string.sub(entity_value, 7)
          if alt_name then
             interface_name = alt_name
          else
-            -- TODO
-            interface_name = ""
+            -- TODO id to name
+            interface_name = ifid
          end
 
          return {
             source = "interface",
             title = "Interface",
             label = "Interface " .. interface_name,
+            value = ifid,
             friendly_value = interface_name,
          }
       end
@@ -1730,7 +2027,17 @@ function getCurrentStatus() {
 	       textAlign: 'left'
 	    }
 	 }
-      ]
+      ], tableCallback: function() {
+         datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
+            $("form", this).submit(function() {
+               // add "status" parameter to the form
+               var get_params = paramsExtend(]] print(tableToJsObject(getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+               $(this).attr("action", "?" + $.param(get_params));
+
+               return true;
+            });
+         });
+      }
    });
    });
    ]]

@@ -771,16 +771,7 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
-    char alert_msg[512];
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='%s/lua/if_stats.lua?ifid=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
-	     ntop->getPrefs()->get_http_prefix(),
-	     id, get_name());
-
-    alertsManager->engageInterfaceAlert(this,
-					(char*)"app_misconfiguration",
-					alert_app_misconfiguration, alert_level_error, alert_msg);
+    alertsManager->getAlertsWriter()->engageInterfaceTooManyFlows();
     tooManyFlowsAlertTriggered = true;
   }
 }
@@ -789,16 +780,7 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 
 void NetworkInterface::triggerTooManyHostsAlert() {
   if(!tooManyHostsAlertTriggered) {
-    char alert_msg[512];
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='%s/lua/if_stats.lua?ifid=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
-	     ntop->getPrefs()->get_http_prefix(),
-	     id, get_name());
-
-    alertsManager->releaseInterfaceAlert(this,
-					 (char*)"app_misconfiguration",
-					 alert_app_misconfiguration, alert_level_error, alert_msg);
+    alertsManager->getAlertsWriter()->engageInterfaceTooManyHosts();
     tooManyHostsAlertTriggered = true;
   }
 }
@@ -3307,6 +3289,11 @@ u_int NetworkInterface::purgeIdleFlows() {
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle flows");
     n = flows_hash->purgeIdle();
 
+    if ((tooManyFlowsAlertTriggered) && (n > 0)) {
+      alertsManager->getAlertsWriter()->releaseInterfaceTooManyFlows();
+      tooManyFlowsAlertTriggered = false;
+    }
+
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       // flush the queue
       db->flush(true /* idle */);
@@ -3389,6 +3376,12 @@ u_int NetworkInterface::purgeIdleHostsMacs() {
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = hosts_hash->purgeIdle() + macs_hash->purgeIdle();
+
+    if ((tooManyHostsAlertTriggered) && (n > 0)) {
+      alertsManager->getAlertsWriter()->releaseInterfaceTooManyHosts();
+      tooManyHostsAlertTriggered = false;
+    }
+
     next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
     return(n);
   }

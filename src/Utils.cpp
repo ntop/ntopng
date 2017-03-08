@@ -273,50 +273,6 @@ bool Utils::mkdir_tree(char *path) {
 
 /* **************************************************** */
 
-const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
-  *aType = alert_flow_misbehaviour; /* Default */
-
-  switch(s) {
-  case status_normal:
-    *aType = alert_none;
-    return("Normal");
-    break;
-  case status_slow_tcp_connection:
-    return("Slow TCP Connection");
-    break;
-  case status_slow_application_header:
-    return("Slow Application Header");
-    break;
-  case status_slow_data_exchange:
-    return("Slow Data Exchange (Slowloris?)");
-    break;
-  case status_low_goodput:
-    return("Low Goodput");
-    break;
-  case status_suspicious_tcp_syn_probing:
-    *aType = alert_suspicious_activity;
-    return("Suspicious TCP SYN Probing (or server port down)");
-    break;
-  case status_tcp_connection_issues:
-    return("TCP Connection Issues");
-    break;
-  case status_suspicious_tcp_probing:
-    *aType = alert_suspicious_activity;
-    return("Suspicious TCP Probing");
-  case status_flow_when_interface_alerted:
-    *aType = alert_interface_alerted;
-    return("Flow emitted during alerted interface");
-  case status_tcp_connection_refused:
-    *aType = alert_suspicious_activity;
-    return("TCP connection refused");
-  default:
-    return("Unknown status");
-    break;
-  }
-}
-
-/* **************************************************** */
-
 const char* Utils::trend2str(ValueTrend t) {
   switch(t) {
   case trend_up:
@@ -2032,6 +1988,25 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 
 /* ****************************************************** */
 
+void Utils::getHostVlanInfo(char* lua_ip, char** host_ip,
+			       u_int16_t* vlan_id,
+			       char *buf, u_int buf_len) {
+  char *where, *vlan = NULL;
+
+  snprintf(buf, buf_len, "%s", lua_ip);
+
+  if(((*host_ip) = strtok_r(buf, "@", &where)) != NULL)
+    vlan = strtok_r(NULL, "@", &where);
+
+  if(host_ip == NULL)
+    *host_ip = lua_ip;
+
+  if(vlan)
+    (*vlan_id) = (u_int16_t)atoi(vlan);
+}
+
+/* ****************************************************** */
+
 bool Utils::isInterfaceUp(char *ifname) {
   struct ifreq ifr;
   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -2047,4 +2022,36 @@ bool Utils::isInterfaceUp(char *ifname) {
   close(sock);
 
   return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
+}
+
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Copy src to string dst of size siz.  At most siz-1 characters
+ * will be copied.  Always NUL terminates (unless siz == 0).
+ * Returns strlen(src); if retval >= siz, truncation occurred.
+ *
+ */
+size_t Utils::strlcpy(char *dst, const char *src, size_t size) {
+  char *d = dst;
+  const char *s = src;
+  size_t n = size;
+
+  /* Copy as many bytes as will fit */
+  if (n != 0) {
+    while (--n != 0) {
+      if ((*d++ = *s++) == '\0')
+        break;
+    }
+  }
+
+  /* Not enough room in dst, add NUL and traverse rest of src */
+  if (n == 0) {
+    if (size != 0)
+      *d = '\0';		/* NUL-terminate dst */
+    while (*s++)
+      ;
+  }
+
+  return(s - src - 1);	/* count does not include NUL */
 }
