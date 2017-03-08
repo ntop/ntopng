@@ -40,6 +40,10 @@ end
 
 function makeAlertDescription(alert)
    local function any_of(container)
+      if container == nil then
+         return nil
+      end
+
       for k,v in pairs(container) do
          if ((k == nil) or (v == nil)) then
             return nil

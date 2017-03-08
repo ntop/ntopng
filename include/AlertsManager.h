@@ -133,8 +133,9 @@ class AlertsManager : protected StoreManager {
   };
   inline void releaseHostAlert(Host *h,
 			      const char *engaged_alert_id,
+			      time_t when,
 			      AlertType alert_type) {
-    engageReleaseHostAlert(h, engaged_alert_id, 0, alert_type, (AlertLevel)0, NULL, NULL, false /* release */, NULL);
+    engageReleaseHostAlert(h, engaged_alert_id, when, alert_type, (AlertLevel)0, NULL, NULL, false /* release */, NULL);
   };
   void storeHostAlert(Host *h, time_t when, AlertType alert_type, AlertLevel alert_severity,
 		     Host *alert_origin, Host *alert_target, const char *alert_json);
@@ -156,8 +157,9 @@ class AlertsManager : protected StoreManager {
   };
   inline void releaseNetworkAlert(const char *cidr,
 			      const char *engaged_alert_id,
+			     time_t when,
 			      AlertType alert_type) {
-    return engageReleaseNetworkAlert(cidr, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL);
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, when, alert_type, (AlertLevel)0, false /* release */, NULL);
   };
   inline void storeNetworkAlert(const char *cidr, time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     storeAlert(when, alert_entity_network, cidr, alert_type, alert_severity, NULL, NULL, alert_json, true);
@@ -175,8 +177,9 @@ class AlertsManager : protected StoreManager {
   };
   inline void releaseInterfaceAlert(NetworkInterface *n,
 				   const char *engaged_alert_id,
+				   time_t when,
 				   AlertType alert_type) {
-    engageReleaseInterfaceAlert(n, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL);
+    engageReleaseInterfaceAlert(n, engaged_alert_id, when, alert_type, (AlertLevel)0, false /* release */, NULL);
   };
   inline void storeInterfaceAlert(NetworkInterface *n, time_t when, AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool check_max) {
     /* TODO interface alert entity value */

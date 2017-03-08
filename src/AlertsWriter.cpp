@@ -27,6 +27,8 @@
 #define ALERT_KEY_HOST_SCAN_VICTIM "scan_victim"
 #define ALERT_KEY_INTERFACE_TOO_MANY_FLOWS "too_many_flows"
 #define ALERT_KEY_INTERFACE_TOO_MANY_HOSTS "too_many_hosts"
+#define ALERT_KEY_TOO_MANY_ALERTS  "too_many_alerts"
+#define ALERT_KEY_TOO_MANY_FLOW_ALERTS  "too_many_flow_alerts"
 #define ALERT_KEY_OPEN_FILES_LIMIT "open_files_limit_too_small"
 
 /* SUBJECTS */
@@ -198,15 +200,23 @@ void AlertsWriter::releaseInterfaceThresholdCross(const char *time_period, const
   char alert_key[32];
   snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
   
-  am->releaseInterfaceAlert(am->getNetworkInterface(), alert_key, alert_threshold_exceeded);
+  am->releaseInterfaceAlert(am->getNetworkInterface(), alert_key, time(NULL), alert_threshold_exceeded);
 }
 
-void AlertsWriter::storeInterfaceTooManyAlerts() {
-  createGenericInterfaceAlert(NULL, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+void AlertsWriter::engageInterfaceTooManyAlerts() {
+  createGenericInterfaceAlert(ALERT_KEY_TOO_MANY_ALERTS, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
 }
 
-void AlertsWriter::storeInterfaceTooManyFlowAlerts() {
-  createGenericInterfaceAlert(NULL, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_FLOW_ALERTS);
+void AlertsWriter::releaseInterfaceTooManyAlerts() {
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_TOO_MANY_ALERTS, time(NULL), alert_too_many_alerts);
+}
+
+void AlertsWriter::engageInterfaceTooManyFlowAlerts() {
+  createGenericInterfaceAlert(ALERT_KEY_TOO_MANY_FLOW_ALERTS, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_FLOW_ALERTS);
+}
+
+void AlertsWriter::releaseInterfaceTooManyFlowAlerts() {
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_TOO_MANY_FLOW_ALERTS, time(NULL), alert_too_many_alerts);
 }
 
 void AlertsWriter::engageInterfaceTooManyFlows() {
@@ -216,7 +226,7 @@ void AlertsWriter::engageInterfaceTooManyFlows() {
 }
 
 void AlertsWriter::releaseInterfaceTooManyFlows() {
-  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_INTERFACE_TOO_MANY_FLOWS, alert_app_misconfiguration);
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_INTERFACE_TOO_MANY_FLOWS, time(NULL), alert_app_misconfiguration);
 }
 
 void AlertsWriter::engageInterfaceTooManyHosts() {
@@ -226,7 +236,7 @@ void AlertsWriter::engageInterfaceTooManyHosts() {
 }
 
 void AlertsWriter::releaseInterfaceTooManyHosts() {
-  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_INTERFACE_TOO_MANY_HOSTS, alert_app_misconfiguration);
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_INTERFACE_TOO_MANY_HOSTS, time(NULL), alert_app_misconfiguration);
 }
 
 void AlertsWriter::engageInterfaceTooManyOpenFiles() {
@@ -236,7 +246,7 @@ void AlertsWriter::engageInterfaceTooManyOpenFiles() {
 }
 
 void AlertsWriter::releaseInterfaceTooManyOpenFiles() {
-  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_OPEN_FILES_LIMIT, alert_app_misconfiguration);
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_OPEN_FILES_LIMIT, time(NULL), alert_app_misconfiguration);
 }
 
 /* Network Alerts */
@@ -277,11 +287,15 @@ void AlertsWriter::releaseNetworkThresholdCross(const char *time_period, const c
   char alert_key[32];
   snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
   
-  am->releaseNetworkAlert(network, alert_key, alert_threshold_exceeded);
+  am->releaseNetworkAlert(network, alert_key, time(NULL), alert_threshold_exceeded);
 }
 
-void AlertsWriter::storeNetworkTooManyAlerts(const char *network) {
-  createGenericNetworkAlert(NULL, network, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+void AlertsWriter::engageNetworkTooManyAlerts(const char *network) {
+  createGenericNetworkAlert(ALERT_KEY_TOO_MANY_ALERTS, network, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+}
+
+void AlertsWriter::releaseNetworkTooManyAlerts(const char *network) {
+  am->releaseNetworkAlert(network, ALERT_KEY_TOO_MANY_ALERTS, time(NULL), alert_too_many_alerts);
 }
 
 /* Host Alerts */
@@ -325,11 +339,15 @@ void AlertsWriter::releaseHostThresholdCross(const char *time_period, Host *host
   char alert_key[32];
   snprintf(alert_key, sizeof(alert_key), ALERT_KEY_THRESHOLD_CROSS_FORMAT, time_period, alarmable);
   
-  am->releaseHostAlert(host, alert_key, alert_threshold_exceeded);
+  am->releaseHostAlert(host, alert_key, time(NULL), alert_threshold_exceeded);
 }
 
-void AlertsWriter::storeHostTooManyAlerts(Host *host) {
-  simple_host_alert(NULL, host, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+void AlertsWriter::engageHostTooManyAlerts(Host *host) {
+  simple_host_alert(ALERT_KEY_TOO_MANY_ALERTS, host, alert_too_many_alerts, alert_level_error, JSON_ALERT_DETAIL_TOO_MANY_ALERTS);
+}
+
+void AlertsWriter::releaseHostTooManyAlerts(Host *host) {
+  am->releaseHostAlert(host, ALERT_KEY_TOO_MANY_ALERTS, time(NULL), alert_too_many_alerts);
 }
 
 void AlertsWriter::storeHostAboveQuota(Host *host) {
@@ -371,7 +389,7 @@ void AlertsWriter::engageHostFlowFloodAttacker(Host *host) {
 }
 
 void AlertsWriter::releaseHostFlowFloodAttacker(Host *host) {
-  am->releaseHostAlert(host, ALERT_KEY_HOST_SCAN_ATTACKER, alert_flow_flood);
+  am->releaseHostAlert(host, ALERT_KEY_HOST_SCAN_ATTACKER, time(NULL), alert_flow_flood);
 }
 
 void AlertsWriter::engageHostFlowFloodVictim(Host *host) {
@@ -380,7 +398,7 @@ void AlertsWriter::engageHostFlowFloodVictim(Host *host) {
 }
 
 void AlertsWriter::releaseHostFlowFloodVictim(Host *host) {
-  am->releaseHostAlert(host, ALERT_KEY_HOST_SCAN_VICTIM, alert_flow_flood);
+  am->releaseHostAlert(host, ALERT_KEY_HOST_SCAN_VICTIM, time(NULL), alert_flow_flood);
 }
 
 /* Internal Methods */

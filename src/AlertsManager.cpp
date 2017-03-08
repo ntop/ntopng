@@ -570,6 +570,11 @@ void AlertsManager::markForMakeRoom(AlertEntity alert_entity, const char *alert_
 /* **************************************************** */
 
 void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+  Host *host;
+
   if(!ntop->getPrefs()->are_alerts_disabled() && make_room) {
     make_room = false;
     int max_num = strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME))
@@ -605,34 +610,41 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 
       /* make room by deleting the oldest alert matching the input criteria */
       deleteOldestAlert(alert_entity, alert_entity_value, table_name, max_num - 1);
+    }
 
-      AlertsWriter *writer = getAlertsWriter();
-      switch (alert_entity) {
-	case alert_entity_interface:
-	  writer->storeInterfaceTooManyAlerts();
-	  break;
-	case alert_entity_network:
-	  writer->storeNetworkTooManyAlerts(alert_entity_value);
-	  break;
-	case alert_entity_flow:
-	  writer->storeInterfaceTooManyFlowAlerts();
-	  break;
-	case alert_entity_host: {
-	  char *host_ip;
-	  u_int16_t vlan_id = 0;
-	  char buf[64];
-	  Host *host;
-
-	  Utils::getHostVlanInfo((char*)alert_entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
-	  host = iface->getHost(host_ip, vlan_id);
-	  if (host != NULL)
-	    writer->storeHostTooManyAlerts(host);
-	  else
-	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", alert_entity_value, host_ip, vlan_id);
-	  break;
-	} default:
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unsupported entity %d = %s", alert_entity, alert_entity_value);
-      }
+    /* Trigger/Release the alerts */
+    switch (alert_entity) {
+      case alert_entity_interface:
+        if (num >= max_num)
+          getAlertsWriter()->engageInterfaceTooManyAlerts();
+        else
+          getAlertsWriter()->releaseInterfaceTooManyAlerts();
+        break;
+      case alert_entity_network:
+        if (num >= max_num)
+          getAlertsWriter()->engageNetworkTooManyAlerts(alert_entity_value);
+        else
+          getAlertsWriter()->releaseNetworkTooManyAlerts(alert_entity_value);
+        break;
+      case alert_entity_flow:
+        if (num >= max_num)
+          getAlertsWriter()->engageInterfaceTooManyFlowAlerts();
+        else
+          getAlertsWriter()->releaseInterfaceTooManyFlowAlerts();
+        break;
+      case alert_entity_host: {
+        Utils::getHostVlanInfo((char*)alert_entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
+        host = iface->getHost(host_ip, vlan_id);
+        if (host != NULL) {
+          if (num >= max_num)
+            getAlertsWriter()->engageHostTooManyAlerts(host);
+          else
+            getAlertsWriter()->releaseHostTooManyAlerts(host);
+        } else
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Null host %s %s@%d", alert_entity_value, host_ip, vlan_id);
+        break;
+      } default:
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unsupported entity %d = %s", alert_entity, alert_entity_value);
     }
   }
 }

@@ -143,9 +143,11 @@ class AlertsWriter {
         const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold);
     void releaseInterfaceThresholdCross(const char *time_period, const char *alarmable);
 
-    void storeInterfaceTooManyAlerts();
+    void engageInterfaceTooManyAlerts();
+    void releaseInterfaceTooManyAlerts();
 
-    void storeInterfaceTooManyFlowAlerts();
+    void engageInterfaceTooManyFlowAlerts();
+    void releaseInterfaceTooManyFlowAlerts();
 
     void engageInterfaceTooManyFlows();
     void releaseInterfaceTooManyFlows();
@@ -161,14 +163,16 @@ class AlertsWriter {
         const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold);
     void releaseNetworkThresholdCross(const char *time_period, const char *network, const char *alarmable);
 
-    void storeNetworkTooManyAlerts(const char *network);
+    void engageNetworkTooManyAlerts(const char *network);
+    void releaseNetworkTooManyAlerts(const char *network);
 
     /* Host Alerts */
     void engageHostThresholdCross(const char *time_period, Host *host,
         const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold);
     void releaseHostThresholdCross(const char *time_period, Host *host, const char *alarmable);
 
-    void storeHostTooManyAlerts(Host *host);
+    void engageHostTooManyAlerts(Host *host);
+    void releaseHostTooManyAlerts(Host *host);
 
     void storeHostAboveQuota(Host *host);
 
