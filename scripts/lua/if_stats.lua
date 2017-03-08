@@ -451,7 +451,15 @@ print("</script>\n")
    end
 
    if(ifstats.stats.drops > 0) then print('</span>') end
-   print("</span>&nbsp;<span id=drops_trend></span></td><td colspan=3>")
+   print("</span>&nbsp;<span id=drops_trend></span>")
+   if(ntop.getCache("ntopng.prefs.dynamic_iface_vlan_creation") == "1") then
+      if(ifstats.type == "Dynamic VLAN") then
+	 print("<br><small><b>NOTE:</b> The main interface reports drops for all VLAN sub-interfaces</small>")
+      else
+	 print("<br><small><b>NOTE:</b> The above drops are the sum of drops for all VLAN sub-interfaces</small>")
+      end
+   end
+   print("</td><td colspan=3>")
    print("</td></tr>\n")
 
    if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
