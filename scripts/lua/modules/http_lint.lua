@@ -397,7 +397,15 @@ local ndpi_categories = interface.getnDPICategories()
 local site_categories = ntop.getSiteCategories()
 
 local function validateApplication(app)
-   return validateChoiceByKeys(ndpi_protos, app)
+   local dot = string.find(app, "%.")
+
+   if dot ~= nil then
+      local master = string.sub(app, 1, dot-1)
+      local sub = string.sub(app, dot+1)
+      return validateChoiceByKeys(ndpi_protos, master) and validateChoiceByKeys(ndpi_protos, sub)
+   else
+      return validateChoiceByKeys(ndpi_protos, app)
+   end
 end
 
 local function validateProtocolId(p)
