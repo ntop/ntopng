@@ -167,7 +167,7 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   networkStats = NULL;
-  
+
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
@@ -210,7 +210,7 @@ NetworkInterface::NetworkInterface(const char *name,
       iface = strtok_r(NULL, ",", &tmp);
     }
   }
-#endif  
+#endif
 
 }
 
@@ -1040,6 +1040,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     NetworkInterface *vIface;
 
     if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
+      setTimeLastPktRcvd(h->ts.tv_sec);
       vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
       return(vIface->processPacket(when, time, eth, vlan_id,
 				   iph, ip6, ipsize, rawsize,
@@ -1432,7 +1433,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
         tv_when->tv_sec  = when->tv_sec;
         tv_when->tv_usec = when->tv_usec;
         if(flow->invokeActivityFilter(tv_when, src2dst_direction, payload_len)) {
-#else 
+#else
         if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
 #endif
           if(src2dst_direction)
@@ -1459,7 +1460,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
 void NetworkInterface::purgeIdle(time_t when) {
   if(purge_idle_flows_hosts) {
-    u_int n;
+    u_int n, m;
 
     last_pkt_rcvd = when;
 
@@ -1467,7 +1468,7 @@ void NetworkInterface::purgeIdle(time_t when) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
-    if((n = purgeIdleHostsMacs()) > 0)
+    if((m = purgeIdleHostsMacs()) > 0)
       ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts/macs on %s",
 				   n, getNumHosts()+getNumMacs(), ifname);
   }
@@ -1827,7 +1828,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     break;
   }
 
-  purgeIdle(last_pkt_rcvd);
+  purgeIdle(h->ts.tv_sec);
 
   return(pass_verdict);
 }
@@ -2937,7 +2938,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
     return -1;
 
   if(! isPacketInterface()) hostMacsOnly = false;
-  
+
   maxHits = getHostsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
@@ -3312,6 +3313,13 @@ u_int NetworkInterface::purgeIdleFlows() {
       db->flush(true /* idle */);
     }
 
+    if(flowHashing) {
+      FlowHashing *current, *tmp;
+
+      HASH_ITER(hh, flowHashing, current, tmp)
+	current->iface->purgeIdleFlows();      
+    }
+
     next_idle_flow_purge = last_pkt_rcvd + FLOW_PURGE_FREQUENCY;
     return(n);
   }
@@ -3390,6 +3398,15 @@ u_int NetworkInterface::purgeIdleHostsMacs() {
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = hosts_hash->purgeIdle() + macs_hash->purgeIdle();
     next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
+
+
+    if(flowHashing) {
+      FlowHashing *current, *tmp;
+
+      HASH_ITER(hh, flowHashing, current, tmp)
+	current->iface->purgeIdleHostsMacs();
+    }
+
     return(n);
   }
 }
@@ -4954,5 +4971,3 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
   } else
     return(false);
 }
-
-
