@@ -866,30 +866,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   ndpi_protocol p;
   time_t now = time(NULL);
 
-  if(flowHashingMode != flowhashing_none) {
-    NetworkInterface *vIface;
-
-    switch(flowHashingMode) {
-    case flowhashing_probe_ip:
-      vIface = getSubInterface((u_int32_t)zflow->deviceIP);
-      break;
-
-    case flowhashing_ingress_iface_idx:
-      vIface = getSubInterface((u_int32_t)zflow->inIndex);
-      break;
-
-    default:
-      vIface = NULL;
-      break;
-    }
-
-    if(vIface) {
-      vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
-      vIface->processFlow(zflow);
-      return;
-    }
-  }
-
   if(last_pkt_rcvd_remote > 0) {
     int drift = now - last_pkt_rcvd_remote;
 
@@ -920,6 +896,29 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				 zflow->first_switched,  zflow->last_switched,
 				 zflow->last_switched- zflow->first_switched);
 #endif
+  }
+
+  if(flowHashingMode != flowhashing_none) {
+    NetworkInterface *vIface;
+
+    switch(flowHashingMode) {
+    case flowhashing_probe_ip:
+      vIface = getSubInterface((u_int32_t)zflow->deviceIP);
+      break;
+
+    case flowhashing_ingress_iface_idx:
+      vIface = getSubInterface((u_int32_t)zflow->inIndex);
+      break;
+
+    default:
+      vIface = NULL;
+      break;
+    }
+
+    if(vIface) {
+      vIface->processFlow(zflow);
+      return;
+    }
   }
 
   /* Updating Flow */
@@ -3294,18 +3293,22 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char *host) {
 /* **************************************************** */
 
 u_int NetworkInterface::purgeIdleFlows() {
+  time_t last_packet_time = getTimeLastPktRcvd();
+
   if(!purge_idle_flows_hosts) return(0);
 
   if(next_idle_flow_purge == 0) {
-    next_idle_flow_purge = last_pkt_rcvd + FLOW_PURGE_FREQUENCY;
+    next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
     return(0);
-  } else if(last_pkt_rcvd < next_idle_flow_purge)
+  } else if(last_packet_time < next_idle_flow_purge)
     return(0); /* Too early */
   else {
     /* Time to purge flows */
     u_int n;
 
-    // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle flows");
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
+				 ifname, id, flows_hash->getCurrentSize());
     n = flows_hash->purgeIdle();
 
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
@@ -3320,7 +3323,7 @@ u_int NetworkInterface::purgeIdleFlows() {
 	current->iface->purgeIdleFlows();      
     }
 
-    next_idle_flow_purge = last_pkt_rcvd + FLOW_PURGE_FREQUENCY;
+    next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
     return(n);
   }
 }
@@ -3384,12 +3387,14 @@ u_int NetworkInterface::getNumMacs()        {
 /* **************************************************** */
 
 u_int NetworkInterface::purgeIdleHostsMacs() {
+  time_t last_packet_time = getTimeLastPktRcvd();
+
   if(!purge_idle_flows_hosts) return(0);
 
   if(next_idle_host_purge == 0) {
-    next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
+    next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(0);
-  } else if(last_pkt_rcvd < next_idle_host_purge)
+  } else if(last_packet_time < next_idle_host_purge)
     return(0); /* Too early */
   else {
     /* Time to purge hosts */
@@ -3397,8 +3402,6 @@ u_int NetworkInterface::purgeIdleHostsMacs() {
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = hosts_hash->purgeIdle() + macs_hash->purgeIdle();
-    next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
-
 
     if(flowHashing) {
       FlowHashing *current, *tmp;
@@ -3407,6 +3410,7 @@ u_int NetworkInterface::purgeIdleHostsMacs() {
 	current->iface->purgeIdleHostsMacs();
     }
 
+    next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
   }
 }
@@ -4254,7 +4258,7 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
   if(address)            setRemoteIfIPaddr(address);
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd_remote = remTime, last_remote_pps = last_pps, last_remote_bps = last_bps;
+  ifSpeed = speedMbit, last_pkt_rcvd = 0, last_pkt_rcvd_remote = remTime, last_remote_pps = last_pps, last_remote_bps = last_bps;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */

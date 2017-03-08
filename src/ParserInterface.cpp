@@ -471,6 +471,15 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
     iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed,
 			  remote_probe_address, remote_probe_public_address,
 			  remote_bytes, remote_pkts, remote_time, avg_pps, avg_bps);
+    if(flowHashing) {
+      FlowHashing *current, *tmp;
+
+      HASH_ITER(hh, flowHashing, current, tmp) {
+	current->iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed,
+				       remote_probe_address, remote_probe_public_address,
+				       remote_bytes, remote_pkts, remote_time, avg_pps, avg_bps);
+      }
+    }
 
     /* Dispose memory */
     json_object_put(o);
