@@ -140,9 +140,9 @@ void* AlertsManager::dequeueLoop() {
       else
         dump_rv = dumpReleaseAlert(alert);
 
-      if (dump_rv == 0)
+      //~ if (dump_rv == 0)
         // TODO use alert->json
-        puts(alert->json);
+        //~ puts(alert->json);
 
       freeAlert(alert);
     }
@@ -1047,7 +1047,7 @@ int AlertsManager::dumpEngageAlert(struct GenericAlert *alert) {
       getNetworkInterface()->disablePurge(false);
       host = getNetworkInterface()->getHost(host_ip, vlan_id);
       if (host != NULL)
-        host->decNumAlerts(); /* Only if the alter was actually engaged */
+        host->incNumAlerts(); /* Only if the alert wasn't already engaged */
       getNetworkInterface()->enablePurge(false);
     }
 
@@ -1126,7 +1126,7 @@ int AlertsManager::dumpReleaseAlert(struct GenericAlert *alert) {
       getNetworkInterface()->disablePurge(false);
       host = getNetworkInterface()->getHost(host_ip, vlan_id);
       if (host != NULL)
-        host->incNumAlerts(); /* Only if the alert wasn't already engaged */
+        host->decNumAlerts(); /* Only if the alter was actually engaged */
       getNetworkInterface()->enablePurge(false);
     }
 

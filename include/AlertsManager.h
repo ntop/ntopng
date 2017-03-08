@@ -185,7 +185,7 @@ class AlertsManager : protected StoreManager {
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
-  ~AlertsManager();
+  virtual ~AlertsManager();
 
   virtual void *dequeueLoop();
   void startDequeueLoop();

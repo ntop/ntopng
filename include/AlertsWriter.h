@@ -147,9 +147,11 @@ class AlertsWriter {
 
     void storeInterfaceTooManyFlowAlerts();
 
-    void storeInterfaceTooManyFlows();
+    void engageInterfaceTooManyFlows();
+    void releaseInterfaceTooManyFlows();
 
-    void storeInterfaceTooManyHosts();
+    void engageInterfaceTooManyHosts();
+    void releaseInterfaceTooManyHosts();
 
     void engageInterfaceTooManyOpenFiles();
     void releaseInterfaceTooManyOpenFiles();

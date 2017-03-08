@@ -771,10 +771,7 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
-    AlertsWriter *writer = alertsManager->getAlertsWriter();
-
-    writer->storeInterfaceTooManyFlows();
-
+    alertsManager->getAlertsWriter()->engageInterfaceTooManyFlows();
     tooManyFlowsAlertTriggered = true;
   }
 }
@@ -783,7 +780,7 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 
 void NetworkInterface::triggerTooManyHostsAlert() {
   if(!tooManyHostsAlertTriggered) {
-    alertsManager->getAlertsWriter()->storeInterfaceTooManyHosts();
+    alertsManager->getAlertsWriter()->engageInterfaceTooManyHosts();
     tooManyHostsAlertTriggered = true;
   }
 }
@@ -3292,6 +3289,11 @@ u_int NetworkInterface::purgeIdleFlows() {
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle flows");
     n = flows_hash->purgeIdle();
 
+    if ((tooManyFlowsAlertTriggered) && (n > 0)) {
+      alertsManager->getAlertsWriter()->releaseInterfaceTooManyFlows();
+      tooManyFlowsAlertTriggered = false;
+    }
+
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       // flush the queue
       db->flush(true /* idle */);
@@ -3374,6 +3376,12 @@ u_int NetworkInterface::purgeIdleHostsMacs() {
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = hosts_hash->purgeIdle() + macs_hash->purgeIdle();
+
+    if ((tooManyHostsAlertTriggered) && (n > 0)) {
+      alertsManager->getAlertsWriter()->releaseInterfaceTooManyHosts();
+      tooManyHostsAlertTriggered = false;
+    }
+
     next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
     return(n);
   }

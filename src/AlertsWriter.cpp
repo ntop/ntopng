@@ -25,7 +25,8 @@
 #define ALERT_KEY_THRESHOLD_CROSS_FORMAT "%s_%s"
 #define ALERT_KEY_HOST_SCAN_ATTACKER "scan_attacker"
 #define ALERT_KEY_HOST_SCAN_VICTIM "scan_victim"
-#define ALERT_KEY_INTERFACE_APP_MISCONFIGURATION "app_misconfiguration"
+#define ALERT_KEY_INTERFACE_TOO_MANY_FLOWS "too_many_flows"
+#define ALERT_KEY_INTERFACE_TOO_MANY_HOSTS "too_many_hosts"
 #define ALERT_KEY_OPEN_FILES_LIMIT "open_files_limit_too_small"
 
 /* SUBJECTS */
@@ -208,16 +209,24 @@ void AlertsWriter::storeInterfaceTooManyFlowAlerts() {
   createGenericInterfaceAlert(NULL, alert_too_many_alerts, alert_level_error, json_object_new_object(), JSON_ALERT_DETAIL_TOO_MANY_FLOW_ALERTS);
 }
 
-void AlertsWriter::storeInterfaceTooManyFlows() {
+void AlertsWriter::engageInterfaceTooManyFlows() {
   json_object *detail_json = json_object_new_object();
   json_app_misconfiguration_setting_add(detail_json, JSON_ALERT_APP_MISCONFIGURATION_FLOWS);
-  createGenericInterfaceAlert(NULL, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+  createGenericInterfaceAlert(ALERT_KEY_INTERFACE_TOO_MANY_FLOWS, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
 }
 
-void AlertsWriter::storeInterfaceTooManyHosts() {
+void AlertsWriter::releaseInterfaceTooManyFlows() {
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_INTERFACE_TOO_MANY_FLOWS, alert_app_misconfiguration);
+}
+
+void AlertsWriter::engageInterfaceTooManyHosts() {
   json_object *detail_json = json_object_new_object();
   json_app_misconfiguration_setting_add(detail_json, JSON_ALERT_APP_MISCONFIGURATION_HOSTS);
-  createGenericInterfaceAlert(NULL, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+  createGenericInterfaceAlert(ALERT_KEY_INTERFACE_TOO_MANY_HOSTS, alert_app_misconfiguration, alert_level_error, detail_json, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+}
+
+void AlertsWriter::releaseInterfaceTooManyHosts() {
+  am->releaseInterfaceAlert(am->getNetworkInterface(), ALERT_KEY_INTERFACE_TOO_MANY_HOSTS, alert_app_misconfiguration);
 }
 
 void AlertsWriter::engageInterfaceTooManyOpenFiles() {
