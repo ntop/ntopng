@@ -664,12 +664,13 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, t[1], ifname)
 		  -- and send it to ntopng
-		  alert_msg = interface.engageHostThresholdCrossAlert(mode, key, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
-		  if ntop.isPro() and (alert_msg ~= nil) then
+		  interface.engageHostThresholdCrossAlert(mode, key, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
+        -- TODO move this code
+		  --~ if ntop.isPro() and (alert_msg ~= nil) then
 		     -- possibly send the alert to nagios as well
-		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					  mode, t[1], alert_msg)
-		  end
+		     --~ ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					  --~ mode, t[1], alert_msg)
+		  --~ end
 	       else
 		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
 	       end
@@ -734,11 +735,12 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, t[1], ifname)
-                    alert_msg = interface.engageNetworkThresholdCrossAlert(mode, network_name, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
-                    if ntop.isPro() and (alert_msg ~= nil) then
+                    interface.engageNetworkThresholdCrossAlert(mode, network_name, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
+                    -- TODO move this code
+                    --~ if ntop.isPro() and (alert_msg ~= nil) then
                         -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
-                    end
+		       --~ ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+                    --~ end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end
@@ -794,11 +796,12 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, t[1], ifname)
-                    alert_msg = interface.engageInterfaceThresholdCrossAlert(mode, ifname, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
-                    if ntop.isPro() and (alert_msg ~= nil) then
+                    interface.engageInterfaceThresholdCrossAlert(mode, ifname, t[1]--[[allarmable]], val--[[value]], t[2]--[[op]], tonumber(t[3])--[[edge]])
+                    -- TODO move this code
+                    --~ if ntop.isPro() and (alert_msg ~= nil) then
                         -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
-                    end
+		       --~ ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+                    --~ end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end

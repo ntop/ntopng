@@ -288,16 +288,11 @@ void Flow::dumpFlowAlert() {
 
     if(do_dump && cli_host && srv_host) {
       AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
-      char* alert_json;
 
       if (is_probing)
-        alert_json = writer->storeFlowProbing(this, status);
+        writer->storeFlowProbing(this, status);
       else
-        alert_json = writer->storeFlowAlertedInterface(this);
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Flow alert: %s", alert_json);
-
-      free(alert_json);
+        writer->storeFlowAlertedInterface(this);
     }
 
     setFlowAlerted();
@@ -315,8 +310,7 @@ void Flow::checkBlacklistedFlow() {
 
       AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
 
-      char* alert_json = writer->storeFlowBlacklistedHosts(this);
-      free(alert_json);
+      writer->storeFlowBlacklistedHosts(this);
     }
 
     blacklist_alarm_emitted = true;

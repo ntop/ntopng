@@ -773,8 +773,7 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
     AlertsWriter *writer = alertsManager->getAlertsWriter();
 
-    char * alert_json = writer->storeInterfaceTooManyFlows();
-    free(alert_json);
+    writer->storeInterfaceTooManyFlows();
 
     tooManyFlowsAlertTriggered = true;
   }

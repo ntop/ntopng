@@ -222,9 +222,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
       if(blacklisted_host) {
   AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
-  char* alert_json = writer->storeHostBlacklisted(this);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
-  free(alert_json);
+  writer->storeHostBlacklisted(this);
       }
     }
 
@@ -1025,15 +1023,11 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 #endif
 
     AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
-    char* alert_json;
 
     if (syn_sent)
-      alert_json = writer->storeHostSynFloodAttacker(this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
+      writer->storeHostSynFloodAttacker(this, f->get_srv_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
     else
-      alert_json = writer->storeHostSynFloodVictim(this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "SynFlood: %s", alert_json);
-    free(alert_json);
+      writer->storeHostSynFloodVictim(this, f->get_cli_host(), counter->getCurrentHits(), counter->getOverThresholdDuration());
   }
 }
 
@@ -1046,18 +1040,14 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
     if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
-      char* alert_json = writer->engageHostFlowFloodAttacker(this);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", alert_json);
-      free(alert_json);
+      writer->engageHostFlowFloodAttacker(this);
       flow_flood_attacker_alert = true;
     }
   } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
-      char* alert_json = writer->engageHostFlowFloodVictim(this);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Under scan attack: %s", alert_json);
-      free(alert_json);
+      writer->engageHostFlowFloodVictim(this);
       flow_flood_victim_alert = true;
     }
   }
@@ -1066,15 +1056,12 @@ void Host::incNumFlows(bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(bool as_client) {
-  char *msg = NULL;
-
   if(as_client) {
     if(num_active_flows_as_client) {
       num_active_flows_as_client--;
 
       if(num_active_flows_as_client <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_attacker_alert) {
-	msg = iface->getAlertsManager()->getAlertsWriter()->releaseHostFlowFloodAttacker(this);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
+	iface->getAlertsManager()->getAlertsWriter()->releaseHostFlowFloodAttacker(this);
 	flow_flood_attacker_alert = false;
       }
     } else
@@ -1084,15 +1071,12 @@ void Host::decNumFlows(bool as_client) {
       num_active_flows_as_server--;
 
       if(num_active_flows_as_server <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_victim_alert) {
-	msg = iface->getAlertsManager()->getAlertsWriter()->releaseHostFlowFloodVictim(this);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
+	iface->getAlertsManager()->getAlertsWriter()->releaseHostFlowFloodVictim(this);
 	flow_flood_victim_alert = false;
       }
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
-
-  if (msg)  free(msg);
 }
 
 /* *************************************** */
@@ -1187,8 +1171,7 @@ void Host::updateStats(struct timeval *tv) {
 
   if(isAboveQuota() && triggerAlerts()) {
     AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
-    char* alert_json = writer->storeHostAboveQuota(this);
-    free(alert_json);
+    writer->storeHostAboveQuota(this);
   }
 }
 

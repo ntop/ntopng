@@ -60,10 +60,10 @@ class AlertsWriter {
     static json_object* json_threshold_cross(const char *alarmable,
         const char *op, u_long value, u_long threshold);
 
-    char* attack_host_alert(const char *alert_key, Host *host, Host *attacker, Host *victim,
+    void attack_host_alert(const char *alert_key, Host *host, Host *attacker, Host *victim,
         u_int32_t current_hits, u_int32_t duration);
 
-    char* simple_host_alert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
+    void simple_host_alert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
         const char *detail_name);
 
   public:
@@ -82,10 +82,8 @@ class AlertsWriter {
      * @param severity internal severity of the alert.
      * @param detail a JSON object with an alert specific structure.
      * @param detail_name a unique string to indentify the specific alert in JSON.
-     *
-     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
      */
-    char* createGenericInterfaceAlert(const char *alert_key, const AlertType type, const AlertLevel severity,
+    void createGenericInterfaceAlert(const char *alert_key, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name);
 
     /**
@@ -100,10 +98,8 @@ class AlertsWriter {
      * @param detail_name a unique string to indentify the specific alert in JSON.
      * @param source a pointer to the logical source of the alert, NULL if there is no associated alert source.
      * @param target a pointer to the logical target of the alert, NULL if there is no associated alert target.
-     *
-     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
      */
-    char* createGenericHostAlert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
+    void createGenericHostAlert(const char *alert_key, Host *host, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name, Host *source, Host *target);
 
     /**
@@ -119,7 +115,7 @@ class AlertsWriter {
      *
      * @return a JSON string representing the alert. It is up to the caller to free the returned string.
      */
-    char* createGenericNetworkAlert(const char *alert_key, const char *network, const AlertType type, const AlertLevel severity,
+    void createGenericNetworkAlert(const char *alert_key, const char *network, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name);
 
     /**
@@ -131,64 +127,62 @@ class AlertsWriter {
      * @param severity internal severity of the alert.
      * @param detail a JSON object with an alert specific structure.
      * @param detail_name a unique string to indentify the specific alert in JSON.
-     *
-     * @return a JSON string representing the alert. It is up to the caller to free the returned string.
      */
-    char* createGenericFlowAlert(Flow *flow, const AlertType type, const AlertLevel severity,
+    void createGenericFlowAlert(Flow *flow, const AlertType type, const AlertLevel severity,
         json_object *detail, const char *detail_name);
 
     /* Flow Alerts */
-    char* storeFlowProbing(Flow *flow, FlowStatus flow_status);
+    void storeFlowProbing(Flow *flow, FlowStatus flow_status);
 
-    char* storeFlowBlacklistedHosts(Flow *flow);
+    void storeFlowBlacklistedHosts(Flow *flow);
 
-    char* storeFlowAlertedInterface(Flow *flow);
+    void storeFlowAlertedInterface(Flow *flow);
 
     /* Interface Alerts */
-    char* engageInterfaceThresholdCross(const char *time_period,
+    void engageInterfaceThresholdCross(const char *time_period,
         const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold);
-    char* releaseInterfaceThresholdCross(const char *time_period, const char *alarmable);
+    void releaseInterfaceThresholdCross(const char *time_period, const char *alarmable);
 
-    char* storeInterfaceTooManyAlerts();
+    void storeInterfaceTooManyAlerts();
 
-    char* storeInterfaceTooManyFlowAlerts();
+    void storeInterfaceTooManyFlowAlerts();
 
-    char* storeInterfaceTooManyFlows();
+    void storeInterfaceTooManyFlows();
 
-    char* storeInterfaceTooManyHosts();
+    void storeInterfaceTooManyHosts();
 
-    char* engageInterfaceTooManyOpenFiles();
-    char* releaseInterfaceTooManyOpenFiles();
+    void engageInterfaceTooManyOpenFiles();
+    void releaseInterfaceTooManyOpenFiles();
 
     /* Network Alerts */
-    char* engageNetworkThresholdCross(const char *time_period, const char *network,
+    void engageNetworkThresholdCross(const char *time_period, const char *network,
         const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold);
-    char* releaseNetworkThresholdCross(const char *time_period, const char *network, const char *alarmable);
+    void releaseNetworkThresholdCross(const char *time_period, const char *network, const char *alarmable);
 
-    char* storeNetworkTooManyAlerts(const char *network);
+    void storeNetworkTooManyAlerts(const char *network);
 
     /* Host Alerts */
-    char* engageHostThresholdCross(const char *time_period, Host *host,
+    void engageHostThresholdCross(const char *time_period, Host *host,
         const char *alarmable, const char *op, u_int32_t value, u_int32_t threshold);
-    char* releaseHostThresholdCross(const char *time_period, Host *host, const char *alarmable);
+    void releaseHostThresholdCross(const char *time_period, Host *host, const char *alarmable);
 
-    char* storeHostTooManyAlerts(Host *host);
+    void storeHostTooManyAlerts(Host *host);
 
-    char* storeHostAboveQuota(Host *host);
+    void storeHostAboveQuota(Host *host);
 
-    char* storeHostBlacklisted(Host *host);
+    void storeHostBlacklisted(Host *host);
 
-    char* storeHostSynFloodAttacker(Host *host,
+    void storeHostSynFloodAttacker(Host *host,
         Host *victim, u_int32_t current_hits, u_int32_t duration);
 
-    char* storeHostSynFloodVictim(Host *host,
+    void storeHostSynFloodVictim(Host *host,
         Host *attacker, u_int32_t current_hits, u_int32_t duration);
 
-    char* engageHostFlowFloodAttacker(Host *host);
-    char* releaseHostFlowFloodAttacker(Host *host);
+    void engageHostFlowFloodAttacker(Host *host);
+    void releaseHostFlowFloodAttacker(Host *host);
 
-    char* engageHostFlowFloodVictim(Host *host);
-    char* releaseHostFlowFloodVictim(Host *host);
+    void engageHostFlowFloodVictim(Host *host);
+    void releaseHostFlowFloodVictim(Host *host);
 };
 
 #endif

@@ -4805,15 +4805,6 @@ static int ntop_interface_store_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static void push_alert_json_if_not_null(lua_State *vm, char *alert_json) {
-  if (alert_json) {
-    lua_pushstring(vm, alert_json);
-    free(alert_json);
-  } else {
-    lua_pushnil(vm);
-  }
-}
-
 static int ntop_interface_engage_threshold_alert_params(lua_State *vm, const char **time_period,
       const char **entity, const char **alarmable, u_int32_t *value, const char **op, u_int32_t *threshold) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
@@ -4882,9 +4873,8 @@ static int ntop_interface_engage_host_threshold_alert(lua_State* vm) {
   }
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
-  char *alert_json = writer->engageHostThresholdCross(time_period, host, alarmable, op, value, threshold);
+  writer->engageHostThresholdCross(time_period, host, alarmable, op, value, threshold);
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
@@ -4915,9 +4905,8 @@ static int ntop_interface_release_host_threshold_alert(lua_State* vm) {
   }
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
-  char *alert_json = writer->releaseHostThresholdCross(time_period, host, alarmable);
+  writer->releaseHostThresholdCross(time_period, host, alarmable);
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
@@ -4941,9 +4930,8 @@ static int ntop_interface_engage_network_threshold_alert(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
-  char *alert_json = writer->engageNetworkThresholdCross(time_period, network, alarmable, op, value, threshold);
+  writer->engageNetworkThresholdCross(time_period, network, alarmable, op, value, threshold);
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
@@ -4963,9 +4951,8 @@ static int ntop_interface_release_network_threshold_alert(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
-  char *alert_json = writer->releaseNetworkThresholdCross(time_period, network, alarmable);
+  writer->releaseNetworkThresholdCross(time_period, network, alarmable);
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
@@ -4992,9 +4979,8 @@ static int ntop_interface_engage_interface_threshold_alert(lua_State* vm) {
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
 
-  char *alert_json = writer->engageInterfaceThresholdCross(time_period, alarmable, op, value, threshold);
+  writer->engageInterfaceThresholdCross(time_period, alarmable, op, value, threshold);
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
@@ -5016,9 +5002,8 @@ static int ntop_interface_release_interface_threshold_alert(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
-  char *alert_json = writer->releaseInterfaceThresholdCross(time_period, alarmable);
+  writer->releaseInterfaceThresholdCross(time_period, alarmable);
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
@@ -5039,9 +5024,11 @@ static int ntop_interface_engage_release_interface_too_many_open_files(lua_State
     return(CONST_LUA_ERROR);
 
   AlertsWriter *writer = ntop_interface->getAlertsManager()->getAlertsWriter();
-  char *alert_json = engage ? writer->engageInterfaceTooManyOpenFiles() : writer->releaseInterfaceTooManyOpenFiles();
+  if (engage)
+    writer->engageInterfaceTooManyOpenFiles();
+  else
+    writer->releaseInterfaceTooManyOpenFiles();
 
-  push_alert_json_if_not_null(vm, alert_json);
   return(CONST_LUA_OK);
 }
 
