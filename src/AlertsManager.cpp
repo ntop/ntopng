@@ -1023,6 +1023,10 @@ out:
 int AlertsManager::dumpEngageAlert(struct GenericAlert *alert) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
+  Host *host;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char host_buf[64];
   int rc = 0;
   struct EntityAlert *engaged_alert = &alert->u.entity;
 
@@ -1035,6 +1039,17 @@ int AlertsManager::dumpEngageAlert(struct GenericAlert *alert) {
     if(getNetworkInterface() && (alert->severity == alert_level_error))
        getNetworkInterface()->incAlertLevel();
       /* This alert is being engaged */
+
+    /* Handle host counters */
+    if (engaged_alert->entity == alert_entity_host) {
+      Utils::getHostVlanInfo((char*)engaged_alert->entity_value, &host_ip, &vlan_id, host_buf, sizeof(host_buf));
+
+      getNetworkInterface()->disablePurge(false);
+      host = getNetworkInterface()->getHost(host_ip, vlan_id);
+      if (host != NULL)
+        host->decNumAlerts(); /* Only if the alter was actually engaged */
+      getNetworkInterface()->enablePurge(false);
+    }
 
     snprintf(query, sizeof(query),
        "REPLACE INTO %s "
@@ -1086,6 +1101,10 @@ int AlertsManager::dumpReleaseAlert(struct GenericAlert *alert) {
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
     char *alert_json = NULL;
+    Host *host;
+    char *host_ip;
+    u_int16_t vlan_id = 0;
+    char host_buf[64];
     struct EntityAlert *release_alert = &alert->u.entity;
 
     if(!store_initialized || !store_opened || alert->is_flow_alert || release_alert->engaged)
@@ -1099,6 +1118,18 @@ int AlertsManager::dumpReleaseAlert(struct GenericAlert *alert) {
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
+
+    /* Handle host counters */
+    if (release_alert->entity == alert_entity_host) {
+      Utils::getHostVlanInfo((char*)release_alert->entity_value, &host_ip, &vlan_id, host_buf, sizeof(host_buf));
+
+      getNetworkInterface()->disablePurge(false);
+      host = getNetworkInterface()->getHost(host_ip, vlan_id);
+      if (host != NULL)
+        host->incNumAlerts(); /* Only if the alert wasn't already engaged */
+      getNetworkInterface()->enablePurge(false);
+    }
+
 #if 0
     /* TODO
        - Modify isAlertEngaged to extract the missing parameters for the function call below
@@ -1336,7 +1367,6 @@ void AlertsManager::engageReleaseHostAlert(Host *h,
 					  bool engage,
 					  const char *alert_json) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
-  int rc;
 
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return;
@@ -1344,19 +1374,15 @@ void AlertsManager::engageReleaseHostAlert(Host *h,
   if(!h->triggerAlerts() || !h->isLocalHost())
     return;
 
-  if(engage) {
+  if(engage)
     engageAlert(alert_entity_host, ipbuf_id,
 		     engaged_alert_id, when, alert_type, alert_severity, alert_json,
 		     isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		     isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
-    if(!rc)
-      h->incNumAlerts(); /* Only if the alert wasn't already engaged */
-  } else {
+  else
     releaseAlert(alert_entity_host, ipbuf_id,
 		      engaged_alert_id, when);
-    if(!rc)
-      h->decNumAlerts(); /* Only if the alter was actually engaged */
-  }
+
 };
 
 /* ******************************************* */
@@ -1371,7 +1397,6 @@ void AlertsManager::engageReleaseNetworkAlert(const char *cidr,
   struct in6_addr addr6;
   char ip_buf[256];
   char *slash;
-  int rc;
 
   if(!cidr) return;
 
