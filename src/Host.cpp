@@ -54,6 +54,11 @@ Host::~Host() {
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
+  if(num_alerts_detected > 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_alerts_detected=%u", num_alerts_detected);
+    num_alerts_detected = 0; /* engaged alerts cannot exists for inactive hosts */
+  }
+
   if(!ip.isEmpty()) dumpStats(false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
