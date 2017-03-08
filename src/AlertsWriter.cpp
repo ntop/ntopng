@@ -30,6 +30,7 @@
 #define ALERT_KEY_TOO_MANY_ALERTS  "too_many_alerts"
 #define ALERT_KEY_TOO_MANY_FLOW_ALERTS  "too_many_flow_alerts"
 #define ALERT_KEY_OPEN_FILES_LIMIT "open_files_limit_too_small"
+#define ALERT_KEY_BLACKLISTED_HOST "blacklisted_host"
 
 /* SUBJECTS */
 #define JSON_ALERT_SUBJECT "subject"
@@ -354,8 +355,12 @@ void AlertsWriter::storeHostAboveQuota(Host *host) {
   simple_host_alert(NULL, host, alert_quota, alert_level_error, JSON_ALERT_DETAIL_ABOVE_QUOTA);
 }
 
-void AlertsWriter::storeHostBlacklisted(Host *host) {
-  simple_host_alert(NULL, host, alert_malware_detection, alert_level_error, JSON_ALERT_DETAIL_HOST_BLACKLISTED);
+void AlertsWriter::engageHostBlacklisted(Host *host) {
+  simple_host_alert(ALERT_KEY_BLACKLISTED_HOST, host, alert_malware_detection, alert_level_error, JSON_ALERT_DETAIL_HOST_BLACKLISTED);
+}
+
+void AlertsWriter::releaseHostBlacklisted(Host *host) {
+  am->releaseHostAlert(host, ALERT_KEY_BLACKLISTED_HOST, time(NULL), alert_malware_detection);
 }
 
 void AlertsWriter::attack_host_alert(const char *alert_key, Host *host, Host *attacker, Host *victim,

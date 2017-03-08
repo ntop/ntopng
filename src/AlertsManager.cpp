@@ -1383,7 +1383,7 @@ void AlertsManager::engageReleaseHostAlert(Host *h,
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return;
 
-  if(!h->triggerAlerts() || !h->isLocalHost())
+  if(!h->triggerAlerts())
     return;
 
   if(engage)
@@ -1460,10 +1460,10 @@ void AlertsManager::storeHostAlert(Host *h, time_t when,
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return;
 
-  storeAlert(when, alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
+  storeAlert(when, alert_entity_host, ipbuf_id, alert_type, alert_severity,
 		    isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		    isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
-		    true);
+		    alert_json, true);
 };
 
 /* ******************************************* */

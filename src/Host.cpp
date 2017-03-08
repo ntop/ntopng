@@ -51,6 +51,8 @@ Host::Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Gene
 /* *************************************** */
 
 Host::~Host() {
+  iface->getAlertsManager()->getAlertsWriter()->releaseHostBlacklisted(this);
+
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
@@ -151,6 +153,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     num_active_flows_as_client = num_active_flows_as_server = 0;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
   nextSitesUpdate = 0;
+  trigger_host_alerts = true; /* Trigger alerts for Remote Hosts by default */
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
@@ -225,10 +228,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 	}
       }
 
-      if(blacklisted_host) {
-  AlertsWriter *writer = iface->getAlertsManager()->getAlertsWriter();
-  writer->storeHostBlacklisted(this);
-      }
+      if(blacklisted_host)
+        iface->getAlertsManager()->getAlertsWriter()->engageHostBlacklisted(this);
     }
 
     if(asname) { free(asname); asname = NULL; }

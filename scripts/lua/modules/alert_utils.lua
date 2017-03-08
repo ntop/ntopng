@@ -260,13 +260,15 @@ function makeAlertDescription(alert)
       elseif detail_type == "tooManyFlowAlerts" then
          return too_many_alerts("<i>flow</i> alerts on iterface "..link)
       elseif detail_type == "appMisconfiguration" then
-         local setting = detail.setting
-         if (setting == nil) then return nil end
+         local setting_type, setting = any_of(detail.setting)
+         if (setting_type == nil) then return nil end
 
-         if setting == "numFlows" then
+         if setting_type == "numFlows" then
             return "Interface "..link.." has too many flows. Please extend the --max-num-flows/-X command line option"
-         elseif setting == "numHosts" then
+         elseif setting_type == "numHosts" then
             return "Interface "..link.." has too many hosts. Please extend the --max-num-hosts/-x command line option"
+         elseif setting_type == "numOpenMysqlFilesLimit" then
+            return "Interface "..link..": "..i18n("alert_messages.open_files_limit_too_small")
          end
       end
    elseif subject_type == "flowAlert" then
@@ -282,7 +284,7 @@ function makeAlertDescription(alert)
          if (probing_type == nil) then return nil end
 
          return flow_probing(flow, interface, probing_type).." "..link
-      elseif detail_type == "blacklistedHosts" then
+      elseif detail_type == "flowBlacklistedHosts" then
          return flow_hosts(flow, interface).." "..link
       --[[elseif detail_type == "flowMalwareSite" then
          return flow_hosts(flow).." "..link]]
@@ -314,6 +316,8 @@ function makeAlertDescription(alert)
          return "Host "..link.." is a possible scanner"
       elseif detail_type == "flowFloodVictim" then
          return "Host "..link.." is possibly under scan attack"
+      elseif detail_type == "hostBlacklisted" then
+         return "Malicious host "..link
       elseif detail_type == "synFloodAttacker" then
          local attack_counter = detail.attackCounter
          if (attack_counter == nil) then return nil end

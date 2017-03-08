@@ -176,7 +176,8 @@ class AlertsWriter {
 
     void storeHostAboveQuota(Host *host);
 
-    void storeHostBlacklisted(Host *host);
+    void engageHostBlacklisted(Host *host);
+    void releaseHostBlacklisted(Host *host);
 
     void storeHostSynFloodAttacker(Host *host,
         Host *victim, u_int32_t current_hits, u_int32_t duration);
