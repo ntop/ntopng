@@ -55,6 +55,7 @@ function host_table_setID (row) {
   row.find("td").eq(index++).attr('id', host_key+"_key");
   //custom
   if (host_rows_option["ip"]) row.find("td").eq(index++).attr('id', host_key+"_ip");
+  row.find("td").eq(index++).attr('id', host_key+"_vlan");
   // hosts_stats_top
   row.find("td").eq(index++).attr('id', host_key+"_alerts");
   row.find("td").eq(index++).attr('id', host_key+"_name");
@@ -70,18 +71,6 @@ function host_table_setID (row) {
   return row;
 
 }
-
-function hostkey2hostInfo(host_key) {
-    var info;
-    var hostinfo = [];
-
-    host_key = host_key.replace(/____/g, ":");
-    host_key = host_key.replace(/___/g, "/");
-    host_key = host_key.replace(/__/g, ".");
-
-    info = host_key.split("@");
-    return(info);
-} 
 
 function row_update(host_key) {
    var hostInfo = hostkey2hostInfo(host_key);
@@ -168,23 +157,31 @@ end
    print("</ul>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' ],")
 
 print [[
-	        columns: [
-	        	{
-	        		title: "Key",
-         			field: "key",
-         			hidden: true,
-         			css: {
-              textAlign: 'center'
-           }
-         		},
-         		{
+		columns: [
+			{
+				title: "Key",
+				field: "key",
+				hidden: true,
+				css: {
+	      textAlign: 'center'
+	   }
+			},
+			{
 			     title: "IP Address",
 				 field: "column_ip",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'left'
+			     css: {
+				textAlign: 'left'
 			     }
 				 },
+			{
+			     title: "VLAN",
+				 field: "column_vlan",
+				 sortable: true,
+			     css: {
+				textAlign: 'center'
+			     }
+			},
 			  ]]
 
 
