@@ -410,7 +410,7 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.type ~= "zmq") then
       print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=3> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
    else
-      print [[ <td colspan=4><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr> ]]
+      print [[ <td colspan=5><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr> ]]
    end
 
 print [[
@@ -496,7 +496,7 @@ print("</script>\n")
 
    if (isAdministrator() and ifstats.isView == false) then
       print("<tr><th width=250>Reset Counters</th>")
-      print("<td colspan=4>")
+      print("<td colspan=5>")
 
       local cls = ""
       local tot	= ifstats.stats.bytes + ifstats.stats.packets + ifstats.stats.drops
