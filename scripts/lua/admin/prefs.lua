@@ -599,13 +599,19 @@ function printStatsRrds()
   end
 
   local info = ntop.getInfo()
-  toggleTableButtonPrefs("Flow Devices Timeseries",
-			 "Toggle the creation of bytes timeseries for each port of the sFlow/NetFlow devices. For each device port" ..
-			 " will be created an RRD with ingress/egress bytes.",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_devices_rrd_creation", "0",
-			    not info["version.enterprise_edition"])
 
   if ntop.isPro() then
+     local info = ntop.getInfo()
+     toggleTableButtonPrefs("Flow Devices Timeseries",
+			    "Toggle the creation of bytes timeseries for each port of the sFlow/NetFlow devices. For each device port" ..
+                            " will be created an RRD with ingress/egress bytes.",
+                            "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_devices_rrd_creation", "0", not info["version.enterprise_edition"])
+
+     toggleTableButtonPrefs("Flow Interfaces Timeseries",
+			    "Toggle the creation of bytes timeseries for each port as received in ZMQ fields INPUT_SNMP and OUTPUT_SNMP. "..
+                            "For each port will be created an RRD with send and received bytes.",
+                            "On", "1", "success", "Off", "0", "danger", "toggle_flow_snmp_ports_rrds", "ntopng.prefs.flow_snmp_port_rrd_creation", "0", not info["version.enterprise_edition"])
+
     toggleTableButtonPrefs("Host Pools Timeseries",
 			 "Toggle the creation of bytes and nDPI timeseries for defined Host Pools.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")

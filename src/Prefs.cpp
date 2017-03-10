@@ -35,6 +35,7 @@ Prefs::Prefs(Ntop *_ntop) {
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false;
+  enable_flow_snmp_port_rrd_creation = false;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
@@ -438,6 +439,8 @@ void Prefs::reloadPrefsFromRedis() {
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  enable_flow_snmp_port_rrd_creation = getDefaultPrefsValue(CONST_RUNTIME_PREFS_FLOW_SNMP_RRD_CREATION,
+							    false);
   enable_top_talkers		  = getDefaultPrefsValue(CONST_TOP_TALKERS_ENABLED,
 							 CONST_DEFAULT_TOP_TALKERS_ENABLED);
   enable_idle_local_hosts_cache   = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
@@ -1220,6 +1223,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
+  lua_push_bool_table_entry(vm, "is_flow_snmp_port_rrd_creation_enabled", enable_flow_snmp_port_rrd_creation ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
@@ -1388,6 +1392,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
 		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
     max_num_flow_alerts = atoi(pref_value);
+  else if(!strncmp(pref_name,
+		   (char*)CONST_RUNTIME_PREFS_FLOW_SNMP_RRD_CREATION,
+		   strlen((char*)CONST_RUNTIME_PREFS_FLOW_SNMP_RRD_CREATION)))
+    enable_flow_snmp_port_rrd_creation = pref_value[0] == '1' ? true : false;
   else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))

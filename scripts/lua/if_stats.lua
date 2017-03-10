@@ -22,7 +22,7 @@ require "prefs_utils"
 require "graph_utils"
 require "alert_utils"
 require "db_utils"
-
+tprint(ntop.getPrefs())
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
