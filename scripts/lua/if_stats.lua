@@ -10,6 +10,7 @@ if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
    require "common"
+   require "snmp_utils"
 end
 
 local json = require "dkjson"
@@ -280,6 +281,14 @@ if isAdministrator() then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i></a></li>\n")
    else
       print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i></a></li>")
+   end
+end
+
+if(hasSnmpDevices(ifstats.id) and is_packet_interface) then
+   if(page == "snmp_bind") then
+      print("\n<li class=\"active\"><a href=\"#\">SNMP Bind</li>")
+   else
+      print("\n<li><a href=\""..url.."&page=snmp_bind\">SNMP Bind</a></li>")
    end
 end
 
@@ -944,6 +953,150 @@ elseif(page == "config") then
    print[[
    </table>]]
 
+elseif(page == "snmp_bind") then
+   if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then
+      return
+   end
+
+   local snmp_host = _POST["ip"]
+   local snmp_interface = _POST["snmp_port_idx"] or ""
+
+   if (snmp_host ~= nil) then
+      -- snmp_host can be empty
+      set_snmp_bound_interface(ifstats.id, snmp_host, snmp_interface)
+   else
+      local value = get_snmp_bound_interface(ifstats.id)
+
+      if value ~= nil then
+         snmp_host = value.snmp_device
+         snmp_interface = value.snmp_port
+      end
+   end
+
+   local snmp_devices = get_snmp_devices(ifstats.id)
+
+   print[[
+<form id="snmp_bind_form" method="post" style="margin-bottom:5em;">
+   <table class="table table-bordered table-striped">]]
+
+   print[[
+      <tr>
+         <th>SNMP Device</th>
+         <td>
+            <select class="form-control" style="width:30em;" id="snmp_bind_device" name="ip">
+               <option]] if isEmptyString(snmp_host) then print(" selected") end print[[ value="">Not Bound</option>
+         ]]
+
+   for _, device in pairs(snmp_devices) do
+      print('<option value="'..device.ip..'"')
+      if (snmp_host == device.ip) then
+         print(' selected')
+      end
+      print('>'..device.name..' ('..device.ip..')</option>')
+   end
+
+   print[[
+            </select>
+         </td>
+      </tr>
+      <tr>
+         <th>SNMP Interface</th>
+            <td>
+               <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
+
+   if not isEmptyString(snmp_interface) then
+      -- This is neeeded to initialized ays form fields
+      print('<option value="'..snmp_interface..'" selected></option>')
+   end
+
+   print[[
+               </select>
+               <img id="snmp_loading" style="margin-left:0.5em; visibility:hidden;" src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\>
+            </td>
+      </tr>
+   </table>
+
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+</form>
+
+<script>
+   var snmp_bind_port_ajax = null;
+   var snmp_bind_first_init = true;
+
+   function snmp_set_loading_status(is_loading) {
+      if (is_loading) {
+         $("#snmp_loading").css("visibility", "");
+         $("#snmp_bind_submit").addClass("disabled");
+      } else {
+         $("#snmp_loading").css("visibility", "hidden");
+         $("#snmp_bind_submit").removeClass("disabled");
+      }
+   }
+
+   function snmp_check_snmp_list() {
+      var iflist = $("#snmp_bind_interface");
+
+      if ($("option", iflist).length > 0)
+         iflist.removeAttr("disabled");
+      else
+         iflist.attr("disabled", "disabled");
+
+      aysRecheckForm('#snmp_bind_form');
+   }
+
+   function snmp_recheck_selection() {
+      var iflist = $("#snmp_bind_interface");
+      var selected_device = $("#snmp_bind_device option:selected").val();
+
+      // Remove existing entries
+      $("option", iflist).remove();
+
+      if (snmp_bind_port_ajax != null) {
+         snmp_bind_port_ajax.abort();
+         snmp_bind_port_ajax = null;
+      }
+      snmp_check_snmp_list();
+
+      if (selected_device) {
+         snmp_set_loading_status(true);
+
+         snmp_bind_port_ajax = $.ajax({
+          type: 'GET',
+          url: ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/pro/enterprise/get_snmp_device_info.lua',
+          data: { ifid: ]] print(ifstats.id) print[[, ip: selected_device },
+          success: function(rsp) {
+            if (rsp.interfaces) {
+               for (var ifidx in rsp.interfaces) {
+                  var snmp_interface = rsp.interfaces[ifidx];
+                  var selected = snmp_interface.bound ? " selected" : "";
+                  iflist.append('<option value="' + ifidx + '"' + selected + '>' + snmp_interface.label + '</option>');
+                  snmp_interface.label;
+               }
+
+               snmp_check_snmp_list();
+            }
+          }, complete: function() {
+            snmp_set_loading_status(false);
+          }
+        });
+      } else {
+         snmp_set_loading_status(false);
+         snmp_check_snmp_list();
+      }
+   }
+
+   aysHandleForm("#snmp_bind_form");
+   snmp_check_snmp_list();
+
+   $("#snmp_bind_device").change(snmp_recheck_selection);
+   $(function() {
+      // let it pass some time to ays initialization
+      snmp_recheck_selection();
+   });
+</script>]]
 elseif(page == "pools") then
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "filtering") then

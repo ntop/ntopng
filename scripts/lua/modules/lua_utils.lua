@@ -2833,6 +2833,14 @@ function isCaptivePortalActive(ifstats)
   return is_bridge_iface and is_captive_portal_enabled
 end
 
+function hasSnmpDevices(ifid)
+  if (not ntop.isEnterprise()) or (not isAdministrator()) then
+    return false
+  end
+
+  return has_snmp_devices(ifid)
+end
+
 function getTopFlowPeers(hostname_vlan, max_hits, detailed)
   local detailed = detailed or false
 
