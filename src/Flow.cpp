@@ -604,23 +604,6 @@ void Flow::setJSONInfo(const char *json) {
 
 /* *************************************** */
 
-int Flow::compare(Flow *fb) {
-  int c;
-
-  if((cli_host == NULL) || (srv_host == NULL)) return(-1);
-
-  if(vlanId < fb->vlanId) return(-1); else { if(vlanId > fb->vlanId) return(1); }
-  c = cli_host->compare(fb->get_cli_host()); if(c < 0) return(-1); else { if(c > 0) return(1); }
-  if(cli_port < fb->cli_port) return(-1); else { if(cli_port > fb->cli_port) return(1); }
-  c = srv_host->compare(fb->get_srv_host()); if(c < 0) return(-1); else { if(c > 0) return(1); }
-  if(srv_port < fb->srv_port) return(-1); else { if(srv_port > fb->srv_port) return(1); }
-  if(protocol < fb->protocol) return(-1); else { if(protocol > fb->protocol) return(1); }
-
-  return(0);
-}
-
-/* *************************************** */
-
 /*
  * A faster replacement for inet_ntoa().
  */

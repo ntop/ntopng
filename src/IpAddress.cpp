@@ -107,7 +107,7 @@ int IpAddress::compare(IpAddress *ip) {
 
     if(a < b) return(1); else if(b < a) return(-1); else return(0);
 #else
-    return(memcmp(&ip->addr.ipType.ipv4, &addr.ipType.ipv4, sizeof(u_int32_t)));
+    return(memcmp(&addr.ipType.ipv4, &ip->addr.ipType.ipv4, sizeof(u_int32_t)));
 #endif
   } else
     return(memcmp(&addr.ipType.ipv6, &ip->addr.ipType.ipv6, sizeof(struct ndpi_in6_addr)));
