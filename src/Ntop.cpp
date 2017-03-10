@@ -341,6 +341,28 @@ bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id) {
 
 /* ******************************************* */
 
+IpAddress* Ntop::getLocalNetworkIp(int16_t local_network_id) {
+  IpAddress *network_ip = new IpAddress();
+  char *network_address, *slash;
+
+  if (local_network_id > 0)
+    network_address = strdup(getLocalNetworkName(local_network_id));
+  else
+    network_address = strdup((char*)"0.0.0.0/0"); /* Remote networks */
+
+  if((slash = strchr(network_address, '/')))
+    *slash = '\0';
+
+  if(network_ip)
+    network_ip->set(network_address);
+  if(network_address)
+  free(network_address);
+
+  return(network_ip);
+};
+
+/* ******************************************* */
+
 #ifdef WIN32
 
 #include <ws2tcpip.h>

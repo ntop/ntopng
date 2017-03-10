@@ -398,7 +398,10 @@ class Ntop {
   void shutdown();
   void runHousekeepingTasks();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
-  inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
+  inline char* getLocalNetworkName(int16_t local_network_id) {
+    return(address->get_local_network((u_int8_t)local_network_id));
+  };
+  IpAddress* getLocalNetworkIp(int16_t local_network_id);
   void createExportInterface();
   void initRedis();
   void initElasticSearch();

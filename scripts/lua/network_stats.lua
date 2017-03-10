@@ -20,7 +20,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=local_network_id]]
+print [[/lua/get_grouped_hosts_data.lua?grouped_by=local_network]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_id.inc")
@@ -39,7 +39,7 @@ preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("local_network_id") ..'","' .. getDefaultTableSortOrder("local_network_id").. '"] ],')
+print ('sort: [ ["' .. getDefaultTableSort("local_network") ..'","' .. getDefaultTableSortOrder("local_network").. '"] ],')
 
 
 print [[

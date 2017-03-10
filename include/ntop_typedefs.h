@@ -226,6 +226,7 @@ typedef enum {
   column_since,
   column_asn,
   column_local_network_id,
+  column_local_network,
   column_country,
   column_mac,
   column_os,

@@ -55,6 +55,7 @@ bool Grouper::inGroup(Host *h) {
   case column_vlan:
     return h->get_vlan_id() == group_id_i;
 
+  case column_local_network:
   case column_local_network_id:
     return h->get_local_network_id() == group_id_i;
 
@@ -111,6 +112,7 @@ int8_t Grouper::newGroup(Host *h) {
     group_label = strdup(buf);
     break;
 
+  case column_local_network:
   case column_local_network_id:
     group_id_i = h->get_local_network_id();
     if(group_id_i >= 0)

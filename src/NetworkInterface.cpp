@@ -2341,6 +2341,7 @@ struct flowHostRetrieveList {
   Mac *macValue;
   u_int64_t numericValue;
   char *stringValue;
+  IpAddress *ipValue;
 };
 
 struct flowHostRetriever {
@@ -2548,6 +2549,10 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].numericValue = h->get_local_network_id();
     break;
 
+  case column_local_network:
+    r->elems[r->actNumEntries++].ipValue = ntop->getLocalNetworkIp(h->get_local_network_id());
+    break;
+
   case column_mac:
     r->elems[r->actNumEntries++].numericValue = Utils::macaddr_int(h->get_mac());
     break;
@@ -2634,6 +2639,16 @@ int hostSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
 
   return(a->hostValue->get_ip()->compare(b->hostValue->get_ip()));
+}
+
+int ipSorter(const void *_a, const void *_b) {
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
+
+  if(!a || !b || !a->ipValue || !b->ipValue)
+    return(true);
+
+  return(a->ipValue->compare(b->ipValue));
 }
 
 int numericSorter(const void *_a, const void *_b) {
@@ -2977,6 +2992,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_num_flows")) retriever->sorter = column_num_flows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_local_network_id")) retriever->sorter = column_local_network_id, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_local_network")) retriever->sorter = column_local_network, sorter = ipSorter;
   else if(!strcmp(sortColumn, "column_mac")) retriever->sorter = column_mac, sorter = numericSorter;
   /* criteria (datatype sortField in ntop_typedefs.h / see also host_search_walker:NetworkInterface.cpp) */
   else if(!strcmp(sortColumn, "column_uploaders")) retriever->sorter = column_uploaders, sorter = numericSorter;
@@ -3095,7 +3111,10 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hos
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
-  }
+  } else if(retriever.sorter == column_local_network)
+    for(u_int i=0; i<retriever.maxNumEntries; i++)
+      if(retriever.elems[i].ipValue)
+	delete retriever.elems[i].ipValue;
 
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
@@ -3166,7 +3185,10 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hos
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
-  }
+  } else if(retriever.sorter == column_local_network)
+    for(u_int i=0; i<retriever.maxNumEntries; i++)
+      if(retriever.elems[i].ipValue)
+	free(retriever.elems[i].ipValue);
 
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);

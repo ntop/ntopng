@@ -104,7 +104,7 @@ function print_single_group(value)
       if(value["id"] ~= nil ) then
 	 print("".. getOSIcon(value["id"]) .."")
       end      
-   elseif (group_col == "local_network_id" or network_n ~= nil) then
+   elseif (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
       print("hosts_stats.lua?network="..tostring(value["id"]).."'>")
    elseif (group_col == "pool_id" or pool_n ~= nil) then
       print("hosts_stats.lua?pool="..tostring(value["id"]).."'>")
@@ -114,7 +114,7 @@ function print_single_group(value)
       print("hosts_stats.lua'>")
    end
 
-   if (group_col == "local_network_id" or network_n ~= nil) then
+   if (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
       print(value["name"]..'</A> ')
       print('", "column_chart": "')
       if tonumber(value["id"]) ~= -1 and interface.isPcapDumpInterface() == false then
