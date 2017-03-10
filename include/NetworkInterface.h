@@ -38,6 +38,7 @@ class Paginator;
 
 #ifdef NTOPNG_PRO
 class L7Policer;
+class SNMPStats;
 #endif
 
 typedef struct {
@@ -71,6 +72,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
+  SNMPStats *snmp_stats;
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;
@@ -379,6 +381,7 @@ class NetworkInterface {
   void refreshL7Rules();
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
+  inline SNMPStats* getSNMPStats()         { return(snmp_stats);  }
 #endif
   inline HostPools* getHostPools()         { return(host_pools);  }
 

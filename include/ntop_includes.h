@@ -222,6 +222,7 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "HostPoolStats.h"
+#include "SNMPStats.h"
 #ifdef HAVE_NETFILTER
 #include "NetfilterInterface.h"
 #endif

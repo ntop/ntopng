@@ -173,6 +173,8 @@ NetworkInterface::NetworkInterface(const char *name,
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
+
+  snmp_stats = ntop->getPro()->has_valid_license() ? new SNMPStats() : NULL;
 #endif
 
   loadDumpPrefs();
@@ -951,6 +953,13 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
        zflow->tcp.ooo_out_pkts, zflow->tcp.retr_out_pkts, zflow->tcp.lost_out_pkts);
   }
 
+#ifdef NTOPNG_PRO
+  if(snmp_stats) {
+    snmp_stats->incStats(zflow->deviceIP, zflow->inIndex,  0, zflow->in_bytes + zflow->out_bytes);
+    snmp_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->in_bytes + zflow->out_bytes, 0);
+  }
+#endif
+  
   flow->addFlowStats(src2dst_direction,
 		     zflow->pkt_sampling_rate*zflow->in_pkts,
 		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,

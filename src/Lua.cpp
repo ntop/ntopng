@@ -369,6 +369,24 @@ static int ntop_get_host_pool_volatile_members(lua_State* vm) {
 
 }
 
+/**
+ * @brief Get the SNMP statistics of interface.
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_interface_get_snmp_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  nDPIStats stats;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface && ntop_interface->getSNMPStats()) {
+    ntop_interface->getSNMPStats()->lua(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
 
 #endif
 
@@ -5583,6 +5601,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
   { "removeVolatileMemberFromPool",   ntop_remove_volatile_member_from_pool },
+  
+  /* SNMP */
+  { "getSNMPStats",                   ntop_interface_get_snmp_stats },
 #endif
 
   /* DB */
