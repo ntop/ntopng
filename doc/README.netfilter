@@ -87,6 +87,6 @@ other distributions.
 NOTE
 ----
 When you send traffic to NFQUEUE if ntopng is NOT running, packets will be
-blocked in the IP stack as they don’t get processed. So make sure ntopng
+blocked in the IP stack as they don't get processed. So make sure ntopng
 is running all the time before using this mechanism.
 
