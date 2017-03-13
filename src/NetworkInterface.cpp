@@ -2922,6 +2922,8 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, AddressTree *all
   // we use the retriever just to leverage on the existing code.
   retriever.allowed_hosts = allowed_hosts, retriever.location = location_all;
   retriever.actNumEntries = 0, retriever.maxNumEntries = getHostsHashSize();
+  retriever.asnFilter = (u_int32_t)-1, retriever.poolFilter = (u_int16_t)-1;
+  retriever.networkFilter = -2;
   retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
