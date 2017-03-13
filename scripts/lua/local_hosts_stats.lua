@@ -22,9 +22,9 @@ local page_params = {}
 
 if isEmptyString(criteria) then
   criteria = "downloaders"
-else
-  page_params["criteria"] = criteria
 end
+
+page_params["criteria"] = criteria
 
 if not isEmptyString(ipversion) then
   page_params["version"] = ipversion
@@ -42,7 +42,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 local url_update_params = table.clone(page_params)
-page_params["mode"] = "local"
+url_update_params["mode"] = "local"
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_hosts_data.lua", url_update_params))
 print ('";')
 
