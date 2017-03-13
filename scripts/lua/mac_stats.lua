@@ -18,24 +18,15 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "devices_stats"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local filter_base_url = ntop.getHttpPrefix() .. "/lua/mac_stats.lua"
-local filter_url_params = {}
-
-function getPageUrl(params, base_url)
-   local base_url = base_url or filter_base_url
-   local params = params or filter_url_params
-   for _,_ in pairs(params) do
-      return base_url .. "?" .. table.tconcat(params, "=", "&")
-   end
-   return base_url
-end
+local base_url = ntop.getHttpPrefix() .. "/lua/mac_stats.lua"
+local page_params = {}
 
 local host_macs_only = false
 local host_macs_only_filter = ""
 
 if(not isEmptyString(_GET["host_macs_only"])) then
    host_macs_only = true
-   filter_url_params["host_macs_only"] = "true"
+   page_params["host_macs_only"] = "true"
    host_macs_only_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
@@ -43,7 +34,7 @@ local manufacturer = nil
 local manufacturer_filter = ""
 if(not isEmptyString(_GET["manufacturer"])) then
    manufacturer = _GET["manufacturer"]
-   filter_url_params["manufacturer"] = manufacturer
+   page_params["manufacturer"] = manufacturer
    manufacturer_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
@@ -53,7 +44,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 
-print(getPageUrl(filter_url_params, ntop.getHttpPrefix().."/lua/get_macs_data.lua"))
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_macs_data.lua", page_params))
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
@@ -89,34 +80,34 @@ print ('sort: [ ["' .. getDefaultTableSort("macs") ..'","' .. getDefaultTableSor
 print('buttons: [')
 
    -- Filter MACS
-   local hosts_macs_params = table.clone(filter_url_params)
+   local hosts_macs_params = table.clone(page_params)
    hosts_macs_params.host_macs_only = nil
    print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs'..host_macs_only_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
-   print(getPageUrl(hosts_macs_params))
+   print(getPageUrl(base_url, hosts_macs_params))
    print('">All Devices</a></li>')
    print('<li')
    if host_macs_only == true then print(' class="active"') end
    print('><a href="')
    hosts_macs_params.host_macs_only = "true"
-   print(getPageUrl(hosts_macs_params))
+   print(getPageUrl(base_url, hosts_macs_params))
    print('">Hosts Only</a></li>')
    print("</div>'")
 
    -- Filter Manufacturers
-   local manufacturer_params = table.clone(filter_url_params)
+   local manufacturer_params = table.clone(page_params)
    manufacturer_params.manufacturer = nil
    print[[, '\
        <div class="btn-group pull-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Manufacturer]] print(manufacturer_filter) print[[<span class="caret"></span></button>\
        <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-          <li><a href="]] print(getPageUrl(manufacturer_params)) print[[">All Manufacturers</a></li>\
+          <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">All Manufacturers</a></li>\
    ]]
 
    for manuf, count in pairsByKeys(interface.getMacManufacturers(), asc) do
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
-      print('><a href="'..getPageUrl(manufacturer_params)..'">'..manuf..' ('..count..')'..'</a></li>')
+      print('><a href="'..getPageUrl(base_url, manufacturer_params)..'">'..manuf..' ('..count..')'..'</a></li>')
    end
    
    print[[

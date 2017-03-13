@@ -211,6 +211,38 @@ end
 
 -- ##############################################
 
+function getPageUrl(base_url, params)
+   for _,_ in pairs(params or {}) do
+      return base_url .. "?" .. table.tconcat(params, "=", "&")
+   end
+
+   return base_url
+end
+
+-- ##############################################
+
+function printIpVersionDropdown(base_url, page_params)
+   local ipversion = _GET["version"]
+   local ipversion_filter
+   if not isEmptyString(ipversion) then
+      ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   else
+      ipversion_filter = ''
+   end
+   local ipversion_params = table.clone(page_params)
+   ipversion_params["version"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">IP Version]] print(ipversion_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, ipversion_params)) print[[">All Versions</a></li>\
+         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">IPv4 Only</a></li>\
+         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">IPv6 Only</a></li>\
+      </ul>]]
+end
+
+-- ##############################################
+
 function shortenString(name)
    max_len = 24
     if(string.len(name) < max_len) then
