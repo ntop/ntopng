@@ -151,9 +151,14 @@ void PeriodicActivities::secondActivitiesLoop() {
 
 /* ******************************************* */
 
-u_int32_t PeriodicActivities::roundTime(u_int32_t now, u_int32_t rounder) {
+u_int32_t PeriodicActivities::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
   now -= (now % rounder);
-  now += rounder;
+  now += rounder; /* Aligned to midnight UTC */
+
+  if(offset_from_utc > 0)
+    now += 86400 - offset_from_utc;
+  else if(offset_from_utc < 0)
+    now += -offset_from_utc;
   
   return(now);
 }
@@ -238,11 +243,10 @@ void PeriodicActivities::dayActivitiesLoop() {
   char script[MAX_PATH];
   u_int32_t next_run = (u_int32_t)time(NULL);
 
-  next_run -= (next_run % 86400);
-  next_run -= ntop->get_time_offset();
-  next_run += 86400;
+  next_run = roundTime(next_run, 86400, ntop->get_time_offset());
+  next_run -= 86400;
 
-  snprintf(script, sizeof(script), "%s/%s",
+    snprintf(script, sizeof(script), "%s/%s",
            ntop->get_callbacks_dir(), DAILY_SCRIPT_PATH);
 
   while(!ntop->getGlobals()->isShutdown()) {
@@ -250,7 +254,7 @@ void PeriodicActivities::dayActivitiesLoop() {
 
     if(now >= next_run) {
       runScript(script, now);
-      next_run = roundTime(now, 86400);
+      next_run = roundTime(now, 86400, ntop->get_time_offset());
     }
 
     sleep(1);
