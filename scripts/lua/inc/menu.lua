@@ -24,7 +24,8 @@ print [[
 
 
 interface.select(ifname)
-ifId = interface.getStats().id
+local ifs = interface.getStats()
+ifId = ifs.id
 
 -- ##############################################
 
@@ -247,13 +248,18 @@ print [[
       <ul class="dropdown-menu">
 ]]
 
-
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Layer 2</a></li>')
+if ifs["has_macs"] == true then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Layer 2</a></li>')
+   if(info["version.enterprise_edition"] == true) then
+      print('<li class="divider"></li>')
+   end
+end
 
 if(info["version.enterprise_edition"] == true) then
-  print('<li class="divider"></li>')
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow</a></li>')
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">SNMP</a></li>')
+   if ifs["type"] == "zmq" then
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow</a></li>')
+   end
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">SNMP</a></li>')
 end
 
 print("</ul> </li>")

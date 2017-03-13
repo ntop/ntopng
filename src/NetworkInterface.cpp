@@ -140,7 +140,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
-    cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
+    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
@@ -720,6 +720,9 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
   Flow *ret;
 
   if(vlan_id != 0) setSeenVlanTaggedPackets();
+  if((src_eth && Utils::macHash(src_eth) != 0)
+     || (dst_eth && Utils::macHash(dst_eth) != 0))
+    setSeenMacAddresses();
 
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, l4_proto, src2dst_direction);
@@ -1879,7 +1882,7 @@ void NetworkInterface::shutdown() {
 
 void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
-  cpu_affinity = -1, has_vlan_packets = false;
+  cpu_affinity = -1, has_vlan_packets = false, has_mac_addresses = false;
   running = false, sprobe_interface = false, inline_interface = false;
 
   getStats()->cleanup();
@@ -3597,7 +3600,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
-  lua_push_bool_table_entry(vm, "vlan",   get_has_vlan_packets());
+  lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
+  lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
 
   if(remoteIfname)      lua_push_str_table_entry(vm, "remote.name",    remoteIfname);
   if(remoteIfIPaddr)    lua_push_str_table_entry(vm, "remote.if_addr", remoteIfIPaddr);
