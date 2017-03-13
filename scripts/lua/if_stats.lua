@@ -22,7 +22,7 @@ require "prefs_utils"
 require "graph_utils"
 require "alert_utils"
 require "db_utils"
-tprint(ntop.getPrefs())
+
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
@@ -286,9 +286,9 @@ end
 
 if(hasSnmpDevices(ifstats.id) and is_packet_interface) then
    if(page == "snmp_bind") then
-      print("\n<li class=\"active\"><a href=\"#\">SNMP Bind</li>")
+      print("\n<li class=\"active\"><a href=\"#\">SNMP</li>")
    else
-      print("\n<li><a href=\""..url.."&page=snmp_bind\">SNMP Bind</a></li>")
+      print("\n<li><a href=\""..url.."&page=snmp_bind\">SNMP</a></li>")
    end
 end
 
@@ -976,14 +976,14 @@ elseif(page == "snmp_bind") then
    local snmp_devices = get_snmp_devices(ifstats.id)
 
    print[[
-<form id="snmp_bind_form" method="post" style="margin-bottom:5em;">
+<form id="snmp_bind_form" method="post" style="margin-bottom:3em;">
    <table class="table table-bordered table-striped">]]
 
    print[[
       <tr>
          <th>SNMP Device</th>
          <td>
-            <select class="form-control" style="width:30em;" id="snmp_bind_device" name="ip">
+            <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
                <option]] if isEmptyString(snmp_host) then print(" selected") end print[[ value="">Not Bound</option>
          ]]
 
@@ -997,6 +997,13 @@ elseif(page == "snmp_bind") then
 
    print[[
             </select>
+            <a class="btn" id="snmp_device_link" style="padding:0.2em; margin-left:0.3em;" href="#"]]
+
+   if isEmptyString(snmp_host) then
+      print(" disabled")
+   end
+
+   print[[>View Device</i></a>
          </td>
       </tr>
       <tr>
@@ -1019,6 +1026,9 @@ elseif(page == "snmp_bind") then
    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
+
+<b>NOTE:</b><br>
+<small>]] print(i18n("snmp.bound_interface_description")) print[[</small>
 
 <script>
    var snmp_bind_port_ajax = null;
@@ -1060,13 +1070,15 @@ elseif(page == "snmp_bind") then
 
       if (selected_device) {
          snmp_set_loading_status(true);
+         $("#snmp_device_link").removeAttr("disabled");
+         $("#snmp_device_link").attr("href", "]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/snmp_device_info.lua?ip=" + selected_device);
 
          snmp_bind_port_ajax = $.ajax({
           type: 'GET',
           url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/pro/enterprise/get_snmp_device_info.lua',
-          data: { ifid: ]] print(ifstats.id) print[[, ip: selected_device },
+          data: { ifid: ]] print(ifstats.id) print[[, ip: selected_device, iftype_filter:'snmp_binding' },
           success: function(rsp) {
             if (rsp.interfaces) {
                for (var ifidx in rsp.interfaces) {
@@ -1084,6 +1096,7 @@ elseif(page == "snmp_bind") then
         });
       } else {
          snmp_set_loading_status(false);
+         $("#snmp_device_link").attr("disabled", "disabled");
          snmp_check_snmp_list();
       }
    }
