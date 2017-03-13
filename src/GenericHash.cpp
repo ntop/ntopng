@@ -25,6 +25,8 @@
 
 GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) {
   num_hashes = _num_hashes, max_hash_size = _max_hash_size, current_size = 0;
+  purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
+  
   iface = _iface;
   table = new GenericHashEntry*[num_hashes];
   for(u_int i = 0; i < num_hashes; i++)
@@ -177,7 +179,7 @@ bool GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), voi
  */
 
 u_int GenericHash::purgeIdle() {
-  u_int i, num_purged = 0, step = max_val(num_hashes / PURGE_FRACTION, 1);
+  u_int i, num_purged = 0;
 
   if(ntop->getGlobals()->isShutdown()
      || purgeLock.is_locked())
@@ -185,7 +187,7 @@ u_int GenericHash::purgeIdle() {
 
   disablePurge();
 
-  for(u_int j = 0; j < step; j++) {
+  for(u_int j = 0; j < purge_step; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 

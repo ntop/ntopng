@@ -45,7 +45,8 @@ class GenericHash {
   Mutex **locks, purgeLock;
   NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
   u_int last_purged_hash; /**< Index of last purged hash.*/
-
+  u_int purge_step;
+  
  public:
   /**
    * @brief A Constructor

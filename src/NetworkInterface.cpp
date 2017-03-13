@@ -1061,12 +1061,19 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     NetworkInterface *vIface;
 
     if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
-      setTimeLastPktRcvd(h->ts.tv_sec);
-      vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
-      return(vIface->processPacket(when, time, eth, vlan_id,
-				   iph, ip6, ipsize, rawsize,
-				   h, packet, ndpiProtocol,
-				   srcHost, dstHost, hostFlow));
+      bool ret;
+
+      vIface->setTimeLastPktRcvd(h->ts.tv_sec);
+      ret = vIface->processPacket(when, time, eth, vlan_id,
+				  iph, ip6, ipsize, rawsize,
+				  h, packet, ndpiProtocol,
+				  srcHost, dstHost, hostFlow);
+      vIface->purgeIdle(h->ts.tv_sec);
+
+      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+
+      return(ret);
     }
   }
 

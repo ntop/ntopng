@@ -59,7 +59,7 @@ class NetworkInterface {
   char *ifname; /**< Network interface name. */
   const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
-  u_int8_t alertLevel;
+  u_int8_t alertLevel, purgeRuns;
 
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
