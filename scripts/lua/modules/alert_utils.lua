@@ -8,10 +8,10 @@
 local verbose = false
 
 alerts_granularity = {
-    { "min", "Every Minute", 60 },
-    { "5mins", "Every 5 Minutes", 300 },
-    { "hour", "Hourly", 3600 },
-    { "day", "Daily", 86400 }
+   { "min", "Every Minute", 60 },
+   { "5mins", "Every 5 Minutes", 300 },
+   { "hour", "Hourly", 3600 },
+   { "day", "Daily", 86400 }
 }
 
 alarmable_metrics = {'bytes', 'dns', 'idle', 'packets', 'p2p', 'throughput', 'ingress', 'egress', 'inner'}
@@ -21,49 +21,49 @@ default_re_arm_minutes = 1
 -- ##############################################################################
 
 function bytes(old, new, interval)
-    -- io.write(debug.traceback().."\n")
-    if(verbose) then print("bytes("..interval..")") end
-    
-    if(new["sent"] ~= nil) then
-        -- Host
-        return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
-    else
-       -- Interface
-        return(new.stats.bytes - old.stats.bytes)
-    end
+   -- io.write(debug.traceback().."\n")
+   if(verbose) then print("bytes("..interval..")") end
+
+   if(new["sent"] ~= nil) then
+      -- Host
+      return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
+   else
+      -- Interface
+      return(new.stats.bytes - old.stats.bytes)
+   end
 end
 
 function packets(old, new, interval)
-    if(verbose) then print("packets("..interval..")") end
-    if(new["sent"] ~= nil) then
-        -- Host
-        return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
-    else
-        -- Interface
-        return(new.stats.packets - old.stats.packets)
-    end
+   if(verbose) then print("packets("..interval..")") end
+   if(new["sent"] ~= nil) then
+      -- Host
+      return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
+   else
+      -- Interface
+      return(new.stats.packets - old.stats.packets)
+   end
 end
 
 function idle(old, new, interval)
-      if(verbose) then print("idle("..interval..")") end
-      local diff = os.time()-new["seen.last"]
-      return(diff)
+   if(verbose) then print("idle("..interval..")") end
+   local diff = os.time()-new["seen.last"]
+   return(diff)
 end
 
 function dns(old, new, interval)
-    if(verbose) then print("dns("..interval..")") end
-    return(proto_bytes(old, new, "DNS"))
+   if(verbose) then print("dns("..interval..")") end
+   return(proto_bytes(old, new, "DNS"))
 end
 
 function p2p(old, new, interval)
-    if(verbose) then print("p2p("..interval..")") end
-    return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype"))
+   if(verbose) then print("p2p("..interval..")") end
+   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype"))
 end
 
 function throughput(old, new, interval)
-    if(verbose) then print("throughput("..interval..")") end
+   if(verbose) then print("throughput("..interval..")") end
 
-    return((bytes(old, new, interval) * 8)/ (interval*1000000))
+   return((bytes(old, new, interval) * 8)/ (interval*1000000))
 end
 
 -- ##############################################################################
@@ -131,21 +131,21 @@ function get_re_arm_alerts_temporary_key(ifname, alarmed_source, alarmed_metric)
 end
 
 function ndpival_bytes(json, protoname)
-    key = "ndpiStats"
+   key = "ndpiStats"
 
-    -- Host
-    if((json[key] == nil) or (json[key][protoname] == nil)) then
-        if(verbose) then print("## ("..protoname..") Empty<br>\n") end
-        return(0)
-    else
-        local v = json[key][protoname]["bytes"]["sent"]+json[key][protoname]["bytes"]["rcvd"]
-        if(verbose) then print("##  ("..protoname..") "..v.."<br>\n") end
-        return(v)
-    end
+   -- Host
+   if((json[key] == nil) or (json[key][protoname] == nil)) then
+      if(verbose) then print("## ("..protoname..") Empty<br>\n") end
+      return(0)
+   else
+      local v = json[key][protoname]["bytes"]["sent"]+json[key][protoname]["bytes"]["rcvd"]
+      if(verbose) then print("##  ("..protoname..") "..v.."<br>\n") end
+      return(v)
+   end
 end
 
 function proto_bytes(old, new, protoname)
-    return(ndpival_bytes(new, protoname)-ndpival_bytes(old, protoname))
+   return(ndpival_bytes(new, protoname)-ndpival_bytes(old, protoname))
 end
 -- =====================================================
 
@@ -157,9 +157,9 @@ end
 function are_alerts_suppressed(observed, ifname)
    local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), observed)
    --[[
-   tprint("are_alerts_suppressed ".. suppressAlerts)
-   tprint("are_alerts_suppressed observed: ".. observed)
-   tprint("are_alerts_suppressed ifname: "..ifname)
+      tprint("are_alerts_suppressed ".. suppressAlerts)
+      tprint("are_alerts_suppressed observed: ".. observed)
+      tprint("are_alerts_suppressed ifname: "..ifname)
    --]]
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       return false  -- alerts are not suppressed
@@ -200,10 +200,10 @@ end
 -- #################################################################
 
 function delete_re_arming_alerts(alert_source, ifid)
-     for k2, alarmed_metric in pairs(alarmable_metrics) do
-	 local re_arm_key = get_re_arm_alerts_temporary_key(ifid, alert_source, alarmed_metric)
-	 ntop.delCache(re_arm_key)
-     end
+   for k2, alarmed_metric in pairs(alarmable_metrics) do
+      local re_arm_key = get_re_arm_alerts_temporary_key(ifid, alert_source, alarmed_metric)
+      ntop.delCache(re_arm_key)
+   end
 end
 
 function delete_alert_configuration(alert_source, ifname)
@@ -225,10 +225,10 @@ function delete_alert_configuration(alert_source, ifname)
 	    if string.match(alert_source, "@") then
 	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	       is_host = true
-	    -- check if this is a subnet
+	       -- check if this is a subnet
 	    elseif string.match(alert_source, "/") then
 	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    -- finally assume it's an interface alert
+	       -- finally assume it's an interface alert
 	    else
 	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
@@ -301,247 +301,247 @@ end
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
    if(verbose) then
-        print("check_host_alert("..ifname..", "..hostname..", "..mode..", "..key..")<br>\n")
+      print("check_host_alert("..ifname..", "..hostname..", "..mode..", "..key..")<br>\n")
 
-        print("<p>--------------------------------------------<p>\n")
-        print("NEW<br>"..new_json.."<br>\n")
-        print("<p>--------------------------------------------<p>\n")
-        print("OLD<br>"..old_json.."<br>\n")
-        print("<p>--------------------------------------------<p>\n")
-    end
+      print("<p>--------------------------------------------<p>\n")
+      print("NEW<br>"..new_json.."<br>\n")
+      print("<p>--------------------------------------------<p>\n")
+      print("OLD<br>"..old_json.."<br>\n")
+      print("<p>--------------------------------------------<p>\n")
+   end
 
    local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local alert_status     -- to be set later
 
-    old = j.decode(old_json, 1, nil)
-    new = j.decode(new_json, 1, nil)
+   old = j.decode(old_json, 1, nil)
+   new = j.decode(new_json, 1, nil)
 
-    -- str = "bytes;>;123,packets;>;12"
-    hkey = get_alerts_hash_name(mode, ifname)
-    str = ntop.getHashCache(hkey, hostname)
-    duration = granularity2sec(mode)
-    
-    -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
-    if((str ~= nil) and (str ~= "")) then
-        tokens = split(str, ",")
+   -- str = "bytes;>;123,packets;>;12"
+   hkey = get_alerts_hash_name(mode, ifname)
+   str = ntop.getHashCache(hkey, hostname)
+   duration = granularity2sec(mode)
 
-        for _,s in pairs(tokens) do
-            -- if(verbose) then ("<b>"..s.."</b><br>\n") end
-            t = string.split(s, ";")
+   -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
+   if((str ~= nil) and (str ~= "")) then
+      tokens = split(str, ",")
 
-            if(t[2] == "gt") then
-                op = ">"
-            else
-                if(t[2] == "lt") then
-                    op = "<"
-                else
-                    op = "=="
-                end
-            end
+      for _,s in pairs(tokens) do
+	 -- if(verbose) then ("<b>"..s.."</b><br>\n") end
+	 t = string.split(s, ";")
 
-	    -- This is where magic happens: loadstring() evaluates the string
-            local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
-            local f = loadstring(what)
-            local rc = f()
-	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
+	 if(t[2] == "gt") then
+	    op = ">"
+	 else
+	    if(t[2] == "lt") then
+	       op = "<"
+	    else
+	       op = "=="
+	    end
+	 end
 
-            if(rc) then
-	       alert_status = 1 -- alert on
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."'>"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	 -- This is where magic happens: loadstring() evaluates the string
+	 local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
+	 local f = loadstring(what)
+	 local rc = f()
+	 local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
-	       -- only if the alert is not in its re-arming period...
-	       if not is_alert_re_arming(key, t[1], ifname) then
-		  if verbose then io.write("queuing alert\n") end
-		  -- re-arm the alert
-		  re_arm_alert(key, t[1], ifname)
-		  -- and send it to ntopng
-		  interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
-		  if ntop.isPro() then
-		     -- possibly send the alert to nagios as well
-		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					  mode, t[1], alert_msg)
-		  end
-	       else
-		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
+	 if(rc) then
+	    alert_status = 1 -- alert on
+	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."'>"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
+
+	    -- only if the alert is not in its re-arming period...
+	    if not is_alert_re_arming(key, t[1], ifname) then
+	       if verbose then io.write("queuing alert\n") end
+	       -- re-arm the alert
+	       re_arm_alert(key, t[1], ifname)
+	       -- and send it to ntopng
+	       interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
+	       if ntop.isPro() then
+		  -- possibly send the alert to nagios as well
+		  ntop.sendNagiosAlert(string.gsub(key, "@0", ""), --[[ vlan 0 is implicit for hosts --]]
+				       mode, t[1], alert_msg)
 	       end
-	       if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-            else  -- alert has not been triggered
-	       alert_status = 2 -- alert off
-	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-	       if not is_alert_re_arming(key, t[1], ifname) then
-		  interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
-		  if ntop.isPro() then
-		     ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					      mode, t[1], "service OK")
-		  end
-                end
-            end
-        end
-    end
+	    else
+	       if verbose then io.write("alarm silenced, re-arm in progress\n") end
+	    end
+	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
+	 else  -- alert has not been triggered
+	    alert_status = 2 -- alert off
+	    if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+	    if not is_alert_re_arming(key, t[1], ifname) then
+	       interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
+	       if ntop.isPro() then
+		  ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					   mode, t[1], "service OK")
+	       end
+	    end
+	 end
+      end
+   end
 end
 
 function check_network_alert(ifname, network_name, mode, key, old_table, new_table)
    if(verbose) then
-        io.write("check_network_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
-        io.write("new:\n")
-        tprint(new_table)
-        io.write("old:\n")
-        tprint(old_table)
-    end
+      io.write("check_network_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
+      io.write("new:\n")
+      tprint(new_table)
+      io.write("old:\n")
+      tprint(old_table)
+   end
 
    local alert_level = 2 -- alert_level_error
    local alert_status = 1 -- alert_on
    local alert_type = 2 -- alert_threshold_exceeded
 
-    deltas = {}
-    local delta_names = {'ingress', 'egress', 'inner'}
-    for i = 1, 3 do
-        local delta_name = delta_names[i]
-        deltas[delta_name] = 0
-        if old_table[delta_name] and new_table[delta_name] then
-            deltas[delta_name] = new_table[delta_name] - old_table[delta_name]
-        end
-    end
-    -- str = "bytes;>;123,packets;>;12"
-    hkey = get_alerts_hash_name(mode, ifname)
+   deltas = {}
+   local delta_names = {'ingress', 'egress', 'inner'}
+   for i = 1, 3 do
+      local delta_name = delta_names[i]
+      deltas[delta_name] = 0
+      if old_table[delta_name] and new_table[delta_name] then
+	 deltas[delta_name] = new_table[delta_name] - old_table[delta_name]
+      end
+   end
+   -- str = "bytes;>;123,packets;>;12"
+   hkey = get_alerts_hash_name(mode, ifname)
 
-    local str = ntop.getHashCache(hkey, network_name)
+   local str = ntop.getHashCache(hkey, network_name)
 
-    -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
-    if((str ~= nil) and (str ~= "")) then
-        local tokens = split(str, ",")
+   -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
+   if((str ~= nil) and (str ~= "")) then
+      local tokens = split(str, ",")
 
-        for _,s in pairs(tokens) do
-            -- if(verbose) then ("<b>"..s.."</b><br>\n") end
-            local t = string.split(s, ";")
+      for _,s in pairs(tokens) do
+	 -- if(verbose) then ("<b>"..s.."</b><br>\n") end
+	 local t = string.split(s, ";")
 
-            if(t[2] == "gt") then
-                op = ">"
-            else
-                if(t[2] == "lt") then
-                    op = "<"
-                else
-                    op = "=="
-                end
-            end
+	 if(t[2] == "gt") then
+	    op = ">"
+	 else
+	    if(t[2] == "lt") then
+	       op = "<"
+	    else
+	       op = "=="
+	    end
+	 end
 
-	    -- This is where magic happens: loadstring() evaluates the string
-            local what = "val = deltas['"..t[1].."']; if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
-            local f = loadstring(what)
-            local rc = f()
+	 -- This is where magic happens: loadstring() evaluates the string
+	 local what = "val = deltas['"..t[1].."']; if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
+	 local f = loadstring(what)
+	 local rc = f()
 
-	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
-            if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical'>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	 local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
+	 if(rc) then
+	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical'>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
-                if not is_alert_re_arming(network_name, t[1], ifname) then
-                    if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(network_name, t[1], ifname)
-		    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
-                    if ntop.isPro() then
-                        -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
-                    end
-                else
-                    if verbose then io.write("alarm silenced, re-arm in progress\n") end
-                end
-                if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-            else
-                if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if not is_alert_re_arming(network_name, t[1], ifname) then
-		   interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
-		   if ntop.isPro() then
-		      ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
-		   end
-                end
-            end
-        end
-    end
+	    if not is_alert_re_arming(network_name, t[1], ifname) then
+	       if verbose then io.write("queuing alert\n") end
+	       re_arm_alert(network_name, t[1], ifname)
+	       interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
+	       if ntop.isPro() then
+		  -- possibly send the alert to nagios as well
+		  ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+	       end
+	    else
+	       if verbose then io.write("alarm silenced, re-arm in progress\n") end
+	    end
+	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
+	 else
+	    if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+	    if not is_alert_re_arming(network_name, t[1], ifname) then
+	       interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+	       if ntop.isPro() then
+		  ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
+	       end
+	    end
+	 end
+      end
+   end
 end
 
 -- #################################
 
 function check_interface_alert(ifname, mode, old_table, new_table)
    local ifname_clean = "iface_"..tostring(getInterfaceId(ifname))
-    if(verbose) then
-        print("check_interface_alert("..ifname..", "..mode..")<br>\n")
-    end
+   if(verbose) then
+      print("check_interface_alert("..ifname..", "..mode..")<br>\n")
+   end
 
-    local alert_level  = 2 -- alert_level_error
-    local alert_status = 1 -- alert_on
-    local alert_type   = 2 -- alert_threshold_exceeded
+   local alert_level  = 2 -- alert_level_error
+   local alert_status = 1 -- alert_on
+   local alert_type   = 2 -- alert_threshold_exceeded
 
-    -- Needed because Lua. loadstring() won't work otherwise.
-    old = old_table
-    new = new_table
+   -- Needed because Lua. loadstring() won't work otherwise.
+   old = old_table
+   new = new_table
 
-    -- str = "bytes;>;123,packets;>;12"
-    hkey = get_alerts_hash_name(mode, ifname)
-    duration = granularity2sec(mode)
-    str = ntop.getHashCache(hkey, ifname_clean)
+   -- str = "bytes;>;123,packets;>;12"
+   hkey = get_alerts_hash_name(mode, ifname)
+   duration = granularity2sec(mode)
+   str = ntop.getHashCache(hkey, ifname_clean)
 
-    -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
-    if((str ~= nil) and (str ~= "")) then
-        tokens = split(str, ",")
+   -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
+   if((str ~= nil) and (str ~= "")) then
+      tokens = split(str, ",")
 
-        for _,s in pairs(tokens) do
-            -- if(verbose) then ("<b>"..s.."</b><br>\n") end
-            t = string.split(s, ";")
+      for _,s in pairs(tokens) do
+	 -- if(verbose) then ("<b>"..s.."</b><br>\n") end
+	 t = string.split(s, ";")
 
-            if(t[2] == "gt") then
-                op = ">"
-            else
-                if(t[2] == "lt") then
-                    op = "<"
-                else
-                    op = "=="
-                end
-            end
+	 if(t[2] == "gt") then
+	    op = ">"
+	 else
+	    if(t[2] == "lt") then
+	       op = "<"
+	    else
+	       op = "=="
+	    end
+	 end
 
-	    -- This is where magic happens: loadstring() evaluates the string
-            local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
-            local f = loadstring(what)
-            local rc = f()
-	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
+	 -- This is where magic happens: loadstring() evaluates the string
+	 local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
+	 local f = loadstring(what)
+	 local rc = f()
+	 local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
-            if(rc) then
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
-                "'>"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	 if(rc) then
+	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
+	       "'>"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
-                if not is_alert_re_arming(ifname_clean, t[1], ifname) then
-                    if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(ifname_clean, t[1], ifname)
-		    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
-                    if ntop.isPro() then
-                        -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
-                    end
-                else
-                    if verbose then io.write("alarm silenced, re-arm in progress\n") end
-                end
+	    if not is_alert_re_arming(ifname_clean, t[1], ifname) then
+	       if verbose then io.write("queuing alert\n") end
+	       re_arm_alert(ifname_clean, t[1], ifname)
+	       interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
+	       if ntop.isPro() then
+		  -- possibly send the alert to nagios as well
+		  ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+	       end
+	    else
+	       if verbose then io.write("alarm silenced, re-arm in progress\n") end
+	    end
 
-                if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-            else
-                if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if not is_alert_re_arming(ifname_clean, t[1], ifname) then
-		   interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
-		   if ntop.isPro() then
-		      ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
-		   end
-                end
-            end
-        end
-    end
+	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
+	 else
+	    if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+	    if not is_alert_re_arming(ifname_clean, t[1], ifname) then
+	       interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+	       if ntop.isPro() then
+		  ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
+	       end
+	    end
+	 end
+      end
+   end
 end
 
 -- #################################
 
 function granularity2sec(g)
    for _, granularity in pairs(alerts_granularity) do
-       if(granularity[1] == g) then
-       	   return(granularity[3])
-       end
+      if(granularity[1] == g) then
+	 return(granularity[3])
+      end
    end
 
    return(0)
@@ -550,33 +550,33 @@ end
 -- #################################
 
 function check_interface_threshold(ifname, mode)
-    interface.select(ifname)
-    local ifstats = interface.getStats()
-    ifname_id = ifstats.id
+   interface.select(ifname)
+   local ifstats = interface.getStats()
+   ifname_id = ifstats.id
 
-    if are_alerts_suppressed("iface_"..ifname_id, ifname) then return end
+   if are_alerts_suppressed("iface_"..ifname_id, ifname) then return end
 
-    if(verbose) then print("check_interface_threshold(ifaceId="..ifname_id..", timePeriod="..mode..")<br>\n") end
-    basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
-    if(not(ntop.exists(basedir))) then
-        ntop.mkdir(basedir)
-    end
+   if(verbose) then print("check_interface_threshold(ifaceId="..ifname_id..", timePeriod="..mode..")<br>\n") end
+   basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
+   if(not(ntop.exists(basedir))) then
+      ntop.mkdir(basedir)
+   end
 
-    if (ifstats ~= nil) then
-        fname = fixPath(basedir.."/iface_"..ifname_id.."_lastdump")
+   if (ifstats ~= nil) then
+      fname = fixPath(basedir.."/iface_"..ifname_id.."_lastdump")
 
-        if(verbose) then print(fname.."<p>\n") end
-        if (ntop.exists(fname)) then
-            -- Read old version
-	   old_dump = persistence.load(fname)
-            if old_dump ~= nil and old_dump.stats ~= nil then
-                check_interface_alert(ifname, mode, old_dump, ifstats)
-            end
-        end
+      if(verbose) then print(fname.."<p>\n") end
+      if (ntop.exists(fname)) then
+	 -- Read old version
+	 old_dump = persistence.load(fname)
+	 if old_dump ~= nil and old_dump.stats ~= nil then
+	    check_interface_alert(ifname, mode, old_dump, ifstats)
+	 end
+      end
 
-        -- Write new version
-        persistence.store(fname, ifstats)
-    end
+      -- Write new version
+      persistence.store(fname, ifstats)
+   end
 end
 
 
@@ -618,45 +618,45 @@ end
 -- #################################
 
 function check_host_threshold(ifname, host_ip, mode)
-    interface.select(ifname)
-    local ifstats = interface.getStats()
-    ifname_id = ifstats.id
-    local host_ip_fsname = host_ip
+   interface.select(ifname)
+   local ifstats = interface.getStats()
+   ifname_id = ifstats.id
+   local host_ip_fsname = host_ip
 
-    if are_alerts_suppressed(host_ip, ifname) then return end
+   if are_alerts_suppressed(host_ip, ifname) then return end
 
-    if string.ends(host_ip, "@0") then
-       host_ip_fsname = string.split(host_ip, "@")
-       host_ip_fsname = host_ip_fsname[1]
-    end
-    
-    if(verbose) then print("check_host_threshold("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
-    basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
-    if(not(ntop.exists(basedir))) then
-        ntop.mkdir(basedir)
-    end
+   if string.ends(host_ip, "@0") then
+      host_ip_fsname = string.split(host_ip, "@")
+      host_ip_fsname = host_ip_fsname[1]
+   end
 
-    json = interface.getHostInfo(host_ip)
+   if(verbose) then print("check_host_threshold("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
+   basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
+   if(not(ntop.exists(basedir))) then
+      ntop.mkdir(basedir)
+   end
 
-    if(json ~= nil) then
-        fname = fixPath(basedir.."/".. host_ip_fsname ..".json")
-        if(verbose) then print(fname.."<p>\n") end
-        -- Read old version
-        f = io.open(fname, "r")
-        if(f ~= nil) then
-            old_json = f:read("*all")
-            f:close()
-            check_host_alert(ifname, host_ip, mode, host_ip, old_json, json["json"])
-        end
+   json = interface.getHostInfo(host_ip)
 
-        -- Write new version
-        f = io.open(fname, "w")
+   if(json ~= nil) then
+      fname = fixPath(basedir.."/".. host_ip_fsname ..".json")
+      if(verbose) then print(fname.."<p>\n") end
+      -- Read old version
+      f = io.open(fname, "r")
+      if(f ~= nil) then
+	 old_json = f:read("*all")
+	 f:close()
+	 check_host_alert(ifname, host_ip, mode, host_ip, old_json, json["json"])
+      end
 
-        if(f ~= nil) then
-            f:write(json["json"])
-            f:close()
-        end
-    end
+      -- Write new version
+      f = io.open(fname, "w")
+
+      if(f ~= nil) then
+	 f:write(json["json"])
+	 f:close()
+      end
+   end
 end
 
 -- #################################
@@ -744,9 +744,9 @@ function performAlertsQuery(statement, what, opts)
       wargs[#wargs+1] = "AND alert_severity = "..(opts.alert_severity)
    end
 
-   if((not isEmptyString(opts.sortColumn)) and (not isEmptyString(opts.sortOrder))) then      
+   if((not isEmptyString(opts.sortColumn)) and (not isEmptyString(opts.sortOrder))) then
       local order_by
-      
+
       if opts.sortColumn == "column_date" then
          order_by = "alert_tstamp"
       elseif opts.sortColumn == "column_severity" then
@@ -803,10 +803,10 @@ end
 -- #################################
 function refreshHostsEngagedAlertsCounters(host_vlan)
    local hosts
-   
+
    if isEmptyString(host_vlan) == false then
       hosts[host_vlan:gsub("@0","")] = {updated = false}
-   else 
+   else
       hosts = interface.getHostsInfo(false --[[ no details --]])
       hosts = hosts["hosts"]
    end
@@ -975,16 +975,16 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
    if active_entry ~= nil and active_entry ~= "" then
       button_label = firstToUpper(active_entry)..'<span class="glyphicon glyphicon-filter"></span>'
    end
-   
+
    buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
-      buttons = buttons..'<span class="caret"></span></button>'
-   
+   buttons = buttons..'<span class="caret"></span></button>'
+
    buttons = buttons..'<ul class="dropdown-menu dropdown-menu-right" role="menu">'
 
    local class_active = ""
    if active_entry == nil then class_active = ' class="active"' end
    buttons = buttons..'<li'..class_active..'><a href="?status='..status..'">All</a></i>'
-   
+
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
       local count = entry["count"]
@@ -999,7 +999,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
    end
 
    buttons = buttons..'</ul></div>'
-   
+
    return buttons
 end
 
@@ -1189,15 +1189,15 @@ function drawAlertSettings(alert_source, alert_val)
    print [[
          <tr><th>]] print(alert_source.title) print[[ Alerts</th><td nowrap>
          <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print[[<input type="hidden" name="tab" value="alerts_preferences">]]
-      print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for '.. alert_source.label ..'</input>')
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('</form>')
-      print('</td>')
-      print [[</tr>]]
+   print[[<input type="hidden" name="tab" value="alerts_preferences">]]
+   print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for '.. alert_source.label ..'</input>')
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print('</form>')
+   print('</td>')
+   print [[</tr>]]
 
    print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
          <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
          <td>
             <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
@@ -1220,44 +1220,44 @@ function drawAlertSettings(alert_source, alert_val)
    <small>
        Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
    </small>]]
-     print[[
+	 print[[
        </td></tr>
           ]]
 
-          print("<tr><th width=250>" .. alert_source.title .. " SYN Alert Threshold</th>\n")
-         print [[<td>]]
-         print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-            print(tostring(syn_alert_thresh))
-            print [["></input>
+      print("<tr><th width=250>" .. alert_source.title .. " SYN Alert Threshold</th>\n")
+      print [[<td>]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
+      print(tostring(syn_alert_thresh))
+      print [["></input>
          &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
        </form>
    <small>
        Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
    </small>]]
-     print[[
+	 print[[
        </td></tr>
           ]]
 
-          print("<tr><th width=250>" .. alert_source.title .. " Flows Threshold</th>\n")
-         print [[<td>]]
-         print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-            print(tostring(flows_alert_thresh))
-            print [["></input>
+      print("<tr><th width=250>" .. alert_source.title .. " Flows Threshold</th>\n")
+      print [[<td>]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
+      print(tostring(flows_alert_thresh))
+      print [["></input>
          &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
        </form>
    <small>
        Max number of flows over which a host is considered a flooder. Default: 32768.<br>
    </small>]]
-     print[[
+	 print[[
        </td></tr>
           ]]
    end
 
-    print("</table>")
+   print("</table>")
 end
 
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
@@ -1289,7 +1289,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    if(show_entity) then
       -- possibly process pending delete arguments
       checkDeleteStoredAlerts()
-      
+
       -- possibly add a tab if there are alerts configured for the host
       num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
       num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
@@ -1337,20 +1337,20 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          alerts = nil
       else
          for k,_ in pairs(descr) do
-       value    = _POST["value_"..k]
-       operator = _POST["operator_"..k]
+	    value    = _POST["value_"..k]
+	    operator = _POST["operator_"..k]
 
-       if((value ~= nil) and (operator ~= nil)) then
-          --io.write("\t"..k.."\n")
-          to_save = true
-          value = tonumber(value)
-          if(value ~= nil) then
-            if(alerts ~= "") then alerts = alerts .. "," end
-            alerts = alerts .. k .. ";" .. operator .. ";" .. value
-          else
-            if ntop.isPro() then ntop.withdrawNagiosAlert(alert_source, tab, k, "alarm not installed") end
-          end
-       end
+	    if((value ~= nil) and (operator ~= nil)) then
+	       --io.write("\t"..k.."\n")
+	       to_save = true
+	       value = tonumber(value)
+	       if(value ~= nil) then
+		  if(alerts ~= "") then alerts = alerts .. "," end
+		  alerts = alerts .. k .. ";" .. operator .. ";" .. value
+	       else
+		  if ntop.isPro() then ntop.withdrawNagiosAlert(alert_source, tab, k, "alarm not installed") end
+	       end
+	    end
          end
 
          --print(alerts)
@@ -1374,11 +1374,11 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
          --print(tokens)
          if(tokens ~= nil) then
-       for _,s in pairs(tokens) do
-          t = string.split(s, ";")
-          --print("-"..t[1].."-")
-          if(t ~= nil) then vals[t[1]] = { t[2], t[3] } end
-       end
+	    for _,s in pairs(tokens) do
+	       t = string.split(s, ";")
+	       --print("-"..t[1].."-")
+	       if(t ~= nil) then vals[t[1]] = { t[2], t[3] } end
+	    end
          end
       end
 
@@ -1485,7 +1485,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
    local url_params = {}
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
 
-   print [[
+      print [[
      <div align=right><i id="PageRefresh" class="fa fa-refresh" aria-hidden="true"></i></div>
 
         <script type="text/javascript">
@@ -1494,21 +1494,21 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
             });
         </script>
 ]]
-   
 
-   if not alt_nav_tabs then
-   print[[
+
+      if not alt_nav_tabs then
+	 print[[
 <br>
 <ul class="nav nav-tabs" role="tablist" id="alert-tabs">
 <!-- will be populated later with javascript -->
 </ul>
 ]]
-   nav_tab_id = "alert-tabs"
-else
-   nav_tab_id = alt_nav_tabs
-end
+	 nav_tab_id = "alert-tabs"
+      else
+	 nav_tab_id = alt_nav_tabs
+      end
 
-print[[
+      print[[
 <script>
 
 function checkAlertActionsPanel() {
@@ -1550,8 +1550,8 @@ function getActiveTabId() {
 function updateDeleteLabel(tabid) {
    var label = $("#purgeBtnLabel");
    var prefix = "]]
-if not isEmptyString(_GET["entity"]) then print(alertEntityLabel(_GET["entity"], true).." ") end
-print [[";
+      if not isEmptyString(_GET["entity"]) then print(alertEntityLabel(_GET["entity"], true).." ") end
+      print [[";
    var val = "";
 
    if (tabid == "tab-table-engaged-alerts")
@@ -1560,7 +1560,7 @@ print [[";
       val = "Past ";
    else if (tabid == "tab-table-flow-alerts-history")
       val = "Past Flow ";
-   
+
    label.html(prefix + val);
 }
 
@@ -1584,38 +1584,38 @@ function getCurrentStatus() {
 }
 </script>
 ]]
-   if not alt_nav_tabs then print [[<div class="tab-content">]] end
+      if not alt_nav_tabs then print [[<div class="tab-content">]] end
 
-   local status = _GET["status"]
-   local status_reset = 0
+      local status = _GET["status"]
+      local status_reset = 0
 
-   if num_engaged_alerts > 0 then
-      alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
-	 ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
-   elseif status == "engaged" then
-      status = nil; status_reset = 1
-   end
-
-   if num_past_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
-	 ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
-   elseif status == "historical" then
-      status = nil; status_reset = 1
-   end
-
-   if num_flow_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.flow_alerts"),
-	 ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
-   elseif status == "historical-flows" then
-      status = nil; status_reset = 1
-   end
-
-   for k, t in ipairs(alert_items) do
-      local clicked = "0"
-      if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
-	 clicked = "1"
+      if num_engaged_alerts > 0 then
+	 alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
+	    ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
+      elseif status == "engaged" then
+	 status = nil; status_reset = 1
       end
-      print [[
+
+      if num_past_alerts > 0 then
+	 alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
+	    ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
+      elseif status == "historical" then
+	 status = nil; status_reset = 1
+      end
+
+      if num_flow_alerts > 0 then
+	 alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.flow_alerts"),
+	    ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
+      elseif status == "historical-flows" then
+	 status = nil; status_reset = 1
+      end
+
+      for k, t in ipairs(alert_items) do
+	 local clicked = "0"
+	 if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
+	    clicked = "1"
+	 end
+	 print [[
       <div class="tab-pane fade in" id="tab-]] print(t["div-id"]) print[[">
         <div id="]] print(t["div-id"]) print[["></div>
       </div>
@@ -1633,50 +1633,50 @@ function getCurrentStatus() {
 	       showPagination: true,
                buttons: [']]
 
-      local title = t["label"]
+	 local title = t["label"]
 
-      -- TODO this condition should be removed and page integration support implemented
-      if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
-	 -- alert_level_keys and alert_type_keys are defined in lua_utils
-	 local alert_severities = {}
-	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
-	 local alert_types = {}
-	 for _, s in pairs(alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
+	 -- TODO this condition should be removed and page integration support implemented
+	 if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
+	    -- alert_level_keys and alert_type_keys are defined in lua_utils
+	    local alert_severities = {}
+	    for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
+	    local alert_types = {}
+	    for _, s in pairs(alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
 
-    local a_type, a_severity = nil, nil
-    if clicked == "1" then
-      if tonumber(_GET["alert_type"]) ~= nil then a_type = alertTypeLabel(_GET["alert_type"], true) end
-      if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alertSeverityLabel(_GET["alert_severity"], true) end
-    end
+	    local a_type, a_severity = nil, nil
+	    if clicked == "1" then
+	       if tonumber(_GET["alert_type"]) ~= nil then a_type = alertTypeLabel(_GET["alert_type"], true) end
+	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alertSeverityLabel(_GET["alert_severity"], true) end
+	    end
 
-	 print(drawDropdown(t["status"], "type", a_type, alert_types))
-	 print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
-      elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
-	 if entity == "host" then
-	    title = title .. " - " .. getAlertSource(entity, _GET["entity_val"]).label
+	    print(drawDropdown(t["status"], "type", a_type, alert_types))
+	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
+	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
+	    if entity == "host" then
+	       title = title .. " - " .. getAlertSource(entity, _GET["entity_val"]).label
+	    end
 	 end
-      end
 
-      print[['],
+	 print[['],
 /*
                buttons: ['<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Severity<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li>test severity</li></ul></div><div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Type<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li>test type</li></ul></div>'],
 */
 ]]
 
-      if(_GET["currentPage"] ~= nil and _GET["status"] == t["status"]) then
-	 print("currentPage: ".._GET["currentPage"]..",\n")
-      end
-      if(_GET["perPage"] ~= nil and _GET["status"] == t["status"]) then
-	 print("perPage: ".._GET["perPage"]..",\n")
-      end
-      print ('sort: [ ["' .. getDefaultTableSort("alerts") ..'","' .. getDefaultTableSortOrder("alerts").. '"] ],\n')
-      print [[
+	 if(_GET["currentPage"] ~= nil and _GET["status"] == t["status"]) then
+	    print("currentPage: ".._GET["currentPage"]..",\n")
+	 end
+	 if(_GET["perPage"] ~= nil and _GET["status"] == t["status"]) then
+	    print("perPage: ".._GET["perPage"]..",\n")
+	 end
+	 print ('sort: [ ["' .. getDefaultTableSort("alerts") ..'","' .. getDefaultTableSortOrder("alerts").. '"] ],\n')
+	 print [[
 	        title: "]] print(title) print[[",
       columns: [
 	 {
 	    title: "]]print(i18n("show_alerts.alert_actions"))print[[",
 	    field: "column_key",
-	    css: { 
+	    css: {
 	       textAlign: 'center', width: '100px'
 	    }
 	 },
@@ -1685,31 +1685,31 @@ function getCurrentStatus() {
 	    title: "]]print(i18n("show_alerts.alert_datetime"))print[[",
 	    field: "column_date",
             sortable: true,
-	    css: { 
+	    css: {
 	       textAlign: 'center'
 	    }
 	 },
 ]]
 
-      if t["status"] ~= "historical-flows" then
-      print[[
+	 if t["status"] ~= "historical-flows" then
+	    print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_duration"))print[[",
 	    field: "column_duration",
             sortable: true,
-	    css: { 
+	    css: {
 	       textAlign: 'center'
 	    }
 	 },
 	 ]]
-      end
+	 end
 
-      print[[
+	 print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_severity"))print[[",
 	    field: "column_severity",
             sortable: true,
-	    css: { 
+	    css: {
 	       textAlign: 'center'
 	    }
 	 },
@@ -1718,7 +1718,7 @@ function getCurrentStatus() {
 	    title: "]]print(i18n("show_alerts.alert_type"))print[[",
 	    field: "column_type",
             sortable: true,
-	    css: { 
+	    css: {
 	       textAlign: 'center'
 	    }
 	 },
@@ -1726,7 +1726,7 @@ function getCurrentStatus() {
 	 {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",
-	    css: { 
+	    css: {
 	       textAlign: 'left'
 	    }
 	 }
@@ -1734,13 +1734,13 @@ function getCurrentStatus() {
    });
    });
    ]]
-   if (clicked == "1") then
-      print[[
+	 if (clicked == "1") then
+	    print[[
          // must wait for modalDeleteAlertsStatus to be created
          $(function() {
             var status_reset = ]] print(status_reset) --[[ this is necessary because of status parameter inconsistency after tab switch ]] print[[;
             var tabid;
-            
+
             if ((status_reset) || (getCurrentStatus() == "")) {
                tabid = "]] print("tab-"..t["div-id"]) print[[";
                history.replaceState(null, null, "#"+tabid);
@@ -1752,55 +1752,55 @@ function getCurrentStatus() {
             updateDeleteContext(tabid);
          });
       ]]
-   end
-   print[[
+	 end
+	 print[[
    </script>
 	      ]]
 
-   end
+      end
 
-local zoom_vals = {
-   { "5 min",  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
-   { "30 min", 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
-   { "1 hour",  60*60*1, i18n("show_alerts.older_1_hour_ago") },
-   { "1 day",  60*60*24, i18n("show_alerts.older_1_day_ago") },
-   { "1 week",  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
-   { "1 month",  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
-   { "6 months",  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
-   { "1 year",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
-}
+      local zoom_vals = {
+	 { "5 min",  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
+	 { "30 min", 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
+	 { "1 hour",  60*60*1, i18n("show_alerts.older_1_hour_ago") },
+	 { "1 day",  60*60*24, i18n("show_alerts.older_1_day_ago") },
+	 { "1 week",  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
+	 { "1 month",  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
+	 { "6 months",  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
+	 { "1 year",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
+      }
 
-   if (num_past_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
-      -- trigger the click on the right tab to force table load
-      print[[
+      if (num_past_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
+	 -- trigger the click on the right tab to force table load
+	 print[[
 <script type="text/javascript">
 $("[clicked=1]").trigger("click");
 </script>
 ]]
 
-if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
-local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
+	 if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
+	 local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
 
-print('<div id="alertsActionsPanel">')
-print('<br>Alerts to Purge: ')
-print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
-   local all_msg = ""
+	 print('<div id="alertsActionsPanel">')
+	 print('<br>Alerts to Purge: ')
+	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
+	 local all_msg = ""
 
-   if not has_fixed_period then
-      print('<optgroup label="older than">')
-      for k,v in ipairs(zoom_vals) do
-         print('<option data-older="'..(os.time() - zoom_vals[k][2])..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
-      end
-      print('</optgroup>')
-   else
-      all_msg = " in the selected time period"
-   end
+	 if not has_fixed_period then
+	    print('<optgroup label="older than">')
+	    for k,v in ipairs(zoom_vals) do
+	       print('<option data-older="'..(os.time() - zoom_vals[k][2])..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
+	    end
+	    print('</optgroup>')
+	 else
+	    all_msg = " in the selected time period"
+	 end
 
-   print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">All</option>\n')
-   
+	 print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">All</option>\n')
 
-      print[[</select>]]
-print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>
+
+	 print[[</select>]]
+	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -1817,13 +1817,13 @@ print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myMo
     <form id="modalDeleteForm" class=form-inline style="margin-bottom: 0px;" method="post" onsubmit="return checkModalDelete();">
          <input type="hidden" id="modalDeleteAlertsOlderThan" value="-1" />
       ]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      -- we need to dynamically modify parameters at js-time because we switch tab
-      local delete_params = getTabParameters(url_params, nil)
-      delete_params.epoch_end = -1
+	 -- we need to dynamically modify parameters at js-time because we switch tab
+	 local delete_params = getTabParameters(url_params, nil)
+	 delete_params.epoch_end = -1
 
-      print [[
+	 print [[
     <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
     <button class="btn btn-primary" type="submit">Purge [<img id="alerts-summary-wait" src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\><span id="alerts-summary-body"></span> alerts]</button>
 </form>
@@ -1873,12 +1873,12 @@ $('#buttonOpenDeleteModal').on('click', function() {
    var zoomsel = $("#deleteZoomSelector").find(":selected");
 
    $(".modal-body #modalDeleteAlertsMsg").html(zoomsel.data('msg') + ']]
-   if tonumber(_GET["alert_severity"]) ~= nil then
-      print(' with severity "'..alertSeverityLabel(_GET["alert_severity"], true)..'" ')
-   elseif tonumber(_GET["alert_type"]) ~= nil then
-      print(' with type "'..alertTypeLabel(_GET["alert_type"], true)..'" ')
-   end
-   print[[');
+	 if tonumber(_GET["alert_severity"]) ~= nil then
+	    print(' with severity "'..alertSeverityLabel(_GET["alert_severity"], true)..'" ')
+	 elseif tonumber(_GET["alert_type"]) ~= nil then
+	    print(' with type "'..alertTypeLabel(_GET["alert_type"], true)..'" ')
+	 end
+	 print[[');
    if (lb.length == 1)
       $(".modal-body #modalDeleteContext").html(" " + lb.html());
 
@@ -1905,12 +1905,12 @@ $('#myModal').on('hidden.bs.modal', function () {
       cur_alert_num_req.abort();
       cur_alert_num_req = null;
    }
-   
+
    $("#alerts-summary-wait").show();
    $("#alerts-summary-body").html("");
    $('#myModal button[type="submit"]').removeAttr("disabled");
 })
 </script>]]
-   end
+      end
 
 end

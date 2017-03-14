@@ -102,22 +102,22 @@ end
 
 if not isEmptyString(flowhosts_type) then
    if flowhosts_type == "local_origin_remote_target" then
-      paginfo["clientMode"] = "local"
-      paginfo["serverMode"] = "remote"
+      pageinfo["clientMode"] = "local"
+      pageinfo["serverMode"] = "remote"
    elseif flowhosts_type == "local_only" then
-      paginfo["clientMode"] = "local"
-      paginfo["serverMode"] = "local"
+      pageinfo["clientMode"] = "local"
+      pageinfo["serverMode"] = "local"
    elseif flowhosts_type == "remote_origin_local_target" then
-      paginfo["clientMode"] = "remote"
-      paginfo["serverMode"] = "local"
+      pageinfo["clientMode"] = "remote"
+      pageinfo["serverMode"] = "local"
    elseif flowhosts_type == "remote_only" then
-      paginfo["clientMode"] = "remote"
-      paginfo["serverMode"] = "remote"
+      pageinfo["clientMode"] = "remote"
+      pageinfo["serverMode"] = "remote"
    end
 end
 
 if not isEmptyString(ipversion) then
-   paginfo["ipVersion"] = tonumber(ipversion)
+   pageinfo["ipVersion"] = tonumber(ipversion)
 end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)

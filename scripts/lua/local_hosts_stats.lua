@@ -12,10 +12,23 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 criteria    = _GET["criteria"]
-if(criteria == nil) then criteria = "downloaders" end
+ipversion   = _GET["version"]
 
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+local base_url = ntop.getHttpPrefix() .. "/lua/local_hosts_stats.lua"
+local page_params = {}
+
+if isEmptyString(criteria) then
+  criteria = "downloaders"
+end
+
+page_params["criteria"] = criteria
+
+if not isEmptyString(ipversion) then
+  page_params["version"] = ipversion
+end
 
 prefs = ntop.getPrefs()
 
@@ -28,10 +41,9 @@ print [[
       <div id="table-localhosts"></div>
 	 <script>
 	 var url_update = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_hosts_data.lua?mode=local&criteria=]]
-print(criteria)
-
+local url_update_params = table.clone(page_params)
+url_update_params["mode"] = "local"
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_hosts_data.lua", url_update_params))
 print ('";')
 
 print [[
@@ -141,20 +153,28 @@ print [[    showPagination: true,
 ]]
 
 print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Criteria<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+local criteria_params = table.clone(page_params)
 
 --for id, _ in ipairs(looking_glass_criteria) do
 for id, _ in pairsByKeys(looking_glass_criteria, asc) do
    local key = looking_glass_criteria[id][1]
    local label = looking_glass_criteria[id][2]
+   criteria_params["criteria"] = key
 
    if(key ~= criteria) then
 	 print('<li><a href="')
-	 print (ntop.getHttpPrefix())
-	 print ('/lua/local_hosts_stats.lua?criteria='..key..'">'..label..'</a></li>')
+	 print(getPageUrl(base_url, criteria_params))
+	 print ('">'..label..'</a></li>')
    end
 end
 
-   print("</ul>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' ],")
+   print("</ul></div>'")
+
+   print[[, '<div class="btn-group pull-right">]]
+   printIpVersionDropdown(base_url, page_params)
+   print[[</div>']]
+
+   print(" ],")
 
 print [[
 		columns: [

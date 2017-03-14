@@ -31,17 +31,8 @@ interface.select(ifname)
 ifstats = interface.getStats()
 ndpistats = interface.getnDPIStats()
 
-local filter_base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
-local filter_url_params = {}
-
-function getPageUrl(params, base_url)
-   local base_url = base_url or filter_base_url
-   local params = params or filter_url_params
-   for _,_ in pairs(params) do
-      return base_url .. "?" .. table.tconcat(params, "=", "&")
-   end
-   return base_url
-end
+local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
+local page_params = {}
 
 if (network_id ~= nil) then
 network_name = ntop.getNetworkNameById(tonumber(network_id))
@@ -85,37 +76,37 @@ print [[
    var url_update = "]]
 
 if(application ~= nil) then
-   filter_url_params["application"] = application
+   page_params["application"] = application
    application_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
 if(host ~= nil) then
-  filter_url_params["host"] = host
+  page_params["host"] = host
 end
 
 if(vhost ~= nil) then
-  filter_url_params["vhost"] = vhost
+  page_params["vhost"] = vhost
 end
 
 if(hosts ~= nil) then
-  filter_url_params["hosts"] = hosts
+  page_params["hosts"] = hosts
 end
 
 if(ipversion ~= nil) then
-  filter_url_params["version"] = ipversion
+  page_params["version"] = ipversion
   ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
 if(network_id ~= nil) then
-  filter_url_params["network"] = network_id
+  page_params["network"] = network_id
 end
 
 if(flowhosts_type ~= nil) then
-  filter_url_params["flowhosts_type"] = flowhosts_type
+  page_params["flowhosts_type"] = flowhosts_type
   flowhosts_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
-print(getPageUrl(filter_url_params, ntop.getHttpPrefix().."/lua/get_flows_data.lua"))
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
 
@@ -164,14 +155,14 @@ print ('buttons: [')
 -- begin buttons
 
 -- Local / Remote hosts selector
-local flowhosts_type_params = table.clone(filter_url_params)
+local flowhosts_type_params = table.clone(page_params)
 flowhosts_type_params["flowhosts_type"] = nil
 
 print[['\
    <div class="btn-group">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Hosts]] print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">All Hosts</a></li>\]]
+         <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">All Hosts</a></li>\]]
 for _, htype in ipairs({
    {"local_only", "Local Only"},
    {"remote_only", "Remote Only"},
@@ -181,7 +172,7 @@ for _, htype in ipairs({
    flowhosts_type_params["flowhosts_type"] = htype[1]
    print[[<li]]
    if htype[1] == flowhosts_type then print(' class="active"') end
-   print[[><a href="]] print(getPageUrl(flowhosts_type_params)) print[[">]] print(htype[2]) print[[</a></li>]]
+   print[[><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(htype[2]) print[[</a></li>]]
 end
 print[[\
       </ul>\
@@ -191,9 +182,9 @@ print[[\
 -- L7 Application
 print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
 print('<li><a href="')
-local application_filter_params = table.clone(filter_url_params)
+local application_filter_params = table.clone(page_params)
 application_filter_params["application"] = nil
-print(getPageUrl(application_filter_params))
+print(getPageUrl(base_url, application_filter_params))
 print('">All Proto</a></li>')
 
 for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
@@ -203,26 +194,19 @@ for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    end
    print('<li '..class_active..'><a href="')
    application_filter_params["application"] = key
-   print(getPageUrl(application_filter_params))
+   print(getPageUrl(base_url, application_filter_params))
    print('">'..key..'</a></li>')
 end
 
 print("</ul> </div>'")
 
 -- Ip version selector
-local ipversion_params = table.clone(filter_url_params)
+local ipversion_params = table.clone(page_params)
 ipversion_params["version"] = nil
 
-print[[, '\
-   <div class="btn-group pull-right">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">IP Version]] print(ipversion_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(ipversion_params)) print[[">All Versions</a></li>\
-         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(ipversion_params)); print[[">IPv4 Only</a></li>\
-         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(ipversion_params)); print[[">IPv6 Only</a></li>\
-      </ul>\
-   </div>\
-']]
+print[[, '<div class="btn-group pull-right">]]
+printIpVersionDropdown(base_url, ipversion_params)
+print [[</div>']]
 
 -- end buttons
 

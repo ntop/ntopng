@@ -216,6 +216,10 @@ local  en = {
       search_member = "Search Member",
    },
 
+   snmp = {
+      bound_interface_description = "Binding a network interface to an SNMP interface is useful to compare network traffic monitored by ntopng with that reported by SNMP",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

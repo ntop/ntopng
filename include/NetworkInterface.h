@@ -59,7 +59,7 @@ class NetworkInterface {
   char *ifname; /**< Network interface name. */
   const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
-  u_int8_t alertLevel;
+  u_int8_t alertLevel, purgeRuns;
 
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
@@ -118,7 +118,7 @@ class NetworkInterface {
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
   HostPools *host_pools;
-  bool has_vlan_packets;
+  bool has_vlan_packets, has_mac_addresses;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
@@ -224,9 +224,10 @@ class NetworkInterface {
   inline int  get_id()                         { return(id);                                           };
   inline bool get_sprobe_interface()           { return sprobe_interface;  }
   inline bool get_inline_interface()           { return inline_interface;  }
-  inline bool get_has_vlan_packets()           { return has_vlan_packets;  }
   inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
+  inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
+  inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
   inline bool is_sprobe_interface()            { return(sprobe_interface);                     };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
