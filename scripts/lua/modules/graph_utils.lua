@@ -1046,6 +1046,29 @@ end
 
 -- ########################################################
 
+-- Make sure we do not fetch data from RRDs that have been update too much long ago
+-- as this creates issues with the consolidation functions when we want to compare
+-- results coming from different RRDs.
+-- This is also needed to make sure that multiple data series on graphs have the
+-- same number of points, otherwise d3js will generate errors.
+function touchRRD(rrdname)
+   local now  = os.time()
+   local last, ds_count = ntop.rrd_lastupdate(rrdname)
+
+   if((last ~= nil) and ((now-last) > 3600)) then
+      local tdiff = now - 1800 -- This avoids to set the update continuously
+      local label = tdiff
+
+      for i=1,ds_count do
+         label = label .. ":0"
+      end
+
+      ntop.rrd_update(rrdname, label)
+   end
+end
+
+-- ########################################################
+
 -- reads one or more RRDs and returns a json suitable to feed rickshaw
 
 function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels, transform_columns_function)
@@ -1059,22 +1082,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    -- rrds into bits.
    local scaling_factor = 8
 
-   -- Make sure we do not fetch data from RRDs that have been update too much long ago
-   -- as this creates issues with the consolidation functions when we want to compare
-   -- results coming from different RRDs
-   local now  = os.time()
-
-   local last,ds_count = ntop.rrd_lastupdate(rrdname)
-
-   if((last ~= nil) and ((now-last) > 3600)) then
-      local tdiff = now - 1800 -- This avoids to set the update continuously
-      local label = tdiff
-      
-      if(enable_second_debug == 1) then io.write("Updating "..rrdname.."\n") end
-      
-      for i=1,ds_count do label = label .. ":0" end
-      ntop.rrd_update(rrdname, label)
-    end
+   touchRRD(rrdname)
 
    --io.write(prefixLabel.."\n")
    if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then
