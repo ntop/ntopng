@@ -198,6 +198,8 @@ NetworkInterface::NetworkInterface(const char *name,
      && (!isViewInterface)
      && (!strstr(ifname, ":"))
      && (!strstr(ifname, ".pcap"))
+     && strcmp(ifname, "dummy")
+     && strcmp(ifname, "any")
      && strncmp(ifname, "lo", 2)
      ) {
     char buf[64], ifaces[128], *tmp, *iface;
