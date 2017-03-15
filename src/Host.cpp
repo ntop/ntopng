@@ -1491,23 +1491,6 @@ void Host::incrVisitedWebSite(char *hostname) {
 
 /* *************************************** */
 
-void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
-  char dev[48], port[16], value[128], buf[128], buf1[32];
-
-  deviceIfIdx = _v, deviceIP = _ip;
-
-  snprintf(dev, sizeof(dev), "flow_devs.%s", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
-  snprintf(port, sizeof(port), "%u", deviceIfIdx);
-
-  snprintf(value, sizeof(value), "%s/%s",
-	   Utils::formatMac(mac ? mac->get_mac() : NULL, buf1, sizeof(buf1)),
-	   ip.print(buf, sizeof(buf)));
-
-  ntop->getRedis()->hashSet(dev, port, value);
-}
-
-/* *************************************** */
-
 void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes) {
   if(user_activities) user_activities->incBytes(id, upbytes, downbytes, bgbytes);
 }
