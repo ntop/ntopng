@@ -1167,7 +1167,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 				 */
 
   if(policy) {
-    int protocol = ndpiProtocol.protocol;
+    int protocol = ndpiProtocol.app_protocol;
 
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
     if(!sd) {
