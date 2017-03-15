@@ -927,7 +927,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->last_switched, &new_flow);
 
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow ? flow->get_detected_protocol().protocol : NDPI_PROTOCOL_UNKNOWN,
+	   flow ? flow->get_detected_protocol().app_protocol : NDPI_PROTOCOL_UNKNOWN,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
@@ -970,7 +970,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
 		     zflow->last_switched);
-  p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+  p.app_protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
@@ -1420,7 +1420,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     bool dump_if_unknown = dump_unknown_traffic
       && (!flow->isDetectionCompleted() ||
-	  flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
+	  flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN);
 
     if(dump_if_unknown
        || dump_all_traffic
@@ -1432,7 +1432,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   }
 
   incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol().protocol,
+	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   // Detect user activities
@@ -2414,7 +2414,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     if(retriever->pag
        && retriever->pag->l7protoFilter(&ndpi_proto)
        && ndpi_proto != -1
-       && (f->get_detected_protocol().protocol != ndpi_proto)
+       && (f->get_detected_protocol().app_protocol != ndpi_proto)
        && (f->get_detected_protocol().master_protocol != ndpi_proto))
       return(false); /* false = keep on walking */
 
@@ -2465,7 +2465,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
 	break;
       case column_ndpi:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().protocol;
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
 	break;
       case column_duration:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
@@ -3225,7 +3225,7 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
   stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol().protocol] += (u_int32_t)flow->get_bytes(),
+    stats->ndpi_bytes[flow->get_detected_protocol().app_protocol] += (u_int32_t)flow->get_bytes(),
     stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   return(false); /* false = keep on walking */
@@ -3532,7 +3532,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
-  num_flows[flow->get_detected_protocol().protocol]++;
+  num_flows[flow->get_detected_protocol().app_protocol]++;
 
   return(false /* keep walking */);
 }
@@ -4348,7 +4348,7 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid) {
   ndpi_protocol proto;
-  proto.protocol = NDPI_PROTOCOL_UNKNOWN;
+  proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
   return get_ndpi_proto_category(proto);
 }
@@ -4390,7 +4390,7 @@ static int lua_flow_get_ndpi_proto_id(lua_State* vm) {
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR); else p = f->get_detected_protocol();
 
-  lua_pushnumber(vm, (p.protocol != NDPI_PROTOCOL_UNKNOWN) ? p.protocol : p.master_protocol);
+  lua_pushnumber(vm, (p.app_protocol != NDPI_PROTOCOL_UNKNOWN) ? p.app_protocol : p.master_protocol);
   return(CONST_LUA_OK);
 }
 

@@ -324,7 +324,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
   InterFlowActivityProtos proto;
   bool rv = false;
 
-  switch(flow->get_detected_protocol().protocol) {
+  switch(flow->get_detected_protocol().app_protocol) {
   case NDPI_PROTOCOL_FACEBOOK:
     proto = ifa_facebook_stats;
     break;

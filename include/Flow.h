@@ -309,10 +309,10 @@ class Flow : public GenericHashEntry {
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
-  inline ndpi_protocol_breed_t get_protocol_breed() { return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpiDetectedProtocol.protocol)); };
+  inline ndpi_protocol_breed_t get_protocol_breed() { return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpiDetectedProtocol.app_protocol)); };
   inline char* get_protocol_breed_name()            { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(),
 										       ndpi_get_proto_breed(iface->get_ndpi_struct(),
-													    ndpiDetectedProtocol.protocol))); };
+													    ndpiDetectedProtocol.app_protocol))); };
   char* get_detected_protocol_name(char *buf, u_int buf_len) {
     return(ndpi_protocol2name(iface->get_ndpi_struct(), ndpiDetectedProtocol, buf, buf_len));
   }

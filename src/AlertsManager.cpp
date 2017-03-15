@@ -953,7 +953,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
        || sqlite3_bind_text(stmt,  4, alert_json, -1, SQLITE_STATIC)
        || sqlite3_bind_int(stmt,   5, f->get_vlan_id())
        || sqlite3_bind_int(stmt,   6, f->get_protocol())
-       || sqlite3_bind_int(stmt,   7, f->get_detected_protocol().protocol)
+       || sqlite3_bind_int(stmt,   7, f->get_detected_protocol().app_protocol)
        || sqlite3_bind_int(stmt,   8, f->get_first_seen())
        || sqlite3_bind_int(stmt,   9, f->get_last_seen())
        || sqlite3_bind_text(stmt, 10, cli ? cli->get_country() : NULL, -1, SQLITE_STATIC)
