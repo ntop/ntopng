@@ -11,6 +11,12 @@ local callback_utils = {}
 
 -- ########################################################
 
+function callback_utils.print(file, line, message)
+   print("["..file.."]:["..line.."] "..message)
+end
+
+-- ########################################################
+
 -- Iterates available interfaces, excluding PCAP interfaces.
 -- Each valid interface is select-ed and passed to the callback.
 function callback_utils.foreachInterface(ifnames, verbose, callback)
@@ -21,16 +27,20 @@ function callback_utils.foreachInterface(ifnames, verbose, callback)
     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]\n") end
 
     if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
-      callback(_ifname, ifstats, verbose)
+      if callback(_ifname, ifstats, verbose) == false then
+         return false
+      end
     end
   end
+
+  return true
 end
 
 -- ########################################################
 
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachHost(ifname, verbose, callback)
+function callback_utils.foreachHost(ifname, verbose, callback, deadline)
    local hostbase
    
    interface.select(ifname)
@@ -39,6 +49,11 @@ function callback_utils.foreachHost(ifname, verbose, callback)
    hosts_stats = hosts_stats["hosts"]
    for hostname, hoststats in pairs(hosts_stats) do
       local host = interface.getHostInfo(hostname)
+
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+         -- Out of time
+         return false
+      end
 
       if(host == nil) then
          if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..hostname.." !!!!\n") end
@@ -61,9 +76,13 @@ function callback_utils.foreachHost(ifname, verbose, callback)
             hostbase = nil
          end
          
-         callback(hostname--[[name of the host]], host--[[hostinfo]], hoststats, hostbase--[[base RRD host directory]], verbose)
+         if callback(hostname--[[name of the host]], host--[[hostinfo]], hoststats, hostbase--[[base RRD host directory]], verbose) == false then
+            return false
+         end
       end
    end
+
+   return true
 end
 
 -- ########################################################

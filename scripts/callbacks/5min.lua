@@ -22,6 +22,9 @@ local callback_utils = require "callback_utils"
 local when = os.time()
 local verbose = ntop.verboseTrace()
 
+-- We must complete within the 5 minutes
+local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
+
 -- ########################################################
 
 local host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
@@ -85,7 +88,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     local networks_aggr = {}
     local vlans_aggr    = {}
 
-    callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hoststats, hostbase)
+    local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hoststats, hostbase)
       -- Aggregate VLAN stats
       local host_vlan = hoststats["vlan"]
       if host_vlan ~= nil and host_vlan ~= 0 then
@@ -204,7 +207,12 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
       else
         -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..hostname.."\n")
       end
-    end) -- end foreachHost
+    end, time_threshold) -- end foreachHost
+
+    if not in_time then
+      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
+      return false
+    end
 
     -- create RRD for vlans
     local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
@@ -280,7 +288,11 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 
     -- Save host activity stats only if flow activities are actually enabled
     if prefs.is_flow_activity_enabled == true then
-      callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity)
+      local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
+      if not in_time then
+        callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD activity dump in 5 minutes. Please check your RRD configuration.")
+        return false
+      end
     end
   end -- if rrd
 
@@ -294,9 +306,6 @@ end)
 
 -- This must be placed at the end of the script
 if(tostring(snmp_devices_rrd_creation) == "1") then
-  -- We must complete within the 5 minutes
-  local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
-
   callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     snmp_update_rrds(ifstats.id, time_threshold, verbose)
   end)
