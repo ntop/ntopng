@@ -54,14 +54,14 @@ if(haveAdminPrivileges()) then
    
    local menu_subpages = {
       {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
-      {id="auth",          label="Authentication",       advanced=false, pro_only=true,   disabled=false},
+      {id="auth",          label="User Authentication",  advanced=false, pro_only=true,   disabled=false},
       {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
       {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
       {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
       {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
       {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
-      {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
+      {id="report",        label="Measurement Units",    advanced=false, pro_only=false,  disabled=false},
       {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
       {id="snmp",          label="SNMP",                 advanced=true,  pro_only=true,   disabled=false},
       {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
