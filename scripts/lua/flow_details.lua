@@ -199,7 +199,7 @@ else
    print('</td>')
    print("</tr>\n")
 
-   if(ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
+   if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       print("<tr><th width=30% rowspan=2>Flow Shapers</th>")
       c = flowinfo2hostname(flow,"cli",ifstats.vlan)
       s = flowinfo2hostname(flow,"srv",ifstats.vlan)

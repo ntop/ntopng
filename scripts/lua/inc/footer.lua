@@ -53,7 +53,7 @@ print('</span></a>')
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false
 
-   print('<br><A HREF="'..ntop.getHttpPrefix()..'/lua/about.lua"> <span class="badge badge-warning">')
+   print('<br><A HREF="https://shop.ntop.org"> <span class="badge badge-warning">')
    if(info["pro.release"]) then
       if(info["pro.demo_ends_at"] ~= nil) then
 	 local rest = info["pro.demo_ends_at"] - os.time()
@@ -71,9 +71,6 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       print('<br><iframe src="https://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
    end
 end
-
-
-
 
 print [[</font>
 

@@ -182,7 +182,7 @@ local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#mana
 --------------------------------------------------------------------------------
 
 print [[
-<h2>]] print(i18n("host_pools.edit_host_pools")) print[[</h2>
+
 <br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>

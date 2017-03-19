@@ -236,6 +236,8 @@ print("</ul> </li>")
 
 -- Devices
 info = ntop.getInfo()
+
+if((ifs["has_macs"] == true) or ntop.isPro()) then
 if active_page == "devices_stats" then
   print [[ <li class="dropdown active"> ]]
 else
@@ -263,7 +265,7 @@ if(info["version.enterprise_edition"] == true) then
 end
 
 print("</ul> </li>")
-
+end
 
 
 -- Interfaces
