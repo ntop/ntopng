@@ -161,6 +161,10 @@ else
 
    host["label"] = getHostAltName(hostinfo2hostkey(host_info), host["mac"])
 
+   if((host["label"] == nil) or (host["label"] == "")) then
+      host["label"] = getHostAltName(host["ip"])
+   end
+
    hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
    rrdname = hostbase .. "/bytes.rrd"
    -- print(rrdname)
@@ -535,7 +539,13 @@ end
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
    end
 
-   if(host["info"] ~= nil) then print("<tr><th>Info</th><td colspan=2>"..host["info"].."</td></tr>\n") end
+   
+   if((host["info"] ~= nil) or (host["label"] ~= nil))then
+      print("<tr><th>Further Host Names/Information</th><td colspan=2>")
+      if(host["info"] ~= nil) then  print(host["info"]) end
+      if((host["label"] ~= nil) and (host["info"] ~= host["label"])) then print(host["label"]) end
+      print("</td></tr>\n")
+   end
    
    if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>Download<A></td></tr>\n") end
 

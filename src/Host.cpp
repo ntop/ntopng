@@ -92,6 +92,8 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
   if(label_name) {
     char buf[64], buf1[64], *host = ip.print(buf, sizeof(buf));
 
+    host_label_set = true;
+    
     if(ignoreIfPresent
        && (!ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, buf, buf1, (u_int)sizeof(buf1))))
       return;
@@ -139,7 +141,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0, info = NULL;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  flow_flood_attacker_alert = flow_flood_victim_alert = false;
+  flow_flood_attacker_alert = flow_flood_victim_alert = false, host_label_set = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     total_num_flows_as_client = total_num_flows_as_server = 0,

@@ -1310,6 +1310,17 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       }
       break;
 
+    case NDPI_PROTOCOL_NETBIOS:
+      if(flow->get_cli_host()) {
+	if(! flow->get_cli_host()->is_label_set()) {
+	  char name[64];
+	  
+	  if((ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0) && (!strstr(name, "__MSBROWSE__")))
+	    flow->get_cli_host()->set_host_label(name, false);
+	}
+      }
+      break;
+      
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)
