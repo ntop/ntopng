@@ -1403,7 +1403,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	      drop traffic until a decision is made
 	    */
 
-	    if(flow->isCategorizationOngoing()
+	    if(ntop->getPrefs()->is_flashstart_enabled() && flow->isCategorizationOngoing()
 	       && (ndpi_get_lower_proto(flow->get_detected_protocol()) == NDPI_PROTOCOL_DNS)) {
 	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** DROPPING UNCATEGORIZED DNS ***"); */
 	      pass_verdict = false;

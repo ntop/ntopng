@@ -673,4 +673,8 @@
 #define CACHED_ENTRIES_THRESHOLD      1024
 #define MAX_CATEGORY_CACHE_DURATION    300 /* Purge entries more than 5 mins old */
 
+#define MARKER_NO_ACTION               0 /* Pass when a verdict is not yet reached */
+#define MARKER_PASS                    1
+#define MARKER_DROP                    2
+
 #endif /* _NTOP_DEFINES_H_ */

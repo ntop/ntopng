@@ -294,9 +294,9 @@ end
 
 if(ifstats.inline and isAdministrator()) then
    if(page == "filtering") then
-      print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Policing</a></li>")
+      print("<li class=\"active\"><a href=\""..url.."&page=filtering\">"..i18n('traffic_policy').."</a></li>")
    else
-      print("<li><a href=\""..url.."&page=filtering\">Traffic Policing</a></li>")
+      print("<li><a href=\""..url.."&page=filtering\">"..i18n('traffic_policy').."</a></li>")
    end
 end
 

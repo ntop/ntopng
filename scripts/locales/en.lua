@@ -29,6 +29,7 @@ local  en = {
    save_settings = "Save Settings",
    all = "All",
    define = "Define",
+   traffic_policy = "Traffic Policy",
 
    traffic_report = {
       daily = "Daily",
