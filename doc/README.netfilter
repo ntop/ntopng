@@ -69,19 +69,40 @@ The configuration needed is:
 # 3 - Run ntopng:
 	# ntopng -i nf:0
 
-Now you have two possibilities:
-
-1) Go in ntopng and filter/shaping the traffic
-
-2) Permit all the traffic in ntopng (ntopng will marks the traffic) and control it via iptables rules.
-   For example:
-   - to drop skype (id 125) add:
-     iptables -t mangle -A POSTROUTING -m mark --mark 125 -j DROP
-   - to drop facebook (id 119) add:
-     iptables -t mangle -A POSTROUTING -m mark --mark 119 -j DROP
+Now you can to to ntopng and filter/shaping the traffic.
  
 The configuration above works and was tested on ubuntu 14.04 and 16.04. Commands may slightly change on
 other distributions.
+
+
+Optimizing NetFilter Performance
+--------------------------------
+Instead of sending ntopng all packets, it is possible to tell netfilter NOT to send ntopng
+packets once a pass/drop verdict is reached, thus increasing the performance. The script below
+illlustrates how to do this (this is a simple example that analyzes only TCP port 80 traffic).
+
+============
+#!/bin/bash -x
+
+iptables -F
+iptables -t mangle -F
+
+# Read CONNMARK and set it in mark
+iptables -A OUTPUT -t mangle -j CONNMARK --restore-mark
+
+# Set default actions for markers
+iptables -A OUTPUT -t mangle -m mark --mark 1 -j ACCEPT
+iptables -A OUTPUT -t mangle -m mark --mark 2 -j DROP
+
+# Send traffic to ntopng. In this example only TCP/80 is analyzed.
+iptables -A OUTPUT -t mangle -m mark --mark 0 -p tcp --destination-port 80 -j NFQUEUE --queue-num 0
+
+# Save mark into CONNMARK
+# NOTE: Use POSTROUTING instead of OUTPUT as explained
+# in http://serverfault.com/questions/839132/how-to-pass-to-nfqueue-only-the-initial-connection-packets
+iptables -A POSTROUTING -t mangle -j CONNMARK --save-mark
+============
+
 
 
 NOTE
