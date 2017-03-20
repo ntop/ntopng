@@ -140,8 +140,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0;">
+      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
         <tr>
+          <td width="100%;"></td>
           <td style="vertical-align:top;">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
@@ -171,7 +172,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
           </td>
         </tr>
         <tr>
-          <td colspan="2" style="padding:0;">
+          <td colspan="3" style="padding:0;">
             <div class="help-block with-errors text-right" style="height:1em;"></div>
           </td>
         </tr>

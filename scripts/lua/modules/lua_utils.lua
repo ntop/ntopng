@@ -2751,7 +2751,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       /* Helper function to set a selector value by raw value */
       function resol_selector_set_value(input_id, its_value) {
          var input = $(input_id);
-         var buttons = resol_selector_get_buttons(input_id);
+         var buttons = resol_selector_get_buttons($(input_id));
          var values = [];
 
          buttons.each(function() {
@@ -2771,6 +2771,13 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
          resol_selector_change_selection($(buttons[highest_i]));
       }
 
+      function resol_selector_get_raw(input) {
+         var buttons = resol_selector_get_buttons(input);
+         var selected = buttons.filter(":checked");
+
+         return parseInt(selected.val()) * parseInt(input.val());
+      }
+
       function resol_selector_finalize(form) {
         $.each(_resol_inputs, function(i, elem) {
           /* Skip elements which are not part of the form */
@@ -2784,7 +2791,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
           var new_input = $("<input type=\"hidden\"/>");
           new_input.attr("name", input.attr("name"));
           input.removeAttr("name");
-          new_input.val(parseInt(selected.val()) * parseInt(input.val()));
+          new_input.val(resol_selector_get_raw(input));
           new_input.appendTo(form);
         });
 
