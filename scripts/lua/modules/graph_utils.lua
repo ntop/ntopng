@@ -182,30 +182,31 @@ end
 -- If host pool, must be prefixed with 'pool:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
-       host_or_network = string.gsub(host_or_network, 'net:', '')
-       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
+      host_or_network = string.gsub(host_or_network, 'net:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
-       host_or_network = string.gsub(host_or_network, 'profile:', '')
-       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
+      host_or_network = string.gsub(host_or_network, 'profile:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
 
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
-       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
-       host_or_network = string.gsub(host_or_network, 'pool:', '')
-       rrdname = host_pools_utils.getRRDBase(ifid, "")
+      host_or_network = string.gsub(host_or_network, 'pool:', '')
+      rrdname = host_pools_utils.getRRDBase(ifid, "")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'snmp:') then
-       host_or_network = string.gsub(host_or_network, 'snmp:', '')
-       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/snmpstats/")
+      host_or_network = string.gsub(host_or_network, 'snmp:', '')
+      -- snmpstats are ntopng-wide so ifid is ignored
+      rrdname = fixPath(dirs.workingdir .. "/snmpstats/")
    else
-       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
 
    if(host_or_network ~= nil) then
       rrdname = rrdname .. getPathFromKey(host_or_network) .. "/"
    end
 
-   return(rrdname..rrdFile)
+   return(rrdname..(rrdFile or ''))
 end
 
 -- ########################################################

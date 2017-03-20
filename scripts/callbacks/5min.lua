@@ -306,7 +306,5 @@ end)
 
 -- This must be placed at the end of the script
 if(tostring(snmp_devices_rrd_creation) == "1") then
-  callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
-    snmp_update_rrds(ifstats.id, time_threshold, verbose)
-  end)
+   snmp_update_rrds(time_threshold, verbose)
 end

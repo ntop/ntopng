@@ -232,7 +232,7 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
       -- Traffic stats
       local rrdpath = fixPath(pool_base .. "/bytes.rrd")
       createRRDcounter(rrdpath, 300, verbose)
-      ntop.rrd_update(rrdpath, "N:"..tolongint(pool_stats["bytes.sent"]) .. ":" .. tolongint(pool_stats["bytes.recv"]))
+      ntop.rrd_update(rrdpath, "N:"..tolongint(pool_stats["bytes.sent"]) .. ":" .. tolongint(pool_stats["bytes.rcvd"]))
 
       -- nDPI stats
       if dump_ndpi then

@@ -389,7 +389,7 @@ if((page == "overview") or (page == nil)) then
    print('</td></tr>')
 
       if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"], ifId)
+	 local ports = find_mac_snmp_ports(host["mac"])
 
 	 if(ports ~= nil) then
 	    local rsps = 1
