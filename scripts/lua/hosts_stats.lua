@@ -131,8 +131,8 @@ print [[
 
 if(protocol == nil) then protocol = "" end
 
-if(_GET["asn"] ~= nil) then 
-	asninfo = " for AS ".._GET["asn"] 
+if(asn ~= nil) then 
+	asninfo = " for AS "..asn 
 else 
 	asninfo = "" 
 end
@@ -203,7 +203,6 @@ else
    print('title: "Local Networks'..country..vlan_title..'",\n')
 end
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
-
 
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])
@@ -397,9 +396,20 @@ print [[
 </div>
 ]]
 
-if(asn ~= "0") then
-   print ("<i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i> <A HREF=\"https://stat.ripe.net/AS"..asn.."\"><i class=\"fa fa-external-link\" title=\"More Information about AS"..asn.."\"></i></A>")
+if(asn ~= nil and asn ~= "0") then
+   -- direct html is not allowed in the title so we must place the link using javascript
+   -- using datatable method tableCallback gives strange effects such as a quick blink of the link
+   print[[
+<script type="text/javascript">
+
+          $('h2:contains("for AS")').append("<small>&nbsp;<i class=\"fa fa-info-circle fa-sm\" aria-hidden=\"true\"></i> <A HREF=\"https://stat.ripe.net/AS]] print(asn) print[[\"><i class=\"fa fa-external-link fa-sm\" title=\"More Information about AS ]] print(asn) print[[\"></i></A></small>");
+
+</script>
+]]
 end
+
+
+
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
