@@ -57,8 +57,8 @@ if(haveAdminPrivileges()) then
       {id="auth",          label="User Authentication",  advanced=false, pro_only=true,   disabled=false},
       {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
       {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
-      {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
-      {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
+      {id="on_disk_rrds",  label="Data Retention",       advanced=false, pro_only=false,  disabled=false},
+      {id="on_disk_dbs",   label="MySQL",                advanced=true,  pro_only=false,  disabled=(prefs.is_dump_flows_enabled == false)},
       {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
       {id="report",        label="Measurement Units",    advanced=false, pro_only=false,  disabled=false},
@@ -142,43 +142,17 @@ end
 
 -- ================================================================================
 
-function printTopTalkers()
-  print('<form method="post">')
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
-
-  --default value
-  minute_top_talkers_retention = 365
-  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
-
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
-
 function printStatsDatabases()
   print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
-  mysql_retention = 30
-  prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  mysql_retention = 7
+  prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 7 days", "ntopng.prefs.", "mysql_retention", mysql_retention, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
 
   toggleTableButtonPrefs("Check open_files_limit",
 			 "Toggle the periodic check of MySQL open_files_limit.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1")
-
-  print('</table>')
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
-
-  --default value
-  minute_top_talkers_retention = 365
-  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
-
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -574,15 +548,16 @@ end
 function printStatsRrds()
   print('<form method="post">')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Local Hosts and Networks Timeseries</th></tr>')
+  print('<tr><th colspan=2 class="info">Timeseries</th></tr>')
 
   toggleTableButtonPrefs("Traffic Timeseries",
-			 "Toggle the creation of traffic timeseries for local hosts and networks. Turn it off to save storage space.",
+			 "Toggle the creation of bytes and packets timeseries for local hosts, defined local networks and autonomous systems.<br>"..
+			    "Turn it off to save storage space.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
 
   toggleTableButtonPrefs("Layer-7 Application Timeseries",
-			 "Toggle the creation of nDPI timeseries for local hosts and defined networks. Enable their creation allows you "..
-			    "to keep application protocol statistics at the cost of using more disk space.",
+			 "Toggle the creation of application protocols timeseries for local hosts, defined local networks and autonomous systems.<br>"..
+			    "Turn it off to save storage space.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
 
  local toggle_local_activity = "toggle_local_activity"
@@ -592,41 +567,46 @@ function printStatsRrds()
     "host_activity_rrd_1d_days", "id_input_host_activity_rrd_1d_days"}
 
   if prefs.is_flow_activity_enabled then
-    toggleTableButtonPrefs("Activities Timeseries",
-			 "Toggle the creation of activities timeseries for local hosts and networks. Turn it off to save storage space.",
+    toggleTableButtonPrefs("Activity Timeseries",
+			 "Toggle the creation of activity timeseries for local hosts.<br>"..
+			    "This enables the activity detection heuristics, which try to extract human behaviours from host traffic (e.g. web browsing, chat).<br>"..
+			    "Creation is only possible if the ntopng instance has been launched with option --enable-flow-activity.",
   	 	         "On", "1", "success", "Off", "0", "danger", toggle_local_activity, "ntopng.prefs.host_activity_rrd_creation", "0",
-                         false, activityPrefsToSwitch, false)
+                         not prefs.is_flow_activity_enabled, activityPrefsToSwitch, false)
   end
 
   local info = ntop.getInfo()
 
   if ntop.isPro() then
      local info = ntop.getInfo()
-     toggleTableButtonPrefs("Flow Devices Timeseries",
-			    "Toggle the creation of bytes timeseries for each port of the sFlow/NetFlow devices. For each device port" ..
-                            " will be created an RRD with ingress/egress bytes.",
-                            "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_devices_rrd_creation", "0", not info["version.enterprise_edition"])
-
-     toggleTableButtonPrefs("Flow Interfaces Timeseries",
-			    "Toggle the creation of bytes timeseries for each port as received in ZMQ fields INPUT_SNMP and OUTPUT_SNMP. "..
-                            "For each port will be created an RRD with send and received bytes.",
-                            "On", "1", "success", "Off", "0", "danger", "toggle_flow_snmp_ports_rrds", "ntopng.prefs.flow_snmp_port_rrd_creation", "0", not info["version.enterprise_edition"])
+     toggleTableButtonPrefs("Remote Device Timeseries",
+			    "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
+                            "For non sFlow devices, the ZMQ fields INPUT_SNMP and OUTPUT_SNMP are required.",
+                            "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_device_port_rrd_creation", "0", not info["version.enterprise_edition"])
 
     toggleTableButtonPrefs("Host Pools Timeseries",
-			 "Toggle the creation of bytes and nDPI timeseries for defined Host Pools.",
+			 "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")
   end
 
   toggleTableButtonPrefs("Category Timeseries",
-			 "Toggle the creation of Category timeseries for local hosts and defined networks. Enabling their creation allows you "..
-			    "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..
+			 "Toggle the creation of Category timeseries for local hosts and defined local networks.<br>"..
+			 "Enabling their creation allows you "..
+			    "to keep persistent traffic category statistics (e.g. social networks, news) at the cost of using more disk space.<br>"..
 			 "Creation is only possible if the ntopng instance has been launched with option -k flashstart:&lt;user&gt;:&lt;password&gt;.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization",
 			 "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
   print('</table>')
 
   print('<table class="table">')
-if show_advanced_prefs then
+  print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
+  --default value
+  minute_top_talkers_retention = 365
+  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
+  print('</table>')
+
+  print('<table class="table">')
+if show_advanced_prefs and false --[[ hide these settings for now ]] then
   print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})

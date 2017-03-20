@@ -30,7 +30,7 @@ local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 local host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 local host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 local host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
-local flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
+local flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_device_port_rrd_creation")
 local host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
 local snmp_devices_rrd_creation = ntop.getCache("ntopng.prefs.snmp_devices_rrd_creation")
 
@@ -287,7 +287,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     end
 
     -- Save host activity stats only if flow activities are actually enabled
-    if prefs.is_flow_activity_enabled == true then
+    if ((prefs.is_flow_activity_enabled == true) and (ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == true)) then
       local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
       if not in_time then
         callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD activity dump in 5 minutes. Please check your RRD configuration.")

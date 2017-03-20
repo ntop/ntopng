@@ -948,7 +948,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
 #ifdef NTOPNG_PRO
-  if(ntop->getPrefs()->is_flow_snmp_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
+  if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
     if(!snmp_stats)
       snmp_stats = new SNMPStats();
 

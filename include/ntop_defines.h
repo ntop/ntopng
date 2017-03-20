@@ -404,7 +404,7 @@
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED "ntopng.prefs.is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL "ntopng.prefs.active_local_host_cache_interval"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     "ntopng.prefs.housekeeping_frequency"
-#define CONST_RUNTIME_PREFS_FLOW_SNMP_RRD_CREATION     "ntopng.prefs.flow_snmp_port_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     "ntopng.prefs.flow_device_port_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */

@@ -43,7 +43,7 @@ if(verbose) then sendHTTPHeader('text/plain') end
 when = os.date("%y%m%d", t)
 
 mysql_retention = ntop.getCache("ntopng.prefs.mysql_retention")
-if((mysql_retention == nil) or (mysql_retention == "")) then mysql_retention = "30" end
+if((mysql_retention == nil) or (mysql_retention == "")) then mysql_retention = "7" end
 mysql_retention = os.time() - 86400*tonumber(mysql_retention)
 
 minute_top_talkers_retention = ntop.getCache("ntopng.prefs.minute_top_talkers_retention")
