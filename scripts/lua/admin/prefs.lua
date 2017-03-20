@@ -536,7 +536,7 @@ function printInMemory()
 			  "Smaller values are more computationally intensive and tend to highlight minor variations. "..
 			  "Values in the order of few seconds are safe. " ..
 			  "Default: 5 seconds.",
-		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=1800, tformat="sm"})
+		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
