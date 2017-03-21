@@ -1524,7 +1524,7 @@ print[[
 
       /* Possibly handle multiple blocked categories */
       var sites_categories = $("#l7ProtosForm select[name='sites_categories']");
-      if (sites_categories) {
+      if (sites_categories.length == 1) {
          var selection = [];
          $("option:selected", sites_categories).each(function() {
             selection.push($(this).val());
