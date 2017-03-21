@@ -107,7 +107,7 @@ class Flow : public GenericHashEntry {
     } ssh;
 
     struct {
-      char *certificate;
+      char *certificate, *server_certificate;
       FlowSSLStage cli_stage, srv_stage;
       u_int8_t hs_packets;
       bool is_data;

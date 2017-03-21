@@ -68,7 +68,7 @@ typedef enum {
 typedef enum {
   notify_all_alerts = 0,
   notify_errors_and_warnings,
-  notify_errors_only,  
+  notify_errors_only,
 } SlackNotificationChoice;
 
 typedef enum {
@@ -198,7 +198,8 @@ typedef enum {
   status_tcp_connection_issues /* 6 - i.e. too many retransmission, ooo... or similar */,
   status_suspicious_tcp_probing /* 7 */,
   status_flow_when_interface_alerted /* 8 */,
-  status_tcp_connection_refused /* 9 */,  
+  status_tcp_connection_refused /* 9 */,
+  status_ssl_certificate_mismatch /* 10 */,
 } FlowStatus;
 
 typedef enum {
@@ -316,7 +317,7 @@ typedef struct {
   volatile u_int64_t tail;
   u_char __cacheline_padding_3[56];
   u_int64_t shadow_tail;
-  u_char __cacheline_padding_4[56];	
+  u_char __cacheline_padding_4[56];
   void *items[QUEUE_ITEMS];
 } spsc_queue_t;
 

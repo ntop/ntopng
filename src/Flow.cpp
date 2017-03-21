@@ -243,7 +243,8 @@ Flow::~Flow() {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
   } else if(isSSL()) {
-    if(protos.ssl.certificate)  free(protos.ssl.certificate);
+    if(protos.ssl.certificate)         free(protos.ssl.certificate);
+    if(protos.ssl.server_certificate)  free(protos.ssl.server_certificate);
   }
 
   if(bt_hash)          free(bt_hash);
@@ -286,6 +287,10 @@ void Flow::dumpFlowAlert() {
 
     case status_flow_when_interface_alerted /* 8 */:
       do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
+      break;
+
+    case status_ssl_certificate_mismatch: /* 10 */
+      do_dump = true;
       break;
     }
 
@@ -477,14 +482,11 @@ void Flow::processDetectedProtocol() {
 	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
 	  check_tor = true;
       }
-    } else if((protos.ssl.certificate == NULL)
-	      && (ndpiFlow->protos.ssl.server_certificate[0] != '\0')) {
-      protos.ssl.certificate = strdup(ndpiFlow->protos.ssl.server_certificate);
+    }
 
-      if(protos.ssl.certificate && (strncmp(protos.ssl.certificate, "www.", 4) == 0)) {
-	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
-	  check_tor = true;
-      }
+    if((protos.ssl.server_certificate == NULL)
+	      && (ndpiFlow->protos.ssl.server_certificate[0] != '\0')) {
+      protos.ssl.server_certificate = strdup(ndpiFlow->protos.ssl.server_certificate);
     }
 
     if(check_tor) {
@@ -1405,9 +1407,14 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
     }
 
-    if(isSSL() && protos.ssl.certificate)
-      lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
+    if(isSSL()) {
+      if(protos.ssl.certificate)
+	lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
 
+      if(protos.ssl.server_certificate)
+	lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
+    }
+    
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
     if(client_proc) processLua(vm, client_proc, true);
@@ -2642,7 +2649,15 @@ FlowStatus Flow::getFlowStatus() {
 	case NDPI_PROTOCOL_SSL:
 	  if(!protos.ssl.firstdata_seen && isIdle)
 	    return status_slow_application_header;
-	  break;
+
+	  if(protos.ssl.certificate && protos.ssl.server_certificate) {
+	    if(protos.ssl.server_certificate[0] == '*') {
+	      if(!strstr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))
+		return status_ssl_certificate_mismatch;
+	    } else if(strcmp(protos.ssl.certificate, protos.ssl.server_certificate))
+	      return status_ssl_certificate_mismatch;
+	  }
+	  break;	  
 
 	case NDPI_PROTOCOL_HTTP:
 	  if(/* !header_HTTP_completed &&*/isIdle)

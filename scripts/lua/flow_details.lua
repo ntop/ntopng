@@ -314,11 +314,20 @@ else
    end
 
    if(flow["protos.ssl.certificate"] ~= nil) then
-      print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
-      print("<A HREF=\"http://"..flow["protos.ssl.certificate"].."\">"..flow["protos.ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
+      print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td>")
+      print("Client Requested: <A HREF=\"http://"..flow["protos.ssl.certificate"].."\">"..flow["protos.ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.ssl.certificate"], flow["category"])) end
       historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.ssl.certificate"])
-      print("</td></tr>\n")
+      print("</td>")
+
+      if(flow["protos.ssl.server_certificate"] ~= nil) then
+	 print("<td>Server Certificate: <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
+	 if(flow["flow.status"] == 10) then
+	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">Certificates don't match</font></b>")	    
+	 end
+	 print("</td>")
+      end
+      print("</tr>\n")
    end
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
