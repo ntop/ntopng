@@ -926,12 +926,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->first_switched,
 		 zflow->last_switched, &new_flow);
 
-  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow ? flow->get_detected_protocol().app_protocol : NDPI_PROTOCOL_UNKNOWN,
-	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
-	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
-	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
-
   if(flow == NULL)
     return;
 
@@ -992,6 +986,14 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->http_site) flow->setServerName(zflow->http_site);
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
+
+  /* Do not put incStats before guessing the flow protocol */
+  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+	   flow->get_detected_protocol().app_protocol,
+	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
+	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
+	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
