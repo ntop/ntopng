@@ -2424,9 +2424,13 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 
     if(retriever->pag
        && retriever->pag->l7protoFilter(&ndpi_proto)
-       && ndpi_proto != -1
-       && (f->get_detected_protocol().app_protocol != ndpi_proto)
-       && (f->get_detected_protocol().master_protocol != ndpi_proto))
+       && ((ndpi_proto == NDPI_PROTOCOL_UNKNOWN
+	    && (f->get_detected_protocol().app_protocol != ndpi_proto
+		|| f->get_detected_protocol().app_protocol != ndpi_proto))
+	   ||
+	   (ndpi_proto != NDPI_PROTOCOL_UNKNOWN
+	    && (f->get_detected_protocol().app_protocol != ndpi_proto
+		&& f->get_detected_protocol().master_protocol != ndpi_proto))))
       return(false); /* false = keep on walking */
 
     if(retriever->pag
