@@ -610,7 +610,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'k':
     if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
-      httpbl_key = &optarg[strlen(HTTPBL_STRING)];
+      httpbl_key = strdup(&optarg[strlen(HTTPBL_STRING)]);
     else if(strncmp(optarg, FLASHSTART_STRING, strlen(FLASHSTART_STRING)) == 0) {
       char *tmp, *user = strtok_r(&optarg[strlen(FLASHSTART_STRING)], ":", &tmp), *pwd = NULL;
 

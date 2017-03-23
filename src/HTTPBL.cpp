@@ -24,7 +24,7 @@
 /* **************************************** */
 
 HTTPBL::HTTPBL(char *_api_key) {
-  api_key = _api_key ? strdup(_api_key) : NULL;
+  api_key = _api_key ? _api_key : NULL;
   num_httpblized_categorizations = num_httpblized_fails = 0;
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enable http:dl with API key %s", api_key);
 }
