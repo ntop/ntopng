@@ -1111,6 +1111,10 @@ elseif(page == "snmp_bind") then
    });
 </script>]]
 elseif(page == "pools") then
+    if ifstats.isView then
+      error()
+    end
+
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "filtering") then
    if not isAdministrator() then

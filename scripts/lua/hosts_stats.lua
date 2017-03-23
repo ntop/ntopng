@@ -258,14 +258,16 @@ else
    print ('">Remote Hosts Only</a></li>')
 
    -- Host pools
-   hosts_filter_params.mode = nil
-   hosts_filter_params.pool = nil
-   print('<li role="separator" class="divider"></li>')
-   for _, _pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
-      hosts_filter_params.pool = _pool.id
-      print('<li')
-      if pool == _pool.id then print(' class="active"') end
-      print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">Host Pool '..(_pool.name)..'</li>')
+   if not ifstats.isView then
+      hosts_filter_params.mode = nil
+      hosts_filter_params.pool = nil
+      print('<li role="separator" class="divider"></li>')
+      for _, _pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
+        hosts_filter_params.pool = _pool.id
+        print('<li')
+        if pool == _pool.id then print(' class="active"') end
+        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">Host Pool '..(_pool.name)..'</li>')
+      end
    end
 
    print('</ul></div>\'')

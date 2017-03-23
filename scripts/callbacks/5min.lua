@@ -297,7 +297,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   end -- if rrd
 
   -- Save Host Pools stats every 5 minutes
-  if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1")) then
+  if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
     host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
   end
 end)

@@ -428,7 +428,13 @@ if((page == "overview") or (page == nil)) then
          print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
       end
 
-      print[[&nbsp;&nbsp;<span>Host Pool <a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+      print[[&nbsp;&nbsp;<span>Host Pool ]]
+      if not ifstats.isView then
+        print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+      else
+        -- no link for view interfaces
+        print(host_pools_utils.getPoolName(ifId, host_pool_id))
+      end
       print("</td><td></td></tr>")
    else
       if(host["mac"] ~= nil) then
@@ -1885,8 +1891,9 @@ elseif (page == "config") then
                &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
             </form>
          </td>
-      </tr>
-      <tr>
+      </tr>]]
+   if not ifstats.isView then
+      print[[<tr>
          <th>Host Pool</th>
          <td>
             <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
@@ -1904,8 +1911,9 @@ elseif (page == "config") then
                <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
             </form>
          </td>
-      </tr>
-      <tr>
+      </tr>]]
+   end
+      print [[<tr>
          <th>Dump Host Traffic</th>
          <td>
             <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
