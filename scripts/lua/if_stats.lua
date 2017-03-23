@@ -276,7 +276,7 @@ if(isAdministrator()) then
    end
 end
 
-if isAdministrator() then
+if isAdministrator() and (not ifstats.isView) then
    if(page == "pools") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i></a></li>\n")
    else

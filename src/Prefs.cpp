@@ -248,7 +248,7 @@ void usage() {
 	 "[--disable-autologout|-q]           | Disable web interface logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
-	 "                                    | 1 - Disable login only for all hosts\n"
+	 "                                    | 1 - Disable login for all hosts\n"
 	 "[--max-num-flows|-X] <num>          | Max number of active flows\n"
 	 "                                    | (default: %u)\n"
 	 "[--max-num-hosts|-x] <num>          | Max number of active hosts\n"
