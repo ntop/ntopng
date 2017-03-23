@@ -44,9 +44,17 @@ function callback_utils.foreachHost(ifname, verbose, callback, deadline)
    local hostbase
    
    interface.select(ifname)
-   
-   hosts_stats = interface.getLocalHostsInfo(false)
+
+   -- Get all hosts with reduced information, not only the local ones.
+   -- Use host.localhost to possibly reduce.
+   hosts_stats = interface.getHostsInfo(false)
+
+   if hosts_stats == nil then
+      hosts_stats = {hosts = {}}
+   end
+
    hosts_stats = hosts_stats["hosts"]
+
    for hostname, hoststats in pairs(hosts_stats) do
       local host = interface.getHostInfo(hostname)
 

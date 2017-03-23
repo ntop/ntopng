@@ -128,7 +128,7 @@ function print_single_group(value)
       print(value["id"]..'</A> ')
       print('", "column_chart": "')
       if value["id"] ~= "0" then
-	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan'..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
       print('", ')
 
