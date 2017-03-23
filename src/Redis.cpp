@@ -572,6 +572,50 @@ int Redis::hashKeys(const char *pattern, char ***keys_p) {
 
 /* **************************************** */
 
+int Redis::hashGetAll(const char *key, char ***keys_p, char ***values_p) {
+  int rc = 0;
+  int i, j;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "HGETALL %s", key);
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [HGETALL %s]", reply->str ? reply->str : "???", key);
+
+  (*keys_p) = NULL;
+
+  if(reply && (reply->type == REDIS_REPLY_ARRAY) && (reply->elements % 2 == 0)) {
+    rc = (int)reply->elements / 2;
+
+    if(rc > 0) {
+      if(((*keys_p) = (char**)malloc(rc * sizeof(char*))) != NULL) {
+        if(((*values_p) = (char**)malloc(rc * sizeof(char*))) != NULL) {
+
+          i = 0;
+          for(j = 0; j < rc; j++) {
+            /* Keys and values are interleaved */
+            (*keys_p)[j] = strdup(reply->element[i]->str);
+            (*values_p)[j] = strdup(reply->element[i+1]->str);
+            i += 2;
+          }
+        } else {
+          free(*keys_p);
+          *keys_p = NULL;
+        }
+      }
+    }
+  }
+
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
+/* **************************************** */
+
 int Redis::oneOperator(const char *operation, char *key) {
   int rc;
   redisReply *reply;

@@ -1184,6 +1184,14 @@ function splitNetworkPrefix(net)
    return address, prefix
 end
 
+-- ##############################################
+
+function getHostAltNamesKey()
+   return "ntopng.host_labels"
+end
+
+-- ##############################################
+
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
@@ -1196,11 +1204,9 @@ function getHostAltName(host_ip, host_mac)
       return(alt_name)
    end
 
-   local key = "ntopng.host_labels"
-
-   alt_name = ntop.getHashCache(key, host_ip)
+   alt_name = ntop.getHashCache(getHostAltNamesKey(), host_ip)
    if (isEmptyString(alt_name) and (host_mac ~= nil)) then
-      alt_name = ntop.getHashCache(key, host_mac)
+      alt_name = ntop.getHashCache(getHostAltNamesKey(), host_mac)
    end
 
    if isEmptyString(alt_name) then
@@ -1215,7 +1221,7 @@ function getHostAltName(host_ip, host_mac)
 end
 
 function setHostAltName(host_ip, alt_name)
-  ntop.setHashCache("ntopng.host_labels", host_ip, alt_name)
+  ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
 end
 
 -- Mac Addresses --

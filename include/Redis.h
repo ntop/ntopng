@@ -77,6 +77,7 @@ class Redis {
   char* popSet(char *pop_name, char *rsp, u_int rsp_len);
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
+  int hashGetAll(const char *key, char ***keys_p, char ***values_p);
   int del(char *key);
   int zIncr(char *key, char *member);
   int zTrim(char *key, u_int trim_len);

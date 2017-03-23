@@ -24,6 +24,14 @@ print [[
       interface.select(ifname)
       res = interface.findHost(query)
 
+      -- Also look at the custom names
+      local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey())
+      for ip,name in pairs(ip_to_name) do
+        if string.contains(string.lower(name), string.lower(query)) then
+          res[ip] = name
+        end
+      end
+
       if(res ~= nil) then
 	 values = {}
 	 for k, v in pairs(res) do

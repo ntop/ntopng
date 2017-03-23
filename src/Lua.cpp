@@ -4633,6 +4633,37 @@ static int ntop_get_hash_keys_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_hash_all_redis(lua_State* vm) {
+  char *key, **keys, **values;
+  Redis *redis = ntop->getRedis();
+  int rc;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+
+  rc = redis->hashGetAll(key, &keys, &values);
+
+  if(rc > 0) {
+    lua_newtable(vm);
+
+    for(int i = 0; i < rc; i++) {
+      lua_push_str_table_entry(vm, keys[i] ? keys[i] : (char *)"", values[i] ? values[i] : (char *)"");
+      if(values[i]) free(values[i]);
+      if(keys[i]) free(keys[i]);
+    }
+
+    free(keys);
+    free(values);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_keys_redis(lua_State* vm) {
   char *pattern, **keys;
   Redis *redis = ntop->getRedis();
@@ -5655,6 +5686,7 @@ static const luaL_Reg ntop_reg[] = {
   { "setHashCache",    ntop_set_hash_redis },
   { "delHashCache",    ntop_del_hash_redis },
   { "getHashKeysCache",ntop_get_hash_keys_redis },
+  { "getHashAllCache", ntop_get_hash_all_redis },
   { "getKeysCache",    ntop_get_keys_redis },
   { "delHashCache",    ntop_delete_hash_redis_key },
   { "setPopCache",     ntop_get_redis_set_pop },

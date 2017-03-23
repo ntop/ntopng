@@ -146,6 +146,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
+    trigger_host_alerts = false;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
   nextSitesUpdate = 0;
   if((m = new(std::nothrow) Mutex()) == NULL)
