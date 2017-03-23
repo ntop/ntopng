@@ -1026,10 +1026,10 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     h = ip.print(ip_buf, sizeof(ip_buf));
 
     if(syn_sent) {
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
+      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), h,
+	       h, iface->get_id(), h,
 	       counter->getCurrentHits(),
 	       counter->getOverThresholdDuration(),
 	       f->print(flow_buf, sizeof(flow_buf)));
@@ -1041,10 +1041,10 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 
       attacker_str = attacker->get_ip()->print(attacker_buf, sizeof(attacker_buf));
       aip_ptr = aip->print(aip_buf, sizeof(aip_buf));
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is under SYN flood attack by host %s [%u SYNs received in the last %u sec] %s";
+      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is under SYN flood attack by host %s [%u SYNs received in the last %u sec] %s";
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), attacker_str, aip_ptr,
+	       h, iface->get_id(), attacker_str, aip_ptr,
 	       counter->getCurrentHits(),
 	       counter->getOverThresholdDuration(),
 	       f->print(flow_buf, sizeof(flow_buf)));
@@ -1065,14 +1065,14 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
     if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows exceeded]";
+      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is a possible scanner [%u active flows exceeded]";
       char ip_buf[48], *h, msg[512];
 
       h = ip.print(ip_buf, sizeof(ip_buf));
 
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), h, max_num_active_flows);
+	       h, iface->get_id(), h, max_num_active_flows);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
       iface->getAlertsManager()->engageHostAlert(this,
@@ -1086,14 +1086,14 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows exceeded]";
+      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is possibly under scan attack [%u active flows exceeded]";
       char ip_buf[48], *h, msg[512];
 
       h = ip.print(ip_buf, sizeof(ip_buf));
 
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), h, max_num_active_flows);
+	       h, iface->get_id(), h, max_num_active_flows);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
       iface->getAlertsManager()->engageHostAlert(this,
@@ -1114,14 +1114,14 @@ void Host::decNumFlows(bool as_client) {
       num_active_flows_as_client--;
 
       if(num_active_flows_as_client <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_attacker_alert) {
-	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer a possible scanner [less than %u active flows]";
+	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is no longer a possible scanner [less than %u active flows]";
 	char ip_buf[48], *h, msg[512];
 
 	h = ip.print(ip_buf, sizeof(ip_buf));
 
 	snprintf(msg, sizeof(msg),
 		 error_msg, ntop->getPrefs()->get_http_prefix(),
-		 h, iface->get_name(), h, max_num_active_flows);
+		 h, iface->get_id(), h, max_num_active_flows);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
 	iface->getAlertsManager()->releaseHostAlert(this,
@@ -1136,14 +1136,14 @@ void Host::decNumFlows(bool as_client) {
       num_active_flows_as_server--;
 
       if(num_active_flows_as_server <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_victim_alert) {
-	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer under scan attack [less than %u active flows]";
+	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is no longer under scan attack [less than %u active flows]";
 	char ip_buf[48], *h, msg[512];
 
 	h = ip.print(ip_buf, sizeof(ip_buf));
 
 	snprintf(msg, sizeof(msg),
 		 error_msg, ntop->getPrefs()->get_http_prefix(),
-		 h, iface->get_name(), h, max_num_active_flows);
+		 h, iface->get_id(), h, max_num_active_flows);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
 	iface->getAlertsManager()->releaseHostAlert(this,
@@ -1247,13 +1247,13 @@ void Host::updateStats(struct timeval *tv) {
   }
 
   if(isAboveQuota() && triggerAlerts()) {
-    const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
+    const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
     h = ip.print(ip_buf, sizeof(ip_buf));
 
     snprintf(msg, sizeof(msg),
 	     error_msg, ntop->getPrefs()->get_http_prefix(),
-	     h, iface->get_name(), h, host_quota_mb);
+	     h, iface->get_id(), h, host_quota_mb);
     iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
 }
@@ -1431,9 +1431,9 @@ void Host::incLowGoodputFlows(bool asClient) {
     c = get_ip()->print(c_buf, sizeof(c_buf));
 
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Host <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> has %d low goodput active %s flows",
+	     "Host <A HREF='%s/lua/host_details.lua?host=%s&ifid=%s'>%s</A> has %d low goodput active %s flows",
 	     ntop->getPrefs()->get_http_prefix(),
-	     c, iface->get_name(), get_name() ? get_name() : c,
+	     c, iface->get_id(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
     iface->getAlertsManager()->engageHostAlert(this,

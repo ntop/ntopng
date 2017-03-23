@@ -306,14 +306,14 @@ void Flow::dumpFlowAlert() {
 	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       snprintf(alert_msg, sizeof(alert_msg),
-	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
+	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> &gt; "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> [%s]",
 	       msg, /* TODO: remove string and save numeric status */
 	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_name(),
+	       c, iface->get_id(),
 	       cli_host->get_name() ? cli_host->get_name() : c,
 	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(),
+	       s, iface->get_id(),
 	       srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
@@ -343,15 +343,15 @@ void Flow::checkBlacklistedFlow() {
 	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
+	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> contacted %s host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> [%s]",
 	       cli_host->isBlacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_name(),
+	       c, iface->get_id(),
 	       cli_host->get_name() ? cli_host->get_name() : c,
 	       srv_host->isBlacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(),
+	       s, iface->get_id(),
 	       srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
@@ -2425,13 +2425,13 @@ void Flow::checkFlowCategory() {
     s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Flow <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; "
-	     "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
+	     "Flow <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d'>%s</A>:%u &lt;-&gt; "
+	     "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d'>%s</A>:%u"
 	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
 	     ntop->getPrefs()->get_http_prefix(),
-	     c, iface->get_name(), c, cli_port,
+	     c, iface->get_id(), c, cli_port,
 	     ntop->getPrefs()->get_http_prefix(),
-	     s, iface->get_name(), s, srv_port,
+	     s, iface->get_id(), s, srv_port,
 	     host_server_name, host_server_name);
 
     /* TODO: see if it is meaningful to add source and target to the alert */
