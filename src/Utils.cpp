@@ -808,8 +808,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
       is_good = Utils::isPrintableChar(param[i])
 	&& (param[i] != '<')
 	&& (param[i] != '>')
-	&& (param[i] != '"') /* Prevents injections */
-	&& (param[i] != '\'');
+	&& (param[i] != '"'); /* Prevents injections - single quotes are allowed and will be validated in http_lint.lua */
     }
 
     if(is_good)
