@@ -61,6 +61,14 @@ print [[
 			        textAlign: 'left'
 			     }
 				 },
+                         {
+			     title: "Chart",
+				 field: "column_chart",
+				 sortable: false,
+                             css: {
+			        textAlign: 'center'
+			     }
+				 },
 			  ]]
 
 

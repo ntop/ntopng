@@ -180,6 +180,7 @@ end
 -- If network, must be prefixed with 'net:'
 -- If profile, must be prefixed with 'profile:'
 -- If host pool, must be prefixed with 'pool:'
+-- If asn, must be prefixed with 'asn:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
       host_or_network = string.gsub(host_or_network, 'net:', '')
@@ -198,6 +199,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
       host_or_network = string.gsub(host_or_network, 'snmp:', '')
       -- snmpstats are ntopng-wide so ifid is ignored
       rrdname = fixPath(dirs.workingdir .. "/snmpstats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
+      host_or_network = string.gsub(host_or_network, 'asn:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
    else
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
@@ -491,6 +495,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    -- hide historical tabs for networks and pools
    and not string.starts(host, 'net:')
    and not string.starts(host, 'pool:')
+   and not string.starts(host, 'asn:')
 then
    print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
 end
@@ -550,7 +555,10 @@ for k,v in ipairs(zoom_vals) do
    -- every 5 minutes
    local net_or_profile = false
 
-   if host and (string.starts(host, 'net:') or string.starts(host, 'profile:') or string.starts(host, 'pool:')) then
+   if host and (string.starts(host, 'net:')
+      or string.starts(host, 'profile:')
+      or string.starts(host, 'pool:')
+      or string.starts(host, 'asn:')) then
        net_or_profile = true
    end
    if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not top_rrds[rrdFile])) then
@@ -645,6 +653,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    -- hide historical tabs for networks and profiles and pools
    and not string.starts(host, 'net:')
    and not string.starts(host, 'pool:')
+   and not string.starts(host, 'asn:')
 then
    print('<div class="tab-pane fade" id="historical-flows">')
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then

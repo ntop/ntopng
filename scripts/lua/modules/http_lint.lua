@@ -694,6 +694,7 @@ local known_parameters = {
    ["toggle_flow_snmp_ports_rrds"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
+   ["toggle_asn_rrds"]                             =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,

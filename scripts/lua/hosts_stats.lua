@@ -50,6 +50,7 @@ print [[
       <hr>
 ]]
 
+if (_GET["page"] ~= "historical") then
 if(asn ~= nil) then
 print [[
 <div class="container-fluid">
@@ -384,9 +385,33 @@ if(asn ~= nil and asn ~= "0") then
 </script>
 ]]
 end
+end -- if(asn ~= nil)
+else
+   -- historical page
+   require "graph_utils"
 
+   print[[
+   <div class="bs-docs-example">
+      <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">ASN: ]] print(asn) print[[</a> </li>]]
+   print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+   print[[
+      <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
+      </ul>
+      </div>
+      </nav>
+   </div>]]
 
+   local rrdfile
+   if(_GET["rrd_file"] == nil) then
+      rrdfile = "bytes.rrd"
+   else
+      rrdfile = _GET["rrd_file"]
+   end
 
+   drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
