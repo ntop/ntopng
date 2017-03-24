@@ -23,6 +23,7 @@ network_n   = _GET["network"]
 country_n   = _GET["country"]
 os_n        = _GET["os"]
 pool_n      = _GET["pool"]
+ipver_n     = _GET["version"]
 
 if (group_col == nil) then
    group_col = "asn"
@@ -80,7 +81,7 @@ vals = {}
 stats_by_group_col = {}
 
 interface.select(ifname)
-stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n)) -- false = little details)
+stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n), tonumber(ipver_n)) -- false = little details)
 stats_by_group_col = stats_by_group_key
 
 --[[
@@ -105,7 +106,9 @@ function print_single_group(value)
 	 print("".. getOSIcon(value["id"]) .."")
       end      
    elseif (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
-      print("hosts_stats.lua?network="..tostring(value["id"]).."'>")
+      print("hosts_stats.lua?network="..tostring(value["id"]))
+      if not isEmptyString(ipver_n) then print("&version="..ipver_n) end
+      print("'>")
    elseif (group_col == "pool_id" or pool_n ~= nil) then
       print("hosts_stats.lua?pool="..tostring(value["id"]).."'>")
    elseif (group_col == "mac") then

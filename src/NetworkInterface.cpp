@@ -3227,7 +3227,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hos
   } else if(retriever.sorter == column_local_network)
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].ipValue)
-	free(retriever.elems[i].ipValue);
+	delete retriever.elems[i].ipValue;
 
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
