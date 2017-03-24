@@ -89,12 +89,14 @@ end
 
 local function topTalkersSectionInTableOP(tblarray, arithOp)
    local ret = {}
-   local outer_cnt = 1
+   local outer_cnt = 1 -- TODO: never increased, find why
    local num_glob = 1
    for _,tbl in pairs(tblarray) do
       for _,outer in pairs(tbl) do
+	 -- each tbl contains data for a different vlan
 	 if(ret[outer_cnt] == nil) then ret[outer_cnt] = {} end
 	 for key, value in pairs(outer) do
+	    -- key: e.g. senders / receivers
 	    for _,record in pairs(value) do
 	       local found = false
 	       if(ret[outer_cnt][key] == nil) then ret[outer_cnt][key] = {} end
@@ -104,6 +106,7 @@ local function topTalkersSectionInTableOP(tblarray, arithOp)
 		     found = true
 		  end
 	       end
+
 	       if(found == false) then
 		  ret[outer_cnt][key][num_glob] = record
 		  num_glob = num_glob + 1
