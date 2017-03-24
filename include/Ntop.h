@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+extern class Ntop *ntop;
+
 /** @defgroup Ntop Ntop
  * Main ntopng group.
  */
