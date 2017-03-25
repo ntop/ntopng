@@ -34,6 +34,7 @@ typedef struct {
 
 typedef struct {
   TrafficCounter packets, bytes;
+  u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
 } ProtoCounter;
 
 class NetworkInterface;
@@ -48,10 +49,10 @@ class nDPIStats {
   nDPIStats();
   ~nDPIStats();
 
-  void incStats(u_int16_t proto_id,
+  void incStats(u_int32_t when, u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
-
+  
   inline TrafficCounter* getPackets(u_int16_t proto_id) { 
     if(proto_id < (MAX_NDPI_PROTOS)) 
       return(&counters[proto_id]->packets);
@@ -72,6 +73,7 @@ class nDPIStats {
   json_object* getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
   void sum(nDPIStats *s);
+
   inline u_int64_t getProtoBytes(u_int16_t proto_id) { 
     if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id]) {
       TrafficCounter *tc = &counters[proto_id]->bytes;

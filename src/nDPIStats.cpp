@@ -55,10 +55,11 @@ void nDPIStats::sum(nDPIStats *stats) {
 	}
       }
 
-      stats->counters[i]->packets.sent += counters[i]->packets.sent;
-      stats->counters[i]->packets.rcvd += counters[i]->packets.rcvd;
-      stats->counters[i]->bytes.sent   += counters[i]->bytes.sent;
-      stats->counters[i]->bytes.rcvd   += counters[i]->bytes.rcvd;
+      stats->counters[i]->packets.sent  += counters[i]->packets.sent;
+      stats->counters[i]->packets.rcvd  += counters[i]->packets.rcvd;
+      stats->counters[i]->bytes.sent    += counters[i]->bytes.sent;
+      stats->counters[i]->bytes.rcvd    += counters[i]->bytes.rcvd;
+      stats->counters[i]->duration      += counters[i]->duration;
     }
   }
 }
@@ -69,10 +70,11 @@ void nDPIStats::print(NetworkInterface *iface) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(counters[i]->packets.sent || counters[i]->packets.rcvd)
-	printf("[%s] [pkts: %llu/%llu][bytes: %llu/%llu]\n",
+	printf("[%s] [pkts: %llu/%llu][bytes: %llu/%llu][duration: %u sec]\n",
 	       iface->get_ndpi_proto_name(i),
 	       (long long unsigned) counters[i]->packets.sent, (long long unsigned) counters[i]->packets.rcvd,
-	       (long long unsigned) counters[i]->bytes.sent,   (long long unsigned)counters[i]->bytes.rcvd);
+	       (long long unsigned) counters[i]->bytes.sent,   (long long unsigned)counters[i]->bytes.rcvd,
+	       counters[i]->duration);
     }
   }
 }
@@ -95,6 +97,7 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm) {
 	  lua_push_int_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
 	  lua_push_int_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
 	  lua_push_int_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
+	  lua_push_int_table_entry(vm, "duration", counters[i]->duration);
 
 	  lua_pushstring(vm, name);
 	  lua_insert(vm, -2);
@@ -110,9 +113,10 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm) {
 
 /* *************************************** */
 
-void nDPIStats::incStats(u_int16_t proto_id,
+void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 			 u_int64_t sent_packets, u_int64_t sent_bytes,
 			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+
   if(proto_id < (MAX_NDPI_PROTOS)) {
     if(counters[proto_id] == NULL) {
       if((counters[proto_id] = (ProtoCounter*)calloc(1, sizeof(ProtoCounter))) == NULL) {
@@ -129,6 +133,11 @@ void nDPIStats::incStats(u_int16_t proto_id,
 
     counters[proto_id]->packets.sent += sent_packets, counters[proto_id]->bytes.sent += sent_bytes;
     counters[proto_id]->packets.rcvd += rcvd_packets, counters[proto_id]->bytes.rcvd += rcvd_bytes;
+
+    if((when != 0) && (counters[proto_id]->last_epoch_update != when)) {
+      counters[proto_id]->duration += ntop->getPrefs()->get_housekeeping_frequency(),
+	counters[proto_id]->last_epoch_update = when;
+    }
   }
 }
 
@@ -163,6 +172,8 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	json_object *bytes, *packets;
 
 	if((counters[proto_id] = (ProtoCounter*)malloc(sizeof(ProtoCounter))) != NULL) {
+	  json_object *duration;
+	  
 	  if(json_object_object_get_ex(obj, "bytes", &bytes)) {
 	    json_object *sent, *rcvd;
 
@@ -182,6 +193,9 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	    if(json_object_object_get_ex(bytes, "rcvd", &rcvd))
 	      counters[proto_id]->packets.rcvd = json_object_get_int64(rcvd);
 	  }
+
+	  if(json_object_object_get_ex(bytes, "duration", &duration))
+	    counters[proto_id]->duration = json_object_get_int64(duration);	  
 	}
       }
     }
@@ -206,7 +220,8 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
 	json_object *inner, *inner1;
 
 	inner = json_object_new_object();
-
+	json_object_object_add(inner, "duration", json_object_new_int64(counters[proto_id]->duration));
+	
 	inner1 = json_object_new_object();
 	json_object_object_add(inner1, "sent", json_object_new_int64(counters[proto_id]->bytes.sent));
 	json_object_object_add(inner1, "rcvd", json_object_new_int64(counters[proto_id]->bytes.rcvd));

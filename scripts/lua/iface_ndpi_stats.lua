@@ -142,7 +142,15 @@ if(stats ~= nil) then
       if(host_info["host"] == nil) then
          print("\t { \"label\": \"" .. value .."\", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..value.."\", \"value\": ".. key .." }")
       else
-         print("\t { \"label\": \"" .. value .."\", \"value\": ".. key .." }")
+	 local duration
+	 
+	 if(stats["ndpi"][value] ~= nil) then
+	    duration = stats["ndpi"][value]["duration"]
+	 else
+	    duration = 0
+	 end
+	 
+         print("\t { \"label\": \"" .. value .."\", \"value\": ".. key ..", \"duration\": ".. duration .." }")
       end
 
       accumulate = accumulate + key

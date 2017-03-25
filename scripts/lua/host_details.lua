@@ -880,7 +880,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      ]]
 
-     print("<thead><tr><th>Application Protocol</th><th>Sent</th><th>Received</th><th>Breakdown</th><th colspan=2>Total</th></tr></thead>\n")
+     print("<thead><tr><th>Application Protocol</th><th>Duration</th><th>Sent</th><th>Received</th><th>Breakdown</th><th colspan=2>Total</th></tr></thead>\n")
 
   print ('<tbody id="host_details_ndpi_tbody">\n')
   print ("</tbody>")
@@ -892,12 +892,11 @@ function update_ndpi_table() {
   $.ajax({
     type: 'GET',
     url: ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_details_ndpi.lua',
+  print(ntop.getHttpPrefix())
+  print [[/lua/host_details_ndpi.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
     if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
     print [[ },
-    //data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
     success: function(content) {
       $('#host_details_ndpi_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table

@@ -904,9 +904,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
       hp = iface->getHostPools();
       if(hp) {
-	hp->incPoolStats(cli_host_pool_id, ndpiDetectedProtocol.app_protocol,
+	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol,
 			 diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-	hp->incPoolStats(srv_host_pool_id, ndpiDetectedProtocol.app_protocol,
+	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
       }
 #endif
@@ -915,7 +915,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	NetworkStats *cli_network_stats;
 
 	cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-	cli_host->incStats(protocol,
+	cli_host->incStats(tv->tv_sec, protocol,
 			   ndpiDetectedProtocol.app_protocol,
 			   &categorization.category,
 			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
@@ -942,7 +942,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	NetworkStats *srv_network_stats;
 
 	srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-	srv_host->incStats(protocol, ndpiDetectedProtocol.app_protocol,
+	srv_host->incStats(tv->tv_sec, protocol, ndpiDetectedProtocol.app_protocol,
 			   NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
@@ -1537,7 +1537,7 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 /* *************************************** */
 
 void Flow::sumStats(nDPIStats *stats) {
-  stats->incStats(ndpiDetectedProtocol.app_protocol,
+  stats->incStats(0, ndpiDetectedProtocol.app_protocol,
 		  cli2srv_packets, cli2srv_bytes,
 		  srv2cli_packets, srv2cli_bytes);
 }
