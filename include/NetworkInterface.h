@@ -247,7 +247,7 @@ class NetworkInterface {
   u_int64_t getCheckPointNumPackets();
   u_int64_t getCheckPointNumBytes();
   u_int32_t getCheckPointNumPacketDrops();
-
+  inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);

@@ -564,7 +564,8 @@ elseif((page == "packets")) then
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
     print [[
-	<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
+	 <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
+  	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
       </table>
 
 	<script type='text/javascript'>
@@ -573,6 +574,12 @@ elseif((page == "packets")) then
        do_pie("#sizeDistro", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_pkt_distro.lua', { distr: "size", ifid: "]] print(ifstats.id.."\"")
+   print [[
+	   }, "", refresh);
+
+       do_pie("#flagsDistro", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifstats.id.."\"")
    print [[
 	   }, "", refresh);
     }

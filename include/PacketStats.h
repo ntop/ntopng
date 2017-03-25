@@ -30,11 +30,13 @@ class PacketStats {
     upTo512, upTo1024, upTo1518,
     upTo2500, upTo6500, upTo9000,
     above9000;
+  u_int64_t syn, synack, finack, rst;
 
  public:
   PacketStats();
-  
-  void incStats(u_int pkt_len);  
+
+  void incFlagStats(u_int8_t flags);
+  void incStats(u_int pkt_len);
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
@@ -45,7 +47,8 @@ class PacketStats {
       s->upTo512 += upTo512, s->upTo1024 += upTo1024,
       s->upTo1518 += upTo1518, s->upTo2500 += upTo2500,
       s->upTo6500 += upTo6500, s->upTo9000 += upTo9000,
-      s->above9000 += above9000;
+      s->above9000 += above9000,
+      s->syn += syn, s->synack += synack, s->finack += finack, s->rst += rst;
   };
 };
 
