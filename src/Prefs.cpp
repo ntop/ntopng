@@ -72,7 +72,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_syslog_alerts =  CONST_DEFAULT_ALERT_SYSLOG_ENABLED;
   enable_probing_alerts = enable_syslog_alerts = false; /* set later */
   num_interfaces = 0, enable_auto_logout = true;
-  dump_flows_on_es = dump_flows_on_mysql = false;
+  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   enable_taps = false;
   memset(ifNames, 0, sizeof(ifNames));
   dump_hosts_to_db = location_none;
@@ -109,7 +109,9 @@ Prefs::Prefs(Ntop *_ntop) {
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
-
+  ls_host = NULL;
+  ls_port = NULL;
+  ls_proto = NULL;
   has_cmdl_trace_lvl      = false;
   has_cmdl_disable_alerts = false;
 }
@@ -149,7 +151,9 @@ Prefs::~Prefs() {
   if(mysql_tablename) free(mysql_tablename);
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
-
+  if(ls_host)         free(ls_host);
+  if(ls_port)	      free(ls_port);
+  if(ls_proto)	      free(ls_proto);
   if(http_binding_address)  free(http_binding_address);
   if(https_binding_address) free(https_binding_address);
   /* NOTE: flashstart is deleted by the Ntop class */
@@ -947,9 +951,24 @@ int Prefs::setOption(int optkey, char *optarg) {
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
 
 	dump_flows_on_mysql = true;
-      } else
+      }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
-    } else
+
+
+    } else if(!strncmp(optarg, "logstash",8)) {
+          /* logstash;<host[@port]; */
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");  
+          optarg = Utils::tokenizer(&optarg[9],';',&ls_host);
+	  optarg = Utils::tokenizer(optarg,';',&ls_proto);
+	  ls_port = strdup(optarg ? optarg : NULL);
+
+          if(ls_host){
+	     ntop->getTrace()->traceEvent(TRACE_INFO," Dumping flows to logstash - initial stage ");
+             dump_flows_on_ls = true;
+          }else {
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F logstash;....");
+	 }
+      } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
     break;
 
@@ -1236,10 +1255,12 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql);
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
+
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
   if(enable_active_local_hosts_cache)

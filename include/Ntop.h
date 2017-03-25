@@ -52,6 +52,7 @@ class Ntop {
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer of Redis server. */
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
+  Logstash *logstash; /**< Pointer of Logstash. */
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
@@ -363,6 +364,7 @@ class Ntop {
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
+  inline Logstash*         getLogstash()             { return(logstash);            };
   inline Prefs*            getPrefs()                { return(prefs);               };
   inline RuntimePrefs*     getRuntimePrefs()         { return(runtimeprefs);        };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
@@ -405,6 +407,7 @@ class Ntop {
   void createExportInterface();
   void initRedis();
   void initElasticSearch();
+  void initLogstash(); 
 
   inline u_int32_t getStarttime()        { return((u_int32_t)start_time); }
   inline char*     getStarttimeString()  { return(epoch_buf);             }

@@ -61,7 +61,7 @@ class Prefs {
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
-  bool dump_flows_on_es, dump_flows_on_mysql;
+  bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
@@ -87,6 +87,7 @@ class Prefs {
   FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
+  char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
   bool has_cmdl_disable_alerts;	/**< Indicate whether alerts were forcefully disabled from the command line */
   int max_num_alerts_per_entity, max_num_flow_alerts;
@@ -145,6 +146,7 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
+  inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
   u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
@@ -221,6 +223,9 @@ class Prefs {
   inline char* get_mysql_tablename()    { return(mysql_tablename);       };
   inline char* get_mysql_user()         { return(mysql_user);            };
   inline char* get_mysql_pw()           { return(mysql_pw);              };
+  inline char* get_ls_host()            { return(ls_host);               };
+  inline char* get_ls_port()		{ return(ls_port);		 };
+  inline char* get_ls_proto()		{ return(ls_proto);		 };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }

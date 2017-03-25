@@ -194,6 +194,7 @@ using namespace std;
 #include "HTTPstats.h"
 #include "Redis.h"
 #include "ElasticSearch.h"
+#include "Logstash.h"
 #include "StoreManager.h"
 #include "StatsManager.h"
 #include "AlertsManager.h"

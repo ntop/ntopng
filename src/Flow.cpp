@@ -804,6 +804,7 @@ bool Flow::dumpFlow(bool idle_flow) {
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
+     || ntop->getPrefs()->do_dump_flows_on_ls()
      || ntop->get_export_interface()) {
 #ifdef NTOPNG_PRO
     if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
@@ -826,6 +827,8 @@ bool Flow::dumpFlow(bool idle_flow) {
 	cli_host->getInterface()->dumpDBFlow(last_seen, idle_flow, this);
       else if(ntop->getPrefs()->do_dump_flows_on_es())
 	cli_host->getInterface()->dumpEsFlow(last_seen, this);
+      else if(ntop->getPrefs()->do_dump_flows_on_ls())
+        cli_host->getInterface()->dumpLsFlow(last_seen, this);
     }
 
     if(ntop->get_export_interface()) {
