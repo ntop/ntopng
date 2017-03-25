@@ -14,14 +14,30 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local base_url = ntop.getHttpPrefix().."/lua/network_stats.lua"
+local page_params = {}
+page_params["grouped_by"] = "local_network"
+
+if not isEmptyString(_GET["version"]) then
+   page_params["version"] = _GET["version"]
+end
+
+function getPageTitle()
+   local t = "Networks"
+
+   if not isEmptyString(_GET["version"]) then
+      t = t .. " with IPv" .. _GET["version"] .. " traffic"
+   end
+
+   return t
+end
+
 print [[
       <hr>
       <div id="table-network"></div>
 	 <script>
 	 var url_update = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=local_network]]
-
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_grouped_hosts_data.lua", page_params))
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_id.inc")
 
@@ -29,9 +45,13 @@ print [[
 	 $("#table-network").datatable({
                         title: "Network List",
 			url: url_update ,
-	 ]]
+			buttons: ['<div class="btn-group pull-right">]]
 
-print('title: "Networks",\n')
+printIpVersionDropdown(base_url, page_params)
+
+print("</div>'],")
+
+print('title: "'..getPageTitle()..'",\n')
 print ('rowCallback: function ( row ) { return network_table_setID(row); },')
 
 -- Set the preference table

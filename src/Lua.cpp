@@ -608,6 +608,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   u_int16_t vlan_filter;
   u_int32_t asn_filter = (u_int32_t)-1;
   u_int16_t pool_filter = (u_int16_t)-1;
+  u_int8_t ipver_filter = (u_int8_t)-1;
   int16_t network_filter = -2;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -621,6 +622,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7);
   if(lua_type(vm, 8) == LUA_TBOOLEAN) hostsOnly      = lua_toboolean(vm, 8) ? true : false;
   if(lua_type(vm, 9) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 10) == LUA_TNUMBER) ipver_filter   = (u_int8_t)lua_tonumber(vm, 10);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsGroup(vm, get_allowed_nets(vm),
@@ -628,7 +630,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
 					    country,
 					    vlan_filter, os_filter,
 					    asn_filter, network_filter,
-					    pool_filter, 0 /* any */,
+					    pool_filter, ipver_filter,
 					    hostsOnly, groupBy) < 0)
     return(CONST_LUA_ERROR);
 

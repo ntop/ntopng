@@ -27,7 +27,8 @@ PacketStats::PacketStats() {
   upTo64 = 0, upTo128 = 0, upTo256 = 0,
     upTo512 = 0, upTo1024 = 0, upTo1518 = 0,
     upTo2500 = 0, upTo6500 = 0, upTo9000 = 0,
-    above9000 = 0;
+    above9000 = 0, syn = 0, synack = 0,
+    finack = 0, rst = 0;
 }
 
 /* *************************************** */
@@ -44,6 +45,15 @@ void PacketStats::incStats(u_int pkt_len) {
   else if(pkt_len <= 9000) upTo9000 += 1;
   else above9000 += 1;
 };  
+
+/* *************************************** */
+
+void PacketStats::incFlagStats(u_int8_t flags) { 
+  if(flags == TH_SYN)                 syn++;
+  else if(flags == (TH_SYN|TH_ACK))   synack++;
+  else if(flags == (TH_FIN|TH_ACK))   finack++;
+  else if((flags & TH_RST) == TH_RST) rst++;
+}
 
 /* *************************************** */
 
@@ -74,6 +84,10 @@ void PacketStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "upTo6500", &obj))  upTo6500 = json_object_get_int64(obj);  else upTo6500 = 0;
   if(json_object_object_get_ex(o, "upTo9000", &obj))  upTo9000 = json_object_get_int64(obj);  else upTo9000 = 0;
   if(json_object_object_get_ex(o, "above9000", &obj)) above9000 = json_object_get_int64(obj); else above9000 = 0;
+  if(json_object_object_get_ex(o, "syn", &obj)) syn = json_object_get_int64(obj); else syn = 0;
+  if(json_object_object_get_ex(o, "synack", &obj)) synack = json_object_get_int64(obj); else synack = 0;
+  if(json_object_object_get_ex(o, "finack", &obj)) finack = json_object_get_int64(obj); else finack = 0;
+  if(json_object_object_get_ex(o, "rst", &obj)) rst = json_object_get_int64(obj); else rst = 0;
 }
 
 /* ******************************************* */
@@ -93,6 +107,10 @@ json_object* PacketStats::getJSONObject() {
   if(upTo6500 > 0) json_object_object_add(my_object, "upTo6500", json_object_new_int64(upTo6500));
   if(upTo9000 > 0) json_object_object_add(my_object, "upTo9000", json_object_new_int64(upTo9000));
   if(above9000 > 0) json_object_object_add(my_object, "above9000", json_object_new_int64(above9000));
+  if(syn > 0)    json_object_object_add(my_object, "syn", json_object_new_int64(syn));
+  if(synack > 0) json_object_object_add(my_object, "synack", json_object_new_int64(synack));
+  if(finack > 0) json_object_object_add(my_object, "finack", json_object_new_int64(finack));
+  if(rst > 0)    json_object_object_add(my_object, "rst", json_object_new_int64(rst));
   
   return(my_object);
 }
@@ -112,6 +130,11 @@ void PacketStats::lua(lua_State* vm, const char *label) {
   lua_push_int_table_entry(vm, "upTo6500", upTo6500);
   lua_push_int_table_entry(vm, "upTo9000", upTo9000);
   lua_push_int_table_entry(vm, "above9000", above9000);
+
+  lua_push_int_table_entry(vm, "syn", syn);
+  lua_push_int_table_entry(vm, "synack", synack);
+  lua_push_int_table_entry(vm, "finack", finack);
+  lua_push_int_table_entry(vm, "rst", rst);
   
   lua_pushstring(vm, label);
   lua_insert(vm, -2);

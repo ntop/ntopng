@@ -43,13 +43,15 @@ num = 0
 sum = 0
 for key, value in pairs(what) do
    if(value > threshold) then
-      if(num > 0) then
-	 print ",\n"
+      if(pkt_distribution[key] ~= nil) then
+	 if(num > 0) then
+	    print ",\n"
+	 end
+	 	 
+	 print("\t { \"label\": \"" .. pkt_distribution[key] .."\", \"value\": ".. value .." }") 
+	 num = num + 1
+	 sum = sum + value
       end
-   
-      print("\t { \"label\": \"" .. pkt_distribution[key] .."\", \"value\": ".. value .." }") 
-      num = num + 1
-      sum = sum + value
    end
 end
 

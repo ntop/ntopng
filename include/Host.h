@@ -149,7 +149,7 @@ class Host : public GenericHost {
   inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
-  void incStats(u_int8_t l4_proto, u_int ndpi_proto,
+  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);

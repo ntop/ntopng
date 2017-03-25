@@ -77,7 +77,7 @@ end
 
 local total = total_sent + total_recv
 
-print("<tr><td>Total</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
+print("<tr><td>Total</td><td class=\"text-right\">&nbsp;</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
 
 print("<td>")
 breakdownBar(total_sent, "Sent", total_recv, "Rcvd", 0, 100)
@@ -106,6 +106,7 @@ for _k in pairsByKeys(vals , desc) do
     historicalProtoHostHref(getInterfaceId(ifname), host, nil, protos[k], nil)
 
     print('</td>')
+    print("<td class=\"text-right\">" .. secondsToTime(host["ndpi"][k]["duration"]) .. "</td>")
     print("<td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
 
     print("<td>")

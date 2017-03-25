@@ -23,6 +23,9 @@ network_n   = _GET["network"]
 country_n   = _GET["country"]
 os_n        = _GET["os"]
 pool_n      = _GET["pool"]
+ipver_n     = _GET["version"]
+
+local ifstats = interface.getStats()
 
 if (group_col == nil) then
    group_col = "asn"
@@ -80,7 +83,7 @@ vals = {}
 stats_by_group_col = {}
 
 interface.select(ifname)
-stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n)) -- false = little details)
+stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n), tonumber(ipver_n)) -- false = little details)
 stats_by_group_col = stats_by_group_key
 
 --[[
@@ -105,7 +108,9 @@ function print_single_group(value)
 	 print("".. getOSIcon(value["id"]) .."")
       end      
    elseif (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
-      print("hosts_stats.lua?network="..tostring(value["id"]).."'>")
+      print("hosts_stats.lua?network="..tostring(value["id"]))
+      if not isEmptyString(ipver_n) then print("&version="..ipver_n) end
+      print("'>")
    elseif (group_col == "pool_id" or pool_n ~= nil) then
       print("hosts_stats.lua?pool="..tostring(value["id"]).."'>")
    elseif (group_col == "mac") then
@@ -128,7 +133,7 @@ function print_single_group(value)
       print(value["id"]..'</A> ')
       print('", "column_chart": "')
       if value["id"] ~= "0" then
-	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan'..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
       print('", ')
 
@@ -145,6 +150,16 @@ function print_single_group(value)
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
          print('", ')
       end
+   elseif(group_col == "asn") then
+      print(value["id"]..'</A>", ')
+      print('"column_chart": "')
+      local asnstats_rrd = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats/'..value["id"]..'/bytes.rrd')
+      if ntop.exists(asnstats_rrd) then
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      else
+         print('-')
+      end
+      print('", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')
    else

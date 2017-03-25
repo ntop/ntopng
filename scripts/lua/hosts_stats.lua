@@ -50,6 +50,7 @@ print [[
       <hr>
 ]]
 
+if (_GET["page"] ~= "historical") then
 if(asn ~= nil) then
 print [[
 <div class="container-fluid">
@@ -104,8 +105,12 @@ else
    network_name = ""
 end
 
+local ipver_title
 if not isEmptyString(ipversion) then
    page_params["version"] = ipversion
+   ipver_title = "IPv"..ipversion.." "
+else
+   ipver_title = ""
 end
 
 print [[
@@ -133,38 +138,26 @@ if(protocol == nil) then protocol = "" end
 
 if(asn ~= nil) then 
 	asninfo = " for AS "..asn 
-else 
-	asninfo = "" 
 end
 
 if(_GET["country"] ~= nil) then 
    country = " for Country ".._GET["country"] 
-else 
-   country = ""
 end
 
 if(_GET["mac"] ~= nil) then 
    mac = " with Mac ".._GET["mac"] 
-else 
-   mac = ""
 end
 
 if(_GET["os"] ~= nil) then 
    os_ = " ".._GET["os"] 
-else 
-   os_ = "" 
 end
 
 if(_GET["pool"] ~= nil) then
    pool_ = "for Pool "..host_pools_utils.getPoolName(ifstats.id, _GET["pool"])
-else
-   pool_ = ""
 end
 
 if(_GET["vlan"] ~= nil) then
   vlan_title = " [VLAN ".._GET["vlan"].."]"
-else
-  vlan_title = ""
 end
 
 local protocol_name = nil
@@ -175,33 +168,23 @@ end
 
 if(protocol_name == nil) then protocol_name = protocol end
 
-if(mode == "all") then
-	if ( country ~= "" ) then print('title: "All '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "All '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	elseif ( mac ~= "" ) then print('title: "All local '..protocol_name..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "All '..os_..vlan_title..' Hosts",\n')
-	elseif ( pool_ ~= "" ) then print('title: "All Hosts '..pool_..vlan_title..'",\n')
-	else print('title: "All '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	end
-elseif(mode == "local") then
-	if ( country ~= "" ) then print('title: "Local '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Local local '..protocol_name..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..vlan_title..' Hosts",\n')
-	elseif ( pool_ ~= "" ) then print('title: "Local Hosts '..pool_..vlan_title..'",\n')
-	else  print('title: "Local '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	end
-elseif(mode == "remote") then
-	if ( country ~= "" ) then print('title: "Remote '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol_name..' '..network_name..' Hosts'..asninfo..vlan_title..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol_name..' '..network_name..' Hosts'..mac..vlan_title..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..vlan_title..' Hosts",\n')
-	elseif ( pool_ ~= "" ) then print('title: "Remote Hosts '..pool_..vlan_title..'",\n')
-	else print('title: "Remote '..protocol_name..' '..network_name..' Hosts'..country..vlan_title..'",\n')
-	end
-else
-   print('title: "Local Networks'..country..vlan_title..'",\n')
+function getPageTitle()
+   local parts = {}
+
+   -- Note: when a parameter is nil, it will be not added to the parts
+   parts[#parts + 1] = firstToUpper(mode or "All")
+   parts[#parts + 1] = protocol_name
+   parts[#parts + 1] = network_name
+   parts[#parts + 1] = ipver_title
+   parts[#parts + 1] = os_
+   parts[#parts + 1] = "Hosts"
+   parts[#parts + 1] = country or asninfo or mac or pool_
+   parts[#parts + 1] = vlan_title
+
+   return table.concat(parts, " ")
 end
+
+print('title: "'..getPageTitle()..'",\n')
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
 
 -- Set the preference table
@@ -213,20 +196,14 @@ print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSo
 
 print [[    showPagination: true, ]]
 
-if(page_params.network ~= nil) then
-   print('buttons: [ \'')
-
-   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A>')
-   print('\' ],')
-else
    print('buttons: [ ')
 
-   local more_buttons
-   if (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
-      more_buttons = '<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>'
-   else
-      more_buttons = ''
-   end
+   
+   --[[ if((page_params.network ~= nil) and (page_params.network ~= "-1")) then
+      print('\'<div class="btn-group pull-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A></div>\', ')
+   elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
+      print('\'<div class="btn-group pull-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A></div>\', ')
+   end]]
 
    -- Ip version selector
    print[['<div class="btn-group pull-right">]]
@@ -273,7 +250,6 @@ else
    print('</ul></div>\'')
    
    print(' ],')
-end
 
 print [[
 	        columns: [
@@ -409,9 +385,33 @@ if(asn ~= nil and asn ~= "0") then
 </script>
 ]]
 end
+end -- if(asn ~= nil)
+else
+   -- historical page
+   require "graph_utils"
 
+   print[[
+   <div class="bs-docs-example">
+      <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">ASN: ]] print(asn) print[[</a> </li>]]
+   print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+   print[[
+      <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
+      </ul>
+      </div>
+      </nav>
+   </div>]]
 
+   local rrdfile
+   if(_GET["rrd_file"] == nil) then
+      rrdfile = "bytes.rrd"
+   else
+      rrdfile = _GET["rrd_file"]
+   end
 
+   drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

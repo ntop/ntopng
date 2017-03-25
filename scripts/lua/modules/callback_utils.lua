@@ -42,11 +42,19 @@ end
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachHost(ifname, verbose, callback, deadline)
    local hostbase
-   
+
    interface.select(ifname)
-   
-   hosts_stats = interface.getLocalHostsInfo(false)
+
+   -- Get all hosts with reduced information, not only the local ones.
+   -- Use host.localhost to possibly reduce.
+   hosts_stats = interface.getHostsInfo(false)
+
+   if hosts_stats == nil then
+      hosts_stats = {hosts = {}}
+   end
+
    hosts_stats = hosts_stats["hosts"]
+
    for hostname, hoststats in pairs(hosts_stats) do
       local host = interface.getHostInfo(hostname)
 
@@ -75,8 +83,8 @@ function callback_utils.foreachHost(ifname, verbose, callback, deadline)
          else
             hostbase = nil
          end
-         
-         if callback(hostname--[[name of the host]], host--[[hostinfo]], hoststats, hostbase--[[base RRD host directory]], verbose) == false then
+
+         if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]], verbose) == false then
             return false
          end
       end
@@ -89,7 +97,9 @@ end
 
 -- Creates RRD with local hosts activity.
 -- This is designed to be used as the *callback* parameter of callback_utils.foreachHost
-function callback_utils.saveLocalHostsActivity(hostname, host, hoststats, hostbase, verbose)
+-- TODO: host is not used so it is useless to call this function through a callback that
+-- retrieves it via getHostInfo every time
+function callback_utils.saveLocalHostsActivity(hostname, host--[[hostinfo]], hostbase, verbose)
    if host.localhost then
       local actStats = interface.getHostActivity(hostname)
       if actStats then

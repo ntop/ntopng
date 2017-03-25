@@ -350,7 +350,7 @@ IpAddress* Ntop::getLocalNetworkIp(int16_t local_network_id) {
   IpAddress *network_ip = new IpAddress();
   char *network_address, *slash;
 
-  if (local_network_id > 0)
+  if (local_network_id >= 0)
     network_address = strdup(getLocalNetworkName(local_network_id));
   else
     network_address = strdup((char*)"0.0.0.0/0"); /* Remote networks */

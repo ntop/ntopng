@@ -35,31 +35,31 @@ end
 local rrdname = getRRDName(ifId, "vlan:"..vlan_id, rrdfile)
 
 if(not ntop.exists(rrdname) and rrdfile ~= "all") then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for VLAN  "..vlan_id..". Please wait a few minutes to allow ntopng to harvest new statistics.</div>")
-    return
-end
+   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for VLAN  "..vlan_id..". Please wait a few minutes to allow ntopng to harvest new statistics.</div>")
 
---[[
-Create Menu Bar with buttons
---]]
-local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan"..vlan_id
-print [[
+else
+
+   --[[
+      Create Menu Bar with buttons
+   --]]
+   local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan"..vlan_id
+   print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
               <div class="navbar-collapse collapse">
 <ul class="nav navbar-nav">
 ]]
 
-print("<li><a href=\"#\">VLAN: "..vlan_id.."</A> </li>")
+   print("<li><a href=\"#\">VLAN: "..vlan_id.."</A> </li>")
 
-if(page == "historical") then
-    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-else
-    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-end
+   if(page == "historical") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+   end
 
 
-print [[
+   print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
 </ul>
 </div>
@@ -67,12 +67,15 @@ print [[
 </div>
 ]]
 
---[[
-Selectively render information pages
---]]
-if page == "historical" then
-    vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan'..vlan_id..'&page=historical'
-    drawRRD(ifId, 'vlan:'..vlan_id, rrdfile, _GET["zoom"], vlan_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+   --[[
+      Selectively render information pages
+   --]]
+   if page == "historical" then
+      vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan'..vlan_id..'&page=historical'
+      drawRRD(ifId, 'vlan:'..vlan_id, rrdfile, _GET["zoom"], vlan_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+   end
+
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+

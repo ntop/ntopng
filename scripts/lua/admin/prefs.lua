@@ -585,12 +585,12 @@ function printStatsRrds()
   print('<tr><th colspan=2 class="info">Timeseries</th></tr>')
 
   toggleTableButtonPrefs("Traffic",
-			 "Toggle the creation of bytes and packets timeseries for local hosts, defined local networks and autonomous systems.<br>"..
+			 "Toggle the creation of bytes and packets timeseries for local hosts and defined local networks.<br>"..
 			    "Turn it off to save storage space.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
 
   toggleTableButtonPrefs("Layer-7 Application",
-			 "Toggle the creation of application protocols timeseries for local hosts, defined local networks and autonomous systems.<br>"..
+			 "Toggle the creation of application protocols timeseries for local hosts and defined local networks.<br>"..
 			    "Turn it off to save storage space.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
 
@@ -622,6 +622,11 @@ function printStatsRrds()
 			 "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")
   end
+
+  toggleTableButtonPrefs("Autonomous Systems",
+			 "Toggle the creation of bytes and application timeseries for autonomous systems.<br>",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_asn_rrds",
+			 "ntopng.prefs.asn_rrd_creation", "0")
 
   toggleTableButtonPrefs("Categories",
 			 "Toggle the creation of categories timeseries for local hosts and defined local networks.<br>"..

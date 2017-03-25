@@ -109,14 +109,14 @@ void GenericHost::updateActivities() {
 
 /* *************************************** */
 
-void GenericHost::incStats(u_int8_t l4_proto, u_int ndpi_proto,
+void GenericHost::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 			   u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 			   u_int64_t rcvd_packets, u_int64_t rcvd_bytes,  u_int64_t rcvd_goodput_bytes) {
   if(sent_packets || rcvd_packets) {
     sent.incStats(sent_packets, sent_bytes), rcvd.incStats(rcvd_packets, rcvd_bytes);
 
     if((ndpi_proto != NO_NDPI_PROTOCOL) && ndpiStats)
-      ndpiStats->incStats(ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 
     updateSeen();
   }

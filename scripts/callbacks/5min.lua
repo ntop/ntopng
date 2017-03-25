@@ -33,6 +33,7 @@ local host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories
 local flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_device_port_rrd_creation")
 local host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
 local snmp_devices_rrd_creation = ntop.getCache("ntopng.prefs.snmp_devices_rrd_creation")
+local asn_rrd_creation = ntop.getCache("ntopng.prefs.asn_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
    flow_devices_rrd_creation = "0"
@@ -84,22 +85,47 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   end
 
   -- Save hosts stats
-  if(host_rrd_creation ~= "0") then
+  if((host_rrd_creation ~= "0") or (asn_rrd_creation ~= "0")) then
     local networks_aggr = {}
     local vlans_aggr    = {}
+    local asn_aggr      = {}
 
-    local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hoststats, hostbase)
+    local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hostbase)
+      -- Aggregate ASN
+      local host_asn = host["asn"]
+
+      if ((not isEmptyString(host_asn)) and (tonumber(host_asn) ~= 0)) then
+        asn_aggr[host_asn] = asn_aggr[host_asn] or {}
+        asn_aggr[host_asn]["bytes.sent"] = (asn_aggr[host_asn]["bytes.sent"] or 0) + host["bytes.sent"]
+        asn_aggr[host_asn]["bytes.rcvd"] = (asn_aggr[host_asn]["bytes.rcvd"] or 0) + host["bytes.rcvd"]
+        asn_aggr[host_asn]["ndpi"] = asn_aggr[host_asn]["ndpi"] or {}
+
+        for k in pairs(host["ndpi"]) do
+          asn_aggr[host_asn]["ndpi"][k] = asn_aggr[host_asn]["ndpi"][k] or {}
+          asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
+          asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
+        end
+      end
+
+      if host_rrd_creation ~= "1" then
+        -- only ASN enabled
+        return
+      end
+
       -- Aggregate VLAN stats
-      local host_vlan = hoststats["vlan"]
+      local host_vlan = host["vlan"]
+
       if host_vlan ~= nil and host_vlan ~= 0 then
         if vlans_aggr[host_vlan] == nil then
           vlans_aggr[host_vlan] = {}
-        elseif vlans_aggr[host_vlan]["bytes.sent"] == nil then
-          vlans_aggr[host_vlan]["bytes.sent"] = hoststats["bytes.sent"]
-          vlans_aggr[host_vlan]["bytes.rcvd"] = hoststats["bytes.rcvd"]
+        end
+
+        if vlans_aggr[host_vlan]["bytes.sent"] == nil then
+          vlans_aggr[host_vlan]["bytes.sent"] = host["bytes.sent"]
+          vlans_aggr[host_vlan]["bytes.rcvd"] = host["bytes.rcvd"]
         else
-          vlans_aggr[host_vlan]["bytes.sent"] = vlans_aggr[host_vlan]["bytes.sent"] + hoststats["bytes.sent"]
-          vlans_aggr[host_vlan]["bytes.rcvd"] = vlans_aggr[host_vlan]["bytes.rcvd"] + hoststats["bytes.rcvd"]
+          vlans_aggr[host_vlan]["bytes.sent"] = vlans_aggr[host_vlan]["bytes.sent"] + host["bytes.sent"]
+          vlans_aggr[host_vlan]["bytes.rcvd"] = vlans_aggr[host_vlan]["bytes.rcvd"] + host["bytes.rcvd"]
         end
       end
 
@@ -109,24 +135,24 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
         end
 
         -- Aggregate network stats
-        network_key = hoststats["local_network_name"]
+        local network_name = host["local_network_name"]
 
-        --io.write("==> Adding "..network_key.."\n")
-        if (networks_aggr[network_key] == nil) then
-          networks_aggr[network_key] = {}
+        --io.write("==> Adding "..network_name.."\n")
+        if (networks_aggr[network_name] == nil) then
+          networks_aggr[network_name] = {}
         end
-        if (networks_aggr[network_key]["bytes.sent"] == nil) then
-          networks_aggr[network_key]["bytes.sent"] = hoststats["bytes.sent"]
-          networks_aggr[network_key]["bytes.rcvd"] = hoststats["bytes.rcvd"]
+        if (networks_aggr[network_name]["bytes.sent"] == nil) then
+          networks_aggr[network_name]["bytes.sent"] = host["bytes.sent"]
+          networks_aggr[network_name]["bytes.rcvd"] = host["bytes.rcvd"]
         else
-          networks_aggr[network_key]["bytes.sent"] = networks_aggr[network_key]["bytes.sent"] + hoststats["bytes.sent"]
-          networks_aggr[network_key]["bytes.rcvd"] = networks_aggr[network_key]["bytes.rcvd"] + hoststats["bytes.rcvd"]
+          networks_aggr[network_name]["bytes.sent"] = networks_aggr[network_name]["bytes.sent"] + host["bytes.sent"]
+          networks_aggr[network_name]["bytes.rcvd"] = networks_aggr[network_name]["bytes.rcvd"] + host["bytes.rcvd"]
         end
 
         -- Traffic stats
-        name = fixPath(hostbase .. "/bytes.rrd")
+        local name = fixPath(hostbase .. "/bytes.rrd")
         createRRDcounter(name, 300, verbose)
-        ntop.rrd_update(name, "N:"..tolongint(hoststats["bytes.sent"]) .. ":" .. tolongint(hoststats["bytes.rcvd"]))
+        ntop.rrd_update(name, "N:"..tolongint(host["bytes.sent"]) .. ":" .. tolongint(host["bytes.rcvd"]))
         if(verbose) then
           print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
         end
@@ -156,33 +182,33 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
             ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
             -- Aggregate network NDPI stats
-            if (networks_aggr[host["local_network_name"]]["ndpi"] == nil) then
-              networks_aggr[host["local_network_name"]]["ndpi"] = {}
+            if (networks_aggr[network_name]["ndpi"] == nil) then
+              networks_aggr[network_name]["ndpi"] = {}
             end
-            if (networks_aggr[host["local_network_name"]]["ndpi"][k] == nil) then
-              networks_aggr[host["local_network_name"]]["ndpi"][k] = {}
+            if (networks_aggr[network_name]["ndpi"][k] == nil) then
+              networks_aggr[network_name]["ndpi"][k] = {}
             end
-            if (networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] == nil) then
-              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] = host["ndpi"][k]["bytes.sent"]
+            if (networks_aggr[network_name]["ndpi"][k]["bytes.sent"] == nil) then
+              networks_aggr[network_name]["ndpi"][k]["bytes.sent"] = host["ndpi"][k]["bytes.sent"]
             else
-              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] =
-              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] +
+              networks_aggr[network_name]["ndpi"][k]["bytes.sent"] =
+              networks_aggr[network_name]["ndpi"][k]["bytes.sent"] +
               host["ndpi"][k]["bytes.sent"]
             end
-            if (networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] == nil) then
-              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] = host["ndpi"][k]["bytes.rcvd"]
+            if (networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] == nil) then
+              networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] = host["ndpi"][k]["bytes.rcvd"]
             else
-              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] =
-              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] +
+              networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] =
+              networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] +
               host["ndpi"][k]["bytes.rcvd"]
             end
 
             if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
           end
-          if(host_categories_rrd_creation ~= "0" and host.localhost) then
+          if(host_categories_rrd_creation ~= "0") then
             if host["categories"] ~= nil then
-              if networks_aggr[host["local_network_name"]]["categories"] == nil then
-                networks_aggr[host["local_network_name"]]["categories"] = {}
+              if networks_aggr[network_name]["categories"] == nil then
+                networks_aggr[network_name]["categories"] = {}
               end
               for _cat_name, cat_bytes in pairs(host["categories"]) do
                 cat_name = getCategoryLabel(_cat_name)
@@ -191,11 +217,11 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
                 createSingleRRDcounter(name, 300, verbose)
                 ntop.rrd_update(name, "N:".. tolongint(cat_bytes))
 
-                if networks_aggr[host["local_network_name"]]["categories"][cat_name] == nil then
-                  networks_aggr[host["local_network_name"]]["categories"][cat_name] = cat_bytes
+                if networks_aggr[network_name]["categories"][cat_name] == nil then
+                  networks_aggr[network_name]["categories"][cat_name] = cat_bytes
                 else
-                  networks_aggr[host["local_network_name"]]["categories"][cat_name] =
-                  networks_aggr[host["local_network_name"]]["categories"][cat_name] + cat_bytes
+                  networks_aggr[network_name]["categories"][cat_name] =
+                  networks_aggr[network_name]["categories"][cat_name] + cat_bytes
                 end
               end
             end
@@ -212,6 +238,37 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     if not in_time then
       callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
       return false
+    end
+
+    -- create RRD for ASN
+    if asn_rrd_creation ~= "0" then
+      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
+
+      for asn_id, asn_stats in pairs(asn_aggr) do
+        local asnpath = fixPath(basedir.. "/" .. asn_id)
+        if not ntop.exists(asnpath) then
+          ntop.mkdir(asnpath)
+        end
+
+        -- Save ASN bytes
+        local asn_bytes_rrd = fixPath(asnpath .. "/bytes.rrd")
+        createRRDcounter(asn_bytes_rrd, 300, false)
+        ntop.rrd_update(asn_bytes_rrd, "N:"..tolongint(asn_stats["bytes.sent"]) .. ":" .. tolongint(asn_stats["bytes.rcvd"]))
+
+        -- Save ASN ndpi stats
+        if asn_stats["ndpi"] ~= nil then
+          for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
+            local asn_ndpi_rrd = fixPath(asnpath.."/"..proto_name..".rrd")
+            createRRDcounter(asn_ndpi_rrd, 300, verbose)
+            ntop.rrd_update(asn_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
+          end
+        end
+      end
+    end
+
+    if host_rrd_creation ~= "1" then
+      -- only ASN enabled
+      return
     end
 
     -- create RRD for vlans
@@ -287,6 +344,8 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     end
 
     -- Save host activity stats only if flow activities are actually enabled
+    -- TODO: it is pointless to call foreachHost one more time. This is too expensive
+    -- and determines an attitional call to getHostInfo for every host
     if ((prefs.is_flow_activity_enabled == true) and (ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == true)) then
       local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
       if not in_time then

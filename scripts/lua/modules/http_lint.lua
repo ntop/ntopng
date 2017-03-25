@@ -46,14 +46,6 @@ local function validateChoiceInline(choices)
    end
 end
 
-local function validateSingleWord(w)
-if (string.find(w, "% ") ~= nil) then
-      return false
-   else
-      return true
-   end
-end
-
 local function validateListOfType(l, validate_callback, separator)
    local separator = separator or ","
    if isEmptyString(l) then
@@ -123,15 +115,35 @@ local function validatePort(p)
    end
 end
 
+local function validateUnquoted(p)
+   -- This function only verifies that value does not contain single quotes, but
+   -- does not perform any type validation, so it should be used with care.
+   -- Double quotes are already handled by the C side.
+   if (string.find(p, "'") ~= nil) then
+      return false
+   else
+      return true
+   end
+end
+
 local function validateUnchecked(p)
-   -- base validation is already performed by C side.
-   -- you should use this function as last resort
+   -- This function does not perform any validation, so only the C side validation takes place.
+   -- In particular, single quotes are allowed so they must be handled explicitly by the programmer in
+   -- order to avoid injection.
    return true
+end
+
+local function validateSingleWord(w)
+if (string.find(w, "% ") ~= nil) then
+      return false
+   else
+      return validateUnquoted(w)
+   end
 end
 
 local function validateAbsolutePath(p)
    -- An absolute path. Let it pass for now
-   return validateUnchecked(p)
+   return validateUnquoted(p)
 end
 
 -- #################################################################
@@ -421,7 +433,7 @@ local function validateActivityName(p)
 end
 
 local function validateTrafficProfile(p)
-   return validateUnchecked(p)
+   return validateUnquoted(p)
 end
 
 local function validateSortColumn(p)
@@ -531,18 +543,26 @@ end
 
 local known_parameters = {
 -- UNCHECKED (Potentially Dangerous)
-   ["referer"]                 =  validateUnchecked,             -- An URL referer
-   ["url"]                     =  validateUnchecked,             -- An URL
-   ["label"]                   =  validateUnchecked,             -- A device label
-   ["os"]                      =  validateUnchecked,             -- An Operating System string
-   ["info"]                    =  validateUnchecked,             -- An information message
-   ["entity_val"]              =  validateUnchecked,             -- An alert entity value
-   ["custom_name"]             =  validateUnchecked,             -- A custom interface name
-   ["full_name"]               =  validateUnchecked,             -- A user full name
-   ["manufacturer"]            =  validateUnchecked,             -- A MAC manufacturer
-   ["query"]                   =  validateUnchecked,             -- This field should be used to perform partial queries.
-                                                                 -- It up to the script to implement proper validation.
-                                                                 -- In NO case query should be executed directly without validation.
+   ["custom_name"]             =  validateUnchecked,            -- A custom interface name
+   ["query"]                   =  validateUnchecked,            -- This field should be used to perform partial queries.
+                                                               -- It up to the script to implement proper validation.
+                                                               -- In NO case query should be executed directly without validation.
+
+-- UNQUOTED (Not Generally dangerous)
+   ["referer"]                 =  validateUnquoted,             -- An URL referer
+   ["url"]                     =  validateUnquoted,             -- An URL
+   ["label"]                   =  validateUnquoted,             -- A device label
+   ["os"]                      =  validateUnquoted,             -- An Operating System string
+   ["info"]                    =  validateUnquoted,             -- An information message
+   ["entity_val"]              =  validateUnquoted,             -- An alert entity value
+   ["full_name"]               =  validateUnquoted,             -- A user full name
+   ["manufacturer"]            =  validateUnquoted,             -- A MAC manufacturer
+   ["sender_username"]         =  validateUnquoted,
+   ["slack_webhook"]           =  validateUnquoted,
+   ["nagios_nsca_host"]        =  validateUnquoted,
+   ["nagios_host_name"]        =  validateUnquoted,
+   ["nagios_service_name"]     =  validateUnquoted,
+   ["bind_dn"]                 =  validateUnquoted,
 
 -- HOST SPECIFICATION
    ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -694,6 +714,7 @@ local known_parameters = {
    ["toggle_flow_snmp_ports_rrds"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
+   ["toggle_asn_rrds"]                             =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
@@ -701,19 +722,13 @@ local known_parameters = {
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["max_num_alerts_per_entity"]                   =  validateNumber,
    ["max_num_flow_alerts"]                         =  validateNumber,
-   ["sender_username"]                             =  validateUnchecked,
-   ["slack_webhook"]                               =  validateUnchecked,
-   ["nagios_nsca_host"]                            =  validateUnchecked,
    ["nagios_nsca_port"]                            =  validatePort,
    ["nagios_send_nsca_executable"]                 =  validateAbsolutePath,
    ["nagios_send_nsca_config"]                     =  validateAbsolutePath,
-   ["nagios_host_name"]                            =  validateUnchecked,
-   ["nagios_service_name"]                         =  validateUnchecked,
    ["nbox_user"]                                   =  validateSingleWord,
    ["nbox_password"]                               =  validateSingleWord,
    ["google_apis_browser_key"]                     =  validateSingleWord,
    ["ldap_server_address"]                         =  validateSingleWord,
-   ["bind_dn"]                                     =  validateUnchecked,
    ["bind_pwd"]                                    =  validateSingleWord,
    ["search_path"]                                 =  validateSingleWord,
    ["user_group"]                                  =  validateSingleWord,
@@ -816,7 +831,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 -- The following parameter is *not* used inside ntopng
 -- It allows third-party users to write their own scripts with custom
 -- (unverified) parameters
-   ["p_"]                      =  {validateUnchecked,         validateUnchecked},
+   ["p_"]                      =  {validateUnquoted,         validateUnquoted},
 
 -- SHAPING
    ["shaper_"]                 =  {validateNumber,            validateNumber},      -- key: a shaper ID, value: max rate
@@ -829,7 +844,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
-   ["val_"]                    =  {validateNumber,   validateUnchecked},       -- key: an index, value: the pair value
+   ["val_"]                    =  {validateNumber,   validateUnquoted},        -- key: an index, value: the pair value
 }
 
 -- #################################################################
