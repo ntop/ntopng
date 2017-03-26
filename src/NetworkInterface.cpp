@@ -4335,7 +4335,8 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
   if(address)            setRemoteIfIPaddr(address);
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd = 0, last_pkt_rcvd_remote = remTime, last_remote_pps = last_pps, last_remote_bps = last_bps;
+  ifSpeed = speedMbit, last_pkt_rcvd = 0, last_pkt_rcvd_remote = remTime,
+    last_remote_pps = last_pps, last_remote_bps = last_bps;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */

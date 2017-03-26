@@ -31,7 +31,7 @@ GenericHost::GenericHost(NetworkInterface *_iface) : GenericHashEntry(_iface) {
 
   systemHost = false, localHost = false, last_activity_update = 0, host_serial = 0;
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
-  last_bytes_periodic = 0, bytes_thpt_diff = 0;
+  last_bytes_periodic = 0, bytes_thpt_diff = 0, duration = 0, last_epoch_update = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
   num_alerts_detected = 0, source_id = 0, low_goodput_client_flows = low_goodput_server_flows = 0;
@@ -117,6 +117,9 @@ void GenericHost::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
     if((ndpi_proto != NO_NDPI_PROTOCOL) && ndpiStats)
       ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+    
+    if((when != 0) && (last_epoch_update != when))
+      duration += ntop->getPrefs()->get_housekeeping_frequency(), last_epoch_update = when;    
 
     updateSeen();
   }

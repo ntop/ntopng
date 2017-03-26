@@ -488,6 +488,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
 
   if(host_details) {
+    lua_push_int_table_entry(vm, "totalActivity", duration);
     lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
     lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
     if(info) lua_push_str_table_entry(vm, "info", info);
@@ -502,7 +503,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
 
     lua_push_int_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
-
     lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 			      (tcpPacketStats.pktRetr
 			       || tcpPacketStats.pktOOO
@@ -510,7 +510,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
     lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
     lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-
     lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
     lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
