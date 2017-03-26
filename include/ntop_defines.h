@@ -627,6 +627,8 @@
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
 #define ES_MAX_QUEUE_LEN              32768
 
+/* Logstash */
+#define LS_MAX_QUEUE_LEN              32768
 /* Unknown values for host groups */
 #define UNKNOWN_COUNTRY       ""
 #define UNKNOWN_OS            ""

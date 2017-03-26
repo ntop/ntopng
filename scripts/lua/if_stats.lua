@@ -454,7 +454,10 @@ print("</script>\n")
    if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
    print(formatValue(ifstats.stats.drops).. " " .. label)
 
-   if((ifstats.stats.packets+ifstats.stats.drops) > 0) then
+   if ifstats.stats.packets == null or ifstats.stats.drops == null then
+
+   
+   elseif((ifstats.stats.packets+ifstats.stats.drops) > 0) then
       local pctg = round((ifstats.stats.drops*100)/(ifstats.stats.packets+ifstats.stats.drops), 2)
       if(pctg > 0) then print(" [ " .. pctg .. " % ] ") end
    end
@@ -476,12 +479,17 @@ print("</script>\n")
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
       end
+      if prefs.is_dump_flows_to_ls_enabled == true then
+	 dump_to = "Logstash"
+      end
 
       local export_count     = ifstats.stats.flow_export_count
       local export_rate      = ifstats.stats.flow_export_rate
       local export_drops     = ifstats.stats.flow_export_drops
       local export_drops_pct = 0
-      if export_drops > 0 and export_count > 0 then
+      if export_drops == nill then 
+
+      elseif export_drops > 0 and export_count > 0 then
 	 export_drops_pct = export_drops / export_count * 100
       end
 
@@ -490,10 +498,16 @@ print("</script>\n")
       print("<tr>")
       print("<th nowrap>Exported Flows</th>")
       print("<td><span id=exported_flows>"..formatValue(export_count).."</span>")
+      if export_rate == nil then
+	export_rate = 0
+      end
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
       print("<th>Dropped Flows</th>")
       local span_danger = ""
-      if(export_drops > 0) then
+      if export_drops == nil then 
+
+     
+      elseif(export_drops > 0) then
 	 span_danger = ' class="label label-danger"'
       end
       print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(export_drops).."</span>&nbsp;")

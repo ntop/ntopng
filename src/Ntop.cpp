@@ -54,6 +54,7 @@ Ntop::Ntop(char *appName) {
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
   elastic_search = NULL;
+  logstash = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
   export_interface = NULL;
@@ -167,7 +168,7 @@ Ntop::~Ntop() {
 
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
   if(elastic_search)      delete(elastic_search);
-
+  if(logstash)            delete(logstash);
   if(hostBlacklist)       delete hostBlacklist;
   if(hostBlacklistShadow) delete hostBlacklistShadow;
 
@@ -230,7 +231,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
   initElasticSearch();
-
+  initLogstash();
 #ifdef NTOPNG_PRO
   if(((ntop->getPrefs()->get_http_port() != 80) && (ntop->getPrefs()->get_alt_http_port() != 80))
      || ((ntop->getPrefs()->get_http_port() == 80) && (ntop->getPrefs()->get_alt_http_port() == 0))) {
@@ -261,6 +262,10 @@ void Ntop::initRedis() {
 }
 
 /* ******************************************* */
+void Ntop::initLogstash(){
+  if(logstash) delete(logstash);
+  logstash = new Logstash();
+}
 
 void Ntop::initElasticSearch() {
   if(elastic_search) delete(elastic_search);
@@ -1432,6 +1437,11 @@ void Ntop::runHousekeepingTasks() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     ntop->getElasticSearch()->updateStats(&tv);
+  }
+  if(ntop->getPrefs()->do_dump_flows_on_ls()){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ntop->getLogstash()->updateStats(&tv);
   }
 }
 
