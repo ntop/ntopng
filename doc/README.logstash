@@ -1,0 +1,32 @@
+Introduction
+------------
+Logstash is a data collection engine that implements a data processing pipeline for ElasticSearch.
+In order to inject data into logstash you need to use -F "logstash;<host>;<proto>;<port>"
+
+
+Logstash Config Example
+-----------------------
+Below you can find a simple logstash configuration file.
+
+===============
+
+input {
+  tcp {
+    port => 5510
+      type => "ntopng"
+      }
+}
+
+filter {
+  if "" not in [IPV4_SRC_ADDR] {
+      drop {}
+    }
+}
+
+output {
+  ...
+}
+
+===============
+  
+Start ntopng as follows ntopng -F "logstash;localhost;tcp;5510"
