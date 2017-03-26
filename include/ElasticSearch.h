@@ -29,7 +29,7 @@ class ElasticSearch {
   pthread_t esThreadLoop;
   u_int num_queued_elems;
   struct string_list *head, *tail;
-  pthread_rwlock_t listMutex;
+  Mutex listMutex;
   bool reportDrops;
   struct timeval lastUpdateTime;
   u_int32_t elkDroppedFlowsQueueTooLong;

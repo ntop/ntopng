@@ -33,7 +33,6 @@ static void* lsLoop(void* ptr) {
 
 
 Logstash::Logstash() {
-  pthread_rwlock_init(&listMutex, NULL);
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
@@ -51,16 +50,18 @@ Logstash::~Logstash(){
 /* ******************************************* */
 
 void Logstash::updateStats(const struct timeval *tv) {
-  if(tv == NULL) return;
+  if(tv == NULL)
+    return;
 
   if(lastUpdateTime.tv_sec > 0) {
     float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
+
     if(tdiffMsec >= 1000) { /* al least one second */
       u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
+      
       elkLastExportedFlows = elkExportedFlows;
-
       elkExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
-      if (elkExportRate < 0) elkExportRate = 0;
+      if(elkExportRate < 0) elkExportRate = 0;
     }
   }
 
@@ -87,21 +88,22 @@ int Logstash::sendToLS(char* msg) {
   if(!strcmp(msg,"")){
     return (-1);
   }
+  
   if(num_queued_elems >= LS_MAX_QUEUE_LEN) {
     if(!reportDrops) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] Export queue too long [%d]: expect drops",
-		 num_queued_elems);
+				   num_queued_elems);
       reportDrops = true;
     }
 
     elkDroppedFlowsQueueTooLong++;
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] Message dropped. Total messages dropped: %lu\n",
-		 elkDroppedFlowsQueueTooLong);
+				 elkDroppedFlowsQueueTooLong);
 
     return(-1);
   }
 
-  pthread_rwlock_wrlock(&listMutex);
+  listMutex.lock(__FILE__, __LINE__);
   e = (struct string_list*)calloc(1, sizeof(struct string_list));
   if( e != NULL) {
     e->str = strdup(msg), e->next = head;
@@ -122,7 +124,7 @@ int Logstash::sendToLS(char* msg) {
     }
   }
 
-  pthread_rwlock_unlock(&listMutex);
+  listMutex.unlock(__FILE__, __LINE__);
   return rc;
 }
 
@@ -134,68 +136,70 @@ void Logstash::startFlowDump() {
   }
 }
 
-
 /* **************************************** */
 
 void Logstash::sendLSdata() {
   const u_int watermark = 8, min_buf_size = 512;
   char postbuf[16384];
+
   while(!ntop->getGlobals()->isShutdown()) {
+    struct sockaddr_in serv_addr;
+    char *proto;
+    int sockfd;
+    struct hostent *server;
+    int portno;
+    char *portstr;
 
     if(num_queued_elems >= watermark) {
       u_int len, num_flows;
       struct timeval tv;
+
       gettimeofday(&tv, NULL);
 
       len = 0, num_flows = 0;
 
-      pthread_rwlock_wrlock(&listMutex);
+      listMutex.lock(__FILE__, __LINE__);
       for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
         struct string_list *prev;
+
         prev = tail->prev;
 	len += snprintf(&postbuf[len], sizeof(postbuf)-len, "%s\n", tail->str), num_flows++;
         free(tail->str);
         free(tail);
         tail = prev,
-	num_queued_elems--;
+	  num_queued_elems--;
+
         if(num_queued_elems == 0)
 	  head = NULL;
-
       } /* for */
 
-      pthread_rwlock_unlock(&listMutex);
+      listMutex.unlock(__FILE__, __LINE__);
       postbuf[len] = '\0';
 
-	if(postbuf[0]!='{'){
-		sleep(1);continue;
-	}
+      if(postbuf[0]!='{') {
+	sleep(1);
+	continue;
+      }
 
-        char *proto; 
-	proto = ntop->getPrefs()->get_ls_proto();
+      proto = ntop->getPrefs()->get_ls_proto();
 
-	int sockfd;
+      if(!strncmp(proto,"udp",3)) {
+	//UDP socket
+	sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
+      } else {
+	//TCP socket
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+      }
 
-	if(!strncmp(proto,"udp",3)){
-	  //UDP socket
-	  sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
-	}else{
-	  //TCP socket 
-	  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        }
-	struct hostent *server;
-	server = gethostbyname(ntop->getPrefs()->get_ls_host());
-	char *portstr = ntop->getPrefs()->get_ls_port();
+      server = gethostbyname(ntop->getPrefs()->get_ls_host());
+      portstr = ntop->getPrefs()->get_ls_port();
 
-	int portno;
-	if(portstr == NULL){
-		portno = 5510;
-	}else{
-		portno = atoi(portstr);
-	}
-	struct sockaddr_in serv_addr;
+      if(portstr == NULL)
+	portno = 5510;
+      else
+	portno = atoi(portstr);
 
-	
-      if(sockfd < 0 || server == NULL) {
+      if((sockfd < 0) || (server == NULL)) {
 	/* Post failure */
 	sleep(1);
       } else {
@@ -204,32 +208,27 @@ void Logstash::sendLSdata() {
 	bcopy((char *) server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
 	serv_addr.sin_port = htons(portno);
 
-	if(!strncmp(proto,"tcp",3)&&connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0) {
+	if(!strncmp(proto,"tcp",3)
+	   && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)) {
 	  sleep(1);
-	}else {
-	  
+	} else {
 	  if(
-             (!strncmp(proto,"tcp",3)&&send(sockfd,postbuf,sizeof(postbuf),0)<0)
-	      || 
-	      (
-                !strncmp(proto,"udp",3)
-                &&
-                sendto(sockfd,postbuf,sizeof(postbuf),0,(struct sockaddr *)&serv_addr,sizeof(serv_addr))<0
+             (!strncmp(proto, "tcp", 3)
+	      && (send(sockfd,postbuf,sizeof(postbuf),0) < 0))
+	     ||
+	     ((!strncmp(proto, "udp", 3))
+	      &&
+	      (sendto(sockfd, postbuf, sizeof(postbuf), 0,
+		      (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
               )
-	    ){
+	     ){
 	    sleep(1);
-	  }else{
+	  } else {
 	    elkExportedFlows += num_flows;
 	  }
-
 	}
       }
     } else
       sleep(1);
-
   } /* while */
-
 }
-
-
-

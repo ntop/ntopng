@@ -32,7 +32,6 @@ static void* esLoop(void* ptr) {
 /* **************************************** */
 
 ElasticSearch::ElasticSearch() {
-  pthread_rwlock_init(&listMutex, NULL);
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
@@ -47,7 +46,7 @@ ElasticSearch::ElasticSearch() {
 /* **************************************** */
 
 ElasticSearch::~ElasticSearch() {
-  
+
 }
 
 /* ******************************************* */
@@ -85,7 +84,7 @@ void ElasticSearch::lua(lua_State *vm, bool since_last_checkpoint) const {
 int ElasticSearch::sendToES(char* msg) {
   struct string_list *e;
   int rc = 0;
-  
+
   if(num_queued_elems >= ES_MAX_QUEUE_LEN) {
     if(!reportDrops) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] Export queue too long [%d]: expect drops",
@@ -100,13 +99,14 @@ int ElasticSearch::sendToES(char* msg) {
     return(-1);
   }
 
-  pthread_rwlock_wrlock(&listMutex);
+  listMutex.lock(__FILE__, __LINE__);
+
   e = (struct string_list*)calloc(1, sizeof(struct string_list));
-  if( e != NULL) {
+  if(e != NULL) {
     e->str = strdup(msg), e->next = head;
 
     if(e->str) {
-      if(head) 
+      if(head)
         head->prev = e;
       head = e;
       if(tail == NULL)
@@ -121,7 +121,7 @@ int ElasticSearch::sendToES(char* msg) {
     }
   }
 
-  pthread_rwlock_unlock(&listMutex);
+  listMutex.unlock(__FILE__, __LINE__);
 
   return rc;
 }
@@ -160,7 +160,7 @@ void ElasticSearch::indexESdata() {
 	       ntop->getPrefs()->get_es_type(), index_name);
       len = 0, num_flows = 0;
 
-      pthread_rwlock_wrlock(&listMutex);
+      listMutex.lock(__FILE__, __LINE__);
       for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
         struct string_list *prev;
         prev = tail->prev;
@@ -174,9 +174,8 @@ void ElasticSearch::indexESdata() {
 
       } /* for */
 
-      pthread_rwlock_unlock(&listMutex);
+      listMutex.unlock(__FILE__, __LINE__);
       postbuf[len] = '\0';
-     
 
       if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				  ntop->getPrefs()->get_es_pwd(),

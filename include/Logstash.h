@@ -29,13 +29,15 @@ class Logstash {
   pthread_t lsThreadLoop;
   u_int num_queued_elems;
   struct string_list *head, *tail;
-  pthread_rwlock_t listMutex;
+  Mutex listMutex;
   bool reportDrops;
   struct timeval lastUpdateTime;
   u_int32_t elkDroppedFlowsQueueTooLong;
   u_int64_t elkExportedFlows, elkLastExportedFlows;
   float elkExportRate;
-  u_int64_t checkpointDroppedFlows, checkpointExportedFlows; /* Those will hold counters at checkpoints */
+  u_int64_t checkpointDroppedFlows,
+    checkpointExportedFlows; /* Those will hold counters at checkpoints */
+
  public:
   Logstash();
   ~Logstash();
