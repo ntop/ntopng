@@ -38,7 +38,6 @@ class Host : public GenericHost {
   FrequentStringItems *top_sites;
   char * old_sites;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
-  u_int32_t host_quota_mb;
   int16_t local_network_id, deviceIfIdx;
   u_int32_t deviceIP;
   float latitude, longitude;
@@ -189,8 +188,6 @@ class Host : public GenericHost {
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
-  bool isAboveQuota(void);
-  void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);
   inline u_int16_t getDeviceIfIdx()                     { return(deviceIfIdx);            }

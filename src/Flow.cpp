@@ -2377,10 +2377,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 bool Flow::isPassVerdict() {
   if(!passVerdict) return(passVerdict);
 
-  /* TODO: isAboveQuota() must be checked periodically */
   if(cli_host && srv_host)
-    return((!(cli_host->isAboveQuota() || srv_host->isAboveQuota()))
-	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
+    return((!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
            && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
   else
     return(true);

@@ -154,7 +154,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
   asn = 0, asname = NULL, country = NULL, city = NULL;
-  longitude = 0, latitude = 0, host_quota_mb = 0;
+  longitude = 0, latitude = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
@@ -314,8 +314,6 @@ void Host::updateHostTrafficPolicy(char *key) {
       else
 	drop_all_host_traffic = true;
 
-      if(ntop->getRedis()->hashGet((char*)HOST_TRAFFIC_QUOTA, host, buf, sizeof(buf)) == -1)
-	host_quota_mb = atol(buf);
     }
 
     if((ntop->getRedis()->hashGet((char*)DUMP_HOST_TRAFFIC,
@@ -531,12 +529,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "bridge.ingress_drops.packets",  ingress_drops.getNumPkts());
     lua_push_int_table_entry(vm, "bridge.egress_drops.bytes", egress_drops.getNumBytes());
     lua_push_int_table_entry(vm, "bridge.egress_drops.packets",  egress_drops.getNumPkts());
-
-    lua_push_int_table_entry(vm, "host_quota_mb", host_quota_mb);
-
-    if(localHost || systemHost) {
-      lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
-    }
 
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
@@ -1209,27 +1201,6 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 
 /* *************************************** */
 
-void Host::setQuota(u_int32_t new_quota) {
-  char buf[64], host[96];
-
-  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
-  snprintf(buf, sizeof(buf), "%u", new_quota);
-  if(ntop->getRedis()->hashSet((char*)HOST_TRAFFIC_QUOTA, host, (char *)buf) == -1) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error updating host quota");
-    return;
-  }
-  host_quota_mb = new_quota;
-}
-
-/* *************************************** */
-
-bool Host::isAboveQuota() {
-  return host_quota_mb > 0 /* 0 == unlimited */ &&
-    ((GenericHost*)this)->getPeriodicStats() > (host_quota_mb * 1000000);
-}
-
-/* *************************************** */
-
 void Host::updateStats(struct timeval *tv) {
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
@@ -1244,17 +1215,6 @@ void Host::updateStats(struct timeval *tv) {
     }
 
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
-  }
-
-  if(isAboveQuota() && triggerAlerts()) {
-    const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is above quota [%u])";
-    char ip_buf[48], *h, msg[512];
-    h = ip.print(ip_buf, sizeof(ip_buf));
-
-    snprintf(msg, sizeof(msg),
-	     error_msg, ntop->getPrefs()->get_http_prefix(),
-	     h, iface->get_id(), h, host_quota_mb);
-    iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
 }
 

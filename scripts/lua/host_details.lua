@@ -454,7 +454,7 @@ if((page == "overview") or (page == nil)) then
       print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
    end
 
-   if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
+   if(host["os"] ~= "") then
       print("<tr>")
       if(host["os"] ~= "") then
          print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td><td></td>\n")
@@ -1968,26 +1968,6 @@ elseif (page == "config") then
       print[[#protocols">Modify Host Pool Policy</a>]]
       print('</td></tr>')
 
-      -- Host quota
-      local host_quota_value = host["host_quota_mb"]
-
-      if(_POST["host_quota"] ~= nil) then
-         if(_POST["host_quota"] == "") then
-            -- default: unlimited
-            host_quota_value = "0"
-         else
-            host_quota_value = _POST["host_quota"]
-         end
-
-         interface.select(ifname) -- if we submitted a form, nothing is select()ed
-         interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
-      end
-
-      print [[<th>Host Quota</th>
-      <td>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-            <input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="]] print(tostring(host_quota_value))
-      print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print('</form>')
       print('</td></tr>')
    end
