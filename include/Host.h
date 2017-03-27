@@ -38,8 +38,8 @@ class Host : public GenericHost {
   FrequentStringItems *top_sites;
   char * old_sites;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
-  int16_t local_network_id, deviceIfIdx;
-  u_int32_t deviceIP;
+  u_int32_t host_quota_mb;
+  int16_t local_network_id;
   float latitude, longitude;
   IpAddress ip;
   Mutex *m;
@@ -195,7 +195,6 @@ class Host : public GenericHost {
   void setDumpTrafficPolicy(bool new_policy);
   void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);
-  inline u_int16_t getDeviceIfIdx()                     { return(deviceIfIdx);            }
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };

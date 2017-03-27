@@ -261,7 +261,8 @@ end
 
 if(info["version.enterprise_edition"] == true) then
    if ifs["type"] == "zmq" then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow</a></li>')
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">Flow Devices</a></li>')
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">sFlow</a></li>')
    end
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">SNMP</a></li>')
 end

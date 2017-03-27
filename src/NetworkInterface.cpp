@@ -174,7 +174,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
 
-  snmp_stats = NULL; /* Lazy, instantiated on demand */
+  flow_interfaces_stats = NULL; /* Lazy, instantiated on demand */
 #endif
 
   loadDumpPrefs();
@@ -958,19 +958,13 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
 #ifdef NTOPNG_PRO
-  if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
-    if(!snmp_stats)
-      snmp_stats = new SNMPStats();
+  // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
+  if(!flow_interfaces_stats)
+    flow_interfaces_stats = new FlowInterfacesStats();
 
-    if(snmp_stats) {
-      snmp_stats->incStats(zflow->deviceIP, zflow->inIndex,  0, zflow->in_bytes + zflow->out_bytes);
-      snmp_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->in_bytes + zflow->out_bytes, 0);
-    }
-  } else {
-    if(snmp_stats) {
-      delete snmp_stats;
-      snmp_stats = NULL;
-    }
+  if(flow_interfaces_stats) {
+    flow_interfaces_stats->incStats(zflow->deviceIP, zflow->inIndex,  zflow->in_bytes,  zflow->out_bytes);
+    flow_interfaces_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->out_bytes, zflow->in_bytes);
   }
 #endif
   

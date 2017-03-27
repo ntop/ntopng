@@ -199,6 +199,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
       host_or_network = string.gsub(host_or_network, 'snmp:', '')
       -- snmpstats are ntopng-wide so ifid is ignored
       rrdname = fixPath(dirs.workingdir .. "/snmpstats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
+      host_or_network = string.gsub(host_or_network, 'flow_device:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
@@ -1095,6 +1098,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    touchRRD(rrdname)
 
    --io.write(prefixLabel.."\n")
+
    if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then
       prefixLabel = "Traffic"
    end
@@ -1129,7 +1133,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    
    -- Pretty printing for flowdevs/a.b.c.d/e.rrd
    local elems = split(prefixLabel, "/")
-   if((elems[#elems] ~= nil) and (#elems > 1)) then
+   if(not host:starts('flow_device:') and (elems[#elems] ~= nil) and (#elems > 1)) then
       prefixLabel = "Port "..elems[#elems]
       port_mode = true
    end

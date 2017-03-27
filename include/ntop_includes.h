@@ -156,6 +156,7 @@ using namespace std;
 #include "FlowProfiles.h"
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
+#include "FlowInterfacesStats.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
 #endif
@@ -223,7 +224,6 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "HostPoolStats.h"
-#include "SNMPstats.h"
 #ifdef HAVE_NETFILTER
 #include "NetfilterInterface.h"
 #endif

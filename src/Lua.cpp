@@ -381,8 +381,8 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_interface && ntop_interface->getSNMPStats()) {
-    ntop_interface->getSNMPStats()->lua(vm);
+  if(ntop_interface && ntop_interface->getFlowInterfacesStats()) {
+    ntop_interface->getFlowInterfacesStats()->lua(vm);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
@@ -1677,7 +1677,7 @@ static int ntop_get_grouped_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_getflowdevices(lua_State* vm) {
+static int ntop_get_flow_devices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1692,7 +1692,7 @@ static int ntop_getflowdevices(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_getflowdeviceinfo(lua_State* vm) {
+static int ntop_get_flow_device_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *device_ip;
 
@@ -1707,6 +1707,42 @@ static int ntop_getflowdeviceinfo(lua_State* vm) {
     in_addr_t addr = inet_addr(device_ip);
 
     ntop_interface->getFlowDeviceInfo(vm, ntohl(addr));
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
+static int ntop_getsflowdevices(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    ntop_interface->getSFlowDevices(vm);
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
+static int ntop_getsflowdeviceinfo(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *device_ip;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  device_ip = (char*)lua_tostring(vm, 1);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    in_addr_t addr = inet_addr(device_ip);
+
+    ntop_interface->getSFlowDeviceInfo(vm, ntohl(addr));
     return(CONST_LUA_OK);
   }
 }
@@ -5614,9 +5650,13 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },
 
-  /* Flows */
-  { "getFlowDevices",  ntop_getflowdevices },
-  { "getFlowDeviceInfo",  ntop_getflowdeviceinfo },
+  /* Flow Devices */
+  { "getFlowDevices",                ntop_get_flow_devices     },
+  { "getFlowDeviceInfo",             ntop_get_flow_device_info },
+
+  /* sFlow */
+  { "getSFlowDevices",               ntop_getsflowdevices      },
+  { "getSFlowDeviceInfo",            ntop_getsflowdeviceinfo   },
 
   /* New generation alerts */
   { "getCachedNumAlerts",   ntop_interface_get_cached_num_alerts    },

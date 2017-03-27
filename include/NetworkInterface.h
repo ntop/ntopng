@@ -38,7 +38,7 @@ class Paginator;
 
 #ifdef NTOPNG_PRO
 class L7Policer;
-class SNMPStats;
+class FlowInterfacesStats;
 #endif
 
 typedef struct {
@@ -72,7 +72,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
-  SNMPStats *snmp_stats;
+  FlowInterfacesStats *flow_interfaces_stats;
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;
@@ -382,8 +382,8 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
   void refreshShapers();
-  inline L7Policer* getL7Policer()         { return(policer);     }
-  inline SNMPStats* getSNMPStats()         { return(snmp_stats);  }
+  inline L7Policer* getL7Policer()                     { return(policer);     }
+  inline FlowInterfacesStats* getFlowInterfacesStats() { return(flow_interfaces_stats);  }
 #endif
   inline HostPools* getHostPools()         { return(host_pools);  }
 
@@ -447,8 +447,18 @@ class NetworkInterface {
   void getFlowsStatus(lua_State *vm);
   void startDBLoop() { if(db) db->startDBLoop(); };
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
-  inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
-  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
+  inline void getFlowDevices(lua_State *vm) {
+    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
+  };
+  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
+  };
+  inline void getSFlowDevices(lua_State *vm) {
+    if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm);
+  };
+  inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+    if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
+  };
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };

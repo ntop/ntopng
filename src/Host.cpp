@@ -134,7 +134,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     mac->incUses();
 
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
-    deviceIP = 0, deviceIfIdx = 0, num_resolve_attempts = 0;
+    num_resolve_attempts = 0;
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
   max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
@@ -487,8 +487,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   if(host_details) {
     lua_push_int_table_entry(vm, "totalActivity", duration);
-    lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
-    lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
     if(info) lua_push_str_table_entry(vm, "info", info);
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
@@ -792,8 +790,6 @@ json_object* Host::getJSONObject() {
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
   if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
-  if(deviceIfIdx)         json_object_object_add(my_object, "device_if_idx", json_object_new_int(deviceIfIdx));
-  if(deviceIP)            json_object_object_add(my_object, "device_ip",     json_object_new_int(deviceIP));
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
@@ -908,8 +904,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "vlan_id", &obj))       vlan_id     = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "device_if_idx", &obj)) deviceIfIdx = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "device_ip", &obj))     deviceIP    = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }

@@ -411,11 +411,6 @@ if((page == "overview") or (page == nil)) then
 	 end
       end
 
-   
-      if host.deviceIfIdx ~= nil and host.deviceIfIdx ~= 0 and ntop.isPro() then
-	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIdx=".. host.deviceIfIdx.."'>".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
-      end
-
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
       
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)

@@ -315,25 +315,25 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
       end
     end -- for
 
-    -- Create RRDs for flow devices
+    -- Create RRDs for flow and sFlow devices
     if(tostring(flow_devices_rrd_creation) == "1") then
-      local flowdevs = interface.getFlowDevices()
+      local flowdevs = interface.getSFlowDevices()
 
       for flow_device_ip,_ in pairs(flowdevs) do
-        local ports = interface.getFlowDeviceInfo(flow_device_ip)
+        local ports = interface.getSFlowDeviceInfo(flow_device_ip)
 
         if(verbose) then
-          print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n")
+          print ("["..__FILE__()..":"..__LINE__().."] Processing sFlow device "..flow_device_ip.."\n")
         end
 
         for port_idx,port_value in pairs(ports) do
-          local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/flowdevs/".. flow_device_ip
+          local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/sflow_devices/".. flow_device_ip
 
           base = fixPath(base)
           if(not(ntop.exists(base))) then ntop.mkdir(base) end
           name = fixPath(base .. "/"..port_idx..".rrd")
           createRRDcounter(name, 300, verbose)
-          str = "N:".. tolongint(port_value.ifInOctets) .. ":" .. tolongint(port_value.ifOutOctets)
+          str = "N:".. tolongint(port_value.ifOutOctets) .. ":" .. tolongint(port_value.ifInOctets)
           ntop.rrd_update(name, str)
 
           if(verbose) then
@@ -341,6 +341,32 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
           end
         end
       end
+
+      local flowdevs = interface.getFlowDevices() -- Flow, not sFlow here
+
+      for flow_device_ip,_ in pairs(flowdevs) do
+	 local ports = interface.getFlowDeviceInfo(flow_device_ip)
+
+	 if(verbose) then
+	    print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n")
+	 end
+
+	 for port_idx,port_value in pairs(ports) do
+	    local base = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx)
+	    if(not(ntop.exists(base))) then ntop.mkdir(base) end
+
+	    local name = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx.."/bytes.rrd")
+
+	    createRRDcounter(name, 300, verbose)
+	    str = "N:".. tolongint(port_value["bytes.out_bytes"]) .. ":" .. tolongint(port_value["bytes.in_bytes"])
+	    ntop.rrd_update(name, str)
+
+	    if(verbose) then
+	       print ("["..__FILE__()..":"..__LINE__().."]  Processing flow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
+	    end
+	 end
+      end
+
     end
 
     -- Save host activity stats only if flow activities are actually enabled
