@@ -349,6 +349,7 @@ alert_entity_keys = {
 }
 
 alert_functions_description = {
+    ["active"]  = "Active host time (seconds)",
     ["bytes"]   = "Bytes delta (sent + received)",
     ["dns"]     = "DNS traffic delta bytes (sent + received)",
     ["idle"]    = "Idle time since last packet sent (seconds)",	

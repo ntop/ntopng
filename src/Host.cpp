@@ -838,6 +838,7 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
+  json_object_object_add(my_object, "duration", json_object_new_int(get_duration()));
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
@@ -942,6 +943,8 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+
+  if(json_object_object_get_ex(o, "duration", &obj))  duration = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "dns", &obj)) {
     if(dns) dns->deserialize(obj);
