@@ -1125,16 +1125,19 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
 /* *************************************** */
 
-bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
+bool Flow::equal(u_int8_t *src_eth, u_int8_t *dst_eth,
+		 IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
 		 bool *src2srv_direction) {
   if((_vlanId != vlanId) || (_protocol != protocol)) return(false);
 
-  if(cli_host && cli_host->equal(_cli_ip) && srv_host && srv_host->equal(_srv_ip)
+  if(cli_host && cli_host->equal(src_eth, _cli_ip)
+     && srv_host && srv_host->equal(dst_eth, _srv_ip)
      && (_cli_port == cli_port) && (_srv_port == srv_port)) {
     *src2srv_direction = true;
     return(true);
-  } else if(srv_host && srv_host->equal(_cli_ip) && cli_host && cli_host->equal(_srv_ip)
+  } else if(srv_host && srv_host->equal(src_eth, _cli_ip)
+	    && cli_host && cli_host->equal(dst_eth, _srv_ip)
 	    && (_srv_port == cli_port) && (_cli_port == srv_port)) {
     *src2srv_direction = false;
     return(true);

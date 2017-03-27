@@ -741,7 +741,8 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
      || (dst_eth && Utils::macHash(dst_eth) != 0))
     setSeenMacAddresses();
 
-  ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
+  ret = flows_hash->find(src_eth, dst_eth,
+			 src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, l4_proto, src2dst_direction);
 
   if(ret == NULL) {
@@ -3333,7 +3334,7 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
   int i;
 
   if(!h
-     || !h->equal(&r->search)
+     || !h->equal(NULL, &r->search)
      || (!h->get_user_activities()))
     return(false); /* false = keep on walking */
 
