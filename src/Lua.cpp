@@ -550,6 +550,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   int16_t network_filter = -2;
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t ipver_filter = 0;
+  int proto_filter = -1;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -567,13 +568,14 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,11) == LUA_TSTRING)  mac_filter     = (char*)lua_tostring(vm, 11);
   if(lua_type(vm,12) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 12);
   if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 13);
+  if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
 
   if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, location,
                                        country, mac_filter,
 				       vlan_filter, os_filter, asn_filter,
-				       network_filter, pool_filter, ipver_filter,
+				       network_filter, pool_filter, ipver_filter, proto_filter,
 				       sortColumn, maxHits,
 				       toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);

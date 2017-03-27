@@ -119,7 +119,7 @@ end
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 	                           country, os_, tonumber(vlan), tonumber(asn),
 				   tonumber(network), mac,
-				   tonumber(pool), tonumber(ipversion)) -- false = little details
+				   tonumber(pool), tonumber(ipversion), tonumber(protocol)) -- false = little details
 
 -- tprint(hosts_stats)
 --io.write("---\n")
@@ -138,26 +138,9 @@ print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 now = os.time()
 vals = {}
 
-local protocol_name = nil
-
-if((protocol ~= nil) and (protocol ~= "")) then
-   protocol_name = interface.getnDPIProtoName(tonumber(protocol))
-end
-
 num = 0
 if(hosts_stats ~= nil) then
    for key, value in pairs(hosts_stats) do
-      ok = true
-
-      if(protocol_name ~= nil) then
-	 info = interface.getHostInfo(key)
-	 -- tprint(info["ndpi"])
-	 if((info == nil) or (info["ndpi"][protocol_name] == nil)) then
-	    ok = false
-	 end
-      end
-      
-      if(ok) then
 	 num = num + 1
 	 postfix = string.format("0.%04u", num)
 
@@ -214,7 +197,6 @@ if(hosts_stats ~= nil) then
 	       end
 	    end
 	 end
-      end
    end
 end
 
