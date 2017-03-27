@@ -1797,13 +1797,13 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	}
 
 	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
-	  ip_offset += ipv6_shift;
-	  if(ip_offset >= h->len) {
+	  // ip_offset += ipv6_shift;
+	  if((ip_offset + ipv6_shift) >= h->len) {
 	    incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 
-	  struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset];
+	  struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
 	  u_int16_t sport = udp->source,  dport = udp->dest;
 
 	  if((sport == CAPWAP_DATA_PORT) || (dport == CAPWAP_DATA_PORT)) {
@@ -1820,7 +1820,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	    */
 
 	    u_short eth_type;
-	    ip_offset = ip_offset+sizeof(struct ndpi_udphdr);
+	    ip_offset = ip_offset+ipv6_shift+sizeof(struct ndpi_udphdr);
 	    u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
 	    ip_offset = ip_offset+capwap_header_len+24+8;
 
