@@ -2033,7 +2033,13 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 
 bool Utils::isInterfaceUp(char *ifname) {
   struct ifreq ifr;
+  char *colon;
   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+  /* Handle PF_RING interfaces zc:ens2f1@3 */
+  colon = strchr(ifname, ':');
+  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+    ifname = colon+1;
 
   memset(&ifr, 0, sizeof(ifr));
   strcpy(ifr.ifr_name, ifname);
