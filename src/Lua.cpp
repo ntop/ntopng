@@ -1677,6 +1677,7 @@ static int ntop_get_grouped_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef NTOPNG_PRO
 static int ntop_get_flow_devices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1710,6 +1711,7 @@ static int ntop_get_flow_device_info(lua_State* vm) {
     return(CONST_LUA_OK);
   }
 }
+#endif
 
 /* ****************************************** */
 
@@ -5645,14 +5647,15 @@ static const luaL_Reg ntop_interface_reg[] = {
   
   /* SNMP */
   { "getSNMPStats",                   ntop_interface_get_snmp_stats },
-#endif
-
-  /* DB */
-  { "execSQLQuery",                   ntop_interface_exec_sql_query },
 
   /* Flow Devices */
   { "getFlowDevices",                ntop_get_flow_devices     },
   { "getFlowDeviceInfo",             ntop_get_flow_device_info },
+
+#endif
+
+  /* DB */
+  { "execSQLQuery",                   ntop_interface_exec_sql_query },
 
   /* sFlow */
   { "getSFlowDevices",               ntop_getsflowdevices      },

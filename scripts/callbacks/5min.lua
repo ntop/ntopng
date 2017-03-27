@@ -316,7 +316,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     end -- for
 
     -- Create RRDs for flow and sFlow devices
-    if(tostring(flow_devices_rrd_creation) == "1") then
+    if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise()) then
       local flowdevs = interface.getSFlowDevices()
 
       for flow_device_ip,_ in pairs(flowdevs) do

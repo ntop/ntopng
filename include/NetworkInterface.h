@@ -447,12 +447,14 @@ class NetworkInterface {
   void getFlowsStatus(lua_State *vm);
   void startDBLoop() { if(db) db->startDBLoop(); };
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
+#ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
   };
   inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
   };
+#endif
   inline void getSFlowDevices(lua_State *vm) {
     if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm);
   };
