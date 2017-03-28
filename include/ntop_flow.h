@@ -142,7 +142,7 @@
 #define FRAGMENTS   NTOP_BASE_ID+80
 #define SRC_AS_MAP  NTOP_BASE_ID+443
 #define DST_AS_MAP  NTOP_BASE_ID+444
-
+#define NPROBE_IPV4_ADDRESS  NTOP_BASE_ID+471 /* Exported only via ZMQ */
 /* NTOP_BASE_ID+82 ->87  Available (deprecated) */
 #define NUM_PKTS_UP_TO_128_BYTES   NTOP_BASE_ID+88
 #define NUM_PKTS_128_TO_256_BYTES   NTOP_BASE_ID+89

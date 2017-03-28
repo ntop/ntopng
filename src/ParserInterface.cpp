@@ -163,6 +163,7 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("PAYLOAD_HASH", 57910);
   addMapping("SRC_AS_MAP", 57915);
   addMapping("DST_AS_MAP", 57916);
+  addMapping("NPROBE_IPV4_ADDRESS", 57943);
   addMapping("SRC_AS_PATH_1", 57762);
   addMapping("SRC_AS_PATH_2", 57763);
   addMapping("SRC_AS_PATH_3", 57764);
@@ -661,8 +662,13 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case DIRECTION:
           flow.direction = atoi(value);
           break;
+	case NPROBE_IPV4_ADDRESS:
+	  if(flow.deviceIP == 0) /* Do not override EXPORTER_IPV4_ADDRESS */
+	    flow.deviceIP = ntohl(inet_addr(value));
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
+	  break;
 	case EXPORTER_IPV4_ADDRESS:
-	  /* Format: a.b.c.d */
+	  /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
 	  flow.deviceIP = ntohl(inet_addr(value));
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
 	  break;

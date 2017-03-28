@@ -958,13 +958,15 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
 #ifdef NTOPNG_PRO
-  // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
-  if(!flow_interfaces_stats)
-    flow_interfaces_stats = new FlowInterfacesStats();
+  if(zflow->deviceIP) {
+    // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
+    if(!flow_interfaces_stats)
+      flow_interfaces_stats = new FlowInterfacesStats();
 
-  if(flow_interfaces_stats) {
-    flow_interfaces_stats->incStats(zflow->deviceIP, zflow->inIndex,  zflow->in_bytes,  zflow->out_bytes);
-    flow_interfaces_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->out_bytes, zflow->in_bytes);
+    if(flow_interfaces_stats) {
+      flow_interfaces_stats->incStats(zflow->deviceIP, zflow->inIndex,  zflow->in_bytes,  zflow->out_bytes);
+      flow_interfaces_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->out_bytes, zflow->in_bytes);
+    }
   }
 #endif
   
