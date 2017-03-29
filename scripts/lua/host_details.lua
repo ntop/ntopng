@@ -389,23 +389,26 @@ if((page == "overview") or (page == nil)) then
    print('</td></tr>')
 
       if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"])
+	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
 
 	 if(ports ~= nil) then
 	    local rsps = 1
 
-	    for host,port in pairs(ports) do
+	    for snmp_device_ip,port in pairs(ports) do
 	       rsps = rsps + 1
 	    end
-	    
-	    if(rsps > 1) then
-	    	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
-	    	    for host,port in pairs(ports) do
-                       local trunk
 
-                       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
-	    	       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host.."'>"..ntop.getResolvedAddress(host).."</A></td>")
-	       	       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..port.name.."</span>"..trunk.."</A></td></tr>\n")
+	    if(rsps > 1) then
+	       print('<tr><th width=35% rowspan='..rsps..'>Host SNMP Location <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></th>')
+	       print("<th>SNMP Device</th><th>Device Port</th></tr>\n")
+		    for snmp_device_ip,port in pairs(ports) do
+		       local community = get_snmp_community(snmp_device_ip)
+		       local trunk
+
+		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..ntop.getResolvedAddress(snmp_device_ip).."</A></td>")
+
+		       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
+		       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..get_snmp_port_label(snmp_device_ip, community, port.id).."</span>"..trunk.."</A></td></tr>\n")
 		    end
 	    end
 	 end
