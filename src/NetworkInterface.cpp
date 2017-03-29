@@ -559,7 +559,7 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, bool idle_flow, Flow *f) {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Dumping flow.");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping flow.");
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, idle_flow, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()){
@@ -578,7 +578,7 @@ int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
   char *json = f->serialize(true);
   int rc;
   if(json) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] %s",json);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s",json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
   } else
