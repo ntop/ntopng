@@ -407,7 +407,7 @@ if((page == "overview") or (page == nil)) then
 	    end
 
 	    if(rsps > 1) then
-	       print('<tr><th width=35% rowspan='..rsps..'>Host SNMP Location <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></th>')
+	       print('<tr><td width=35% rowspan='..rsps..'><b>Host SNMP Localization <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></b><p><small>NOTE: Hosts are located in SNMP devices using the <A HREF=https://tools.ietf.org/html/rfc4188>Bridge MIB</A>.</small></td>')
 	       print("<th>SNMP Device</th><th>Device Port</th></tr>\n")
 		    for snmp_device_ip,port in pairs(ports) do
 		       local community = get_snmp_community(snmp_device_ip)
@@ -421,7 +421,8 @@ if((page == "overview") or (page == nil)) then
 	    end
 	 end
       end
-
+      print("</tr>")
+      
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
       
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
@@ -434,14 +435,14 @@ if((page == "overview") or (page == nil)) then
          print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
       end
 
-      print[[&nbsp;&nbsp;<span>Host Pool ]]
+      print[[</td><td><span>Host Pool: ]]
       if not ifstats.isView then
         print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
       else
         -- no link for view interfaces
         print(host_pools_utils.getPoolName(ifId, host_pool_id))
       end
-      print("</td><td></td></tr>")
+      print("</td></tr>")
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
