@@ -156,7 +156,6 @@ using namespace std;
 #include "FlowProfiles.h"
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
-#include "ICMPstats.h"
 #include "FlowInterfacesStats.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
@@ -177,6 +176,7 @@ using namespace std;
 #include "DnsStats.h"
 #include "TrafficStats.h"
 #include "NetworkStats.h"
+#include "ICMPstats.h"
 #include "Grouper.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
