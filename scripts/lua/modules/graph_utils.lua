@@ -1133,7 +1133,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    
    -- Pretty printing for flowdevs/a.b.c.d/e.rrd
    local elems = split(prefixLabel, "/")
-   if(not host:starts('flow_device:') and (elems[#elems] ~= nil) and (#elems > 1)) then
+   if((elems[#elems] ~= nil) and (#elems > 1)) then
       prefixLabel = "Port "..elems[#elems]
       port_mode = true
    end
