@@ -64,9 +64,11 @@ void ICMPstats::incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent) {
 
 /* ******************************************************** */
 
+#if 0
 static int key_sort(ICMPstats_t *a, ICMPstats_t *b) {
   return(a->type_code - b->type_code); /* inc sort */
 }
+#endif
 
 /* *************************************** */
 
@@ -87,7 +89,7 @@ void ICMPstats::lua(bool isV4, lua_State *vm) {
   
   m.lock(__FILE__, __LINE__);
   
-  HASH_SORT(stats, key_sort);
+  // HASH_SORT(stats, key_sort);
 
   lua_newtable(vm);
   HASH_ITER(hh, stats, curr, tmp) {
