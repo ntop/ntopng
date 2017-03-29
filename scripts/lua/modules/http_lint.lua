@@ -673,6 +673,7 @@ local known_parameters = {
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
+   ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids
    ["search"]                  =  validateBool,                  -- When set, a search should be performed
    ["search_flows"]            =  validateBool,                  -- When set, a flow search should be performed
