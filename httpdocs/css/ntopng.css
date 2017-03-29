@@ -137,7 +137,7 @@ min-width: 100px;
 
 /* For shaper id selection, should also inherit from form-control */
 .shaper-selector {
-  width: 15em;
+  width: 11em;
   margin: 0 auto;
 }
 

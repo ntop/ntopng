@@ -39,8 +39,7 @@ class Host : public GenericHost {
   char * old_sites;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
   u_int32_t host_quota_mb;
-  int16_t local_network_id, deviceIfIdx;
-  u_int32_t deviceIP;
+  int16_t local_network_id;
   float latitude, longitude;
   IpAddress ip;
   Mutex *m;
@@ -57,7 +56,7 @@ class Host : public GenericHost {
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
-
+  ICMPstats *icmp;
   UserActivityStats *user_activities;
   InterFlowActivityStats *ifa_stats;
   PacketStats sent_stats, recv_stats;
@@ -89,6 +88,7 @@ class Host : public GenericHost {
   bool readDHCPCache();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
+  void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category);
 #endif
 
  public:
@@ -129,6 +129,7 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
   inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
+  bool isAboveQuota(u_int16_t protocol);
 #endif
   inline u_int16_t get_host_pool()             { return(host_pool);        }
   inline u_int32_t get_asn()                   { return(asn);              }
@@ -140,6 +141,7 @@ class Host : public GenericHost {
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   bool idle();
+  void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent);
   void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement,
 	   bool exclude_deserialized_bytes);
@@ -148,7 +150,12 @@ class Host : public GenericHost {
   void set_host_label(char *label_name, bool ignoreIfPresent);
   inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
-  inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
+  inline bool equal(u_int8_t *macaddr, IpAddress *_ip)  {
+    if(macaddr == NULL)
+      return(_ip && ip.equal(_ip));
+    else
+      return(_ip && mac && mac->equal(vlan_id, macaddr) && ip.equal(_ip));
+  };
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
@@ -189,11 +196,8 @@ class Host : public GenericHost {
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
-  bool isAboveQuota(void);
-  void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);
-  inline u_int16_t getDeviceIfIdx()                     { return(deviceIfIdx);            }
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };

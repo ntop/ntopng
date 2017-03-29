@@ -24,11 +24,7 @@
 /* *************************************** */
 
 EthStats::EthStats() {
-  eth_IPv4.reset();
-  eth_IPv6.reset();
-  eth_ARP.reset();
-  eth_MPLS.reset();
-  eth_other.reset();
+  cleanup();
 }
 
 /* *************************************** */

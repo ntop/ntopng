@@ -38,7 +38,7 @@ class Paginator;
 
 #ifdef NTOPNG_PRO
 class L7Policer;
-class SNMPStats;
+class FlowInterfacesStats;
 #endif
 
 typedef struct {
@@ -72,7 +72,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
-  SNMPStats *snmp_stats;
+  FlowInterfacesStats *flow_interfaces_stats;
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;
@@ -148,7 +148,7 @@ class NetworkInterface {
 		char *countryFilter, char *mac_filter,
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
-		u_int16_t pool_filter, u_int8_t ipver_filter,
+		u_int16_t pool_filter, u_int8_t ipver_filter, int proto_filter,
 		bool hostMacsOnly, char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
@@ -317,7 +317,7 @@ class NetworkInterface {
 			 char *countryFilter, char *mac_filter,
 			 u_int16_t vlan_id, char *osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
-			 u_int16_t pool_filter, u_int8_t ipver_filter,
+			 u_int16_t pool_filter, u_int8_t ipver_filter, int proto_filter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
@@ -382,8 +382,8 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
   void refreshShapers();
-  inline L7Policer* getL7Policer()         { return(policer);     }
-  inline SNMPStats* getSNMPStats()         { return(snmp_stats);  }
+  inline L7Policer* getL7Policer()                     { return(policer);     }
+  inline FlowInterfacesStats* getFlowInterfacesStats() { return(flow_interfaces_stats);  }
 #endif
   inline HostPools* getHostPools()         { return(host_pools);  }
 
@@ -393,6 +393,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();
+  void resetPoolsStats();
   inline void luaHostPoolsStats(lua_State *vm)           { if (host_pools) host_pools->luaStats(vm);           };
   inline void luaHostPoolsVolatileMembers(lua_State *vm) { if (host_pools) host_pools->luaVolatileMembers(vm); };
 #endif
@@ -447,8 +448,20 @@ class NetworkInterface {
   void getFlowsStatus(lua_State *vm);
   void startDBLoop() { if(db) db->startDBLoop(); };
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
-  inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
-  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
+#ifdef NTOPNG_PRO
+  inline void getFlowDevices(lua_State *vm) {
+    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
+  };
+  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
+  };
+#endif
+  inline void getSFlowDevices(lua_State *vm) {
+    if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm);
+  };
+  inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+    if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
+  };
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };

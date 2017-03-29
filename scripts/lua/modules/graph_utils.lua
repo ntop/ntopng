@@ -199,6 +199,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
       host_or_network = string.gsub(host_or_network, 'snmp:', '')
       -- snmpstats are ntopng-wide so ifid is ignored
       rrdname = fixPath(dirs.workingdir .. "/snmpstats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
+      host_or_network = string.gsub(host_or_network, 'flow_device:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
@@ -1095,6 +1098,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    touchRRD(rrdname)
 
    --io.write(prefixLabel.."\n")
+
    if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then
       prefixLabel = "Traffic"
    end
@@ -1397,8 +1401,12 @@ function rrd2json_merge(ret, num)
 
    -- sort by "totalval" to get the top "num" results
    local by_totalval = {}
+   local totalval = 0
+   local minval = 0
    for i = 1, #ret do
       by_totalval[i] = ret[i].totalval
+      -- update total
+      totalval = totalval + ret[i].totalval
    end
 
    local ctr = 0
@@ -1416,6 +1424,19 @@ function rrd2json_merge(ret, num)
    -- ret[1] possibly contains aggregated view statistics such as
    -- maxval and maxval_time or minval and minval_time
    ret[1].json = json
+
+   if #ret > 1 then
+      -- update the total with the sum of the totals of each timeseries
+      ret[1].totalval = totalval
+      -- remove metrics that are no longer valid for merged rrds
+      for _, k in pairs({'average',
+			 'minval', 'minval_time',
+			 'maxval', 'maxval_time',
+			 'lastval', 'lastval_time', 'percentile'}) do
+	 ret[1][k] = nil
+      end
+   end
+
    -- io.write(json.."\n")
    return(ret[1])
 end

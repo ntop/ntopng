@@ -80,7 +80,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted,
-    good_low_flow_detected, good_ssl_hs;
+    good_low_flow_detected, good_ssl_hs, quota_exceeded;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -212,7 +212,7 @@ class Flow : public GenericHashEntry {
 #endif
   void dumpFlowAlert();
   bool skipProtocolFamilyCategorization(u_int16_t proto_id);
-  
+
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -338,7 +338,8 @@ class Flow : public GenericHashEntry {
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
-  bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
+  bool equal(u_int8_t *src_eth, u_int8_t *dst_eth,
+	     IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
 	     bool *src2srv_direction);
@@ -355,8 +356,13 @@ class Flow : public GenericHashEntry {
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-
-  inline void  setICMP(u_int8_t icmp_type, u_int8_t icmp_code) { if(isICMP()) { protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code; } }
+  inline void setICMP(u_int8_t icmp_type, u_int8_t icmp_code) {
+    if(isICMP()) {
+      protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
+      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, true);
+      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, false);
+    }
+  }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = strdup(v); } }
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
@@ -374,6 +380,7 @@ class Flow : public GenericHashEntry {
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
   void updateFlowShapers();
+  void recheckQuota();
 #endif
   inline float getFlowRTT() { return(rttSec); }
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */

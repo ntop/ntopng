@@ -1165,8 +1165,13 @@ function get_shapers_from_parameters(callback)
 
       if k ~= nil then
          if not done[k] then
-            done[k] = true;
-            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k])
+            local qtraffic = _POST["qtraffic_"..k]
+            local qtime = _POST["qtime_"..k]
+
+            if ((tonumber(qtraffic) ~= nil) and (tonumber(qtime) ~= nil)) then
+               done[k] = true;
+               callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic, qtime)
+            end
          end
       end
    end
@@ -1237,8 +1242,8 @@ end
          shaper_utils.deleteProtocol(ifid, target_pool, protocol_id)
       else
          -- set protocols policy for the pool
-         get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper)
-            shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, false)
+         get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
+            shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
          end)
 
          if (_POST["blocked_categories"] ~= nil)  then
@@ -1360,7 +1365,7 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
    for k,category in pairsByKeys(categories, asc) do
       print('<option value="cat_'..category.id..'"')
       if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
-      print('>' .. k .. " " .. ' ('.. category.count .. ')</option>'..terminator)
+      print('>' .. shaper_utils.formatCategory(k, category.count) ..'</option>'..terminator)
    end
    print('</optgroup>')
 
@@ -1417,6 +1422,8 @@ if sites_categories ~= nil then
    <br>]]
 end
 
+local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_directions") == "1")
+
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
@@ -1424,11 +1431,73 @@ end
 NOTES:
 <ul>
 <li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
+<li>Set Traffic and Time Quota to 0 to disable limits</li>
 </ul>
 
 
 
 <script>
+]]
+
+local rate_buttons = shaper_utils.buttons("rate")
+local traffic_buttons = shaper_utils.buttons("traffic")
+local time_buttons = shaper_utils.buttons("time")
+
+print(rate_buttons.init.."\n")
+
+print[[
+var rate_buttons_code = ']] print(rate_buttons.js) print[[';
+var rate_buttons_html = ']] print(rate_buttons.html) print[[';
+
+var traffic_buttons_code = ']] print(traffic_buttons.js) print[[';
+var traffic_buttons_html = ']] print(traffic_buttons.html) print[[';
+
+var time_buttons_code = ']] print(time_buttons.js) print[[';
+var time_buttons_html = ']] print(time_buttons.html) print[[';
+
+function replaceCtrlId(v, with_this) {
+   return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, with_this);
+}
+
+function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, input_name, extra) {
+   var extra = extra || {};
+   var value = (extra.value !== undefined) ? (extra.value) : (td_object.html());
+   var disabled = extra.disabled;
+   var maxvalue = extra.max_value;
+   var minvalue = extra.min_value;
+
+   // fix ctrl id
+   var buttons = $(replaceCtrlId(template_html, input_name));
+   var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
+   td_object.html("");
+   div.appendTo(td_object);
+   buttons.appendTo(div);
+
+   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
+   if (maxvalue !== null)
+      input.attr("data-max", maxvalue);
+
+   input.attr("data-min", (minvalue !== null) ? minvalue : -1);
+   input.appendTo(div);
+
+   if (disabled) {
+      input.attr("disabled", "disabled");
+      buttons.find("label").attr("disabled", "disabled");
+   }
+
+   // Add steps if available
+   for (resol in extra.steps)
+      input.attr("data-step-"+resol, extra.steps[resol]);
+
+   // execute group specific code
+   eval(replaceCtrlId(template_js, input_name));
+
+   // set initial value
+   resol_selector_set_value(input, value);
+
+   return input;
+}
+
 function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
@@ -1457,6 +1526,8 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
          var td_proto = $("td:nth-child(1)", new_proto);
          var td_ingress_shaper = $("td:nth-child(2)", new_proto);
          var td_egress_shaper = $("td:nth-child(3)", new_proto);
+         var td_traffic_quota = $("td:nth-child(4)", new_proto);
+         var td_time_quota = $("td:nth-child(5)", new_proto);
 
          var selected = $("option:selected", td_proto);
          var proto_id = selected.val();
@@ -1465,11 +1536,27 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
          $("select", td_proto).attr('name', '');
          $("select", td_ingress_shaper).attr('name', 'ishaper_'+proto_id);
          $("select", td_egress_shaper).attr('name', 'eshaper_'+proto_id);
+         $("input:last", td_traffic_quota).attr('name', 'qtraffic_'+proto_id);
+         $("input:last", td_time_quota).attr('name', 'qtime_'+proto_id);
       });
+
+      ]]
+if not split_shaping_directions then
+   print[[
+      /* Since shaping directions are linked, we have to set both shapers to the same value */
+      var tprotos = $("#table-protos");
+      $("select[name^='ishaper_']", tprotos).each(function() {
+         var proto_id = $(this).attr("name").split("ishaper_")[1];
+         var egress = $("select[name='eshaper_" + proto_id + "']", tprotos);
+         egress.val($(this).val());
+      });
+   ]]
+end
+print[[
 
       /* Possibly handle multiple blocked categories */
       var sites_categories = $("#l7ProtosForm select[name='sites_categories']");
-      if (sites_categories) {
+      if (sites_categories.length == 1) {
          var selection = [];
          $("option:selected", sites_categories).each(function() {
             selection.push($(this).val());
@@ -1495,18 +1582,25 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
 
       var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
             ]] print_ndpi_families_and_protocols(protocol_categories, protos, categories_in_use, protos_in_use, "\\") print[[
-      </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
+      </select></td><td class="text-center]] if not split_shaping_directions then print(" hidden") end
+      print[["><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
-      </select></td><td class="text-center" style="vertical-align: middle;"></td></tr>');
-
+      </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
       $("#table-protos table").append(tr);
+
+      makeTrafficQuotaButtons(tr, newid);
+      makeTimeQuotaButtons(tr, newid);
+
       datatableMakeSelectUnique(tr, newid_prefix, {
          on_change: function(select, old_val, new_val, others, change_fn) {
 
             function changeConditionally(option, to_enable) {
+               /* NOTE: Remove this return to enable protocol-category mutual exclusion */
+               //return;
+
                if(! to_enable) {
                   if (! option.attr("disabled")) {
                      option.attr("data-auto-disabled", true);
@@ -1574,7 +1668,7 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
             }
          }
       });
-      datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
+      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
       aysRecheckForm('#l7ProtosForm');
    }
 
@@ -1584,6 +1678,22 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
 
       todel.val(proto_id);
       form.submit();
+   }
+
+   function makeTrafficQuotaButtons(tr_obj, proto_id) {
+      makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
+         max_value: 100*1024*1024*1024 /* 100 GB */,
+         min_value: 0,
+         disabled: ((proto_id === "default") || (]] print(ternary(selected_pool.id == host_pools_utils.DEFAULT_POOL_ID, "true", "false")) print[[)) ? true : false
+      });
+   }
+
+   function makeTimeQuotaButtons(tr_obj, proto_id) {
+      makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
+         max_value: 23*60*60 /* 23 hours */,
+         min_value: 0,
+         disabled: ((proto_id === "default") || (]] print(ternary(selected_pool.id == host_pools_utils.DEFAULT_POOL_ID, "true", "false")) print[[)) ? true : false
+      });
    }
 
    $("#table-protos").datatable({
@@ -1601,29 +1711,60 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
             title: "]] print(i18n("protocol")) print[[",
             field: "column_proto",
             css: {
-               width: '15%',
+              width: ']] if split_shaping_directions then print("15") else print("20") end print[[%',
                verticalAlign: 'middle'
             }
-         }, {
+         }, {]]
+   if split_shaping_directions then
+      print[[
             title: "]] print(i18n("shaping.traffic_to") .. " " .. selected_pool.name) print[[",
+      ]]
+   else
+      print[[
+            title: "]] print(i18n("shaping.traffic_through") .. " " .. selected_pool.name) print[[",
+      ]]
+   end
+   print[[
             field: "column_ingress_shaper",
             css: {
-               width: '20%',
+               width: ']] if split_shaping_directions then print("14") else print("25") end print[[%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }
-         }, {
+         }, {]]
+   if not split_shaping_directions then
+      print[[
+            hidden: true,
+      ]]
+   end
+   print[[
             title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
             css: {
+               width: ']] if split_shaping_directions then print("14") else print("20") end print[[%',
+               textAlign: 'center',
+               verticalAlign: 'middle'
+            }
+         }, {
+            title: "]] print(i18n("shaping.daily_traffic_quota")) print[[",
+            field: "column_traffic_quota",
+            css : {
                width: '20%',
                textAlign: 'center',
                verticalAlign: 'middle'
+            }
+         }, {
+            title: "]] print(i18n("shaping.daily_time_quota")) print[[",
+            field: "column_time_quota",
+            css : {
+               width: '20%',
+               textAlign: 'center',
+               verticalAlign: 'middle',
             }
          }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
-               width: '15%',
+               width: '8%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }
@@ -1637,9 +1778,12 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
             }, function() {
                makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
+               makeTrafficQuotaButtons($(this), proto_id);
+               makeTimeQuotaButtons($(this), proto_id);
+
                var value = $("td:nth-child(1) span", $(this)).html();
                if (proto_id != ']] print(shaper_utils.POOL_SHAPER_DEFAULT_PROTO_KEY) print[[')
-                  datatableAddDeleteButtonCallback.bind(this)(4, "delete_protocol_id ='" + proto_id + "'; $('#delete_policy_dialog_protocol').html('" + value +"'); $('#delete_policy_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+                  datatableAddDeleteButtonCallback.bind(this)(6, "delete_protocol_id ='" + proto_id + "'; $('#delete_policy_dialog_protocol').html('" + value +"'); $('#delete_policy_dialog').modal('show');", "]] print(i18n('delete')) print[[");
             }
          ]);
 
@@ -1675,38 +1819,20 @@ print[[
    <br/><div id="table-shapers"></div>
 
    <script>
-]]
-
-local rate_buttons = shaper_utils.rateButtons(1)
-print(rate_buttons.init.."\n")
-
-print[[
-   var rate_buttons_code = ']] print(rate_buttons.js) print[[';
-
-   function replaceCtrlId(v, shaper_id) {
-      return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, "shaper_max_rate_" + shaper_id);
-   }
 
    function shaperRateTextField(td_object, shaper_id, value) {
-      // fix ctrl id
-      var buttons = $(replaceCtrlId(td_object.html(), shaper_id));
-      var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
-      td_object.html("");
-      div.appendTo(td_object);
-      buttons.appendTo(div);
-
-      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
-      input.val(value);
-      input.appendTo(div);
+      var input_name = "shaper_" + shaper_id;
+      var disabled = false;
 
       if ((shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) ||
-          (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
-         input.attr("disabled", "disabled");
-         buttons.find("label").attr("disabled", "disabled");
-      }
+          (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[))
+         disabled = true;
 
-      // execute group specific code
-      eval(replaceCtrlId(rate_buttons_code, shaper_id));
+      var input = makeResolutionButtonsAtRuntime(td_object, rate_buttons_html, rate_buttons_code, input_name, {
+         value: value,
+         disabled: disabled,
+         max_value: ]] print(tostring(SHAPERS_MAX_RATE_KPBS)) print[[
+      });
 
       if((typeof shaper_just_added != "undefined") && (shaper_just_added == shaper_id))
          input.focus();
@@ -1791,10 +1917,7 @@ print[[
          datatableForEachRow("#table-shapers", function() {
             var shaper_id = $("td:nth-child(1)", $(this)).html();
             var max_rate = $("td:nth-child(2)", $(this));
-
-            var rate_input = max_rate.find("input[name='shaper_rate']");
-            rate_input.remove();
-            shaperRateTextField(max_rate, shaper_id, rate_input.val());
+            shaperRateTextField(max_rate, shaper_id, max_rate.html());
 
             addShaperActionsToRow($(this), shaper_id);
          });

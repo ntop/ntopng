@@ -280,18 +280,16 @@ void HostPools::loadFromRedis() {
 
  /* *************************************** */
  
- void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int ndpi_proto,
-			      u_int64_t sent_packets, u_int64_t sent_bytes,
+ void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
+			      ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 			      u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-   HostPoolStats *hps;
-  if(host_pool_id == NO_HOST_POOL_ID
-     || host_pool_id >= MAX_NUM_HOST_POOLS
-     || !stats
-     || !(hps = stats[host_pool_id]))
+   HostPoolStats *hps = getPoolStats(host_pool_id);
+
+   if (! hps)
     return;
   
   /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
-  hps->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  hps->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 };
 
 /* *************************************** */
@@ -325,6 +323,22 @@ void HostPools::luaStats(lua_State *vm) {
     }
   }
 };
+
+/* *************************************** */
+
+void HostPools::resetPoolsStats() {
+    HostPoolStats *hps;
+
+  if(stats) {
+    for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
+      if((hps = stats[i])) {
+        /* Must use the assigned hps as stats can be swapped
+           and accesses such as stats[i] could yield a NULL value */
+        hps->resetStats();
+      }
+    }
+  }
+}
 
 /* *************************************** */
 

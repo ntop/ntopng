@@ -37,6 +37,11 @@ typedef struct {
   u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
 } ProtoCounter;
 
+typedef struct {
+  u_int64_t bytes;
+  u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
+} CategoryCounter;
+
 class NetworkInterface;
 
 /* *************************************** */
@@ -44,14 +49,19 @@ class NetworkInterface;
 class nDPIStats {
  private:
   ProtoCounter *counters[MAX_NDPI_PROTOS];
+  /* NOTE: category counters are not dumped to redis right now, they are only used internally */
+  CategoryCounter cat_counters[NDPI_PROTOCOL_NUM_CATEGORIES];
 
  public:
   nDPIStats();
+  nDPIStats(const nDPIStats &stats);
   ~nDPIStats();
 
   void incStats(u_int32_t when, u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+
+  void incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes);
   
   inline TrafficCounter* getPackets(u_int16_t proto_id) { 
     if(proto_id < (MAX_NDPI_PROTOS)) 
@@ -68,7 +78,7 @@ class nDPIStats {
   };
 
   void print(NetworkInterface *iface);
-  void lua(NetworkInterface *iface, lua_State* vm);
+  void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false);
   char* serialize(NetworkInterface *iface);
   json_object* getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
@@ -82,6 +92,29 @@ class nDPIStats {
     } else 
       return(0); 
   }
+
+  inline u_int32_t getProtoDuration(u_int16_t proto_id) {
+    if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id])
+      return counters[proto_id]->duration;
+    else
+      return(0);
+  }
+
+  inline u_int64_t getCategoryBytes(ndpi_protocol_category_t category_id) {
+    if (category_id < NDPI_PROTOCOL_NUM_CATEGORIES)
+      return(cat_counters[category_id].bytes);
+    else
+      return(0);
+  }
+
+  inline u_int32_t getCategoryDuration(ndpi_protocol_category_t category_id) {
+    if (category_id < NDPI_PROTOCOL_NUM_CATEGORIES)
+      return(cat_counters[category_id].duration);
+    else
+      return(0);
+  }
+
+  void resetStats();
 };
 
 #endif /* _NDPI_STATS_H_ */

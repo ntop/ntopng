@@ -381,8 +381,8 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_interface && ntop_interface->getSNMPStats()) {
-    ntop_interface->getSNMPStats()->lua(vm);
+  if(ntop_interface && ntop_interface->getFlowInterfacesStats()) {
+    ntop_interface->getFlowInterfacesStats()->lua(vm);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
@@ -550,6 +550,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   int16_t network_filter = -2;
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t ipver_filter = 0;
+  int proto_filter = -1;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -567,13 +568,14 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,11) == LUA_TSTRING)  mac_filter     = (char*)lua_tostring(vm, 11);
   if(lua_type(vm,12) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 12);
   if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 13);
+  if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
 
   if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, location,
                                        country, mac_filter,
 				       vlan_filter, os_filter, asn_filter,
-				       network_filter, pool_filter, ipver_filter,
+				       network_filter, pool_filter, ipver_filter, proto_filter,
 				       sortColumn, maxHits,
 				       toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -1675,7 +1677,8 @@ static int ntop_get_grouped_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_getflowdevices(lua_State* vm) {
+#ifdef NTOPNG_PRO
+static int ntop_get_flow_devices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1690,7 +1693,7 @@ static int ntop_getflowdevices(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_getflowdeviceinfo(lua_State* vm) {
+static int ntop_get_flow_device_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *device_ip;
 
@@ -1705,6 +1708,43 @@ static int ntop_getflowdeviceinfo(lua_State* vm) {
     in_addr_t addr = inet_addr(device_ip);
 
     ntop_interface->getFlowDeviceInfo(vm, ntohl(addr));
+    return(CONST_LUA_OK);
+  }
+}
+#endif
+
+/* ****************************************** */
+
+static int ntop_getsflowdevices(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    ntop_interface->getSFlowDevices(vm);
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
+static int ntop_getsflowdeviceinfo(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *device_ip;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  device_ip = (char*)lua_tostring(vm, 1);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    in_addr_t addr = inet_addr(device_ip);
+
+    ntop_interface->getSFlowDeviceInfo(vm, ntohl(addr));
     return(CONST_LUA_OK);
   }
 }
@@ -2329,35 +2369,6 @@ static int ntop_get_host_hit_rate(lua_State* vm) {
 #else
   return(CONST_LUA_ERROR); // not supported
 #endif
-}
-
-/* ****************************************** */
-
-static int ntop_set_host_quota(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  Host *h;
-  u_int32_t quota;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  quota = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
-
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
-    return(CONST_LUA_ERROR);
-
-  h->setQuota(quota);
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -3501,7 +3512,22 @@ static int ntop_reload_host_pools(lua_State *vm) {
 }
 
 /* ****************************************** */
+
 #ifdef NTOPNG_PRO
+
+static int ntop_reset_pools_stats(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+    ntop_interface->resetPoolsStats();
+
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
 static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5595,7 +5621,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "updateHostAlertPolicy",  ntop_update_host_alert_policy },
   { "setSecondTraffic",       ntop_set_second_traffic },
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
-  { "setHostQuota",           ntop_set_host_quota },
   { "getPeerHitRate",            ntop_get_host_hit_rate },
   { "getLatestActivityHostsInfo",     ntop_get_interface_latest_activity_hosts_info },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
@@ -5630,6 +5655,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Host pools */
   { "reloadHostPools",                ntop_reload_host_pools                },
   #ifdef NTOPNG_PRO
+  { "resetPoolsStats",                ntop_reset_pools_stats          },
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
@@ -5637,14 +5663,19 @@ static const luaL_Reg ntop_interface_reg[] = {
   
   /* SNMP */
   { "getSNMPStats",                   ntop_interface_get_snmp_stats },
+
+  /* Flow Devices */
+  { "getFlowDevices",                ntop_get_flow_devices     },
+  { "getFlowDeviceInfo",             ntop_get_flow_device_info },
+
 #endif
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },
 
-  /* Flows */
-  { "getFlowDevices",  ntop_getflowdevices },
-  { "getFlowDeviceInfo",  ntop_getflowdeviceinfo },
+  /* sFlow */
+  { "getSFlowDevices",               ntop_getsflowdevices      },
+  { "getSFlowDeviceInfo",            ntop_getsflowdeviceinfo   },
 
   /* New generation alerts */
   { "getCachedNumAlerts",   ntop_interface_get_cached_num_alerts    },

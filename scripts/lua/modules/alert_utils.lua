@@ -14,7 +14,7 @@ alerts_granularity = {
    { "day", "Daily", 86400 }
 }
 
-alarmable_metrics = {'bytes', 'dns', 'idle', 'packets', 'p2p', 'throughput', 'ingress', 'egress', 'inner'}
+alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput', 'ingress', 'egress', 'inner'}
 
 default_re_arm_minutes = 1
 
@@ -42,6 +42,12 @@ function packets(old, new, interval)
       -- Interface
       return(new.stats.packets - old.stats.packets)
    end
+end
+
+function active(old, new, interval)
+   if(verbose) then print("active("..interval..")") end
+   local diff = new["duration"] - old["duration"]
+   return(diff)
 end
 
 function idle(old, new, interval)
@@ -1264,9 +1270,15 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
 
-   local descr = alert_functions_description
+   local descr
    if alert_source:match("/") then
       descr = network_alert_functions_description
+   elseif not alert_source:match("%.") then
+      -- interface
+      descr = table.clone(alert_functions_description)
+      descr["active"] = nil
+   else
+      descr = alert_functions_description
    end
 
    print('<ul class="nav nav-tabs">')

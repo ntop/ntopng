@@ -673,6 +673,7 @@ local known_parameters = {
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
+   ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids
    ["search"]                  =  validateBool,                  -- When set, a search should be performed
    ["search_flows"]            =  validateBool,                  -- When set, a flow search should be performed
@@ -715,6 +716,7 @@ local known_parameters = {
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
+   ["toggle_shaping_directions"]                   =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
@@ -835,8 +837,10 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- SHAPING
    ["shaper_"]                 =  {validateNumber,            validateNumber},      -- key: a shaper ID, value: max rate
-   ["ishaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
-   ["eshaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
+   ["ishaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: ingress shaper ID
+   ["eshaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: egress shaper ID
+   ["qtraffic_"]               =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: traffic quota
+   ["qtime_"]                  =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: time quota
 
 -- ALERTS (see alert_utils.lua)
    ["operator_"]               =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator

@@ -68,7 +68,7 @@ Host::~Host() {
   if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
   if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
 #endif
-
+  if(icmp)            delete icmp;
   if(dns)             delete dns;
   if(http)            delete http;
   if(user_activities) delete user_activities;
@@ -134,7 +134,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     mac->incUses();
 
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
-    deviceIP = 0, deviceIfIdx = 0, num_resolve_attempts = 0;
+    num_resolve_attempts = 0;
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
   max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
@@ -154,11 +154,11 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
   asn = 0, asname = NULL, country = NULL, city = NULL;
-  longitude = 0, latitude = 0, host_quota_mb = 0;
+  longitude = 0, latitude = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
-    user_activities = NULL, ifa_stats = NULL;
+    user_activities = NULL, ifa_stats = NULL, icmp = NULL;
 
   if(init_all) {
     char *strIP = ip.print(buf, sizeof(buf));
@@ -314,8 +314,6 @@ void Host::updateHostTrafficPolicy(char *key) {
       else
 	drop_all_host_traffic = true;
 
-      if(ntop->getRedis()->hashGet((char*)HOST_TRAFFIC_QUOTA, host, buf, sizeof(buf)) == -1)
-	host_quota_mb = atol(buf);
     }
 
     if((ntop->getRedis()->hashGet((char*)DUMP_HOST_TRAFFIC,
@@ -462,6 +460,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
       ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
     }
+
+    if(icmp)
+      icmp->lua(ip.isIPv4(), vm);
   }
 
   lua_push_str_table_entry(vm, "name",
@@ -489,8 +490,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   if(host_details) {
     lua_push_int_table_entry(vm, "totalActivity", duration);
-    lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
-    lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
     if(info) lua_push_str_table_entry(vm, "info", info);
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
@@ -521,7 +520,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-   lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
     lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
@@ -531,12 +530,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "bridge.ingress_drops.packets",  ingress_drops.getNumPkts());
     lua_push_int_table_entry(vm, "bridge.egress_drops.bytes", egress_drops.getNumBytes());
     lua_push_int_table_entry(vm, "bridge.egress_drops.packets",  egress_drops.getNumPkts());
-
-    lua_push_int_table_entry(vm, "host_quota_mb", host_quota_mb);
-
-    if(localHost || systemHost) {
-      lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
-    }
 
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
@@ -800,8 +793,6 @@ json_object* Host::getJSONObject() {
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
   if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
-  if(deviceIfIdx)         json_object_object_add(my_object, "device_if_idx", json_object_new_int(deviceIfIdx));
-  if(deviceIP)            json_object_object_add(my_object, "device_ip",     json_object_new_int(deviceIP));
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
@@ -846,6 +837,7 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
+  json_object_object_add(my_object, "duration", json_object_new_int(get_duration()));
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
@@ -915,8 +907,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "vlan_id", &obj))       vlan_id     = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "device_if_idx", &obj)) deviceIfIdx = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "device_ip", &obj))     deviceIP    = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
@@ -950,6 +940,8 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+
+  if(json_object_object_get_ex(o, "duration", &obj))  duration = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "dns", &obj)) {
     if(dns) dns->deserialize(obj);
@@ -1186,6 +1178,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
       else if(sd->category_shapers.enabled)
 	ret = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
     }
+  }
 
 #ifdef SHAPER_DEBUG
   {
@@ -1200,33 +1193,80 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 #endif
 
-  }
-
   return(ret);
 }
 
+void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category) {
+  L7Policy_t *policy = l7Policy; /*
+				    Cache value so that even if updateHostL7Policy()
+				    runs in the meantime, we're consistent with the policer
+				 */
+  ShaperDirection_t *sd = NULL;
+  u_int64_t bytes = 0;  /* Default: no quota */
+  u_int32_t secs = 0;   /* Default: no quota */
+
+  if (policy) {
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+
+    if(sd) {
+      /* A protocol quota has priority over the category quota */
+      if(sd->protocol_shapers.enabled) {
+        bytes = sd->protocol_shapers.bytes_quota;
+        secs = sd->protocol_shapers.secs_quota;
+        *is_category = false;
+      } else if(sd->category_shapers.enabled) {
+        bytes = sd->category_shapers.bytes_quota;
+        secs = sd->category_shapers.secs_quota;
+        *is_category = true;
+      }
+    }
+  }
+
+  *bytes_quota = bytes;
+  *secs_quota = secs;
+}
+
+bool Host::isAboveQuota(u_int16_t protocol) {
+  u_int64_t bytes_quota, bytes;
+  u_int32_t secs_quota, secs;
+  bool is_category;
+  ndpi_protocol_category_t category;
+  HostPools *pools = getInterface()->getHostPools();
+  bool is_above = false;
+
+  if (!pools) return false;
+
+  get_quota(protocol, &bytes_quota, &secs_quota, &is_category);
+
+  if ((bytes_quota > 0) || (secs_quota > 0)) {
+      category = getInterface()->get_ndpi_proto_category(protocol);
+
+      if ((is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+       || (!is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
+        if (((bytes_quota > 0) && (bytes >= bytes_quota))
+         || ((secs_quota > 0) && (secs >= secs_quota)))
+        is_above = true;
+
+#ifdef SHAPER_DEBUG
+        {
+          char buf[64];
+
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] [bytes: %ld/%lu][seconds: %d/%u] => %s",
+            ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
+            ip.print(buf, sizeof(buf)), vlan_id,
+            bytes, bytes_quota,
+            secs, secs_quota,
+            is_above ? "EXCEEDED" : "ok");
+        }
 #endif
 
-/* *************************************** */
-
-void Host::setQuota(u_int32_t new_quota) {
-  char buf[64], host[96];
-
-  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
-  snprintf(buf, sizeof(buf), "%u", new_quota);
-  if(ntop->getRedis()->hashSet((char*)HOST_TRAFFIC_QUOTA, host, (char *)buf) == -1) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error updating host quota");
-    return;
+    }
   }
-  host_quota_mb = new_quota;
+
+  return is_above;
 }
 
-/* *************************************** */
-
-bool Host::isAboveQuota() {
-  return host_quota_mb > 0 /* 0 == unlimited */ &&
-    ((GenericHost*)this)->getPeriodicStats() > (host_quota_mb * 1000000);
-}
+#endif
 
 /* *************************************** */
 
@@ -1244,17 +1284,6 @@ void Host::updateStats(struct timeval *tv) {
     }
 
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
-  }
-
-  if(isAboveQuota() && triggerAlerts()) {
-    const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is above quota [%u])";
-    char ip_buf[48], *h, msg[512];
-    h = ip.print(ip_buf, sizeof(ip_buf));
-
-    snprintf(msg, sizeof(msg),
-	     error_msg, ntop->getPrefs()->get_http_prefix(),
-	     h, iface->get_id(), h, host_quota_mb);
-    iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
 }
 
@@ -1660,4 +1689,13 @@ bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
 #else
   return(true);
 #endif
+}
+
+/* *************************************** */
+
+void Host::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent) {
+  if(localHost) {
+    if(!icmp) icmp = new ICMPstats();
+    if(icmp)  icmp->incStats(icmp_type, icmp_code, sent);
+  }
 }

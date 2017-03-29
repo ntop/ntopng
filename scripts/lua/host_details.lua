@@ -223,6 +223,14 @@ if(not(isLoopback(ifname))) then
    end
 end
 
+if(host["ICMP"] ~= nil) then
+   if(page == "ICMP") then
+      print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
+   end      
+end
+
 if(page == "ndpi") then
   direction = _GET["direction"]
   print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
@@ -389,33 +397,32 @@ if((page == "overview") or (page == nil)) then
    print('</td></tr>')
 
       if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"])
+	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
 
 	 if(ports ~= nil) then
 	    local rsps = 1
 
-	    for host,port in pairs(ports) do
+	    for snmp_device_ip,port in pairs(ports) do
 	       rsps = rsps + 1
 	    end
-	    
-	    if(rsps > 1) then
-	    	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
-	    	    for host,port in pairs(ports) do
-                       local trunk
 
-                       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
-	    	       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host.."'>"..ntop.getResolvedAddress(host).."</A></td>")
-	       	       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..port.name.."</span>"..trunk.."</A></td></tr>\n")
+	    if(rsps > 1) then
+	       print('<tr><td width=35% rowspan='..rsps..'><b>Host SNMP Localization <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></b><p><small>NOTE: Hosts are located in SNMP devices using the <A HREF=https://tools.ietf.org/html/rfc4188>Bridge MIB</A>.</small></td>')
+	       print("<th>SNMP Device</th><th>Device Port</th></tr>\n")
+		    for snmp_device_ip,port in pairs(ports) do
+		       local community = get_snmp_community(snmp_device_ip)
+		       local trunk
+
+		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..ntop.getResolvedAddress(snmp_device_ip).."</A></td>")
+
+		       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
+		       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..get_snmp_port_label(snmp_device_ip, community, port.id).."</span>"..trunk.."</A></td></tr>\n")
 		    end
 	    end
 	 end
       end
-
-   
-      if host.deviceIfIdx ~= nil and host.deviceIfIdx ~= 0 and ntop.isPro() then
-	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIdx=".. host.deviceIfIdx.."'>".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
-      end
-
+      print("</tr>")
+      
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
       
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
@@ -428,14 +435,14 @@ if((page == "overview") or (page == nil)) then
          print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
       end
 
-      print[[&nbsp;&nbsp;<span>Host Pool ]]
+      print[[</td><td><span>Host Pool: ]]
       if not ifstats.isView then
         print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
       else
         -- no link for view interfaces
         print(host_pools_utils.getPoolName(ifId, host_pool_id))
       end
-      print("</td><td></td></tr>")
+      print("</td></tr>")
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
@@ -454,7 +461,7 @@ if((page == "overview") or (page == nil)) then
       print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
    end
 
-   if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
+   if(host["os"] ~= "") then
       print("<tr>")
       if(host["os"] ~= "") then
          print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td><td></td>\n")
@@ -824,7 +831,40 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
       print("</table>\n")
    end
 
-   elseif((page == "ndpi")) then
+
+elseif((page == "ICMP")) then
+
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>ICMP Message</th><th>Packets Sent</th><th>Packets Received</th><th>Breakdown</th><th>Total</th></tr></thead>
+     <tbody id="host_details_icmp_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_icmp_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/host_details_icmp.lua',
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
+
+    print [[ },
+    success: function(content) {
+      $('#host_details_icmp_tbody').html(content);
+      // Let the TableSorter plugin know that we updated the table
+      $('#h_icmp_tbody').trigger("update");
+    }
+  });
+}
+
+update_icmp_table();
+setInterval(update_icmp_table, 5000);
+</script>
+
+]]
+elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
 
@@ -855,9 +895,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
 				}
 
 	    </script>
-
-
-<p>
+           <p>
 	]]
 
       print("</table>\n")
@@ -1968,26 +2006,6 @@ elseif (page == "config") then
       print[[#protocols">Modify Host Pool Policy</a>]]
       print('</td></tr>')
 
-      -- Host quota
-      local host_quota_value = host["host_quota_mb"]
-
-      if(_POST["host_quota"] ~= nil) then
-         if(_POST["host_quota"] == "") then
-            -- default: unlimited
-            host_quota_value = "0"
-         else
-            host_quota_value = _POST["host_quota"]
-         end
-
-         interface.select(ifname) -- if we submitted a form, nothing is select()ed
-         interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
-      end
-
-      print [[<th>Host Quota</th>
-      <td>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-            <input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="]] print(tostring(host_quota_value))
-      print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print('</form>')
       print('</td></tr>')
    end

@@ -26,6 +26,21 @@
 
 nDPIStats::nDPIStats() {
   memset(counters, 0, sizeof(counters));
+  memset(cat_counters, 0, sizeof(cat_counters));
+}
+
+/* *************************************** */
+nDPIStats::nDPIStats(const nDPIStats &stats) {
+  for(int i=0; i<MAX_NDPI_PROTOS; i++) {
+    if(stats.counters[i] != NULL) {
+      counters[i] = (ProtoCounter*) malloc(sizeof(ProtoCounter));
+      *counters[i] = *stats.counters[i];
+    } else {
+      counters[i] = NULL;
+    }
+  }
+
+  memcpy(cat_counters, stats.cat_counters, sizeof(cat_counters));
 }
 
 /* *************************************** */
@@ -81,7 +96,7 @@ void nDPIStats::print(NetworkInterface *iface) {
 
 /* *************************************** */
 
-void nDPIStats::lua(NetworkInterface *iface, lua_State* vm) {
+void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories) {
   lua_newtable(vm);
 
   for(int i=0; i<MAX_NDPI_PROTOS; i++)
@@ -109,6 +124,28 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm) {
   lua_pushstring(vm, "ndpi");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  if (with_categories) {
+    lua_newtable(vm);
+
+    for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+      if(cat_counters[i].bytes > 0) {
+        lua_newtable(vm);
+
+        lua_push_int_table_entry(vm, "category", i);
+        lua_push_int_table_entry(vm, "bytes", cat_counters[i].bytes);
+        lua_push_int_table_entry(vm, "duration", cat_counters[i].duration);
+
+        lua_pushstring(vm, ndpi_category_str((ndpi_protocol_category_t)i));
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+      }
+    }
+
+    lua_pushstring(vm, "ndpi_categories");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* *************************************** */
@@ -137,6 +174,18 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
     if((when != 0) && (counters[proto_id]->last_epoch_update != when)) {
       counters[proto_id]->duration += ntop->getPrefs()->get_housekeeping_frequency(),
 	counters[proto_id]->last_epoch_update = when;
+    }
+  }
+}
+
+/* *************************************** */
+
+void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes) {
+  if(category_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
+    if((when != 0) && (cat_counters[category_id].last_epoch_update != when)) {
+      cat_counters[category_id].bytes += bytes;
+      cat_counters[category_id].duration += ntop->getPrefs()->get_housekeeping_frequency(),
+      cat_counters[category_id].last_epoch_update = when;
     }
   }
 }
@@ -238,4 +287,16 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   }
 
   return(my_object);
+}
+
+/* *************************************** */
+
+void nDPIStats::resetStats() {
+  for(int i=0; i<MAX_NDPI_PROTOS; i++) {
+    /* NOTE: do not deallocate counters since they can be in use by other threads */
+    if(counters[i] != NULL)
+      memset(&counters[i], 0, sizeof(counters[i]));
+  }
+
+  memset(cat_counters, 0, sizeof(cat_counters));
 }

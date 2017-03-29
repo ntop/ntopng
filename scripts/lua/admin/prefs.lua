@@ -370,15 +370,19 @@ function printBridgingPrefs()
 
   print('<table class="table">')
 
-  print('<tr><th colspan=2 class="info">User Authentication</th></tr>')
+  print('<tr><th colspan=2 class="info">Traffic Shaping</th></tr>')
+  toggleTableButtonPrefs("Split Shaping Directions", "Enable this option to be able to set different shaping policies for ingress and egress traffic",
+       "On", "1", "success",
+       "Off", "0", "danger",
+       "toggle_shaping_directions", "ntopng.prefs.split_shaping_directions", "0")
 
-  local elementToSwitchSlack = { "toggle_captive_portal" }
+  print('<tr><th colspan=2 class="info">User Authentication</th></tr>')
 
   toggleTableButtonPrefs("Captive Portal", label,
 			 "On", "1", "success",
 			 "Off", "0", "danger",
 			 "toggle_captive_portal", "ntopng.prefs.enable_captive_portal", "0",
-			 not(show), nil, nil, elementToSwitch)
+			 not(show))
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
 

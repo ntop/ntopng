@@ -16,20 +16,20 @@ Users can be added/deleted also from the web gui. Changes are written back
 to the users file, if any.
 
 
-It is also possible to add an user via Redis using the command:
+It is also possible to add a user via Redis using the command:
 
-  redis-cli SET user.<username>.password <password md5>
+  redis-cli SET ntopng.user.<username>.password <password md5>
 
 Example of adding a user "utente" with password "password":
 
   $ echo -n "password" | md5 
   5f4dcc3b5aa765d61d8327deb882cf99
 
-  $ redis-cli SET user.utente.password 5f4dcc3b5aa765d61d8327deb882cf99 
+  $ redis-cli SET ntopng.user.utente.password 5f4dcc3b5aa765d61d8327deb882cf99 
 
 It is possible to list all users via Redis using:
 
   $ redis-cli KEYS user*
-  1) "user.admin.password"
-  2) "user.utente.password"
+  1) "ntopng.user.admin.password"
+  2) "ntopng.user.utente.password"
 
