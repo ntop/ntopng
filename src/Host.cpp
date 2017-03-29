@@ -68,7 +68,7 @@ Host::~Host() {
   if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
   if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
 #endif
-
+  if(icmp)            delete icmp;
   if(dns)             delete dns;
   if(http)            delete http;
   if(user_activities) delete user_activities;
@@ -460,6 +460,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
       ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
     }
+
+    if(icmp)
+      icmp->lua(ip.isIPv4(), vm);
   }
 
   lua_push_str_table_entry(vm, "name",
@@ -517,7 +520,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-   lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
     lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
@@ -1617,4 +1620,13 @@ bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
 #else
   return(true);
 #endif
+}
+
+/* *************************************** */
+
+void Host::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent) {
+  if(localHost) {
+    if(!icmp) icmp = new ICMPstats();
+    if(icmp)  icmp->incStats(icmp_type, icmp_code, sent);
+  }
 }

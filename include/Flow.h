@@ -212,7 +212,7 @@ class Flow : public GenericHashEntry {
 #endif
   void dumpFlowAlert();
   bool skipProtocolFamilyCategorization(u_int16_t proto_id);
-  
+
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -356,8 +356,13 @@ class Flow : public GenericHashEntry {
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-
-  inline void  setICMP(u_int8_t icmp_type, u_int8_t icmp_code) { if(isICMP()) { protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code; } }
+  inline void setICMP(u_int8_t icmp_type, u_int8_t icmp_code) {
+    if(isICMP()) {
+      protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
+      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, true);
+      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, false);
+    }
+  }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = strdup(v); } }
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }

@@ -223,6 +223,14 @@ if(not(isLoopback(ifname))) then
    end
 end
 
+if(host["ICMP"] ~= nil) then
+   if(page == "ICMP") then
+      print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
+   end      
+end
+
 if(page == "ndpi") then
   direction = _GET["direction"]
   print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
@@ -819,7 +827,40 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
       print("</table>\n")
    end
 
-   elseif((page == "ndpi")) then
+
+elseif((page == "ICMP")) then
+
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>ICMP Message</th><th>Packets Sent</th><th>Packets Received</th><th>Breakdown</th><th>Total</th></tr></thead>
+     <tbody id="host_details_icmp_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_icmp_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/host_details_icmp.lua',
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
+
+    print [[ },
+    success: function(content) {
+      $('#host_details_icmp_tbody').html(content);
+      // Let the TableSorter plugin know that we updated the table
+      $('#h_icmp_tbody').trigger("update");
+    }
+  });
+}
+
+update_icmp_table();
+setInterval(update_icmp_table, 5000);
+</script>
+
+]]
+elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
 
@@ -850,9 +891,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
 				}
 
 	    </script>
-
-
-<p>
+           <p>
 	]]
 
       print("</table>\n")
