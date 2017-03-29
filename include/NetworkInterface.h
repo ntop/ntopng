@@ -393,6 +393,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();
+  void resetPoolsStats();
   inline void luaHostPoolsStats(lua_State *vm)           { if (host_pools) host_pools->luaStats(vm);           };
   inline void luaHostPoolsVolatileMembers(lua_State *vm) { if (host_pools) host_pools->luaVolatileMembers(vm); };
 #endif

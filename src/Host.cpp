@@ -1178,6 +1178,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
       else if(sd->category_shapers.enabled)
 	ret = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
     }
+  }
 
 #ifdef SHAPER_DEBUG
   {
@@ -1192,9 +1193,77 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 #endif
 
+  return(ret);
+}
+
+void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category) {
+  L7Policy_t *policy = l7Policy; /*
+				    Cache value so that even if updateHostL7Policy()
+				    runs in the meantime, we're consistent with the policer
+				 */
+  ShaperDirection_t *sd = NULL;
+  u_int64_t bytes = 0;  /* Default: no quota */
+  u_int32_t secs = 0;   /* Default: no quota */
+
+  if (policy) {
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+
+    if(sd) {
+      /* A protocol quota has priority over the category quota */
+      if(sd->protocol_shapers.enabled) {
+        bytes = sd->protocol_shapers.bytes_quota;
+        secs = sd->protocol_shapers.secs_quota;
+        *is_category = false;
+      } else if(sd->category_shapers.enabled) {
+        bytes = sd->category_shapers.bytes_quota;
+        secs = sd->category_shapers.secs_quota;
+        *is_category = true;
+      }
+    }
   }
 
-  return(ret);
+  *bytes_quota = bytes;
+  *secs_quota = secs;
+}
+
+bool Host::isAboveQuota(u_int16_t protocol) {
+  u_int64_t bytes_quota, bytes;
+  u_int32_t secs_quota, secs;
+  bool is_category;
+  ndpi_protocol_category_t category;
+  HostPools *pools = getInterface()->getHostPools();
+  bool is_above = false;
+
+  if (!pools) return false;
+
+  get_quota(protocol, &bytes_quota, &secs_quota, &is_category);
+
+  if ((bytes_quota > 0) || (secs_quota > 0)) {
+      category = getInterface()->get_ndpi_proto_category(protocol);
+
+      if ((is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+       || (!is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
+        if (((bytes_quota > 0) && (bytes >= bytes_quota))
+         || ((secs_quota > 0) && (secs >= secs_quota)))
+        is_above = true;
+
+#ifdef SHAPER_DEBUG
+        {
+          char buf[64];
+
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] [bytes: %ld/%lu][seconds: %d/%u] => %s",
+            ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
+            ip.print(buf, sizeof(buf)), vlan_id,
+            bytes, bytes_quota,
+            secs, secs_quota,
+            is_above ? "EXCEEDED" : "ok");
+        }
+#endif
+
+    }
+  }
+
+  return is_above;
 }
 
 #endif

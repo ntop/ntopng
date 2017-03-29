@@ -88,6 +88,7 @@ class Host : public GenericHost {
   bool readDHCPCache();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
+  void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category);
 #endif
 
  public:
@@ -128,6 +129,7 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
   inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
+  bool isAboveQuota(u_int16_t protocol);
 #endif
   inline u_int16_t get_host_pool()             { return(host_pool);        }
   inline u_int32_t get_asn()                   { return(asn);              }

@@ -80,7 +80,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted,
-    good_low_flow_detected, good_ssl_hs;
+    good_low_flow_detected, good_ssl_hs, quota_exceeded;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -380,6 +380,7 @@ class Flow : public GenericHashEntry {
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
   void updateFlowShapers();
+  void recheckQuota();
 #endif
   inline float getFlowRTT() { return(rttSec); }
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */

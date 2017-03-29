@@ -27,7 +27,6 @@
 class NetworkInterface;
 class Host;
 #ifdef NTOPNG_PRO
-class HostPoolStats;
 
 typedef struct {
   char *host_or_mac;
@@ -51,6 +50,16 @@ class HostPools {
 
 #ifdef NTOPNG_PRO
   void swap(AddressTree **new_trees, HostPoolStats **new_stats);
+
+  inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
+    if(host_pool_id == NO_HOST_POOL_ID
+     || host_pool_id >= MAX_NUM_HOST_POOLS
+     || !stats)
+     return NULL;
+    return stats[host_pool_id];
+  }
+
+  void reloadPoolStats();
 #else
   void swap(AddressTree **new_trees);
 #endif
@@ -60,7 +69,6 @@ class HostPools {
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
 
-  void reloadPoolStats();
   void loadFromRedis();
   void dumpToRedis();
 
@@ -70,11 +78,30 @@ public:
   void reloadPools();
   u_int16_t getPool(Host *h);
 #ifdef NTOPNG_PRO
-  void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int ndpi_proto,
-		    u_int64_t sent_packets, u_int64_t sent_bytes,
+  void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
+		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void updateStats(struct timeval *tv);
   void luaStats(lua_State *vm);
+
+  inline bool getProtoStats(u_int16_t host_pool_id, u_int16_t ndpi_proto, u_int64_t *bytes, u_int32_t *duration) {
+    HostPoolStats *hps;
+    if (!(hps = getPoolStats(host_pool_id))) return false;
+
+    hps->getProtoStats(ndpi_proto, bytes, duration);
+    return true;
+  }
+
+  inline bool getCategoryStats(u_int16_t host_pool_id, ndpi_protocol_category_t category_id, u_int64_t *bytes, u_int32_t *duration) {
+    HostPoolStats *hps;
+    if (!(hps = getPoolStats(host_pool_id))) return false;
+
+    hps->getCategoryStats(category_id, bytes, duration);
+    return true;
+  }
+
+  void resetPoolsStats();
+
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
   void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);

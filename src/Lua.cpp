@@ -3512,7 +3512,22 @@ static int ntop_reload_host_pools(lua_State *vm) {
 }
 
 /* ****************************************** */
+
 #ifdef NTOPNG_PRO
+
+static int ntop_reset_pools_stats(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+    ntop_interface->resetPoolsStats();
+
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
 static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5640,6 +5655,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Host pools */
   { "reloadHostPools",                ntop_reload_host_pools                },
   #ifdef NTOPNG_PRO
+  { "resetPoolsStats",                ntop_reset_pools_stats          },
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
