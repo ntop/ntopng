@@ -559,7 +559,7 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, bool idle_flow, Flow *f) {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping flow.");
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Dumping flow.");
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, idle_flow, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()){
@@ -578,10 +578,10 @@ int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
   char *json = f->serialize(true);
   int rc;
   if(json) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s",json);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] %s",json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
-  } else 
+  } else
     rc = -1;
   return(rc);
 }
@@ -3655,6 +3655,8 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, false /* Overall */);
+  }else if (ntop->getPrefs()->do_dump_flows_on_ls()){
+    ntop->getLogstash()->lua(vm, false /* Overall */);
   }
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
@@ -3668,6 +3670,8 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, true /* Since last checkpoint */);
+  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+    ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
   }
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
@@ -4298,6 +4302,8 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->checkPointCounters(drops_only);
+  }else if (ntop->getPrefs()->do_dump_flows_on_ls()){
+    ntop->getLogstash()->checkPointCounters(drops_only);
   }
 }
 

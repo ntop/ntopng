@@ -139,29 +139,48 @@ void Logstash::startFlowDump() {
 /* **************************************** */
 
 void Logstash::sendLSdata() {
-  const u_int watermark = 8, min_buf_size = 512;
+  const u_int watermark = 0, min_buf_size = 0, max_bulk=8;
   char postbuf[16384];
+  char *proto = NULL;
+  struct hostent *server = NULL;
+  char *portstr = NULL;
+  int sendTCP = 1;
+  struct sockaddr_in serv_addr;
+  int sockfd;
+  int portno;
+
+
+  server = gethostbyname(ntop->getPrefs()->get_ls_host());
+  portstr = ntop->getPrefs()->get_ls_port();
+
+  if(server == NULL || portstr==NULL){
+     //can't send
+     return;
+  }
+
+  proto = ntop->getPrefs()->get_ls_proto();
+  if(proto&&!strncmp(proto,"udp",3)){
+     sendTCP = 0;
+  }
+  portno = atoi(portstr);
+
+  bzero((char *) &serv_addr,sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  bcopy((char *) server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  serv_addr.sin_port = htons(portno);
 
   while(!ntop->getGlobals()->isShutdown()) {
-    struct sockaddr_in serv_addr;
-    char *proto;
-    int sockfd;
-    struct hostent *server;
-    int portno;
-    char *portstr;
-
     if(num_queued_elems >= watermark) {
       u_int len, num_flows;
-      struct timeval tv;
-
-      gettimeofday(&tv, NULL);
-
       len = 0, num_flows = 0;
 
       listMutex.lock(__FILE__, __LINE__);
-      for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
+      for(u_int i=0; (i<max_bulk) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
         struct string_list *prev;
-
+	if(!(tail && tail->str)){
+          //No events in queue
+	  break;
+	}
         prev = tail->prev;
 	len += snprintf(&postbuf[len], sizeof(postbuf)-len, "%s\n", tail->str), num_flows++;
         free(tail->str);
@@ -177,58 +196,55 @@ void Logstash::sendLSdata() {
       postbuf[len] = '\0';
 
       if(postbuf[0]!='{') {
-	sleep(1);
 	continue;
       }
 
-      proto = ntop->getPrefs()->get_ls_proto();
-
-      if(!strncmp(proto,"udp",3)) {
-	//UDP socket
+      if(!sendTCP) { //UDP socket
 	sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
-      } else {
-	//TCP socket
+      } else {	//TCP socket
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
       }
 
-      server = gethostbyname(ntop->getPrefs()->get_ls_host());
-      portstr = ntop->getPrefs()->get_ls_port();
-
-      if(portstr == NULL)
-	portno = 5510;
-      else
-	portno = atoi(portstr);
-
-      if((sockfd < 0) || (server == NULL)) {
+      if(sockfd < 0) {
 	/* Post failure */
-	sleep(1);
-      } else {
-	bzero((char *) &serv_addr,sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	bcopy((char *) server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-	serv_addr.sin_port = htons(portno);
-
-	if(!strncmp(proto,"tcp",3)
-	   && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)) {
-	  sleep(1);
-	} else {
-	  if(
-             (!strncmp(proto, "tcp", 3)
-	      && (send(sockfd,postbuf,sizeof(postbuf),0) < 0))
-	     ||
-	     ((!strncmp(proto, "udp", 3))
-	      &&
-	      (sendto(sockfd, postbuf, sizeof(postbuf), 0,
-		      (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-              )
-	     ){
-	    sleep(1);
-	  } else {
-	    elkExportedFlows += num_flows;
-	  }
-	}
+        continue;
       }
-    } else
+
+      //Set nonblocking
+      fcntl(sockfd, F_SETFL, MSG_DONTWAIT);
+
+      if(sendTCP
+	 && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)
+        ) {
+	sleep(1);
+        close(sockfd);
+        continue;
+      }
+
+      if(
+          (sendTCP
+	  && (send(sockfd,postbuf,sizeof(postbuf),0) < 0))
+	  ||
+	  (!sendTCP
+	   &&
+	   (sendto(sockfd, postbuf, sizeof(postbuf), 0,
+		   (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+           )
+	  ){
+        sleep(1);
+        close(sockfd);
+        continue;
+      }
+
+      //If all steps succeded, increment exported flows
+      elkExportedFlows += num_flows;
+      close(sockfd);
+
+    } else {
       sleep(1);
+    }
   } /* while */
+  if(proto)  free(proto);
+  if(portstr) free(portstr);
+
 }
