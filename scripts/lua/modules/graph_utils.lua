@@ -1401,8 +1401,12 @@ function rrd2json_merge(ret, num)
 
    -- sort by "totalval" to get the top "num" results
    local by_totalval = {}
+   local totalval = 0
+   local minval = 0
    for i = 1, #ret do
       by_totalval[i] = ret[i].totalval
+      -- update total
+      totalval = totalval + ret[i].totalval
    end
 
    local ctr = 0
@@ -1420,6 +1424,19 @@ function rrd2json_merge(ret, num)
    -- ret[1] possibly contains aggregated view statistics such as
    -- maxval and maxval_time or minval and minval_time
    ret[1].json = json
+
+   if #ret > 1 then
+      -- update the total with the sum of the totals of each timeseries
+      ret[1].totalval = totalval
+      -- remove metrics that are no longer valid for merged rrds
+      for _, k in pairs({'average',
+			 'minval', 'minval_time',
+			 'maxval', 'maxval_time',
+			 'lastval', 'lastval_time', 'percentile'}) do
+	 ret[1][k] = nil
+      end
+   end
+
    -- io.write(json.."\n")
    return(ret[1])
 end
