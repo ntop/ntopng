@@ -158,7 +158,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
-    user_activities = NULL, ifa_stats = NULL;
+    user_activities = NULL, ifa_stats = NULL, icmp = NULL;
 
   if(init_all) {
     char *strIP = ip.print(buf, sizeof(buf));
