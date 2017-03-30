@@ -2771,8 +2771,8 @@ bool Flow::invokeActivityFilter(const struct timeval *when,
 
 bool Flow::isTiny() {
   //if((cli2srv_packets < 3) && (srv2cli_packets == 0))
-  if(get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow()
-     || get_bytes() <= ntop->getPrefs()->get_max_num_bytes_per_tiny_flow())
+  if((get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow())
+     || (get_bytes() <= ntop->getPrefs()->get_max_num_bytes_per_tiny_flow()))
     return(true);
   else
     return(false);
