@@ -1693,9 +1693,9 @@ bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
 
 /* *************************************** */
 
-void Host::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent) {
+void Host::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
   if(localHost) {
     if(!icmp) icmp = new ICMPstats();
-    if(icmp)  icmp->incStats(icmp_type, icmp_code, sent);
+    if(icmp)  icmp->incStats(icmp_type, icmp_code, sent, peer);
   }
 }

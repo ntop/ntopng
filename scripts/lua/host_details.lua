@@ -223,7 +223,7 @@ if(not(isLoopback(ifname))) then
    end
 end
 
-if(host["ICMP"] ~= nil) then
+if((host["ICMPv4"] ~= nil) or (host["ICMPv6"] ~= nil)) then
    if(page == "ICMP") then
       print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
    else
@@ -289,7 +289,7 @@ else
    end
 end
 
-if(ntop.isPro() and host['localhost']) then
+if(info["version.enterprise_edition"] and host['localhost']) then
    if(page == "snmp") then
       print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -396,7 +396,7 @@ if((page == "overview") or (page == nil)) then
        end
    print('</td></tr>')
 
-      if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
+      if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
 	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
 
 	 if(ports ~= nil) then
@@ -836,7 +836,7 @@ elseif((page == "ICMP")) then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th>Packets Sent</th><th>Packets Received</th><th>Breakdown</th><th>Total</th></tr></thead>
+     <thead><tr><th>ICMP Message</th><th>Packets Sent</th><th>Last Sent Peer</th><th>Packets Received</th><th>Last Rcvd Peer</th><th>Breakdown</th><th>Total</th></tr></thead>
      <tbody id="host_details_icmp_tbody">
      </tbody>
      </table>
@@ -847,7 +847,7 @@ function update_icmp_table() {
     type: 'GET',
     url: ']]
   print(ntop.getHttpPrefix())
-  print [[/lua/host_details_icmp.lua',
+  print [[/lua/get_icmp_data.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
 
     print [[ },

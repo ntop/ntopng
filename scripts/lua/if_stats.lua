@@ -220,6 +220,12 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    end
 end
 
+if(page == "ICMP") then
+  print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+else
+  print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
+end
+
 if(ntop.exists(rrdname) and not is_historical) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
@@ -307,6 +313,7 @@ print [[
 </ul>
 </div>
 </nav>
+
    ]]
 
 if((page == "overview") or (page == nil)) then
@@ -683,6 +690,36 @@ print("setInterval(update_ndpi_table, 5000);")
 
 ]]
 
+elseif(page == "ICMP") then
+
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>ICMP Message</th><th>Total Packets</th></tr></thead>
+     <tbody id="iface_details_icmp_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_icmp_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_icmp_data.lua',
+    data: { ifid: "]] print(ifId.."")  print [[" },
+    success: function(content) {
+      $('#iface_details_icmp_tbody').html(content);
+      $('#h_icmp_tbody').trigger("update");
+    }
+  });
+}
+
+update_icmp_table();
+setInterval(update_icmp_table, 5000);
+</script>
+
+]]
+   
 elseif(page == "historical") then
    rrd_file = _GET["rrd_file"]
    selected_epoch = _GET["epoch"]

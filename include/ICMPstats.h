@@ -28,6 +28,7 @@
 typedef struct {
   int type_code; /* too big but that's all UThash offers */
   u_int16_t pkt_sent, pkt_rcvd;
+  char *last_host_sent_peer, *last_host_rcvd_peer;
   UT_hash_handle hh; /* makes this structure hashable */  
 } ICMPstats_t;
   
@@ -44,7 +45,7 @@ class ICMPstats {
   ICMPstats();
   ~ICMPstats();
 
-  void incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent);
+  void incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   void lua(bool isV4, lua_State *vm);  
   void sum(ICMPstats *e);
 };

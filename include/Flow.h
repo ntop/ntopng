@@ -356,11 +356,11 @@ class Flow : public GenericHashEntry {
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-  inline void setICMP(u_int8_t icmp_type, u_int8_t icmp_code) {
+  inline void setICMP(bool src2dst_direction, u_int8_t icmp_type, u_int8_t icmp_code) {
     if(isICMP()) {
       protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
-      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, true);
-      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, false);
+      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? true : false, get_srv_host());
+      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? false : true, get_cli_host());
     }
   }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }

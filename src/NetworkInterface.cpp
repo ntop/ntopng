@@ -581,7 +581,7 @@ int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s",json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
-  } else 
+  } else
     rc = -1;
   return(rc);
 }
@@ -969,7 +969,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 #endif
-  
+
   flow->addFlowStats(src2dst_direction,
 		     zflow->pkt_sampling_rate*zflow->in_pkts,
 		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
@@ -1047,7 +1047,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				     u_int16_t *ndpiProtocol,
 				     Host **srcHost, Host **dstHost,
 				     Flow **hostFlow) {
-  bool src2dst_direction;
+  bool src2dst_direction, is_sent_packet = false; /* FIX */
   u_int8_t l4_proto;
   Flow *flow;
   u_int8_t *eth_src = eth->h_source, *eth_dst = eth->h_dest;
@@ -1240,14 +1240,18 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
           /* Set correct direction in localhost ping */
           if((icmp_type == 8) ||                  /* ICMP Echo [RFC792] */
-            (icmp_type == 128))                   /* ICMPV6 Echo Request [RFC4443] */
+	     (icmp_type == 128))                  /* ICMPV6 Echo Request [RFC4443] */
             src2dst_direction = true;
           else if((icmp_type == 0) ||             /* ICMP Echo Reply [RFC792] */
-            (icmp_type == 129))                   /* ICMPV6 Echo Reply [RFC4443] */
-            src2dst_direction = false;
+		  (icmp_type == 129))             /* ICMPV6 Echo Reply [RFC4443] */
+	    src2dst_direction = false;
         }
 
-        flow->setICMP(icmp_type, icmp_code);
+        flow->setICMP(src2dst_direction, icmp_type, icmp_code);
+	if(l4_proto == IPPROTO_ICMP)
+	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
+	else
+	  icmp_v6.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
       }
       break;
     }
@@ -1328,13 +1332,13 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       if(flow->get_cli_host()) {
 	if(! flow->get_cli_host()->is_label_set()) {
 	  char name[64];
-	  
+
 	  if((ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0) && (!strstr(name, "__MSBROWSE__")))
 	    flow->get_cli_host()->set_host_label(name, false);
 	}
       }
       break;
-      
+
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)
@@ -3418,7 +3422,7 @@ u_int NetworkInterface::purgeIdleFlows() {
       FlowHashing *current, *tmp;
 
       HASH_ITER(hh, flowHashing, current, tmp)
-	current->iface->purgeIdleFlows();      
+	current->iface->purgeIdleFlows();
     }
 
     next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
@@ -3669,10 +3673,10 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "hosts",       getNumHosts());
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
-  lua_push_int_table_entry(vm, "devices", numL2Devices);
+  lua_push_int_table_entry(vm, "devices",     numL2Devices);
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
-   */
+  */
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
@@ -3697,7 +3701,8 @@ void NetworkInterface::lua(lua_State *vm) {
 
   lua_push_int_table_entry(vm, "remote_pps", last_remote_pps);
   lua_push_int_table_entry(vm, "remote_bps", last_remote_bps);
-
+  icmp_v4.lua(true, vm);
+  icmp_v6.lua(false, vm);
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);
