@@ -2450,6 +2450,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   u_int8_t ip_version;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
+  bool unicast, unidirectional, alerted_flows;
 
   if(retriever->actNumEntries >= retriever->maxNumEntries)
     return(true); /* Limit reached */
@@ -2473,8 +2474,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 
     if(retriever->pag
        && retriever->pag->ipVersion(&ip_version)
-       && (((ip_version == 4) && (!f->get_cli_host()->get_ip()->isIPv4()))
-        || ((ip_version == 6) && (!f->get_cli_host()->get_ip()->isIPv6()))))
+       && (((ip_version == 4) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv4()))
+        || ((ip_version == 6) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv6()))))
       return(false); /* false = keep on walking */
 
     if(retriever->pag
@@ -2485,12 +2486,14 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 
     if(retriever->pag
        && retriever->pag->localNetworkFilter(&local_network_id)
+       && f->get_cli_host() && f->get_srv_host()
        && f->get_cli_host()->get_local_network_id() != local_network_id
        && f->get_srv_host()->get_local_network_id() != local_network_id)
       return(false); /* false = keep on walking */
 
     if(retriever->pag
        && retriever->pag->clientMode(&client_policy)
+       && f->get_cli_host()
        && (((client_policy == location_local_only) && (!f->get_cli_host()->isLocalHost()))
         || ((client_policy == location_remote_only) && (f->get_cli_host()->isLocalHost()))))
 	return(false); /* false = keep on walking */
@@ -2499,6 +2502,27 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && retriever->pag->serverMode(&server_policy)
        && (((server_policy == location_local_only) && (!f->get_srv_host()->isLocalHost()))
         || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
+	return(false); /* false = keep on walking */
+
+    if(retriever->pag
+       && retriever->pag->alertedFlows(&alerted_flows)
+       && ((alerted_flows && f->getFlowStatus() == status_normal)
+        || (!alerted_flows && f->getFlowStatus() != status_normal)))
+  return(false); /* false = keep on walking */
+
+    if(retriever->pag
+       && retriever->pag->unidirectionalTraffic(&unidirectional)
+       && ((unidirectional && (f->get_packets() > 0) && (f->get_packets_cli2srv() > 0) && (f->get_packets_srv2cli() > 0))
+        || (!unidirectional && (f->get_packets() > 0) && ((f->get_packets_cli2srv() == 0) || (f->get_packets_srv2cli() == 0)))))
+	return(false); /* false = keep on walking */
+
+  /* Unicast: at least one between client and server is unicast address */
+  if(retriever->pag
+       && retriever->pag->unicastTraffic(&unicast)
+       && ((unicast && ((f->get_cli_host() && (f->get_cli_host()->get_ip()->isMulticastAddress() || f->get_cli_host()->get_ip()->isBroadcastAddress()))
+                     || (f->get_srv_host() && (f->get_srv_host()->get_ip()->isMulticastAddress() || f->get_srv_host()->get_ip()->isBroadcastAddress()))))
+        || (!unicast && ((f->get_cli_host() && (!f->get_cli_host()->get_ip()->isMulticastAddress() && !f->get_cli_host()->get_ip()->isBroadcastAddress()))
+                      && (f->get_srv_host() && (!f->get_srv_host()->get_ip()->isMulticastAddress() && !f->get_srv_host()->get_ip()->isBroadcastAddress()))))))
 	return(false); /* false = keep on walking */
 
     retriever->elems[retriever->actNumEntries].flow = f;

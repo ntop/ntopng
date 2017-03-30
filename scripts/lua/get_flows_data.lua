@@ -29,6 +29,8 @@ network_id  = _GET["network"]
 vhost       = _GET["vhost"]
 flowhosts_type  = _GET["flowhosts_type"]
 ipversion       = _GET["version"]
+traffic_type = _GET["traffic_type"]
+flow_status = _GET["flow_status"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
@@ -113,6 +115,24 @@ if not isEmptyString(flowhosts_type) then
    elseif flowhosts_type == "remote_only" then
       pageinfo["clientMode"] = "remote"
       pageinfo["serverMode"] = "remote"
+   end
+end
+
+if not isEmptyString(traffic_type) then
+   if traffic_type == "unicast" then
+      pageinfo["unicast"] = true
+   else
+      pageinfo["unicast"] = false
+   end
+
+   pageinfo["unidirectional"] = true
+end
+
+if not isEmptyString(flow_status) then
+   if flow_status == "normal" then
+      pageinfo["alertedFlows"] = false
+   else
+      pageinfo["alertedFlows"] = true
    end
 end
 

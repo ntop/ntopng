@@ -42,6 +42,9 @@ Paginator::Paginator() {
   ip_version = 0;
   client_mode = location_all;
   server_mode = location_all;
+  unicast_traffic = -1;
+  unidirectional_traffic = -1;
+  alerted_flows = -1;
 
   /*
     TODO MISSING
@@ -130,6 +133,12 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  a2z_sort_order = lua_toboolean(L, -1) ? true : false;
 	else if(!strcmp(key, "detailedResults"))
 	  detailed_results = lua_toboolean(L, -1) ? true : false;
+	else if (!strcmp(key, "unicast"))
+	  unicast_traffic = lua_toboolean(L, -1) ? 1 : 0;
+	else if (!strcmp(key, "unidirectional"))
+	  unidirectional_traffic = lua_toboolean(L, -1) ? 1 : 0;
+	else if (!strcmp(key, "alertedFlows"))
+	  alerted_flows = lua_toboolean(L, -1) ? 1 : 0;
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for option %s", key);
 	break;

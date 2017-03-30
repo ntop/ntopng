@@ -204,7 +204,6 @@ class Flow : public GenericHashEntry {
     return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
-  FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
@@ -221,6 +220,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
+  FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
   void categorizeFlow();
   void freeDPIMemory();
