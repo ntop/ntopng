@@ -204,7 +204,6 @@ class Flow : public GenericHashEntry {
     return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
-  FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
@@ -221,6 +220,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
+  FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
   void categorizeFlow();
   void freeDPIMemory();
@@ -356,11 +356,11 @@ class Flow : public GenericHashEntry {
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-  inline void setICMP(u_int8_t icmp_type, u_int8_t icmp_code) {
+  inline void setICMP(bool src2dst_direction, u_int8_t icmp_type, u_int8_t icmp_code) {
     if(isICMP()) {
       protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
-      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, true);
-      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, false);
+      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? true : false, get_srv_host());
+      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? false : true, get_cli_host());
     }
   }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }

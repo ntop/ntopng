@@ -220,6 +220,12 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    end
 end
 
+if(page == "ICMP") then
+  print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+else
+  print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
+end
+
 if(ntop.exists(rrdname) and not is_historical) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
@@ -307,6 +313,7 @@ print [[
 </ul>
 </div>
 </nav>
+
    ]]
 
 if((page == "overview") or (page == nil)) then
@@ -683,6 +690,36 @@ print("setInterval(update_ndpi_table, 5000);")
 
 ]]
 
+elseif(page == "ICMP") then
+
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>ICMP Message</th><th>Total Packets</th></tr></thead>
+     <tbody id="iface_details_icmp_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_icmp_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_icmp_data.lua',
+    data: { ifid: "]] print(ifId.."")  print [[" },
+    success: function(content) {
+      $('#iface_details_icmp_tbody').html(content);
+      $('#h_icmp_tbody').trigger("update");
+    }
+  });
+}
+
+update_icmp_table();
+setInterval(update_icmp_table, 5000);
+</script>
+
+]]
+   
 elseif(page == "historical") then
    rrd_file = _GET["rrd_file"]
    selected_epoch = _GET["epoch"]
@@ -1241,6 +1278,25 @@ end
          local protocol_id = _POST["del_l7_proto"]
          shaper_utils.deleteProtocol(ifid, target_pool, protocol_id)
       else
+         -- first remove the rules which have changed protocol
+         local rules_to_delete = {}
+         for option,value in pairs(_POST) do
+            local sp = split(option, "oldrule_")
+            if #sp == 2 then
+               -- mark the rule as to be deleted
+               rules_to_delete[sp[2]] = true
+            end
+         end
+
+         get_shapers_from_parameters(function(proto_id)
+            -- A new rule will be set for the protocol, no need to delete it
+            rules_to_delete[proto_id] = nil
+         end)
+
+         for proto in pairs(rules_to_delete) do
+            shaper_utils.deleteProtocol(ifid, target_pool, proto)
+         end
+
          -- set protocols policy for the pool
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
             shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
@@ -1455,6 +1511,11 @@ var traffic_buttons_html = ']] print(traffic_buttons.html) print[[';
 var time_buttons_code = ']] print(time_buttons.js) print[[';
 var time_buttons_html = ']] print(time_buttons.html) print[[';
 
+/* Note: do not change */
+var rowid_prefix = "proto_policy_row_";
+var oldid_prefix = rowid_prefix + "old_";
+var newid_prefix = rowid_prefix + "new_";
+
 function replaceCtrlId(v, with_this) {
    return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, with_this);
 }
@@ -1519,7 +1580,32 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
    });
 
    function checkShapedProtosFormCallback() {
-      var new_protos = $("#table-protos select[name='new_protocol_id']").closest('tr');
+      /* Handle existing protocols change */
+      var old_protos = $("tr[id^='"+oldid_prefix+"']");
+
+      old_protos.each(function() {
+         var old_rule = $(this);
+         var proto_sel = $("td:nth-child(1) > select", old_rule);
+         var old_proto = proto_sel.attr("name");
+         var new_proto = $("option:selected", proto_sel).val();
+
+         if (old_proto !== new_proto) {
+            /* The protocol selection has changed, mark the old protocol */
+            $('<input name="oldrule_'+old_proto+'" type="hidden"/>')
+               .appendTo($("#l7ProtosForm"));
+
+            /* Also change the assocociated rule names */
+            $("[name]", $("td", old_rule).slice(1)).each(function() {
+               $(this).attr("name", $(this).attr("name").replace(old_proto, new_proto));
+            });
+         }
+
+         /* Remove the name attribute, it is not needed anymore */
+         proto_sel.removeAttr("name");
+      });
+
+      /* Handle new protos */
+      var new_protos = $("tr[id^='"+newid_prefix+"']");
 
       new_protos.each(function() {
          var new_proto = $(this);
@@ -1576,13 +1662,10 @@ print[[
    var protocol_categories = ]] print(json.encode(protocol_categories)) print[[;
 
    function addNewShapedProto() {
-      var newid_prefix = "new_added_row_"
       var newid = newid_prefix + new_row_ctr;
       new_row_ctr += 1;
 
-      var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
-            ]] print_ndpi_families_and_protocols(protocol_categories, protos, categories_in_use, protos_in_use, "\\") print[[
-      </select></td><td class="text-center]] if not split_shaping_directions then print(" hidden") end
+      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center]] if not split_shaping_directions then print(" hidden") end
       print[["><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
@@ -1591,10 +1674,32 @@ print[[
       </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
       $("#table-protos table").append(tr);
 
+      makeProtocolNameDropdown(tr);
       makeTrafficQuotaButtons(tr, newid);
       makeTimeQuotaButtons(tr, newid);
 
-      datatableMakeSelectUnique(tr, newid_prefix, {
+      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
+      aysRecheckForm('#l7ProtosForm');
+   }
+
+   function deleteShapedProtocol(proto_id) {
+      var form = $("#deletePolicyForm");
+      var todel = $("input[name='del_l7_proto']", form);
+
+      todel.val(proto_id);
+      form.submit();
+   }
+
+   function makeProtocolNameDropdown(tr_obj, selected_proto) {
+      var name = selected_proto || "new_protocol_id";
+
+      var input = $('<select class="form-control"></select>')
+         .attr("name", name)
+         .html(']] print_ndpi_families_and_protocols(protocol_categories, protos, {}, {}, "\\") print[[');
+
+      $("td:first", tr_obj).html(input);
+
+      datatableMakeSelectUnique(tr_obj, rowid_prefix, {
          on_change: function(select, old_val, new_val, others, change_fn) {
 
             function changeConditionally(option, to_enable) {
@@ -1668,16 +1773,9 @@ print[[
             }
          }
       });
-      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
-      aysRecheckForm('#l7ProtosForm');
-   }
 
-   function deleteShapedProtocol(proto_id) {
-      var form = $("#deletePolicyForm");
-      var todel = $("input[name='del_l7_proto']", form);
-
-      todel.val(proto_id);
-      form.submit();
+      if (name !== "new_protocol_id")
+         $("option[value='"+name+"']", input).prop('selected', true);
    }
 
    function makeTrafficQuotaButtons(tr_obj, proto_id) {
@@ -1778,6 +1876,10 @@ print[[
             }, function() {
                makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
+               if (proto_id !== "default") {
+                  $(this).attr("id", oldid_prefix + proto_id);
+                  makeProtocolNameDropdown($(this), proto_id);
+               }
                makeTrafficQuotaButtons($(this), proto_id);
                makeTimeQuotaButtons($(this), proto_id);
 

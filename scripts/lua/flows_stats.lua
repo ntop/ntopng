@@ -23,6 +23,10 @@ flowhosts_type = _GET["flowhosts_type"]
 flowhosts_type_filter = ""
 ipversion = _GET["version"]
 ipversion_filter = ""
+traffic_type = _GET["traffic_type"]
+traffic_type_filter = ""
+flow_status = _GET["flow_status"]
+flow_status_filter = ""
 
 network_id = _GET["network"]
 
@@ -97,6 +101,16 @@ if(ipversion ~= nil) then
   ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
+if(traffic_type ~= nil) then
+   page_params["traffic_type"] = traffic_type
+   traffic_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(flow_status ~= nil) then
+   page_params["flow_status"] = flow_status
+   flow_status_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
 if(network_id ~= nil) then
   page_params["network"] = network_id
 end
@@ -158,22 +172,64 @@ print ('buttons: [')
 local flowhosts_type_params = table.clone(page_params)
 flowhosts_type_params["flowhosts_type"] = nil
 
+local function printDropdownEntries(entries, param_arr, param_filter, curr_filter)
+   for _, htype in ipairs(entries) do
+      param_arr[param_filter] = htype[1]
+      print[[<li]]
+
+      if htype[1] == curr_filter then print(' class="active"') end
+
+      print[[><a href="]] print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
+   end
+end
+
 print[['\
    <div class="btn-group">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Hosts]] print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
          <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">All Hosts</a></li>\]]
-for _, htype in ipairs({
-   {"local_only", "Local Only"},
-   {"remote_only", "Remote Only"},
-   {"local_origin_remote_target", "Local Client - Remote Server"},
-   {"remote_origin_local_target", "Local Server - Remote Client"}}) do
+   printDropdownEntries({
+      {"local_only", "Local Only"},
+      {"remote_only", "Remote Only"},
+      {"local_origin_remote_target", "Local Client - Remote Server"},
+      {"remote_origin_local_target", "Local Server - Remote Client"}
+   }, flowhosts_type_params, "flowhosts_type", flowhosts_type)
+print[[\
+      </ul>\
+   </div>\
+']]
 
-   flowhosts_type_params["flowhosts_type"] = htype[1]
-   print[[<li]]
-   if htype[1] == flowhosts_type then print(' class="active"') end
-   print[[><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(htype[2]) print[[</a></li>]]
-end
+-- Status selector
+local flow_status_params = table.clone(page_params)
+flow_status_params["flow_status"] = nil
+
+print[[, '\
+   <div class="btn-group">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Status]] print(flow_status_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu">\
+      <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">All Flows</a></li>\]]
+   printDropdownEntries({
+      {"normal", "Normal"},
+      {"alerted", "Alerted"},
+   }, flow_status_params, "flow_status", flow_status)
+print[[\
+      </ul>\
+   </div>\
+']]
+
+-- Unidirectional flows selector
+local traffic_type_params = table.clone(page_params)
+traffic_type_params["traffic_type"] = nil
+
+print[[, '\
+   <div class="btn-group">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu">\
+         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">All Flows</a></li>\]]
+   printDropdownEntries({
+      {"broadcast_multicast", "One-way Multicast/Broadcast Traffic"},
+      {"unicast", "One-way Non-Multicast/Broadcast Traffic"},
+   }, traffic_type_params, "traffic_type", traffic_type)
 print[[\
       </ul>\
    </div>\

@@ -220,6 +220,18 @@ local function validateClientOrServer(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateBroadcastUnicast(mode)
+   local modes = {"unicast", "broadcast_multicast"}
+
+   return validateChoice(modes, mode)
+end
+
+local function validateFlowStatus(mode)
+   local modes = {"normal", "alerted"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateStatsType(mode)
    local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
       "top_targets", "duration_pie", "longest_engaged", "counts_pie",
@@ -715,6 +727,7 @@ local known_parameters = {
    ["toggle_flow_snmp_ports_rrds"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
+   ["toggle_tiny_flows_export"]                    =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
    ["toggle_shaping_directions"]                   =  validateBool,
 
@@ -724,6 +737,8 @@ local known_parameters = {
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["max_num_alerts_per_entity"]                   =  validateNumber,
    ["max_num_flow_alerts"]                         =  validateNumber,
+   ["max_num_packets_per_tiny_flow"]               =  validateNumber,
+   ["max_num_bytes_per_tiny_flow"]                 =  validateNumber,
    ["nagios_nsca_port"]                            =  validatePort,
    ["nagios_send_nsca_executable"]                 =  validateAbsolutePath,
    ["nagios_send_nsca_config"]                     =  validateAbsolutePath,
@@ -826,6 +841,8 @@ local known_parameters = {
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
    ["export"]                  =  validateEmpty,                 -- set if data has to be exported
    ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
+   ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
+   ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
@@ -841,6 +858,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["eshaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: egress shaper ID
    ["qtraffic_"]               =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: traffic quota
    ["qtime_"]                  =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: time quota
+   ["oldrule_"]                =  {validateShapedElement,     validateEmpty},       -- key: category or protocol ID, value: empty
 
 -- ALERTS (see alert_utils.lua)
    ["operator_"]               =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator

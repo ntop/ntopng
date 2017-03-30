@@ -49,7 +49,8 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
     enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
-    enable_top_talkers, enable_captive_portal, enable_access_log, enable_flow_device_port_rrd_creation;
+    enable_top_talkers, enable_captive_portal, enable_access_log, enable_flow_device_port_rrd_creation,
+    enable_tiny_flows_export;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int active_local_hosts_cache_interval;
@@ -91,6 +92,7 @@ class Prefs {
   bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
   bool has_cmdl_disable_alerts;	/**< Indicate whether alerts were forcefully disabled from the command line */
   int max_num_alerts_per_entity, max_num_flow_alerts;
+  u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -129,11 +131,13 @@ class Prefs {
   inline bool is_users_login_enabled()                  { return(enable_users_login);     };
   inline bool is_localhost_users_login_disabled()       { return(disable_localhost_login);};
   inline bool is_slack_enabled()                        { return(slack_enabled);          };
+
   inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };  
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
   inline bool is_flow_device_port_rrd_creation_enabled()  { return(enable_flow_device_port_rrd_creation); };
+  inline bool is_tiny_flows_export_enabled()            { return(enable_tiny_flows_export);  };
   inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
   inline bool is_flashstart_enabled()                   { return(flashstart ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
@@ -162,6 +166,8 @@ class Prefs {
   inline char* get_instance_name()                      { return(instance_name); };
   inline int   get_max_num_alerts_per_entity()          { return(max_num_alerts_per_entity); };
   inline int   get_max_num_flow_alerts()                { return(max_num_flow_alerts); };
+  inline int   get_max_num_packets_per_tiny_flow()      { return(max_num_packets_per_tiny_flow); }
+  inline int   get_max_num_bytes_per_tiny_flow()        { return(max_num_bytes_per_tiny_flow); }
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };

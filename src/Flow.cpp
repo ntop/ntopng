@@ -812,6 +812,23 @@ bool Flow::dumpFlow(bool idle_flow) {
 
     now = time(NULL);
 
+    if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
+#ifdef TINY_FLOWS_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Skipping tiny flow dump "
+				   "[flow key: %u]"
+				   "[packets current/max: %i/%i] "
+				   "[bytes current/max: %i/%i].",
+				   key(),
+				   get_packets(),
+				   ntop->getPrefs()->get_max_num_packets_per_tiny_flow(),
+				   get_bytes(),
+				   ntop->getPrefs()->get_max_num_bytes_per_tiny_flow());
+
+#endif
+      return(rc);
+    }
+
     if(!idle_flow) {
       if((now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
 	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
@@ -2751,7 +2768,9 @@ bool Flow::invokeActivityFilter(const struct timeval *when,
 /* ***************************************************** */
 
 bool Flow::isTiny() {
-  if((cli2srv_packets < 3) && (srv2cli_packets == 0))
+  //if((cli2srv_packets < 3) && (srv2cli_packets == 0))
+  if(get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow()
+     || get_bytes() <= ntop->getPrefs()->get_max_num_bytes_per_tiny_flow())
     return(true);
   else
     return(false);

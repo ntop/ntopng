@@ -64,6 +64,9 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_top_talkers = false;
   max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
+  max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW;
+  max_num_bytes_per_tiny_flow = CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW;
+  enable_tiny_flows_export = CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   enable_idle_local_hosts_cache   = true;
@@ -462,6 +465,12 @@ void Prefs::reloadPrefsFromRedis() {
 							 ALERTS_MANAGER_MAX_ENTITY_ALERTS);
   max_num_flow_alerts             = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS,
 							 ALERTS_MANAGER_MAX_FLOW_ALERTS);
+  max_num_packets_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
+							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW);
+  max_num_bytes_per_tiny_flow     = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
+							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW);
+  enable_tiny_flows_export =        getDefaultPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
+				 			 CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED);
   
   // alert preferences
   enable_probing_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING,
@@ -1295,8 +1304,14 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
+
   lua_push_bool_table_entry(vm, "slack_enabled", slack_enabled);
-  
+
+  /* Tiny flows preferences */
+  lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
+  lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",  enable_tiny_flows_export);
+
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
   /* Sticky hosts preferences */
@@ -1420,6 +1435,18 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
 		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
     max_num_flow_alerts = atoi(pref_value);
+  else if(!strncmp(pref_name,
+		   (char*)CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
+		   strlen((char*)CONST_MAX_NUM_PACKETS_PER_TINY_FLOW)))
+    max_num_packets_per_tiny_flow = atoi(pref_value);
+  else if(!strncmp(pref_name,
+		   (char*)CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
+		   strlen((char*)CONST_MAX_NUM_BYTES_PER_TINY_FLOW)))
+    max_num_bytes_per_tiny_flow = atoi(pref_value);
+  else if(!strncmp(pref_name,
+		   (char*)CONST_IS_TINY_FLOW_EXPORT_ENABLED,
+		   strlen((char*)CONST_IS_TINY_FLOW_EXPORT_ENABLED)))
+    enable_tiny_flows_export = pref_value[0] == '1' ? true : false;
   else if(!strncmp(pref_name,
 		   (char*)CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION,
 		   strlen((char*)CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION)))
