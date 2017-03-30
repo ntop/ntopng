@@ -727,6 +727,7 @@ local known_parameters = {
    ["toggle_flow_snmp_ports_rrds"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
+   ["toggle_tiny_flows_export"]                    =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
    ["toggle_shaping_directions"]                   =  validateBool,
 
@@ -736,6 +737,8 @@ local known_parameters = {
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["max_num_alerts_per_entity"]                   =  validateNumber,
    ["max_num_flow_alerts"]                         =  validateNumber,
+   ["max_num_packets_per_tiny_flow"]               =  validateNumber,
+   ["max_num_bytes_per_tiny_flow"]                 =  validateNumber,
    ["nagios_nsca_port"]                            =  validatePort,
    ["nagios_send_nsca_executable"]                 =  validateAbsolutePath,
    ["nagios_send_nsca_config"]                     =  validateAbsolutePath,

@@ -71,6 +71,7 @@ if(haveAdminPrivileges()) then
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
       {id="report",        label="Measurement Units",    advanced=false, pro_only=false,  disabled=false},
       {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
+      {id="tiny_flows",    label="Tiny Flows",           advanced=true,  pro_only=false,  disabled=false},
       {id="snmp",          label="SNMP",                 advanced=true,  pro_only=true,   disabled=false},
       {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
    }
@@ -753,6 +754,30 @@ function printSnmp()
   </table>]]
 end
 
+function printTinyFlows()
+
+  print('<form method="post">')
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Tiny Flows</th></tr>')
+
+  toggleTableButtonPrefs("Tiny Flows Export",
+			 "Toggle the export of tiny flows.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_tiny_flows_export", "ntopng.prefs.tiny_flows_export_enabled", "1")
+  prefsInputFieldPrefs("Maximum Number of Packets per Tiny Flow",
+		       "The maximum number of packets a flow must have to be considered a tiny flow. "..
+			  "Default: 3.", "ntopng.prefs.", "max_num_packets_per_tiny_flow", prefs.max_num_packets_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
+
+  prefsInputFieldPrefs("Maximum Number of Bytes per Tiny Flow",
+		       "The maximum number of bytes a flow must have to be considered a tiny flow. "..
+			  "Default: 64.", "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>
+  </table>]]
+end
+
    print[[
        <table class="table table-bordered">
          <col width="20%">
@@ -862,6 +887,9 @@ if(tab == "logging") then
 end
 if(tab == "snmp") then
    printSnmp()
+end
+if(tab == "tiny_flows") then
+   printTinyFlows()
 end
 
 print[[

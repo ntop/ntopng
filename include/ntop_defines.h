@@ -452,6 +452,15 @@
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MAX_PACKET_SIZE  1518
 
+/* Tiny Flows */
+#define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED   true /* disabled by default */
+#define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3
+#define CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW   64 /* Empty TCP */
+#define CONST_IS_TINY_FLOW_EXPORT_ENABLED   "ntopng.prefs.tiny_flows_export_enabled"
+#define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW "ntopng.prefs.max_num_packets_per_tiny_flow"
+#define CONST_MAX_NUM_BYTES_PER_TINY_FLOW   "ntopng.prefs.max_num_bytes_per_tiny_flow"
+
+
 #define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
 #define NULL_BL                        "''"
 //#define DEBUG_HTTPBL
