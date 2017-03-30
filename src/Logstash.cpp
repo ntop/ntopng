@@ -139,7 +139,7 @@ void Logstash::startFlowDump() {
 /* **************************************** */
 
 void Logstash::sendLSdata() {
-  const u_int watermark = 0, min_buf_size = 0, max_bulk=8;
+  const u_int watermark = 8, min_buf_size = 512;
   char postbuf[16384];
   char *proto = NULL;
   struct hostent *server = NULL;
@@ -175,7 +175,7 @@ void Logstash::sendLSdata() {
       len = 0, num_flows = 0;
 
       listMutex.lock(__FILE__, __LINE__);
-      for(u_int i=0; (i<max_bulk) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
+      for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
         struct string_list *prev;
 	if(!(tail && tail->str)){
           //No events in queue
