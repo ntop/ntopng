@@ -289,7 +289,7 @@ else
    end
 end
 
-if(info["version.enterprise_edition"] and host['localhost']) then
+if(ntop.isEnterprise()) then
    if(page == "snmp") then
       print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -1615,10 +1615,12 @@ print [[
 </td></tr>
 </table>
 ]]  
-elseif(page == "snmp") then
-if(ntop.isPro()) then
-   print_snmp_report(host_ip, true, ifId)
-end
+elseif(page == "snmp" and ntop.isEnterprise()) then
+   if get_snmp_community(host_ip, true) then
+      print_snmp_report(host_ip, true)
+   else
+      print("<div class='alert alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i>" .. " Host "..host_ip.. " has not been configured as an SNMP device. Visit page <a href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua'>SNMP</a> to add this host to the list of configured SNMP devices.</div>")
+   end
 
 elseif(page == "talkers") then
 print("<center>")
