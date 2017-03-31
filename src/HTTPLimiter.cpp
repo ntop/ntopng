@@ -49,8 +49,8 @@ bool HTTPlimiter::connectHost(uint32_t ip, int port, bool is_websocket) {
         num_hits++;
     }
 
-    if (num_hits >= Utils::getMaxNumHTTPServerThreadsPerHost())
-      success = false;
+    //~ if (num_hits >= Utils::getMaxNumHTTPServerThreadsPerHost())
+      //~ success = false;
   }
 
   if (success) {
