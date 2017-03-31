@@ -1875,8 +1875,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     if(srcMac) srcMac->incSentStats(rawsize);
     if(dstMac) dstMac->incRcvdStats(rawsize);
 
-    /* Do not count ARP broadcast requests */
-    if (srcMac && dstMac && !dstMac->isSpecialMac()) {
+    if (srcMac && dstMac) {
       const u_int16_t arp_opcode_offset = ip_offset + 6;
       u_int16_t arp_opcode = 0;
 

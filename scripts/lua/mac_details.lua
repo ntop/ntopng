@@ -118,13 +118,13 @@ end
 print("<tr><th>Traffic Sent / Received</th><td><span id=pkts_sent>" .. formatPackets(mac_info["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(mac_info["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(mac_info["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(mac_info["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 print([[
 <tr>
-   <th rowspan=2>ARP</th>
-   <th>Replies</th>
+   <th rowspan="2">ARP</th>
    <th>Requests</th>
+   <th>Replies</th>
 </tr>
 <tr>
-   <td>]]..mac_info["arp_replies.sent"]..[[ replies sent / ]]..mac_info["arp_requests.rcvd"]..[[ requests received</td>
-   <td>]]..mac_info["arp_requests.sent"]..[[ requests sent / ]]..mac_info["arp_replies.rcvd"]..[[ replies received</td>
+   <td>]]..mac_info["arp_requests.sent"]..[[ sent / ]]..mac_info["arp_requests.rcvd"]..[[ received</td>
+   <td>]]..mac_info["arp_replies.sent"]..[[ sent / ]]..mac_info["arp_replies.rcvd"]..[[ received</td>
 </tr>]])
 
 print("</table>")
