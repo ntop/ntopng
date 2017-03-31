@@ -428,7 +428,7 @@ if((page == "overview") or (page == nil)) then
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
       
       if(host["local_network_name"] ~= nil) then
-	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
+	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A>&nbsp;]")
       end
 
       if((host["city"] ~= nil) and (host["city"] ~= "")) then

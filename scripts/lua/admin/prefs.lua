@@ -60,20 +60,20 @@ if(haveAdminPrivileges()) then
    end
    
    local menu_subpages = {
-      {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
       {id="auth",          label="User Authentication",  advanced=false, pro_only=true,   disabled=false},
       {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
       {id="in_memory",     label="Timeouts",             advanced=true,  pro_only=false,  disabled=false},
-      {id="on_disk_rrds",  label="Data Retention",       advanced=false, pro_only=false,  disabled=false},
+      {id="on_disk_ts",  label="Data Retention",       advanced=false, pro_only=false,  disabled=false},
       {id="on_disk_dbs",   label="MySQL",                advanced=true,  pro_only=false,  disabled=(prefs.is_dump_flows_enabled == false)},
       {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
       {id="ext_alerts",    label="External Alerts Report", advanced=false, pro_only=false,  disabled=alerts_disabled},
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
       {id="report",        label="Measurement Units",    advanced=false, pro_only=false,  disabled=false},
       {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
-      {id="tiny_flows",    label="Tiny Flows",           advanced=true,  pro_only=false,  disabled=false},
+      {id="flow_db_dump",  label="Flow Database Dump",         advanced=true,  pro_only=false,  disabled=false},
       {id="snmp",          label="SNMP",                 advanced=true,  pro_only=true,   disabled=false},
       {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
+      {id="misc",          label="Misc",                 advanced=false, pro_only=false,  disabled=false},
    }
 
 if(info["version.enterprise_edition"]) then
@@ -96,7 +96,7 @@ end
 
 -- default subpage
 if isEmptyString(tab) then
-  tab = "users"
+  tab = "auth"
 end
 
 -- ================================================================================
@@ -424,7 +424,7 @@ end
 
 -- ================================================================================
 
-function printUsers()
+function printMisc()
   print('<form method="post">')
   print('<table class="table">')
 
@@ -584,7 +584,7 @@ end
 
 -- ================================================================================
 
-function printStatsRrds()
+function printStatsTimeseries()
   print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Timeseries</th></tr>')
@@ -618,7 +618,7 @@ function printStatsRrds()
 
   if ntop.isPro() then
      local info = ntop.getInfo()
-     toggleTableButtonPrefs("Remote Devices",
+     toggleTableButtonPrefs("Flow Devices",
 			    "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
                             "For non sFlow devices, the ZMQ fields INPUT_SNMP and OUTPUT_SNMP are required.",
                             "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_device_port_rrd_creation", "0", not info["version.enterprise_edition"])
@@ -754,15 +754,14 @@ function printSnmp()
   </table>]]
 end
 
-function printTinyFlows()
-
+function printFlowDBDump()
   print('<form method="post">')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Tiny Flows</th></tr>')
+  print('<tr><th colspan=2 class="info">Tiny Flows Dump</th></tr>')
 
   toggleTableButtonPrefs("Tiny Flows Export",
-			 "Toggle the export of tiny flows.",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_tiny_flows_export", "ntopng.prefs.tiny_flows_export_enabled", "1")
+			 "Toggle the export of tiny flows, that are flows with few packets or bytes. Reducing flow cardinality in databases, speeds-up insert and searched. Tuning tiny flows can help to limit flow cardinality while not reducing visibility on dumped information.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_flow_db_dump_export", "ntopng.prefs.flow_db_dump_export_enabled", "1")
   prefsInputFieldPrefs("Maximum Number of Packets per Tiny Flow",
 		       "The maximum number of packets a flow must have to be considered a tiny flow. "..
 			  "Default: 3.", "ntopng.prefs.", "max_num_packets_per_tiny_flow", prefs.max_num_packets_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
@@ -841,8 +840,8 @@ if(tab == "in_memory") then
    printInMemory()
 end
 
-if(tab == "on_disk_rrds") then
-   printStatsRrds()
+if(tab == "on_disk_ts") then
+   printStatsTimeseries()
 end
 
 if(tab == "on_disk_dbs") then
@@ -873,8 +872,8 @@ if(tab == "bridging") then
   end
 end
 
-if(tab == "users") then
-   printUsers()
+if(tab == "misc") then
+   printMisc()
 end
 if(tab == "auth") then
    printAuthentication()
@@ -888,8 +887,8 @@ end
 if(tab == "snmp") then
    printSnmp()
 end
-if(tab == "tiny_flows") then
-   printTinyFlows()
+if(tab == "flow_db_dump") then
+   printFlowDBDump()
 end
 
 print[[
