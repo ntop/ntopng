@@ -1875,6 +1875,23 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     if(srcMac) srcMac->incSentStats(rawsize);
     if(dstMac) dstMac->incRcvdStats(rawsize);
 
+    /* Do not count ARP broadcast requests */
+    if (srcMac && dstMac && !dstMac->isSpecialMac()) {
+      const u_int16_t arp_opcode_offset = ip_offset + 6;
+      u_int16_t arp_opcode = 0;
+
+      if ((eth_type == 0x0806 /* ARP */) && (h->len > (u_int16_t)(arp_opcode_offset + 1)))
+        arp_opcode = (packet[arp_opcode_offset] << 8) + packet[arp_opcode_offset + 1];
+
+      if (arp_opcode == 0x1 /* ARP request */) {
+        srcMac->incSentArpRequests();
+        dstMac->incRcvdArpRequests();
+      } else if (arp_opcode == 0x2 /* ARP reply */) {
+        srcMac->incSentArpReplies();
+        dstMac->incRcvdArpReplies();
+      }
+    }
+
     incStats(h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN, rawsize,
 	     1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
@@ -2726,6 +2743,14 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].stringValue = m->get_manufacturer() ? (char*)m->get_manufacturer() : (char*)"zzz";
     break;
 
+  case column_arp_sent:
+    r->elems[r->actNumEntries++].numericValue = m->getNumSentArp();
+    break;
+
+  case column_arp_rcvd:
+    r->elems[r->actNumEntries++].numericValue = m->getNumRcvdArp();
+    break;
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
@@ -3156,6 +3181,8 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_manufacturer")) retriever->sorter = column_manufacturer, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd, sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!

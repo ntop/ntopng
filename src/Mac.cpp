@@ -25,6 +25,7 @@
 
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
+  memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
   if(iface->getTimeLastPktRcvd() > 0)
     first_seen = last_seen = iface->getTimeLastPktRcvd();
@@ -121,6 +122,11 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   if(show_details) {
     if(manuf)
       lua_push_str_table_entry(vm, "manufacturer", (char*)manuf);
+
+    lua_push_int_table_entry(vm, "arp_requests.sent", arp_stats.sent_requests);
+    lua_push_int_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd_requests);
+    lua_push_int_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
+    lua_push_int_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
 
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     ((GenericTrafficElement*)this)->lua(vm, show_details);

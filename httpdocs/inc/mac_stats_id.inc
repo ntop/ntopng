@@ -15,6 +15,8 @@ function mac_table_setID (row) {
 
   // mac_stats_top
   row.find("td").eq(index++).attr('id', mac_key+"_hosts");
+  row.find("td").eq(index++).attr('id', mac_key+"_arpsent");
+  row.find("td").eq(index++).attr('id', mac_key+"_arprcvd");
   row.find("td").eq(index++).attr('id', mac_key+"_since");
 
   // mac_stats_bottom
@@ -39,6 +41,8 @@ function mac_row_update(mac_key) {
     success: function(content) {
       var data = jQuery.parseJSON(content);
       $("#"+mac_key+'_hosts').html(data.column_hosts);
+      $("#"+mac_key+'_arpsent').html(data.column_arp_sent);
+      $("#"+mac_key+'_arprcvd').html(data.column_arp_rcvd);
       $("#"+mac_key+'_alerts').html(data.column_alerts);
       $("#"+mac_key+'_since').html(data.column_since);
       $("#"+mac_key+'_breakdown').html(data.column_breakdown);
