@@ -1,11 +1,20 @@
-Flashstart (http://www.flashstart.com) is a web categorization service
-used to enable network administrators to restrict access to certain
-traffic categories (e.g. porn, violence, social networks...).
+Introduction
+------------
+Flashstart (http://www.flashstart.com) is an independent web categorization
+service used to enable network administrators to restrict access to certain
+traffic categories (e.g. porn, violence, social networks...). It can be used for
+- inline mode:  disable host access to specific information categories
+- passive mode: map to captegories the traffic exchanged by hosts.
 
 To enable the service in ntopng a key is required and has to be specified from
 the command line using the '--traffic-filtering flashstart:<user>:<pwd>' parameter
-whose credentials have been received at service signup [1].
+whose credentials have been received at service signup at http://flashstart.ntop.org
 
-[1] http://flashstart.ntop.org
+Example
+$ sudo ntopng -i eth0 --traffic-filtering flashstart:user@email.com:mypassword
 
-NOTE: ntop has not affiliation with flashstart.
+
+NOTE
+----
+Flashstart services are queried via DNS requests sent by ntopng to flashstart, i.e.
+no connection with ntop.org hosts are performed, nor ntop.org sees any data/query performed
