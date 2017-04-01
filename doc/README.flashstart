@@ -6,13 +6,17 @@ traffic categories (e.g. porn, violence, social networks...). It can be used for
 - inline mode:  disable host access to specific information categories
 - passive mode: map to categories the traffic exchanged by hosts.
 
-To enable the service in ntopng a key is required and has to be specified from
-the command line using the '--traffic-filtering flashstart:<user>:<pwd>' parameter
-whose credentials have been received at service signup at http://flashstart.ntop.org
+You can apply for a free 15 days trial at http://flashstart.ntop.org. Once
+the registration is completed, you will immediately receive the <username>
+(set to the email address specified during registration) and the 
+<password> (generated rendomly by flashstart) necessary to enable
+flashstart web categorization in ntopng.
 
+Using Flashstart with ntopng
+----------------------------
+Supposing that you registered in flashstart as user@email.com (username) and that
+you have received as mypassword as password, you can start ntopng as follows:
 
-Example
--------
 Passive Mode
 $ sudo ntopng -i eth0 --traffic-filtering flashstart:user@email.com:mypassword
 
@@ -22,5 +26,5 @@ $ sudo ntopng -i bridge:eth0,eth1 --traffic-filtering flashstart:user@email.com:
 
 NOTE
 ----
-Flashstart services are queried via DNS requests sent by ntopng to flashstart, i.e.
+Flashstart services are queried via DNS TXT requests sent by ntopng to flashstart, i.e.
 no connection with ntop.org hosts are performed, nor ntop.org sees any data/query performed
