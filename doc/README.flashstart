@@ -1,4 +1,4 @@
-Flashstart (http://www.flashstart.it) is a web categorization service
+Flashstart (http://www.flashstart.com) is a web categorization service
 used to enable network administrators to restrict access to certain
 traffic categories (e.g. porn, violence, social networks...).
 
@@ -6,4 +6,6 @@ To enable the service in ntopng a key is required and has to be specified from
 the command line using the '--traffic-filtering flashstart:<user>:<pwd>' parameter
 whose credentials have been received at service signup [1].
 
-[1] http://www.flashstart.it
+[1] http://flashstart.ntop.org
+
+NOTE: ntop has not affiliation with flashstart.
