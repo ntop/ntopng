@@ -68,7 +68,6 @@ if(haveAdminPrivileges()) then
       {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
       {id="ext_alerts",    label="External Alerts Report", advanced=false, pro_only=false,  disabled=alerts_disabled},
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
-      {id="report",        label="Measurement Units",    advanced=false, pro_only=false,  disabled=false},
       {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
       {id="flow_db_dump",  label="Flow Database Dump",         advanced=true,  pro_only=false,  disabled=false},
       {id="snmp",          label="SNMP",                 advanced=true,  pro_only=true,   disabled=false},
@@ -97,26 +96,6 @@ end
 -- default subpage
 if isEmptyString(tab) then
   tab = "auth"
-end
-
--- ================================================================================
-
-function printReportVisualization()
-  print('<form method="post">')
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Report Visualization</th></tr>')
-
-  local labels = {"Bytes", "Packets"}
-  local values = {"bps", "pps"}
-
-  multipleTableButtonPrefs("Throughput Unit",
-              "Select the throughput unit to be displayed in traffic reports.",
-              labels, values, "bps", "primary", "toggle_thpt_content", "ntopng.prefs.thpt_content")
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
-  print('</table>')
-
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
 end
 
 -- ================================================================================
@@ -444,10 +423,20 @@ function printMisc()
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
+
+  print('<tr><th colspan=2 class="info">Report Units</th></tr>')
+
+  local labels = {"Bytes", "Packets"}
+  local values = {"bps", "pps"}
+
+  multipleTableButtonPrefs("Throughput Unit",
+              "Select the throughput unit to be displayed in traffic reports.",
+              labels, values, "bps", "primary", "toggle_thpt_content", "ntopng.prefs.thpt_content")
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
+
 end
 
 -- ================================================================================
