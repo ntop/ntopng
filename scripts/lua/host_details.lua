@@ -289,11 +289,13 @@ else
    end
 end
 
-if(ntop.isEnterprise()) then
-   if(page == "snmp") then
-      print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
-   elseif interface.isPcapDumpInterface() == false then
-      print("<li><a href=\""..url.."&page=snmp\">SNMP</a></li>")
+if host["localhost"] == true then
+   if(ntop.isEnterprise()) then
+      if(page == "snmp") then
+	 print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
+      elseif interface.isPcapDumpInterface() == false then
+	 print("<li><a href=\""..url.."&page=snmp\">SNMP</a></li>")
+      end
    end
 end
 
