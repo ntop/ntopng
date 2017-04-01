@@ -1487,7 +1487,7 @@ local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_direc
 NOTES:
 <ul>
 <li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
-<li>Set Traffic and Time Quota to 0 to disable limits</li>
+<li>Set Traffic and Time Quota to 0 for unlimited traffic.</li>
 </ul>
 
 
@@ -1819,7 +1819,7 @@ print[[
       ]]
    else
       print[[
-            title: "]] print(i18n("shaping.traffic_through") .. " " .. selected_pool.name) print[[",
+            title: "]] print(i18n("shaping.protocol_policy")) print[[",
       ]]
    end
    print[[
