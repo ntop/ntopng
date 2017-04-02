@@ -618,12 +618,6 @@ static int handle_lua_request(struct mg_connection *conn) {
   if ((mg_get_header(conn, "Upgrade") != NULL) && (strcmp(mg_get_header(conn, "Upgrade"), "websocket") == 0))
     is_websocket_request = true;
 
-  /* Limit connections */
-  if (! httpserver->get_connections_limiter()->connectHost(request_info->remote_ip, request_info->remote_port, is_websocket_request)) {
-    return send_error(conn, 503 /* Service Unavailable */, request_info->uri,
-      "Too many concurrent requests");
-  }
-
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
@@ -749,14 +743,19 @@ static int handle_websocket_connect(const struct mg_connection *conn) {
 /*
  * This is called when the websocket becomes ready. Application can send data.
  */
-static void handle_websocket_ready(struct mg_connection *conn) {
+static int handle_websocket_ready(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
   websocket_user_data *user_data = (websocket_user_data *)request_info->user_data;
 
   if (ntopng_is_busy())
-    return;
+    return(1);
+
+  /* Limit WebSocket connections */
+  if (! httpserver->get_connections_limiter()->connectHost(request_info->remote_ip, request_info->remote_port, true))
+    return(1);
 
   user_data->lua->handle_websocket_ready(user_data->script_path);
+  return (0);
 }
 
 /*

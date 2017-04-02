@@ -64,7 +64,7 @@ struct mg_callbacks {
   int  (*log_message)(const struct mg_connection *, const char *message);
   int  (*init_ssl)(void *ssl_context);
   int (*websocket_connect)(const struct mg_connection *);
-  void (*websocket_ready)(struct mg_connection *);
+  int (*websocket_ready)(struct mg_connection *);
 
   // Called when data frame has been received from the client.
   // Parameters:

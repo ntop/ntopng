@@ -4066,10 +4066,11 @@ static void handle_websocket_request(struct mg_connection *conn) {
     // Callback has returned non-zero, do not proceed with handshake
   } else {
     send_websocket_handshake(conn);
-    if (conn->ctx->callbacks.websocket_ready != NULL) {
-      conn->ctx->callbacks.websocket_ready(conn);
+    if (conn->ctx->callbacks.websocket_ready(conn) != 0) {
+      // Callback has returned non-zero, do not proceed with the connection
+    } else {
+      read_websocket(conn);
     }
-    read_websocket(conn);
   }
 }
 

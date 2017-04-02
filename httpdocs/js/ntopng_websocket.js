@@ -86,7 +86,7 @@ NtopngWebSocket = (function() {
         }
 
         _websocket.onerror = function(event) {
-          _log(_severities.info, _topics.connection, "error, falling back to AJAX request");
+          _log(_severities.error, _topics.connection, "an error occurred: " + event);
           _has_error = true;
         }
 
@@ -115,8 +115,16 @@ NtopngWebSocket = (function() {
          return (_connected === true);
       },
       send: function(message) {
-        if (_websocket)
-          _websocket.send(message);
+        if (_websocket && _websocket.readyState == 1) {
+          try {
+            _websocket.send(message);
+          } catch (e) {
+            _log(_severities.info, _topics.connection, "exception: " + e);
+            /* will execute the onclose callback soon, unsetting _has_error will
+             * make the next manager execute immediately. */
+            _has_error = false
+          }
+        }
       },
     });
   }
@@ -244,14 +252,15 @@ NtopngWebSocket = (function() {
       }, function(with_error) {   /* Disconnection callback */
         _remove_poll_callback();
 
-        if (with_error) {
-          /* an error occurred */
-          _endpoint_manager = _pick_next_manager();
-        }
+        /* always try with another manager on disconnection */
+        _endpoint_manager = _pick_next_manager();
 
         if (! _manually_closed) {
           /* connection lost */
-          _reconnecting_callback = _schedule_singleton(_reconnecting_callback, _reconnect, _options.reconnection_timeout);
+          if (with_error)
+            _reconnecting_callback = _schedule_singleton(_reconnecting_callback, _reconnect, _options.reconnection_timeout);
+          else
+            _reconnect();
         }
       }, function(message) {   /* Message callback */
         // _log(_severities.info, _topics.message, " <<< " + JSON.stringify(message));
