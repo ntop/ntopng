@@ -171,20 +171,14 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
 
 /* ****************************************************** */
 
-u_int16_t Utils::getNumCores() {
-  return std::thread::hardware_concurrency();
-}
-
-/* ****************************************************** */
-
 u_int16_t Utils::getNumHTTPServerThreads() {
-  return max_val(min_val(Utils::getNumCores(), HTTP_SERVER_MAX_THREADS), HTTP_SERVER_MIN_THREADS);
+  return max_val(min_val(ntop->getNumCPUs(), HTTP_SERVER_MAX_THREADS), HTTP_SERVER_MIN_THREADS);
 }
 
 /* ****************************************************** */
 
 u_int16_t Utils::getNumHTTPWebSocketServerThreads() {
-  return max_val(getNumHTTPServerThreads() / 4 /* one fourth of all the available threads */, 1);
+  return max_val(getNumHTTPServerThreads() / 2 /* one half of all the available threads */, 1);
 }
 
 /* ****************************************************** */
