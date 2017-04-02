@@ -1534,7 +1534,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    div.appendTo(td_object);
    buttons.appendTo(div);
 
-   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
+   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:8em; text-align:right; margin-left:0.5em; display:inline;" required/>');
    if (maxvalue !== null)
       input.attr("data-max", maxvalue);
 
@@ -1809,7 +1809,7 @@ print[[
             title: "]] print(i18n("protocol")) print[[",
             field: "column_proto",
             css: {
-              width: ']] if split_shaping_directions then print("15") else print("20") end print[[%',
+              width: '12%',
                verticalAlign: 'middle'
             }
          }, {]]
@@ -1825,7 +1825,7 @@ print[[
    print[[
             field: "column_ingress_shaper",
             css: {
-               width: ']] if split_shaping_directions then print("14") else print("25") end print[[%',
+               width: '12%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }
@@ -1839,7 +1839,7 @@ print[[
             title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
             css: {
-               width: ']] if split_shaping_directions then print("14") else print("20") end print[[%',
+               width: '10%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }
