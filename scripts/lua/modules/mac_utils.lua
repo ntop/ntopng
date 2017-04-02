@@ -22,8 +22,8 @@ function mac2record(mac)
    if(manufacturer == nil) then manufacturer = "" end
    record["column_manufacturer"] = manufacturer
 
-   record["column_arp_sent"] = tostring(mac["arp_requests.sent"] + mac["arp_replies.sent"])
-   record["column_arp_rcvd"] = tostring(mac["arp_requests.rcvd"] + mac["arp_replies.rcvd"])
+   record["column_arp_sent"] = formatValue(mac["arp_requests.sent"] + mac["arp_replies.sent"])
+   record["column_arp_rcvd"] = formatValue(mac["arp_requests.rcvd"] + mac["arp_replies.rcvd"])
 
    record["column_hosts"] = mac["num_hosts"]..""
    record["column_since"] = secondsToTime(now - mac["seen.first"]+1)

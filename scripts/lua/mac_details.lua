@@ -88,7 +88,7 @@ if(isAdministrator()) then
        print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
        print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
       if(label ~= nil) then print(label) end
-      print("\"></input>")
+      print("\"></input> &nbsp;")
 
 pickIcon(mac)
 
@@ -123,8 +123,8 @@ print([[
    <th>ARP Replies</th>
 </tr>
 <tr>
-   <td>]]..mac_info["arp_requests.sent"]..[[ Sent / ]]..mac_info["arp_requests.rcvd"]..[[ Received</td>
-   <td>]]..mac_info["arp_replies.sent"]..[[ Sent / ]]..mac_info["arp_replies.rcvd"]..[[ Received</td>
+   <td>]]..formatValue(mac_info["arp_requests.sent"])..[[ Sent / ]]..formatValue(mac_info["arp_requests.rcvd"])..[[ Received</td>
+   <td>]]..formatValue(mac_info["arp_replies.sent"])..[[ Sent / ]]..formatValue(mac_info["arp_replies.rcvd"])..[[ Received</td>
 </tr>]])
 
 print("</table>")
