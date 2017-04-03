@@ -228,6 +228,32 @@ local  en = {
       bound_interface_description = "Binding a network interface to an SNMP interface is useful to compare network traffic monitored by ntopng with that reported by SNMP",
    },
 
+   dashboard = {
+      top_local_talkers = "Top Local Talkers",
+      actual_traffic = "Actual Traffic",
+      realtime_app_traffic = "Realtime Top Application Traffic",
+      realtime_traffic = "Network Interfaces: Realtime Traffic",
+      top_remote_destinations = "Top Remote Destinations",
+      lastday_app_traffic = "Top Application Traffic Last Day View",
+      lastday_traffic = "Network Interfaces: Last Day View",
+   },
+
+   about = {
+      about = "About",
+      licence = "License",
+      version = "Version",
+      licence_generation = "Click on the above URL to generate your professional version license, or <br>purchase a license at <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education<br>institution please read <a href=\"%{universities_url}\">this</a>.",
+      specify_licence = "Specify here your ntopng License",
+      save_licence = "Save Licence",
+      build_on = "Built on",
+      maxmind = "This product includes GeoLite data created by <a href=\"%{maxmind_url}\">MaxMind</a>.",
+      system_id = "System Id",
+      runtime_status = "Runtime Status",
+      platform = "Platform",
+      startup_line = "Startup Line",
+      last_log = "Last Log Trace",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

@@ -19,7 +19,7 @@ if(_POST["ntopng_license"] ~= nil) then
 end
 
 info = ntop.getInfo()
-print("<hr /><h2>About "..info["product"].."</h2>")
+print("<hr /><h2>"..i18n("about.about").." "..info["product"].."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th>Copyright</th><td>"..info["copyright"].."</td></tr>\n")
@@ -48,9 +48,13 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fa fa-external-link'></i> ]")
 
 print [[
-    <br><small>Click on the above URL to generate your professional version license, or 
-	       <br>purchase a license at <A HREF="http://shop.ntop.org/">e-shop</A>. If you are no-profit, research or an education<br>
-institution please read <A HREF="http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research"/>this</A>.</small>
+    <br><small>]]
+print(i18n("about.licence_generation", {
+	      purchase_url='http://shop.ntop.org/',
+	      universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
+}))
+
+print[[</small>
 	 <p>
    ]]
 
@@ -59,16 +63,16 @@ institution please read <A HREF="http://www.ntop.org/support/faq/do-you-charge-u
    if(isAdministrator()) then
       if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=70 value="')
+	 print('<input type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 value="')
 	 print(info["ntopng.license"])
 	 
 	 print [["></input>
-		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>	       
+		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("about.save_licence")) print[[</button>	       
 		  </form>
 	    ]]
       else
 	 if(info["pro.license"]) then
-	    print("License: ".. info["pro.license"] .."\n")
+	    print(i18n("about.licence")..": ".. info["pro.license"] .."\n")
 	 end
       end
    end
@@ -83,7 +87,7 @@ else
    ntopng_git_url = info["version"]
 end
 
-print("<tr><th>Version</th><td>"..ntopng_git_url)
+print("<tr><th>"..i18n("about.version").."</th><td>"..ntopng_git_url)
 
 if(info["pro.release"] == false) then
    print(" - Community")
@@ -102,7 +106,7 @@ end
 print(" Edition</td></tr>\n")
 
 if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
-   print("<tr><th>Built on</th><td>"..info["OS"].."</td></tr>\n") 
+   print("<tr><th>"..i18n("about.built_on").."</th><td>"..info["OS"].."</td></tr>\n") 
 end
 
 
@@ -133,7 +137,7 @@ print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><
 if(info["version.geoip"] ~= nil) then
 print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoIP</A></th><td>"..info["version.geoip"])
 
-print [[ <br>&nbsp;<br><small>This product includes GeoLite data created by <a href="http://www.maxmind.com">MaxMind</a>.</small>
+print [[ <br>&nbsp;<br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxmind.com/"})) print[[</small>
 ]]
 
 print("</td></tr>\n")
