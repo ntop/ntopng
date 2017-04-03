@@ -55,7 +55,7 @@ void ElasticSearch::updateStats(const struct timeval *tv) {
   if(tv == NULL) return;
 
   if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
+    float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
     if(tdiffMsec >= 1000) { /* al least one second */
       u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
       elkLastExportedFlows = elkExportedFlows;

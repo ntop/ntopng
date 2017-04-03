@@ -211,7 +211,7 @@ u_int32_t Utils::timeval2usec(const struct timeval *tv) {
 
 /* ****************************************************** */
 
-float Utils::msTimevalDiff(struct timeval *end, struct timeval *begin) {
+float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begin) {
   if((end->tv_sec == 0) && (end->tv_usec == 0))
     return(0);
   else {

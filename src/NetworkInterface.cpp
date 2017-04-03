@@ -577,8 +577,8 @@ int NetworkInterface::dumpFlow(time_t when, bool idle_flow, Flow *f) {
 int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
   char *json = f->serialize(true);
   int rc;
-  if(json) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s",json);
+  if(json && ntop->getLogstash()) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s", json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
   } else
