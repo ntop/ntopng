@@ -3735,6 +3735,8 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, false /* Overall */);
+  }else if (ntop->getPrefs()->do_dump_flows_on_ls()){
+    ntop->getLogstash()->lua(vm, false /* Overall */);
   }
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
@@ -3748,6 +3750,8 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, true /* Since last checkpoint */);
+  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+    ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
   }
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
@@ -4379,6 +4383,8 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->checkPointCounters(drops_only);
+  }else if (ntop->getPrefs()->do_dump_flows_on_ls()){
+    ntop->getLogstash()->checkPointCounters(drops_only);
   }
 }
 
