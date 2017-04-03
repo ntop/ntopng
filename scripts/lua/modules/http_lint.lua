@@ -317,7 +317,7 @@ local function validateResetStatsMode(mode)
 end
 
 local function validateSnmpAction(mode)
-   local modes = {"delete", "add", "addNewDevice"}
+   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling"}
 
    return validateChoice(modes, mode)
 end
