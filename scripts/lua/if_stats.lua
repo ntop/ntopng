@@ -1524,6 +1524,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    var extra = extra || {};
    var value = (extra.value !== undefined) ? (extra.value) : (td_object.html());
    var disabled = extra.disabled;
+   var hidden = extra.hidden;
    var maxvalue = extra.max_value;
    var minvalue = extra.min_value;
 
@@ -1534,7 +1535,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    div.appendTo(td_object);
    buttons.appendTo(div);
 
-   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:8em; text-align:right; margin-left:0.5em; display:inline;" required/>');
+   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:6em; text-align:right; margin-left:0.5em; display:inline;" required/>');
    if (maxvalue !== null)
       input.attr("data-max", maxvalue);
 
@@ -1779,19 +1780,23 @@ print[[
    }
 
    function makeTrafficQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
-         max_value: 100*1024*1024*1024 /* 100 GB */,
-         min_value: 0,
-         disabled: ((proto_id === "default") || (]] print(ternary(selected_pool.id == host_pools_utils.DEFAULT_POOL_ID, "true", "false")) print[[)) ? true : false
-      });
+      if (proto_id === "default")
+         $("td:nth-child(4)", tr_obj).html("-");
+      else
+         makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
+            max_value: 100*1024*1024*1024 /* 100 GB */,
+            min_value: 0,
+         });
    }
 
    function makeTimeQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
-         max_value: 23*60*60 /* 23 hours */,
-         min_value: 0,
-         disabled: ((proto_id === "default") || (]] print(ternary(selected_pool.id == host_pools_utils.DEFAULT_POOL_ID, "true", "false")) print[[)) ? true : false
-      });
+      if (proto_id === "default")
+         $("td:nth-child(5)", tr_obj).html("-");
+      else
+         makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
+            max_value: 23*60*60 /* 23 hours */,
+            min_value: 0,
+         });
    }
 
    $("#table-protos").datatable({

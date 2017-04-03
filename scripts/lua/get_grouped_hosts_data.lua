@@ -144,12 +144,9 @@ function print_single_group(value)
    elseif(group_col == "pool_id") then
       local pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
       print(pool_name..'</A> " , ')
-
-      if tostring(value["id"]) ~= host_pools_utils.DEFAULT_POOL_ID then
-         print('"column_chart": "')
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
-         print('", ')
-      end
+      print('"column_chart": "')
+      print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      print('", ')
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
