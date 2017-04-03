@@ -1781,7 +1781,7 @@ print[[
 
    function makeTrafficQuotaButtons(tr_obj, proto_id) {
       if (proto_id === "default")
-         $("td:nth-child(4)", tr_obj).html("-");
+         $("td:nth-child(4)", tr_obj).html("");
       else
          makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
             max_value: 100*1024*1024*1024 /* 100 GB */,
@@ -1791,7 +1791,7 @@ print[[
 
    function makeTimeQuotaButtons(tr_obj, proto_id) {
       if (proto_id === "default")
-         $("td:nth-child(5)", tr_obj).html("-");
+         $("td:nth-child(5)", tr_obj).html("");
       else
          makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
             max_value: 23*60*60 /* 23 hours */,

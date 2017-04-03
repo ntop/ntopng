@@ -25,7 +25,7 @@ print [[
       res = interface.findHost(query)
 
       -- Also look at the custom names
-      local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey())
+      local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey()) or {}
       for ip,name in pairs(ip_to_name) do
         if string.contains(string.lower(name), string.lower(query)) then
           res[ip] = name
