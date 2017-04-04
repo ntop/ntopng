@@ -1452,16 +1452,17 @@ end
 
 function print_ndpi_families_and_protocols(categories, protos, categories_disabled, protos_disabled, terminator)
    local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
+   local show_groups = (not table.empty(categories)) and (not table.empty(protos))
 
-   print('<optgroup label="'..i18n("shaping.protocol_families")..'">')
+   if show_groups then print('<optgroup label="'..i18n("shaping.protocol_families")..'">') end
    for k,category in pairsByKeys(categories, asc) do
       print('<option value="cat_'..category.id..'"')
       if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
       print('>' .. shaper_utils.formatCategory(k, category.count) ..'</option>'..terminator)
    end
-   print('</optgroup>')
+   if show_groups then print('</optgroup>') end
 
-   print('<optgroup label="'..i18n("shaping.protocols")..'">')
+   if show_groups then print('<optgroup label="'..i18n("shaping.protocols")..'">') end
    for protoName,protoId in pairsByKeys(protos, asc) do
       if not protos_excluded[protoName] then
          -- find protocol category
@@ -1479,7 +1480,7 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
          end
       end
    end
-   print('</optgroup>')
+   if show_groups then print('</optgroup>') end
 end
 
 local sites_categories = ntop.getSiteCategories()
@@ -1516,19 +1517,44 @@ end
 
 local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_directions") == "1")
 
-   print [[<div id="table-protos"></div>
-<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+   print ([[<div id="table-protos"></div>
+<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
 </form>
 
-NOTES:
+]]..i18n("shaping.notes")..[[:
 <ul>
-<li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
-<li>Set Traffic and Time Quota to 0 for unlimited traffic.</li>
+<li>]]..i18n("shaping.note_drop_core")..[[</li>
+<li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
+<li>]]..i18n("shaping.note_families")..[[
+   <select id="family_info_sel" class="form-control input-sm" style="width:16em; display:inline; margin: 0 1em;">
+      <option disabled selected value></option>
+   ]])
+
+   print_ndpi_families_and_protocols(protocol_categories, {}, {}, {}, "\n")
+   print[[
+   </select>
+</li>
 </ul>
-
-
+<div id="family_info_protos"></div>
 
 <script>
+$("#family_info_sel").change(function() {
+   var cat_id = $(this).val().split("_")[1];
+
+   for (var cat_name in protocol_categories) {
+      var cat = protocol_categories[cat_name];
+
+      if (cat.id == cat_id) {
+         var proto_list = [];
+
+         for (var proto in cat.protos)
+            proto_list.push(proto);
+
+         proto_list.sort();
+         $("#family_info_protos").html("<b>" + cat_name + " ]] print(i18n("shaping.protocols")) print[[</b>: " + proto_list.join(", "));
+      }
+   }
+});
 ]]
 
 local rate_buttons = shaper_utils.buttons("rate")

@@ -90,6 +90,9 @@ local  en = {
       policy_from_pool = "policy from pool",
       delete_shaper = "Delete Shaper",
       confirm_delete_shaper = "Do you really want to delete shaper ",
+      note_drop_core = "Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.",
+      note_quota_unlimited = "Set Traffic and Time Quota to 0 for unlimited traffic.",
+      note_families = "Protocol Families can be used to set the same policy on multiple protocols at once.<br>Use the dropdown below to obtain the list of protocols contained into a Protocol Family:",
    },
 
    alert_messages = {
