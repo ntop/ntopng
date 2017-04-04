@@ -375,11 +375,11 @@ alert_entity_keys = {
 
 alert_functions_description = {
     ["active"]  = "Active host time (seconds)",
-    ["bytes"]   = "Bytes delta (sent + received)",
-    ["dns"]     = "DNS traffic delta bytes (sent + received)",
+    ["bytes"]   = "Layer 2 bytes delta (sent + received)",
+    ["dns"]     = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
     ["idle"]    = "Idle time since last packet sent (seconds)",	
     ["packets"] = "Packets delta (sent + received)",
-    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
+    ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
     ["throughput"]   = "Average throughput (sent + received) [Mbps]",
 }
 

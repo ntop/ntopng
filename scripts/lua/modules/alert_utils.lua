@@ -1206,7 +1206,7 @@ function drawAlertSettings(alert_source, alert_val)
    print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
          <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
          <td>
-            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
+            <input type="number" name="re_arm_minutes" style="width:7em;" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
             &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
             <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
          </td>
@@ -1218,7 +1218,7 @@ function drawAlertSettings(alert_source, alert_val)
       print [[<td>]]
       print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
+      print('<input type="number" name="flow_rate_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="')
       print(tostring(flow_rate_alert_thresh))
       print [["></input>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
@@ -1234,7 +1234,7 @@ function drawAlertSettings(alert_source, alert_val)
       print [[<td>]]
       print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
+      print [[<input type="number" name="syn_alert_threshold" style="width:7em;" placeholder="" min="0" step="5" max="100000" value="]]
       print(tostring(syn_alert_thresh))
       print [["></input>
          &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
@@ -1250,7 +1250,7 @@ function drawAlertSettings(alert_source, alert_val)
       print [[<td>]]
       print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
+      print [[<input type="number" name="flows_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="]]
       print(tostring(flows_alert_thresh))
       print [["></input>
          &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
