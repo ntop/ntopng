@@ -243,13 +243,38 @@ end
 
 -- ##############################################
 
-function shortenString(name)
-   max_len = 24
+function shortenString(name, max_len)
+   max_len = max_len or 24
     if(string.len(name) < max_len) then
       return(name)
    else
       return(string.sub(name, 1, max_len).."...")
    end
+end
+
+-- ##############################################
+
+--
+-- Returns indexes to be used for string shortening. The portion of to_shorten between
+-- middle_start and middle_end will be inside the bounds.
+--
+--    to_shorten: string to be shorten
+--    middle_start: middle part begin index
+--    middle_end: middle part begin index
+--    maxlen: maximum length
+--
+function shortenInTheMiddle(to_shorten, middle_start, middle_end, maxlen)
+  local maxlen = maxlen - (middle_end - middle_start)
+
+  if maxlen <= 0 then
+    return 0, string.len(to_shorten)
+  end
+
+  local left_slice = math.max(middle_start - math.floor(maxlen / 2), 1)
+  maxlen = maxlen - (middle_start - left_slice - 1)
+  local right_slice = math.min(middle_end + maxlen, string.len(to_shorten))
+
+  return left_slice, right_slice
 end
 
 -- ##############################################
