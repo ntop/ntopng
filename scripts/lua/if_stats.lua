@@ -1243,10 +1243,8 @@ function get_shapers_from_parameters(callback)
             local qtraffic = _POST["qtraffic_"..k]
             local qtime = _POST["qtime_"..k]
 
-            if ((tonumber(qtraffic) ~= nil) and (tonumber(qtime) ~= nil)) then
-               done[k] = true;
-               callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic, qtime)
-            end
+            done[k] = true;
+            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic or "0", qtime or "0")
          end
       end
    end
@@ -1730,10 +1728,10 @@ print[[
       var newid = newid_prefix + new_row_ctr;
       new_row_ctr += 1;
 
-      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center]] if not split_shaping_directions then print(" hidden") end
-      print[["><select class="form-control shaper-selector" name="ingress_shaper_id">\
+      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
+      </select></td><td class="text-center" ]] if not split_shaping_directions then print(" hidden") end
+   print[[><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
       </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
@@ -1899,6 +1897,7 @@ print[[
                verticalAlign: 'middle'
             }
          }, {]]
+   -- If directions are linked, hide the *egress* shaper
    if not split_shaping_directions then
       print[[
             hidden: true,
