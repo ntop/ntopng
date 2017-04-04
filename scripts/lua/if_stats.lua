@@ -703,7 +703,7 @@ elseif(page == "ICMP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th>Total Packets</th></tr></thead>
+     <thead><tr><th>ICMP Message</th><th style='text-align:right;'>Traffic</th></tr></thead>
      <tbody id="iface_details_icmp_tbody">
      </tbody>
      </table>
@@ -731,7 +731,7 @@ elseif(page == "ARP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ARP Type</th><th>Total Packets</th></tr></thead>
+     <thead><tr><th>ARP Type</th><th style='text-align:right;'>Traffic</th></tr></thead>
      <tbody id="iface_details_arp_tbody">
      </tbody>
      </table>

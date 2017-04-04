@@ -53,7 +53,7 @@ for _, tab in pairs(menu_subpages) do
             break
           elseif matchesQuery(entry.description, query) then
             -- Decorate with entry title and tab label
-            addResult(entry.description, tab, tab.label .. "(" .. entry.title .. "): ")
+            addResult(entry.description, tab, tab.label .. " [" .. entry.title .. "]: ")
           end
         end
       end

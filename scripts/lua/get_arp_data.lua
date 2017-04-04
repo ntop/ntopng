@@ -30,6 +30,6 @@ else
    -- Show ARP stats for interface
    stats = interface.getStats()
 
-   print('<tr><th>'..i18n("graphs.arp_requests").."</th><td align=right>"..formatPackets(stats["arp.requests"]).."</td></tr>")
-   print('<tr><th>'..i18n("graphs.arp_replies").."</th><td align=right>"..formatPackets(stats["arp.replies"]).."</td></tr>")
+   print('<tr><td>'..i18n("graphs.arp_requests").."</td><td align='right'>"..formatPackets(stats["arp.requests"]).."</td></tr>")
+   print('<tr><td>'..i18n("graphs.arp_replies").."</td><td align='right'>"..formatPackets(stats["arp.replies"]).."</td></tr>")
 end

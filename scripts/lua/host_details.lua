@@ -854,7 +854,7 @@ elseif((page == "ICMP")) then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th>Packets Sent</th><th>Last Sent Peer</th><th>Packets Received</th><th>Last Rcvd Peer</th><th>Breakdown</th><th>Total</th></tr></thead>
+     <thead><tr><th>ICMP Message</th><th>Last Sent Peer</th><th>Last Rcvd Peer</th><th>Breakdown</th><th style='text-align:right;'>Packets Sent</th><th style='text-align:right;'>Packets Received</th><th style='text-align:right;'>Total</th></tr></thead>
      <tbody id="host_details_icmp_tbody">
      </tbody>
      </table>
@@ -879,6 +879,7 @@ function update_icmp_table() {
 
 update_icmp_table();
 setInterval(update_icmp_table, 5000);
+
 </script>
 
 ]]
