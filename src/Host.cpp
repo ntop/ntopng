@@ -1500,23 +1500,21 @@ void Host::decLowGoodputFlows(bool asClient) {
 
 void Host::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+  char *firstdot = NULL, *nextdot = NULL;
 
   if(top_sites
      && ntop->getPrefs()->are_top_talkers_enabled()
      && (strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
-#if 0
-    char *firstdot = strchr(hostname, '.');
 
-    if(firstdot) {
-      char *nextdot = strchr(&firstdot[1], '.');
+    firstdot = strchr(hostname, '.');
 
-      ntop->getRedis()->zIncr(topSitesKey, nextdot ? &firstdot[1] : hostname);
-    }
-#else
-    top_sites->add(hostname, 1);
-#endif
+    if(firstdot)
+      nextdot = strchr(&firstdot[1], '.');
+
+    top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+
   }
 }
 
