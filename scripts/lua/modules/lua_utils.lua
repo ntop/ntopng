@@ -2954,13 +2954,17 @@ function paramsPairsDecode(params, strict_mode)
    return res
 end
 
+function isBridgeInterface(ifstats)
+  return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+end
+
 function isCaptivePortalActive(ifstats)
   if not ntop.isEnterprise() then
     return false
   end
 
   local ifstats = ifstats or interface.getStats()
-  local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+  local is_bridge_iface = isBridgeInterface(ifstats)
   local is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
 
   return is_bridge_iface and is_captive_portal_enabled

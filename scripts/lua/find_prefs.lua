@@ -45,14 +45,16 @@ for _, tab in pairs(menu_subpages) do
       addResult(tab.label, tab, "")
     else
       for _, entry in pairs(tab.entries) do
-        -- Entry title match, do not proceed with description
-        if matchesQuery(entry.title, query) then
-          -- Decorate with tab label
-          addResult(entry.title, tab, tab.label .. ": ")
-          break
-        elseif matchesQuery(entry.description, query) then
-          -- Decorate with entry title and tab label
-          addResult(entry.description, tab, tab.label .. "(" .. entry.title .. "): ")
+        if entry.hidden ~= true then
+          -- Entry title match, do not proceed with description
+          if matchesQuery(entry.title, query) then
+            -- Decorate with tab label
+            addResult(entry.title, tab, tab.label .. ": ")
+            break
+          elseif matchesQuery(entry.description, query) then
+            -- Decorate with entry title and tab label
+            addResult(entry.description, tab, tab.label .. "(" .. entry.title .. "): ")
+          end
         end
       end
     end

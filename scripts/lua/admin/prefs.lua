@@ -151,7 +151,7 @@ function printAlerts()
 		    false, nil, nil, showElements)
 
   toggleTableButtonPrefs(subpage_active.entries["toggle_mysql_check_open_files_limit"].title, subpage_active.entries["toggle_mysql_check_open_files_limit"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1")
+			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1", nil, nil, nil, not (subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden))
 
   print('<tr id="row_alerts_security_header" ')
   if (showElements == false) then print(' style="display:none;"') end
@@ -586,7 +586,7 @@ function printStatsTimeseries()
 
   mysql_retention = 7
   prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
-    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   
   --default value
   minute_top_talkers_retention = 365

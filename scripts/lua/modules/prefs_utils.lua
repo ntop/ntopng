@@ -10,6 +10,25 @@ local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
 
+local function hasBridgeInterfaces()
+  local curif = ifname
+  local ifnames = interface.getIfNames()
+  local found = false
+
+  for _,ifname in pairs(ifnames) do
+    interface.select(ifname)
+
+    local ifstats = interface.getStats()
+    if isBridgeInterface(ifstats) then
+      found = true
+      break
+    end
+  end
+
+  interface.select(curif)
+  return found
+end
+
 -- This table is used both to control access to the preferences and to filter preferences results
 menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true,   disabled=false, entries={
@@ -103,6 +122,7 @@ menu_subpages = {
     }, mysql_retention = {
       title       = i18n("prefs.mysql_retention_title"),
       description = i18n("prefs.mysql_retention_description"),
+      hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
     }
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
@@ -126,6 +146,7 @@ menu_subpages = {
     }, toggle_mysql_check_open_files_limit = {
       title       = i18n("prefs.toggle_mysql_check_open_files_limit_title"),
       description = i18n("prefs.toggle_mysql_check_open_files_limit_description"),
+      hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
     }
     
   }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=alerts_disabled, entries={
@@ -179,7 +200,7 @@ menu_subpages = {
       title       = i18n("prefs.toggle_access_log_title"),
       description = i18n("prefs.toggle_access_log_description"),
     },
-  }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  disabled=false, entries={
+  }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  disabled=(prefs.is_dump_flows_enabled == false), entries={
     toggle_flow_db_dump_export = {
       title       = i18n("prefs.toggle_flow_db_dump_export_title"),
       description = i18n("prefs.toggle_flow_db_dump_export_description"),
@@ -217,7 +238,7 @@ menu_subpages = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),
     }
-  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=false, entries={
+  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
     toggle_shaping_directions = {
       title       = i18n("prefs.toggle_shaping_directions_title"),
       description = i18n("prefs.toggle_shaping_directions_description"),
