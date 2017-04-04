@@ -718,6 +718,7 @@ function update_icmp_table() {
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
       $('#iface_details_icmp_tbody').html(content);
+      $('#myTable').trigger("update");
     }
   });
 }
@@ -746,6 +747,7 @@ function update_arp_table() {
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
       $('#iface_details_arp_tbody').html(content);
+      $('#myTable').trigger("update");
     }
   });
 }

@@ -144,6 +144,7 @@ if(host == nil) then
 else
    sendHTTPHeader('text/html; charset=iso-8859-1')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+   print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    --   Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -871,8 +872,7 @@ function update_icmp_table() {
     print [[ },
     success: function(content) {
       $('#host_details_icmp_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#h_icmp_tbody').trigger("update");
+      $('#myTable').trigger("update");
     }
   });
 }
@@ -934,7 +934,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
   print('</ul></div></div>')
 
   print [[
-     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <table class="table table-bordered table-striped">
      ]]
 
      print("<thead><tr><th>Application Protocol</th><th>Duration</th><th>Sent</th><th>Received</th><th>Breakdown</th><th colspan=2>Total</th></tr></thead>\n")
@@ -2304,8 +2304,15 @@ end
 end
 
 if (host ~= nil) then
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
+
    print [[ 
    <script>
+
+   $(document).ready(function() {
+      $("#myTable").tablesorter();
+   });
+
   ]]
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
