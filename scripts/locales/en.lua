@@ -402,7 +402,7 @@ local  en = {
       nagios_service_name_title = "Nagios service_description",
       nagios_service_name_description = "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert",
       toggle_top_sites_title = "Top HTTP Sites",
-      toggle_top_sites_description = "Toggle the creation of top visited sites for local hosts. This will increase memory and cpu usage.",
+      toggle_top_sites_description = "Toggle the creation of top visited web sites for local hosts. Top sites are created using an <a href=\"%{url}\">heuristic</a> that maintain no more than 20 sites per local host. The heuristic fully operates in memory and does not require any interaction with the disk. Top sites are cleared every 5 minutes. An historical archive of top visited web sites can be created, for each local host, by periodically polling the JSON <i class=\"fa fa-download fa-sm\"></i>download link accessible from the host details page.",
       logging = "Logging",
       toggle_logging_level_title = "Log level",
       toggle_logging_level_description = "Choose the runtime logging level.",

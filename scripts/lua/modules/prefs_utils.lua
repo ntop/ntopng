@@ -190,7 +190,7 @@ menu_subpages = {
   }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  disabled=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
-      description = i18n("prefs.toggle_top_sites_description"),
+      description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"}),
     },
   }}, {id="logging",       label=i18n("prefs.logging"),              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true), entries={
     toggle_logging_level = {
