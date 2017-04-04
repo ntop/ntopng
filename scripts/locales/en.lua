@@ -252,7 +252,7 @@ local  en = {
       licence_generation = "Click on the above URL to generate your professional version license, or <br>purchase a license at <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education<br>institution please read <a href=\"%{universities_url}\">this</a>.",
       specify_licence = "Specify here your ntopng License",
       save_licence = "Save Licence",
-      build_on = "Built on",
+      built_on = "Built on",
       maxmind = "This product includes GeoLite data created by <a href=\"%{maxmind_url}\">MaxMind</a>.",
       system_id = "System Id",
       runtime_status = "Runtime Status",
