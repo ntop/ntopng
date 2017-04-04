@@ -49,7 +49,7 @@ menu_subpages = {
       title       = i18n("prefs.dynamic_flow_collection_title"),
       description = i18n("prefs.dynamic_flow_collection_description"),
     },
-  }}, {id="in_memory",     label=i18n("prefs.timeouts"),             advanced=true,  pro_only=false,  disabled=false, entries={
+  }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  disabled=false, entries={
     local_host_max_idle = {
       title       = i18n("prefs.local_host_max_idle_title"),
       description = i18n("prefs.local_host_max_idle_description"),
@@ -62,6 +62,18 @@ menu_subpages = {
     }, housekeeping_frequency = {
       title       = i18n("prefs.housekeeping_frequency_title"),
       description = i18n("prefs.housekeeping_frequency_description"),
+    }, toggle_local_host_cache_enabled = {
+      title       = i18n("prefs.toggle_local_host_cache_enabled_title"),
+      description = i18n("prefs.toggle_local_host_cache_enabled_description"),
+    }, toggle_active_local_host_cache_enabled = {
+      title       = i18n("prefs.toggle_active_local_host_cache_enabled_title"),
+      description = i18n("prefs.toggle_active_local_host_cache_enabled_description"),
+    }, active_local_host_cache_interval = {
+      title       = i18n("prefs.active_local_host_cache_interval_title"),
+      description = i18n("prefs.active_local_host_cache_interval_description"),
+    }, local_host_cache_duration = {
+      title       = i18n("prefs.local_host_cache_duration_title"),
+      description = i18n("prefs.local_host_cache_duration_description"),
     },
   }}, {id="on_disk_ts",    label=i18n("prefs.data_retention"),       advanced=false, pro_only=false,  disabled=false, entries={
     toggle_local = {
@@ -85,30 +97,13 @@ menu_subpages = {
     }, toggle_local_categorization = {
       title       = i18n("prefs.toggle_local_categorization_title"),
       description = i18n("prefs.toggle_local_categorization_description"),
-    }, toggle_local_host_cache_enabled = {
-      title       = i18n("prefs.toggle_local_host_cache_enabled_title"),
-      description = i18n("prefs.toggle_local_host_cache_enabled_description"),
-    }, toggle_active_local_host_cache_enabled = {
-      title       = i18n("prefs.toggle_active_local_host_cache_enabled_title"),
-      description = i18n("prefs.toggle_active_local_host_cache_enabled_description"),
-    }, active_local_host_cache_interval = {
-      title       = i18n("prefs.active_local_host_cache_interval_title"),
-      description = i18n("prefs.active_local_host_cache_interval_description"),
-    }, local_host_cache_duration = {
-      title       = i18n("prefs.local_host_cache_duration_title"),
-      description = i18n("prefs.local_host_cache_duration_description"),
     }, minute_top_talkers_retention = {
       title       = i18n("prefs.minute_top_talkers_retention_title"),
       description = i18n("prefs.minute_top_talkers_retention_description"),
-    },
-  }}, {id="on_disk_dbs",   label=i18n("prefs.mysql"),                advanced=true,  pro_only=false,  disabled=(prefs.is_dump_flows_enabled == false), entries={
-    mysql_retention = {
+    }, mysql_retention = {
       title       = i18n("prefs.mysql_retention_title"),
       description = i18n("prefs.mysql_retention_description"),
-    }, toggle_mysql_check_open_files_limit = {
-      title       = i18n("prefs.toggle_mysql_check_open_files_limit_title"),
-      description = i18n("prefs.toggle_mysql_check_open_files_limit_description"),
-    },
+    }
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
@@ -128,7 +123,10 @@ menu_subpages = {
     }, max_num_flow_alerts = {
       title       = i18n("prefs.max_num_flow_alerts_title"),
       description = i18n("prefs.max_num_flow_alerts_description"),
-    },
+    }, toggle_mysql_check_open_files_limit = {
+      title       = i18n("prefs.toggle_mysql_check_open_files_limit_title"),
+      description = i18n("prefs.toggle_mysql_check_open_files_limit_description"),
+    }
     
   }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=alerts_disabled, entries={
     toggle_alert_syslog = {
@@ -218,7 +216,7 @@ menu_subpages = {
     }, toggle_thpt_content = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),
-    },
+    }
   }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=false, entries={
     toggle_shaping_directions = {
       title       = i18n("prefs.toggle_shaping_directions_title"),
@@ -355,6 +353,10 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     else
       attributes["max"] = extra.max
     end
+  end
+
+  if extra.disabled == true then
+    attributes["disabled"] = "disabled"
   end
 
   if (_input_type == "number") then

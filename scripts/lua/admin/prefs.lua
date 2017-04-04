@@ -77,6 +77,7 @@ end
 -- default subpage
 if isEmptyString(tab) then
   tab = "auth"
+  subpage_active = menu_subpages[1]
 end
 
 -- ================================================================================
@@ -114,25 +115,6 @@ end
 
 -- ================================================================================
 
-function printStatsDatabases()
-  print('<form method="post">')
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.mysql_database")..'</th></tr>')
-
-  mysql_retention = 7
-  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description,
-    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
-
-  toggleTableButtonPrefs(subpage_active.entries["toggle_mysql_check_open_files_limit"].title, subpage_active.entries["toggle_mysql_check_open_files_limit"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1")
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
-
 function printAlerts()
    if prefs.has_cmdl_disable_alerts then return end
   print('<form method="post">')
@@ -146,7 +128,7 @@ function printAlerts()
   end
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
-  "row_toggle_malware_probing", "row_toggle_alert_syslog",
+  "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header"}
 
   toggleTableButtonPrefs(subpage_active.entries["disable_alerts_generation"].title, subpage_active.entries["disable_alerts_generation"].description,
@@ -167,6 +149,9 @@ function printAlerts()
 		    "Off","0", "danger",
 		    "toggle_flow_alerts_iface", "ntopng.alerts.dump_alerts_when_iface_is_alerted", "0",
 		    false, nil, nil, showElements)
+
+  toggleTableButtonPrefs(subpage_active.entries["toggle_mysql_check_open_files_limit"].title, subpage_active.entries["toggle_mysql_check_open_files_limit"].description,
+			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1")
 
   print('<tr id="row_alerts_security_header" ')
   if (showElements == false) then print(' style="display:none;"') end
@@ -387,7 +372,6 @@ function printMisc()
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
-
   print('<tr><th colspan=2 class="info">'..i18n("prefs.report_units")..'</th></tr>')
 
   local labels = {i18n("bytes"), i18n("packets")}
@@ -476,8 +460,34 @@ end
 
 function printInMemory()
   print('<form id="localRemoteTimeoutForm" method="post">')
-  print('<table class="table">')
 
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr>')
+  toggleTableButtonPrefs(subpage_active.entries["toggle_local_host_cache_enabled"].title, subpage_active.entries["toggle_local_host_cache_enabled"].description,
+			 "On", "1", "success", "Off", "0", "danger",
+			 "toggle_local_host_cache_enabled",
+			 "ntopng.prefs.is_local_host_cache_enabled", "1")
+
+  local elementToSwitchLocalCache = {"active_local_host_cache_interval"}
+
+  toggleTableButtonPrefs(subpage_active.entries["toggle_active_local_host_cache_enabled"].title, subpage_active.entries["toggle_active_local_host_cache_enabled"].description,
+			 "On", "1", "success", "Off", "0", "danger",
+			 "toggle_active_local_host_cache_enabled",
+			 "ntopng.prefs.is_active_local_host_cache_enabled", "0", nil, elementToSwitchLocalCache)
+
+  local showActiveLocalHostCacheInterval = false
+  if ntop.getPref("ntopng.prefs.is_active_local_host_cache_enabled") == "1" then
+    showActiveLocalHostCacheInterval = true
+  end
+
+  prefsInputFieldPrefs(subpage_active.entries["active_local_host_cache_interval"].title, subpage_active.entries["active_local_host_cache_interval"].description,
+    "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
+
+  prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
+    "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="mhd"})
+  print('</table>')
+  
+  print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.idle_timeout_settings")..'</th></tr>')
   prefsInputFieldPrefs(subpage_active.entries["local_host_max_idle"].title, subpage_active.entries["local_host_max_idle"].description,
       "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil, {min=1, max=1800, tformat="sm", attributes={["data-localremotetimeout"]="localremotetimeout"}})
@@ -572,32 +582,12 @@ function printStatsTimeseries()
   print('</table>')
 
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr>')
-  toggleTableButtonPrefs(subpage_active.entries["toggle_local_host_cache_enabled"].title, subpage_active.entries["toggle_local_host_cache_enabled"].description,
-			 "On", "1", "success", "Off", "0", "danger",
-			 "toggle_local_host_cache_enabled",
-			 "ntopng.prefs.is_local_host_cache_enabled", "1")
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
 
-  local elementToSwitchLocalCache = {"active_local_host_cache_interval"}
-
-  toggleTableButtonPrefs(subpage_active.entries["toggle_active_local_host_cache_enabled"].title, subpage_active.entries["toggle_active_local_host_cache_enabled"].description,
-			 "On", "1", "success", "Off", "0", "danger",
-			 "toggle_active_local_host_cache_enabled",
-			 "ntopng.prefs.is_active_local_host_cache_enabled", "0", nil, elementToSwitchLocalCache)
-
-  local showActiveLocalHostCacheInterval = false
-  if ntop.getPref("ntopng.prefs.is_active_local_host_cache_enabled") == "1" then
-    showActiveLocalHostCacheInterval = true
-  end
-
-  prefsInputFieldPrefs(subpage_active.entries["active_local_host_cache_interval"].title, subpage_active.entries["active_local_host_cache_interval"].description,
-    "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
-
-  prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
-    "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="mhd"})
-
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.top_talkers_storage")..'</th></tr>')
+  mysql_retention = 7
+  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
+    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  
   --default value
   minute_top_talkers_retention = 365
   prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
@@ -776,10 +766,6 @@ end
 
 if(tab == "on_disk_ts") then
    printStatsTimeseries()
-end
-
-if(tab == "on_disk_dbs") then
-   printStatsDatabases()
 end
 
 if(tab == "alerts") then
