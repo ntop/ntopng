@@ -141,6 +141,7 @@ NetworkInterface::NetworkInterface(const char *name,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false, pkt_dumper = NULL;
+    arp_requests = arp_replies = 0;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
@@ -1879,13 +1880,15 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       const u_int16_t arp_opcode_offset = ip_offset + 6;
       u_int16_t arp_opcode = 0;
 
-      if ((eth_type == 0x0806 /* ARP */) && (h->len > (u_int16_t)(arp_opcode_offset + 1)))
+      if ((eth_type == ETHERTYPE_ARP) && (h->len > (u_int16_t)(arp_opcode_offset + 1)))
         arp_opcode = (packet[arp_opcode_offset] << 8) + packet[arp_opcode_offset + 1];
 
       if (arp_opcode == 0x1 /* ARP request */) {
+        arp_requests++;
         srcMac->incSentArpRequests();
         dstMac->incRcvdArpRequests();
       } else if (arp_opcode == 0x2 /* ARP reply */) {
+        arp_replies++;
         srcMac->incSentArpReplies();
         dstMac->incRcvdArpReplies();
       }
@@ -3761,6 +3764,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "remote_bps", last_remote_bps);
   icmp_v4.lua(true, vm);
   icmp_v6.lua(false, vm);
+  lua_push_int_table_entry(vm, "arp.requests", arp_requests);
+  lua_push_int_table_entry(vm, "arp.replies", arp_replies);
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);

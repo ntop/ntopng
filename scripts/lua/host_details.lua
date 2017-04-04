@@ -579,6 +579,14 @@ end
       if(host["bytes.rcvd"] > 0) then
 	 print('<tr><th class="text-left">Received Distribution</th><td colspan=5><div class="pie-chart" id="sizeRecvDistro"></div></td></tr>')
       end
+      if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
+         local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
+
+         if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
+            print('<tr><th class="text-left">ARP Distribution</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
+         end
+      end
+      
       hostinfo2json(host_info)
       print [[
       </table>
@@ -593,6 +601,14 @@ print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]]
 		   do_pie("#sizeRecvDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+
+local macinfo = table.clone(host_info)
+macinfo["host"] = host["mac"]
+
+	print [[
+		   do_pie("#arpDistro", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(macinfo) .."}, \"\", refresh); \n")
 	print [[
 
 		}

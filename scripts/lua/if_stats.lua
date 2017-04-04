@@ -226,6 +226,15 @@ else
   print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
 end
 
+-- only show if the interface has seen mac addresses
+if ifstats["has_macs"] then
+   if(page == "ARP") then
+     print("<li class=\"active\"><a href=\"#\">ARP</a></li>\n")
+   else
+     print("<li><a href=\""..url.."&page=ARP\">ARP</a></li>")
+   end
+end
+
 if(ntop.exists(rrdname) and not is_historical) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
@@ -709,13 +718,40 @@ function update_icmp_table() {
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
       $('#iface_details_icmp_tbody').html(content);
-      $('#h_icmp_tbody').trigger("update");
     }
   });
 }
 
 update_icmp_table();
 setInterval(update_icmp_table, 5000);
+</script>
+
+]]
+elseif(page == "ARP") then
+
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>ARP Type</th><th>Total Packets</th></tr></thead>
+     <tbody id="iface_details_arp_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_arp_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_arp_data.lua',
+    data: { ifid: "]] print(ifId.."")  print [[" },
+    success: function(content) {
+      $('#iface_details_arp_tbody').html(content);
+    }
+  });
+}
+
+update_arp_table();
+setInterval(update_arp_table, 5000);
 </script>
 
 ]]

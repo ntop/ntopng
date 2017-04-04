@@ -87,7 +87,7 @@ end
 -- #####################################################################
 
 function formatPeer(peer)
-   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..peer..'">'..peer..'</A>')
+   return '<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..peer..'">'..peer..'</A>'
 end
 
 -- #####################################################################

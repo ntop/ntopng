@@ -34,6 +34,11 @@ local  en = {
    bytes = "Bytes",
    packets = "Packets",
 
+   graphs = {
+      arp_requests = "ARP Requests",
+      arp_replies = "ARP Replies",
+   },
+
    traffic_report = {
       daily = "Daily",
       weekly = "Weekly",

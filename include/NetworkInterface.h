@@ -75,6 +75,7 @@ class NetworkInterface {
   FlowInterfacesStats *flow_interfaces_stats;
 #endif
   EthStats ethStats;
+  u_int32_t arp_requests, arp_replies;
   ICMPstats icmp_v4, icmp_v6;
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
