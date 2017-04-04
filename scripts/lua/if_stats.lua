@@ -748,16 +748,12 @@ print [[
 
    <script>
    var last_profile = [];
-   var traffic_profiles_interval = window.setInterval(function() {
-	  $.ajax({
-		    type: 'GET',
-		    url: ']]
-   print (ntop.getHttpPrefix())
-   print [[/lua/network_load.lua',
-		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
-		    success: function(content) {
-			var profiles = content;
 
+   var ws_traffic_profiles = new NtopngWebSocket("]] print(_SERVER["Host"]..ntop.getHttpPrefix()) print[[");
+   ws_traffic_profiles.connect("network_load.lua", { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" });
+   ws_traffic_profiles.poll(3000);
+
+   ws_traffic_profiles.onmessage = function(profiles) {
 			if(profiles["profiles"] != null) {
 			   for (key in profiles["profiles"]) {
 			     k = '#profile_'+key.replace(" ", "");
@@ -772,8 +768,6 @@ print [[
 			   last_profile = profiles["profiles"];
 			  }
 			}
-	  });
-}, 3000);
 
    </script>
 ]]
@@ -2122,15 +2116,11 @@ print [[/lua/reset_stats.lua',
   });
 }
 
-setInterval(function() {
-      $.ajax({
-	  type: 'GET',
-	  url: ']]
-print (ntop.getHttpPrefix())
-print [[/lua/network_load.lua',
-	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
-	  success: function(rsp) {
+var ws_ifstats = new NtopngWebSocket("]] print(_SERVER["Host"]..ntop.getHttpPrefix()) print[[");
+ws_ifstats.connect("network_load.lua", { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" });
+ws_ifstats.poll(3000);
 
+   ws_ifstats.onmessage = function(rsp) {
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
 
@@ -2290,10 +2280,7 @@ print [[
 end
 
 print [[
-	   }
-	       });
-       }, 3000)
-
+}
 </script>
 
 ]]

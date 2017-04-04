@@ -71,6 +71,7 @@
     <link rel="stylesheet" href="@HTTP_PREFIX@/css/bootstrap-datetimepicker.css" />  
 
     <script type="text/javascript" src="@HTTP_PREFIX@/js/ntopng_utils.js?@NTOP_STARTUP_EPOCH@"></script>
+    <script type="text/javascript" src="@HTTP_PREFIX@/js/ntopng_websocket.js?@NTOP_STARTUP_EPOCH@"></script>
   </head>
 <body>
 

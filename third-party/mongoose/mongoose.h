@@ -64,12 +64,32 @@ struct mg_callbacks {
   int  (*log_message)(const struct mg_connection *, const char *message);
   int  (*init_ssl)(void *ssl_context);
   int (*websocket_connect)(const struct mg_connection *);
-  void (*websocket_ready)(struct mg_connection *);
-  int  (*websocket_data)(struct mg_connection *);
+  int (*websocket_ready)(struct mg_connection *);
+
+  // Called when data frame has been received from the client.
+  // Parameters:
+  //    bits: first byte of the websocket frame, see websocket RFC at
+  //          http://tools.ietf.org/html/rfc6455, section 5.2
+  //    data, data_len: payload, with mask (if any) already applied.
+  // Return value:
+  //    non-0: keep this websocket connection opened.
+  //    0:     close this websocket connection.
+  int  (*websocket_data)(struct mg_connection *, int bits, char *data, size_t data_len);
+
   const char * (*open_file)(const struct mg_connection *,
                              const char *path, size_t *data_len);
   void (*init_lua)(struct mg_connection *, void *lua_context);
   void (*upload)(struct mg_connection *, const char *file_name);
+};
+
+// Opcodes, from http://tools.ietf.org/html/rfc6455
+enum {
+  WEBSOCKET_OPCODE_CONTINUATION = 0x0,
+  WEBSOCKET_OPCODE_TEXT = 0x1,
+  WEBSOCKET_OPCODE_BINARY = 0x2,
+  WEBSOCKET_OPCODE_CONNECTION_CLOSE = 0x8,
+  WEBSOCKET_OPCODE_PING = 0x9,
+  WEBSOCKET_OPCODE_PONG = 0xa
 };
 
 // Start web server.
@@ -154,6 +174,7 @@ struct mg_request_info *mg_get_request_info(struct mg_connection *);
 //  number of bytes written on success
 int mg_write(struct mg_connection *, const void *buf, size_t len);
 
+int mg_send_websocket_frame(struct mg_connection *, const void *data, size_t len);
 
 #undef PRINTF_FORMAT_STRING
 #if _MSC_VER >= 1400

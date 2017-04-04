@@ -95,6 +95,17 @@
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 
+/* The minimum and maximum number of threads to use in mongoose */
+#define HTTP_SERVER_MAX_THREADS           16
+#define HTTP_SERVER_MIN_THREADS           4
+
+/* The maximum number of threads to dedicate do WebSocket connections */
+#define HTTP_SERVER_MAX_WEBSOCKET_THREADS 4
+
+/* The minimum and maximum number of active connections (busy threads) per host */
+#define HTTP_SERVER_MAX_THREADS_PER_HOST  8
+#define HTTP_SERVER_MIN_THREADS_PER_HOST  2
+
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
 #define NDPI_MIN_NUM_PACKETS      10
 #define GTP_U_V1_PORT             2152
@@ -285,6 +296,9 @@
 #define CONST_LUA_FLOW_DELETE       "flowDelete"
 #define CONST_LUA_FLOW_UPDATE       "flowUpdate"
 #define CONST_LUA_FLOW_NDPI_DETECT  "flowProtocolDetected"
+#define CONST_LUA_WEBSOCKET_INIT    "onWsInit"
+#define CONST_LUA_WEBSOCKET_READY   "onWsReady"
+#define CONST_LUA_WEBSOCKET_MESSAGE "onWsMessage"
 
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)

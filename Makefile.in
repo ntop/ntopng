@@ -24,7 +24,7 @@ endif
 LIBPCAP=-lpcap
 ######
 MONGOOSE_HOME=${PWD}/third-party/mongoose
-MONGOOSE_INC=-I$(MONGOOSE_HOME)
+MONGOOSE_INC=-I$(MONGOOSE_HOME) -DUSE_WEBSOCKET
 ######
 HAS_LUAJIT=$(shell pkg-config --exists luajit; echo $$?)
 ifeq ($(HAS_LUAJIT), 0)

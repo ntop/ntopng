@@ -1,17 +1,14 @@
 --
--- (C) 2013-17 - ntop.org
+-- (C) 2017 - ntop.org
 --
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-json = require("dkjson")
+local json = require("dkjson")
 
---sendHTTPHeader('text/html; charset=iso-8859-1')
-sendHTTPHeader('application/json')
-
-function dumpInterfaceStats(interface_name)
+local function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
 
    local ifstats = interface.getStats()
@@ -108,18 +105,51 @@ function dumpInterfaceStats(interface_name)
    return res
 end
 
--- ###############################
+function serveRequest()
+  local res = {}
 
-local res = {}
-if(_GET["iffilter"] == "all") then
-   local names = interface.getIfNames()
-   local n = 1
-   local sortedKeys = getKeysSortedByValue(names, function(a, b) return a < b end)
-   for k,v in ipairs(sortedKeys) do
-      res[n] = dumpInterfaceStats(names[v])
-      n = n + 1
-   end
-else
-   res = dumpInterfaceStats(ifname)
+  if(_GET["iffilter"] == "all") then
+     local names = interface.getIfNames()
+     local n = 1
+     local sortedKeys = getKeysSortedByValue(names, function(a, b) return a < b end)
+     for k,v in ipairs(sortedKeys) do
+        res[n] = dumpInterfaceStats(names[v])
+        n = n + 1
+     end
+  else
+     res = dumpInterfaceStats(ifname)
+  end
+
+  print(json.encode(res, nil, 1))
 end
-print(json.encode(res, nil, 1))
+
+--------------------------------------------------------------------------------
+
+--
+-- Called when WebSocket is connecting.
+-- Return true to make the connection pass.
+--
+function onWsInit()
+end
+
+--
+-- Called when WebSocket is ready to send data
+--
+function onWsReady()
+end
+
+--
+-- Called when a new message is received from the WebSocket.
+-- Return true to make the communication continue.
+--
+function onWsMessage(message)
+   serveRequest()
+end
+
+--------------------------------------------------------------------------------
+
+-- This script can either be invoked as a standard HTTP request or a WebSocket request
+if not isWebsocketConnection() then
+   sendHTTPHeader('application/json; charset=iso-8859-1')
+   serveRequest()
+end

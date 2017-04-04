@@ -44,6 +44,9 @@ class Utils {
   static char* l4proto2name(u_int8_t proto);
   static bool  isIPAddress(char *name);
   static int   setThreadAffinity(pthread_t thread, int core_id);
+  static u_int16_t getNumHTTPServerThreads();
+  static u_int16_t getNumHTTPWebSocketServerThreads();
+  static u_int16_t getMaxNumHTTPServerThreadsPerHost();
   static char* trim(char *s);
   static u_int32_t hashString(char *s);
   static float timeval2ms(struct timeval *tv);

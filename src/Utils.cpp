@@ -171,6 +171,24 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
 
 /* ****************************************************** */
 
+u_int16_t Utils::getNumHTTPServerThreads() {
+  return max_val(min_val(ntop->getNumCPUs(), HTTP_SERVER_MAX_THREADS), HTTP_SERVER_MIN_THREADS);
+}
+
+/* ****************************************************** */
+
+u_int16_t Utils::getNumHTTPWebSocketServerThreads() {
+  return max_val(getNumHTTPServerThreads() / 2 /* one half of all the available threads */, 1);
+}
+
+/* ****************************************************** */
+
+u_int16_t Utils::getMaxNumHTTPServerThreadsPerHost() {
+  return max_val(min_val(getNumHTTPServerThreads() / 2, HTTP_SERVER_MAX_THREADS_PER_HOST), HTTP_SERVER_MIN_THREADS_PER_HOST);
+}
+
+/* ****************************************************** */
+
 char *Utils::trim(char *s) {
   char *end;
 
