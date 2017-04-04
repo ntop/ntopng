@@ -215,6 +215,9 @@ menu_subpages = {
     toggle_snmp_rrds = {
       title       = i18n("prefs.toggle_snmp_rrds_title"),
       description = i18n("prefs.toggle_snmp_rrds_description"),
+    }, default_snmp_community = {
+      title       = i18n("prefs.default_snmp_community_title"),
+      description = i18n("prefs.default_snmp_community_description"),
     },
   }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,   disabled=false, entries={
     toggle_nbox_integration = {

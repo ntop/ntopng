@@ -418,7 +418,9 @@ local  en = {
       max_num_bytes_per_tiny_flow_description = "The maximum number of bytes a flow must have to be considered a tiny flow. Default: 64.",
       toggle_snmp_rrds_title = "SNMP Devices Timeseries",
       toggle_snmp_rrds_description = "Toggle the creation of bytes timeseries for each port of the SNMP devices. For each device port" ..
-            " will be created an RRD with ingress/egress bytes.",
+	 " will be created an RRD with ingress/egress bytes.",
+      default_snmp_community_title = "Default SNMP Community",
+      default_snmp_community_description = "The default SNMP community is used when trying to walk the SNMP MIB of a selected local host that has not been configured through the SNMP devices page.",
       nbox_integration = "nBox Integration",
       toggle_nbox_integration_title = "Enable nBox Support",
       toggle_nbox_integration_description = "Enable sending ntopng requests (e.g., to download pcap files) to an nBox. Pcap requests are issued "..

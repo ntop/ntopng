@@ -1642,10 +1642,29 @@ print [[
 </table>
 ]]  
 elseif(page == "snmp" and ntop.isEnterprise()) then
-   if get_snmp_community(host_ip, true) then
+   local sys_object_id = true
+   local community = get_snmp_community(host_ip)
+
+   local snmp_devices = get_snmp_devices()
+   if snmp_devices[host_ip] == nil then -- host has not been configured
+
+      local msg = "Host "..host_ip.. " has not been configured as an SNMP device."
+      msg = msg.." Visit page <a href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua'>SNMP</a> to add this host to the list of configured SNMP devices."
+
+      local trying =  "<span id='trying_default_community'> Trying to retrieve host SNMP MIB using the default community '"..community.."'"
+      trying = trying.. " <img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style='vertical-align:text-top;' id=throbber></span>"
+
+      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+      print(trying)
+
+      sys_object_id = get_snmp_value(host_ip, community, "1.3.6.1.2.1.1.2.0", false)
+   end
+
+   if(sys_object_id ~= nil) then
+      print("<script type='text/javascript'>$('#trying_default_community').html(\"Showing SNMP MIB information retrieved using the default community '"..community.."':<br><br>\")</script>")
       print_snmp_report(host_ip, true)
    else
-      print("<div class='alert alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i>" .. " Host "..host_ip.. " has not been configured as an SNMP device. Visit page <a href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua'>SNMP</a> to add this host to the list of configured SNMP devices.</div>")
+      print("<script type='text/javascript'>$('#trying_default_community').html(\"<div class='alert alert-warning'>Unable to retrieve host SNMP MIB using the default community '"..community.."'.</div>\")</script>")
    end
 
 elseif(page == "talkers") then

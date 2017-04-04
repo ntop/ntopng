@@ -684,6 +684,7 @@ local known_parameters = {
    ["num_minutes"]             =  validateNumber,                -- number of minutes
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
+   ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
    ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids

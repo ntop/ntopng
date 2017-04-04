@@ -648,7 +648,7 @@ function printLogging()
 end
 
 function printSnmp()
-  if not ntop.isPro() then return end
+  if not ntop.isEnterprise() then return end
 
   print('<form method="post">')
   print('<table class="table">')
@@ -657,6 +657,11 @@ function printSnmp()
   toggleTableButtonPrefs(subpage_active.entries["toggle_snmp_rrds"].title, subpage_active.entries["toggle_snmp_rrds"].description,
 			 "On", "1", "success", "Off", "0", "danger", "toggle_snmp_rrds", "ntopng.prefs.snmp_devices_rrd_creation", "0",
 			    not info["version.enterprise_edition"])
+
+  prefsInputFieldPrefs(subpage_active.entries["default_snmp_community"].title, subpage_active.entries["default_snmp_community"].description,
+		       "ntopng.prefs.",
+		       "default_snmp_community",
+		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
 
