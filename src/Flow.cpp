@@ -2004,6 +2004,8 @@ void Flow::addFlowStats(bool cli2srv_direction,
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
   iface->incFlagsStats(flags);
+  if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
+  if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
   
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);

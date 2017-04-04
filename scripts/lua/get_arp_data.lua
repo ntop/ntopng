@@ -17,14 +17,19 @@ host_info = url2hostinfo(_GET)
 local is_host
 
 if(host_info["host"] ~= nil) then
+   local breakdown = {}
+
    -- Show ARP sent/recv breakdown 
    stats = interface.getMacInfo(host_info["host"], host_info["vlan"])
-   local arp_sent = stats["arp_requests.sent"] + stats["arp_replies.sent"]
-   local arp_rcvd = stats["arp_requests.rcvd"] + stats["arp_replies.rcvd"]
 
-   local breakdown = {}
-   breakdown[#breakdown + 1] = {label=i18n("sent"), value=arp_sent}
-   breakdown[#breakdown + 1] = {label=i18n("received"), value=arp_rcvd}
+   if stats ~= nil then
+      local arp_sent = stats["arp_requests.sent"] + stats["arp_replies.sent"]
+      local arp_rcvd = stats["arp_requests.rcvd"] + stats["arp_replies.rcvd"]
+
+      breakdown[#breakdown + 1] = {label=i18n("sent"), value=arp_sent}
+      breakdown[#breakdown + 1] = {label=i18n("received"), value=arp_rcvd}
+   end
+
    print(json.encode(breakdown, nil))
 else
    -- Show ARP stats for interface

@@ -172,6 +172,7 @@ class Host : public GenericHost {
   void incNumFlows(bool as_client);
   void decNumFlows(bool as_client);
 
+  inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
   inline void incIngressDrops(u_int num_bytes)           { ingress_drops.incStats(num_bytes);             };
   inline void incEgressDrops(u_int num_bytes)            { egress_drops.incStats(num_bytes);              };
   inline void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };

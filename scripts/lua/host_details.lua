@@ -580,6 +580,9 @@ end
       if(host["bytes.rcvd"] > 0) then
 	 print('<tr><th class="text-left">Received Distribution</th><td colspan=5><div class="pie-chart" id="sizeRecvDistro"></div></td></tr>')
       end
+      if (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0) then
+	 print('<tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
+      end
       if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
          local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
 
@@ -602,6 +605,10 @@ print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]]
 		   do_pie("#sizeRecvDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+	print [[
+		   do_pie("#flagsDistro", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 
 local macinfo = table.clone(host_info)
 macinfo["host"] = host["mac"]
