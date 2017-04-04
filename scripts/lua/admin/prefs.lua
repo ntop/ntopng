@@ -62,7 +62,7 @@ if(haveAdminPrivileges()) then
 local subpage_active = nil
 
 for _, subpage in ipairs(menu_subpages) do
-  if not isSubpageAvailable(subpage, show_advanced_prefs) then
+  if not isSubpageAvailable(subpage, show_advanced_prefs) and subpage.id ~= tab then
     subpage.disabled = true
     
     if subpage.id == tab then
