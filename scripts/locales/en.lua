@@ -331,6 +331,8 @@ local  en = {
       toggle_pools_rrds_description = "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
       toggle_asn_rrds_title = "Autonomous Systems",
       toggle_asn_rrds_description = "Toggle the creation of bytes and application timeseries for autonomous systems.",
+      toggle_tcp_flags_rrds_title = "TCP Flags",
+      toggle_tcp_flags_rrds_description = "Toggle the creation of TCP flags SYN, SYN+ACK, FIN+ACK and RST timeseries for network interfaces.",
       toggle_local_categorization_title = "Categories",
       toggle_local_categorization_description = "Toggle the creation of categories timeseries for local hosts and defined local networks.<br>"..
             "Enabling their creation allows you "..

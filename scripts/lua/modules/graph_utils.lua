@@ -17,6 +17,10 @@ top_rrds = {
    ["tcp_lost.rrd"] = "TCP Packets Lost",
    ["tcp_ooo.rrd"] = "TCP Packets Out-Of-Order",
    ["tcp_retransmissions.rrd"] = "TCP Retransmitted Packets",
+   ["tcp_syn.rrd"] = "TCP SYN Packets",
+   ["tcp_synack.rrd"] = "TCP SYN+ACK Packets",
+   ["tcp_finack.rrd"] = "TCP FIN+ACK Packets",
+   ["tcp_rst.rrd"] = "TCP RST Packets",
    ["num_zmq_received_flows.rrd"] = "ZMQ Received Flows",
 }
 

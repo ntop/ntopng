@@ -731,6 +731,7 @@ local known_parameters = {
    ["toggle_tiny_flows_export"]                    =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
    ["toggle_shaping_directions"]                   =  validateBool,
+   ["toggle_tcp_flags_rrds"]                       =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
