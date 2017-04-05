@@ -405,7 +405,7 @@ end
 
 function isTopRRD(filename)
    for _,top in ipairs(top_rrds) do
-      if top.lable == filename then
+      if top.rrd == filename then
          return true
       end
    end
