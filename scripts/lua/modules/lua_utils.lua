@@ -536,13 +536,13 @@ function bytesToSize(bytes)
       if((bytes >= 0) and (bytes < kilobyte)) then
 	 return round(bytes, precision) .. " B";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
-	 return round(bytes / kilobyte, precision) .. ' KiB';
+	 return round(bytes / kilobyte, precision) .. ' KB';
 	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
-	 return round(bytes / megabyte, precision) .. ' MiB';
+	 return round(bytes / megabyte, precision) .. ' MB';
 	 elseif((bytes >= gigabyte) and (bytes < terabyte)) then
-	 return round(bytes / gigabyte, precision) .. ' GiB';
+	 return round(bytes / gigabyte, precision) .. ' GB';
 	 elseif(bytes >= terabyte) then
-	 return round(bytes / terabyte, precision) .. ' TiB';
+	 return round(bytes / terabyte, precision) .. ' TB';
       else
 	 return round(bytes, precision) .. ' B';
       end
@@ -2681,16 +2681,16 @@ end
 
 -- Note: the base unit is Kbit/s here
 FMT_TO_DATA_RATES_KBPS = {
-   ["k"] = {label="Kbit/s", value=1},
+   ["k"] = {label="kbit/s", value=1},
    ["m"] = {label="Mbit/s", value=1000},
    ["g"] = {label="Gbit/s", value=1000*1000},
 }
 
 FMT_TO_DATA_BYTES = {
   ["b"] = {label="B",  value=1},
-  ["k"] = {label="KiB", value=1024},
-  ["m"] = {label="MiB", value=1024*1024},
-  ["g"] = {label="GiB", value=1024*1024*1024},
+  ["k"] = {label="KB", value=1024},
+  ["m"] = {label="MB", value=1024*1024},
+  ["g"] = {label="GB", value=1024*1024*1024},
 }
 
 FMT_TO_DATA_TIME = {

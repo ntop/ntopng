@@ -266,23 +266,23 @@ function formatPackets(n) {
 }
 
 function bytesToVolume(bytes) {
-  var sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB'];
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   if (bytes == 0) return '0 Bytes';
   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
   return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
 };
 
 function bytesToVolumeAndLabel(bytes) {
-  var sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB'];
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   if (bytes == 0) return '0 Bytes';
   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
   return [ (bytes / Math.pow(1024, i)).toFixed(2), sizes[i] ];
 };
 
 function bitsToSize(bits, factor) {
-  var sizes = ['bit/s', 'Kibit/s', 'Mibit/s', 'Gibit/s', 'Tibit/s'];
+  var sizes = ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
   if (bits == 0) return '0 bps';
-  var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
+  var i = parseInt(Math.floor(Math.log(bits) / Math.log(1000)));
   if (i == 0) return bits + ' ' + sizes[i];
   return (bits / Math.pow(factor, i)).toFixed(2) + ' ' + sizes[i];
 };
