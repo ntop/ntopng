@@ -91,7 +91,8 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     local asn_aggr      = {}
 
     local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hostbase)
-      -- Aggregate ASN
+
+      -- Aggregate ASN stats
       local host_asn = host["asn"]
 
       if ((not isEmptyString(host_asn)) and (tonumber(host_asn) ~= 0)) then
@@ -105,11 +106,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
           asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
           asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
         end
-      end
-
-      if host_rrd_creation ~= "1" then
-        -- only ASN enabled
-        return
       end
 
       -- Aggregate VLAN stats
@@ -129,12 +125,9 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
         end
       end
 
+      -- Crunch additional stats for local hosts only
       if(host.localhost) then
-        if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(hostbase.."/categories")) then
-          ntop.mkdir(fixPath(hostbase.."/categories"))
-        end
-
-        -- Aggregate network stats
+        -- Aggregate local network stats
         local network_name = host["local_network_name"]
 
         --io.write("==> Adding "..network_name.."\n")
@@ -205,7 +198,12 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 
             if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
           end
+
           if(host_categories_rrd_creation ~= "0") then
+	     if not ntop.exists(fixPath(hostbase.."/categories")) then
+		ntop.mkdir(fixPath(hostbase.."/categories"))
+	     end
+
             if host["categories"] ~= nil then
               if networks_aggr[network_name]["categories"] == nil then
                 networks_aggr[network_name]["categories"] = {}
@@ -266,12 +264,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
       end
     end
 
-    if host_rrd_creation ~= "1" then
-      -- only ASN enabled
-      return
-    end
-
-    -- create RRD for vlans
+    -- Create RRD for vlans
     local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
     for vlan_id, vlan_stats in pairs(vlans_aggr) do
       local vlanpath = getPathFromKey(vlan_id)
@@ -297,7 +290,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
       str = "N:".. tolongint(m["bytes.sent"]) .. ":" .. tolongint(m["bytes.rcvd"])
       --io.write(name.."="..str.."\n")
       ntop.rrd_update(name, str)
-      if (m["ndpi"]) then -- nDPI data could be disabled
+      if (m["ndpi"]) then -- nDPI data could have been disabled earlier if host_ndpi_rrd_creation is disabled
         for k in pairs(m["ndpi"]) do
           local ndpiname = fixPath(base.."/"..k..".rrd")
           createRRDcounter(ndpiname, 300, verbose)
@@ -305,7 +298,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
         end
       end
 
-      if (m["categories"]) then
+      if (m["categories"]) then -- categories data is nil if host_categories_rrd_creation is disabled
         if not ntop.exists(fixPath(base.."/categories")) then ntop.mkdir(fixPath(base.."/categories")) end
         for cat_name, cat_bytes in pairs(m["categories"]) do
           local catrrdname = fixPath(base.."/categories/"..cat_name..".rrd")
