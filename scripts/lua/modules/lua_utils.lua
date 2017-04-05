@@ -536,13 +536,13 @@ function bytesToSize(bytes)
       if((bytes >= 0) and (bytes < kilobyte)) then
 	 return round(bytes, precision) .. " B";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
-	 return round(bytes / kilobyte, precision) .. ' KB';
+	 return round(bytes / kilobyte, precision) .. ' KiB';
 	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
-	 return round(bytes / megabyte, precision) .. ' MB';
+	 return round(bytes / megabyte, precision) .. ' MiB';
 	 elseif((bytes >= gigabyte) and (bytes < terabyte)) then
-	 return round(bytes / gigabyte, precision) .. ' GB';
+	 return round(bytes / gigabyte, precision) .. ' GiB';
 	 elseif(bytes >= terabyte) then
-	 return round(bytes / terabyte, precision) .. ' TB';
+	 return round(bytes / terabyte, precision) .. ' TiB';
       else
 	 return round(bytes, precision) .. ' B';
       end
@@ -559,15 +559,15 @@ function bitsToSizeMultiplier(bits, multiplier)
   terabit = gigabit * multiplier;
 
   if((bits >= kilobit) and (bits < megabit)) then
-    return round(bits / kilobit, precision) .. ' Kbit';
+    return round(bits / kilobit, precision) .. ' kbit/s';
   elseif((bits >= megabit) and (bits < gigabit)) then
-    return round(bits / megabit, precision) .. ' Mbit';
+    return round(bits / megabit, precision) .. ' Mbit/s';
   elseif((bits >= gigabit) and (bits < terabit)) then
-    return round(bits / gigabit, precision) .. ' Gbit';
+    return round(bits / gigabit, precision) .. ' Gbit/s';
   elseif(bits >= terabit) then
-    return round(bits / terabit, precision) .. ' Tbit';
+    return round(bits / terabit, precision) .. ' Tbit/s';
   else
-    return round(bits, precision) .. ' bps';
+    return round(bits, precision) .. ' bit/s';
   end
 end
 
@@ -2688,9 +2688,9 @@ FMT_TO_DATA_RATES_KBPS = {
 
 FMT_TO_DATA_BYTES = {
   ["b"] = {label="B",  value=1},
-  ["k"] = {label="KB", value=1024},
-  ["m"] = {label="MB", value=1024*1024},
-  ["g"] = {label="GB", value=1024*1024*1024},
+  ["k"] = {label="KiB", value=1024},
+  ["m"] = {label="MiB", value=1024*1024},
+  ["g"] = {label="GiB", value=1024*1024*1024},
 }
 
 FMT_TO_DATA_TIME = {

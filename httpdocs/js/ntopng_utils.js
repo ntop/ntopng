@@ -93,16 +93,19 @@ function makeUniqueValidator(items_function) {
 }
 
 function fbits(bits) {
-    var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+    var sizes = ['bps', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits <= 0) return '0';
     var bits_log1000 = Math.log(bits) / Math.log(1000)
+    console.log(bits)
     var i = parseInt(Math.floor(bits_log1000));
     if (i < 0 || isNaN(i)) {
-	return "< 1 " + sizes[0];
+	i = 0;
     } else if (i >= sizes.length) { // prevents overflows
 	return "> "   + sizes[sizes.length - 1]
-    } else if (i <= 1) {
-	return Math.round(bits / Math.pow(1000, i)) + ' ' + sizes[i]
+    }
+
+    if (i <= 1) {
+	return Math.round(bits / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i]
     } else {
 	var ret = parseFloat(bits / Math.pow(1000, i)).toFixed(2)
 	if (ret % 1 == 0)
@@ -119,9 +122,9 @@ function fpackets(pps) {
     var i = parseInt(Math.floor(Math.log(pps) / Math.log(1000)));
     if (i < 0 || isNaN(i)) {
 	i = 0;
-	return "< 1 " + sizes[0];
     }
-    return Math.round(pps / Math.pow(1000, i), 2) + ' ' + sizes[i];
+    // Round to two decimal digits
+    return Math.round(pps / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i];
 }
 
 function fint(value) {
@@ -264,21 +267,21 @@ function formatPackets(n) {
 }
 
 function bytesToVolume(bytes) {
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  var sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB'];
   if (bytes == 0) return '0 Bytes';
   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
   return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
 };
 
 function bytesToVolumeAndLabel(bytes) {
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  var sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB'];
   if (bytes == 0) return '0 Bytes';
   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
   return [ (bytes / Math.pow(1024, i)).toFixed(2), sizes[i] ];
 };
 
 function bitsToSize(bits, factor) {
-  var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+  var sizes = ['bit/s', 'Kibit/s', 'Mibit/s', 'Gibit/s', 'Tibit/s'];
   if (bits == 0) return '0 bps';
   var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
   if (i == 0) return bits + ' ' + sizes[i];
