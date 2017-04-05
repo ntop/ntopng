@@ -25,6 +25,7 @@ os_n        = _GET["os"]
 pool_n      = _GET["pool"]
 ipver_n     = _GET["version"]
 
+interface.select(ifname)
 local ifstats = interface.getStats()
 
 if (group_col == nil) then
@@ -82,7 +83,7 @@ vals = {}
 
 stats_by_group_col = {}
 
-interface.select(ifname)
+
 stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n), tonumber(ipver_n)) -- false = little details)
 stats_by_group_col = stats_by_group_key
 
@@ -154,7 +155,7 @@ function print_single_group(value)
       if ntop.exists(asnstats_rrd) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
-         print('-')
+         print('')
       end
       print('", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then

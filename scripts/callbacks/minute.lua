@@ -16,7 +16,8 @@ end
 require "lua_utils"
 require "graph_utils"
 require "top_structure"
-local tcp_flags_rrd_creation = ntop.getCache("ntopng.prefs.tcp_flags_rrd_creation")
+local tcp_flags_rrd_creation = ntop.getPref("ntopng.prefs.tcp_flags_rrd_creation")
+local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 local callback_utils = require "callback_utils"
 
 local prefs = ntop.getPrefs()
@@ -80,12 +81,14 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
       makeRRD(basedir, _ifname, "num_http_hosts", 60, ifstats.stats.http_hosts)
 
       -- TCP stats
-      makeRRD(basedir, _ifname, "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
-      makeRRD(basedir, _ifname, "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
-      makeRRD(basedir, _ifname, "tcp_lost", 60, ifstats.tcpPacketStats.lost)
+      if tcp_retr_ooo_lost_rrd_creation == "1" then
+	 makeRRD(basedir, _ifname, "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
+	 makeRRD(basedir, _ifname, "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
+	 makeRRD(basedir, _ifname, "tcp_lost", 60, ifstats.tcpPacketStats.lost)
+      end
 
       -- TCP Flags
-      if tcp_flags_rrd_creation ~= "0" then
+      if tcp_flags_rrd_creation == "1" then
          makeRRD(basedir, _ifname, "tcp_syn", 60, ifstats.pktSizeDistribution.syn)
          makeRRD(basedir, _ifname, "tcp_synack", 60, ifstats.pktSizeDistribution.synack)
          makeRRD(basedir, _ifname, "tcp_finack", 60, ifstats.pktSizeDistribution.finack)

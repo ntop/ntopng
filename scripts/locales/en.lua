@@ -47,6 +47,7 @@ local  en = {
       tcp_packets_lost = "TCP Packets Lost",
       tcp_packets_ooo = "TCP Packets Out-Of-Order",
       tcp_packets_retr = "TCP Retransmitted Packets",
+      tcp_retr_ooo_lost = "TCP Retransmitted Out-Of-Order and Lost",
       tcp_syn_packets = "TCP SYN Packets",
       tcp_synack_packets = "TCP SYN+ACK Packets",
       tcp_finack_packets = "TCP FIN+ACK Packets",
@@ -389,6 +390,8 @@ local  en = {
       toggle_asn_rrds_description = "Toggle the creation of bytes and application timeseries for autonomous systems.",
       toggle_tcp_flags_rrds_title = "TCP Flags",
       toggle_tcp_flags_rrds_description = "Toggle the creation of TCP flags SYN, SYN+ACK, FIN+ACK and RST timeseries for network interfaces.",
+      toggle_tcp_retr_ooo_lost_rrds_title = "TCP Out of Order, Lost and Retransmitted Segments",
+      toggle_tcp_retr_ooo_lost_rrds_description = "Toggle the creation of timeseries for out-of-order, lost and retransmitted TCP segments. Timeseries will be created for network interfaces, autonomous systems, local networks and vlans.",
       toggle_local_categorization_title = "Categories",
       toggle_local_categorization_description = "Toggle the creation of categories timeseries for local hosts and defined local networks.<br>"..
             "Enabling their creation allows you "..

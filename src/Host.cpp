@@ -450,20 +450,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
 
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
-  if(host_details) {
-    /*
-      This has been disabled as in case of an attack, most hosts do not have a name and we will waste
-      a lot of time doing activities that are not necessary
-    */
-    if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
-      /* We resolve immediately the IP address by queueing on the top of address queue */
-
-      ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
-    }
-
-    if(icmp)
-      icmp->lua(ip.isIPv4(), vm);
-  }
 
   lua_push_str_table_entry(vm, "name",
 			   get_name(buf, sizeof(buf), false));
@@ -489,19 +475,28 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
 
   if(host_details) {
-    lua_push_int_table_entry(vm, "totalActivity", duration);
-    if(info) lua_push_str_table_entry(vm, "info", info);
-    lua_push_float_table_entry(vm, "latitude", latitude);
-    lua_push_float_table_entry(vm, "longitude", longitude);
-    lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
-    lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
-    lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
-    lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
-    lua_push_int_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
-    lua_push_int_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
-    lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
+    /*
+      This has been disabled as in case of an attack, most hosts do not have a name and we will waste
+      a lot of time doing activities that are not necessary
+    */
+    if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
+      /* We resolve immediately the IP address by queueing on the top of address queue */
 
+      ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
+    }
+
+    if(icmp)
+      icmp->lua(ip.isIPv4(), vm);
+  }
+
+  /* TCP stats */
+  if(host_details) {
     lua_push_int_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
+
+    lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
+
     lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 			      (tcpPacketStats.pktRetr
 			       || tcpPacketStats.pktOOO
@@ -509,9 +504,33 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
     lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
     lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-    lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
-    lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
-    lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
+
+  } else {
+    /* Limit tcp information to anomalies when host_details aren't required */
+    if(tcpPacketStats.pktRetr > 0)
+      lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
+    if(tcpPacketStats.pktOOO > 0)
+      lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
+    if(tcpPacketStats.pktLost)
+      lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
+  }
+
+  if(host_details) {
+    lua_push_int_table_entry(vm, "totalActivity", duration);
+
+    if(info) lua_push_str_table_entry(vm, "info", info);
+
+    lua_push_float_table_entry(vm, "latitude", latitude);
+    lua_push_float_table_entry(vm, "longitude", longitude);
+    lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
+
+    lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
+    lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
+
+    lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
 
     lua_push_int_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
     lua_push_int_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());

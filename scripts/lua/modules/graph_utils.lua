@@ -19,6 +19,7 @@ local top_rrds = {
    {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
    {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo")},
    {rrd="tcp_retransmissions.rrd",     label=i18n("graphs.tcp_packets_retr")},
+   {rrd="tcp_retr_ooo_lost.rrd",       label=i18n("graphs.tcp_retr_ooo_lost")},
    {separator=1},
    {rrd="tcp_syn.rrd",                 label=i18n("graphs.tcp_syn_packets")},
    {rrd="tcp_synack.rrd",              label=i18n("graphs.tcp_synack_packets")},
