@@ -148,6 +148,12 @@ end
 
 -- #################################################################
 
+local function validateOnOff(mode)
+   local modes = {"on", "off"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateMode(mode)
    local modes = {"all", "local", "remote"}
 
@@ -837,8 +843,8 @@ local known_parameters = {
    ["ifSpeed"]                 =  validateEmptyOr(validateNumber), -- interface speed
    ["scaling_factor"]          =  validateEmptyOr(validateNumber), -- interface scaling factor
    ["drop_host_traffic"]       =  validateBool,                  -- to drop an host traffic
-   ["lifetime_limited"]        =  validateEmpty,                 -- set if user should have a limited lifetime
-   ["lifetime_unlimited"]      =  validateEmpty,                 -- set if user should have an unlimited lifetime
+   ["lifetime_limited"]        =  validateEmptyOr(validateOnOff), -- set if user should have a limited lifetime
+   ["lifetime_unlimited"]      =  validateEmptyOr(validateOnOff), -- set if user should have an unlimited lifetime
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
