@@ -56,7 +56,7 @@ function getParams(url) {
 }
 
 /* adds a CSS style to replace the / in the breadcrumb */
-var style = $('<style>#search-criteria:before {content:"Observation period:";}</style>');
+var style = $('<style>#search-criteria:before {content:"]] print(i18n("db_explorer.observation_period")) print[[:";}</style>');
 $('html > head').append(style);
 function addObservationPeriodToBreadCrumb(params_url, breadcrumb_id){
   var params = getParams(params_url);
@@ -148,7 +148,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
       // alternatively, we ajax data to the dropdown menu
       } else {
 	$('#' + select_id).parent().closest('div').show();
-	$('<option value="noaction"> Select saved...</option>').appendTo('#' + select_id);
+	$('<option value="noaction"> ]] i18n("db_explorer.selected_saved") print[[...</option>').appendTo('#' + select_id);
 	$.each(data, function(key, value){
 	  if (key.split(',').length == 1){
 	    var option_data = '<option value="' + key + '"> ' + value + '</option>';
@@ -283,7 +283,7 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 	print [[</div>]]
 	  if interface.isPacketInterface() then
        print[[ <div class='col-md-2'>
-	       Extract pcap: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
+	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
 	       </div>]]
 	  end
 
@@ -334,7 +334,7 @@ print[[
     event.preventDefault();
     var perror = function(msg){
       alert("Request failed: " + msg);
-      $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html("<small>Request failed.</small>");
+      $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html("<small>]] print(i18n("db_explorer.request_failed")) print[[.</small>");
     };
 
     $.ajax({type: 'GET', url: "]] print(pcap_request_url) print [[",
@@ -344,7 +344,7 @@ print[[
 	if (data["result"] === "KO"){
 	  perror(data["description"]);
 	} else if (data["result"] == "OK"){
-	  $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('<small>OK, request sent.</small>');
+	  $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('<small>]] print(i18n("db_explorer.ok_request_sent")) print[[.</small>');
 	} else { alert('Unknown response.'); }
       },
       error: function() {
@@ -361,8 +361,8 @@ else -- either the nbox integration is disabled or the user doesn't have admin p
   {
      event.preventDefault();
      $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html(
-	 "<small>nBox integration is disabled. <br>" +
-	 " Enable it via <a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> preferences</a>.</small>");
+	 "<small>]] print(i18n("db_explorer.nbox_disabled")) print[[. <br>" +
+	 ' ]] print(i18n("db_explorer.enable_it_via", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua", icon="<i class=\"fa fa-flask\"></i>"})) print[[ .</small>');
      });
      ]]
   end
@@ -432,12 +432,12 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
     <div class="form-group">
       <div class='col-md-3'>
 	<form name="top_talkers_faves">
-	<i class="fa fa-heart"></i> &nbsp;talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
+	<i class="fa fa-heart"></i> &nbsp;talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
 	<select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
 	</select>
       </div>
       <div class='col-md-6'>
-	 <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
+	 <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
 	<select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
 	</select>
 	</form>
@@ -470,16 +470,16 @@ var refreshBreadCrumbInterface = function(){
 
 var refreshBreadCrumbHost = function(host){
   emptyBreadCrumb();
-  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</a></li>');
 
   // append a pair of li to the breadcrumb: the first is shown if the host has not been added to the favourites,
   // the second is shown if it has been added...
 
   // first pair: shown if the host has not been favorited
-  $("#bc-talkers").append('<li class="bc-item-add talker">' + host + ' talkers <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-add talker">' + host + ' talkers <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a> </li>');
 
   // second pair: shown if the host has been favorited
-  $("#bc-talkers").append('<li class="bc-item-remove talker">' + host + ' talkers <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-remove talker">' + host + ' talkers <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="]] print(i18n("db_explorer.unsave")) print[["></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_talkers_talker > option[value=\'' + host + '\']').length == 0){
@@ -524,11 +524,11 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
     bc_talkers_li_text = '<a onclick="populateAppsPerHostsPairTable(\'' + peer1 + '\',\'' + peer2 + '\');">' + bc_talkers_li_text + '</a>';
   }
 
-  $("#bc-talkers").append('<li class="bc-item-add host-pair">' + bc_talkers_li_text + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Save"></i></a></li>');
+  $("#bc-talkers").append('<li class="bc-item-add host-pair">' + bc_talkers_li_text + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a></li>');
   $('#historical-container').attr("peer", peer2);
 
   // second li: shown if the pair has not been favorited
-  $("#bc-talkers").append('<li class="bc-item-remove host-pair">' + bc_talkers_li_text + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Unsave"></i></a></li>');
+  $("#bc-talkers").append('<li class="bc-item-remove host-pair">' + bc_talkers_li_text + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="]] print(i18n("unsave")) print[["></i></a></li>');
 
   // check which li has to be shown, depending on the content of a dropdown menu
   if($('#top_talkers_host_pairs > option[value=\'' + peer1 + ',' + peer2 + '\']').length == 0){
@@ -547,7 +547,7 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
 
   // finally add a possible l7 protocol indication
   if (typeof l7_proto_id !== "undefined"){
-     $("#bc-talkers").append('<li>Application flows</li>');
+     $("#bc-talkers").append('<li>]] print(i18n("db_explorer.application_flows")) print[[</li>');
   }
 
   addObservationPeriodToBreadCrumb(']] print(interface_talkers_url_params) print[[', '#bc-talkers');
@@ -581,18 +581,18 @@ var populateInterfaceTopTalkersTable = function(){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
-	  label_td.append('&nbsp;<a onclick="populateHostTopTalkersTable(\'' + addr +'\');"><i class="fa fa-pie-chart" title="Talkers with this host"></i></a>');
+	  label_td.append('&nbsp;<a onclick="populateHostTopTalkersTable(\'' + addr +'\');"><i class="fa fa-pie-chart" title="]] print(i18n("db_explorer.talkers_with_this_host")) print[["></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Host Name",     field: "column_label",         sortable: true},
-	  {title: "IP Address",    field: "column_addr",          sortable:true, hidden: false},
-	  {title: "Traffic Sent", field: "column_bytes_sent",     sortable: true,css: {textAlign:'right'}},
-	  {title: "Traffic Received", field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Traffic", field: "column_bytes",         sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets", field: "column_packets",       sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows",         field: "column_flows",         sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.host_name")) print[[",     field: "column_label",         sortable: true},
+	  {title: "]] print(i18n("ip_address")) print[[",    field: "column_addr",          sortable:true, hidden: false},
+	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[", field: "column_bytes_sent",     sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[", field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes",         sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.total_packets")) print[[", field: "column_packets",       sortable: true, css: {textAlign:'right'}},
+	  {title: "]] print(i18n("flows")) print[[",         field: "column_flows",         sortable: true, css: {textAlign:'right'}}
 	]
     });
   }
