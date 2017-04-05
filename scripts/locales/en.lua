@@ -37,6 +37,19 @@ local  en = {
    graphs = {
       arp_requests = "ARP Requests",
       arp_replies = "ARP Replies",
+      packet_drops = "Packet Drops",
+      active_flows = "Active Flows",
+      active_hosts = "Active Hosts",
+      active_devices = "Active Devices",
+      active_http_servers = "Active HTTP Servers",
+      zmq_received_flows = "ZMQ Received Flows",
+      tcp_packets_lost = "TCP Packets Lost",
+      tcp_packets_ooo = "TCP Packets Out-Of-Order",
+      tcp_packets_retr = "TCP Retransmitted Packets",
+      tcp_syn_packets = "TCP SYN Packets",
+      tcp_synack_packets = "TCP SYN+ACK Packets",
+      tcp_finack_packets = "TCP FIN+ACK Packets",
+      tcp_rst_packets = "TCP RST Packets",
    },
 
    traffic_report = {
