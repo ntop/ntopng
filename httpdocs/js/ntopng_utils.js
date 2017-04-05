@@ -96,7 +96,6 @@ function fbits(bits) {
     var sizes = ['bps', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits <= 0) return '0';
     var bits_log1000 = Math.log(bits) / Math.log(1000)
-    console.log(bits)
     var i = parseInt(Math.floor(bits_log1000));
     if (i < 0 || isNaN(i)) {
 	i = 0;

@@ -20,6 +20,7 @@ local  en = {
    clone = "Clone",
    from = "from",
    protocol = "Protocol",
+   port = "Port",
    max_rate = "Max Rate",
    duration = "Duration",
    traffic = "Traffic",
@@ -50,6 +51,13 @@ local  en = {
       tcp_synack_packets = "TCP SYN+ACK Packets",
       tcp_finack_packets = "TCP FIN+ACK Packets",
       tcp_rst_packets = "TCP RST Packets",
+      average_traffic = "Average Traffic/sec",
+      top_senders = "Top Senders",
+      top_receivers = "Top Receivers",
+      top_profiles = "Top Profiles",
+      senders = "Senders",
+      receivers = "Receivers",
+      all_protocols = "All Protocols",
    },
 
    traffic_report = {
@@ -69,7 +77,39 @@ local  en = {
 
    report = {
       period = "Interval",
-      date = "%{month}-%{day}-%{year}"
+      begin_date_time = "Begin Date/Time",
+      end_date_time = "End Date/Time",
+      date = "%{month}-%{day}-%{year}",
+      generate = "Generate",
+      invalid_begin_date = "Invalid Begin Date",
+      please_check_format = "please check its format",
+      please_choose_valid = "please choose a valid begin/end date and time",
+      invalid_begin_end = "Invalid Begin/End",
+      invalid_begin = "Invalid Begin",
+      please_choose_valid_date_and_time = "please choose a valid date and time",
+      invalid_to = "Invalid To",
+      traffic_report = "Traffic Report",
+      starting = "Starting",
+      network_interface = "Network Interface",
+      report_for_subject = "Report - %{num_min} - for %{subject} starting %{dt}",
+      filter_report = "Filter Report",
+      toggle_all = "Toggle All",
+      submit_filter = "Submit Filter",
+      application_breakdown = "Application Breakdown",
+      local_networks = "Local Networks",
+      local_remote = "Local/Remote",
+      remote_local = "remote/local",
+      total_traffic = "Total Traffic",
+      applications = "Applications",
+      top_talkers = "Top Talkers",
+      top_countries = "Top Countries",
+      top_local_hosts = "Top Local Hosts",
+      top_remote_hosts = "Top Remote Hosts",
+      top_local_os = "Top Local OS",
+      top_non_local_os = "Top Non-Local OS",
+      top_asn = "Top ASN",
+      top_networks = "Top Networks",
+      reports_professional_only = "Reports are only available in the Professional version",
    },
 
    shaping = {
@@ -200,6 +240,9 @@ local  en = {
       summary_n_targets = "Total Targets",
       summary_cli2srv = "Total Origin to Target Traffic",
       summary_srv2cli = "Total Target to Origin Traffic"
+   },
+
+   db_explorer = {
    },
 
    traffic_profiles = {
