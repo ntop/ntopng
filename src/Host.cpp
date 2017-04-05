@@ -74,6 +74,7 @@ Host::~Host() {
   if(user_activities) delete user_activities;
   if(ifa_stats)       delete ifa_stats;
   if(symbolic_name)   free(symbolic_name);
+  if(continent)       free(continent);
   if(country)         free(country);
   if(city)            free(city);
   if(asname)          free(asname);
@@ -153,7 +154,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
-  asn = 0, asname = NULL, country = NULL, city = NULL;
+  asn = 0, asname = NULL, continent = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
@@ -237,9 +238,10 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     if(asname) { free(asname); asname = NULL; }
     ntop->getGeolocation()->getAS(&ip, &asn, &asname);
 
-    if(country) { free(country); country = NULL; }
-    if(city)    { free(city); city = NULL;       }
-    ntop->getGeolocation()->getInfo(&ip, &country, &city, &latitude, &longitude);
+    if(continent) { free(continent); continent = NULL; }
+    if(country)   { free(country);   country = NULL; }
+    if(city)      { free(city);      city = NULL;       }
+    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
     if(localHost || systemHost) {
 #ifdef NTOPNG_PRO
@@ -469,6 +471,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "asname", asname);
   lua_push_str_table_entry(vm, "os", os);
 
+
+  lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
   lua_push_str_table_entry(vm, "country", country ? country : (char*)"");
   lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
   lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
@@ -803,6 +807,7 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
+  if(continent)           json_object_object_add(my_object, "continent", json_object_new_string(continent));
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
@@ -921,6 +926,7 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "continent", &obj))      { if(continent) free(continent); continent = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }

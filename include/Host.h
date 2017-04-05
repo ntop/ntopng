@@ -34,7 +34,7 @@ typedef struct {
 class Host : public GenericHost {
  private:
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *info;
+  char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char * old_sites;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
@@ -123,6 +123,7 @@ class Host : public GenericHost {
   inline Mac* getMac()                         { return(mac);              }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
+  inline char* get_continent()                 { return(continent);        }
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
