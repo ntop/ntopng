@@ -570,8 +570,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     processDetectedProtocol();
     detection_completed = true;
   } else if(forceDetection
-	    || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-		&& (cli_host != NULL) && (srv_host != NULL))
+	    || (get_packets() >= NDPI_MIN_NUM_PACKETS)
 	    || (!iface->is_ndpi_enabled())
 	    || iface->isSampledTraffic()
 	    ) {
