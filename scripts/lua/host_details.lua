@@ -1257,10 +1257,23 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 ]]
 end
 
-	print('<tr><th>Request vs Reply</th><td colspan=5>')
+	print('<tr><th rowspan=2>Request vs Reply</th><th colspan=2>Ratio<th><th>Breakdown</th></tr>')
+        local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
+        local dns_ratio_str = string.format("%.2f", dns_ratio)
+
+        if(dns_ratio < 0.9) then
+          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>" 
+        end
+
+	print('<tr><td align=right>'..  dns_ratio_str ..'</td><td colspan=3>')
 	breakdownBar(host["dns"]["sent"]["num_queries"], "Queries", host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], "Replies", 30, 70)
-	print('</td></tr>\n')
-        print("</table>\n")
+
+print [[
+	</td></tr>
+        </table>
+       <small><b>NOTE:</b><br>Ideally the request vs reply DNS ratio should be 1 (one reply per request). When much lower than that then there are issues worth to be investigated as it means that the number of replies received is much lower than expected and this can indicate that we are using unresponsive DNS resolvers or that they are misconfigured (e.g. they have been move to another IP).
+</small>
+]]
       end
    elseif(page == "http") then
       if(http ~= nil) then
