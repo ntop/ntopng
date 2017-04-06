@@ -207,7 +207,7 @@ class Flow : public GenericHashEntry {
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
-  void updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id);
+  bool updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id);
 #endif
   void dumpFlowAlert();
   bool skipProtocolFamilyCategorization(u_int16_t proto_id);

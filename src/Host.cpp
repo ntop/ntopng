@@ -1229,6 +1229,7 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   ShaperDirection_t *sd = NULL;
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
+  bool category = false; /* Default: no category */
 
   if (policy) {
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
@@ -1238,17 +1239,18 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
       if(sd->protocol_shapers.enabled) {
         bytes = sd->protocol_shapers.bytes_quota;
         secs = sd->protocol_shapers.secs_quota;
-        *is_category = false;
+        category = false;
       } else if(sd->category_shapers.enabled) {
         bytes = sd->category_shapers.bytes_quota;
         secs = sd->category_shapers.secs_quota;
-        *is_category = true;
+        category = true;
       }
     }
   }
 
   *bytes_quota = bytes;
   *secs_quota = secs;
+  *is_category = category;
 }
 
 bool Host::isAboveQuota(u_int16_t protocol) {
