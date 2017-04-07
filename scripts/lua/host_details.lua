@@ -1097,21 +1097,6 @@ print [[
          var horizon = null;
 	 var rrdserver = null;
 
-         function formatBytes(bytes, precision) {
-            var sizes = [1, 1024, 1024*1024, 1024*1024*1024, 1024*1024*1024*1024];
-            var labels = [" B", " KB", " MB", " GB", " TB"];
-            var value = Math.abs(bytes);
-            var i=0;
-
-            if (value >= 1) {
-               for(; i<sizes.length && value >= sizes[i]; i++) ;
-               i--;
-
-               value = bytes / sizes[i];
-            }
-            return value.toFixed(precision) + labels[i];
-         }
-
 	 function onChangeStep(control) {
 	    var newvalue = control.value;
 	    
@@ -1179,7 +1164,7 @@ print [[
 			.data(metrics)
 			.enter().append("div", ".bottom")
 			.attr("class", "horizon")
-			.call(horizon.format(function(x) { return formatBytes(x,2); }));
+			.call(horizon.format(function(x) { return bytesToSize(x); }));
 
 		     // bottom axis
 		     d3.select("#useractivity")

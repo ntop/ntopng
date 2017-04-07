@@ -192,7 +192,7 @@ function bytesToSize(bytes) {
     else if(bytes >= terabyte)
 	return (bytes / terabyte).toFixed(precision) + ' TB';
     else
-	return bytes + ' B';
+	return bytes + ' Bytes';
 }
 
 String.prototype.capitalizeSingleWord = function() {

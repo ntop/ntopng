@@ -43,13 +43,6 @@ if (_ifstats.iface_vlan) then print("var iface_vlan = true;") else print("var if
 
 print [[
 
-function b2s(bytes) {
-      var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-      if (bytes == 0) return 'n/a';
-      var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-      return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
-   };
-
 function sankey() {
 
   var w = $("#chart").width();
@@ -60,7 +53,7 @@ function sankey() {
       height = h - margin.top - margin.bottom;
 
   var formatNumber = d3.format(",.0f"),
-    format = function(sent, rcvd) { return "[sent: "+b2s(sent)+", rcvd: "+b2s(rcvd)+"]"; },
+    format = function(sent, rcvd) { return "[sent: " + bytesToVolume(sent) + ", rcvd: " + bytesToVolume(rcvd)+"]"; },
     color = d3.scale.category20();
 
 ]]

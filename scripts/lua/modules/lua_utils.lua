@@ -534,7 +534,7 @@ function bytesToSize(bytes)
 
       bytes = tonumber(bytes)
       if((bytes >= 0) and (bytes < kilobyte)) then
-	 return round(bytes, precision) .. " B";
+	 return round(bytes, precision) .. " Bytes";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
 	 return round(bytes / kilobyte, precision) .. ' KB';
 	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
@@ -544,7 +544,7 @@ function bytesToSize(bytes)
 	 elseif(bytes >= terabyte) then
 	 return round(bytes / terabyte, precision) .. ' TB';
       else
-	 return round(bytes, precision) .. ' B';
+	 return round(bytes, precision) .. ' Bytes';
       end
    end
 end
