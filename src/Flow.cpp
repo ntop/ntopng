@@ -931,9 +931,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
       if(trafficProfile)
 	trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 
-      update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-
-      recheckQuota();
+      /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
+       pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp */
+      if(!iface->is_bridge_interface())
+	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       }
 #endif
@@ -1151,7 +1152,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
 #ifdef NTOPNG_PRO
 
-void Flow::update_pools_stats(struct timeval *tv,
+void Flow::update_pools_stats(const struct timeval *tv,
 				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 				u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
   if(!diff_sent_packets && !diff_rcvd_packets)
@@ -1416,7 +1417,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
-    lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
+#ifdef NTOPNG_PRO
+    if(iface->is_bridge_interface())
+      lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
+#endif
+
     lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
 
     if(protocol == IPPROTO_TCP) {
@@ -1860,9 +1865,11 @@ json_object* Flow::flow2json() {
   if(isSSL() && protos.ssl.certificate)
     json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
+#ifdef NTOPNG_PRO
   if(iface->is_bridge_interface())
     json_object_object_add(my_object, "verdict.pass",
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
+#endif
 
   return(my_object);
 }
@@ -2445,8 +2452,12 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
+#ifdef NTOPNG_PRO
+
 bool Flow::isPassVerdict() {
   if(!passVerdict) return(passVerdict);
+
+  recheckQuota();
 
   if(cli_host && srv_host)
     return((!quota_exceeded)
@@ -2455,6 +2466,8 @@ bool Flow::isPassVerdict() {
   else
     return(true);
 }
+
+#endif
 
 /* *************************************** */
 
@@ -2560,8 +2573,6 @@ void Flow::updateFlowShapers() {
   srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
 
   passVerdict = (cli2srv_verdict && srv2cli_verdict);
-
-  recheckQuota();
 
 #ifdef SHAPER_DEBUG
   {

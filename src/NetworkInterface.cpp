@@ -1447,6 +1447,18 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 					   flow->get_detected_protocol_name(buf, sizeof(buf)),
 					   shaper_ingress, shaper_egress);
 	      pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
+
+	      if(pass_verdict) {
+		/* Update pools stats inline only for bridge interfaces! */
+		if(src2dst_direction)
+		  flow->update_pools_stats(when,
+					   1, rawsize, /* sent-only */
+					   0, 0);
+		else
+		  flow->update_pools_stats(when,
+					   0, 0,
+					   1, rawsize /* received-only */);
+	      }
 	    }
 	}
     }

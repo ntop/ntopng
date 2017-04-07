@@ -236,8 +236,10 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlags()        { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
+#ifdef NTOPNG_PRO
   bool isPassVerdict();
   void setDropVerdict()         { passVerdict = false; };
+#endif
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   char* get_username(bool client);
@@ -333,7 +335,7 @@ class Flow : public GenericHashEntry {
   char* print(char *buf, u_int buf_len);
   void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);
 #ifdef NTOPNG_PRO
-  void update_pools_stats(struct timeval *tv,
+  void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
 #endif

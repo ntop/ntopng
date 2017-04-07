@@ -171,7 +171,8 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
     counters[proto_id]->packets.sent += sent_packets, counters[proto_id]->bytes.sent += sent_bytes;
     counters[proto_id]->packets.rcvd += rcvd_packets, counters[proto_id]->bytes.rcvd += rcvd_bytes;
 
-    if((when != 0) && (counters[proto_id]->last_epoch_update != when)) {
+    if((when != 0)
+       && (when - counters[proto_id]->last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())) {
       counters[proto_id]->duration += ntop->getPrefs()->get_housekeeping_frequency(),
 	counters[proto_id]->last_epoch_update = when;
     }
