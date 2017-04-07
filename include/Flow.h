@@ -207,7 +207,7 @@ class Flow : public GenericHashEntry {
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
-  bool updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id);
+  bool updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shaper_id, u_int8_t *egress_shaper_id);
 #endif
   void dumpFlowAlert();
   bool skipProtocolFamilyCategorization(u_int16_t proto_id);
@@ -332,6 +332,11 @@ class Flow : public GenericHashEntry {
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
   void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);
+#ifdef NTOPNG_PRO
+  void update_pools_stats(struct timeval *tv,
+			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
+			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
+#endif
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,

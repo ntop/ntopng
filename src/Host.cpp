@@ -1212,7 +1212,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [%s@%u][ndpiProtocol=%d/%s] => [policer=%p][shaper_id=%d]%s",
 				 isIngress ? "INGRESS" : "EGRESS",
 				 ip.print(buf, sizeof(buf)), vlan_id,
-				 ndpiProtocol.protocol,
+				 ndpiProtocol.app_protocol,
 				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
 				 policy ? policy : NULL, ret, sd ? "" : " [DEFAULT]");
   }
