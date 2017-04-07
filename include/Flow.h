@@ -238,8 +238,9 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
 #ifdef NTOPNG_PRO
   bool isPassVerdict();
-  void setDropVerdict()         { passVerdict = false; };
 #endif
+  void setDropVerdict()         { passVerdict = false; };
+
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   char* get_username(bool client);
