@@ -14,11 +14,11 @@ active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 info = ntop.getInfo()
-print("<hr /><h2>"..info["product"].." Runtime Status</h2>")
+print("<hr /><h2>"..info["product"].." "..i18n("about.runtime_status").."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
-  print("<tr><th nowrap>System Id</th><td>".. info["pro.systemid"].."</td></tr>\n")
+   print("<tr><th nowrap>"..i18n("about.system_id").."</th><td>".. info["pro.systemid"].."</td></tr>\n")
 end
 
 vers = string.split(info["version.git"], ":")
@@ -28,7 +28,7 @@ else
    ntopng_git_url = info["version"]
 end
 
-print("<tr><th nowrap>Version</th><td>"..ntopng_git_url)
+print("<tr><th nowrap>"..i18n("about.version").."</th><td>"..ntopng_git_url)
 
 if(info["pro.release"] == false) then
    print(" - Community")
@@ -42,9 +42,9 @@ end
 
 print(" Edition</td></tr>\n")
 
-print("<tr><th nowrap>Platform</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
-print("<tr><th nowrap>Startup Line</th><td>ntopng "..info["command_line"].."</td></tr>\n")
-print("<tr><th nowrap>Last Log Trace</th><td><code>\n")
+print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
+print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>ntopng "..info["command_line"].."</td></tr>\n")
+print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
 for i=1,32 do
     msg = ntop.listIndexCache("ntopng.trace", i)

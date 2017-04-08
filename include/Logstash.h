@@ -40,7 +40,7 @@ class Logstash {
 
  public:
   Logstash();
-  ~Logstash();
+  virtual ~Logstash();
   void checkPointCounters(bool drops_only) {
     if(!drops_only)
       checkpointExportedFlows = elkExportedFlows;

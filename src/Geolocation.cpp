@@ -122,7 +122,7 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
 
 /* *************************************** */
 
-void Geolocation::getInfo(IpAddress *addr, char **country_code, char **city, float *latitude, float *longitude) {
+void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude) {
 #ifdef HAVE_GEOIP
   GeoIPRecord *geo = NULL;
   struct ipAddress *ip = addr->getIP();
@@ -143,6 +143,7 @@ void Geolocation::getInfo(IpAddress *addr, char **country_code, char **city, flo
   }
 
   if(geo != NULL) {
+    *continent_code = geo->continent_code ? strdup(geo->continent_code) : NULL;
     *country_code = geo->country_code ? strdup(geo->country_code) : NULL;
     *city = geo->city ? strdup(geo->city) : NULL;
     *latitude = geo->latitude, *longitude = geo->longitude;

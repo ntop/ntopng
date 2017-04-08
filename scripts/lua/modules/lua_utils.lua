@@ -243,13 +243,38 @@ end
 
 -- ##############################################
 
-function shortenString(name)
-   max_len = 24
+function shortenString(name, max_len)
+   max_len = max_len or 24
     if(string.len(name) < max_len) then
       return(name)
    else
       return(string.sub(name, 1, max_len).."...")
    end
+end
+
+-- ##############################################
+
+--
+-- Returns indexes to be used for string shortening. The portion of to_shorten between
+-- middle_start and middle_end will be inside the bounds.
+--
+--    to_shorten: string to be shorten
+--    middle_start: middle part begin index
+--    middle_end: middle part begin index
+--    maxlen: maximum length
+--
+function shortenInTheMiddle(to_shorten, middle_start, middle_end, maxlen)
+  local maxlen = maxlen - (middle_end - middle_start)
+
+  if maxlen <= 0 then
+    return 0, string.len(to_shorten)
+  end
+
+  local left_slice = math.max(middle_start - math.floor(maxlen / 2), 1)
+  maxlen = maxlen - (middle_start - left_slice - 1)
+  local right_slice = math.min(middle_end + maxlen, string.len(to_shorten))
+
+  return left_slice, right_slice
 end
 
 -- ##############################################
@@ -350,11 +375,11 @@ alert_entity_keys = {
 
 alert_functions_description = {
     ["active"]  = "Active host time (seconds)",
-    ["bytes"]   = "Bytes delta (sent + received)",
-    ["dns"]     = "DNS traffic delta bytes (sent + received)",
+    ["bytes"]   = "Layer 2 bytes delta (sent + received)",
+    ["dns"]     = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
     ["idle"]    = "Idle time since last packet sent (seconds)",	
     ["packets"] = "Packets delta (sent + received)",
-    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
+    ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
     ["throughput"]   = "Average throughput (sent + received) [Mbps]",
 }
 
@@ -509,7 +534,7 @@ function bytesToSize(bytes)
 
       bytes = tonumber(bytes)
       if((bytes >= 0) and (bytes < kilobyte)) then
-	 return round(bytes, precision) .. " B";
+	 return round(bytes, precision) .. " Bytes";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
 	 return round(bytes / kilobyte, precision) .. ' KB';
 	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
@@ -519,7 +544,7 @@ function bytesToSize(bytes)
 	 elseif(bytes >= terabyte) then
 	 return round(bytes / terabyte, precision) .. ' TB';
       else
-	 return round(bytes, precision) .. ' B';
+	 return round(bytes, precision) .. ' Bytes';
       end
    end
 end
@@ -534,15 +559,15 @@ function bitsToSizeMultiplier(bits, multiplier)
   terabit = gigabit * multiplier;
 
   if((bits >= kilobit) and (bits < megabit)) then
-    return round(bits / kilobit, precision) .. ' Kbit';
+    return round(bits / kilobit, precision) .. ' kbit/s';
   elseif((bits >= megabit) and (bits < gigabit)) then
-    return round(bits / megabit, precision) .. ' Mbit';
+    return round(bits / megabit, precision) .. ' Mbit/s';
   elseif((bits >= gigabit) and (bits < terabit)) then
-    return round(bits / gigabit, precision) .. ' Gbit';
+    return round(bits / gigabit, precision) .. ' Gbit/s';
   elseif(bits >= terabit) then
-    return round(bits / terabit, precision) .. ' Tbit';
+    return round(bits / terabit, precision) .. ' Tbit/s';
   else
-    return round(bits, precision) .. ' bps';
+    return round(bits, precision) .. ' bit/s';
   end
 end
 
@@ -2656,7 +2681,7 @@ end
 
 -- Note: the base unit is Kbit/s here
 FMT_TO_DATA_RATES_KBPS = {
-   ["k"] = {label="Kbit/s", value=1},
+   ["k"] = {label="kbit/s", value=1},
    ["m"] = {label="Mbit/s", value=1000},
    ["g"] = {label="Gbit/s", value=1000*1000},
 }
@@ -2929,13 +2954,17 @@ function paramsPairsDecode(params, strict_mode)
    return res
 end
 
+function isBridgeInterface(ifstats)
+  return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+end
+
 function isCaptivePortalActive(ifstats)
   if not ntop.isEnterprise() then
     return false
   end
 
   local ifstats = ifstats or interface.getStats()
-  local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+  local is_bridge_iface = isBridgeInterface(ifstats)
   local is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
 
   return is_bridge_iface and is_captive_portal_enabled

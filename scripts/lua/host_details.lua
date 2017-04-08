@@ -144,6 +144,7 @@ if(host == nil) then
 else
    sendHTTPHeader('text/html; charset=iso-8859-1')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+   print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    --   Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -289,11 +290,13 @@ else
    end
 end
 
-if(info["version.enterprise_edition"] and host['localhost']) then
-   if(page == "snmp") then
-      print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
-   elseif interface.isPcapDumpInterface() == false then
-      print("<li><a href=\""..url.."&page=snmp\">SNMP</a></li>")
+if host["localhost"] == true then
+   if(ntop.isEnterprise()) then
+      if(page == "snmp") then
+	 print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
+      elseif interface.isPcapDumpInterface() == false then
+	 print("<li><a href=\""..url.."&page=snmp\">SNMP</a></li>")
+      end
    end
 end
 
@@ -428,7 +431,7 @@ if((page == "overview") or (page == nil)) then
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
       
       if(host["local_network_name"] ~= nil) then
-	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
+	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A>&nbsp;]")
       end
 
       if((host["city"] ~= nil) and (host["city"] ~= "")) then
@@ -577,6 +580,17 @@ end
       if(host["bytes.rcvd"] > 0) then
 	 print('<tr><th class="text-left">Received Distribution</th><td colspan=5><div class="pie-chart" id="sizeRecvDistro"></div></td></tr>')
       end
+      if (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0) then
+	 print('<tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
+      end
+      if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
+         local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
+
+         if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
+            print('<tr><th class="text-left">ARP Distribution</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
+         end
+      end
+      
       hostinfo2json(host_info)
       print [[
       </table>
@@ -591,6 +605,18 @@ print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]]
 		   do_pie("#sizeRecvDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+	print [[
+		   do_pie("#flagsDistro", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+
+local macinfo = table.clone(host_info)
+macinfo["host"] = host["mac"]
+
+	print [[
+		   do_pie("#arpDistro", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(macinfo) .."}, \"\", refresh); \n")
 	print [[
 
 		}
@@ -836,7 +862,7 @@ elseif((page == "ICMP")) then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th>Packets Sent</th><th>Last Sent Peer</th><th>Packets Received</th><th>Last Rcvd Peer</th><th>Breakdown</th><th>Total</th></tr></thead>
+     <thead><tr><th>ICMP Message</th><th>Last Sent Peer</th><th>Last Rcvd Peer</th><th>Breakdown</th><th style='text-align:right;'>Packets Sent</th><th style='text-align:right;'>Packets Received</th><th style='text-align:right;'>Total</th></tr></thead>
      <tbody id="host_details_icmp_tbody">
      </tbody>
      </table>
@@ -853,14 +879,14 @@ function update_icmp_table() {
     print [[ },
     success: function(content) {
       $('#host_details_icmp_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#h_icmp_tbody').trigger("update");
+      $('#myTable').trigger("update");
     }
   });
 }
 
 update_icmp_table();
 setInterval(update_icmp_table, 5000);
+
 </script>
 
 ]]
@@ -915,7 +941,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
   print('</ul></div></div>')
 
   print [[
-     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <table class="table table-bordered table-striped">
      ]]
 
      print("<thead><tr><th>Application Protocol</th><th>Duration</th><th>Sent</th><th>Received</th><th>Breakdown</th><th colspan=2>Total</th></tr></thead>\n")
@@ -1071,21 +1097,6 @@ print [[
          var horizon = null;
 	 var rrdserver = null;
 
-         function formatBytes(bytes, precision) {
-            var sizes = [1, 1024, 1024*1024, 1024*1024*1024, 1024*1024*1024*1024];
-            var labels = [" B", " KB", " MB", " GB", " TB"];
-            var value = Math.abs(bytes);
-            var i=0;
-
-            if (value >= 1) {
-               for(; i<sizes.length && value >= sizes[i]; i++) ;
-               i--;
-
-               value = bytes / sizes[i];
-            }
-            return value.toFixed(precision) + labels[i];
-         }
-
 	 function onChangeStep(control) {
 	    var newvalue = control.value;
 	    
@@ -1153,7 +1164,7 @@ print [[
 			.data(metrics)
 			.enter().append("div", ".bottom")
 			.attr("class", "horizon")
-			.call(horizon.format(function(x) { return formatBytes(x,2); }));
+			.call(horizon.format(function(x) { return bytesToSize(x); }));
 
 		     // bottom axis
 		     d3.select("#useractivity")
@@ -1231,10 +1242,23 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 ]]
 end
 
-	print('<tr><th>Request vs Reply</th><td colspan=5>')
+	print('<tr><th rowspan=2>Request vs Reply</th><th colspan=2>Ratio<th><th>Breakdown</th></tr>')
+        local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
+        local dns_ratio_str = string.format("%.2f", dns_ratio)
+
+        if(dns_ratio < 0.9) then
+          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>" 
+        end
+
+	print('<tr><td align=right>'..  dns_ratio_str ..'</td><td colspan=3>')
 	breakdownBar(host["dns"]["sent"]["num_queries"], "Queries", host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], "Replies", 30, 70)
-	print('</td></tr>\n')
-        print("</table>\n")
+
+print [[
+	</td></tr>
+        </table>
+       <small><b>NOTE:</b><br>Ideally the request vs reply DNS ratio should be 1 (one reply per request). When much lower than that then there are issues worth to be investigated as it means that the number of replies received is much lower than expected and this can indicate that we are using unresponsive DNS resolvers or that they are misconfigured (e.g. they have been move to another IP).
+</small>
+]]
       end
    elseif(page == "http") then
       if(http ~= nil) then
@@ -1615,10 +1639,31 @@ print [[
 </td></tr>
 </table>
 ]]  
-elseif(page == "snmp") then
-if(ntop.isPro()) then
-   print_snmp_report(host_ip, true, ifId)
-end
+elseif(page == "snmp" and ntop.isEnterprise()) then
+   local sys_object_id = true
+   local community = get_snmp_community(host_ip)
+
+   local snmp_devices = get_snmp_devices()
+   if snmp_devices[host_ip] == nil then -- host has not been configured
+
+      local msg = "Host "..host_ip.. " has not been configured as an SNMP device."
+      msg = msg.." Visit page <a href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua'>SNMP</a> to add this host to the list of configured SNMP devices."
+
+      local trying =  "<span id='trying_default_community'> Trying to retrieve host SNMP MIB using the default community '"..community.."'"
+      trying = trying.. " <img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style='vertical-align:text-top;' id=throbber></span>"
+
+      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+      print(trying)
+
+      sys_object_id = get_snmp_value(host_ip, community, "1.3.6.1.2.1.1.2.0", false)
+   end
+
+   if(sys_object_id ~= nil) then
+      print("<script type='text/javascript'>$('#trying_default_community').html(\"Showing SNMP MIB information retrieved using the default community '"..community.."':<br><br>\")</script>")
+      print_snmp_report(host_ip, true)
+   else
+      print("<script type='text/javascript'>$('#trying_default_community').html(\"<div class='alert alert-warning'>Unable to retrieve host SNMP MIB using the default community '"..community.."'.</div>\")</script>")
+   end
 
 elseif(page == "talkers") then
 print("<center>")
@@ -2283,8 +2328,15 @@ end
 end
 
 if (host ~= nil) then
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
+
    print [[ 
    <script>
+
+   $(document).ready(function() {
+      $("#myTable").tablesorter();
+   });
+
   ]]
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")

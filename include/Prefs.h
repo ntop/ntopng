@@ -166,8 +166,8 @@ class Prefs {
   inline char* get_instance_name()                      { return(instance_name); };
   inline int   get_max_num_alerts_per_entity()          { return(max_num_alerts_per_entity); };
   inline int   get_max_num_flow_alerts()                { return(max_num_flow_alerts); };
-  inline int   get_max_num_packets_per_tiny_flow()      { return(max_num_packets_per_tiny_flow); }
-  inline int   get_max_num_bytes_per_tiny_flow()        { return(max_num_bytes_per_tiny_flow); }
+  inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); }
+  inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); }
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };

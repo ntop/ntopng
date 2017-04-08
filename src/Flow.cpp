@@ -570,8 +570,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     processDetectedProtocol();
     detection_completed = true;
   } else if(forceDetection
-	    || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-		&& (cli_host != NULL) && (srv_host != NULL))
+	    || (get_packets() >= NDPI_MIN_NUM_PACKETS)
 	    || (!iface->is_ndpi_enabled())
 	    || iface->isSampledTraffic()
 	    ) {
@@ -728,21 +727,37 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 
 char* Flow::print(char *buf, u_int buf_len) {
   char buf1[32], buf2[32], buf3[32], pbuf[32], tcp_buf[64];
-#ifdef NTOPNG_PRO
-  char shapers[64];
-#endif
-
   buf[0] = '\0';
 
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
+  char shapers[64];
+
+  TrafficShaper *cli2srv_in  = getInterface()->getL7Policer()->getShaper(flowShaperIds.cli2srv.ingress);
+  TrafficShaper *cli2srv_out = getInterface()->getL7Policer()->getShaper(flowShaperIds.cli2srv.egress);
+  TrafficShaper *srv2cli_in  = getInterface()->getL7Policer()->getShaper(flowShaperIds.srv2cli.ingress);
+  TrafficShaper *srv2cli_out = getInterface()->getL7Policer()->getShaper(flowShaperIds.srv2cli.egress);
+
   if(iface->is_bridge_interface()) {
-    snprintf(shapers, sizeof(shapers), "[shapers: cli2srv=%u/%u, srv2cli=%u/%u]",
+    snprintf(shapers, sizeof(shapers),
+	     "[pass_verdict: %s] "
+	     "[shapers: cli2srv=%u/%u, srv2cli=%u/%u] "
+	     "[cli2srv_ingress shaping_enabled: %i max_rate: %lu] "
+	     "[cli2srv_egress shaping_enabled: %i max_rate: %lu] "
+	     "[srv2cli_ingress shaping_enabled: %i max_rate: %lu] "
+	     "[srv2cli_egress shaping_enabled: %i max_rate: %lu] ",
+	     passVerdict ? "PASS" : "DROP",
 	     flowShaperIds.cli2srv.ingress, flowShaperIds.cli2srv.egress,
-	     flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress);
+	     flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress,
+	     cli2srv_in->shaping_enabled(), cli2srv_in->get_max_rate_kbit_sec(),
+	     cli2srv_out->shaping_enabled(), cli2srv_out->get_max_rate_kbit_sec(),
+	     srv2cli_in->shaping_enabled(), srv2cli_in->get_max_rate_kbit_sec(),
+	     srv2cli_out->shaping_enabled(), srv2cli_out->get_max_rate_kbit_sec()
+	     );
   } else
     shapers[0] = '\0';
+
 #endif
 
   tcp_buf[0] = '\0';
@@ -767,7 +782,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 
   snprintf(buf, buf_len,
 	   "%s %s:%u > %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
 #endif
 	   ,
@@ -782,7 +797,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   (isSSL() && protos.ssl.certificate) ? "[" : "",
 	   (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : "",
 	   (isSSL() && protos.ssl.certificate) ? "]" : ""
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   , shapers
 #endif
 	   );
@@ -870,12 +885,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
   int16_t cli_network_id, srv_network_id;
-#ifdef NTOPNG_PRO
-  HostPools *hp;
-  u_int16_t cli_host_pool_id, srv_host_pool_id;
-  ndpi_protocol_category_t master_category_id = getInterface()->get_ndpi_proto_category(ndpiDetectedProtocol.master_protocol);
-  ndpi_protocol_category_t app_category_id = getInterface()->get_ndpi_proto_category(ndpiDetectedProtocol.app_protocol);
-#endif
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
@@ -911,30 +920,22 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
     srv_network_id = srv_host->get_local_network_id();
-#ifdef NTOPNG_PRO
-    cli_host_pool_id = cli_host->get_host_pool();
-    srv_host_pool_id = srv_host->get_host_pool();
-#endif
+
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_packets || diff_rcvd_packets) {
 #ifdef NTOPNG_PRO
-      if(trafficProfile && ntop->getPro()->has_valid_license()) trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
+      if(ntop->getPro()->has_valid_license()) {
 
-      hp = iface->getHostPools();
-      if(hp) {
-        /* Client host */
-	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
-			 diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
-			 diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-        /* Server host */
-	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
-			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
-	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
-			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
-	recheckQuota();
+      if(trafficProfile)
+	trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
+
+      /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
+       pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp */
+      if(!iface->is_bridge_interface())
+	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+
       }
 #endif
 
@@ -1149,6 +1150,47 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
 /* *************************************** */
 
+#ifdef NTOPNG_PRO
+
+void Flow::update_pools_stats(const struct timeval *tv,
+				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
+				u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
+  if(!diff_sent_packets && !diff_rcvd_packets)
+    return; /* Nothing to update */
+
+  HostPools *hp;
+  u_int16_t cli_host_pool_id, srv_host_pool_id;
+  ndpi_protocol_category_t master_category_id = getInterface()->get_ndpi_proto_category(ndpiDetectedProtocol.master_protocol);
+  ndpi_protocol_category_t app_category_id = getInterface()->get_ndpi_proto_category(ndpiDetectedProtocol.app_protocol);
+
+  hp = iface->getHostPools();
+  if(hp) {
+    /* Client host */
+    if(cli_host) {
+      cli_host_pool_id = cli_host->get_host_pool();
+
+      hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
+		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+      hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
+		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+    }
+
+    /* Server host */
+    if(srv_host) {
+      srv_host_pool_id = srv_host->get_host_pool();
+
+      hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
+		       diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
+		       diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+    }
+  }
+}
+
+#endif
+
+/* *************************************** */
+
 bool Flow::equal(u_int8_t *src_eth, u_int8_t *dst_eth,
 		 IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
@@ -1157,6 +1199,7 @@ bool Flow::equal(u_int8_t *src_eth, u_int8_t *dst_eth,
 
   if(cli_host && cli_host->equal(src_eth, _cli_ip)
      && srv_host && srv_host->equal(dst_eth, _srv_ip)
+
      && (_cli_port == cli_port) && (_srv_port == srv_port)) {
     *src2srv_direction = true;
     return(true);
@@ -1374,7 +1417,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
-    lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
+#ifdef NTOPNG_PRO
+    if(iface->is_bridge_interface())
+      lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
+#endif
+
     lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
 
     if(protocol == IPPROTO_TCP) {
@@ -1818,9 +1865,11 @@ json_object* Flow::flow2json() {
   if(isSSL() && protos.ssl.certificate)
     json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
+#ifdef NTOPNG_PRO
   if(iface->is_bridge_interface())
     json_object_object_add(my_object, "verdict.pass",
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
+#endif
 
   return(my_object);
 }
@@ -2004,6 +2053,8 @@ void Flow::addFlowStats(bool cli2srv_direction,
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
   iface->incFlagsStats(flags);
+  if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
+  if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
   
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
@@ -2401,8 +2452,12 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
+#ifdef NTOPNG_PRO
+
 bool Flow::isPassVerdict() {
   if(!passVerdict) return(passVerdict);
+
+  recheckQuota();
 
   if(cli_host && srv_host)
     return((!quota_exceeded)
@@ -2411,6 +2466,8 @@ bool Flow::isPassVerdict() {
   else
     return(true);
 }
+
+#endif
 
 /* *************************************** */
 
@@ -2477,27 +2534,32 @@ void Flow::checkFlowCategory() {
 
 #ifdef NTOPNG_PRO
 
-void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id) {
+bool Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shaper_id, u_int8_t *egress_shaper_id) {
+  bool verdict = true;
+
   if(cli_host && srv_host) {
     TrafficShaper *sa, *sb;
     L7Policer *p = getInterface()->getL7Policer();
 
     if(src2dst_direction) {
-      *a_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol),
-	*b_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol);
+      *ingress_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol),
+	*egress_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol);
+
     } else {
-      *a_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol),
-	*b_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol);
+      *ingress_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol),
+	*egress_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol);
     }
 
     if(p) {
-      sa = p->getShaper(*a_shaper_id), sb = p->getShaper(*b_shaper_id);
+      sa = p->getShaper(*ingress_shaper_id), sb = p->getShaper(*egress_shaper_id);
 
-      passVerdict = ((sa && (sa->shaping_enabled()) && (sa->get_max_rate_kbit_sec() == 0))
-		     || (sb && (sa->shaping_enabled()) && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
+      verdict = ((sa && (sa->shaping_enabled()) && (sa->get_max_rate_kbit_sec() == 0))
+		 || (sb && (sb->shaping_enabled()) && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
     }
   } else
-    *a_shaper_id = *b_shaper_id = PASS_ALL_SHAPER_ID;
+    *ingress_shaper_id = *egress_shaper_id = PASS_ALL_SHAPER_ID;
+
+  return verdict;
 }
 
 /* *************************************** */
@@ -2505,9 +2567,12 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
 #ifdef NTOPNG_PRO
 
 void Flow::updateFlowShapers() {
-  updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress),
-    updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
-  recheckQuota();
+  bool cli2srv_verdict, srv2cli_verdict;
+
+  cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
+  srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
+
+  passVerdict = (cli2srv_verdict && srv2cli_verdict);
 
 #ifdef SHAPER_DEBUG
   {
@@ -2526,11 +2591,13 @@ void Flow::recheckQuota() {
 
   if(cli_host && srv_host) {
     /* Client quota check */
-    above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.app_protocol) || cli_host->isAboveQuota(ndpiDetectedProtocol.master_protocol);
+    above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.app_protocol)
+      || cli_host->isAboveQuota(ndpiDetectedProtocol.master_protocol);
 
     if (above_quota == false) {
       /* Server quota check */
-      above_quota = srv_host->isAboveQuota(ndpiDetectedProtocol.app_protocol) || srv_host->isAboveQuota(ndpiDetectedProtocol.master_protocol);
+      above_quota = srv_host->isAboveQuota(ndpiDetectedProtocol.app_protocol)
+	|| srv_host->isAboveQuota(ndpiDetectedProtocol.master_protocol);
     }
   }
 
@@ -2769,8 +2836,8 @@ bool Flow::invokeActivityFilter(const struct timeval *when,
 
 bool Flow::isTiny() {
   //if((cli2srv_packets < 3) && (srv2cli_packets == 0))
-  if(get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow()
-     || get_bytes() <= ntop->getPrefs()->get_max_num_bytes_per_tiny_flow())
+  if((get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow())
+     || (get_bytes() <= ntop->getPrefs()->get_max_num_bytes_per_tiny_flow()))
     return(true);
   else
     return(false);

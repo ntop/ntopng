@@ -276,7 +276,7 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
    return res
 end
 
-top_talkers_intf.name = "Top Talkers"
+top_talkers_intf.name = i18n("report.top_talkers")
 top_talkers_intf.infoScript = "host_details.lua"
 top_talkers_intf.infoScriptKey = "host"
 top_talkers_intf.key = "host"

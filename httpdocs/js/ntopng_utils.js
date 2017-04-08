@@ -93,16 +93,18 @@ function makeUniqueValidator(items_function) {
 }
 
 function fbits(bits) {
-    var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+    var sizes = ['bps', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits <= 0) return '0';
     var bits_log1000 = Math.log(bits) / Math.log(1000)
     var i = parseInt(Math.floor(bits_log1000));
     if (i < 0 || isNaN(i)) {
-	return "< 1 " + sizes[0];
+	i = 0;
     } else if (i >= sizes.length) { // prevents overflows
 	return "> "   + sizes[sizes.length - 1]
-    } else if (i <= 1) {
-	return Math.round(bits / Math.pow(1000, i)) + ' ' + sizes[i]
+    }
+
+    if (i <= 1) {
+	return Math.round(bits / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i]
     } else {
 	var ret = parseFloat(bits / Math.pow(1000, i)).toFixed(2)
 	if (ret % 1 == 0)
@@ -119,9 +121,9 @@ function fpackets(pps) {
     var i = parseInt(Math.floor(Math.log(pps) / Math.log(1000)));
     if (i < 0 || isNaN(i)) {
 	i = 0;
-	return "< 1 " + sizes[0];
     }
-    return Math.round(pps / Math.pow(1000, i), 2) + ' ' + sizes[i];
+    // Round to two decimal digits
+    return Math.round(pps / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i];
 }
 
 function fint(value) {
@@ -190,7 +192,7 @@ function bytesToSize(bytes) {
     else if(bytes >= terabyte)
 	return (bytes / terabyte).toFixed(precision) + ' TB';
     else
-	return bytes + ' B';
+	return bytes + ' Bytes';
 }
 
 String.prototype.capitalizeSingleWord = function() {
@@ -278,9 +280,9 @@ function bytesToVolumeAndLabel(bytes) {
 };
 
 function bitsToSize(bits, factor) {
-  var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+  var sizes = ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
   if (bits == 0) return '0 bps';
-  var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
+  var i = parseInt(Math.floor(Math.log(bits) / Math.log(1000)));
   if (i == 0) return bits + ' ' + sizes[i];
   return (bits / Math.pow(factor, i)).toFixed(2) + ' ' + sizes[i];
 };

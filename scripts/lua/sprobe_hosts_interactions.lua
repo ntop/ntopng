@@ -104,13 +104,6 @@ function getJSONData(url, params, error_message) {
   return jsonData;
 }
 
-function readableBytes(bytes) {
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  if (bytes == 0) return '0 Bytes';
-  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
-};
-
 var colorGen = d3.scale.category20();
 var explode_process = '';
 
@@ -236,7 +229,7 @@ print [[/lua/sprobe_hosts_interactions_data.lua");
       {
         color: color,
         weight: getWeight(link.cli2srv_bytes),
-        label: readableBytes(link.cli2srv_bytes)
+        label: bytesToSize(link.cli2srv_bytes)
       }
     );
     graph.newEdge(
@@ -245,7 +238,7 @@ print [[/lua/sprobe_hosts_interactions_data.lua");
       {
         color: color,
         weight: getWeight(link.srv2cli_bytes),
-        label: readableBytes(link.srv2cli_bytes)
+        label: bytesToSize(link.srv2cli_bytes)
       }
     );
   });

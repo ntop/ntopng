@@ -244,6 +244,8 @@ typedef enum {
   /* Macs */
   column_num_hosts,
   column_manufacturer,
+  column_arp_sent,
+  column_arp_rcvd
 } sortField;
 
 typedef struct {
@@ -252,6 +254,11 @@ typedef struct {
   u_int64_t ifInOctets, ifInPackets, ifInErrors,
     ifOutOctets, ifOutPackets, ifOutErrors;
 } sFlowInterfaceStats;
+
+typedef struct {
+  u_int32_t sent_requests, sent_replies;
+  u_int32_t rcvd_requests, rcvd_replies;
+} ArpStats;
 
 typedef struct {
   const char *class_name;

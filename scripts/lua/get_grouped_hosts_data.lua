@@ -25,6 +25,7 @@ os_n        = _GET["os"]
 pool_n      = _GET["pool"]
 ipver_n     = _GET["version"]
 
+interface.select(ifname)
 local ifstats = interface.getStats()
 
 if (group_col == nil) then
@@ -82,7 +83,7 @@ vals = {}
 
 stats_by_group_col = {}
 
-interface.select(ifname)
+
 stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n), tonumber(ipver_n)) -- false = little details)
 stats_by_group_col = stats_by_group_key
 
@@ -144,12 +145,9 @@ function print_single_group(value)
    elseif(group_col == "pool_id") then
       local pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
       print(pool_name..'</A> " , ')
-
-      if tostring(value["id"]) ~= host_pools_utils.DEFAULT_POOL_ID then
-         print('"column_chart": "')
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
-         print('", ')
-      end
+      print('"column_chart": "')
+      print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      print('", ')
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
@@ -157,7 +155,7 @@ function print_single_group(value)
       if ntop.exists(asnstats_rrd) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
-         print('-')
+         print('')
       end
       print('", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then

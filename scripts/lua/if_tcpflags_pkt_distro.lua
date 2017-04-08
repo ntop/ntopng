@@ -10,9 +10,26 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(ifname)
-ifstats = interface.getStats()
+host_info = url2hostinfo(_GET)
 
-what = ifstats["pktSizeDistribution"]
+if(host_info["host"] ~= nil) then
+   local stats = interface.getHostInfo(host_info["host"],host_info["vlan"])
+   if stats == nil then return end
+
+   -- join sent and rcvd
+   local sent_stats = stats["pktStats.sent"]
+   local rcvd_stats = stats["pktStats.recv"]
+   what = {}
+
+   for k, _ in pairs(sent_stats) do
+      what[k] = sent_stats[k] + rcvd_stats[k]
+   end
+else
+   local stats = interface.getStats()
+   if stats == nil then return end
+
+   what = stats["pktSizeDistribution"]
+end
 
 local pkt_distribution = {
    ['syn'] = 'SYN',
@@ -20,7 +37,6 @@ local pkt_distribution = {
    ['finack'] = 'FIN/ACK',
    ['rst'] = 'RST',
 }
-
 
 print "[\n"
 num = 0

@@ -229,7 +229,7 @@ void HostPools::dumpToRedis() {
 
   snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
 
-  for (int i = 1 /*exclude default*/; i<MAX_NUM_HOST_POOLS; i++) {
+  for (int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
@@ -258,7 +258,7 @@ void HostPools::loadFromRedis() {
     return;
   }
 
-  for (int i = 1 /*exclude default*/; i<MAX_NUM_HOST_POOLS; i++) {
+  for (int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
@@ -297,7 +297,7 @@ void HostPools::loadFromRedis() {
 void HostPools::updateStats(struct timeval *tv) {
   HostPoolStats *hps;
   if(stats && tv) {
-    for(int i = 1; i < MAX_NUM_HOST_POOLS; i++)
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
       if((hps = stats[i]))
 	hps->updateStats(tv); /* Use hps, stats[i] can become NULL after a swap */
   }
@@ -312,7 +312,7 @@ void HostPools::luaStats(lua_State *vm) {
     lua_newtable(vm);
 
     if(stats) {
-      for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
+      for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
 	if((hps = stats[i])) {
 	  /* Must use the assigned hps as stats can be swapped
 	     and accesses such as stats[i] could yield a NULL value */
@@ -330,7 +330,7 @@ void HostPools::resetPoolsStats() {
     HostPoolStats *hps;
 
   if(stats) {
-    for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if((hps = stats[i])) {
         /* Must use the assigned hps as stats can be swapped
            and accesses such as stats[i] could yield a NULL value */
@@ -521,7 +521,7 @@ void HostPools::reloadPools() {
       continue;
 
     _pool_id = (u_int16_t)atoi(pools[i]);
-    if(_pool_id == 0 || _pool_id >= MAX_NUM_HOST_POOLS)
+    if(_pool_id >= MAX_NUM_HOST_POOLS)
       continue;
 
 #ifdef NTOPNG_PRO

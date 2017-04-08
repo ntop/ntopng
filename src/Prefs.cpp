@@ -971,20 +971,20 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
 
 
-    } else if(!strncmp(optarg, "logstash",8)) {
-          /* logstash;<host[@port]; */
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");  
-          optarg = Utils::tokenizer(&optarg[9],';',&ls_host);
-	  optarg = Utils::tokenizer(optarg,';',&ls_proto);
-	  ls_port = strdup(optarg ? optarg : NULL);
+    } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
+      /* logstash;<host[@port]; */
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");  
+      optarg = Utils::tokenizer(&optarg[9],';',&ls_host);
+      optarg = Utils::tokenizer(optarg,';',&ls_proto);
+      ls_port = strdup(optarg ? optarg : NULL);
 
-          if(ls_host){
-	     ntop->getTrace()->traceEvent(TRACE_INFO," Dumping flows to logstash - initial stage ");
-             dump_flows_on_ls = true;
-          }else {
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F logstash;....");
-	 }
-      } else
+      if(ls_host && ls_proto && ls_port){
+	ntop->getTrace()->traceEvent(TRACE_INFO," Dumping flows to logstash.");
+	dump_flows_on_ls = true;
+      } else {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F logstash;....");
+      }
+    } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
     break;
 

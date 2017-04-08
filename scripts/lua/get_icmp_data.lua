@@ -87,7 +87,7 @@ end
 -- #####################################################################
 
 function formatPeer(peer)
-   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..peer..'">'..peer..'</A>')
+   return '<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..peer..'">'..peer..'</A>'
 end
 
 -- #####################################################################
@@ -118,21 +118,29 @@ if(stats ~= nil) then
 	    local keys = string.split(key, ",")
 	    local icmp_type = keys[1]
 	    local icmp_value = keys[2]
-	    print('<tr><th>'..get_icmp_label(icmp_type, icmp_value, is_v4, is_host))
+	    print('<tr><td>'..get_icmp_label(icmp_type, icmp_value, is_v4, is_host))
 
 	    if(is_host) then
-	       print('</th><td align=right>'..formatPackets(value.sent).. '</td><td align=right>')
+	       print('<td>')
 	       if(value.last_host_sent_peer ~= nil) then
 		  print(formatPeer(value.last_host_sent_peer))
 	       end
+	       print('</td>')
 
-	       print('</td><td align=right>'..formatPackets(value.rcvd))
-	       print('</td><td align=right>')
+	       print('<td>')
 	       if(value.last_host_rcvd_peer ~= nil) then
 		  print(formatPeer(value.last_host_rcvd_peer))
 	       end
-	       print('</td><td>')
+	       print('</td>')
+
+	       print('<td>')
 	       breakdownBar(value.sent, "Sent", value.rcvd, "Rcvd", 0, 100)
+	       print('</td')
+
+	       print('</td><td align=right>'..formatPackets(value.sent).. '</td>')
+
+	       print('</td><td align=right>'..formatPackets(value.rcvd))
+
 	    end
 	    
 	    print("</td><td align=right>".. formatPackets(value.sent+value.rcvd) .."</td></tr>\n")

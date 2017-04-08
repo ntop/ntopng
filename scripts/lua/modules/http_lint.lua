@@ -148,6 +148,12 @@ end
 
 -- #################################################################
 
+local function validateOnOff(mode)
+   local modes = {"on", "off"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateMode(mode)
    local modes = {"all", "local", "remote"}
 
@@ -317,7 +323,7 @@ local function validateResetStatsMode(mode)
 end
 
 local function validateSnmpAction(mode)
-   local modes = {"delete", "add", "addNewDevice"}
+   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling"}
 
    return validateChoice(modes, mode)
 end
@@ -684,6 +690,7 @@ local known_parameters = {
    ["num_minutes"]             =  validateNumber,                -- number of minutes
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
+   ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
    ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids
@@ -730,6 +737,8 @@ local known_parameters = {
    ["toggle_tiny_flows_export"]                    =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
    ["toggle_shaping_directions"]                   =  validateBool,
+   ["toggle_tcp_flags_rrds"]                       =  validateBool,
+   ["toggle_tcp_retr_ooo_lost_rrds"]               =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
@@ -834,8 +843,8 @@ local known_parameters = {
    ["ifSpeed"]                 =  validateEmptyOr(validateNumber), -- interface speed
    ["scaling_factor"]          =  validateEmptyOr(validateNumber), -- interface scaling factor
    ["drop_host_traffic"]       =  validateBool,                  -- to drop an host traffic
-   ["lifetime_limited"]        =  validateEmpty,                 -- set if user should have a limited lifetime
-   ["lifetime_unlimited"]      =  validateEmpty,                 -- set if user should have an unlimited lifetime
+   ["lifetime_limited"]        =  validateEmptyOr(validateOnOff), -- set if user should have a limited lifetime
+   ["lifetime_unlimited"]      =  validateEmptyOr(validateOnOff), -- set if user should have an unlimited lifetime
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped

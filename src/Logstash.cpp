@@ -54,7 +54,7 @@ void Logstash::updateStats(const struct timeval *tv) {
     return;
 
   if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
+    float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
 
     if(tdiffMsec >= 1000) { /* al least one second */
       u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
@@ -85,8 +85,8 @@ int Logstash::sendToLS(char* msg) {
   struct string_list *e;
   int rc = 0;
 
-  if(!strcmp(msg,"")){
-    return (-1);
+  if(!msg || !strcmp(msg,"")){
+    return(-1);
   }
   
   if(num_queued_elems >= LS_MAX_QUEUE_LEN) {
@@ -105,7 +105,7 @@ int Logstash::sendToLS(char* msg) {
 
   listMutex.lock(__FILE__, __LINE__);
   e = (struct string_list*)calloc(1, sizeof(struct string_list));
-  if( e != NULL) {
+  if(e != NULL) {
     e->str = strdup(msg), e->next = head;
 
     if(e->str) {
@@ -148,6 +148,7 @@ void Logstash::sendLSdata() {
   struct sockaddr_in serv_addr;
   int sockfd;
   int portno;
+<<<<<<< HEAD
 
 
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
@@ -167,6 +168,27 @@ void Logstash::sendLSdata() {
   bzero((char *) &serv_addr,sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   bcopy((char *) server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+=======
+
+  server = gethostbyname(ntop->getPrefs()->get_ls_host());
+  portstr = ntop->getPrefs()->get_ls_port();
+
+  if(server == NULL || portstr == NULL){
+    //can't send
+    return;
+  }
+
+  proto = ntop->getPrefs()->get_ls_proto();
+  if(proto && !strncmp(proto, "udp", 3)){
+    sendTCP = 0;
+  }
+
+  portno = atoi(portstr);
+
+  bzero((char*)&serv_addr, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  bcopy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
+>>>>>>> d5e73f423c1d1421feaf2d76c128f55452a27bdb
   serv_addr.sin_port = htons(portno);
 
   while(!ntop->getGlobals()->isShutdown()) {
@@ -185,8 +207,8 @@ void Logstash::sendLSdata() {
 	len += snprintf(&postbuf[len], sizeof(postbuf)-len, "%s\n", tail->str), num_flows++;
         free(tail->str);
         free(tail);
-        tail = prev,
-	  num_queued_elems--;
+        tail = prev;
+	num_queued_elems--;
 
         if(num_queued_elems == 0)
 	  head = NULL;
@@ -206,7 +228,13 @@ void Logstash::sendLSdata() {
       }
 
       if(sockfd < 0) {
+<<<<<<< HEAD
 	/* Post failure */
+=======
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create socket. Dropping %u flow(s)", num_flows);
+	/* Post failure */
+	elkDroppedFlowsQueueTooLong += num_flows;
+>>>>>>> d5e73f423c1d1421feaf2d76c128f55452a27bdb
         continue;
       }
 
@@ -214,6 +242,7 @@ void Logstash::sendLSdata() {
       fcntl(sockfd, F_SETFL, MSG_DONTWAIT);
 
       if(sendTCP
+<<<<<<< HEAD
 	 && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)
         ) {
 	sleep(1);
@@ -236,6 +265,32 @@ void Logstash::sendLSdata() {
         continue;
       }
 
+=======
+	 && (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)) {
+	sleep(1);
+        close(sockfd);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to socket. Dropping %u flow(s)", num_flows);
+	elkDroppedFlowsQueueTooLong += num_flows;
+        continue;
+      }
+
+      if(
+	 (sendTCP
+	  && (send(sockfd, postbuf, sizeof(postbuf), 0) < 0))
+	 ||
+	 (!sendTCP
+	  &&
+	  (sendto(sockfd, postbuf, sizeof(postbuf), 0,
+		  (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+	  )){
+        sleep(1);
+        close(sockfd);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send. Dropping %u flow(s)", num_flows);
+	elkDroppedFlowsQueueTooLong += num_flows;
+        continue;
+      }
+
+>>>>>>> d5e73f423c1d1421feaf2d76c128f55452a27bdb
       //If all steps succeded, increment exported flows
       elkExportedFlows += num_flows;
       close(sockfd);

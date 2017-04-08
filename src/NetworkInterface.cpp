@@ -141,6 +141,7 @@ NetworkInterface::NetworkInterface(const char *name,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false, pkt_dumper = NULL;
+    arp_requests = arp_replies = 0;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
@@ -577,8 +578,8 @@ int NetworkInterface::dumpFlow(time_t when, bool idle_flow, Flow *f) {
 int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
   char *json = f->serialize(true);
   int rc;
-  if(json) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s",json);
+  if(json && ntop->getLogstash()) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s", json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
   } else
@@ -964,8 +965,12 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       flow_interfaces_stats = new FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(zflow->deviceIP, zflow->inIndex,  zflow->in_bytes,  zflow->out_bytes);
-      flow_interfaces_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->out_bytes, zflow->in_bytes);
+      flow_interfaces_stats->incStats(zflow->deviceIP, zflow->inIndex,    zflow->out_bytes, zflow->in_bytes);
+      /* If the SNMP device is actually an host with an SNMP agent, then traffic can enter and leave it
+       from the same interface (think to a management interface). For this reason it is important to check
+       the outIndex and increase its counters only if it is different from inIndex to avoid double counting. */
+      if(zflow->outIndex != zflow->inIndex)
+	flow_interfaces_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->in_bytes, zflow->out_bytes);
     }
   }
 #endif
@@ -1442,6 +1447,18 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 					   flow->get_detected_protocol_name(buf, sizeof(buf)),
 					   shaper_ingress, shaper_egress);
 	      pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
+
+	      if(pass_verdict) {
+		/* Update pools stats inline only for bridge interfaces! */
+		if(src2dst_direction)
+		  flow->update_pools_stats(when,
+					   1, rawsize, /* sent-only */
+					   0, 0);
+		else
+		  flow->update_pools_stats(when,
+					   0, 0,
+					   1, rawsize /* received-only */);
+	      }
 	    }
 	}
     }
@@ -1870,6 +1887,24 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 
     if(srcMac) srcMac->incSentStats(rawsize);
     if(dstMac) dstMac->incRcvdStats(rawsize);
+
+    if (srcMac && dstMac) {
+      const u_int16_t arp_opcode_offset = ip_offset + 6;
+      u_int16_t arp_opcode = 0;
+
+      if ((eth_type == ETHERTYPE_ARP) && (h->len > (u_int16_t)(arp_opcode_offset + 1)))
+        arp_opcode = (packet[arp_opcode_offset] << 8) + packet[arp_opcode_offset + 1];
+
+      if (arp_opcode == 0x1 /* ARP request */) {
+        arp_requests++;
+        srcMac->incSentArpRequests();
+        dstMac->incRcvdArpRequests();
+      } else if (arp_opcode == 0x2 /* ARP reply */) {
+        arp_replies++;
+        srcMac->incSentArpReplies();
+        dstMac->incRcvdArpReplies();
+      }
+    }
 
     incStats(h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN, rawsize,
 	     1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -2722,6 +2757,14 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].stringValue = m->get_manufacturer() ? (char*)m->get_manufacturer() : (char*)"zzz";
     break;
 
+  case column_arp_sent:
+    r->elems[r->actNumEntries++].numericValue = m->getNumSentArp();
+    break;
+
+  case column_arp_rcvd:
+    r->elems[r->actNumEntries++].numericValue = m->getNumRcvdArp();
+    break;
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
@@ -3152,6 +3195,8 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_manufacturer")) retriever->sorter = column_manufacturer, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd, sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
@@ -3731,6 +3776,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "remote_bps", last_remote_bps);
   icmp_v4.lua(true, vm);
   icmp_v6.lua(false, vm);
+  lua_push_int_table_entry(vm, "arp.requests", arp_requests);
+  lua_push_int_table_entry(vm, "arp.replies", arp_replies);
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);

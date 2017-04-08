@@ -55,7 +55,7 @@ print [[
 print("<li><a href=\"#\">Mac: "..mac.."</A> </li>")
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 
-print("<li><a href=\""..ntop.getHttpPrefix().."/lua/mac_stats.lua\"><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
+   print("<li><a href='javascript:history.go(-1)'><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th width=35%>MAC Address</th><td> "..mac)
@@ -88,7 +88,7 @@ if(isAdministrator()) then
        print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
        print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
       if(label ~= nil) then print(label) end
-      print("\"></input>")
+      print("\"></input> &nbsp;")
 
 pickIcon(mac)
 
@@ -116,7 +116,16 @@ if((mac_info["bytes.sent"]+mac_info["bytes.rcvd"]) > 0) then
 end
 
 print("<tr><th>Traffic Sent / Received</th><td><span id=pkts_sent>" .. formatPackets(mac_info["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(mac_info["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(mac_info["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(mac_info["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
-
+print([[
+<tr>
+   <th rowspan="2"><A HREF=https://en.wikipedia.org/wiki/Address_Resolution_Protocol>Address Resolution Protocol</A></th>
+   <th>ARP Requests</th>
+   <th>ARP Replies</th>
+</tr>
+<tr>
+   <td>]]..formatValue(mac_info["arp_requests.sent"])..[[ Sent / ]]..formatValue(mac_info["arp_requests.rcvd"])..[[ Received</td>
+   <td>]]..formatValue(mac_info["arp_replies.sent"])..[[ Sent / ]]..formatValue(mac_info["arp_replies.rcvd"])..[[ Received</td>
+</tr>]])
 
 print("</table>")
 

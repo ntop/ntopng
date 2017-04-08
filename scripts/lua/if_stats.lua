@@ -226,6 +226,15 @@ else
   print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
 end
 
+-- only show if the interface has seen mac addresses
+if ifstats["has_macs"] then
+   if(page == "ARP") then
+     print("<li class=\"active\"><a href=\"#\">ARP</a></li>\n")
+   else
+     print("<li><a href=\""..url.."&page=ARP\">ARP</a></li>")
+   end
+end
+
 if(ntop.exists(rrdname) and not is_historical) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
@@ -694,7 +703,7 @@ elseif(page == "ICMP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th>Total Packets</th></tr></thead>
+     <thead><tr><th>ICMP Message</th><th style='text-align:right;'>Traffic</th></tr></thead>
      <tbody id="iface_details_icmp_tbody">
      </tbody>
      </table>
@@ -709,13 +718,42 @@ function update_icmp_table() {
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
       $('#iface_details_icmp_tbody').html(content);
-      $('#h_icmp_tbody').trigger("update");
+      $('#myTable').trigger("update");
     }
   });
 }
 
 update_icmp_table();
 setInterval(update_icmp_table, 5000);
+</script>
+
+]]
+elseif(page == "ARP") then
+
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>ARP Type</th><th style='text-align:right;'>Traffic</th></tr></thead>
+     <tbody id="iface_details_arp_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_arp_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_arp_data.lua',
+    data: { ifid: "]] print(ifId.."")  print [[" },
+    success: function(content) {
+      $('#iface_details_arp_tbody').html(content);
+      $('#myTable').trigger("update");
+    }
+  });
+}
+
+update_arp_table();
+setInterval(update_arp_table, 5000);
 </script>
 
 ]]
@@ -1205,10 +1243,8 @@ function get_shapers_from_parameters(callback)
             local qtraffic = _POST["qtraffic_"..k]
             local qtime = _POST["qtime_"..k]
 
-            if ((tonumber(qtraffic) ~= nil) and (tonumber(qtime) ~= nil)) then
-               done[k] = true;
-               callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic, qtime)
-            end
+            done[k] = true;
+            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic or "0", qtime or "0")
          end
       end
    end
@@ -1416,16 +1452,17 @@ end
 
 function print_ndpi_families_and_protocols(categories, protos, categories_disabled, protos_disabled, terminator)
    local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
+   local show_groups = (not table.empty(categories)) and (not table.empty(protos))
 
-   print('<optgroup label="'..i18n("shaping.protocol_families")..'">')
+   if show_groups then print('<optgroup label="'..i18n("shaping.protocol_families")..'">') end
    for k,category in pairsByKeys(categories, asc) do
       print('<option value="cat_'..category.id..'"')
       if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
       print('>' .. shaper_utils.formatCategory(k, category.count) ..'</option>'..terminator)
    end
-   print('</optgroup>')
+   if show_groups then print('</optgroup>') end
 
-   print('<optgroup label="'..i18n("shaping.protocols")..'">')
+   if show_groups then print('<optgroup label="'..i18n("shaping.protocols")..'">') end
    for protoName,protoId in pairsByKeys(protos, asc) do
       if not protos_excluded[protoName] then
          -- find protocol category
@@ -1443,7 +1480,7 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
          end
       end
    end
-   print('</optgroup>')
+   if show_groups then print('</optgroup>') end
 end
 
 local sites_categories = ntop.getSiteCategories()
@@ -1480,19 +1517,44 @@ end
 
 local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_directions") == "1")
 
-   print [[<div id="table-protos"></div>
-<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+   print ([[<div id="table-protos"></div>
+<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
 </form>
 
-NOTES:
+]]..i18n("shaping.notes")..[[:
 <ul>
-<li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
-<li>Set Traffic and Time Quota to 0 to disable limits</li>
+<li>]]..i18n("shaping.note_drop_core")..[[</li>
+<li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
+<li>]]..i18n("shaping.note_families")..[[
+   <select id="family_info_sel" class="form-control input-sm" style="width:16em; display:inline; margin: 0 1em;">
+      <option disabled selected value></option>
+   ]])
+
+   print_ndpi_families_and_protocols(protocol_categories, {}, {}, {}, "\n")
+   print[[
+   </select>
+</li>
 </ul>
-
-
+<div id="family_info_protos"></div>
 
 <script>
+$("#family_info_sel").change(function() {
+   var cat_id = $(this).val().split("_")[1];
+
+   for (var cat_name in protocol_categories) {
+      var cat = protocol_categories[cat_name];
+
+      if (cat.id == cat_id) {
+         var proto_list = [];
+
+         for (var proto in cat.protos)
+            proto_list.push(proto);
+
+         proto_list.sort();
+         $("#family_info_protos").html("<b>" + cat_name + " ]] print(i18n("shaping.protocols")) print[[</b>: " + proto_list.join(", "));
+      }
+   }
+});
 ]]
 
 local rate_buttons = shaper_utils.buttons("rate")
@@ -1524,6 +1586,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    var extra = extra || {};
    var value = (extra.value !== undefined) ? (extra.value) : (td_object.html());
    var disabled = extra.disabled;
+   var hidden = extra.hidden;
    var maxvalue = extra.max_value;
    var minvalue = extra.min_value;
 
@@ -1534,7 +1597,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    div.appendTo(td_object);
    buttons.appendTo(div);
 
-   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
+   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:6em; text-align:right; margin-left:0.5em; display:inline;" required/>');
    if (maxvalue !== null)
       input.attr("data-max", maxvalue);
 
@@ -1665,10 +1728,10 @@ print[[
       var newid = newid_prefix + new_row_ctr;
       new_row_ctr += 1;
 
-      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center]] if not split_shaping_directions then print(" hidden") end
-      print[["><select class="form-control shaper-selector" name="ingress_shaper_id">\
+      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
+      </select></td><td class="text-center" ]] if not split_shaping_directions then print(" hidden") end
+   print[[><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
       </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
@@ -1779,19 +1842,23 @@ print[[
    }
 
    function makeTrafficQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
-         max_value: 100*1024*1024*1024 /* 100 GB */,
-         min_value: 0,
-         disabled: ((proto_id === "default") || (]] print(ternary(selected_pool.id == host_pools_utils.DEFAULT_POOL_ID, "true", "false")) print[[)) ? true : false
-      });
+      if (proto_id === "default")
+         $("td:nth-child(4)", tr_obj).html("");
+      else
+         makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
+            max_value: 100*1024*1024*1024 /* 100 GB */,
+            min_value: 0,
+         });
    }
 
    function makeTimeQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
-         max_value: 23*60*60 /* 23 hours */,
-         min_value: 0,
-         disabled: ((proto_id === "default") || (]] print(ternary(selected_pool.id == host_pools_utils.DEFAULT_POOL_ID, "true", "false")) print[[)) ? true : false
-      });
+      if (proto_id === "default")
+         $("td:nth-child(5)", tr_obj).html("");
+      else
+         makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
+            max_value: 23*60*60 /* 23 hours */,
+            min_value: 0,
+         });
    }
 
    $("#table-protos").datatable({
@@ -1809,7 +1876,7 @@ print[[
             title: "]] print(i18n("protocol")) print[[",
             field: "column_proto",
             css: {
-              width: ']] if split_shaping_directions then print("15") else print("20") end print[[%',
+              width: '12%',
                verticalAlign: 'middle'
             }
          }, {]]
@@ -1819,17 +1886,18 @@ print[[
       ]]
    else
       print[[
-            title: "]] print(i18n("shaping.traffic_through") .. " " .. selected_pool.name) print[[",
+            title: "]] print(i18n("shaping.protocol_policy")) print[[",
       ]]
    end
    print[[
             field: "column_ingress_shaper",
             css: {
-               width: ']] if split_shaping_directions then print("14") else print("25") end print[[%',
+               width: '12%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }
          }, {]]
+   -- If directions are linked, hide the *egress* shaper
    if not split_shaping_directions then
       print[[
             hidden: true,
@@ -1839,7 +1907,7 @@ print[[
             title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
             css: {
-               width: ']] if split_shaping_directions then print("14") else print("20") end print[[%',
+               width: '10%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }

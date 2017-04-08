@@ -27,13 +27,14 @@ local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 
 -- ########################################################
 
-local host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
-local host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
-local host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
-local flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_device_port_rrd_creation")
-local host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
-local snmp_devices_rrd_creation = ntop.getCache("ntopng.prefs.snmp_devices_rrd_creation")
-local asn_rrd_creation = ntop.getCache("ntopng.prefs.asn_rrd_creation")
+local host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
+local host_ndpi_rrd_creation = ntop.getPref("ntopng.prefs.host_ndpi_rrd_creation")
+local host_categories_rrd_creation = ntop.getPref("ntopng.prefs.host_categories_rrd_creation")
+local flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
+local host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
+local snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
+local asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
+local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
    flow_devices_rrd_creation = "0"
@@ -85,132 +86,132 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   end
 
   -- Save hosts stats
-  if((host_rrd_creation ~= "0") or (asn_rrd_creation ~= "0")) then
-    local networks_aggr = {}
-    local vlans_aggr    = {}
-    local asn_aggr      = {}
+  local networks_aggr = {}
+  local vlans_aggr    = {}
+  local asn_aggr      = {}
 
-    local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hostbase)
-      -- Aggregate ASN
-      local host_asn = host["asn"]
+  local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hostbase)
 
-      if ((not isEmptyString(host_asn)) and (tonumber(host_asn) ~= 0)) then
-        asn_aggr[host_asn] = asn_aggr[host_asn] or {}
-        asn_aggr[host_asn]["bytes.sent"] = (asn_aggr[host_asn]["bytes.sent"] or 0) + host["bytes.sent"]
-        asn_aggr[host_asn]["bytes.rcvd"] = (asn_aggr[host_asn]["bytes.rcvd"] or 0) + host["bytes.rcvd"]
-        asn_aggr[host_asn]["ndpi"] = asn_aggr[host_asn]["ndpi"] or {}
+    local host_asn = host["asn"]
+    local host_vlan = host["vlan"]
+    local network_name = host["local_network_name"]
 
-        for k in pairs(host["ndpi"]) do
+    -- Crunch TCP anomalies
+    if tcp_retr_ooo_lost_rrd_creation == "1" then
+       for _, anom in pairs({"tcp.packets.out_of_order", "tcp.packets.retransmissions", "tcp.packets.lost"}) do
+	  if host[anom] then
+	     if host_asn ~= nil then
+		asn_aggr[host_asn] = asn_aggr[host_asn] or {}
+		asn_aggr[host_asn][anom] = (asn_aggr[host_asn][anom] or 0) + host[anom]
+	     end
+
+	     if host_vlan ~= nil and host_vlan ~= 0 then
+		vlans_aggr[host_vlan] = vlans_aggr[host_vlan] or {}
+		vlans_aggr[host_vlan][anom] = (vlans_aggr[host_vlan][anom] or 0) + host[anom]
+	     end
+
+	     if network_name ~= nil and isEmptyString(network_name) == false then
+		networks_aggr[network_name] = networks_aggr[network_name] or {}
+		networks_aggr[network_name][anom] = (networks_aggr[network_name][anom] or 0) + host[anom]
+	     end
+	  end
+       end
+    end
+
+    -- Aggregate ASN stats
+    if(host_asn ~= nil and asn_rrd_creation == "1") then
+       asn_aggr[host_asn] = asn_aggr[host_asn] or {}
+       asn_aggr[host_asn]["bytes.sent"] = (asn_aggr[host_asn]["bytes.sent"] or 0) + host["bytes.sent"]
+       asn_aggr[host_asn]["bytes.rcvd"] = (asn_aggr[host_asn]["bytes.rcvd"] or 0) + host["bytes.rcvd"]
+
+
+       asn_aggr[host_asn]["ndpi"] = asn_aggr[host_asn]["ndpi"] or {}
+       for k in pairs(host["ndpi"]) do
           asn_aggr[host_asn]["ndpi"][k] = asn_aggr[host_asn]["ndpi"][k] or {}
           asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
           asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
-        end
-      end
+       end
+    end
 
-      if host_rrd_creation ~= "1" then
-        -- only ASN enabled
-        return
-      end
-
-      -- Aggregate VLAN stats
-      local host_vlan = host["vlan"]
-
-      if host_vlan ~= nil and host_vlan ~= 0 then
-        if vlans_aggr[host_vlan] == nil then
+    -- Aggregate VLAN stats
+    if host_vlan ~= nil and host_vlan ~= 0 then
+       if vlans_aggr[host_vlan] == nil then
           vlans_aggr[host_vlan] = {}
-        end
+       end
 
-        if vlans_aggr[host_vlan]["bytes.sent"] == nil then
+       if vlans_aggr[host_vlan]["bytes.sent"] == nil then
           vlans_aggr[host_vlan]["bytes.sent"] = host["bytes.sent"]
           vlans_aggr[host_vlan]["bytes.rcvd"] = host["bytes.rcvd"]
-        else
+       else
           vlans_aggr[host_vlan]["bytes.sent"] = vlans_aggr[host_vlan]["bytes.sent"] + host["bytes.sent"]
           vlans_aggr[host_vlan]["bytes.rcvd"] = vlans_aggr[host_vlan]["bytes.rcvd"] + host["bytes.rcvd"]
-        end
-      end
+       end
+    end
 
-      if(host.localhost) then
-        if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(hostbase.."/categories")) then
-          ntop.mkdir(fixPath(hostbase.."/categories"))
-        end
+    -- Crunch additional stats for local hosts only
+    if(host.localhost) then
+       -- Aggregate local network stats
 
-        -- Aggregate network stats
-        local network_name = host["local_network_name"]
+       --io.write("==> Adding "..network_name.."\n")
+       -- network name can't be nil for local hosts
 
-        --io.write("==> Adding "..network_name.."\n")
-        if (networks_aggr[network_name] == nil) then
-          networks_aggr[network_name] = {}
-        end
-        if (networks_aggr[network_name]["bytes.sent"] == nil) then
-          networks_aggr[network_name]["bytes.sent"] = host["bytes.sent"]
-          networks_aggr[network_name]["bytes.rcvd"] = host["bytes.rcvd"]
-        else
-          networks_aggr[network_name]["bytes.sent"] = networks_aggr[network_name]["bytes.sent"] + host["bytes.sent"]
-          networks_aggr[network_name]["bytes.rcvd"] = networks_aggr[network_name]["bytes.rcvd"] + host["bytes.rcvd"]
-        end
+       -- Traffic stats
+       if(host_rrd_creation == "1") then
+	  local name = fixPath(hostbase .. "/bytes.rrd")
+	  createRRDcounter(name, 300, verbose)
+	  ntop.rrd_update(name, "N:"..tolongint(host["bytes.sent"]) .. ":" .. tolongint(host["bytes.rcvd"]))
+	  if(verbose) then
+	     print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
+	  end
 
-        -- Traffic stats
-        local name = fixPath(hostbase .. "/bytes.rrd")
-        createRRDcounter(name, 300, verbose)
-        ntop.rrd_update(name, "N:"..tolongint(host["bytes.sent"]) .. ":" .. tolongint(host["bytes.rcvd"]))
-        if(verbose) then
-          print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
-        end
+	  -- L4 Protocols
+	  for id, _ in ipairs(l4_keys) do
+	     k = l4_keys[id][2]
+	     if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
+		if(verbose) then print("["..__FILE__()..":"..__LINE__().."]\t"..k.."\n") end
 
-        -- L4 Protocols
-        for id, _ in ipairs(l4_keys) do
-          k = l4_keys[id][2]
-          if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
-            if(verbose) then print("["..__FILE__()..":"..__LINE__().."]\t"..k.."\n") end
+		name = fixPath(hostbase .. "/".. k .. ".rrd")
+		createRRDcounter(name, 300, verbose)
+		-- io.write(name.."="..host[k..".bytes.sent"].."|".. host[k..".bytes.rcvd"] .. "\n")
+		ntop.rrd_update(name, "N:".. tolongint(host[k..".bytes.sent"]) .. ":" .. tolongint(host[k..".bytes.rcvd"]))
+		if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+	     else
+		-- L2 host
+		--io.write("Discarding "..k.."@"..hostname.."\n")
+	     end
+	  end
+       end
 
-            name = fixPath(hostbase .. "/".. k .. ".rrd")
-            createRRDcounter(name, 300, verbose)
-            -- io.write(name.."="..host[k..".bytes.sent"].."|".. host[k..".bytes.rcvd"] .. "\n")
-            ntop.rrd_update(name, "N:".. tolongint(host[k..".bytes.sent"]) .. ":" .. tolongint(host[k..".bytes.rcvd"]))
-            if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
-          else
-            -- L2 host
-            --io.write("Discarding "..k.."@"..hostname.."\n")
-          end
-        end
-
-        if(host_ndpi_rrd_creation ~= "0") then
+       if(host_ndpi_rrd_creation == "1") then
           -- nDPI Protocols
           for k in pairs(host["ndpi"]) do
-            name = fixPath(hostbase .. "/".. k .. ".rrd")
-            createRRDcounter(name, 300, verbose)
-            ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
+	     name = fixPath(hostbase .. "/".. k .. ".rrd")
+	     createRRDcounter(name, 300, verbose)
+	     ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
-            -- Aggregate network NDPI stats
-            if (networks_aggr[network_name]["ndpi"] == nil) then
-              networks_aggr[network_name]["ndpi"] = {}
-            end
-            if (networks_aggr[network_name]["ndpi"][k] == nil) then
-              networks_aggr[network_name]["ndpi"][k] = {}
-            end
-            if (networks_aggr[network_name]["ndpi"][k]["bytes.sent"] == nil) then
-              networks_aggr[network_name]["ndpi"][k]["bytes.sent"] = host["ndpi"][k]["bytes.sent"]
-            else
-              networks_aggr[network_name]["ndpi"][k]["bytes.sent"] =
-              networks_aggr[network_name]["ndpi"][k]["bytes.sent"] +
-              host["ndpi"][k]["bytes.sent"]
-            end
-            if (networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] == nil) then
-              networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] = host["ndpi"][k]["bytes.rcvd"]
-            else
-              networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] =
-              networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] +
-              host["ndpi"][k]["bytes.rcvd"]
-            end
+	     -- Aggregate network NDPI stats
+	     networks_aggr[network_name] = (networks_aggr[network_name] or {})
+	     networks_aggr[network_name]["ndpi"] = (networks_aggr[network_name]["ndpi"] or {})
+	     networks_aggr[network_name]["ndpi"][k] = (networks_aggr[network_name]["ndpi"][k] or {})
+	     networks_aggr[network_name]["ndpi"][k]["bytes.sent"] =
+		(networks_aggr[network_name]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
+	     networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] =
+		(networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
 
-            if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
           end
-          if(host_categories_rrd_creation ~= "0") then
-            if host["categories"] ~= nil then
-              if networks_aggr[network_name]["categories"] == nil then
+       end
+
+       if(host_categories_rrd_creation ~= "0") then
+	  if not ntop.exists(fixPath(hostbase.."/categories")) then
+	     ntop.mkdir(fixPath(hostbase.."/categories"))
+	  end
+
+	  if host["categories"] ~= nil then
+	     if networks_aggr[network_name]["categories"] == nil then
                 networks_aggr[network_name]["categories"] = {}
-              end
-              for _cat_name, cat_bytes in pairs(host["categories"]) do
+	     end
+	     for _cat_name, cat_bytes in pairs(host["categories"]) do
                 cat_name = getCategoryLabel(_cat_name)
                 -- io.write('cat_name: '..cat_name..' cat_bytes:'..tostring(cat_bytes)..'\n')
                 name = fixPath(hostbase.."/categories/"..cat_name..".rrd")
@@ -218,36 +219,33 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
                 ntop.rrd_update(name, "N:".. tolongint(cat_bytes))
 
                 if networks_aggr[network_name]["categories"][cat_name] == nil then
-                  networks_aggr[network_name]["categories"][cat_name] = cat_bytes
+		   networks_aggr[network_name]["categories"][cat_name] = cat_bytes
                 else
-                  networks_aggr[network_name]["categories"][cat_name] =
-                  networks_aggr[network_name]["categories"][cat_name] + cat_bytes
+		   networks_aggr[network_name]["categories"][cat_name] =
+		      networks_aggr[network_name]["categories"][cat_name] + cat_bytes
                 end
-              end
-            end
-          end
+	     end
+	  end
+       end
 
-          if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
-          if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
-        end
-      else
-        -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..hostname.."\n")
-      end
-    end, time_threshold) -- end foreachHost
-
-    if not in_time then
-      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
-      return false
+       if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
+       if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
     end
+end, time_threshold) -- end foreachHost
 
-    -- create RRD for ASN
-    if asn_rrd_creation ~= "0" then
-      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
+  if not in_time then
+     callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
+     return false
+  end
 
-      for asn_id, asn_stats in pairs(asn_aggr) do
+  -- create RRD for ASN
+  if asn_rrd_creation == "1" then
+     local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
+
+     for asn_id, asn_stats in pairs(asn_aggr) do
         local asnpath = fixPath(basedir.. "/" .. asn_id)
         if not ntop.exists(asnpath) then
-          ntop.mkdir(asnpath)
+	   ntop.mkdir(asnpath)
         end
 
         -- Save ASN bytes
@@ -257,129 +255,148 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 
         -- Save ASN ndpi stats
         if asn_stats["ndpi"] ~= nil then
-          for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
-            local asn_ndpi_rrd = fixPath(asnpath.."/"..proto_name..".rrd")
-            createRRDcounter(asn_ndpi_rrd, 300, verbose)
-            ntop.rrd_update(asn_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
-          end
+	   for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
+	      local asn_ndpi_rrd = fixPath(asnpath.."/"..proto_name..".rrd")
+	      createRRDcounter(asn_ndpi_rrd, 300, verbose)
+	      ntop.rrd_update(asn_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
+	   end
         end
-      end
-    end
 
-    if host_rrd_creation ~= "1" then
-      -- only ASN enabled
-      return
-    end
+	if tcp_retr_ooo_lost_rrd_creation == "1" then
+	   local anoms = (asn_stats["tcp.packets.out_of_order"] or 0)
+	   anoms = anoms + (asn_stats["tcp.packets.retransmissions"] or 0) + (asn_stats["tcp.packets.lost"] or 0)
+	   if(anoms > 0) then
+	      makeRRD(asnpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
+	   end
+	end
+     end
+  end
 
-    -- create RRD for vlans
-    local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
-    for vlan_id, vlan_stats in pairs(vlans_aggr) do
-      local vlanpath = getPathFromKey(vlan_id)
-      vlanpath = fixPath(basedir.. "/" .. vlanpath)
-      if not ntop.exists(vlanpath) then
+  -- Create RRD for vlans
+  local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
+  for vlan_id, vlan_stats in pairs(vlans_aggr) do
+     local vlanpath = getPathFromKey(vlan_id)
+     vlanpath = fixPath(basedir.. "/" .. vlanpath)
+     if not ntop.exists(vlanpath) then
         ntop.mkdir(vlanpath)
-      end
-      vlanpath = fixPath(vlanpath .. "/bytes.rrd")
-      createRRDcounter(vlanpath, 300, false)
-      ntop.rrd_update(vlanpath, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
-    end
+     end
 
-    --- Create RRD for networks
-    for n,m in pairs(networks_aggr) do
-      local netname = getPathFromKey(n)
-      local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/".. netname
-      base = fixPath(base)
-      --io.write("->"..n.."\n")
-      if(not(ntop.exists(base))) then ntop.mkdir(base) end
+     local vlanbytes = fixPath(vlanpath .. "/bytes.rrd")
+     createRRDcounter(vlanbytes, 300, false)
+     ntop.rrd_update(vlanbytes, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
 
-      name = fixPath(base .. "/bytes.rrd")
-      createRRDcounter(name, 300, verbose)
-      str = "N:".. tolongint(m["bytes.sent"]) .. ":" .. tolongint(m["bytes.rcvd"])
-      --io.write(name.."="..str.."\n")
-      ntop.rrd_update(name, str)
-      if (m["ndpi"]) then -- nDPI data could be disabled
-        for k in pairs(m["ndpi"]) do
-          local ndpiname = fixPath(base.."/"..k..".rrd")
-          createRRDcounter(ndpiname, 300, verbose)
-          ntop.rrd_update(ndpiname, "N:"..tolongint(m["ndpi"][k]["bytes.sent"])..":"..tolongint(m["ndpi"][k]["bytes.rcvd"]))
-        end
-      end
+     if tcp_retr_ooo_lost_rrd_creation == "1" then
+	local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
+	anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
+	if(anoms > 0) then
+	   makeRRD(vlanpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
+	end
+     end
+  end
 
-      if (m["categories"]) then
-        if not ntop.exists(fixPath(base.."/categories")) then ntop.mkdir(fixPath(base.."/categories")) end
-        for cat_name, cat_bytes in pairs(m["categories"]) do
-          local catrrdname = fixPath(base.."/categories/"..cat_name..".rrd")
-          createSingleRRDcounter(catrrdname, 300, verbose)
-          ntop.rrd_update(catrrdname, "N:"..tolongint(cat_bytes))
-        end
-      end
-    end -- for
+  --- Create RRD for networks
+  if host_rrd_creation == "1" then
+     for n,m in pairs(networks_aggr) do
+	local netname = getPathFromKey(n)
 
-    -- Create RRDs for flow and sFlow devices
-    if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise()) then
-      local flowdevs = interface.getSFlowDevices()
+	local base = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats/'..netname)
+	if(not(ntop.exists(base))) then ntop.mkdir(base) end
 
-      for flow_device_ip,_ in pairs(flowdevs) do
+	if tcp_retr_ooo_lost_rrd_creation == "1" then
+	   local anoms = (m["tcp.packets.out_of_order"] or 0)
+	   anoms = anoms + (m["tcp.packets.retransmissions"] or 0) + (m["tcp.packets.lost"] or 0)
+	   if(anoms > 0) then
+	      makeRRD(base, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
+	   end
+	end
+
+	if host_ndpi_rrd_creation == "1" and m["ndpi"] then
+	   for k in pairs(m["ndpi"]) do
+	      local ndpiname = fixPath(base.."/"..k..".rrd")
+	      createRRDcounter(ndpiname, 300, verbose)
+	      ntop.rrd_update(ndpiname, "N:"..tolongint(m["ndpi"][k]["bytes.sent"])..":"..tolongint(m["ndpi"][k]["bytes.rcvd"]))
+	   end
+	end
+
+	if host_categories_rrd_creation == "1" then
+	   if (m["categories"]) then -- categories data is nil if host_categories_rrd_creation is disabled
+	      if not ntop.exists(fixPath(base.."/categories")) then ntop.mkdir(fixPath(base.."/categories")) end
+	      for cat_name, cat_bytes in pairs(m["categories"]) do
+		 local catrrdname = fixPath(base.."/categories/"..cat_name..".rrd")
+		 createSingleRRDcounter(catrrdname, 300, verbose)
+		 ntop.rrd_update(catrrdname, "N:"..tolongint(cat_bytes))
+	      end
+	   end
+	end
+
+     end -- for
+  end
+
+  -- Create RRDs for flow and sFlow devices
+  if(flow_devices_rrd_creation == "1" and ntop.isEnterprise()) then
+     local flowdevs = interface.getSFlowDevices()
+
+     for flow_device_ip,_ in pairs(flowdevs) do
         local ports = interface.getSFlowDeviceInfo(flow_device_ip)
 
         if(verbose) then
-          print ("["..__FILE__()..":"..__LINE__().."] Processing sFlow device "..flow_device_ip.."\n")
+	   print ("["..__FILE__()..":"..__LINE__().."] Processing sFlow device "..flow_device_ip.."\n")
         end
 
         for port_idx,port_value in pairs(ports) do
-          local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/sflow_devices/".. flow_device_ip
+	   local base = getRRDName(ifstats.id, "sflow:"..flow_device_ip, port_idx)
+	   if(not(ntop.exists(base))) then ntop.mkdir(base) end
 
-          base = fixPath(base)
-          if(not(ntop.exists(base))) then ntop.mkdir(base) end
-          name = fixPath(base .. "/"..port_idx..".rrd")
-          createRRDcounter(name, 300, verbose)
-          str = "N:".. tolongint(port_value.ifOutOctets) .. ":" .. tolongint(port_value.ifInOctets)
-          ntop.rrd_update(name, str)
+	   local name = getRRDName(ifstats.id, "sflow:"..flow_device_ip, port_idx.."/bytes.rrd")
 
-          if(verbose) then
-            print ("["..__FILE__()..":"..__LINE__().."]  Processing flow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
-          end
+	   createRRDcounter(name, 300, verbose)
+	   str = "N:".. tolongint(port_value.ifOutOctets) .. ":" .. tolongint(port_value.ifInOctets)
+	   ntop.rrd_update(name, str)
+
+	   if(verbose) then
+	      print ("["..__FILE__()..":"..__LINE__().."]  Processing sFlow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
+	   end
         end
-      end
+     end
 
-      local flowdevs = interface.getFlowDevices() -- Flow, not sFlow here
+     local flowdevs = interface.getFlowDevices() -- Flow, not sFlow here
 
-      for flow_device_ip,_ in pairs(flowdevs) do
-	 local ports = interface.getFlowDeviceInfo(flow_device_ip)
+     for flow_device_ip,_ in pairs(flowdevs) do
+	local ports = interface.getFlowDeviceInfo(flow_device_ip)
 
-	 if(verbose) then
-	    print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n")
-	 end
+	if(verbose) then
+	   print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n")
+	end
 
-	 for port_idx,port_value in pairs(ports) do
-	    local base = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx)
-	    if(not(ntop.exists(base))) then ntop.mkdir(base) end
+	for port_idx,port_value in pairs(ports) do
+	   local base = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx)
+	   if(not(ntop.exists(base))) then ntop.mkdir(base) end
 
-	    local name = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx.."/bytes.rrd")
+	   local name = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx.."/bytes.rrd")
 
-	    createRRDcounter(name, 300, verbose)
-	    str = "N:".. tolongint(port_value["bytes.out_bytes"]) .. ":" .. tolongint(port_value["bytes.in_bytes"])
-	    ntop.rrd_update(name, str)
+	   createRRDcounter(name, 300, verbose)
+	   str = "N:".. tolongint(port_value["bytes.out_bytes"]) .. ":" .. tolongint(port_value["bytes.in_bytes"])
+	   ntop.rrd_update(name, str)
 
-	    if(verbose) then
-	       print ("["..__FILE__()..":"..__LINE__().."]  Processing flow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
-	    end
-	 end
-      end
+	   if(verbose) then
+	      print ("["..__FILE__()..":"..__LINE__().."]  Processing flow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
+	   end
+	end
+     end
 
-    end
+  end
 
-    -- Save host activity stats only if flow activities are actually enabled
-    -- TODO: it is pointless to call foreachHost one more time. This is too expensive
-    -- and determines an attitional call to getHostInfo for every host
-    if ((prefs.is_flow_activity_enabled == true) and (ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == true)) then
-      local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
-      if not in_time then
+  -- Save host activity stats only if flow activities are actually enabled
+  -- TODO: it is pointless to call foreachHost one more time. This is too expensive
+  -- and determines an attitional call to getHostInfo for every host
+  if ((prefs.is_flow_activity_enabled == true) and (ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == true)) then
+     local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
+     if not in_time then
         callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD activity dump in 5 minutes. Please check your RRD configuration.")
         return false
-      end
-    end
-  end -- if rrd
+     end
+  end
+
 
   -- Save Host Pools stats every 5 minutes
   if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1") and (not ifstats.isView)) then

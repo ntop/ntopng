@@ -30,6 +30,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   const char * manuf;
   u_int16_t vlan_id;
   bool special_mac;
+  ArpStats arp_stats;
 
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
@@ -50,6 +51,14 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
     last_seen = iface->getTimeLastPktRcvd();
   }
   inline void incRcvdStats(u_int pkt_len)  { rcvd.incStats(pkt_len); }
+
+  inline void incSentArpRequests()   { arp_stats.sent_requests++; }
+  inline void incSentArpReplies()    { arp_stats.sent_replies++; }
+  inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++; }
+  inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++; }
+  inline u_int64_t getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
+  inline u_int64_t getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
+
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
@@ -57,3 +66,4 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
 };
 
 #endif /* _MAC_H_ */
+

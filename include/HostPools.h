@@ -52,8 +52,7 @@ class HostPools {
   void swap(AddressTree **new_trees, HostPoolStats **new_stats);
 
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
-    if(host_pool_id == NO_HOST_POOL_ID
-     || host_pool_id >= MAX_NUM_HOST_POOLS
+    if(host_pool_id >= MAX_NUM_HOST_POOLS
      || !stats)
      return NULL;
     return stats[host_pool_id];

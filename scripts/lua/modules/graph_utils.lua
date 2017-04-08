@@ -6,18 +6,25 @@ require "db_utils"
 require "historical_utils"
 local host_pools_utils = require "host_pools_utils"
 
-top_rrds = {
-   ["bytes.rrd"] = "Traffic",
-   ["packets.rrd"] = "Packets",
-   ["drops.rrd"] = "Packet Drops",
-   ["num_flows.rrd"] = "Active Flows",
-   ["num_hosts.rrd"] = "Active Hosts",
-   ["num_devices.rrd"] = "Active Devices",
-   ["num_http_hosts.rrd"] = "Active HTTP Servers",
-   ["tcp_lost.rrd"] = "TCP Packets Lost",
-   ["tcp_ooo.rrd"] = "TCP Packets Out-Of-Order",
-   ["tcp_retransmissions.rrd"] = "TCP Retransmitted Packets",
-   ["num_zmq_received_flows.rrd"] = "ZMQ Received Flows",
+local top_rrds = {
+   {rrd="num_flows.rrd",               label=i18n("graphs.active_flows")},
+   {rrd="num_hosts.rrd",               label=i18n("graphs.active_hosts")},
+   {rrd="num_devices.rrd",             label=i18n("graphs.active_devices")},
+   {rrd="num_http_hosts.rrd",          label=i18n("graphs.active_http_servers")},
+   {rrd="bytes.rrd",                   label=i18n("traffic")},
+   {rrd="packets.rrd",                 label=i18n("packets")},
+   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
+   {rrd="num_zmq_received_flows.rrd",  label=i18n("graphs.zmq_received_flows")},
+   {separator=1},
+   {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
+   {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo")},
+   {rrd="tcp_retransmissions.rrd",     label=i18n("graphs.tcp_packets_retr")},
+   {rrd="tcp_retr_ooo_lost.rrd",       label=i18n("graphs.tcp_retr_ooo_lost")},
+   {separator=1},
+   {rrd="tcp_syn.rrd",                 label=i18n("graphs.tcp_syn_packets")},
+   {rrd="tcp_synack.rrd",              label=i18n("graphs.tcp_synack_packets")},
+   {rrd="tcp_finack.rrd",              label=i18n("graphs.tcp_finack_packets")},
+   {rrd="tcp_rst.rrd",                 label=i18n("graphs.tcp_rst_packets")},
 }
 
 -- ########################################################
@@ -36,7 +43,7 @@ function getProtoVolume(ifName, start_time, end_time)
    
    ret = { }
    for rrdFile,v in pairs(rrds) do
-      if((string.ends(rrdFile, ".rrd")) and (top_rrds[rrdFile] == nil)) then
+      if((string.ends(rrdFile, ".rrd")) and (not isTopRRD(rrdFile))) then
 	 rrdname = getRRDName(ifId, nil, rrdFile)
 	 if(ntop.notEmptyFile(rrdname)) then
 	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
@@ -104,7 +111,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 	    if last_update ~= nil and last_update >= start_time then
 	       -- only show if there has been an update within the specified time frame
 
-	       if(top_rrds[v] == nil) then
+	       if(not isTopRRD(v)) then
 		  if(label == "*") then
 		     to_skip = true
 		  else
@@ -202,6 +209,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
       host_or_network = string.gsub(host_or_network, 'flow_device:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'sflow:') then
+      host_or_network = string.gsub(host_or_network, 'sflow:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
@@ -394,6 +404,46 @@ end
 
 -- ########################################################
 
+function isTopRRD(filename)
+   for _,top in ipairs(top_rrds) do
+      if top.rrd == filename then
+         return true
+      end
+   end
+
+   return false
+end
+
+-- ########################################################
+
+function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+   local needs_separator = false
+
+   for _,top in ipairs(top_rrds) do
+      if top.separator then
+         needs_separator = true
+     else
+         local k = top.rrd
+         local v = top.label
+
+         -- only show if there has been an update within the specified time frame
+         local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
+
+         if last_update ~= nil and last_update >= start_time then
+            if needs_separator then
+               -- Only add the separator if there are actually some entries in the group
+               print('<li class="divider"></li>\n')
+               needs_separator = false
+            end
+
+            print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. (zoomLevel or '') .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+         end
+      end
+   end
+end
+
+-- ########################################################
+
 function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 		 selectedEpoch, selected_epoch_sanitized, topArray)
    local debug_rrd = false
@@ -523,15 +573,7 @@ if(show_timeseries == 1) then
   <ul class="dropdown-menu">
 ]]
 
-for k,v in pairs(top_rrds) do
-   rrdname = getRRDName(ifid, host, k)
-   if(ntop.notEmptyFile(rrdname)) then
-      rrd = singlerrd2json(ifid, host, k, start_time, end_time, true, false)
-      if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
-	 print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
-      end
-   end
-end
+printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
 
 dirs = ntop.getDirs()
 p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
@@ -564,7 +606,7 @@ for k,v in ipairs(zoom_vals) do
       or string.starts(host, 'asn:')) then
        net_or_profile = true
    end
-   if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not top_rrds[rrdFile])) then
+   if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not isTopRRD(rrdFile))) then
        goto continue
    end
    print('<label class="btn btn-link ')
@@ -1134,7 +1176,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    -- Pretty printing for flowdevs/a.b.c.d/e.rrd
    local elems = split(prefixLabel, "/")
    if((elems[#elems] ~= nil) and (#elems > 1)) then
-      prefixLabel = "Port "..elems[#elems]
+      prefixLabel = capitalize(elems[#elems] or "")
       port_mode = true
    end
    

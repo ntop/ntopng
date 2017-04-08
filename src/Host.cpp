@@ -74,6 +74,7 @@ Host::~Host() {
   if(user_activities) delete user_activities;
   if(ifa_stats)       delete ifa_stats;
   if(symbolic_name)   free(symbolic_name);
+  if(continent)       free(continent);
   if(country)         free(country);
   if(city)            free(city);
   if(asname)          free(asname);
@@ -153,7 +154,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
-  asn = 0, asname = NULL, country = NULL, city = NULL;
+  asn = 0, asname = NULL, continent = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
@@ -237,9 +238,10 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     if(asname) { free(asname); asname = NULL; }
     ntop->getGeolocation()->getAS(&ip, &asn, &asname);
 
-    if(country) { free(country); country = NULL; }
-    if(city)    { free(city); city = NULL;       }
-    ntop->getGeolocation()->getInfo(&ip, &country, &city, &latitude, &longitude);
+    if(continent) { free(continent); continent = NULL; }
+    if(country)   { free(country);   country = NULL; }
+    if(city)      { free(city);      city = NULL;       }
+    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
     if(localHost || systemHost) {
 #ifdef NTOPNG_PRO
@@ -450,20 +452,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
 
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
-  if(host_details) {
-    /*
-      This has been disabled as in case of an attack, most hosts do not have a name and we will waste
-      a lot of time doing activities that are not necessary
-    */
-    if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
-      /* We resolve immediately the IP address by queueing on the top of address queue */
-
-      ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
-    }
-
-    if(icmp)
-      icmp->lua(ip.isIPv4(), vm);
-  }
 
   lua_push_str_table_entry(vm, "name",
 			   get_name(buf, sizeof(buf), false));
@@ -483,25 +471,36 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "asname", asname);
   lua_push_str_table_entry(vm, "os", os);
 
+
+  lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
   lua_push_str_table_entry(vm, "country", country ? country : (char*)"");
   lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
   lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
   lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
 
   if(host_details) {
-    lua_push_int_table_entry(vm, "totalActivity", duration);
-    if(info) lua_push_str_table_entry(vm, "info", info);
-    lua_push_float_table_entry(vm, "latitude", latitude);
-    lua_push_float_table_entry(vm, "longitude", longitude);
-    lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
-    lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
-    lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
-    lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
-    lua_push_int_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
-    lua_push_int_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
-    lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
+    /*
+      This has been disabled as in case of an attack, most hosts do not have a name and we will waste
+      a lot of time doing activities that are not necessary
+    */
+    if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
+      /* We resolve immediately the IP address by queueing on the top of address queue */
 
+      ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
+    }
+
+    if(icmp)
+      icmp->lua(ip.isIPv4(), vm);
+  }
+
+  /* TCP stats */
+  if(host_details) {
     lua_push_int_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
+
+    lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
+
     lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 			      (tcpPacketStats.pktRetr
 			       || tcpPacketStats.pktOOO
@@ -509,9 +508,33 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
     lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
     lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-    lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
-    lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
-    lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
+
+  } else {
+    /* Limit tcp information to anomalies when host_details aren't required */
+    if(tcpPacketStats.pktRetr > 0)
+      lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
+    if(tcpPacketStats.pktOOO > 0)
+      lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
+    if(tcpPacketStats.pktLost)
+      lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
+  }
+
+  if(host_details) {
+    lua_push_int_table_entry(vm, "totalActivity", duration);
+
+    if(info) lua_push_str_table_entry(vm, "info", info);
+
+    lua_push_float_table_entry(vm, "latitude", latitude);
+    lua_push_float_table_entry(vm, "longitude", longitude);
+    lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
+
+    lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
+    lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
+
+    lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
 
     lua_push_int_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
     lua_push_int_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());
@@ -784,6 +807,7 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
+  if(continent)           json_object_object_add(my_object, "continent", json_object_new_string(continent));
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
@@ -902,6 +926,7 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "continent", &obj))      { if(continent) free(continent); continent = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
@@ -1187,7 +1212,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [%s@%u][ndpiProtocol=%d/%s] => [policer=%p][shaper_id=%d]%s",
 				 isIngress ? "INGRESS" : "EGRESS",
 				 ip.print(buf, sizeof(buf)), vlan_id,
-				 ndpiProtocol.protocol,
+				 ndpiProtocol.app_protocol,
 				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
 				 policy ? policy : NULL, ret, sd ? "" : " [DEFAULT]");
   }
@@ -1204,6 +1229,7 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   ShaperDirection_t *sd = NULL;
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
+  bool category = false; /* Default: no category */
 
   if (policy) {
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
@@ -1213,17 +1239,18 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
       if(sd->protocol_shapers.enabled) {
         bytes = sd->protocol_shapers.bytes_quota;
         secs = sd->protocol_shapers.secs_quota;
-        *is_category = false;
+        category = false;
       } else if(sd->category_shapers.enabled) {
         bytes = sd->category_shapers.bytes_quota;
         secs = sd->category_shapers.secs_quota;
-        *is_category = true;
+        category = true;
       }
     }
   }
 
   *bytes_quota = bytes;
   *secs_quota = secs;
+  *is_category = category;
 }
 
 bool Host::isAboveQuota(u_int16_t protocol) {
@@ -1500,23 +1527,21 @@ void Host::decLowGoodputFlows(bool asClient) {
 
 void Host::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+  char *firstdot = NULL, *nextdot = NULL;
 
   if(top_sites
      && ntop->getPrefs()->are_top_talkers_enabled()
      && (strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
-#if 0
-    char *firstdot = strchr(hostname, '.');
 
-    if(firstdot) {
-      char *nextdot = strchr(&firstdot[1], '.');
+    firstdot = strchr(hostname, '.');
 
-      ntop->getRedis()->zIncr(topSitesKey, nextdot ? &firstdot[1] : hostname);
-    }
-#else
-    top_sites->add(hostname, 1);
-#endif
+    if(firstdot)
+      nextdot = strchr(&firstdot[1], '.');
+
+    top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+
   }
 }
 
