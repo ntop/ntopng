@@ -6,7 +6,6 @@ Logstash is a data collection engine that implements a data processing pipeline 
 How To Enable It
 ----------------
 In order to enable this feature you need to start ntopng with the -F.
-<<<<<<< HEAD
 
 Example: 
 $ ntopng -F "logstash;localhost;tcp;5510"
@@ -74,7 +73,6 @@ Once started, ntopng will push to LS flows that are expired or periodically send
 Logstash configuration example : 
 
 
-=======
 
 Example: 
 $ ntopng -F "logstash;localhost;tcp;5510"
@@ -93,7 +91,6 @@ Once started, ntopng will push to LS flows that are expired or periodically send
 Logstash configuration example : 
 
 
->>>>>>> d5e73f423c1d1421feaf2d76c128f55452a27bdb
 input {
    tcp {
       host => "localhost"
