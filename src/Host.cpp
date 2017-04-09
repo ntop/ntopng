@@ -556,7 +556,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
 
-    if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
+    if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
       lua_push_str_table_entry(vm, "sites", top_sites->json());
       lua_push_str_table_entry(vm, "sites.old", old_sites);
     }
