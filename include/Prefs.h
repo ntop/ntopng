@@ -51,6 +51,7 @@ class Prefs {
     enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
     enable_top_talkers, enable_captive_portal, enable_access_log, enable_flow_device_port_rrd_creation,
     enable_tiny_flows_export;
+  HostMask hostMask;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int active_local_hosts_cache_interval;
@@ -240,6 +241,7 @@ class Prefs {
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
   inline bool hasCmdlDisableAlerts()   { return has_cmdl_disable_alerts; }
   inline bool isCaptivePortalEnabled() { return(enable_captive_portal);  }
+  inline HostMask getHostMask()        { return(hostMask);               }
 };
 
 #endif /* _PREFS_H_ */

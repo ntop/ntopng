@@ -23,6 +23,12 @@
 #define _NTOP_TYPEDEFS_H_
 
 typedef enum {
+  no_host_mask = 0,
+  mask_local_hosts = 1,
+  mask_remote_hosts = 2
+} HostMask;
+
+typedef enum {
   threshold_hourly = 0,
   threshold_daily
 } ThresholdType;

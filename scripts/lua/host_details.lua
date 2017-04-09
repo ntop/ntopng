@@ -75,6 +75,7 @@ end
 only_historical = false
 
 local host_pool_id
+
 if (host ~= nil) then
    if (isAdministrator() and (_POST["pool"] ~= nil)) then
       host_pool_id = _POST["pool"]

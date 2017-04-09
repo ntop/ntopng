@@ -422,8 +422,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool returnHost, bool asListElement,
 	       bool exclude_deserialized_bytes) {
   char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net;
-
-  if(ptree && (!match(ptree)))
+  bool mask_host = Utils::maskHost(localHost);
+  
+  if((ptree && (!match(ptree))) || mask_host)
     return;
 
 #if 0
@@ -438,7 +439,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 #endif
   
   lua_newtable(vm);
-  lua_push_str_table_entry(vm, "ip", (ipaddr = ip.print(ip_buf, sizeof(ip_buf))));
+  lua_push_str_table_entry(vm, "ip", (ipaddr = ip.printMask(ip_buf, sizeof(ip_buf), localHost)));
   lua_push_int_table_entry(vm, "ipkey", ip.key());
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf)));
@@ -453,8 +454,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
-  lua_push_str_table_entry(vm, "name",
-			   get_name(buf, sizeof(buf), false));
+  lua_push_str_table_entry(vm, "name", mask_host ? (char*)"" : get_name(buf, sizeof(buf), false));
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);
@@ -470,7 +470,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "host_pool_id", host_pool);
   lua_push_str_table_entry(vm, "asname", asname);
   lua_push_str_table_entry(vm, "os", os);
-
 
   lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
   lua_push_str_table_entry(vm, "country", country ? country : (char*)"");

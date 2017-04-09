@@ -162,6 +162,16 @@ char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) {
 
 /* ******************************************* */
 
+char* IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
+  if(Utils::maskHost(isLocalIP)) {
+    snprintf(str, str_len, (addr.ipVersion == 4) ? "0.0.0.0" : "::");
+    return(str);
+  } else
+    return(intoa(str, str_len, 0xFF /* bitmask */));
+}
+
+/* ******************************************* */
+
 bool IpAddress::isLocalHost(int16_t *network_id) {
   if(addr.ipVersion == 4) {
     u_int32_t v = /* htonl */(addr.ipType.ipv4);
@@ -250,14 +260,14 @@ bool IpAddress::match(AddressTree *tree) {
   else {
     patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
     patricia_node_t *node;
-    
+
     if(ptree == NULL) return(true);
-    
+
     if(addr.ipVersion == 4)
       node = Utils::ptree_match(ptree, AF_INET, (void*)&addr.ipType.ipv4, 32);
     else
       node = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
-    
+
     return((node == NULL) ? false : true);
   }
 }
@@ -296,7 +306,7 @@ void IpAddress::dump() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ System ]");
   system =  isLocalInterfaceAddress() ? "Yes" : "No";
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "--------------------");
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Local: %s][SystemHost: %s]",
 			       print(buf, sizeof(buf)), local, system);
 }

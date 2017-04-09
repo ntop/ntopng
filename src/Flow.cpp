@@ -1301,7 +1301,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
   bool src_match, dst_match;
-
+  bool mask_cli_host = true, mask_dst_host = true, mask_flow;
+  
   if((src == NULL) || (dst == NULL)) return;
 
   if(ptree) {
@@ -1313,8 +1314,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_newtable(vm);
 
   if(src) {
-    lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
-    lua_push_int_table_entry(vm, "cli.key", src->key());
+    mask_cli_host = Utils::maskHost(src->isLocalHost());
+
+    lua_push_str_table_entry(vm, "cli.ip",
+			     src->get_ip()->printMask(buf, sizeof(buf),
+						      src->isLocalHost()));    
+    lua_push_int_table_entry(vm, "cli.key", mask_cli_host ? 0 : src->key());
   } else {
     lua_push_nil_table_entry(vm, "cli.ip");
     lua_push_nil_table_entry(vm, "cli.key");
@@ -1322,20 +1327,25 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
   if(dst) {
-    lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
-    lua_push_int_table_entry(vm, "srv.key", dst->key());
+    mask_dst_host = Utils::maskHost(dst->isLocalHost());
+
+    lua_push_str_table_entry(vm, "srv.ip",
+			     dst->get_ip()->printMask(buf, sizeof(buf),
+						      dst->isLocalHost()));
+    lua_push_int_table_entry(vm, "srv.key", mask_dst_host ? 0 : dst->key());
   } else {
     lua_push_nil_table_entry(vm, "srv.ip");
     lua_push_nil_table_entry(vm, "srv.key");
   }
   lua_push_int_table_entry(vm, "srv.port", get_srv_port());
 
+  mask_flow = mask_cli_host || mask_dst_host;
+  
   lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
   lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
 
   if(details_level >= details_high) {
-
-    if(src) {
+    if(src && !mask_cli_host) {
       lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
@@ -1347,7 +1357,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_nil_table_entry(vm, "cli.host");
     }
 
-    if(dst) {
+    if(dst && !mask_dst_host) {
       lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
@@ -1381,7 +1391,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
 #ifdef NTOPNG_PRO
-    if(trafficProfile && ntop->getPro()->has_valid_license())
+    if((!mask_flow) && trafficProfile && ntop->getPro()->has_valid_license())
       lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
 #endif
 
@@ -1452,9 +1462,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_bool_table_entry(vm, "tcp_established", isEstablished());
     }
 
-    if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
-    if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
-
+    if(!mask_flow) {
+      if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
+      if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
+    }
+    
     if(isHTTP() && protos.http.last_method && protos.http.last_url) {
       lua_push_str_table_entry(vm, "protos.http.last_method", protos.http.last_method);
       lua_push_int_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
@@ -1470,26 +1482,28 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 #endif
 
-    if(isHTTP() && protos.http.last_method && protos.http.last_url)
-      lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
-
-    if(host_server_name)
-      lua_push_str_table_entry(vm, "protos.http.server_name", host_server_name);
-
-    if(isDNS() && protos.dns.last_query)
-      lua_push_str_table_entry(vm, "protos.dns.last_query", protos.dns.last_query);
-
-    if(isSSH()) {
-      if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
-      if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
-    }
-
-    if(isSSL()) {
-      if(protos.ssl.certificate)
-	lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
-
-      if(protos.ssl.server_certificate)
-	lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
+    if(!mask_flow) {
+      if(isHTTP() && protos.http.last_method && protos.http.last_url)
+	lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
+      
+      if(host_server_name && (!mask_flow))
+	lua_push_str_table_entry(vm, "protos.http.server_name", host_server_name);
+      
+      if(isDNS() && protos.dns.last_query)
+	lua_push_str_table_entry(vm, "protos.dns.last_query", protos.dns.last_query);
+      
+      if(isSSH()) {
+	if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
+	if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
+      }
+      
+      if(isSSL()) {
+	if(protos.ssl.certificate)
+	  lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
+	
+	if(protos.ssl.server_certificate)
+	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
+      }
     }
     
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
@@ -1520,7 +1534,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     dumpPacketStats(vm, true);
     dumpPacketStats(vm, false);
 
-    if(details_level >= details_higher) {
+    if((!mask_flow) && (details_level >= details_higher)) {
       lua_push_int_table_entry(vm, "cli2srv.goodput_bytes.last", get_current_goodput_bytes_cli2srv());
       lua_push_int_table_entry(vm, "srv2cli.goodput_bytes.last", get_current_goodput_bytes_srv2cli());
 

@@ -1417,7 +1417,7 @@ end
 --          hostinfo2url(flow[key],"srv"), return an url based on the server host information in the flow table
 --
 
-function hostinfo2url(host_info,host_type,novlan)
+function hostinfo2url(host_info, host_type, novlan)
   local rsp = ''
   -- local version = 0
   local version = 1
