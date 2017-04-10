@@ -3121,7 +3121,9 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
     return -1;
 
   if((!isPacketInterface())
-     || (pcap_datalink_type == DLT_NULL))
+     || (pcap_datalink_type == DLT_NULL)
+     || (!strcmp(ifname, "lo"))
+     )
     hostMacsOnly = false;
 
   maxHits = getHostsHashSize();
