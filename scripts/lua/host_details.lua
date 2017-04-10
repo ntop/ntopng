@@ -393,10 +393,6 @@ if((page == "overview") or (page == nil)) then
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	    print("<tr><th width=35%>(Router/AccessPoint) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]).."</td><td>")
-	 else
-	    if(host["localhost"] == true and is_packetdump_enabled) then
-	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
-	    end
        end
    print('</td></tr>')
 
@@ -503,7 +499,7 @@ if((page == "overview") or (page == nil)) then
       print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
       if(host["localhost"] == true) then print('<span class="label label-success">Local Host</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
-      if(host["systemhost"] == true) then print(' <span class="label label-info">System IP<i class=\"fa fa-flag\"></i></span>') end
+      if(host["systemhost"] == true) then print(' <span class="label label-info">System IP <i class=\"fa fa-flag\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">Blacklisted Host</span>') end
 
       print(getHostIcon(labelKey))
