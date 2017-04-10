@@ -78,6 +78,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true, quota_exceeded = false, categorization.categorized_requested = false;
+  cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   memset(&categorization.category, 0, sizeof(categorization.category));
@@ -1353,6 +1354,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
       lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
+      lua_push_int_table_entry(vm, "cli.pool_id", src->get_host_pool());
     } else {
       lua_push_nil_table_entry(vm, "cli.host");
     }
@@ -1364,6 +1366,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
       lua_push_int32_table_entry(vm, "srv.network_id", dst->get_local_network_id());
+      lua_push_int_table_entry(vm, "srv.pool_id", dst->get_host_pool());
     } else {
       lua_push_nil_table_entry(vm, "srv.host");
     }
@@ -1473,12 +1476,18 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
 #ifdef NTOPNG_PRO
-    /* Shapers */
     if(cli_host && srv_host) {
+      /* Shapers */
       lua_push_int_table_entry(vm, "shaper.cli2srv_ingress", flowShaperIds.cli2srv.ingress);
       lua_push_int_table_entry(vm, "shaper.cli2srv_egress", flowShaperIds.cli2srv.egress);
       lua_push_int_table_entry(vm, "shaper.srv2cli_ingress", flowShaperIds.srv2cli.ingress);
       lua_push_int_table_entry(vm, "shaper.srv2cli_egress", flowShaperIds.srv2cli.egress);
+
+      /* Quota */
+      lua_push_str_table_entry(vm, "cli.quota_applied_proto", (char *)(cli_quota_app_proto ? "app" : "master"));
+      lua_push_bool_table_entry(vm, "cli.quota_is_category", cli_quota_is_category);
+      lua_push_str_table_entry(vm, "srv.quota_applied_proto", (char *)(srv_quota_app_proto ? "app" : "master"));
+      lua_push_bool_table_entry(vm, "srv.quota_is_category", srv_quota_is_category);
     }
 #endif
 
@@ -2609,13 +2618,25 @@ void Flow::recheckQuota() {
 
   if(cli_host && srv_host) {
     /* Client quota check */
-    above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.app_protocol)
-      || cli_host->isAboveQuota(ndpiDetectedProtocol.master_protocol);
+    above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category);
+    if (above_quota)
+      cli_quota_app_proto = true;
+    else
+      above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category);
 
-    if (above_quota == false) {
+    if (above_quota) {
+      cli_quota_app_proto = false;
+    } else {
       /* Server quota check */
-      above_quota = srv_host->isAboveQuota(ndpiDetectedProtocol.app_protocol)
-	|| srv_host->isAboveQuota(ndpiDetectedProtocol.master_protocol);
+      above_quota = srv_host->isAboveQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category);
+
+      if (above_quota)
+        srv_quota_app_proto = true;
+      else
+        srv_host->isAboveQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category);
+
+      if (above_quota)
+        srv_quota_app_proto = false;
     }
   }
 

@@ -1252,23 +1252,22 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   *is_category = category;
 }
 
-bool Host::isAboveQuota(u_int16_t protocol) {
+bool Host::isAboveQuota(u_int16_t protocol, bool *is_category) {
   u_int64_t bytes_quota, bytes;
   u_int32_t secs_quota, secs;
-  bool is_category;
   ndpi_protocol_category_t category;
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
 
   if (!pools) return false;
 
-  get_quota(protocol, &bytes_quota, &secs_quota, &is_category);
+  get_quota(protocol, &bytes_quota, &secs_quota, is_category);
 
   if ((bytes_quota > 0) || (secs_quota > 0)) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
-      if ((is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
-       || (!is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
+      if ((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+       || (!*is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
         if (((bytes_quota > 0) && (bytes >= bytes_quota))
          || ((secs_quota > 0) && (secs >= secs_quota)))
         is_above = true;

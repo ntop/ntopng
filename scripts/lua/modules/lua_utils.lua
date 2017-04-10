@@ -1212,6 +1212,24 @@ end
 
 -- ##############################################
 
+function splitProtocol(proto_string)
+  local parts = string.split(proto_string, "%.")
+  local app_proto
+  local master_proto
+
+  if parts == nil then
+    master_proto = proto_string
+    app_proto = nil
+  else
+    master_proto = parts[1]
+    app_proto = parts[2]
+  end
+
+  return master_proto, app_proto
+end
+
+-- ##############################################
+
 function getHostAltNamesKey()
    return "ntopng.host_labels"
 end

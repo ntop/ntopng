@@ -80,7 +80,8 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted,
-    good_low_flow_detected, good_ssl_hs, quota_exceeded;
+    good_low_flow_detected, good_ssl_hs,
+    quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;

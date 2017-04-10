@@ -7,6 +7,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "voip_utils"
+require "graph_utils"
+
+if ntop.isPro() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+   shaper_utils = require("shaper_utils")
+end
 
 local json = require ("dkjson")
 
@@ -1581,4 +1587,63 @@ function getRTPTableRows(info)
    return string_table
 end
 
+-- #######################
+
+function getFlowQuota(ifid, info, as_client)
+  local pool_id, quota_protocol, quota_is_category
+
+  if as_client then
+    pool_id = info["cli.pool_id"]
+    quota_protocol = info["cli.quota_applied_proto"]
+    quota_is_category = info["cli.quota_is_category"]
+  else
+    pool_id = info["srv.pool_id"]
+    quota_protocol = info["srv.quota_applied_proto"]
+    quota_is_category = info["srv.quota_is_category"]
+  end
+
+  local master_proto, app_proto = splitProtocol(info["proto.ndpi"])
+  local pools_stats = interface.getHostPoolsStats()
+  local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
+
+  if pool_stats ~= nil then
+    local application = ternary(quota_protocol == "master", master_proto, app_proto)
+    local key, category_stats, proto_stats
+
+    if quota_is_category then
+      -- the quota is being applied on the protocol category
+      key = interface.getnDPIProtoCategory(interface.getnDPIProtoId(application)).name
+      proto_stats = nil
+      category_stats = pool_stats.ndpi_categories
+    else
+      -- the quota is being applied on the protocol itself
+      key = application
+      proto_stats = pool_stats.ndpi
+      category_stats = nil
+    end
+
+    local quota_and_protos = shaper_utils.getPoolProtoShapers(ifid, pool_id)
+    local proto_info = quota_and_protos[key]
+
+    if proto_info ~= nil then
+      return proto_info, proto_stats, category_stats
+    end
+  end
+
+  return nil
+end
+
+-- #######################
+
+function printFlowQuota(ifid, info, as_client)
+  local flow_quota, proto_stats, category_stats = getFlowQuota(ifid, info, as_client)
+ 
+  if flow_quota ~= nil then
+    print("<table style='width:100%; table-layout: fixed;'><tr>")
+    print(string.gsub(printProtocolQuota(flow_quota, proto_stats, category_stats, {traffic=true, time=true}, true), "\n", ""))
+    print("</tr></table>")
+  else
+    print("No quota")
+  end
+end
 -- #######################
