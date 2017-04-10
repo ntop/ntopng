@@ -156,13 +156,13 @@ void Logstash::sendLSdata() {
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
 
-  if(server == NULL || portstr==NULL){
+  if(server == NULL || portstr == NULL){
      //can't send
      return;
   }
 
   proto = ntop->getPrefs()->get_ls_proto();
-  if(proto&&!strncmp(proto,"udp",3)){
+  if(proto && !strncmp(proto,"udp",3)){
      sendTCP = 0;
   }
   portno = atoi(portstr);
@@ -313,7 +313,4 @@ void Logstash::sendLSdata() {
   } /* while */
 
   close(sockfd);
-  if(proto)  free(proto);
-  if(portstr) free(portstr);
-
 }
