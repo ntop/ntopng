@@ -516,9 +516,9 @@ end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
       print("<tr><th><i class=\"fa fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifstats.id.."&page=filtering&pool="..host_pool_id.."\">Blocked Traffic</a></th><td colspan=2>")
-      print("Some host traffic is currently blocked by ")
+      print("Some host traffic has been blocked by ")
       if host["has_blocking_quota"] then
-         print(" a quota")
+         print(" an exceeded quota")
          if host["has_blocking_shaper"] then print(" and ") end
       end
       if host["has_blocking_shaper"] then

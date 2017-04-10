@@ -336,6 +336,7 @@ void Host::updateHostL7Policy() {
       return;
 
     if(ntop->getPro()->has_valid_license()) {
+
 	if(l7PolicyShadow) {
 	    free_ptree_l7_policy_data((void*)l7PolicyShadow);
 	    l7PolicyShadow = NULL;
@@ -354,6 +355,7 @@ void Host::updateHostL7Policy() {
 #endif
 
 	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool);
+  resetBlockedTrafficStatus();
     }
 #endif
 }
