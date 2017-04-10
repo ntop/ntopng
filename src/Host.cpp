@@ -126,6 +126,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
   l7Policy = l7PolicyShadow = NULL;
+  has_blocking_quota = has_blocking_shaper = false;
 #endif
   host_pool = NO_HOST_POOL_ID;
 
@@ -476,6 +477,11 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
   lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
   lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
+
+#ifdef NTOPNG_PRO
+  lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
+  lua_push_bool_table_entry(vm, "has_blocking_shaper", has_blocking_shaper);
+#endif
 
   if(host_details) {
     /*
@@ -1217,6 +1223,13 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 #endif
 
+  /* Update blocking status */
+  if (!has_blocking_shaper && getInterface()->getL7Policer()) {
+    TrafficShaper *shaper = getInterface()->getL7Policer()->getShaper(ret);
+    if (shaper->get_max_rate_kbit_sec() == 0)
+      has_blocking_shaper = true;
+  }
+
   return(ret);
 }
 
@@ -1252,7 +1265,7 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   *is_category = category;
 }
 
-bool Host::isAboveQuota(u_int16_t protocol, bool *is_category) {
+bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   u_int64_t bytes_quota, bytes;
   u_int32_t secs_quota, secs;
   ndpi_protocol_category_t category;
@@ -1288,6 +1301,7 @@ bool Host::isAboveQuota(u_int16_t protocol, bool *is_category) {
     }
   }
 
+  has_blocking_quota |= is_above;
   return is_above;
 }
 

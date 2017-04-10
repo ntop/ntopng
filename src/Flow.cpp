@@ -2618,22 +2618,22 @@ void Flow::recheckQuota() {
 
   if(cli_host && srv_host) {
     /* Client quota check */
-    above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category);
+    above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category);
     if (above_quota)
       cli_quota_app_proto = true;
     else
-      above_quota = cli_host->isAboveQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category);
+      above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category);
 
     if (above_quota) {
       cli_quota_app_proto = false;
     } else {
       /* Server quota check */
-      above_quota = srv_host->isAboveQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category);
+      above_quota = srv_host->checkQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category);
 
       if (above_quota)
         srv_quota_app_proto = true;
       else
-        srv_host->isAboveQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category);
+        srv_host->checkQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category);
 
       if (above_quota)
         srv_quota_app_proto = false;

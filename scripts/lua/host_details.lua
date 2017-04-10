@@ -514,6 +514,20 @@ if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>Alerts</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
 end
 
+   if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
+      print("<tr><th><i class=\"fa fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifstats.id.."&page=filtering&pool="..host_pool_id.."\">Blocked Traffic</a></th><td colspan=2>")
+      print("Some host traffic is currently blocked by ")
+      if host["has_blocking_quota"] then
+         print(" a quota")
+         if host["has_blocking_shaper"] then print(" and ") end
+      end
+      if host["has_blocking_shaper"] then
+         print(" a blocking shaper")
+      end
+      print(".")
+      print("</td></tr>")
+   end
+
    print("<tr><th>First / Last Seen</th><td nowrap><span id=first_seen>" .. formatEpoch(host["seen.first"]) ..  " [" .. secondsToTime(os.time()-host["seen.first"]) .. " ago]" .. "</span></td>\n")
    print("<td  width='35%'><span id=last_seen>" .. formatEpoch(host["seen.last"]) .. " [" .. secondsToTime(os.time()-host["seen.last"]) .. " ago]" .. "</span></td></tr>\n")
 

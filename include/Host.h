@@ -71,6 +71,7 @@ class Host : public GenericHost {
 
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
+  bool has_blocking_quota, has_blocking_shaper;
 #endif
   u_int16_t host_pool;
 
@@ -130,7 +131,8 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
   inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
-  bool isAboveQuota(u_int16_t protocol, bool *is_category);
+  bool checkQuota(u_int16_t protocol, bool *is_category);
+  inline void resetBlockedTrafficStatus()      { has_blocking_quota = has_blocking_shaper = false; }
 #endif
   inline u_int16_t get_host_pool()             { return(host_pool);        }
   inline u_int32_t get_asn()                   { return(asn);              }
