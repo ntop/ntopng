@@ -23,7 +23,6 @@ Once started, ntopng will push to LS flows that are expired or periodically send
 
 Logstash configuration example : 
 
-
 input {
    tcp {
       host => "localhost"
