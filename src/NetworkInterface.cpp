@@ -1338,8 +1338,16 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	if(! flow->get_cli_host()->is_label_set()) {
 	  char name[64];
 
-	  if((ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0) && (!strstr(name, "__MSBROWSE__")))
+	  if((ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0) && (!strstr(name, "__MSBROWSE__"))) {
+#if 0
+	    char buf[32];
+
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting hostname from NetBios [raw=0x%x opcode=0x%x response=0x%x]: ip=%s -> %s",
+	        payload[2], (payload[2] & 0x78) >> 3, (payload[2] & 0x80) >> 7,
+	        (*srcHost)->get_ip()->print(buf, sizeof(buf)), name);
+#endif
 	    flow->get_cli_host()->set_host_label(name, false);
+    }
 	}
       }
       break;
