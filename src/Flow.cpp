@@ -2469,7 +2469,11 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 #ifdef NTOPNG_PRO
 
 bool Flow::isPassVerdict() {
-  if(!passVerdict) return(passVerdict);
+  if(!passVerdict)
+    return(false);
+
+  if(!isDetectionCompleted())
+    return(true); /* Always pass until detection is completed */
 
   recheckQuota();
 
