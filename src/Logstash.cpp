@@ -269,7 +269,7 @@ void Logstash::sendLSdata() {
         //Continue with the leftover data
       } else {
         sent = 0;
-        sentLength = sizeof(postbuf);
+        sentLength = len;
       }
       if(sendTCP){
 	//TCP
