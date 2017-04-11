@@ -1525,6 +1525,7 @@ local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_direc
 <ul>
 <li>]]..i18n("shaping.note_drop_core")..[[</li>
 <li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
+<li>]]..i18n("shaping.see_quotas_here", {url=ntop.getHttpPrefix().."/lua/pool_details.lua?page=quotas&pool="..selected_pool.id})..[[</li>
 <li>]]..i18n("shaping.note_families")..[[
    <select id="family_info_sel" class="form-control input-sm" style="width:16em; display:inline; margin: 0 1em;">
       <option disabled selected value></option>
@@ -1563,15 +1564,23 @@ local time_buttons = shaper_utils.buttons("time")
 
 print(rate_buttons.init.."\n")
 
+local empty_quota_bar = string.gsub(string.gsub(printProtocolQuota({traffic_quota="0"}, {}, nil, {traffic=true}, false), "\n", ""), "'", "\"")
+
 print[[
 var rate_buttons_code = ']] print(rate_buttons.js) print[[';
-var rate_buttons_html = ']] print(rate_buttons.html) print[[';
+var rate_buttons_html = '<table style="width:100%"><tr><td>]] print(rate_buttons.html) print[[</td></tr></table>';
 
 var traffic_buttons_code = ']] print(traffic_buttons.js) print[[';
-var traffic_buttons_html = ']] print(traffic_buttons.html) print[[';
+var traffic_buttons_html = '<table style="width:100%"><tr><td>]] print(traffic_buttons.html)
+print[[</td><td style="width:35%">]]
+print(empty_quota_bar)
+print[[</tr></table>';
 
 var time_buttons_code = ']] print(time_buttons.js) print[[';
-var time_buttons_html = ']] print(time_buttons.html) print[[';
+var time_buttons_html = '<table style="width:100%"><tr><td>]] print(time_buttons.html)
+print[[</td><td style="width:35%">]]
+print(empty_quota_bar)
+print[[</tr></table>';
 
 /* Note: do not change */
 var rowid_prefix = "proto_policy_row_";
@@ -1592,7 +1601,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
 
    // fix ctrl id
    var buttons = $(replaceCtrlId(template_html, input_name));
-   var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
+   var div = $('<div class="text-center form-group" style="padding:0; margin:0;"></div>');
    td_object.html("");
    div.appendTo(td_object);
    buttons.appendTo(div);
@@ -1602,7 +1611,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
       input.attr("data-max", maxvalue);
 
    input.attr("data-min", (minvalue !== null) ? minvalue : -1);
-   input.appendTo(div);
+   input.appendTo($("td:first", div));
 
    if (disabled) {
       input.attr("disabled", "disabled");
@@ -1723,6 +1732,57 @@ print[[
 
    var new_row_ctr = 0;
    var protocol_categories = ]] print(json.encode(protocol_categories)) print[[;
+   var quota_update = null;
+   var quota_update_xhr = null;
+
+   function quotaUpdateCallback() {
+      if (quota_update_xhr !== null) {
+         quota_update_xhr.abort();
+         quota_update_xhr = null;
+      }
+
+      quota_update_xhr = $.ajax({
+         type: "GET",
+         url: "]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua",
+         data: {pool: ]] print(selected_pool.id) print[[},
+         success: function(response) {
+            var rsp = $("<table>"+response+"</table>");
+
+            $("#table-protos table:first tr").each(function() {
+               var proto_id = $("td:first select", $(this)).val();
+
+               if (typeof(proto_id) !== "undefined") {
+                  var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
+                  var traffic_quota = $("td:nth-child(4) div.progress", $(this));
+                  var time_quota = $("td:nth-child(5) div.progress", $(this));
+
+                  if (tr_quota.length === 1) {
+                     traffic_quota.html($("div.progress:first", tr_quota).html());
+                     time_quota.html($("div.progress:last", tr_quota).html());
+                  } else {
+                     traffic_quota.html(']] print(empty_quota_bar) print[[');
+                     time_quota.html(']] print(empty_quota_bar) print[[');
+                  }
+               }
+            });
+         }
+      });
+
+      /* Periodic timeout */
+      quota_update = setTimeout(quotaUpdateCallback, 5000);
+   }
+
+   function refreshQuotas() {
+      if (quota_update !== null) {
+         clearTimeout(quota_update);
+         quota_update = null;
+      }
+
+      /* Reduced timeout (only once) */
+      quota_update = setTimeout(quotaUpdateCallback, 10);
+   }
+
+   refreshQuotas();
 
    function addNewShapedProto() {
       var newid = newid_prefix + new_row_ctr;
@@ -1735,7 +1795,7 @@ print[[
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
       </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
-      $("#table-protos table").append(tr);
+      $("#table-protos table:first").append(tr);
 
       makeProtocolNameDropdown(tr);
       makeTrafficQuotaButtons(tr, newid);
@@ -1758,7 +1818,8 @@ print[[
 
       var input = $('<select class="form-control"></select>')
          .attr("name", name)
-         .html(']] print_ndpi_families_and_protocols(protocol_categories, protos, {}, {}, "\\") print[[');
+         .html(']] print_ndpi_families_and_protocols(protocol_categories, protos, {}, {}, "\\") print[[')
+         .change(refreshQuotas);
 
       $("td:first", tr_obj).html(input);
 
