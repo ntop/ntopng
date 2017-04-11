@@ -784,6 +784,7 @@ local known_parameters = {
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
    ["toggle_thpt_content"]                         =  validateChoiceInline({"bps", "pps"}),
+   ["toggle_host_mask"]                            =  validateChoiceInline({"0", "1", "2"}),
 --
 
 -- PAGE SPECIFIC

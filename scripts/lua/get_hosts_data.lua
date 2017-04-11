@@ -277,6 +277,10 @@ for _key, _value in pairsByKeys(vals, funct) do
       print(" <i class='fa fa-warning fa-lg' style='color: #B94A48;'></i>")
    end
 
+   if value["has_blocking_quota"] or value["has_blocking_shaper"] then
+      print(" <i class='fa fa-ban fa-lg' title='Host traffic is affected by a blocking Traffic Policy'></i>")
+   end
+
    --   print("</div>")
 
    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end

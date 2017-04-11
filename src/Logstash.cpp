@@ -154,6 +154,7 @@ void Logstash::sendLSdata() {
   size_t sentLength = 0;
   u_int len, num_flows;
 
+
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
 
@@ -236,9 +237,10 @@ void Logstash::sendLSdata() {
       } else {
         len = 0, num_flows = 0;
         listMutex.lock(__FILE__, __LINE__);
-	//clear buffer to get rid of garbage bytes
+	      //clear buffer to get rid of garbage bytes
         memset(&postbuf[0],0,sizeof(postbuf));
         postbuf[0] = '\0';
+
         for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
           struct string_list *prev;
   	  if(!(tail && tail->str)){

@@ -582,6 +582,12 @@ local  en = {
       ldap_local = "LDAP/Local",
       posix = "Posix",
       samaccount = "sAMAccount",
+      host_mask = "Mask Host IP Addresses",
+      toggle_host_mask_title = "Mask Host IP Addresses",
+      toggle_host_mask_description = "For privacy reasons it might be necessary to mask hosts IP addresses. For instance if you are an ISP you are not supposed to know what local addresses are accessing rmote hosts.",
+      no_host_mask = "Don't Mask Hosts",
+      local_host_mask = "Mask Local Hosts",
+      remote_host_mask = "Mask Remote Hosts",      
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

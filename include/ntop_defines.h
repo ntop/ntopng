@@ -419,6 +419,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */
 #endif
+#define CONST_RUNTIME_PREFS_HOSTMASK  "ntopng.prefs.host_mask"
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192

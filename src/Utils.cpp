@@ -1339,7 +1339,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 /* **************************************** */
 
 char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
-  if(mac == NULL)
+  if((mac == NULL) || (ntop->getPrefs()->getHostMask() != no_host_mask))
     snprintf(buf, buf_len, "00:00:00:00:00:00");
   else
     snprintf(buf, buf_len, "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -2052,4 +2052,25 @@ bool Utils::isInterfaceUp(char *ifname) {
   close(sock);
 
   return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
+}
+
+/* ****************************************************** */
+
+bool Utils::maskHost(bool isLocalIP) {
+  bool mask_host = false;
+  
+  switch(ntop->getPrefs()->getHostMask()) {
+  case mask_local_hosts:
+    if(isLocalIP) mask_host = true;
+    break;
+    
+  case mask_remote_hosts:
+    if(!isLocalIP) mask_host = true;
+    break;
+    
+  default:
+    break;
+  }
+
+  return(mask_host);
 }

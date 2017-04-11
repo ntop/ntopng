@@ -47,6 +47,17 @@ else
     .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
     .. ', "bytes": ' .. flow["bytes"] .. ', "goodput_bytes": ' .. flow["goodput_bytes"] .. ', "cli2srv.packets": ' .. flow["cli2srv.packets"] .. ', "srv2cli.packets": ' .. flow["srv2cli.packets"] .. ', "cli2srv.bytes": ' .. flow["cli2srv.bytes"] .. ', "srv2cli.bytes": ' .. flow["srv2cli.bytes"].. ', "throughput": "' .. thpt_display..'", "top_throughput_display": "'.. top_thpt_display ..'", "throughput_raw": ' .. thpt)
 
+    local ifstats = interface.getStats()
+
+    if ntop.isPro() and ifstats.inline and (flow["cli.pool_id"] ~= nil) and (flow["srv.pool_id"] ~= nil) then
+      print(', "cli2srv_quota":'.. "\"")
+      printFlowQuota(ifstats.id, flow, true --[[ client ]])
+      print("\"" )
+      print(', "srv2cli_quota":'.. "\"")
+      printFlowQuota(ifstats.id, flow, false --[[ server ]])
+      print("\"" )
+    end
+
     if(flow["proto.l4"] == "TCP") then
        print(', "c2sOOO":'.. flow["cli2srv.out_of_order"] )
        print(', "c2slost":'..flow["cli2srv.lost"] )

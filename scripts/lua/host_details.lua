@@ -75,6 +75,7 @@ end
 only_historical = false
 
 local host_pool_id
+
 if (host ~= nil) then
    if (isAdministrator() and (_POST["pool"] ~= nil)) then
       host_pool_id = _POST["pool"]
@@ -392,10 +393,6 @@ if((page == "overview") or (page == nil)) then
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	    print("<tr><th width=35%>(Router/AccessPoint) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]).."</td><td>")
-	 else
-	    if(host["localhost"] == true and is_packetdump_enabled) then
-	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
-	    end
        end
    print('</td></tr>')
 
@@ -502,7 +499,7 @@ if((page == "overview") or (page == nil)) then
       print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
       if(host["localhost"] == true) then print('<span class="label label-success">Local Host</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
-      if(host["systemhost"] == true) then print(' <span class="label label-info">System IP<i class=\"fa fa-flag\"></i></span>') end
+      if(host["systemhost"] == true) then print(' <span class="label label-info">System IP <i class=\"fa fa-flag\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">Blacklisted Host</span>') end
 
       print(getHostIcon(labelKey))
@@ -512,6 +509,20 @@ if((page == "overview") or (page == nil)) then
 if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>Alerts</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
 end
+
+   if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
+      print("<tr><th><i class=\"fa fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifstats.id.."&page=filtering&pool="..host_pool_id.."\">Blocked Traffic</a></th><td colspan=2>")
+      print("Some host traffic has been blocked by ")
+      if host["has_blocking_quota"] then
+         print(" an exceeded quota")
+         if host["has_blocking_shaper"] then print(" and ") end
+      end
+      if host["has_blocking_shaper"] then
+         print(" a blocking shaper")
+      end
+      print(".")
+      print("</td></tr>")
+   end
 
    print("<tr><th>First / Last Seen</th><td nowrap><span id=first_seen>" .. formatEpoch(host["seen.first"]) ..  " [" .. secondsToTime(os.time()-host["seen.first"]) .. " ago]" .. "</span></td>\n")
    print("<td  width='35%'><span id=last_seen>" .. formatEpoch(host["seen.last"]) .. " [" .. secondsToTime(os.time()-host["seen.last"]) .. " ago]" .. "</span></td></tr>\n")

@@ -83,8 +83,16 @@ vals = {}
 
 stats_by_group_col = {}
 
-
-stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), true, tonumber(pool_n), tonumber(ipver_n)) -- false = little details)
+stats_by_group_key = interface.getGroupedHosts(false, -- do not show details
+   "column_"..group_col, -- group column
+   country_n,            -- country filter
+   os_n,                 -- OS filter
+   tonumber(vlan_n),     -- VLAN filter
+   tonumber(as_n),       -- ASN filter
+   tonumber(network_n),  -- Network filter
+   true,                 -- Hosts only, no MAC
+   tonumber(pool_n),     -- Host Pool filter
+   tonumber(ipver_n))    -- IP version filter (4 or 6)
 stats_by_group_col = stats_by_group_key
 
 --[[
