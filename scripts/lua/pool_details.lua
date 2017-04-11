@@ -90,7 +90,7 @@ if ntop.isPro() and ifstats.inline and (page == "quotas") and (pool_stats ~= nil
   -- Empty check
   local empty = true
   for _, proto in pairs(quota_and_protos) do
-    if ((proto.traffic_quota ~= "0") or (proto.time_quota ~= "0")) then
+    if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
       -- at least a quota is set
       empty = false
       break

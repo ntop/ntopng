@@ -509,12 +509,16 @@ void HostPools::reloadPools() {
   snprintf(kname, sizeof(kname),
 	   HOST_POOL_IDS_KEY, iface->get_id());
 
+#ifdef NTOPNG_PRO
+  /* Always allocate defaul pool stats */
+  if(stats && stats[0]) /* Duplicate existing statistics */
+    new_stats[0] = new HostPoolStats(*stats[0]);
+  else /* Brand new statistics */
+    new_stats[0] = new HostPoolStats();
+#endif
+
   /* Keys are pool ids */
-  if((num_pools = redis->smembers(kname, &pools)) <= 0) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "No host pools for interface %s", iface->get_name());
-    delete new_tree; /* No need to invoke destructors here as elements are empty */
-    return;
-  }
+  num_pools = redis->smembers(kname, &pools);
 
   for(int i = 0; i < num_pools; i++) {
     if(!pools[i])
