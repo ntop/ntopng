@@ -529,10 +529,12 @@ void HostPools::reloadPools() {
       continue;
 
 #ifdef NTOPNG_PRO
-    if(stats && stats[_pool_id]) /* Duplicate existing statistics */
-      new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
-    else /* Brand new statistics */
-      new_stats[_pool_id] = new HostPoolStats();
+    if (_pool_id != 0) { /* Pool id 0 stats already updated */
+      if(stats && stats[_pool_id]) /* Duplicate existing statistics */
+        new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
+      else /* Brand new statistics */
+        new_stats[_pool_id] = new HostPoolStats();
+    }
 #endif
 
     snprintf(kname, sizeof(kname),

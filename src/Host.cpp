@@ -1228,7 +1228,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   /* Update blocking status */
   if (!has_blocking_shaper && getInterface()->getL7Policer()) {
     TrafficShaper *shaper = getInterface()->getL7Policer()->getShaper(ret);
-    if (shaper->get_max_rate_kbit_sec() == 0)
+    if (shaper->shaping_enabled() && (shaper->get_max_rate_kbit_sec() == 0))
       has_blocking_shaper = true;
   }
 
