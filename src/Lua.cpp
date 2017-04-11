@@ -607,7 +607,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   bool show_details = true, hostsOnly = true;
   char *country = NULL, *os_filter = NULL;
   char *groupBy = (char*)"column_ip";
-  u_int16_t vlan_filter;
+  u_int16_t vlan_filter = 0;
   u_int32_t asn_filter = (u_int32_t)-1;
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t ipver_filter = (u_int8_t)-1;

@@ -25,6 +25,7 @@
 
 Grouper::Grouper(sortField sf){
   sorter = sf;
+  group_id_i = -1;
   group_id_set = false;
   group_id_s = NULL;
   group_label = NULL;
