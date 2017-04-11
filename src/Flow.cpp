@@ -1694,11 +1694,6 @@ json_object* Flow::flow2json() {
   char buf[64], jsonbuf[64], *c;
   time_t t;
 
-  memset(buf,0,sizeof(buf));
-  memset(jsonbuf,0,sizeof(jsonbuf));
-  buf[0] = '\0';
-  jsonbuf[0] = '\0';
-
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
     return(NULL);
