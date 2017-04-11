@@ -152,6 +152,7 @@ void Logstash::sendLSdata() {
   int skipDequeue = 0;
   int sent = 0;
   size_t sentLength = 0;
+  u_int len, num_flows;
 
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
@@ -193,10 +194,6 @@ void Logstash::sendLSdata() {
 
   while(!ntop->getGlobals()->isShutdown()) {
     if(num_queued_elems >= watermark) {
-      u_int len, num_flows;
-      len = 0, num_flows = 0;
-
-
       if(sockfd<0){
         if(!sendTCP) { //UDP socket
           sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
@@ -237,6 +234,7 @@ void Logstash::sendLSdata() {
 	//Next loop should start dequeuing again if all goes well
 	skipDequeue = 0;
       } else {
+        len = 0, num_flows = 0;
         listMutex.lock(__FILE__, __LINE__);
 	//clear buffer to get rid of garbage bytes
         memset(&postbuf[0],0,sizeof(postbuf));
