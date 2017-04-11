@@ -1710,10 +1710,9 @@ json_object* Flow::flow2json() {
 
     strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
 
-    if(ntop->getPrefs()->do_dump_flows_on_ls()){
-      json_object_object_add(my_object, "ntop_timestamp", json_object_new_string(buf));
-    }else{
-      json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+    json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+
+    if(ntop->getPrefs()->do_dump_flows_on_es()){
       json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
     }
     /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
