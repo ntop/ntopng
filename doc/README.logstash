@@ -38,7 +38,10 @@ filter {
                 match => ["ntop_timestamp" , "yyyy-MM-dd'T'HH:mm:ss.SSSZ"]
                 target => "@timestamp"
      }
-
+     # Clear redundant field value
+     mutate { 
+        remove_field => ["ntop_timestamp"] 
+     }
      if "" not in [IPV4_SRC_ADDR] and "" not in [IPV6_SRC_ADDR] {
         drop {}
      }
