@@ -1723,16 +1723,28 @@ json_object* Flow::flow2json() {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  if(ntop->getPrefs()->do_dump_flows_on_es()) {
+  if(ntop->getPrefs()->do_dump_flows_on_es()
+    || ntop->getPrefs()->do_dump_flows_on_ls()
+    ) {
     struct tm* tm_info;
 
     t = last_seen;
     tm_info = gmtime(&t);
 
     strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
-    json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+
+    if(ntop->getPrefs()->do_dump_flows_on_ls()){
+      /*  Add current timestamp differently for Logstash, in case of delay 
+       *  Note: Logstash generates it's own @timestamp field on input
+       */
+      json_object_object_add(my_object,"ntop_timestamp",json_object_new_string(buf));
+    }
+
+    if(ntop->getPrefs()->do_dump_flows_on_es()){
+      json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+      json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
+    }
     /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
-    json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
 
     // MAC addresses are set only when dumping to ES to optimize space consumption
     json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
