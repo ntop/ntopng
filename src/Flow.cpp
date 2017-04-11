@@ -1694,13 +1694,18 @@ json_object* Flow::flow2json() {
   char buf[64], jsonbuf[64], *c;
   time_t t;
 
+  memset(buf,0,sizeof(buf));
+  memset(jsonbuf,0,sizeof(jsonbuf));
+
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
     return(NULL);
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  if(ntop->getPrefs()->do_dump_flows_on_es()) {
+  if(ntop->getPrefs()->do_dump_flows_on_es()
+    || ntop->getPrefs()->do_dump_flows_on_ls()
+    ) {
     struct tm* tm_info;
 
     t = last_seen;
