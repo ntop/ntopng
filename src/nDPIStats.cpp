@@ -183,8 +183,10 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 
 void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes) {
   if(category_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
-    if((when != 0) && (cat_counters[category_id].last_epoch_update != when)) {
-      cat_counters[category_id].bytes += bytes;
+    cat_counters[category_id].bytes += bytes;
+
+    if((when != 0)
+       && (when - cat_counters[category_id].last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())) {
       cat_counters[category_id].duration += ntop->getPrefs()->get_housekeeping_frequency(),
       cat_counters[category_id].last_epoch_update = when;
     }
