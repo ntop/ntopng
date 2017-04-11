@@ -1644,7 +1644,7 @@ char* Flow::serialize(bool es_json) {
     ntop->getPrefs()->set_json_symbolic_labels_format(false);
     my_object = flow2json();
     rsp = strdup(json_object_to_json_string(my_object));
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Emitting Flow: %s", rsp);
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Emitting Flow: %s", rsp);
 
     /* Free memory */
     json_object_put(my_object);
