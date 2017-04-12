@@ -214,7 +214,7 @@ if member_filtering ~= nil then
   print[[
   <td>
     <form action="#manage">
-      <input type="hidden" name="id" value="]] print(ifId.."") print[[" />
+      <input type="hidden" name="ifid" value="]] print(ifId.."") print[[" />
       <input type="hidden" name="page" value="pools" />
       <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
@@ -224,7 +224,7 @@ if member_filtering ~= nil then
   </td>
   ]]
 end
-print('<div style="float:right;">')
+print('<td style="width:100%"></td><td>')
 print(
   template.gen("typeahead_input.html", {
     typeahead={
@@ -243,7 +243,7 @@ print(
     }
   })
 )
-print('</div>')
+print('</td>')
 print('</tr></tbody></table>')
 
 if no_pools then
