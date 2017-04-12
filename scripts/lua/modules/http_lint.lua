@@ -933,7 +933,7 @@ local function lintParams()
 
    for _,id in pairs(params_to_validate) do
       for k,v in pairs(id) do
-         if(debug) then io.write("[LINT] Validating ["..k.."]["..p[k].."]\n") end
+         if(debug) then io.write("[LINT] Validating ["..k.."]["..v.."]\n") end
 
          if enableValidation then
             if ((v == "") and

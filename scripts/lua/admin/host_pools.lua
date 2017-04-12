@@ -164,12 +164,8 @@ if selected_pool == nil then
   end
 end
 
-local perPageMembers
-if tonumber(tablePreferences("hostPoolMembers")) == nil then
-  perPageMembers = "10"
-else
-  perPageMembers = tablePreferences("hostPoolMembers")
-end
+-- We are passing too much _POST data, no more than 5 members allowed
+local perPageMembers = "5"
 
 local member_filtering = _GET["member"]
 local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
@@ -483,6 +479,7 @@ print [[
       title: "",
       perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
+      hidePerPage: true,
       
       buttons: [
          '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
