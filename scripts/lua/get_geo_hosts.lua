@@ -23,7 +23,7 @@ print [[
     local max_num = 100
     num = 0
 
-    if (host_info["host"] == nil) then
+    if (host_info["host"] ~= nil) then
        hosts_stats = interface.getHostsInfo(true, "column_traffic", max_num)
        hosts_stats = hosts_stats["hosts"]
 
