@@ -1334,8 +1334,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
 
     case NDPI_PROTOCOL_NETBIOS:
-      if(flow->get_cli_host()) {
-	if(! flow->get_cli_host()->is_label_set()) {
+      if(flow->get_srv_host()) {
+	if(! flow->get_srv_host()->is_label_set()) {
 	  char name[64];
 
 	  if((payload[2] & 0x80) /* NetBIOS Response */
