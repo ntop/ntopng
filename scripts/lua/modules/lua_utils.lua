@@ -1038,13 +1038,13 @@ function isValidPoolMember(member)
   return false
 end
 
-function host2member(ip, vlan)
-  local prefix
-
-  if isIPv4(ip) then
-    prefix = 32
-  else
-    prefix = 128
+function host2member(ip, vlan, prefix)
+  if prefix == nil then
+    if isIPv4(ip) then
+      prefix = 32
+    else
+      prefix = 128
+    end
   end
 
   return ip .. "/" .. tostring(prefix) .. "@" .. tostring(vlan)

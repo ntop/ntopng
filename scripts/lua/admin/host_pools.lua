@@ -51,6 +51,35 @@ elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
 
+  -- First of all, normalize new networks (extract their prefix)
+  -- Note: alias/device type mapping will not be preserved for masked networks, and this is ok since networks do not have such information
+  for new_member, old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
+    if not starts(new_member, "_") then
+      if not isValidPoolMember(new_member) then
+        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
+      end
+      if (not isEmptyString(old_member)) and (not isValidPoolMember(old_member)) then
+        http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+      end
+
+      local hostinfo = hostkey2hostinfo(new_member)
+      local network, prefix = splitNetworkPrefix(hostinfo.host)
+
+      if prefix ~= nil then
+        local masked = ntop.networkPrefix(network, prefix)
+        if masked ~= network then
+          local new_key = host2member(masked, hostinfo.vlan, prefix)
+          config[new_member] = nil
+          config[new_key] = old_member
+          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.network_normalized", {
+            network = hostinfo2hostkey(hostkey2hostinfo(new_member)),
+            network_normalized = hostinfo2hostkey(hostkey2hostinfo(new_key))
+          })
+        end
+      end
+    end
+  end
+
   -- This code handles member address changes. The starting '_' is used for icons and alias
   -- delete old addresses
   for k,old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
@@ -60,11 +89,7 @@ elseif (_POST["edit_members"] ~= nil) then
           -- Do not delete and re-add members which have only changed their list index
           config[old_member] = old_member
         else
-          if not isValidPoolMember(old_member) then
-            http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
-          else
-            host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
-          end
+          host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
         end
       end
     end
@@ -73,22 +98,18 @@ elseif (_POST["edit_members"] ~= nil) then
   -- add new addresses
   for new_member,k in pairs(config) do
     if not starts(new_member, "_") then
-      if not isValidPoolMember(new_member) then
-        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
-      end
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
-        -- remove @0
-        local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
-
         local res, info = host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+
         if (res == false) and (info.existing_member_pool ~= nil) then
-          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {member_name=member_to_print, member_pool=host_pools_utils.getPoolName(ifId, info.existing_member_pool)})
-        elseif (res == true) and (info.key ~= new_member) then
           -- remove @0
-          local network_normalized = hostinfo2hostkey(hostkey2hostinfo(info.key))
-          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.network_normalized", {network=member_to_print, network_normalized=network_normalized})
+          local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
+          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {
+            member_name = member_to_print,
+            member_pool = host_pools_utils.getPoolName(ifId, info.existing_member_pool)
+          })
         end
       end
 

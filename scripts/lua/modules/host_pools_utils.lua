@@ -78,9 +78,11 @@ function getMembershipInfo(member_and_vlan)
   local find_info = interface.findMemberPool(addr, vlan, is_mac)
 
   -- This is the normalized key, which should always be used to refer to the member
-  local key = addr
+  local key
   if not is_mac then
-    key = key.."/"..mask.."@"..vlan
+    key = host2member(addr, vlan, mask)
+  else
+    key = addr
   end
 
   local info = {key=key}
