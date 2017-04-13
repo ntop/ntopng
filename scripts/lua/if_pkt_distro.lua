@@ -12,10 +12,16 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 interface.select(ifname)
 ifstats = interface.getStats()
 
-type = _GET["distr"]
+distr_type = _GET["distr"]
 
-if((type == nil) or (type == "size")) then
+if((distr_type == nil) or (distr_type == "size")) then
    what = ifstats["pktSizeDistribution"]
+elseif distr_type == "ipver" then
+   print "[\n"
+   print("\t { \"label\": \"IPv6\", \"value\": ".. ifstats.eth.IPv6_packets .." },")
+   print("\t { \"label\": \"IPv4\", \"value\": ".. ifstats.eth.IPv4_packets .." }")
+   print "\n]"
+   return
 end
 
 local pkt_distribution = {

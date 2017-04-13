@@ -191,7 +191,7 @@ local function validateSflowDistroMode(mode)
 end
 
 local function validateSflowDistroType(mode)
-   local modes = {"size", "memory", "bytes", "latency", "server"}
+   local modes = {"size", "memory", "bytes", "latency", "server", "ipver"}
 
    return validateChoice(modes, mode)
 end

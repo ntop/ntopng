@@ -596,6 +596,7 @@ elseif((page == "packets")) then
     print [[
 	 <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
   	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
+    <tr><th class="text-left">IP Version Distribution</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
       </table>
 
 	<script type='text/javascript'>
@@ -610,6 +611,12 @@ elseif((page == "packets")) then
        do_pie("#flagsDistro", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifstats.id.."\"")
+   print [[
+	   }, "", refresh);
+
+      do_pie("#ipverDistro", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/if_pkt_distro.lua', { distr: "ipver", ifid: "]] print(ifstats.id.."\"")
    print [[
 	   }, "", refresh);
     }
