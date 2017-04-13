@@ -1619,6 +1619,18 @@ end
 
 -- #################################################
 
+--
+-- proto table should contain the following information:
+--    string   traffic_quota
+--    string   time_quota
+--    string   protoName
+--
+-- ndpi_stats or category_stats can be nil if they are not relevant for the proto
+--
+-- quotas_to_show can contain:
+--    bool  traffic
+--    bool  time
+--
 function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, show_td)
     local total_bytes = 0
     local total_duration = 0
@@ -1649,7 +1661,7 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken+traffic_remaining), 0)
 
       if show_td then
-        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '')..">"..lb_bytes.." / "..lb_bytes_quota
+        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes.." / "..lb_bytes_quota.."</span>"
       end
       output[#output + 1] = [[
           <div class='progress' style=']]..(quotas_to_show.traffic_style or "")..[['>
@@ -1669,7 +1681,7 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local duration_quota_ratio = round(duration_taken * 100 / (duration_taken+duration_remaining), 0)
 
       if show_td then
-        output[#output + 1] = ([[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '')..">"..lb_duration.." / "..lb_duration_quota)
+        output[#output + 1] = [[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_duration.." / "..lb_duration_quota.."</span>"
       end
 
       output[#output + 1] = ([[

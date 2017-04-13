@@ -1751,7 +1751,7 @@ print[[
       quota_update_xhr = $.ajax({
          type: "GET",
          url: "]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua",
-         data: {pool: ]] print(selected_pool.id) print[[},
+         data: {pool: ]] print(selected_pool.id) print[[, include_unlimited:true},
          success: function(response) {
             var rsp = $("<table>"+response+"</table>");
 
@@ -1760,12 +1760,25 @@ print[[
 
                if (typeof(proto_id) !== "undefined") {
                   var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
-                  var traffic_quota = $("td:nth-child(4) div.progress", $(this));
-                  var time_quota = $("td:nth-child(5) div.progress", $(this));
+                  var traffic_quota = $("td:nth-child(4) div.progress", $(this)).parent();
+                  var time_quota = $("td:nth-child(5) div.progress", $(this)).parent();
 
                   if (tr_quota.length === 1) {
-                     traffic_quota.html($("div.progress:first", tr_quota).html());
-                     time_quota.html($("div.progress:last", tr_quota).html());
+                     var input_traffic_bar = $("div.progress:first", tr_quota);
+                     var traffic_label = input_traffic_bar.closest("td").find("> span");
+                     traffic_quota.html("<small>" + traffic_label.html() + "</small>");
+                     input_traffic_bar
+                        .css("height", "20px")
+                        .css("margin", "2px 0 12px 0")
+                        .appendTo(traffic_quota);
+
+                     var input_time_bar = $("div.progress:last", tr_quota);
+                     var time_label = input_time_bar.closest("td").find("> span");
+                     time_quota.html("<small>" + time_label.html() + "</small>");
+                     input_time_bar
+                        .css("height", "20px")
+                        .css("margin", "2px 0 12px 0")
+                        .appendTo(time_quota);
                   } else {
                      traffic_quota.html(']] print(empty_quota_bar) print[[');
                      time_quota.html(']] print(empty_quota_bar) print[[');

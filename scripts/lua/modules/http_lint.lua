@@ -853,6 +853,7 @@ local known_parameters = {
    ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
+   ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
