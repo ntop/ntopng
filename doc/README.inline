@@ -72,8 +72,11 @@ that is equipped with a ethernet interface (eth0) that connect the box
 to the Internet, and a WiFi interface (wlan0) to which network clients
 can attach.
 
-In this setup you need to configure the interfaces as described below. The
-notes are for Debian-based distributions such as Raspbian.
+In this setup you need to configure the interfaces as described below.
+
+* Debian-based distributions
+----------------------------
+For Debian-based distributions such as Raspbian the configuration is as follows.
 
 $ cat /etc/network/interfaces
 ...
@@ -100,6 +103,45 @@ ntopng as follows:
 
 # ntopng -i bridge:br0,wlan0 -w 80,3000
 
+
+* Centos 7
+----------
+
+In order to setup the linux bridge on Centos 7, it is required to edit
+files under /etc/sysconfig/network-scripts/
+
+For example, assuming we want to create a linux bridge br0 attached
+to physical NIC eno1, we can configure NIC configuration files as
+follows
+
+[mainardi@develv5 ~]$ cat /etc/sysconfig/network-scripts/ifcfg-br0
+DEVICE=br0
+TYPE=Bridge
+BOOTPROTO=dhcp
+STP=no
+NAME=br0
+ONBOOT=yes
+
+[mainardi@develv5 ~]$ cat /etc/sysconfig/network-scripts/ifcfg-eno1
+DEVICE=eno1
+HWADDR=
+ONBOOT=yes
+NETMASK=
+GATEWAY=
+TYPE=Ethernet
+
+# Bridge
+BRIDGE=br0
+
+Having set up network interfaces as above, and assuming the interface
+that faces clients is enp7s0f1, then ntopng can be started
+as follows:
+
+# ntopng -i bridge:br0,enp7s0f1 -w 80,3000
+
+It may be necessary to manually bring interface enp7s0f1 up with
+
+# ifconfing enp7s0f1 up
 
 Enabling Captive Portal
 -----------------------
