@@ -1808,9 +1808,9 @@ print[[
       var newid = newid_prefix + new_row_ctr;
       new_row_ctr += 1;
 
-      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
+      var tr = $('<tr id="' + newid + '" ><td class="text-center text-middle"></td><td class="text-center text-middle"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center" ]] if not split_shaping_directions then print(" hidden") end
+      </select></td><td class="text-center text-middle" ]] if not split_shaping_directions then print(" hidden") end
    print[[><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
