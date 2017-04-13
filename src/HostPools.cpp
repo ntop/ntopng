@@ -615,10 +615,9 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Found pool for %s [pool id: %i]",
 				   k, ret);
-
+#endif
       *found_pool = (u_int16_t)ret;
       return true;
-#endif
     }
   }
 

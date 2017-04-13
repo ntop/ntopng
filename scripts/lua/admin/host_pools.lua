@@ -18,6 +18,8 @@ if not isAdministrator() then
   return
 end
 
+local pool_add_warnings = {}
+
 if _POST["edit_pools"] ~= nil then
   local config = paramsPairsDecode(_POST, true)
 
@@ -50,15 +52,19 @@ elseif (_POST["edit_members"] ~= nil) then
   local config = paramsPairsDecode(_POST, true)
 
   -- This code handles member address changes. The starting '_' is used for icons and alias
-
   -- delete old addresses
-  for k,old_member in pairs(config) do
+  for k,old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
     if not starts(k, "_") then
       if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        if not isValidPoolMember(old_member) then
-          http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+        if config[old_member] then
+          -- Do not delete and re-add members which have only changed their list index
+          config[old_member] = old_member
         else
-          host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+          if not isValidPoolMember(old_member) then
+            http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+          else
+            host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+          end
         end
       end
     end
@@ -73,7 +79,17 @@ elseif (_POST["edit_members"] ~= nil) then
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
-        host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+        -- remove @0
+        local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
+
+        local res, info = host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+        if (res == false) and (info.existing_member_pool ~= nil) then
+          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {member_name=member_to_print, member_pool=host_pools_utils.getPoolName(ifId, info.existing_member_pool)})
+        elseif (res == true) and (info.key ~= new_member) then
+          -- remove @0
+          local network_normalized = hostinfo2hostkey(hostkey2hostinfo(info.key))
+          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.network_normalized", {network=member_to_print, network_normalized=network_normalized})
+        end
       end
 
       local host_key, is_network = host_pools_utils.getMemberKey(new_member)
@@ -244,6 +260,15 @@ print('</tr></tbody></table>')
 
 if no_pools then
   print[[<script>$("#pool_selector").attr("disabled", "disabled");</script>]]
+end
+
+for _, msg in ipairs(pool_add_warnings) do
+  print([[
+  <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button><b>]]..i18n("warning")..[[</b>: ]]..msg..[[
+  </div>]])
 end
 
   print[[
@@ -433,6 +458,24 @@ print [[
 
   <script>
     var addedMemberCtr = 0;
+    var curDisplayedMembers = 0;
+
+    var validator_options = {
+      disable: true,
+      custom: {
+         member: memberValidator,
+         address: addressValidator,
+         unique: makeUniqueValidator(function(field) {
+            return $('input[name^="pool_"]', $("#table-create-form"));
+         }),
+      }, errors: {
+         member: "]] print(i18n("host_pools.duplicate_member")) print[[.",
+         address: "]] print(i18n("host_pools.invalid_member")) print[[.",
+         unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
+      }
+    }
+
+    function decPoolMembers() { curDisplayedMembers--; }
 
     function addPoolMember() {
       if (datatableIsEmpty("#table-manage"))
@@ -442,12 +485,14 @@ print [[
       var newid = "member_" + member_id;
 
       var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center text-middle]] if not (isCaptivePortalActive()) then print(" hidden") end print[[">Persistent</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
+      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
       var icon = $("td:nth-child(4)", tr);
       var icon_input = $("select", icon).first();
+      curDisplayedMembers++;
+      $("#addPoolMemberBtn").attr("disabled", (curDisplayedMembers > ]] print(perPageMembers) print[[));
 
       aysRecheckForm("#table-manage-form");
     }
@@ -537,6 +582,7 @@ print[[            css : {
          }
       ], tableCallback: function() {
         var no_pools = false;
+        curDisplayedMembers = 0;
 
         if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.no_pools_defined") .. " " .. i18n("host_pools.create_pool_hint")) print[[");
@@ -554,6 +600,7 @@ print[[            css : {
             var editable = $("td:nth-child(8)", $(this)).html() == "true";
 
             var member_id = addedMemberCtr++;
+            curDisplayedMembers++;
 
             /* Make member name editable */
             var value = member_address.html();
@@ -606,7 +653,10 @@ print[[            css : {
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form")) || (no_pools)) || (]] if member_filtering ~= nil then print("true") else print("false") end print[[));
+        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
+                                              || (no_pools))
+                                              || (]] if member_filtering ~= nil then print("true") else print("false") end print[[)
+                                              || (curDisplayedMembers > ]] print(perPageMembers) print[[));
 
         $("#table-manage-form")
             .validator(validator_options)
@@ -834,21 +884,6 @@ print [[
       paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
 
       return false;
-    }
-
-    var validator_options = {
-      disable: true,
-      custom: {
-         member: memberValidator,
-         address: addressValidator,
-         unique: makeUniqueValidator(function(field) {
-            return $('input[name^="pool_"]', $("#table-create-form"));
-         }),
-      }, errors: {
-         member: "]] print(i18n("host_pools.duplicate_member")) print[[.",
-         address: "]] print(i18n("host_pools.invalid_member")) print[[.",
-         unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
-      }
     }
   </script>
 ]]

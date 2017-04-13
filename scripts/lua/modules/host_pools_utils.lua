@@ -80,9 +80,8 @@ function getMembershipInfo(member_and_vlan)
   -- This is the normalized key, which should always be used to refer to the member
   local key = addr
   if not is_mac then
-    key = key.."/"..mask
+    key = key.."/"..mask.."@"..vlan
   end
-  key = key.."@"..vlan
 
   local info = {key=key}
   local exists = false
