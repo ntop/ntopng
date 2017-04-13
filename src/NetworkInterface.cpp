@@ -3129,6 +3129,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
   if((!isPacketInterface())
      || (pcap_datalink_type == DLT_NULL)
+     || (pcap_datalink_type == DLT_RAW)
      || (!strcmp(ifname, "lo"))
      )
     hostMacsOnly = false;
