@@ -78,17 +78,8 @@ public:
   void reloadPools();
   u_int16_t getPool(Host *h);
 
-  bool findIpNode(IpAddress *ip, u_int16_t vlan_id, patricia_node_t **found_node);
+  bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
-  inline bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool) {
-    patricia_node_t *node;
-
-    if (findIpNode(ip, vlan_id, &node)) {
-      *found_pool = node->user_data;
-      return true;
-    } else
-      return false;
-  }
 
 #ifdef NTOPNG_PRO
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,

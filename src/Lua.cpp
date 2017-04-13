@@ -3624,9 +3624,7 @@ static int ntop_find_member_pool(lua_State *vm) {
       IpAddress ip;
       ip.set(address);
 
-      pool_found = ntop_interface->getHostPools()->findIpNode(&ip, vlan_id, &target_node);
-      if(pool_found)
-        pool_id = target_node->user_data;
+      pool_found = ntop_interface->getHostPools()->findIpPool(&ip, vlan_id, &pool_id, &target_node);
     }
 
     if (pool_found) {
