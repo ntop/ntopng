@@ -76,8 +76,14 @@ end
 
 -- default subpage
 if isEmptyString(tab) then
-  tab = "auth"
-  subpage_active = menu_subpages[1]
+  -- Pick the first available subpage
+  for _, subpage in ipairs(menu_subpages) do
+    if isSubpageAvailable(subpage, show_advanced_prefs) then
+      subpage_active = subpage
+      tab = subpage.id
+      break
+    end
+  end
 end
 
 -- ================================================================================

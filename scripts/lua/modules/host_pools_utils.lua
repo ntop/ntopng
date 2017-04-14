@@ -136,7 +136,10 @@ function host_pools_utils.deletePoolMember(ifid, pool_id, member_and_vlan)
   local members_key = get_pool_members_key(ifid, pool_id)
 
   -- Possible delete volatile member
-  interface.removeVolatileMemberFromPool(member_and_vlan, tonumber(pool_id))
+  if ntop.isPro() then
+    interface.removeVolatileMemberFromPool(member_and_vlan, tonumber(pool_id))
+  end
+
   -- Possible delete non-volatile member
   ntop.delMembersCache(members_key, member_and_vlan)
 end
@@ -144,9 +147,11 @@ end
 function host_pools_utils.emptyPool(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
 
-  -- Remove volatile members
-  for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-    interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
+  if ntop.isPro() then
+    -- Remove volatile members
+    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
+      interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
+    end
   end
 
   -- Remove non-volatile members
@@ -182,10 +187,12 @@ function host_pools_utils.getPoolMembers(ifid, pool_id)
   local all_members = ntop.getMembersCache(members_key) or {}
   local volatile = {}
 
-  for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-    if not v.expired then
-      all_members[#all_members + 1] = v["member"]
-      volatile[v["member"]] = v["residual_lifetime"]
+  if ntop.isPro() then
+    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
+      if not v.expired then
+        all_members[#all_members + 1] = v["member"]
+        volatile[v["member"]] = v["residual_lifetime"]
+      end
     end
   end
 

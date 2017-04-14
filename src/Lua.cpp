@@ -5737,13 +5737,14 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Host pools */
   { "reloadHostPools",                ntop_reload_host_pools                },
+  { "findMemberPool",                 ntop_find_member_pool                 },
+
   #ifdef NTOPNG_PRO
   { "resetPoolsStats",                ntop_reset_pools_stats          },
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
   { "removeVolatileMemberFromPool",   ntop_remove_volatile_member_from_pool },
-  { "findMemberPool",                 ntop_find_member_pool },
   
   /* SNMP */
   { "getSNMPStats",                   ntop_interface_get_snmp_stats },

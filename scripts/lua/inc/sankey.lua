@@ -210,6 +210,12 @@ print [[
     return color(d.value);
   }
 
+  var aggregation_to_param = {
+    l4proto: "application",
+    ndpi: "application",
+    port: "port",
+  };
+
   var link = svg_sankey.append("g").selectAll(".link")
     .data(hosts.links)
     .enter().append("path")
@@ -222,7 +228,7 @@ print [[
 
 print(url.."hosts=".._GET["hosts"])
 
-  print [[&aggregation="+escape(d.aggregation)+"&key="+escape(d.target.name) ;  });
+  print [[&aggregation="+escape(d.aggregation)+"&"+aggregation_to_param[d.aggregation]+"="+escape(d.target.name) ;  });
 
 
   link.append("title")

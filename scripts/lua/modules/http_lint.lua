@@ -220,6 +220,12 @@ local function validateDirection(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateSendersReceivers(mode)
+   local modes = {"senders", "receivers"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateClientOrServer(mode)
    local modes = {"client", "server"}
 
@@ -427,6 +433,11 @@ local ndpi_categories = interface.getnDPICategories()
 local site_categories = ntop.getSiteCategories()
 
 local function validateApplication(app)
+   local modes = {"TCP", "UDP"}
+   if validateChoice(modes, app) then
+      return true
+   end
+
    local dot = string.find(app, "%.")
 
    if dot ~= nil then
@@ -706,6 +717,7 @@ local known_parameters = {
    ["flow_rate_alert_threshold"] =  validateEmptyOr(validateNumber),              --
    ["re_arm_minutes"]          =  validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
    ["custom_icon"]             =  validateSingleWord,            -- A custom icon for the host
+   ["senders_receivers"]       =  validateSendersReceivers,      -- Used in top scripts
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons

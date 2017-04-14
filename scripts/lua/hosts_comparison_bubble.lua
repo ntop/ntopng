@@ -142,7 +142,14 @@ else
        else
            flow_bytes = ndpi[aggregation_value[key]]["flows.bytes"]
        end
-       url = base_url.."hosts=".._GET["hosts"].."&aggregation="..aggregation.."&key="..aggregation_value[key]
+
+       local param_name
+       if aggregation == "port" then
+         param_name = "port"
+       else
+         param_name = "application"
+       end
+       url = base_url.."hosts=".._GET["hosts"].."&aggregation="..aggregation.."&"..param_name.."="..aggregation_value[key]
 
        print ("\t{\n\t\"name\": \"" ..aggregation_value[key].. "\",\n\t\"children\": [ \n\t{\"name\": \"" .. aggregation_value[key] .. "\", \"size\": " .. flow_bytes ..", \"aggregation\": \"" .. aggregation .. "\", \"key\": \"" .. aggregation_value[key] .."\", \"url\": \"" .. url .."\"}\n\t]\n\t}")
 

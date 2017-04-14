@@ -656,14 +656,14 @@ else
    formatter_fctn = "fpackets"
 end
 
+rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
+
 if (topArray ~= nil) then
 print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
-
-rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')

@@ -27,6 +27,7 @@ traffic_type = _GET["traffic_type"]
 traffic_type_filter = ""
 flow_status = _GET["flow_status"]
 flow_status_filter = ""
+port = _GET["port"]
 
 network_id = _GET["network"]
 
@@ -94,6 +95,10 @@ end
 
 if(hosts ~= nil) then
   page_params["hosts"] = hosts
+end
+
+if(port ~= nil) then
+  page_params["port"] = port
 end
 
 if(ipversion ~= nil) then
