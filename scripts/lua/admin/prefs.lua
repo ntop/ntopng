@@ -374,11 +374,27 @@ function printMisc()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.report_units")..'</th></tr>')
 
-  local labels = {i18n("bytes"), i18n("packets")}
-  local values = {"bps", "pps"}
+  local t_labels = {i18n("bytes"), i18n("packets")}
+  local t_values = {"bps", "pps"}
 
   multipleTableButtonPrefs(subpage_active.entries["toggle_thpt_content"].title, subpage_active.entries["toggle_thpt_content"].description,
-              labels, values, "bps", "primary", "toggle_thpt_content", "ntopng.prefs.thpt_content")
+			   t_labels, t_values, "bps", "primary", "toggle_thpt_content", "ntopng.prefs.thpt_content")
+
+  -- ######################
+
+  if(haveAdminPrivileges()) then
+     print('<tr><th colspan=2 class="info">'..i18n("prefs.host_mask")..'</th></tr>')
+     
+     local h_labels = {i18n("prefs.no_host_mask"), i18n("prefs.local_host_mask"), i18n("prefs.remote_host_mask")}
+     local h_values = {"0", "1", "2"}
+     
+     multipleTableButtonPrefs(subpage_active.entries["toggle_host_mask"].title,
+			      subpage_active.entries["toggle_host_mask"].description,
+			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
+  end
+
+  -- #####################
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

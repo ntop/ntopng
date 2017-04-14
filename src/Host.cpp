@@ -126,6 +126,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
   l7Policy = l7PolicyShadow = NULL;
+  has_blocking_quota = has_blocking_shaper = false;
 #endif
   host_pool = NO_HOST_POOL_ID;
 
@@ -335,6 +336,7 @@ void Host::updateHostL7Policy() {
       return;
 
     if(ntop->getPro()->has_valid_license()) {
+
 	if(l7PolicyShadow) {
 	    free_ptree_l7_policy_data((void*)l7PolicyShadow);
 	    l7PolicyShadow = NULL;
@@ -353,6 +355,7 @@ void Host::updateHostL7Policy() {
 #endif
 
 	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool);
+  resetBlockedTrafficStatus();
     }
 #endif
 }
@@ -422,8 +425,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool returnHost, bool asListElement,
 	       bool exclude_deserialized_bytes) {
   char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net;
-
-  if(ptree && (!match(ptree)))
+  bool mask_host = Utils::maskHost(localHost);
+  
+  if((ptree && (!match(ptree))) || mask_host)
     return;
 
 #if 0
@@ -438,7 +442,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 #endif
   
   lua_newtable(vm);
-  lua_push_str_table_entry(vm, "ip", (ipaddr = ip.print(ip_buf, sizeof(ip_buf))));
+  lua_push_str_table_entry(vm, "ip", (ipaddr = ip.printMask(ip_buf, sizeof(ip_buf), localHost)));
   lua_push_int_table_entry(vm, "ipkey", ip.key());
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf)));
@@ -453,8 +457,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
-  lua_push_str_table_entry(vm, "name",
-			   get_name(buf, sizeof(buf), false));
+  lua_push_str_table_entry(vm, "name", mask_host ? (char*)"" : get_name(buf, sizeof(buf), false));
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);
@@ -471,12 +474,16 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "asname", asname);
   lua_push_str_table_entry(vm, "os", os);
 
-
   lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
   lua_push_str_table_entry(vm, "country", country ? country : (char*)"");
   lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
   lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
   lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
+
+#ifdef NTOPNG_PRO
+  lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
+  lua_push_bool_table_entry(vm, "has_blocking_shaper", has_blocking_shaper);
+#endif
 
   if(host_details) {
     /*
@@ -557,7 +564,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
 
-    if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
+    if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
       lua_push_str_table_entry(vm, "sites", top_sites->json());
       lua_push_str_table_entry(vm, "sites.old", old_sites);
     }
@@ -1218,6 +1225,13 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 #endif
 
+  /* Update blocking status */
+  if (!has_blocking_shaper && getInterface()->getL7Policer()) {
+    TrafficShaper *shaper = getInterface()->getL7Policer()->getShaper(ret);
+    if (shaper->get_max_rate_kbit_sec() == 0)
+      has_blocking_shaper = true;
+  }
+
   return(ret);
 }
 
@@ -1253,23 +1267,22 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   *is_category = category;
 }
 
-bool Host::isAboveQuota(u_int16_t protocol) {
+bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   u_int64_t bytes_quota, bytes;
   u_int32_t secs_quota, secs;
-  bool is_category;
   ndpi_protocol_category_t category;
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
 
   if (!pools) return false;
 
-  get_quota(protocol, &bytes_quota, &secs_quota, &is_category);
+  get_quota(protocol, &bytes_quota, &secs_quota, is_category);
 
   if ((bytes_quota > 0) || (secs_quota > 0)) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
-      if ((is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
-       || (!is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
+      if ((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+       || (!*is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
         if (((bytes_quota > 0) && (bytes >= bytes_quota))
          || ((secs_quota > 0) && (secs >= secs_quota)))
         is_above = true;
@@ -1290,6 +1303,7 @@ bool Host::isAboveQuota(u_int16_t protocol) {
     }
   }
 
+  has_blocking_quota |= is_above;
   return is_above;
 }
 

@@ -1616,3 +1616,72 @@ function showHostActivityStats(hostbase, selectedEpoch, zoomLevel)
       end
    end
 end
+
+-- #################################################
+
+function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, show_td)
+    local total_bytes = 0
+    local total_duration = 0
+    local output = {}
+
+    if ndpi_stats ~= nil then
+      -- This is a single protocol
+      local proto_stats = ndpi_stats[proto.protoName]
+      if proto_stats ~= nil then
+        total_bytes = proto_stats["bytes.sent"] + proto_stats["bytes.rcvd"]
+        total_duration = proto_stats["duration"]
+      end
+    else
+      -- This is a category
+      local cat_stats = category_stats[proto.protoName]
+      if cat_stats ~= nil then
+        total_bytes = cat_stats["bytes"]
+        total_duration = cat_stats["duration"]
+      end
+    end
+
+    if quotas_to_show.traffic then
+      local bytes_exceeded = ((proto.traffic_quota ~= "0") and (total_bytes >= tonumber(proto.traffic_quota)))
+      local lb_bytes = bytesToSize(total_bytes)
+      local lb_bytes_quota = ternary(proto.traffic_quota ~= "0", bytesToSize(tonumber(proto.traffic_quota)), i18n("unlimited"))
+      local traffic_taken = ternary(proto.traffic_quota ~= "0", math.min(total_bytes, proto.traffic_quota), 0)
+      local traffic_remaining = math.max(proto.traffic_quota - traffic_taken, 0)
+      local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken+traffic_remaining), 0)
+
+      if show_td then
+        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '')..">"..lb_bytes.." / "..lb_bytes_quota
+      end
+      output[#output + 1] = [[
+          <div class='progress' style=']]..(quotas_to_show.traffic_style or "")..[['>
+            <div class='progress-bar progress-bar-warning' aria-valuenow=']]..traffic_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..traffic_quota_ratio..'%;\'>'..
+              ternary(proto.traffic_quota ~= "0", bytesToSize(traffic_taken), "")..[[
+            </div>
+          </div>]]
+      if show_td then output[#output + 1] = ("</td>") end
+    end
+
+    if quotas_to_show.time then
+      local time_exceeded = ((proto.time_quota ~= "0") and (total_duration >= tonumber(proto.time_quota)))
+      local lb_duration = secondsToTime(total_duration)
+      local lb_duration_quota = ternary(proto.time_quota ~= "0", secondsToTime(tonumber(proto.time_quota)), i18n("unlimited"))
+      local duration_taken = ternary(proto.time_quota ~= "0", math.min(total_duration, proto.time_quota), 0)
+      local duration_remaining = math.max(proto.time_quota - duration_taken, 0)
+      local duration_quota_ratio = round(duration_taken * 100 / (duration_taken+duration_remaining), 0)
+
+      if show_td then
+        output[#output + 1] = ([[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '')..">"..lb_duration.." / "..lb_duration_quota)
+      end
+
+      output[#output + 1] = ([[
+          <div class='progress' style=']]..(quotas_to_show.time_style or "")..[['>
+            <div class='progress-bar progress-bar-warning' aria-valuenow=']]..duration_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..duration_quota_ratio..'%;\'>'..
+              ternary(proto.time_quota ~= "0", secondsToTime(duration_taken), "")..[[
+            </div>
+          </div>]])
+      if show_td then output[#output + 1] = ("</td>") end
+    end
+
+    return table.concat(output, '')
+end
+
+-- #################################################

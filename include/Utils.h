@@ -102,6 +102,7 @@ class Utils {
   static void replacestr(char *line, const char *search, const char *replace);	  
   static u_int32_t getHostManagementIPv4Address();
   static bool isInterfaceUp(char *ifname);
+  static bool maskHost(bool isLocalIP);
 };
 
 #endif /* _UTILS_H_ */

@@ -1212,6 +1212,24 @@ end
 
 -- ##############################################
 
+function splitProtocol(proto_string)
+  local parts = string.split(proto_string, "%.")
+  local app_proto
+  local master_proto
+
+  if parts == nil then
+    master_proto = proto_string
+    app_proto = nil
+  else
+    master_proto = parts[1]
+    app_proto = parts[2]
+  end
+
+  return master_proto, app_proto
+end
+
+-- ##############################################
+
 function getHostAltNamesKey()
    return "ntopng.host_labels"
 end
@@ -1417,7 +1435,7 @@ end
 --          hostinfo2url(flow[key],"srv"), return an url based on the server host information in the flow table
 --
 
-function hostinfo2url(host_info,host_type,novlan)
+function hostinfo2url(host_info, host_type, novlan)
   local rsp = ''
   -- local version = 0
   local version = 1

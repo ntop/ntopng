@@ -840,7 +840,7 @@ u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t
       const char *value = json_object_get_string(v);
 
       if((key != NULL) && (value != NULL)) {
-	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(atol(value));
+	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
 	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
 	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);

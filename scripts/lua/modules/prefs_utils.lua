@@ -246,6 +246,9 @@ menu_subpages = {
     }, toggle_thpt_content = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),
+    }, toggle_host_mask = {
+      title       = i18n("prefs.toggle_host_mask_title"),
+      description = i18n("prefs.toggle_host_mask_description"),
     }
   }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
     toggle_shaping_directions = {

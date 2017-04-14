@@ -35,6 +35,7 @@ Prefs::Prefs(Ntop *_ntop) {
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false;
+  hostMask = no_host_mask;
   enable_flow_device_port_rrd_creation = false;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -449,7 +450,8 @@ void Prefs::reloadPrefsFromRedis() {
 						     HOUSEKEEPING_FREQUENCY);
   notifications_enabled          = getDefaultPrefsValue(ALERTS_MANAGER_NOTIFICATION_ENABLED, 0 /* Disabled by default */);
   dump_flow_alerts_when_iface_alerted = getDefaultPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, 0 /* Disabled by default */);
-
+  hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, 0 /* Mask disabled by default */);
+  
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);

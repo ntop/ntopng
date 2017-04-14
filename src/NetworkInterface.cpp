@@ -1338,8 +1338,31 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	if(! flow->get_cli_host()->is_label_set()) {
 	  char name[64];
 
-	  if((ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0) && (!strstr(name, "__MSBROWSE__")))
-	    flow->get_cli_host()->set_host_label(name, false);
+	  if((payload[2] & 0x80) /* NetBIOS Response */
+	     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
+	     && (!strstr(name, "__MSBROWSE__"))
+	     ) {
+
+	    if(name[0] == '*') {
+	      int limit = min(payload_len-57, (int)sizeof(name)-1);
+	      int i = 0;
+
+	      while((i<limit) && (payload[57+i] != 0x20) && (payload[57+i] != 0x00)) {
+	        name[i] = payload[57+i];
+	        i++;
+	      }
+	      name[i] = 0;
+	    }
+#if 0
+	    char buf[32];
+
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting hostname from NetBios [raw=0x%x opcode=0x%x response=0x%x]: ip=%s -> '%s'",
+	        payload[2], (payload[2] & 0x78) >> 3, (payload[2] & 0x80) >> 7,
+					 flow->get_srv_host()->get_ip()->print(buf, sizeof(buf)), name);
+#endif
+
+	    flow->get_srv_host()->set_host_label(name, false);
+    }
 	}
       }
       break;
@@ -2222,11 +2245,19 @@ static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data) {
   return(false); /* false = keep on walking */
 }
 
+static bool host_reset_blocked_traffic_status(GenericHashEntry *host, void *user_data) {
+  Host *h = (Host*)host;
+
+  h->resetBlockedTrafficStatus();
+  return(false); /* false = keep on walking */
+}
+
 void NetworkInterface::resetPoolsStats() {
   if (host_pools) {
     disablePurge(true);
 
     host_pools->resetPoolsStats();
+    walker(walker_hosts, host_reset_blocked_traffic_status, NULL);
     walker(walker_flows, flow_recheck_quota_walker, NULL);
 
     enablePurge(true);
@@ -3096,7 +3127,11 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   if(retriever == NULL)
     return -1;
 
-  if(! isPacketInterface()) hostMacsOnly = false;
+  if((!isPacketInterface())
+     || (pcap_datalink_type == DLT_NULL)
+     || (!strcmp(ifname, "lo"))
+     )
+    hostMacsOnly = false;
 
   maxHits = getHostsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
