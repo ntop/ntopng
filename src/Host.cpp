@@ -96,7 +96,8 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
     host_label_set = true;
     
     if(ignoreIfPresent
-       && (!ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, buf, buf1, (u_int)sizeof(buf1))))
+       && (!ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, host, buf1, (u_int)sizeof(buf1)) /* Found into redis */
+       && (buf1[0] != '\0') /* Not empty */ ))
       return;
     else
       ntop->getRedis()->hashSet((char*)HOST_LABEL_NAMES, host, label_name);
