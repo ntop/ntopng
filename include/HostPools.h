@@ -26,6 +26,7 @@
 
 class NetworkInterface;
 class Host;
+class Mac;
 #ifdef NTOPNG_PRO
 
 typedef struct {
@@ -76,6 +77,10 @@ public:
   virtual ~HostPools();
   void reloadPools();
   u_int16_t getPool(Host *h);
+
+  bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
+  bool findMacPool(Mac *mac, u_int16_t *found_pool);
+
 #ifdef NTOPNG_PRO
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,

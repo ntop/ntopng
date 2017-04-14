@@ -64,10 +64,72 @@ function host_pools_utils.deletePool(ifid, pool_id)
   ntop.rmdir(rrd_base)
 end
 
+function getMembershipInfo(member_and_vlan)
+  -- Check if the member is already in another pool
+  local hostinfo = hostkey2hostinfo(member_and_vlan)
+  local addr, mask = splitNetworkPrefix(hostinfo["host"])
+  local vlan = hostinfo["vlan"]
+  local is_mac = isMacAddress(addr)
+
+  if not is_mac then
+    addr = ntop.networkPrefix(addr, mask)
+  end
+
+  local find_info = interface.findMemberPool(addr, vlan, is_mac)
+
+  -- This is the normalized key, which should always be used to refer to the member
+  local key
+  if not is_mac then
+    key = host2member(addr, vlan, mask)
+  else
+    key = addr
+  end
+
+  local info = {key=key}
+  local exists = false
+
+  if find_info ~= nil then
+    -- The host has been found
+    if is_mac or ((not is_mac)
+                  and (find_info.matched_prefix == addr)
+                  and (find_info.matched_bitmask == mask)) then
+      info["existing_member_pool"] = find_info.pool_id
+      exists = true
+    end
+  end
+
+  return exists, info
+end
+
+function host_pools_utils.changeMemberPool(ifid, member_and_vlan, prev_pool, new_pool)
+  if prev_pool == new_pool then return false end
+
+  local members_key = get_pool_members_key(ifid, new_pool)
+  local member_exists, info = getMembershipInfo(member_and_vlan)
+
+  if member_exists then
+    -- use the normalized key
+    member_and_vlan = info.key
+  elseif prev_pool ~= host_pools_utils.DEFAULT_POOL_ID then
+    -- member not found
+    return false
+  end
+
+  host_pools_utils.deletePoolMember(ifid, prev_pool, info.key)
+  ntop.setMembersCache(members_key, info.key)
+  return true
+end
+
 function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
   local members_key = get_pool_members_key(ifid, pool_id)
+  local member_exists, info = getMembershipInfo(member_and_vlan)
 
-  ntop.setMembersCache(members_key, member_and_vlan)
+  if member_exists then
+    return false, info
+  else
+    ntop.setMembersCache(members_key, info.key)
+    return true, info
+  end
 end
 
 function host_pools_utils.deletePoolMember(ifid, pool_id, member_and_vlan)

@@ -1221,6 +1221,33 @@ static int ntop_inet_ntoa(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Mask an IPv4/v6 address with a bitmask and return the network prefix.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_network_prefix(lua_State* vm) {
+  char *address;
+  char buf[64];
+  u_int8_t mask;
+  IpAddress ip;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((address = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  mask = (int)lua_tonumber(vm, 2);
+
+  ip.set(address);
+  lua_pushstring(vm, ip.print(buf, sizeof(buf), mask));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_zmq_connect(lua_State* vm) {
   char *endpoint, *topic;
   void *context, *subscriber;
@@ -3566,6 +3593,62 @@ static int ntop_remove_volatile_member_from_pool(lua_State *vm) {
 #endif
 /* ****************************************** */
 
+static int ntop_find_member_pool(lua_State *vm) {
+  char *address;
+  u_int16_t vlan_id;
+  bool is_mac;
+  patricia_node_t *target_node = NULL;
+  u_int16_t pool_id;
+  bool pool_found;
+  char buf[64];
+
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((address = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN)) return(CONST_LUA_PARAM_ERROR);
+  is_mac = lua_toboolean(vm, 3);
+
+  if (ntop_interface && ntop_interface->getHostPools()) {
+    if (is_mac) {
+      u_int8_t mac_bytes[6];
+      Utils::parseMac(mac_bytes, address);
+      Mac mac(ntop_interface, mac_bytes, vlan_id);
+
+      pool_found = ntop_interface->getHostPools()->findMacPool(&mac, &pool_id);
+    } else {
+      IpAddress ip;
+      ip.set(address);
+
+      pool_found = ntop_interface->getHostPools()->findIpPool(&ip, vlan_id, &pool_id, &target_node);
+    }
+
+    if (pool_found) {
+      lua_newtable(vm);
+      lua_push_int_table_entry(vm, "pool_id", pool_id);
+
+      if (target_node != NULL) {
+        lua_push_str_table_entry(vm, "matched_prefix", (char *)inet_ntop(target_node->prefix->family,
+                (target_node->prefix->family == AF_INET6) ?
+                  (void*)(&target_node->prefix->add.sin6) :
+                  (void*)(&target_node->prefix->add.sin),
+                buf, sizeof(buf)));
+        lua_push_int_table_entry(vm, "matched_bitmask", target_node->bit);
+      }
+    } else
+      lua_pushnil(vm);
+
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* *******************************************/
+
 static int ntop_reload_l7_rules(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5660,6 +5743,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
   { "removeVolatileMemberFromPool",   ntop_remove_volatile_member_from_pool },
+  { "findMemberPool",                 ntop_find_member_pool },
   
   /* SNMP */
   { "getSNMPStats",                   ntop_interface_get_snmp_stats },
@@ -5782,6 +5866,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* IP */
   { "inet_ntoa",      ntop_inet_ntoa },
+  { "networkPrefix",  ntop_network_prefix },
 
   /* RRD */
   { "rrd_create",     ntop_rrd_create },

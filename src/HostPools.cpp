@@ -596,20 +596,17 @@ void HostPools::reloadPools() {
 
 /* *************************************** */
 
-u_int16_t HostPools::getPool(Host *h) {
-  Mac *mac;
-  IpAddress *ip;
-  patricia_node_t *node;
+bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
   AddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
   char *k;
 #endif
 
-  if(!h || !tree || !(cur_tree = tree[h->get_vlan_id()]))
-    return NO_HOST_POOL_ID;
+  if(!tree || !(cur_tree = tree[mac->get_vlan_id()]))
+    return false;
 
-  if((mac = h->getMac()) && !mac->isSpecialMac()) {
+  if (!mac->isSpecialMac()) {
     int16_t ret = mac->findAddress(cur_tree);
 
     if(ret != -1) {
@@ -619,22 +616,57 @@ u_int16_t HostPools::getPool(Host *h) {
 				   "Found pool for %s [pool id: %i]",
 				   k, ret);
 #endif
-
-      return((u_int16_t)ret);
+      *found_pool = (u_int16_t)ret;
+      return true;
     }
   }
 
-  if((ip = h->get_ip())) {
-    node = (patricia_node_t*)ip->findAddress(cur_tree);
-    if(node) {
+  return false;
+}
+
+/* *************************************** */
+
+bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node) {
+  AddressTree *cur_tree; /* must use this as tree can be swapped */
+#ifdef HOST_POOLS_DEBUG
+  char buf[128];
+  char *k;
+#endif
+
+  if(!tree || !(cur_tree = tree[vlan_id]))
+    return false;
+
+  *found_node = (patricia_node_t*)ip->findAddress(cur_tree);
+  if(*found_node) {
 #ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Found pool for %s [pool id: %i]",
-				   h->get_ip()->print(buf, sizeof(buf)), node->user_data);
+				   ip->print(buf, sizeof(buf)), (*found_node)->user_data);
 #endif
-      return node->user_data;
+      *found_pool = (*found_node)->user_data;
+      return true;
+  }
+
+  return false;
+}
+
+
+/* *************************************** */
+
+u_int16_t HostPools::getPool(Host *h) {
+  u_int16_t pool_id;
+  patricia_node_t *node;
+  bool found = false;
+
+  if(h) {
+    if(h->getMac())
+      found = findMacPool(h->getMac(), &pool_id);
+    if (!found && h->get_ip()) {
+      found = findIpPool(h->get_ip(), h->get_vlan_id(), &pool_id, &node);
     }
   }
 
-  return NO_HOST_POOL_ID;
+  if (! found)
+    return NO_HOST_POOL_ID;
+  return pool_id;
 }

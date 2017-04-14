@@ -2,6 +2,7 @@ local  en = {
    welcome = "Welcome",
    version = "Your version is %{vers}.",
    error = "Error",
+   warning = "Warning",
    host = "Host %{host}",
    hour = "Hour",
    day = "Day",
@@ -339,6 +340,8 @@ local  en = {
       from_pool = "from host pool",
       and_associated_members = "its RRD data and any associated members",
       search_member = "Search Member",
+      network_normalized = "network \"%{network}\" has a non-zero host identifier. Using \"%{network_normalized}\".",
+      member_exists = "member \"%{member_name}\" not added. It is already assigned to pool \"%{member_pool}\".",
    },
 
    snmp = {
