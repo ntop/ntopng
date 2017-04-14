@@ -455,13 +455,6 @@ void Flow::processDetectedProtocol() {
     }
     break;
 
-  case NDPI_PROTOCOL_NETBIOS:
-    if((ndpiFlow->host_server_name[0] != '\0') && (!strstr((char*)ndpiFlow->host_server_name, "__MSBROWSE__"))) {
-      get_cli_host()->set_host_label((char*)ndpiFlow->host_server_name, false);
-      protocol_processed = true;
-    }
-    break;
-
   case NDPI_PROTOCOL_SSH:
     protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
     protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);

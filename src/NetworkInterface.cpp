@@ -1361,7 +1361,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 					 flow->get_srv_host()->get_ip()->print(buf, sizeof(buf)), name);
 #endif
 
-	    flow->get_srv_host()->set_host_label(name, false);
+	    flow->get_srv_host()->set_host_label(name, true);
     }
 	}
       }
