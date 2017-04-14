@@ -74,14 +74,14 @@ print [[
   <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
       <label for="" class="control-label">New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
   </div>
 
   <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
       <label for="" class="control-label">Confirm New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
   </div>
 </div>
@@ -249,7 +249,7 @@ print [[<script>
   });
 
   function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
-  function isValidPassword(str) { return /^[\w\$\\!\/\(\)=\?\^\*@_\-^\u0000-\u00ff]{1,}$/.test(str); }
+  function isValidPassword(str) { return /]] print(getPasswordInputPattern()) print[[/.test(str); }
 
   var frmpassreset = $('#form_password_reset');
   frmpassreset.submit(function () {

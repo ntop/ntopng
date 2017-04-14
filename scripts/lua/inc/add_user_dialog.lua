@@ -63,14 +63,14 @@ print [[
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
   </div>
 
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Confirm Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
     </div>
 </div>

@@ -2027,6 +2027,10 @@ function maxRateToString(max_rate)
 	 end
 end
 
+function getPasswordInputPattern()
+  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}$]]
+end
+
 -- makeTopStatsScriptsArray
 function makeTopStatsScriptsArray()
    path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
