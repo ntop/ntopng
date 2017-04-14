@@ -274,7 +274,7 @@ void Logstash::sendLSdata() {
       if(sendTCP){
 	//TCP
         while(sentLength > 0){
-          retval = send(sockfd,postbuf,sentLength,0);
+          retval = send(sockfd,postbuf+sent,sentLength,0);
 	  if(retval<=0){
             // Err occured
             // don't clear postbuf as it hasn't been sent
