@@ -559,19 +559,19 @@ void Ntop::loadLocalInterfaceAddress() {
       }
 
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
-	char buf_orig[32];
+	char buf_orig2[32];
 
-	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
-	local_interface_addresses.addAddress(buf_orig);
-	iface[ifId]->addInterfaceAddress(buf_orig);
+	snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, 32);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig2, iface[ifId]->get_name());
+	local_interface_addresses.addAddress(buf_orig2);
+	iface[ifId]->addInterfaceAddress(buf_orig2);
 
 	/* Set to zero non network bits */
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
 	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
-	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s", buf_orig, iface[ifId]->get_name());
-	address->setLocalNetwork(buf_orig);
+	snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, cidr);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s", buf_orig2, iface[ifId]->get_name());
+	address->setLocalNetwork(buf_orig2);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
