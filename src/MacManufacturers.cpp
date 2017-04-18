@@ -133,6 +133,7 @@ MacManufacturers::~MacManufacturers() {
   HASH_ITER(hh, mac_manufacturers, current, tmp) {
     HASH_DEL(mac_manufacturers, current);
     free(current->manufacturer_name);
+    free(current->short_name);
     free(current);
   }
 }

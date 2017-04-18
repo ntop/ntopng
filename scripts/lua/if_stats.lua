@@ -1792,7 +1792,14 @@ print[[
       quota_update = setTimeout(quotaUpdateCallback, 5000);
    }
 
-   function refreshQuotas() {
+   function refreshQuotas() {]]
+
+   if not ntop.isEnterprise() then
+      -- no need to update quotas as they are not supported
+      print("return;")
+   end
+
+   print[[
       if (quota_update !== null) {
          clearTimeout(quota_update);
          quota_update = null;
@@ -1801,8 +1808,6 @@ print[[
       /* Reduced timeout (only once) */
       quota_update = setTimeout(quotaUpdateCallback, 10);
    }
-
-   refreshQuotas();
 
    function addNewShapedProto() {
       var newid = newid_prefix + new_row_ctr;
@@ -1814,14 +1819,26 @@ print[[
    print[[><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
-      </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
+      </select></td>\]]
+
+      if ntop.isEnterprise() then
+      	 print[[<td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td>\]]
+      end
+
+      print[[<td class="text-center text-middle"></td></tr>');
       $("#table-protos table:first").append(tr);
 
-      makeProtocolNameDropdown(tr);
-      makeTrafficQuotaButtons(tr, newid);
-      makeTimeQuotaButtons(tr, newid);
+      makeProtocolNameDropdown(tr);]]
 
-      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
+      if ntop.isEnterprise() then
+      	 print[[
+      	 makeTrafficQuotaButtons(tr, newid);
+      	 makeTimeQuotaButtons(tr, newid);
+	 ]]
+      end
+
+
+      print [[datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
       aysRecheckForm('#l7ProtosForm');
    }
 
@@ -1978,12 +1995,20 @@ print[[
                verticalAlign: 'middle'
             }
          }, {]]
+
    -- If directions are linked, hide the *egress* shaper
    if not split_shaping_directions then
       print[[
             hidden: true,
       ]]
    end
+
+   -- quotas are only supported in the enterprise edition
+   local quota_hidden = false
+   if not ntop.isEnterprise() then
+      quota_hidden = true
+   end
+
    print[[
             title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
@@ -1995,6 +2020,7 @@ print[[
          }, {
             title: "]] print(i18n("shaping.daily_traffic_quota")) print[[",
             field: "column_traffic_quota",
+	    hidden: ]] print(quota_hidden) print[[,
             css : {
                width: '20%',
                textAlign: 'center',
@@ -2003,6 +2029,7 @@ print[[
          }, {
             title: "]] print(i18n("shaping.daily_time_quota")) print[[",
             field: "column_time_quota",
+	    hidden: ]] print(quota_hidden) print[[,
             css : {
                width: '20%',
                textAlign: 'center',

@@ -62,7 +62,7 @@ else
   print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\"><i class='fa fa-area-chart fa-lg'></i>\n")
 end
 
-if ntop.isPro() and ifstats.inline then
+if ntop.isEnterprise() and ifstats.inline then
   if page == "quotas" then
     print("<li class=\"active\"><a href=\"#\">Quotas</i>\n")
   else
@@ -82,7 +82,7 @@ print [[
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
-if ntop.isPro() and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
+if ntop.isEnterprise() and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
   local ndpi_stats = pool_stats.ndpi
   local category_stats = pool_stats.ndpi_categories
   local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
