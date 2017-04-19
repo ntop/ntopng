@@ -233,11 +233,11 @@ function printIpVersionDropdown(base_url, page_params)
    ipversion_params["version"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">IP Version]] print(ipversion_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows.ip_version")) print[[]] print(ipversion_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(base_url, ipversion_params)) print[[">All Versions</a></li>\
-         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">IPv4 Only</a></li>\
-         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">IPv6 Only</a></li>\
+         <li><a href="]] print(getPageUrl(base_url, ipversion_params)) print[[">]] print(i18n("flows.all_ip_versions")) print[[</a></li>\
+         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows.ipv4_only")) print[[</a></li>\
+         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows.ipv6_only")) print[[</a></li>\
       </ul>]]
 end
 

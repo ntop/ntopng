@@ -56,6 +56,8 @@ local  en = {
    begin = "Begin",
    ["end"] = "End",
    status = "Status",
+   vlan = "VLAN",
+   breakdown = "Breakdown",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -79,6 +81,32 @@ local  en = {
       top_receivers = "Top Receivers",
       top_profiles = "Top Profiles",
       all_protocols = "All Protocols",
+   },
+
+   flows = {
+      recently_active_flows = "Recently Active %{filter} Flows",
+      active_flows = "Active %{filter} Flows",
+      flows = "%{filter} Flows",
+      network = " [ Network %{network} ]",
+      local_only = "Local Only",
+      remote_only = "Remote Only",
+      local_cli_remote_srv = "Local Client - Remote Server",
+      local_srv_remote_cli = "Local Server - Remote Client",
+      all_hosts = "All Hosts",
+      hosts = "Hosts",
+      direction = "Direction",
+      all_flows = "All Flows",
+      one_way_multicast = "One-way Multicast/Broadcast Traffic",
+      one_way_non_multicast = "One-way Non-Multicast/Broadcast Traffic",
+      normal = "Normal",
+      alerted = "Alerted",
+      all_proto = "All Proto",
+      ip_version = "IP Version",
+      all_ip_versions = "All Versions",
+      ipv4_only = "IPv4 Only",
+      ipv6_only = "IPv6 Only",
+      actual_throughput = "Actual Thpt",
+      total_bytes = "Total Bytes",
    },
 
    traffic_report = {
