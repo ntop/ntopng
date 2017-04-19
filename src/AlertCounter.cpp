@@ -27,6 +27,12 @@
 
 AlertCounter::AlertCounter(u_int32_t _max_num_hits_sec,
 			   u_int8_t _over_threshold_duration_sec) {
+  resetThresholds(_max_num_hits_sec, _over_threshold_duration_sec);
+}
+
+/* *************************************** */
+
+void AlertCounter::resetThresholds(u_int32_t _max_num_hits_sec, u_int8_t _over_threshold_duration_sec) {
   max_num_hits_sec = _max_num_hits_sec;
   over_threshold_duration_sec = _over_threshold_duration_sec;
   if(over_threshold_duration_sec < 1) over_threshold_duration_sec = 1;
@@ -40,6 +46,7 @@ void AlertCounter::init() {
   num_hits_rcvd_last_second = 0;
   last_trespassed_threshold = 0, num_trespassed_threshold = 0;
   num_hits_since_first_alert = 0;
+  thresholdTrepassed = false;
 }
 
 /* *************************************** */
@@ -79,10 +86,12 @@ bool AlertCounter::incHits(time_t when) {
 				     over_threshold_duration_sec, num_hits_since_first_alert);
 #endif
 	time_last_alert_reported = when;
-	return(true);
+	thresholdTrepassed = true;
+	return(thresholdTrepassed);
       }
     }
   }  
 
-  return(false);
+  thresholdTrepassed = false;
+  return(thresholdTrepassed);
 }

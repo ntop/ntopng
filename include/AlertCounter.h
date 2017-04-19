@@ -34,6 +34,7 @@
 
 class AlertCounter {
  private:
+  bool thresholdTrepassed;
   u_int32_t max_num_hits_sec; /**< Threshold above which we trigger an alert. */
   u_int32_t num_hits_since_first_alert; /**< Number of hits since the first one that contributed to generate an alert. */
   u_int8_t over_threshold_duration_sec; /**< Consecutive duration of threshold trespassing before triggering an alert. */
@@ -50,8 +51,10 @@ class AlertCounter {
 	       u_int8_t _over_threshold_duration_sec);
   
   bool incHits(time_t when);
-  inline u_int32_t getCurrentHits() { return(num_hits_since_first_alert); };
+  inline u_int32_t getCurrentHits()          { return(num_hits_since_first_alert);  };
   inline u_int8_t getOverThresholdDuration() { return(over_threshold_duration_sec); };
+  inline bool isAboveThreshold()             { return(thresholdTrepassed);          };
+  void resetThresholds(u_int32_t _max_num_hits_sec, u_int8_t _over_threshold_duration_sec);
 };
 
 #endif /* _ALERT_COUNTER_H_ */
