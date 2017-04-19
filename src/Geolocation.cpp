@@ -105,19 +105,25 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
   if(rsp != NULL) {
     char *space = strchr(rsp, ' ');
 
-    *asn = atoi(&rsp[2]);
+    if(asn)
+      *asn = atoi(&rsp[2]);
 
-    if(space)
-      *asname = strdup(&space[1]);
-    else
-      *asname = strdup(rsp);
+    if(asname) {
+      if(space)
+	*asname = strdup(&space[1]);
+      else
+	*asname = strdup(rsp);
+    }
 
     free(rsp);
     return;
   }
 #endif
 
-  *asn = 0, *asname = NULL;
+  if(asn)
+    *asn = 0;
+  if(asname)
+    *asname = NULL;
 }
 
 /* *************************************** */

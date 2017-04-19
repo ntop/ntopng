@@ -34,6 +34,7 @@ typedef struct {
 class Host : public GenericHost {
  private:
   u_int32_t asn;
+  AutonomousSystem *as;
   char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char * old_sites;
@@ -165,7 +166,6 @@ class Host : public GenericHost {
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   void updateHostTrafficPolicy(char *key);
-  inline void incMacStats(bool sentBytes, u_int pkt_len) { if(mac) { if(sentBytes) mac->incSentStats(pkt_len); else mac->incRcvdStats(pkt_len); } };
   char* serialize();
   void  serialize2redis();
   bool  deserialize(char *json_str, char *key);

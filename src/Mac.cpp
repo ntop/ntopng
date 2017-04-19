@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
+Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface), GenericTrafficElement() {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);

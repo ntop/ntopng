@@ -61,6 +61,7 @@ Host::~Host() {
   serialize2redis(); /* possibly dumps counters and data to redis */
 
   if(mac) mac->decUses();
+  if(as)  as->decUses();
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)   delete sent_to_sketch;
   if(rcvd_from_sketch) delete rcvd_from_sketch;
@@ -77,7 +78,6 @@ Host::~Host() {
   if(continent)       free(continent);
   if(country)         free(country);
   if(city)            free(city);
-  if(asname)          free(asname);
   if(categoryStats)   delete categoryStats;
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
@@ -156,7 +156,9 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
-  asn = 0, asname = NULL, continent = NULL, country = NULL, city = NULL;
+  continent = NULL, country = NULL, city = NULL;
+  asn = 0, asname = NULL;
+  as = NULL;
   longitude = 0, latitude = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
@@ -237,8 +239,11 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       }
     }
 
-    if(asname) { free(asname); asname = NULL; }
-    ntop->getGeolocation()->getAS(&ip, &asn, &asname);
+    if((as = iface->getAS(&ip, true)) != NULL) {
+      as->incUses();
+      asn = as->get_asn();
+      asname = as->get_asname();
+    }
 
     if(continent) { free(continent); continent = NULL; }
     if(country)   { free(country);   country = NULL; }
@@ -472,7 +477,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "source_id", source_id);
   lua_push_int_table_entry(vm, "asn", asn);
   lua_push_int_table_entry(vm, "host_pool_id", host_pool);
-  lua_push_str_table_entry(vm, "asname", asname);
+  lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
   lua_push_str_table_entry(vm, "os", os);
 
   lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
@@ -755,6 +760,17 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
       break;
     }
 
+    if(sent_packets || rcvd_packets) {
+      if(as) {
+	as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      }
+
+      if(mac) {
+	mac->incSentStats(sent_packets, sent_bytes);
+	mac->incRcvdStats(rcvd_packets, rcvd_bytes);
+      }
+    }
+
     if(category && localHost && ntop->get_flashstart()) {
       if(categoryStats == NULL)
 	categoryStats = new CategoryStats();
@@ -818,7 +834,7 @@ json_object* Host::getJSONObject() {
   if(continent)           json_object_object_add(my_object, "continent", json_object_new_string(continent));
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
-  if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
+  if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
   if(strlen(os))          json_object_object_add(my_object, "os",        json_object_new_string(os));
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
@@ -929,14 +945,12 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
 
   if(json_object_object_get_ex(o, "mac_address", &obj)) set_mac((char*)json_object_get_string(obj));
-  if(json_object_object_get_ex(o, "asn", &obj)) asn = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "source_id", &obj)) source_id = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "continent", &obj))      { if(continent) free(continent); continent = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "vlan_id", &obj))       vlan_id     = json_object_get_int(obj);

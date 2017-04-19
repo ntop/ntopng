@@ -20,7 +20,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=asn]]
+print [[/lua/get_ases_data.lua]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/as_stats_id.inc")
@@ -55,7 +55,7 @@ print [[
            },
                          {
 			     title: "AS number",
-				 field: "column_id",
+				 field: "column_asn",
 				 sortable: true,
                              css: {
 			        textAlign: 'left'

@@ -45,12 +45,14 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }      
     
   bool equal(u_int16_t _vlanId, const u_int8_t _mac[6]);
-  inline void incSentStats(u_int pkt_len)  {
-    sent.incStats(pkt_len);
+  inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
+    sent.incStats(num_pkts, num_bytes);
     if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
     last_seen = iface->getTimeLastPktRcvd();
   }
-  inline void incRcvdStats(u_int pkt_len)  { rcvd.incStats(pkt_len); }
+  inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes) {
+    rcvd.incStats(num_pkts, num_bytes);
+  }
 
   inline void incSentArpRequests()   { arp_stats.sent_requests++; }
   inline void incSentArpReplies()    { arp_stats.sent_replies++; }

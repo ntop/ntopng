@@ -24,6 +24,7 @@
 /* *************************************** */
 
 GenericTrafficElement::GenericTrafficElement() {
+  ndpiStats = NULL;
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
   last_bytes_periodic = 0, bytes_thpt_diff = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;

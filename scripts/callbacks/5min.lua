@@ -88,7 +88,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   -- Save hosts stats
   local networks_aggr  = {}
   local vlans_aggr     = {}
-  local asn_aggr       = {}
   local localHostsOnly = false
   
   local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
@@ -100,11 +99,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     if tcp_retr_ooo_lost_rrd_creation == "1" then
        for _, anom in pairs({"tcp.packets.out_of_order", "tcp.packets.retransmissions", "tcp.packets.lost"}) do
 	  if host[anom] then
-	     if host_asn ~= nil then
-		asn_aggr[host_asn] = asn_aggr[host_asn] or {}
-		asn_aggr[host_asn][anom] = (asn_aggr[host_asn][anom] or 0) + host[anom]
-	     end
-
 	     if host_vlan ~= nil and host_vlan ~= 0 then
 		vlans_aggr[host_vlan] = vlans_aggr[host_vlan] or {}
 		vlans_aggr[host_vlan][anom] = (vlans_aggr[host_vlan][anom] or 0) + host[anom]
@@ -115,20 +109,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 		networks_aggr[network_name][anom] = (networks_aggr[network_name][anom] or 0) + host[anom]
 	     end
 	  end
-       end
-    end
-
-    -- Aggregate ASN stats
-    if(host_asn ~= nil and asn_rrd_creation == "1") then
-       asn_aggr[host_asn] = asn_aggr[host_asn] or {}
-       asn_aggr[host_asn]["bytes.sent"] = (asn_aggr[host_asn]["bytes.sent"] or 0) + host["bytes.sent"]
-       asn_aggr[host_asn]["bytes.rcvd"] = (asn_aggr[host_asn]["bytes.rcvd"] or 0) + host["bytes.rcvd"]
-
-       asn_aggr[host_asn]["ndpi"] = asn_aggr[host_asn]["ndpi"] or {}
-       for k in pairs(host["ndpi"]) do
-          asn_aggr[host_asn]["ndpi"][k] = asn_aggr[host_asn]["ndpi"][k] or {}
-          asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
-          asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
        end
     end
 
@@ -241,8 +221,11 @@ end, time_threshold) -- end foreachHost
   if asn_rrd_creation == "1" then
      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
 
-     for asn_id, asn_stats in pairs(asn_aggr) do
-        local asnpath = fixPath(basedir.. "/" .. asn_id)
+     local asn_info = interface.getASesInfo()
+     for _, asn_stats in ipairs(asn_info["ASes"]) do
+	local asn = asn_stats["asn"]
+
+	local asnpath = fixPath(basedir.. "/" .. asn)
         if not ntop.exists(asnpath) then
 	   ntop.mkdir(asnpath)
         end
@@ -262,11 +245,13 @@ end, time_threshold) -- end foreachHost
         end
 
 	if tcp_retr_ooo_lost_rrd_creation == "1" then
+	   --[[ TODO: implement for ASes
 	   local anoms = (asn_stats["tcp.packets.out_of_order"] or 0)
 	   anoms = anoms + (asn_stats["tcp.packets.retransmissions"] or 0) + (asn_stats["tcp.packets.lost"] or 0)
 	   if(anoms > 0) then
 	      makeRRD(asnpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
 	   end
+	   --]]
 	end
      end
   end

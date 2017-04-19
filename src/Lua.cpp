@@ -706,6 +706,44 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_ases_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *sortColumn = (char*)"column_asn";
+  u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
+  bool a2zSortOrder = true;
+  DetailsLevel details_level = details_higher;
+
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    sortColumn = (char*)lua_tostring(vm, 1);
+
+    if(lua_type(vm, 2) == LUA_TNUMBER) {
+      maxHits = (u_int16_t)lua_tonumber(vm, 2);
+
+      if(lua_type(vm, 3) == LUA_TNUMBER) {
+	toSkip = (u_int16_t)lua_tonumber(vm, 3);
+
+	if(lua_type(vm, 4) == LUA_TBOOLEAN) {
+	  a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
+
+	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
+	    details_level = lua_toboolean(vm, 4) ? details_higher : details_high;
+	  }
+	}
+      }
+    }
+  }
+
+  if(!ntop_interface ||
+     ntop_interface->getActiveASList(vm,
+				     sortColumn, maxHits,
+				     toSkip, a2zSortOrder, details_level) < 0)
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_mac_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -5731,6 +5769,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacInfo",                     ntop_get_interface_mac_info },
   { "getMacManufacturers",            ntop_get_interface_macs_manufacturers },
 
+  /* Autonomous Systems */
+  { "getASesInfo",                    ntop_get_interface_ases_info },
+  
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
   { "reloadShapers",                  ntop_reload_shapers },

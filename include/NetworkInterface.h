@@ -33,6 +33,8 @@ class Host;
 class HostHash;
 class Mac;
 class MacHash;
+class AutonomousSystem;
+class AutonomousSystemHash;
 class DB;
 class Paginator;
 
@@ -111,6 +113,9 @@ class NetworkInterface {
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
 
+  /* Autonomous Systems */
+  AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
+
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
@@ -152,6 +157,8 @@ class NetworkInterface {
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, u_int8_t ipver_filter, int proto_filter,
 		bool hostMacsOnly, char *sortColumn);
+  int sortASes(struct flowHostRetriever *retriever,
+	       char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
 	       bool hostMacsOnly, const char *manufacturer,
@@ -173,6 +180,7 @@ class NetworkInterface {
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
   u_int32_t getHostsHashSize();
+  u_int32_t getASesHashSize();
   u_int32_t getFlowsHashSize();
   u_int32_t getMacsHashSize();
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
@@ -330,6 +338,10 @@ class NetworkInterface {
 			  u_int32_t asnFilter, int16_t networkFilter,
 			  u_int16_t pool_filter, u_int8_t ipver_filter,
 			  bool hostsOnly, char *groupColumn);
+  int getActiveASList(lua_State* vm,
+		      char *sortColumn, u_int32_t maxHits,
+		      u_int32_t toSkip, bool a2zSortOrder,
+		      DetailsLevel details_level);
   int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 		       bool skipSpecialMacs,
 		       bool hostMacsOnly, const char *manufacturer,
@@ -353,7 +365,7 @@ class NetworkInterface {
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
-  u_int purgeIdleHostsMacs();
+  u_int purgeIdleHostsMacsASes();
 
   u_int64_t getNumPackets();
   u_int64_t getNumBytes();
@@ -365,6 +377,7 @@ class NetworkInterface {
 
   void runHousekeepingTasks();
   Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
+  AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
@@ -423,8 +436,9 @@ class NetworkInterface {
   Host* findHostsByIP(AddressTree *allowed_hosts,
 		      char *host_ip, u_int16_t vlan_id);
 
-  inline HostHash* get_hosts_hash()  { return(hosts_hash);       }
-  inline MacHash*  get_macs_hash()   { return(macs_hash);        }
+  inline HostHash* get_hosts_hash()            { return(hosts_hash); }
+  inline MacHash*  get_macs_hash()             { return(macs_hash);  }
+  inline AutonomousSystemHash* get_ases_hash() { return(ases_hash);  }
   inline bool is_bridge_interface()  { return(bridge_interface); }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);

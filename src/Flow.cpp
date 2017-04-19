@@ -2020,11 +2020,9 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
-    cli_host->incMacStats(true, pkt_len), srv_host->incMacStats(false, pkt_len),
       cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
   } else {
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
-    cli_host->incMacStats(false, pkt_len), srv_host->incMacStats(true, pkt_len),
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
 

@@ -232,6 +232,7 @@ typedef enum {
   column_name,
   column_since,
   column_asn,
+  column_asname,
   column_local_network_id,
   column_local_network,
   column_country,
@@ -307,7 +308,8 @@ typedef enum {
 typedef enum {
   walker_hosts = 0,
   walker_flows,
-  walker_macs
+  walker_macs,
+  walker_ases,
 } WalkerType;
 
 typedef enum {
