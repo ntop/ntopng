@@ -86,12 +86,12 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   end
 
   -- Save hosts stats
-  local networks_aggr = {}
-  local vlans_aggr    = {}
-  local asn_aggr      = {}
-
-  local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hostbase)
-
+  local networks_aggr  = {}
+  local vlans_aggr     = {}
+  local asn_aggr       = {}
+  local localHostsOnly = false
+  
+  local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
     local host_asn = host["asn"]
     local host_vlan = host["vlan"]
     local network_name = host["local_network_name"]
@@ -123,7 +123,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
        asn_aggr[host_asn] = asn_aggr[host_asn] or {}
        asn_aggr[host_asn]["bytes.sent"] = (asn_aggr[host_asn]["bytes.sent"] or 0) + host["bytes.sent"]
        asn_aggr[host_asn]["bytes.rcvd"] = (asn_aggr[host_asn]["bytes.rcvd"] or 0) + host["bytes.rcvd"]
-
 
        asn_aggr[host_asn]["ndpi"] = asn_aggr[host_asn]["ndpi"] or {}
        for k in pairs(host["ndpi"]) do

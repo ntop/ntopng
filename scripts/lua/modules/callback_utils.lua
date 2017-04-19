@@ -40,14 +40,16 @@ end
 
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachHost(ifname, verbose, callback, deadline)
+function callback_utils.foreachHost(ifname, verbose, localHostsOnly, callback, deadline)
    local hostbase
 
    interface.select(ifname)
 
-   -- Get all hosts with reduced information, not only the local ones.
-   -- Use host.localhost to possibly reduce.
-   hosts_stats = interface.getHostsInfo(false)
+   if(localHostsOnly) then
+      hosts_stats = interface.getLocalHostsInfo(false)
+   else
+      hosts_stats = interface.getHostsInfo(false)
+   end
 
    if hosts_stats == nil then
       hosts_stats = {hosts = {}}
