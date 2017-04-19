@@ -132,18 +132,20 @@ end
 function i18n.translate(key, data)
   assertPresent('translate', 'key', key)
 
-  -- Set to true to debug localized pages and find non-localized strings
-  if false then
-    return "___"
-  end
-
   data = data or {}
   local usedLocale = data.locale or locale
 
   local fallbacks = variants.fallbacks(usedLocale, fallbackLocale)
   for i=1, #fallbacks do
     local value = localizedTranslate(key, fallbacks[i], data)
-    if value then return value end
+    if value then
+      -- Set to true to debug localized pages and find non-localized strings
+      if false then
+        return "___"
+      end
+
+      return value
+    end
   end
 
   return data.default
