@@ -171,7 +171,7 @@ function printAlerts()
 
   toggleTableButtonPrefs(subpage_active.entries["toggle_malware_probing"].title, subpage_active.entries["toggle_malware_probing"].description,
                     "On", "1", "success",
-		    "Off","disabled", "danger",
+		    "Off", "0", "danger",
 		    "toggle_malware_probing", "ntopng.prefs.host_blacklist", "1",
 		    false, nil, nil, showElements)
 
