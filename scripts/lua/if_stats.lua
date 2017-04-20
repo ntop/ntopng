@@ -205,12 +205,10 @@ end
 
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
-   if(ifstats.type ~= "zmq") then
-      if(page == "packets") then
-	 print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
-      else
-	 print("<li><a href=\""..url.."&page=packets\">Packets</a></li>")
-      end
+   if(page == "packets") then
+      print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=packets\">Packets</a></li>")
    end
 
    if(page == "ndpi") then
@@ -589,13 +587,21 @@ print("</script>\n")
    print("</table>\n")
 elseif((page == "packets")) then
    print [[ <table class="table table-bordered table-striped"> ]]
+
+   if(ifstats.type ~= "zmq") then
       print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
       print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+   end
 
     print [[
-	 <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
+	 <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
+    if(ifstats.type ~= "zmq") then
+      print [[
   	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
+      ]]
+    end
+    print [[
     <tr><th class="text-left">IP Version Distribution</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
       </table>
 
