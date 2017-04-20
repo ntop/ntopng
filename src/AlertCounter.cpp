@@ -81,9 +81,10 @@ bool AlertCounter::incHits(time_t when) {
       if(when > (time_last_alert_reported+CONST_ALERT_GRACE_PERIOD)) {
 #ifdef ALERT_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, 
-				     "Alert emitted [num: %u][now: %u][duration: %u][tot_hits: %u]",
+				     "Alert emitted [num: %u][now: %u][duration: %u][tot_hits: %u][hits: %u/%u]",
 				     num_trespassed_threshold, when, 
-				     over_threshold_duration_sec, num_hits_since_first_alert);
+				     over_threshold_duration_sec, num_hits_since_first_alert,
+             num_hits_rcvd_last_second, max_num_hits_sec);
 #endif
 	time_last_alert_reported = when;
 	thresholdTrepassed = true;

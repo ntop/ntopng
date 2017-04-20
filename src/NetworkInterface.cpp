@@ -2518,7 +2518,7 @@ bool NetworkInterface::loadHostAlertPrefs(lua_State* vm,
   Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->loadAlertPrefs();
+    h->refreshHostAlertPrefs();
     return(true);
   }
   return(false);

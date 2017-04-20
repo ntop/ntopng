@@ -348,7 +348,7 @@
 #define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
-#define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
+#define CONST_SUPPRESSED_ALERT_PREFS       "ntopng.prefs.alerts.ifid_%d"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
 #define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"

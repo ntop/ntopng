@@ -84,9 +84,9 @@ class Host : public GenericHost {
   void refreshHTTPBL();
   void computeHostSerial();
   json_object* getJSONObject();
-  void loadFlowRateAlertPrefs(void);
-  void loadSynAlertPrefs(void);
-  void loadFlowsAlertPrefs(void);
+  void loadFlowRateAlertPrefs(const char *ip_buf);
+  void loadSynAlertPrefs(const char *ip_buf);
+  void loadFlowsAlertPrefs(const char *ip_buf);
   bool readDHCPCache();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
@@ -145,6 +145,7 @@ class Host : public GenericHost {
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
+  char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   bool idle();
   void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   void lua(lua_State* vm, AddressTree * ptree, bool host_details,
@@ -184,8 +185,6 @@ class Host : public GenericHost {
   inline void incNumDNSQueriesRcvd(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesRcvd(query_type); };
   inline void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
   inline void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
-  inline void disableAlerts()                            { trigger_host_alerts = false;                   };
-  inline void enableAlerts()                             { trigger_host_alerts = true;                    };
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
 
   u_int32_t   getNumAlerts(bool from_alertsmanager = false);
@@ -193,7 +192,7 @@ class Host : public GenericHost {
 
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 
-  void readAlertPrefs();
+  void refreshHostAlertPrefs();
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
@@ -202,7 +201,6 @@ class Host : public GenericHost {
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
-  void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };

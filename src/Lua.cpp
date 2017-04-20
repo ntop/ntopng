@@ -1894,48 +1894,6 @@ static int ntop_host_reset_periodic_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_host_trigger_alerts(lua_State* vm, bool trigger) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  Host *h;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER)
-    vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
-    return(CONST_LUA_ERROR);
-
-  if(trigger)
-    h->enableAlerts();
-  else
-    h->disableAlerts();
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_host_enable_alerts(lua_State* vm) {
-  return ntop_interface_host_trigger_alerts(vm, true);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_host_disable_alerts(lua_State* vm) {
-  return ntop_interface_host_trigger_alerts(vm, false);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_refresh_num_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   AlertsManager *am;
@@ -2369,7 +2327,7 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_update_host_alert_policy(lua_State* vm) {
+static int ntop_refresh_host_alerts_configuration(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -2388,7 +2346,7 @@ static int ntop_update_host_alert_policy(lua_State* vm) {
      || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
     return(CONST_LUA_ERROR);
 
-  h->readAlertPrefs();
+  h->refreshHostAlertPrefs();
   return(CONST_LUA_OK);
 }
 
@@ -5771,7 +5729,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "listHTTPhosts",          ntop_list_http_hosts },
   { "findHost",               ntop_get_interface_find_host },
   { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
-  { "updateHostAlertPolicy",  ntop_update_host_alert_policy },
+  { "refreshHostAlertsConfiguration", ntop_refresh_host_alerts_configuration },
   { "setSecondTraffic",       ntop_set_second_traffic },
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
   { "getPeerHitRate",            ntop_get_host_hit_rate },
@@ -5846,8 +5804,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseNetworkAlert",  ntop_interface_release_network_alert    },
   { "engageInterfaceAlert", ntop_interface_engage_interface_alert   },
   { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
-  { "enableHostAlerts",     ntop_interface_host_enable_alerts       },
-  { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
   { "refreshNumAlerts",     ntop_interface_refresh_num_alerts       },
   { "makeRoomAlerts",       ntop_interface_make_room_alerts         },
   { "makeRoomRequested",    ntop_interface_make_room_requested      },

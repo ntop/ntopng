@@ -996,6 +996,7 @@ function drawAlertSettings(alert_source, alert_val)
    end
 
    -- handle settings change
+   local config_changed = false
 
    local trigger_alerts = _POST["trigger_alerts"]
    if(trigger_alerts ~= nil) then
@@ -1006,26 +1007,12 @@ function drawAlertSettings(alert_source, alert_val)
          ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), alert_val, trigger_alerts)
          alerts_enabled = false
       end
+      config_changed = true
    else
       if are_alerts_suppressed(alert_val, ifname) then
          alerts_enabled = false
       else
          alerts_enabled = true
-      end
-   end
-
-   if alert_source.source == "host" then
-      local hostInfo = hostkey2hostinfo(alert_val)
-      local host_ip = hostInfo["host"]
-      local host_vlan = hostInfo["vlan"]
-
-      -- host needs special treatment
-      if (_POST["trigger_alerts"]) then
-         if(_POST["trigger_alerts"] == "true") then
-            interface.enableHostAlerts(host_ip, host_vlan)
-         else
-            interface.disableHostAlerts(host_ip, host_vlan)
-         end
       end
    end
 
@@ -1041,6 +1028,7 @@ function drawAlertSettings(alert_source, alert_val)
       if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
          ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
          flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
+         config_changed = true
       else
          local v = nil
          if _POST["flow_rate_alert_threshold"] == nil then
@@ -1057,6 +1045,7 @@ function drawAlertSettings(alert_source, alert_val)
       if _POST["syn_alert_threshold"] ~= nil and _POST["syn_alert_threshold"] ~= "" then
          ntop.setPref(syn_alert_thresh, _POST["syn_alert_threshold"])
          syn_alert_thresh = _POST["syn_alert_threshold"]
+         config_changed = true
       else
          local v = nil
          if _POST["syn_alert_threshold"] == nil then
@@ -1072,6 +1061,7 @@ function drawAlertSettings(alert_source, alert_val)
       if _POST["flows_alert_threshold"] ~= nil and _POST["flows_alert_threshold"] ~= "" then
          ntop.setPref(flows_alert_thresh, _POST["flows_alert_threshold"])
          flows_alert_thresh = _POST["flows_alert_threshold"]
+         config_changed = true
       else
          local v = nil
          if _POST["flows_alert_threshold"] == nil then
@@ -1083,6 +1073,17 @@ function drawAlertSettings(alert_source, alert_val)
          else
             flows_alert_thresh = 32768
          end
+      end
+   end
+
+   if config_changed then
+      if alert_source.source == "host" then
+         local hostInfo = hostkey2hostinfo(alert_val)
+         local host_ip = hostInfo["host"]
+         local host_vlan = hostInfo["vlan"]
+
+         -- io.write("Reloading host '"..host_ip.."' alerts configuration...\n")
+         interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
       end
    end
 

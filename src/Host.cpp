@@ -267,10 +267,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     }
   }
 
-  if(localHost || systemHost) {
-    loadAlertPrefs();
-    readAlertPrefs();
-  }
+  refreshHostAlertPrefs();
   
   if(!host_serial) computeHostSerial();
   updateHostPool();
@@ -302,19 +299,29 @@ bool Host::readDHCPCache() {
 
 /* *************************************** */
 
+char* Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
+  char ipbuf[64];
+  char *key = ip.print(ipbuf, sizeof(ipbuf));
+
+  if ((vlan_id > 0) || force_vlan)
+    snprintf(buf, buf_len, "%s@%u", key, vlan_id);
+  else
+    strncpy(buf, key, buf_len);
+
+  buf[buf_len-1] = '\0';
+  return buf;
+}
+
+/* *************************************** */
+
 void Host::updateHostTrafficPolicy(char *key) {
   if(localHost || systemHost) {
-    char buf[64], *host, host_buf[96];
+    char buf[64], *host;
 
     if(key)
       host = key;
-    else {
-      if(vlan_id > 0) {
-	snprintf(host_buf, sizeof(host_buf), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
-	host = host_buf;
-      } else
-	host = ip.print(buf, sizeof(buf));
-    }
+    else
+      host = get_hostkey(buf, sizeof(buf));
 
     if(iface->isPacketInterface()) {
       if((ntop->getRedis()->hashGet((char*)DROP_HOST_TRAFFIC, host, buf, sizeof(buf)) == -1)
@@ -430,7 +437,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement,
 	       bool exclude_deserialized_bytes) {
-  char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net;
+  char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net, *host_id = buf_id;
   bool mask_host = Utils::maskHost(localHost);
   
   if((ptree && (!match(ptree))) || mask_host)
@@ -618,19 +625,13 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     if(hasAnomalies()) luaAnomalies(vm);
   }
 
-  if(!returnHost) {
-    /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
-    if(vlan_id == 0) {
-      sprintf(buf_id, "%s", ip.print(buf, sizeof(buf)));
-    } else {
-      sprintf(buf_id, "%s@%d", ip.print(buf, sizeof(buf)), vlan_id);
-    }
-  }
+  if(!returnHost)
+    host_id = get_hostkey(buf_id, sizeof(buf_id));
 
   ((GenericTrafficElement*)this)->lua(vm, host_details);
 
   if(asListElement) {
-    lua_pushstring(vm, buf_id);
+    lua_pushstring(vm, host_id);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
@@ -1387,53 +1388,44 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
 
 /* *************************************** */
 
-void Host::loadAlertPrefs() {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {    
-    loadFlowRateAlertPrefs();
-    loadSynAlertPrefs();
-    loadFlowsAlertPrefs();
+void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
+  int retval = CONST_MAX_NEW_FLOWS_SECOND;
+  char rkey[128], rsp[16];
+
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_RATE, ip_buf, vlan_id);
+  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    retval = atoi(rsp);
+
+  if ((u_int32_t)retval != max_new_flows_sec_threshold) {
+    max_new_flows_sec_threshold = retval;
+    /* TODO reset the flow rate counter when it will be implemented */
   }
 }
 
 /* *************************************** */
 
-void Host::loadFlowRateAlertPrefs() {
-  int retval = CONST_MAX_NEW_FLOWS_SECOND;
-  char rkey[128], rsp[16];
-  char ip_buf[48];
-
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_RATE,
-	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
-  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-    retval = atoi(rsp);
-
-  max_new_flows_sec_threshold = retval;
-}
-
-/* *************************************** */
-
-void Host::loadSynAlertPrefs() {
+void Host::loadSynAlertPrefs(const char *ip_buf) {
   int retval = CONST_MAX_NUM_SYN_PER_SECOND;
   char rkey[128], rsp[16];
-  char ip_buf[48];
 
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ALERT,
-	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ALERT, ip_buf, vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
     retval = atoi(rsp);
 
-  max_num_syn_sec_threshold = retval;
+  if ((u_int32_t)retval != max_num_syn_sec_threshold) {
+    max_num_syn_sec_threshold = retval;
+    syn_flood_attacker_alert->resetThresholds(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+    syn_flood_victim_alert->resetThresholds(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+  }
 }
 
 /* *************************************** */
 
-void Host::loadFlowsAlertPrefs() {
+void Host::loadFlowsAlertPrefs(const char *ip_buf) {
   u_int32_t retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
   char rkey[128], rsp[16];
-  char ip_buf[48];
 
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_THRESHOLD,
-	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_THRESHOLD, ip_buf, vlan_id);
   if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     retval = (u_int32_t)strtoul(rsp, NULL, 10);
 
@@ -1457,14 +1449,14 @@ void Host::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req,
 /* *************************************** */
 
 void Host::setDumpTrafficPolicy(bool new_policy) {
-  char buf[64], host[96];
+  char buf[64], *host;
 
   if(dump_host_traffic == new_policy)
     return; /* Nothing to do */
   else
     dump_host_traffic = new_policy;
 
-  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
+  host = get_hostkey(buf, sizeof(buf), true);
 
   ntop->getRedis()->hashSet((char*)DUMP_HOST_TRAFFIC, host,
 			    (char*)(dump_host_traffic ? "true" : "false"));
@@ -1473,25 +1465,39 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 
 /* *************************************** */
 
-void Host::readAlertPrefs() {
-  trigger_host_alerts = false;
+void Host::refreshHostAlertPrefs() {
+  bool alerts_read = false;
 
-  if(!localHost) return;
+  if(!ntop->getPrefs()->are_alerts_disabled()
+      && (localHost || systemHost)
+      && (!ip.isEmpty())) {
+    char *key, ip_buf[48], rsp[32], rkey[128];
 
-  if(!ip.isEmpty()) {
-    if(!ntop->getPrefs()->are_alerts_disabled()) {
-      char *key, ip_buf[48];
+    /* This value always contains vlan information */
+    key = get_hostkey(ip_buf, sizeof(ip_buf), true);
 
-      key = get_string_key(ip_buf, sizeof(ip_buf));
-      if(key) {
-	char rsp[32];
-	ntop->getRedis()->hashGet((char*)CONST_ALERT_PREFS, key, rsp, sizeof(rsp));
+    if(key) {
+      snprintf(rkey, sizeof(rkey), CONST_SUPPRESSED_ALERT_PREFS, getInterface()->get_id());
+      if (ntop->getRedis()->hashGet(rkey, key, rsp, sizeof(rsp)) == 0)
+        trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
+      else
+        trigger_host_alerts = true;
 
-	trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
-      } else
-	trigger_host_alerts = false;
+      alerts_read = true;
+
+      if (trigger_host_alerts) {
+        /* This value does *not* contain vlan information, it is provided separately inside these functions */
+        key = get_string_key(ip_buf, sizeof(ip_buf));
+
+        loadFlowRateAlertPrefs(key);
+        loadSynAlertPrefs(key);
+        loadFlowsAlertPrefs(key);
+      }
     }
   }
+
+  if (! alerts_read)
+    trigger_host_alerts = false;
 }
 
 /* *************************************** */
