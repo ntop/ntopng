@@ -587,21 +587,16 @@ print("</script>\n")
    print("</table>\n")
 elseif((page == "packets")) then
    print [[ <table class="table table-bordered table-striped"> ]]
+   print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+   print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+   print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
-   if(ifstats.type ~= "zmq") then
-      print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-      print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-      print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
-   end
-
-    print [[
-	 <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
     if(ifstats.type ~= "zmq") then
-      print [[
-  	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
-      ]]
+      print [[<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
     end
-    print [[
+
+    print[[
+  	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
     <tr><th class="text-left">IP Version Distribution</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
       </table>
 
