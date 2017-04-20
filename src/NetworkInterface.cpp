@@ -2385,8 +2385,6 @@ static bool find_as_by_asn(GenericHashEntry *he, void *user_data) {
   struct as_find_info *info = (struct as_find_info*)user_data;
   AutonomousSystem *as = (AutonomousSystem*)he;
 
-  fprintf(stdout, "Walking %u", as->get_asn());
-
   if((info->as == NULL) && info->asn == as->get_asn()) {
     info->as = as;
     return(true); /* found */
