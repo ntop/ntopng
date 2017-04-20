@@ -6,6 +6,7 @@
 -- used to trigger host alerts
 
 local verbose = false
+local callback_utils = require "callback_utils"
 
 alerts_granularity = {
    { "min", "Every Minute", 60 },
@@ -1822,4 +1823,27 @@ $('#myModal').on('hidden.bs.modal', function () {
 </script>]]
       end
 
+end
+
+function alertAnomalousHosts()
+   local ifnames = interface.getIfNames()
+   local cb = function(_ifname, ifstats)
+      local ha = interface.getHostsWithAnomalies()
+
+      for host_key, host_stats in pairs(ha) do
+	 local anomalies = host_stats["anomalies"]
+
+	 if type(anomalies) == "table" then
+	    for anom_key, anom_stats in pairs(anomalies) do
+	       -- TODO: engage alert for anom_key if alert has not yet been engaged
+	    end
+	 end
+      end
+
+      --TODO: check, among the currently engaged alerts, those that are no longed engaged
+      -- by checking in ha retrieved above. If an alert is engaged, but the corresponding host
+      -- is no longer in ha, then the alert must be released.
+   end
+
+   callback_utils.foreachInterface(ifnames, enable_second_debug, cb)
 end

@@ -2492,13 +2492,22 @@ void NetworkInterface::updateFlowProfiles() {
 bool NetworkInterface::getHostInfo(lua_State* vm,
 				   AddressTree *allowed_hosts,
 				   char *host_ip, u_int16_t vlan_id) {
-  Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
+  Host *h;
+  bool ret;
+
+  disablePurge(false);
+
+  h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
     h->lua(vm, allowed_hosts, true, true, true, false, false);
-    return(true);
+    ret = true;
   } else
-    return(false);
+    ret = false;
+
+  enablePurge(false);
+
+  return ret;
 }
 
 /* **************************************************** */
@@ -4470,6 +4479,8 @@ struct virtual_host_valk_info {
   u_int32_t num;
 };
 
+/* **************************************** */
+
 static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data) {
   Host *h = (Host*)node;
   struct virtual_host_valk_info *info = (struct virtual_host_valk_info*)data;
@@ -4490,6 +4501,27 @@ void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
 
   info.vm = vm, info.key = key, info.num = 0;
   walker(walker_hosts, virtual_http_hosts_walker, &info);
+}
+
+/* **************************************** */
+
+static bool hosts_with_anomalies_walker(GenericHashEntry *node, void *data) {
+  Host *h = (Host*)node;
+  lua_State *vm = (lua_State*)data;
+
+  if(h && h->hasAnomalies()) {
+    h->lua(vm, NULL, true, true, false, true, false);
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************** */
+
+void NetworkInterface::listHostsWithAnomalies(lua_State *vm) {
+  lua_newtable(vm);
+
+  walker(walker_hosts, hosts_with_anomalies_walker, vm);
 }
 
 /* **************************************** */

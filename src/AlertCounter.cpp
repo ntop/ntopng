@@ -95,3 +95,26 @@ bool AlertCounter::incHits(time_t when) {
   thresholdTrepassed = false;
   return(thresholdTrepassed);
 }
+
+
+/* *************************************** */
+
+void AlertCounter::lua(lua_State* vm, const char *table_key) {
+  if(vm) {
+    lua_newtable(vm);
+
+    lua_push_int_table_entry(vm, "max_num_hits_sec", max_num_hits_sec);
+    lua_push_int_table_entry(vm, "num_hits_since_first_alert", num_hits_since_first_alert);
+    lua_push_int_table_entry(vm, "over_threshold_duration_sec", over_threshold_duration_sec);
+    lua_push_int_table_entry(vm, "time_last_hit", time_last_hit);
+    lua_push_int_table_entry(vm, "time_last_alert_reported", time_last_alert_reported);
+    lua_push_int_table_entry(vm, "last_trespassed_threshold", last_trespassed_threshold);
+    lua_push_int_table_entry(vm, "num_trespassed_threshold", num_trespassed_threshold);
+    lua_push_int_table_entry(vm, "num_hits_rcvd_last_second", num_hits_rcvd_last_second);
+    lua_push_bool_table_entry(vm, "threshold_trepassed", thresholdTrepassed);
+
+    lua_pushstring(vm, table_key ? table_key : (char*)"alert_counter");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}

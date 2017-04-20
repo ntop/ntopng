@@ -15,4 +15,5 @@ require "alert_utils"
 require "slack_utils"
 
 housekeepingAlertsMakeRoom()
+alertAnomalousHosts()
 sendSlackMessages()

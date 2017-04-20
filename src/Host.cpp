@@ -613,9 +613,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     sent_stats.lua(vm, "pktStats.sent");
     recv_stats.lua(vm, "pktStats.recv");
 
-    if(dns)  dns->lua(vm);
-    if(http) http->lua(vm);
-
+    if(dns)            dns->lua(vm);
+    if(http)           http->lua(vm);
+    if(hasAnomalies()) luaAnomalies(vm);
   }
 
   if(!returnHost) {
@@ -650,6 +650,33 @@ void Host::setName(char *name) {
   }
 
   if(m) m->unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
+bool Host::hasAnomalies() {
+  return syn_flood_victim_alert->isAboveThreshold()
+    || syn_flood_attacker_alert->isAboveThreshold();
+}
+
+/* *************************************** */
+
+void Host::luaAnomalies(lua_State* vm) {
+  if(!vm)
+    return;
+
+  if(hasAnomalies()) {
+    lua_newtable(vm);
+
+    if(syn_flood_victim_alert->isAboveThreshold())
+      syn_flood_victim_alert->lua(vm, "syn_flood_victim");
+    if(syn_flood_attacker_alert->isAboveThreshold())
+      syn_flood_attacker_alert->lua(vm, "syn_flood_attacker");
+
+    lua_pushstring(vm, "anomalies");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* ***************************************** */

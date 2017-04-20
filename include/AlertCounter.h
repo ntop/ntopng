@@ -55,6 +55,7 @@ class AlertCounter {
   inline u_int8_t getOverThresholdDuration() { return(over_threshold_duration_sec); };
   inline bool isAboveThreshold()             { return(thresholdTrepassed);          };
   void resetThresholds(u_int32_t _max_num_hits_sec, u_int8_t _over_threshold_duration_sec);
+  void lua(lua_State* vm, const char *table_key);
 };
 
 #endif /* _ALERT_COUNTER_H_ */

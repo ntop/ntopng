@@ -121,6 +121,7 @@ class Host : public GenericHost {
   inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(char *m);
   inline bool isBlacklisted()                  { return(blacklisted_host); }
+  bool hasAnomalies();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
   inline char* get_os()                        { return(os);               }
@@ -149,6 +150,7 @@ class Host : public GenericHost {
   void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement,
 	   bool exclude_deserialized_bytes);
+  void luaAnomalies(lua_State* vm);
   void resolveHostName();
   void setName(char *name);
   void set_host_label(char *label_name, bool ignoreIfPresent);
