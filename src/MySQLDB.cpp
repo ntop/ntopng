@@ -71,7 +71,7 @@ void* MySQLDB::queryLoop() {
 
 /* ******************************************* */
 volatile bool MySQLDB::db_created = false;
-bool MySQLDB::createDBSchema() {
+bool MySQLDB::createDBSchema(bool set_db_created) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if(iface) {
@@ -382,7 +382,8 @@ bool MySQLDB::createDBSchema() {
     }
   }
 
-  db_created = true;
+  if(set_db_created)
+    db_created = true;
   return true;
 }
 

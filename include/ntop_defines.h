@@ -561,6 +561,13 @@
 #define MYSQL_MAX_NUM_ROWS    999
 
 #ifdef NTOPNG_PRO
+#define MYSQL_TOP_TALKERS_CONSOLIDATION_FREQ 20
+#define MYSQL_TOP_TALKERS_TRIGGER_NAME "trigger_talkersv4"
+#define MYSQL_TOP_TALKERS_CACHE_TABLE  "cache_talkersv4"
+#define MYSQL_TOP_TALKERS_5MIN_TABLE   "talkersv4"
+#define MYSQL_TOP_TALKERS_HOUR_TABLE   "talkersv4_hour"
+#define MYSQL_TOP_TALKERS_DAY_TABLE    "talkersv4_day"
+
 #define MYSQL_INSERT_PROFILE ",PROFILE"
 #define MYSQL_PROFILE_VALUE ",'%s'"
 #else

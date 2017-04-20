@@ -47,7 +47,7 @@ class MySQLDB : public DB {
   virtual ~MySQLDB();
 
   virtual void* queryLoop();
-  bool createDBSchema();
+  virtual bool createDBSchema(bool set_db_created = true);
   void disconnectFromDB(MYSQL *conn);
   static volatile bool isDbCreated() { return db_created; };
   void checkPointCounters(bool drops_only) {
