@@ -482,6 +482,7 @@ class NetworkInterface {
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
+  bool getASInfo(lua_State* vm, u_int32_t asn);
   inline void incNumL2Devices()      { numL2Devices++; }
   inline void decNumL2Devices()      { numL2Devices--; }
   inline u_int32_t getNumL2Devices() { return(numL2Devices); }

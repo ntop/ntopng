@@ -2317,6 +2317,13 @@ struct host_find_info {
 
 /* **************************************************** */
 
+struct as_find_info {
+  u_int32_t asn;
+  AutonomousSystem *as;
+};
+
+/* **************************************************** */
+
 struct mac_find_info {
   u_int8_t mac[6];
   u_int16_t vlan_id;
@@ -2366,6 +2373,22 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
      && (!memcmp(info->mac, m->get_mac(), 6))
      ) {
     info->m = m;
+    return(true); /* found */
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool find_as_by_asn(GenericHashEntry *he, void *user_data) {
+  struct as_find_info *info = (struct as_find_info*)user_data;
+  AutonomousSystem *as = (AutonomousSystem*)he;
+
+  fprintf(stdout, "Walking %u", as->get_asn());
+
+  if((info->as == NULL) && info->asn == as->get_asn()) {
+    info->as = as;
     return(true); /* found */
   }
 
@@ -5408,6 +5431,30 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
 
   if(info.m) {
     info.m->lua(vm, true, false);
+    ret = true;
+  } else
+    ret = false;
+
+  enablePurge(false);
+
+  return ret;
+}
+
+/* **************************************** */
+
+bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
+  struct as_find_info info;
+  bool ret;
+
+  memset(&info, 0, sizeof(info));
+  info.asn = asn;
+
+  disablePurge(false);
+
+  walker(walker_ases, find_as_by_asn, (void*)&info);
+
+  if(info.as) {
+    info.as->lua(vm, details_higher, false);
     ret = true;
   } else
     ret = false;

@@ -7,7 +7,7 @@ local now = os.time()
 
 function as2record(as)
    local record = {}
-   record["key"] = as["asn"]
+   record["key"] = tostring(as["asn"])
 
    local as_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..as["asn"].."' title='"..as["asname"].."'>"..as["asn"]..'</A>'
    record["column_asn"] = as_link

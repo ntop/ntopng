@@ -706,6 +706,29 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_mac_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac = NULL;
+  u_int16_t vlan_id = 0;
+
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    mac = (char*)lua_tostring(vm, 1);
+
+    if(lua_type(vm, 2) == LUA_TNUMBER) {
+      vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+    }
+  }
+
+  if((!ntop_interface)
+     || (!mac)
+     || (!ntop_interface->getMacInfo(vm, mac, vlan_id)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_ases_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_asn";
@@ -744,22 +767,15 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_mac_info(lua_State* vm) {
+static int ntop_get_interface_as_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL;
-  u_int16_t vlan_id = 0;
+  u_int32_t asn = 0;
 
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    mac = (char*)lua_tostring(vm, 1);
-
-    if(lua_type(vm, 2) == LUA_TNUMBER) {
-      vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-    }
-  }
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  asn = (u_int32_t)lua_tonumber(vm, 1);
 
   if((!ntop_interface)
-     || (!mac)
-     || (!ntop_interface->getMacInfo(vm, mac, vlan_id)))
+     || (!ntop_interface->getASInfo(vm, asn)))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -5771,6 +5787,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Autonomous Systems */
   { "getASesInfo",                    ntop_get_interface_ases_info },
+  { "getASInfo",                      ntop_get_interface_as_info },
   
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
