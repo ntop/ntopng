@@ -160,7 +160,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   asn = 0, asname = NULL;
   as = NULL;
   longitude = 0, latitude = 0;
-  k = get_string_key(key, sizeof(key));
+  k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
     user_activities = NULL, ifa_stats = NULL, icmp = NULL;
@@ -833,7 +833,7 @@ void Host::serialize2redis() {
      && (!ip.isEmpty())) {
     char *json = serialize();
     char host_key[128], key[128];
-    char *k = get_string_key(host_key, sizeof(host_key));
+    char *k = ip.print(host_key, sizeof(host_key));
 
     snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
@@ -932,20 +932,20 @@ bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
   // if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_WARNING, "%s/%s", symbolic_name, ip.print(keybuf, sizeof(keybuf)));
 
   if(strcasestr((r = Utils::formatMac(mac ? mac->get_mac() : NULL, keybuf, sizeof(keybuf))), key)) {
-    lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), r);
+    lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), r);
     return(true);
   } else if(strcasestr((r = ip.print(keybuf, sizeof(keybuf))), key)) {
     if(vlan_id != 0) {
       char valuebuf[96];
 
       snprintf(valuebuf, sizeof(valuebuf), "%s@%u", r, vlan_id);
-      lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), valuebuf);
+      lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), valuebuf);
     } else
-      lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), r);
+      lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), r);
 
     return(true);
   } else if(symbolic_name && strcasestr(symbolic_name, key)) {
-    lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), symbolic_name);
+    lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), symbolic_name);
     return(true);
   }
 
@@ -1484,7 +1484,7 @@ void Host::refreshHostAlertPrefs() {
 
       if (trigger_host_alerts) {
         /* This value does *not* contain vlan information, it is provided separately inside these functions */
-        key = get_string_key(ip_buf, sizeof(ip_buf));
+        key = ip.print(ip_buf, sizeof(ip_buf));
 
         loadFlowRateAlertPrefs(key);
         loadSynAlertPrefs(key);

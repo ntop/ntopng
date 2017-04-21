@@ -1847,34 +1847,11 @@ static int ntop_getsflowdeviceinfo(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_load_host_alert_prefs(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if((!ntop_interface) || !ntop_interface->loadHostAlertPrefs(vm, get_allowed_nets(vm), host_ip, vlan_id))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_host_reset_periodic_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
-  Host *h;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1884,12 +1861,10 @@ static int ntop_host_reset_periodic_stats(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  h->resetPeriodicStats();
-  return(CONST_LUA_OK);
+  return ntop_interface->resetPeriodicHostStats(get_allowed_nets(vm), host_ip, vlan_id);
 }
 
 /* ****************************************** */
@@ -2307,7 +2282,6 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
-  Host *h;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2317,12 +2291,10 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
-    return(CONST_LUA_ERROR);
+  if(!ntop_interface)
+    return CONST_LUA_ERROR;
 
-  h->updateHostTrafficPolicy(host_ip);
-  return(CONST_LUA_OK);
+  return ntop_interface->updateHostTrafficPolicy(get_allowed_nets(vm), host_ip, vlan_id);
 }
 
 /* ****************************************** */
@@ -2332,7 +2304,6 @@ static int ntop_refresh_host_alerts_configuration(lua_State* vm) {
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
-  Host *h;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2342,12 +2313,10 @@ static int ntop_refresh_host_alerts_configuration(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  h->refreshHostAlertPrefs();
-  return(CONST_LUA_OK);
+  return ntop_interface->refreshHostAlertPrefs(get_allowed_nets(vm), host_ip, vlan_id);
 }
 
 /* ****************************************** */
@@ -2370,7 +2339,6 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
-  Host *h;
   bool dump_traffic_to_disk;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -2384,12 +2352,10 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
 
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  h->setDumpTrafficPolicy(dump_traffic_to_disk);
-  return(CONST_LUA_OK);
+  return ntop_interface->setHostDumpTrafficPolicy(get_allowed_nets(vm), host_ip, vlan_id, dump_traffic_to_disk);
 }
 
 /* ****************************************** */
@@ -2414,12 +2380,10 @@ static int ntop_get_host_hit_rate(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
 
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  h->getPeerBytes(vm, peer_key);
-  return(CONST_LUA_OK);
+  return ntop_interface->getPeerBytes(get_allowed_nets(vm), vm, host_ip, vlan_id, peer_key);
 #else
   return(CONST_LUA_ERROR); // not supported
 #endif
@@ -5016,11 +4980,9 @@ static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) 
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
-  Host *h;
   int alert_severity;
   int alert_type;
   char *alert_json, *engaged_alert_id;
-  AlertsManager *am;
   int ret;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -5040,17 +5002,11 @@ static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_ERROR);
   alert_json = (char*)lua_tostring(vm, 5);
 
-  if((!ntop_interface)
-     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL)
-     || ((am = ntop_interface->getAlertsManager()) == NULL))
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  if(engage)
-    ret = am->engageHostAlert(h, engaged_alert_id,
-			      (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
-  else
-    ret = am->releaseHostAlert(h, engaged_alert_id,
-			       (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+  ret = ntop_interface->engageReleaseHostAlert(get_allowed_nets(vm), host_ip, vlan_id, engage,
+          engaged_alert_id, (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
 
   return ret >= 0 ? CONST_LUA_OK : CONST_LUA_ERROR;
 }
@@ -5752,7 +5708,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "name2id",                        ntop_interface_name2id },
   { "loadDumpPrefs",                  ntop_load_dump_prefs },
   { "loadScalingFactorPrefs",         ntop_load_scaling_factor_prefs },
-  { "loadHostAlertPrefs",             ntop_interface_load_host_alert_prefs },
 
   /* Mac */
   { "getMacsInfo",                    ntop_get_interface_macs_info },

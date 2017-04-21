@@ -2512,20 +2512,6 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
-bool NetworkInterface::loadHostAlertPrefs(lua_State* vm,
-				          AddressTree *allowed_hosts,
-				          char *host_ip, u_int16_t vlan_id) {
-  Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
-
-  if(h) {
-    h->refreshHostAlertPrefs();
-    return(true);
-  }
-  return(false);
-}
-
-/* **************************************************** */
-
 Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
@@ -5493,3 +5479,102 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
 
   return ret;
 }
+
+/* **************************************** */
+
+int NetworkInterface::refreshHostAlertPrefs(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan) {
+  Host *h;
+  int rv;
+  disablePurge(false);
+
+  if ((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+    h->refreshHostAlertPrefs();
+    rv = CONST_LUA_OK;
+  } else
+    rv = CONST_LUA_ERROR;
+
+  enablePurge(false);
+  return rv;
+};
+
+int NetworkInterface::resetPeriodicHostStats(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan) {
+  Host *h;
+  int rv;
+  disablePurge(false);
+
+  if ((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+    h->resetPeriodicStats();
+    rv = CONST_LUA_OK;
+  } else
+    rv = CONST_LUA_ERROR;
+
+  enablePurge(false);
+  return rv;
+};
+
+int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan) {
+  Host *h;
+  int rv;
+  disablePurge(false);
+
+  if ((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+    h->updateHostTrafficPolicy(host_ip);
+    rv = CONST_LUA_OK;
+  } else
+    rv = CONST_LUA_ERROR;
+
+  enablePurge(false);
+  return rv;
+};
+
+int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk) {
+  Host *h;
+  int rv;
+  disablePurge(false);
+
+  if ((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+    h->setDumpTrafficPolicy(dump_traffic_to_disk);
+    rv = CONST_LUA_OK;
+  } else
+    rv = CONST_LUA_ERROR;
+
+  enablePurge(false);
+  return rv;
+};
+
+int NetworkInterface::getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip, u_int16_t host_vlan, u_int32_t peer_key) {
+  Host *h;
+  int rv;
+  disablePurge(false);
+
+  if ((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+    h->getPeerBytes(vm, peer_key);
+    rv = CONST_LUA_OK;
+  } else
+    rv = CONST_LUA_ERROR;
+
+  enablePurge(false);
+  return rv;
+};
+
+int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
+        char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+  Host *h;
+  AlertsManager *am;
+  int rv;
+  disablePurge(false);
+
+  if (((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL)
+        && ((am = getAlertsManager()) != NULL)) {
+    if(engage)
+      rv = am->engageHostAlert(h, engaged_alert_id,
+              alert_type, alert_severity, alert_json);
+    else
+      rv = am->releaseHostAlert(h, engaged_alert_id,
+              alert_type, alert_severity, alert_json);
+  } else
+    rv = CONST_LUA_ERROR;
+
+  enablePurge(false);
+  return rv;
+};

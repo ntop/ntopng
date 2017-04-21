@@ -187,6 +187,9 @@ class NetworkInterface {
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
 
+  Host* findHostsByIP(AddressTree *allowed_hosts,
+		      char *host_ip, u_int16_t vlan_id);
+
  public:
   /**
   * @brief A Constructor
@@ -380,7 +383,6 @@ class NetworkInterface {
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  bool loadHostAlertPrefs(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool correlateHostActivity(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool similarHostActivity(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
@@ -434,9 +436,6 @@ class NetworkInterface {
   void loadScalingFactorPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
-  Host* findHostsByIP(AddressTree *allowed_hosts,
-		      char *host_ip, u_int16_t vlan_id);
-
   inline HostHash* get_hosts_hash()            { return(hosts_hash); }
   inline MacHash*  get_macs_hash()             { return(macs_hash);  }
   inline AutonomousSystemHash* get_ases_hash() { return(ases_hash);  }
@@ -479,6 +478,15 @@ class NetworkInterface {
   inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
   };
+
+  int refreshHostAlertPrefs(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
+  int resetPeriodicHostStats(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
+  int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
+  int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
+  int getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip, u_int16_t host_vlan, u_int32_t peer_key);
+  int engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
+        char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };
