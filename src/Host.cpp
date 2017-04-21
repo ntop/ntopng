@@ -763,8 +763,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
     ((GenericHost*)this)->incStats(when, l4_proto, ndpi_proto, sent_packets, sent_bytes, sent_goodput_bytes,
 				   rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
 
-    if(sent_packets == 1) sent_stats.incStats((u_int)sent_bytes);
-    if(rcvd_packets == 1) recv_stats.incStats((u_int)rcvd_bytes);
+    /* Paket stats sent_stats and rcvd_stats are incremented in Flow::incStats */
 
     switch(l4_proto) {
     case 0:
@@ -788,15 +787,13 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
       break;
     }
 
-    if(sent_packets || rcvd_packets) {
-      if(as) {
-	as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-      }
+    if(as) {
+      as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+    }
 
-      if(mac) {
-	mac->incSentStats(sent_packets, sent_bytes);
-	mac->incRcvdStats(rcvd_packets, rcvd_bytes);
-      }
+    if(mac) {
+      mac->incSentStats(sent_packets, sent_bytes);
+      mac->incRcvdStats(rcvd_packets, rcvd_bytes);
     }
 
     if(category && localHost && ntop->get_flashstart()) {
