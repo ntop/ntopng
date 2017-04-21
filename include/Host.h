@@ -35,6 +35,7 @@ class Host : public GenericHost {
  private:
   u_int32_t asn;
   AutonomousSystem *as;
+  Vlan *vlan;
   char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char * old_sites;

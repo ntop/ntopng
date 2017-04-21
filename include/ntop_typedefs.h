@@ -310,6 +310,7 @@ typedef enum {
   walker_flows,
   walker_macs,
   walker_ases,
+  walker_vlans,
 } WalkerType;
 
 typedef enum {

@@ -33,6 +33,8 @@ class Host;
 class HostHash;
 class Mac;
 class MacHash;
+class Vlan;
+class VlanHash;
 class AutonomousSystem;
 class AutonomousSystemHash;
 class DB;
@@ -115,6 +117,9 @@ class NetworkInterface {
 
   /* Autonomous Systems */
   AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
+
+  /* Vlans */
+  VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
@@ -368,7 +373,7 @@ class NetworkInterface {
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
-  u_int purgeIdleHostsMacsASes();
+  u_int purgeIdleHostsMacsASesVlans();
 
   u_int64_t getNumPackets();
   u_int64_t getNumBytes();
@@ -380,6 +385,7 @@ class NetworkInterface {
 
   void runHousekeepingTasks();
   Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
+  Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
@@ -438,6 +444,7 @@ class NetworkInterface {
 
   inline HostHash* get_hosts_hash()            { return(hosts_hash); }
   inline MacHash*  get_macs_hash()             { return(macs_hash);  }
+  inline VlanHash*  get_vlans_hash()           { return(vlans_hash); }
   inline AutonomousSystemHash* get_ases_hash() { return(ases_hash);  }
   inline bool is_bridge_interface()  { return(bridge_interface); }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }

@@ -879,6 +879,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
   int16_t cli_network_id, srv_network_id;
+  Vlan *vl;
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
@@ -927,71 +928,75 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
       /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
        pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp */
-      if(!iface->is_bridge_interface())
+      if(iface && !iface->is_bridge_interface())
 	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       }
 #endif
 
-      if(cli_host) {
-	NetworkStats *cli_network_stats;
-
-	cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-	cli_host->incStats(tv->tv_sec, protocol,
-			   ndpiDetectedProtocol.app_protocol,
-			   &categorization.category,
-			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
-
-	// update per-subnet byte counters
-	if(cli_network_stats) { // only if the network is known and local
-	  if(!cli_and_srv_in_same_subnet) {
-	    cli_network_stats->incEgress(diff_sent_bytes);
-	    cli_network_stats->incIngress(diff_rcvd_bytes);
-	  } else // client and server ARE in the same subnet
-	    // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	    cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
-	}
-
-#ifdef NOTUSED
-	if(srv_host && cli_host->isLocalHost()) {
-	  cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
-	}
+      if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
+	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
+	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least 
+	   two hosts exists for that vlan and that any purge attempt will be prevented. */
+#ifdef VLAN_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
 #endif
+	vl->incStats(tv->tv_sec, ndpiDetectedProtocol.app_protocol,
+		     diff_sent_packets, diff_sent_bytes,
+		     diff_rcvd_packets, diff_rcvd_packets);
       }
 
-      if(srv_host) {
-	NetworkStats *srv_network_stats;
 
-	srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-	srv_host->incStats(tv->tv_sec, protocol, ndpiDetectedProtocol.app_protocol,
-			   NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
-	if(srv_network_stats) {
-	  // local and known server network
-	  if(!cli_and_srv_in_same_subnet) {
-	    srv_network_stats->incIngress(diff_sent_bytes);
-	    srv_network_stats->incEgress(diff_rcvd_bytes);
-	  }
+      NetworkStats *cli_network_stats;
+
+      cli_network_stats = cli_host->getNetworkStats(cli_network_id);
+      cli_host->incStats(tv->tv_sec, protocol,
+			 ndpiDetectedProtocol.app_protocol,
+			 &categorization.category,
+			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+
+      // update per-subnet byte counters
+      if(cli_network_stats) { // only if the network is known and local
+	if(!cli_and_srv_in_same_subnet) {
+	  cli_network_stats->incEgress(diff_sent_bytes);
+	  cli_network_stats->incIngress(diff_rcvd_bytes);
+	} else // client and server ARE in the same subnet
+	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
+	  cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
+      }
+
+      NetworkStats *srv_network_stats;
+
+      srv_network_stats = srv_host->getNetworkStats(srv_network_id);
+      srv_host->incStats(tv->tv_sec, protocol, ndpiDetectedProtocol.app_protocol,
+			 NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+
+      if(srv_network_stats) {
+	// local and known server network
+	if(!cli_and_srv_in_same_subnet) {
+	  srv_network_stats->incIngress(diff_sent_bytes);
+	  srv_network_stats->incEgress(diff_rcvd_bytes);
 	}
+      }
 
 #ifdef NOTUSED
-	if(cli_host && srv_host->isLocalHost())
-	  srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
+      if(cli_host && srv_host->isLocalHost())
+	srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
 #endif
 
-	if(host_server_name
-	   && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
-	       || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
-	  srv_host->updateHTTPHostRequest(host_server_name,
-					  diff_num_http_requests,
-					  diff_sent_bytes, diff_rcvd_bytes);
-	  diff_num_http_requests = 0; /*
-					As this is a difference it is reset
-					whenever we update the counters
-				      */
-	}
+      if(host_server_name
+	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
+	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
+	srv_host->updateHTTPHostRequest(host_server_name,
+					diff_num_http_requests,
+					diff_sent_bytes, diff_rcvd_bytes);
+	diff_num_http_requests = 0; /*
+				      As this is a difference it is reset
+				      whenever we update the counters
+				    */
       }
     }
   }

@@ -23,40 +23,44 @@
 
 /* *************************************** */
 
-AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement() {
-  asname = NULL;
-  ntop->getGeolocation()->getAS(ipa, &asn, &asname);
+Vlan::Vlan(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_iface), GenericTrafficElement() {
+  vlan_id = _vlan_id;
 
-#ifdef AS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Autonomous System %u", asn);
+#ifdef VLAN_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created VLAN %u", vlan_id);
 #endif
 }
 
 /* *************************************** */
 
-AutonomousSystem::~AutonomousSystem() {
-  if(asname) free(asname);
+Vlan::~Vlan() {
   /* TODO: decide if it is useful to dump AS stats to redis */
-#ifdef AS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u", asn);
+#ifdef VLAN_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted vlan %u", vlan_id);
 #endif
 }
 
 /* *************************************** */
 
-bool AutonomousSystem::idle() {
+bool Vlan::idle() {
   bool rc;
+
+#ifdef VLAN_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking VLAN %u for purge [uses %u][last: %u][diff: %d]",
+			       vlan_id, num_uses,
+			       last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
+#endif
+
   
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
   rc = isIdle(MAX_LOCAL_HOST_IDLE);
 
-#ifdef AS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, " Autonomous System %u is idle [uses %u][%s][last: %u][diff: %d]",
-			       asn, num_uses,
-			       rc ? "Idle" : "Not Idle",
-			       last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
+#ifdef VLAN_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN %u for purge %s",
+			       vlan_id,
+			       rc ? "Idle: ready to be purged" : "Not Idle");
 #endif
 
   return(rc);
@@ -64,14 +68,10 @@ bool AutonomousSystem::idle() {
 
 /* *************************************** */
 
-void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
+void Vlan::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "asn", asn);
-  lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
-
-  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_int_table_entry(vm, "vlan_id", vlan_id);
 
   if(details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, true);
@@ -84,10 +84,8 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
 
-  lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
-
   if(asListElement) {
-    lua_pushnumber(vm, asn);
+    lua_pushnumber(vm, vlan_id);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
@@ -95,6 +93,6 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 
 /* *************************************** */
 
-bool AutonomousSystem::equal(u_int32_t _asn) {
-  return(asn == _asn);
+bool Vlan::equal(u_int16_t _vlan_id) {
+  return(vlan_id == _vlan_id);
 }

@@ -27,10 +27,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
-  if(iface->getTimeLastPktRcvd() > 0)
-    first_seen = last_seen = iface->getTimeLastPktRcvd();
-  else
-    first_seen = last_seen = time(NULL);
 
   if(ntop->getMacManufacturers())
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);

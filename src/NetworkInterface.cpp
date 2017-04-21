@@ -115,6 +115,8 @@ NetworkInterface::NetworkInterface(const char *name,
     /* The number of ASes cannot be greater than the number of hosts */
     ases_hash = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
+    vlans_hash = new VlanHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+
     macs_hash = new MacHash(this, 4, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
@@ -502,6 +504,7 @@ void NetworkInterface::deleteDataStructures() {
   if(flows_hash) { delete(flows_hash); flows_hash = NULL; }
   if(hosts_hash) { delete(hosts_hash); hosts_hash = NULL; }
   if(ases_hash)  { delete(ases_hash);  ases_hash = NULL;  }
+  if(vlans_hash) { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)  { delete(macs_hash);  macs_hash = NULL;  }
 
   if(ndpi_struct) {
@@ -744,6 +747,16 @@ bool NetworkInterface::walker(WalkerType wtype,
     else {
       for(u_int8_t s = 0; s<numSubInterfaces; s++)
 	ret |= subInterfaces[s]->get_ases_hash()->walk(walker, user_data);
+    }
+
+    break;
+
+  case walker_vlans:
+    if(!isView())
+      ret = vlans_hash->walk(walker, user_data);
+    else {
+      for(u_int8_t s = 0; s<numSubInterfaces; s++)
+	ret |= subInterfaces[s]->get_vlans_hash()->walk(walker, user_data);
     }
 
     break;
@@ -1584,7 +1597,7 @@ void NetworkInterface::purgeIdle(time_t when) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
-    if((m = purgeIdleHostsMacsASes()) > 0)
+    if((m = purgeIdleHostsMacsASesVlans()) > 0)
       ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts/macs on %s",
 				   n, getNumHosts()+getNumMacs(), ifname);
   }
@@ -2003,6 +2016,7 @@ void NetworkInterface::cleanup() {
   flows_hash->cleanup();
   hosts_hash->cleanup();
   ases_hash->cleanup();
+  vlans_hash->cleanup();
   macs_hash->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
@@ -2139,6 +2153,17 @@ static bool update_ases_stats(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
+static bool update_vlans_stats(GenericHashEntry *node, void *user_data) {
+  Vlan *vl = (Vlan*)node;
+  struct timeval *tv = (struct timeval*)user_data;
+
+  vl->updateStats(tv);
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 static bool update_macs_stats(GenericHashEntry *node, void *user_data) {
   Mac *mac = (Mac*)node;
   struct timeval *tv = (struct timeval*)user_data;
@@ -2160,6 +2185,7 @@ void NetworkInterface::periodicStatsUpdate() {
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
   ases_hash->walk(update_ases_stats, (void*)&tv);
+  vlans_hash->walk(update_vlans_stats, (void*)&tv);
   macs_hash->walk(update_macs_stats, (void*)&tv);
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
@@ -2955,6 +2981,7 @@ void NetworkInterface::disablePurge(bool on_flows) {
     else {
       hosts_hash->disablePurge();
       ases_hash->disablePurge();
+      vlans_hash->disablePurge();
       macs_hash->disablePurge();
     }
   } else {
@@ -2964,6 +2991,7 @@ void NetworkInterface::disablePurge(bool on_flows) {
       else {
 	subInterfaces[s]->get_hosts_hash()->disablePurge();
 	subInterfaces[s]->get_ases_hash()->disablePurge();
+	subInterfaces[s]->get_vlans_hash()->disablePurge();
 	subInterfaces[s]->get_macs_hash()->disablePurge();
       }
     }
@@ -2979,6 +3007,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
     else {
       hosts_hash->enablePurge();
       ases_hash->enablePurge();
+      vlans_hash->enablePurge();
       macs_hash->enablePurge();
     }
   } else {
@@ -2988,6 +3017,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
       else {
 	subInterfaces[s]->get_hosts_hash()->enablePurge();
 	subInterfaces[s]->get_ases_hash()->enablePurge();
+	subInterfaces[s]->get_vlans_hash()->enablePurge();
 	subInterfaces[s]->get_macs_hash()->enablePurge();
       }
     }
@@ -3742,7 +3772,7 @@ u_int NetworkInterface::getNumMacs()        {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleHostsMacsASes() {
+u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!purge_idle_flows_hosts) return(0);
@@ -3757,13 +3787,16 @@ u_int NetworkInterface::purgeIdleHostsMacsASes() {
     u_int n;
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
-    n = hosts_hash->purgeIdle() + macs_hash->purgeIdle() + ases_hash->purgeIdle();
+    n = hosts_hash->purgeIdle()
+      + macs_hash->purgeIdle()
+      + ases_hash->purgeIdle()
+      + vlans_hash->purgeIdle();
 
     if(flowHashing) {
       FlowHashing *current, *tmp;
 
       HASH_ITER(hh, flowHashing, current, tmp)
-	current->iface->purgeIdleHostsMacsASes();
+	current->iface->purgeIdleHostsMacsASesVlans();
     }
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
@@ -4027,6 +4060,40 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId,
     try {
       if((ret = new Mac(this, _mac, vlanId)) != NULL)
 	macs_hash->add(ret);
+    } catch(std::bad_alloc& ba) {
+      static bool oom_warning_sent = false;
+
+      if(!oom_warning_sent) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	oom_warning_sent = true;
+      }
+
+      return(NULL);
+    }
+  }
+
+  return(ret);
+}
+
+/* **************************************************** */
+
+Vlan* NetworkInterface::getVlan(u_int16_t vlanId,
+			       bool createIfNotPresent) {
+  Vlan *ret = NULL;
+
+  if(!isView())
+    ret = vlans_hash->get(vlanId);
+  else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      if((ret = subInterfaces[s]->get_vlans_hash()->get(vlanId)) != NULL)
+	break;
+    }
+  }
+
+  if((ret == NULL) && createIfNotPresent) {
+    try {
+      if((ret = new Vlan(this, vlanId)) != NULL)
+	vlans_hash->add(ret);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 

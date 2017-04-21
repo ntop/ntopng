@@ -25,7 +25,13 @@
 
 GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
   hash_next = NULL, iface = _iface, first_seen = last_seen = 0, 
-    will_be_purged = false, num_uses = 0;;
+    will_be_purged = false, num_uses = 0;
+  
+  if(iface && iface->getTimeLastPktRcvd() > 0)
+    first_seen = last_seen = iface->getTimeLastPktRcvd();
+  else
+    first_seen = last_seen = time(NULL);
+
 }
 
 /* ***************************************** */

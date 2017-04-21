@@ -60,8 +60,9 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  if(mac) mac->decUses();
-  if(as)  as->decUses();
+  if(mac)  mac->decUses();
+  if(as)   as->decUses();
+  if(vlan) vlan->decUses();
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)   delete sent_to_sketch;
   if(rcvd_from_sketch) delete rcvd_from_sketch;
@@ -135,6 +136,9 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     mac = NULL;
   else if((mac = iface->getMac(_mac, _vlanId, true)) != NULL)
     mac->incUses();
+
+  if((vlan = iface->getVlan(_vlanId, true)) != NULL)
+    vlan->incUses();
 
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0;
@@ -978,7 +982,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "vlan_id", &obj))       vlan_id     = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
