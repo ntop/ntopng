@@ -144,6 +144,7 @@ class Host : public GenericHost {
   inline float get_longitude()                 { return(longitude);        }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
+  inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   bool idle();
   void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
