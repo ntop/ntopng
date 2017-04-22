@@ -144,13 +144,13 @@ function proto_bytes(old, new, protoname)
 end
 -- =====================================================
 
-function get_alerts_suppressed_hash_name(ifname)
-   local hash_name = "ntopng.prefs.alerts.ifid_"..tostring(getInterfaceId(ifname))
+function get_alerts_suppressed_hash_name(ifid)
+   local hash_name = "ntopng.prefs.alerts.ifid_"..ifid
    return hash_name
 end
 
-function are_alerts_suppressed(observed, ifname)
-   local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), observed)
+function are_alerts_suppressed(observed, ifid)
+   local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifid), observed)
    --[[
       tprint("are_alerts_suppressed ".. suppressAlerts)
       tprint("are_alerts_suppressed observed: ".. observed)
@@ -260,79 +260,8 @@ end
 
 -- #################################
 
--- TODO use this information to generate the alerts
-local function not_used()
-  local ifname_clean = "iface_"..tostring(getInterfaceId(ifname))
-  local alert_level  = 2 -- alert_level_error
-  local alert_status = 1 -- alert_on
-  local alert_type   = 2 -- alert_threshold_exceeded
-
-  local alert_id = threshold.key
-
-  	 if(rc) then
-	    local alert_msg = "Threshold <b>"..threshold.metric.."</b> crossed by interface <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
-	       "'>"..ifname.."</A> [".. val .." ".. op .. " " .. threshold.edge.."]"
-
-	    if verbose then io.write("queuing alert\n") end
-	    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
-	    if ntop.isPro() then
-	       -- possibly send the alert to nagios as well
-	       ntop.sendNagiosAlert(ifname_clean, granularity, threshold.metric, alert_msg)
-	    end
-	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-	 else
-	    if(verbose) then print("<p><font color=green><b>Threshold "..threshold.metric.."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..threshold.edge.."]</font><p>\n") end
-	    interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
-	    if ntop.isPro() then
-	       ntop.withdrawNagiosAlert(ifname_clean, granularity, threshold.metric, "service OK")
-	    end
-	 end
-
-    if(rc) then
-	    alert_status = 1 -- alert on
-	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."'>"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
-
-	    if verbose then io.write("queuing alert\n") end
-	    interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
-	    if ntop.isPro() then
-	       -- possibly send the alert to nagios as well
-	       ntop.sendNagiosAlert(string.gsub(key, "@0", ""), --[[ vlan 0 is implicit for hosts --]]
-				    mode, t[1], alert_msg)
-	    end
-	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-	 else  -- alert has not been triggered
-	    alert_status = 2 -- alert off
-	    if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-	    interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
-	    if ntop.isPro() then
-	       ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					mode, t[1], "service OK")
-	    end
-	 end
-
-    if(rc) then
-	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical'>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-
-	    if verbose then io.write("queuing alert\n") end
-	    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
-	    if ntop.isPro() then
-	       -- possibly send the alert to nagios as well
-	       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
-	    end
-	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-	 else
-	    if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-	    interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
-	    if ntop.isPro() then
-	       ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
-	    end
-	 end
-end
-
--- #################################
-
 -- Note: see getConfiguredAlertsThresholds for threshold object format
-local function entity_threshold_crossed(ifname, granularity, old_table, new_table, threshold)
+local function entity_threshold_crossed(granularity, old_table, new_table, threshold)
    -- Needed because Lua. loadstring() won't work otherwise.
    old = old_table
    new = new_table
@@ -346,7 +275,10 @@ local function entity_threshold_crossed(ifname, granularity, old_table, new_tabl
    local f = loadstring(what)
    local rc = f()
 
-   return rc
+   local threshold_info = table.clone(threshold)
+   threshold_info.value = val
+
+   return rc, threshold_info
 end
 
 -- #################################
@@ -699,7 +631,7 @@ end
 
 -- This function makes a consistent abstraction on entities
 function getAlertSource(entity, entity_value, alt_name)
-   if entity == "host" then
+   if ((entity == "host") or (string.find(entity_value, "@") ~= nil)) then
       local host_name
 
       if alt_name then
@@ -713,6 +645,7 @@ function getAlertSource(entity, entity_value, alt_name)
          source = "host",
          title = "Host",
          label = "Host " .. host_name,
+         value = entity_value,
          friendly_value = host_name,
       }
    else
@@ -729,21 +662,24 @@ function getAlertSource(entity, entity_value, alt_name)
             source = "network",
             title = "Network",
             label = "Network " .. network_name,
+            value = entity_value,
             friendly_value = network_name,
          }
-      else
+      elseif string.find(entity_value, "iface_") == 1 then
          local interface_name
+         local ifid = string.sub(entity_value, 7)
          if alt_name then
             interface_name = alt_name
          else
-            -- TODO
-            interface_name = ""
+            -- TODO id to name
+            interface_name = ifid
          end
 
          return {
             source = "interface",
             title = "Interface",
             label = "Interface " .. interface_name,
+            value = ifid,
             friendly_value = interface_name,
          }
       end
@@ -769,17 +705,19 @@ function drawAlertSettings(alert_source, alert_val)
    local config_changed = false
 
    local trigger_alerts = _POST["trigger_alerts"]
+   local ifid = getInterfaceId(ifname)
+
    if(trigger_alerts ~= nil) then
       if(trigger_alerts == "true") then
-         ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), alert_val)
+         ntop.delHashCache(get_alerts_suppressed_hash_name(ifid), alert_val)
          alerts_enabled = true
       else
-         ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), alert_val, trigger_alerts)
+         ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), alert_val, trigger_alerts)
          alerts_enabled = false
       end
       config_changed = true
    else
-      if are_alerts_suppressed(alert_val, ifname) then
+      if are_alerts_suppressed(alert_val, ifid) then
          alerts_enabled = false
       else
          alerts_enabled = true
@@ -1645,14 +1583,83 @@ local function getConfiguredAlertsThresholds(ifname, granularity)
   return res
 end
 
-local function engageAlert(entity_type, entity_value, atype, akey, message)
-  -- TOOD engage based on the entity_type
-  if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey..": "..message.."\n") end
+-- #################################
+
+local function formatInterface(ifid, ifjson)
+  return "<a href='"..ntop.getHttpPrefix().."/lua/ifstats.lua?ifid="..ifid.."'>"..ifjson.name.."</a>"
 end
 
-local function releaseAlert(entity_type, entity_value, atype, message)
-  -- TOOD release based on the entity_type
-  if(verbose) then io.write("Release Alert: "..entity_value.." "..alert.atype.." "..alert.akey..": "..message.."\n") end
+local function formatHost(ifid, name, hostjson)
+  return "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid
+      .."&host="..hostinfo2hostkey({host=hostjson.ip.ip, vlan=hostjson.vlan_id}).."'>"..name.."</a>"
+end
+
+local function formatNetwork(ifid, network, netstats)
+  return "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..(netstats.network_id).."&page=historical'>"
+      ..network.."</a>"
+end
+
+local function formatEntity(ifid, entity_type, entity_value, entity_info)
+  local entity = getAlertSource(entity_type, entity_value)
+
+  if entity.source == "host" then
+    return "host " .. formatHost(ifid, entity.friendly_value, entity_info)
+  elseif entity.source == "interface" then
+    return "interface " .. formatInterface(ifid, entity_info)
+  elseif entity.source == "network" then
+    return "network " .. formatNetwork(ifid, entity_value, entity_info)
+  end
+
+  return entity_value
+end
+
+local function formatThresholdCross(ifid, entity_type, entity_value, entity_info, threshold_info)
+  return "Treshold <b>"..threshold_info.metric.."</b> crossed by "..formatEntity(ifid, entity_type, entity_value, entity_info)..
+        " ["..(threshold_info.value).." &"..(threshold_info.operator).."; "..(threshold_info.edge).."]"
+end
+
+-- returns the pair (message, severity)
+local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  if atype == "threshold_cross" then
+    return formatThresholdCross(ifid, entity_type, entity_value, entity_info, alert_info), "error"
+  end
+end
+
+local function engageReleaseAlert(engaged, ifid, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
+  local alert_msg, alevel = formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  local alert_type = alertType(atype)
+  local alert_level = alertLevel(alevel)
+  local entity = getAlertSource(entity_type, entity_value, "")
+
+  if entity.source == "interface" then
+    if engaged then
+      return interface.engageInterfaceAlert(alert_key, alert_type, alert_level, alert_msg)
+    else
+      return interface.releaseInterfaceAlert(alert_key, alert_type, alert_level, alert_msg)
+    end
+  elseif entity.source == "host" then
+    if engaged then
+      return interface.engageHostAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+    else
+      return interface.releaseHostAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+    end
+  elseif entity.source == "network" then
+    if engaged then
+      return interface.engageNetworkAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+    else
+      return interface.releaseNetworkAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+    end
+  end
+end
+
+local function engageAlert(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
+  engageReleaseAlert(true, ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+end
+
+local function releaseAlert(ifid, entity_type, entity_value, atype, entity_info, alert_info)
+  if(verbose) then io.write("Release Alert: "..entity_value.." "..alert.atype.." "..alert.akey.."\n") end
+  engageReleaseAlert(false, ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
 local function getEngagedAlertsCache(granularity)
@@ -1672,42 +1679,60 @@ end
 
 -- #################################
 
-local function check_entity_alerts(ifname, entity_type, entity_value, working_status, old_entity_info, entity_info)
-  if are_alerts_suppressed(entity_value, ifname) then return end
+local function check_entity_alerts(ifid, entity_type, entity_value, working_status, old_entity_info, entity_info)
+  if are_alerts_suppressed(entity_value, ifid) then return end
 
   local granularity = working_status.granularity
   local engaged_cache = working_status.engaged_cache
   local current_alerts = {}
+  local past_alert_info = {}
   local invalidate = false
+
+  local function addAlertInfo(info_arr, atype, akey, alert_info)
+    info_arr[atype] = info_arr[atype] or {}
+    info_arr[atype][akey] = alert_info or {}
+  end
 
   if (granularity == "min") and (entity_type == "host") then
     -- Populate current_alerts with host anomalies
     for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
       if starts(anomal_name, "syn_flood") then
-        current_alerts["tcp_syn_flood"] = current_alerts["tcp_syn_flood"] or {}
-        current_alerts["tcp_syn_flood"][anomaly] = true
+        addAlertInfo(current_alerts, "tcp_syn_flood", anomaly)
       end
     end
   end
 
   -- Populate current_alerts with threshold crosses
   for _, threshold in pairs(working_status.configured_thresholds[entity_value] or {}) do
-    local exceeded = entity_threshold_crossed(ifname, granularity, old_entity_info, entity_info, threshold)
+    local atype = "threshold_cross"
+    local akey = threshold.key
+    local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
+
+    if ntop.isPro() then
+      -- Possibly send Nagios alert heartbeat
+      if exceeded then
+        ntop.sendNagiosAlert(entity_value, granularity, alert_info.metric, formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info))
+      else
+        ntop.withdrawNagiosAlert(entity_value, granularity, alert_info.metric, "service OK")
+      end
+    end
 
     if exceeded then
-      current_alerts["threshold_cross"] = current_alerts["threshold_cross"] or {}
-      current_alerts["threshold_cross"][threshold.key] = true
+      addAlertInfo(current_alerts, atype, akey, alert_info)
+    else
+      -- save past alert information
+      addAlertInfo(past_alert_info, atype, akey, alert_info)
     end
   end
 
   -- Process current_alerts to detect Engage / Release
   for atype, akeys in pairs(current_alerts) do
-    for akey in pairs(akeys) do
+    for akey, alert_info in pairs(akeys) do
       if ((engaged_cache[entity_type] == nil)
           or (engaged_cache[entity_type][entity_value] == nil)
           or (engaged_cache[entity_type][entity_value][atype] == nil)
           or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
-        engageAlert(entity_type, entity_value, atype, akey, "")
+        engageAlert(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
         working_status.dirty_cache = true
       end
     end
@@ -1716,7 +1741,15 @@ local function check_entity_alerts(ifname, entity_type, entity_value, working_st
   if (engaged_cache[entity_type] ~= nil) and (engaged_cache[entity_type][entity_value] ~= nil) then
     for atype, akey in pairs(engaged_cache[entity_type][entity_value]) do
       if (current_alerts[atype] ~= nil) and (current_alerts[atype][akey] ~= nil) then
-        releaseAlert(entity_type, entity_value, atype, akey, "")
+        local alert_info
+
+        if (past_alert_info[atype] ~= nil) and (past_alert_info[atype][akey] ~= nil) then
+          alert_info = past_alert_info[atype][akey]
+        else
+          alert_info = {}
+        end
+
+        releaseAlert(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
         working_status.dirty_cache = true
       end
     end
@@ -1782,7 +1815,7 @@ end
 
 -- #################################
 
-local function check_interface_alerts(ifname, ifid, working_status)
+local function check_interface_alerts(ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
 
@@ -1792,14 +1825,14 @@ local function check_interface_alerts(ifname, ifid, working_status)
 
       -- Check if there is any threshold configured for the interface
       if old_entity_info ~= nil then
-         check_entity_alerts(ifname, "iface", entity_value, working_status, old_entity_info, new_entity_info)
+         check_entity_alerts(ifid, "iface", entity_value, working_status, old_entity_info, new_entity_info)
       end
 
       interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
    end
 end
 
-local function check_networks_alerts(ifname, ifid, working_status)
+local function check_networks_alerts(ifid, working_status)
    local subnet_stats = interface.getNetworksStats()
 
    for subnet, sstats in pairs(subnet_stats) do
@@ -1809,7 +1842,7 @@ local function check_networks_alerts(ifname, ifid, working_status)
          local new_entity_info = sstats
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifname, "network", subnet, working_status, old_entity_info, new_entity_info)
+            check_entity_alerts(ifid, "network", subnet, working_status, old_entity_info, new_entity_info)
          end
 
          network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
@@ -1817,7 +1850,7 @@ local function check_networks_alerts(ifname, ifid, working_status)
    end
 end
 
-local function check_hosts_alerts(ifname, ifid, working_status)
+local function check_hosts_alerts(ifid, working_status)
    local hosts = interface.getLocalHostsInfo(false)
 
    if hosts ~= nil then
@@ -1828,7 +1861,7 @@ local function check_hosts_alerts(ifname, ifid, working_status)
          local new_entity_info_json = hostinfo["json"]
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifname, "host", entity_value, working_status, old_entity_info, j.decode(new_entity_info_json, 1, nil))
+            check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, j.decode(new_entity_info_json, 1, nil))
          end
 
          host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
@@ -1849,9 +1882,9 @@ function scanAlerts(granularity, ifname)
       dirty_cache = false,
    }
 
-   check_interface_alerts(ifname, ifid, working_status)
-   check_networks_alerts(ifname, ifid, working_status)
-   check_hosts_alerts(ifname, ifid, working_status)
+   check_interface_alerts(ifid, working_status)
+   check_networks_alerts(ifid, working_status)
+   check_hosts_alerts(ifid, working_status)
 
    if working_status.dirty_cache then
       invalidateEngagedAlertsCache()

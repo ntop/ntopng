@@ -430,6 +430,15 @@ function alertType(v)
    return(_handleArray(typetable, v))
 end
 
+function alertLevel(v)
+   local leveltable = {}
+
+   for i, t in ipairs(alert_level_keys) do
+      leveltable[#leveltable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(leveltable, v))
+end
+
 function alertTypeRaw(alert_idx)
    alert_idx = alert_idx + 1
    if alert_idx <= #alert_type_keys then
