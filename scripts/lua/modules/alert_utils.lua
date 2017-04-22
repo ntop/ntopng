@@ -1621,11 +1621,6 @@ end
 
 -- #################################
 
--- script local data - only valid if granularity does not change during script execution
-local dirty = false
-local engaged_cache = nil
-local configured_thresholds = nil
-
 local function getEngagedAlertsCacheKey(granularity)
    return "ntopng.cache.engaged_alerts_cache_" .. granularity
 end
@@ -1665,13 +1660,6 @@ local function getEngagedAlertsCache(granularity)
    return {}
 end
 
-local function initEngagedAlertsCache(ifname, granularity)
-  if engaged_cache == nil then
-    engaged_cache = getEngagedAlertsCache(granularity)
-    configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity)
-  end
-end
-
 function invalidateEngagedAlertsCache()
   local keys = ntop.getKeysCache(getEngagedAlertsCacheKey("*")) or {}
 
@@ -1684,9 +1672,11 @@ end
 
 -- #################################
 
-local function check_entity_alerts(ifname, entity_type, entity_value, granularity, old_entity_info, entity_info)
+local function check_entity_alerts(ifname, entity_type, entity_value, working_status, old_entity_info, entity_info)
   if are_alerts_suppressed(entity_value, ifname) then return end
 
+  local granularity = working_status.granularity
+  local engaged_cache = working_status.engaged_cache
   local current_alerts = {}
   local invalidate = false
 
@@ -1701,7 +1691,7 @@ local function check_entity_alerts(ifname, entity_type, entity_value, granularit
   end
 
   -- Populate current_alerts with threshold crosses
-  for _, threshold in pairs(configured_thresholds[entity_value] or {}) do
+  for _, threshold in pairs(working_status.configured_thresholds[entity_value] or {}) do
     local exceeded = entity_threshold_crossed(ifname, granularity, old_entity_info, entity_info, threshold)
 
     if exceeded then
@@ -1718,7 +1708,7 @@ local function check_entity_alerts(ifname, entity_type, entity_value, granularit
           or (engaged_cache[entity_type][entity_value][atype] == nil)
           or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
         engageAlert(entity_type, entity_value, atype, akey, "")
-        invalidate = true
+        working_status.dirty_cache = true
       end
     end
   end
@@ -1727,14 +1717,9 @@ local function check_entity_alerts(ifname, entity_type, entity_value, granularit
     for atype, akey in pairs(engaged_cache[entity_type][entity_value]) do
       if (current_alerts[atype] ~= nil) and (current_alerts[atype][akey] ~= nil) then
         releaseAlert(entity_type, entity_value, atype, akey, "")
-        invalidate = true
+        working_status.dirty_cache = true
       end
     end
-  end
-
-  if invalidate and (dirty == false) then
-    invalidateEngagedAlertsCache()
-    dirty = true
   end
 end
 
@@ -1797,56 +1782,56 @@ end
 
 -- #################################
 
-local function check_interface_alerts(ifname, ifid, granularity)
+local function check_interface_alerts(ifname, ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
 
-   if configured_thresholds[entity_value] then
-      local old_entity_info = interface_threshold_status_rw(granularity, ifid) -- read old json
+   if working_status.configured_thresholds[entity_value] then
+      local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
       local new_entity_info = ifstats
 
       -- Check if there is any threshold configured for the interface
       if old_entity_info ~= nil then
-         check_entity_alerts(ifname, "iface", entity_value, granularity, old_entity_info, new_entity_info)
+         check_entity_alerts(ifname, "iface", entity_value, working_status, old_entity_info, new_entity_info)
       end
 
-      interface_threshold_status_rw(granularity, ifid, new_entity_info) -- write new json
+      interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
    end
 end
 
-local function check_networks_alerts(ifname, ifid, granularity)
+local function check_networks_alerts(ifname, ifid, working_status)
    local subnet_stats = interface.getNetworksStats()
 
    for subnet, sstats in pairs(subnet_stats) do
       -- Check if there is any threshold configured for the network
-      if configured_thresholds[subnet] then
-         local old_entity_info = network_threshold_status_rw(granularity, ifid, subnet) -- read old json
+      if working_status.configured_thresholds[subnet] then
+         local old_entity_info = network_threshold_status_rw(working_status.granularity, ifid, subnet) -- read old json
          local new_entity_info = sstats
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifname, "network", subnet, granularity, old_entity_info, new_entity_info)
+            check_entity_alerts(ifname, "network", subnet, working_status, old_entity_info, new_entity_info)
          end
 
-         network_threshold_status_rw(granularity, ifid, subnet, new_entity_info) -- write new json
+         network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
       end
    end
 end
 
-local function check_hosts_alerts(ifname, ifid, granularity)
+local function check_hosts_alerts(ifname, ifid, working_status)
    local hosts = interface.getLocalHostsInfo(false)
 
    if hosts ~= nil then
       for host, hoststats in pairs(hosts["hosts"] or {}) do
          local hostinfo = interface.getHostInfo(host)
          local entity_value = hostinfo2hostkey({host=host, vlan=hostinfo.vlan}, nil, true --[[force vlan]])
-         local old_entity_info = host_threshold_status_rw(granularity, ifid, hostinfo)  -- read old json
+         local old_entity_info = host_threshold_status_rw(working_status.granularity, ifid, hostinfo)  -- read old json
          local new_entity_info_json = hostinfo["json"]
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifname, "host", entity_value, granularity, old_entity_info, j.decode(new_entity_info_json, 1, nil))
+            check_entity_alerts(ifname, "host", entity_value, working_status, old_entity_info, j.decode(new_entity_info_json, 1, nil))
          end
 
-         host_threshold_status_rw(granularity, ifid, hostinfo, new_entity_info_json) -- write new json
+         host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
       end
    end
 end
@@ -1857,9 +1842,18 @@ function scanAlerts(granularity, ifname)
    if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
    local ifid = getInterfaceId(ifname)
 
-   initEngagedAlertsCache(ifname, granularity)
+   local working_status = {
+      granularity = granularity,
+      engaged_cache = getEngagedAlertsCache(granularity),
+      configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity),
+      dirty_cache = false,
+   }
 
-   check_interface_alerts(ifname, ifid, granularity)
-   check_networks_alerts(ifname, ifid, granularity)
-   check_hosts_alerts(ifname, ifid, granularity)
+   check_interface_alerts(ifname, ifid, working_status)
+   check_networks_alerts(ifname, ifid, working_status)
+   check_hosts_alerts(ifname, ifid, working_status)
+
+   if working_status.dirty_cache then
+      invalidateEngagedAlertsCache()
+   end
 end
