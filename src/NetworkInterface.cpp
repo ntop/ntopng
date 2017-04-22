@@ -1375,11 +1375,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
 
     case NDPI_PROTOCOL_NETBIOS:
-      if(flow->get_srv_host()) {
-	if(! flow->get_srv_host()->is_label_set()) {
+      if(*srcHost) {
+	if(! (*srcHost)->is_label_set()) {
 	  char name[64];
 
-	  if((payload[2] & 0x80) /* NetBIOS Response */
+	  if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
 	     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
 	     && (!strstr(name, "__MSBROWSE__"))
 	     ) {
@@ -1388,21 +1388,25 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	      int limit = min(payload_len-57, (int)sizeof(name)-1);
 	      int i = 0;
 
-	      while((i<limit) && (payload[57+i] != 0x20) && (payload[57+i] != 0x00)) {
+	      while((i<limit) && (payload[57+i] != 0x20) && isprint(payload[57+i])) {
 	        name[i] = payload[57+i];
 	        i++;
 	      }
-	      name[i] = 0;
+
+	      if ((i<limit) && (payload[57+i] != 0x00 /* Not a Workstation/Redirector */))
+	        name[0] = '\0'; /* ignore */
+	      else
+	        name[i] = '\0';
 	    }
 #if 0
 	    char buf[32];
 
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting hostname from NetBios [raw=0x%x opcode=0x%x response=0x%x]: ip=%s -> '%s'",
 	        payload[2], (payload[2] & 0x78) >> 3, (payload[2] & 0x80) >> 7,
-					 flow->get_srv_host()->get_ip()->print(buf, sizeof(buf)), name);
+					 (*srcHost)->get_ip()->print(buf, sizeof(buf)), name);
 #endif
-
-	    flow->get_srv_host()->set_host_label(name, true);
+	    if (name[0])
+	      (*srcHost)->set_host_label(name, true);
     }
 	}
       }
