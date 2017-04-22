@@ -660,22 +660,26 @@ void Host::setName(char *name) {
 /* *************************************** */
 
 bool Host::hasAnomalies() {
-  return syn_flood_victim_alert->isAboveThreshold()
-    || syn_flood_attacker_alert->isAboveThreshold();
+  time_t now = time(NULL);
+
+  return syn_flood_victim_alert->isAboveThreshold(now)
+    || syn_flood_attacker_alert->isAboveThreshold(now);
 }
 
 /* *************************************** */
 
 void Host::luaAnomalies(lua_State* vm) {
+  time_t now = time(NULL);
+
   if(!vm)
     return;
 
   if(hasAnomalies()) {
     lua_newtable(vm);
 
-    if(syn_flood_victim_alert->isAboveThreshold())
+    if(syn_flood_victim_alert->isAboveThreshold(now))
       syn_flood_victim_alert->lua(vm, "syn_flood_victim");
-    if(syn_flood_attacker_alert->isAboveThreshold())
+    if(syn_flood_attacker_alert->isAboveThreshold(now))
       syn_flood_attacker_alert->lua(vm, "syn_flood_attacker");
 
     lua_pushstring(vm, "anomalies");

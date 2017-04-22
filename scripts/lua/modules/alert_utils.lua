@@ -1623,6 +1623,9 @@ local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, 
   if atype == "threshold_cross" then
     return formatThresholdCross(ifid, entity_type, entity_value, entity_info, alert_info), "error"
   end
+
+  -- default
+  return "", "error"
 end
 
 local function engageReleaseAlert(engaged, ifid, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
@@ -1697,7 +1700,7 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
     -- Populate current_alerts with host anomalies
     for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
       if starts(anomal_name, "syn_flood") then
-        addAlertInfo(current_alerts, "tcp_syn_flood", anomaly)
+        addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
       end
     end
   end
@@ -1859,9 +1862,13 @@ local function check_hosts_alerts(ifid, working_status)
          local entity_value = hostinfo2hostkey({host=host, vlan=hostinfo.vlan}, nil, true --[[force vlan]])
          local old_entity_info = host_threshold_status_rw(working_status.granularity, ifid, hostinfo)  -- read old json
          local new_entity_info_json = hostinfo["json"]
+         local new_entity_info = j.decode(new_entity_info_json, 1, nil)
+
+         -- TODO this is little hack to make anomalies apper into the json
+         new_entity_info["anomalies"] = hostinfo.anomalies
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, j.decode(new_entity_info_json, 1, nil))
+            check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
          end
 
          host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
