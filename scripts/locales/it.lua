@@ -1,6 +1,6 @@
 local  it = {
    welcome = "Benvenuto",
-   version = "La tua verione è %{vers}.",
+   version = "La tua versione è %{vers}.",
    report = {period = "Intervallo",
 	     date = "%{day}/%{month}/%{year}"}
   }

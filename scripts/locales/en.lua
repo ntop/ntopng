@@ -58,6 +58,7 @@ local  en = {
    status = "Status",
    vlan = "VLAN",
    breakdown = "Breakdown",
+   interface = "Interface",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -83,7 +84,7 @@ local  en = {
       all_protocols = "All Protocols",
    },
 
-   flows = {
+   flows_page = {
       recently_active_flows = "Recently Active %{filter} Flows",
       active_flows = "Active %{filter} Flows",
       flows = "%{filter} Flows",

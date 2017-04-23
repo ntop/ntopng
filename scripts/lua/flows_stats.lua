@@ -146,11 +146,11 @@ local filter_msg = (application or vhost or "")
 local active_msg
 
 if not interface.isPacketInterface() then
-   active_msg = i18n("flows.recently_active_flows", {filter=filter_msg})
+   active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
 elseif interface.isPcapDumpInterface() then
-   active_msg = i18n("flows.flows", {filter=filter_msg})
+   active_msg = i18n("flows_page.flows", {filter=filter_msg})
 else
-   active_msg = i18n("flows.active_flows", {filter=filter_msg})
+   active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
 end
 
 if(network_name ~= nil) then
@@ -189,14 +189,14 @@ end
 
 print[['\
    <div class="btn-group">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows.hosts")) print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows.all_hosts")) print[[</a></li>\]]
+         <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
    printDropdownEntries({
-      {"local_only", i18n("flows.local_only")},
-      {"remote_only", i18n("flows.remote_only")},
-      {"local_origin_remote_target", i18n("flows.local_cli_remote_srv")},
-      {"remote_origin_local_target", i18n("flows.local_srv_remote_cli")}
+      {"local_only", i18n("flows_page.local_only")},
+      {"remote_only", i18n("flows_page.remote_only")},
+      {"local_origin_remote_target", i18n("flows_page.local_cli_remote_srv")},
+      {"remote_origin_local_target", i18n("flows_page.local_srv_remote_cli")}
    }, flowhosts_type_params, "flowhosts_type", flowhosts_type)
 print[[\
       </ul>\
@@ -211,10 +211,10 @@ print[[, '\
    <div class="btn-group">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(flow_status_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
-      <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows.all_flows")) print[[</a></li>\]]
+      <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
    printDropdownEntries({
-      {"normal", i18n("flows.normal")},
-      {"alerted", i18n("flows.alerted")},
+      {"normal", i18n("flows_page.normal")},
+      {"alerted", i18n("flows_page.alerted")},
    }, flow_status_params, "flow_status", flow_status)
 print[[\
       </ul>\
@@ -227,12 +227,12 @@ traffic_type_params["traffic_type"] = nil
 
 print[[, '\
    <div class="btn-group">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows.direction")) print(traffic_type_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(traffic_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
-         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows.all_flows")) print[[</a></li>\]]
+         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
    printDropdownEntries({
-      {"broadcast_multicast", i18n("flows.one_way_multicast")},
-      {"unicast", i18n("flows.one_way_non_multicast")},
+      {"broadcast_multicast", i18n("flows_page.one_way_multicast")},
+      {"unicast", i18n("flows_page.one_way_non_multicast")},
    }, traffic_type_params, "traffic_type", traffic_type)
 print[[\
       </ul>\
@@ -245,7 +245,7 @@ print('<li><a href="')
 local application_filter_params = table.clone(page_params)
 application_filter_params["application"] = nil
 print(getPageUrl(base_url, application_filter_params))
-print('">'..i18n("flows.all_proto")..'</a></li>')
+print('">'..i18n("flows_page.all_proto")..'</a></li>')
 
 for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    class_active = ''
@@ -342,14 +342,14 @@ print[[
                textAlign: 'center'
             }
       }, {
-         title: "]] print(i18n("flows.actual_throughput")) print[[",
+         title: "]] print(i18n("flows_page.actual_throughput")) print[[",
          field: "column_thpt",
          sortable: true,
          css: {
             textAlign: 'right'
          }
       }, {
-         title: "]] print(i18n("flows.total_bytes")) print[[",
+         title: "]] print(i18n("flows_page.total_bytes")) print[[",
          field: "column_bytes",
          sortable: true,
             css: {
