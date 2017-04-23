@@ -3205,8 +3205,8 @@ int NetworkInterface::getFlows(lua_State* vm,
     return(-1);
   }
 
-  LocationPolicy client_mode;
-  LocationPolicy server_mode;
+  LocationPolicy client_mode = location_all;
+  LocationPolicy server_mode = location_all;
   p->clientMode(&client_mode);
   p->serverMode(&server_mode);
   bool local_hosts = ((client_mode == location_local_only) && (server_mode == location_local_only));

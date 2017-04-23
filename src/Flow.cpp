@@ -1299,7 +1299,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	       DetailsLevel details_level, bool skipNewTable) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
-  bool src_match, dst_match;
+  bool src_match = true, dst_match = true;
   bool mask_cli_host = true, mask_dst_host = true, mask_flow;
   
   if((src == NULL) || (dst == NULL)) return;
