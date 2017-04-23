@@ -164,6 +164,8 @@ class NetworkInterface {
 		bool hostMacsOnly, char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
+  int sortVLANs(struct flowHostRetriever *retriever,
+		char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
 	       bool hostMacsOnly, const char *manufacturer,
@@ -186,6 +188,7 @@ class NetworkInterface {
   void enablePurge(bool on_flows);
   u_int32_t getHostsHashSize();
   u_int32_t getASesHashSize();
+  u_int32_t getVLANsHashSize();
   u_int32_t getFlowsHashSize();
   u_int32_t getMacsHashSize();
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
@@ -350,6 +353,10 @@ class NetworkInterface {
 		      char *sortColumn, u_int32_t maxHits,
 		      u_int32_t toSkip, bool a2zSortOrder,
 		      DetailsLevel details_level);
+  int getActiveVLANList(lua_State* vm,
+			char *sortColumn, u_int32_t maxHits,
+			u_int32_t toSkip, bool a2zSortOrder,
+			DetailsLevel details_level);
   int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 		       bool skipSpecialMacs,
 		       bool hostMacsOnly, const char *manufacturer,
@@ -499,6 +506,7 @@ class NetworkInterface {
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
   bool getASInfo(lua_State* vm, u_int32_t asn);
+  bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   inline void incNumL2Devices()      { numL2Devices++; }
   inline void decNumL2Devices()      { numL2Devices--; }
   inline u_int32_t getNumL2Devices() { return(numL2Devices); }

@@ -10,7 +10,7 @@ function vlan_table_setID (row) {
   row.attr('id', vlan_key);
 
   row.find("td").eq(index++).attr('id', vlan_key+"_key");
-  row.find("td").eq(index++).attr('id', vlan_key+"_number");
+  row.find("td").eq(index++).attr('id', vlan_key+"_vlan");
   // vlan_stats_top
   row.find("td").eq(index++).attr('id', vlan_key+"_chart");
   row.find("td").eq(index++).attr('id', vlan_key+"_hosts");
@@ -27,7 +27,8 @@ function vlan_table_setID (row) {
 }
 
 function vlan_row_update(vlan_key) {
-   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=vlan&vlan="+vlan_key;
+  //var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=vlan&vlan="+vlan_key;
+  var url = "@HTTP_PREFIX@/lua/get_vlan_data.lua?vlan="+vlan_key;
 
   $.ajax({
     type: 'GET',

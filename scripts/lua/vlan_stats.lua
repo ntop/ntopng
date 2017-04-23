@@ -24,7 +24,8 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=vlan]]
+--print [[/lua/get_grouped_hosts_data.lua?grouped_by=vlan]]
+print [[/lua/get_vlans_data.lua]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/vlan_stats_id.inc")
@@ -59,7 +60,7 @@ print [[
            },
                          {
 			     title: "VLAN ID",
-				 field: "column_id",
+				 field: "column_vlan",
 				 sortable: true,
                              css: {
 			        textAlign: 'left'

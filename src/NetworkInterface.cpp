@@ -115,7 +115,7 @@ NetworkInterface::NetworkInterface(const char *name,
     /* The number of ASes cannot be greater than the number of hosts */
     ases_hash = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-    vlans_hash = new VlanHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+    vlans_hash = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts(), (u_int16_t)-1));
 
     macs_hash = new MacHash(this, 4, ntop->getPrefs()->get_max_num_hosts());
 
@@ -670,6 +670,21 @@ u_int32_t NetworkInterface::getASesHashSize() {
 
     for(u_int8_t s = 0; s<numSubInterfaces; s++)
       tot += subInterfaces[s]->get_ases_hash()->getNumEntries();
+
+    return(tot);
+  }
+}
+
+/* **************************************************** */
+
+u_int32_t NetworkInterface::getVLANsHashSize() {
+  if(!isView())
+    return(vlans_hash->getNumEntries());
+  else {
+    u_int32_t tot = 0;
+
+    for(u_int8_t s = 0; s<numSubInterfaces; s++)
+      tot += subInterfaces[s]->get_vlans_hash()->getNumEntries();
 
     return(tot);
   }
@@ -2354,6 +2369,13 @@ struct as_find_info {
 
 /* **************************************************** */
 
+struct vlan_find_info {
+  u_int16_t vlan_id;
+  Vlan *vl;
+};
+
+/* **************************************************** */
+
 struct mac_find_info {
   u_int8_t mac[6];
   u_int16_t vlan_id;
@@ -2417,6 +2439,20 @@ static bool find_as_by_asn(GenericHashEntry *he, void *user_data) {
 
   if((info->as == NULL) && info->asn == as->get_asn()) {
     info->as = as;
+    return(true); /* found */
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data) {
+  struct vlan_find_info *info = (struct vlan_find_info*)user_data;
+  Vlan *vl = (Vlan*)he;
+
+  if((info->vl == NULL) && info->vlan_id == vl->get_vlan_id()) {
+    info->vl = vl;
     return(true); /* found */
   }
 
@@ -2561,6 +2597,7 @@ struct flowHostRetrieveList {
   /* Value */
   Host *hostValue;
   Mac *macValue;
+  Vlan *vlanValue;
   AutonomousSystem *asValue;
   u_int64_t numericValue;
   char *stringValue;
@@ -2931,6 +2968,50 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data) {
 
   case column_num_hosts:
     r->elems[r->actNumEntries++].numericValue = as->getNumHosts();
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    break;
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool vlan_search_walker(GenericHashEntry *he, void *user_data) {
+  struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
+  Vlan *vl = (Vlan*)he;
+
+  if(r->actNumEntries >= r->maxNumEntries)
+    return(true); /* Limit reached */
+
+  if(!vl || vl->idle())
+    return(false); /* false = keep on walking */
+
+  r->elems[r->actNumEntries].vlanValue = vl;
+
+  switch(r->sorter) {
+
+  case column_vlan:
+    r->elems[r->actNumEntries++].numericValue = vl->get_vlan_id();
+    break;
+
+  case column_since:
+    r->elems[r->actNumEntries++].numericValue = vl->get_first_seen();
+    break;
+
+  case column_thpt:
+    r->elems[r->actNumEntries++].numericValue = vl->getBytesThpt();
+    break;
+    
+  case column_traffic:
+    r->elems[r->actNumEntries++].numericValue = vl->getNumBytes();
+    break;
+
+  case column_num_hosts:
+    r->elems[r->actNumEntries++].numericValue = vl->getNumHosts();
     break;
 
   default:
@@ -3420,6 +3501,43 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
 
   // make sure the caller has disabled the purge!!
   walker(walker_ases, as_search_walker, (void*)retriever);
+
+  qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  return(retriever->actNumEntries);
+}
+
+/* **************************************************** */
+
+int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortColumn) {
+  u_int32_t maxHits;
+  int (*sorter)(const void *_a, const void *_b);
+
+  if(retriever == NULL)
+    return -1;
+
+  maxHits = getVLANsHashSize();
+  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
+    maxHits = CONST_MAX_NUM_HITS;
+
+  retriever->actNumEntries = 0,
+    retriever->maxNumEntries = maxHits,
+    retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
+
+  if(retriever->elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if((!strcmp(sortColumn, "column_vlan")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_vlan, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
+  else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
+
+  // make sure the caller has disabled the purge!!
+  walker(walker_vlans, vlan_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -5458,6 +5576,55 @@ int NetworkInterface::getActiveASList(lua_State* vm,
   return(retriever.actNumEntries);
 }
 
+
+/* **************************************** */
+
+int NetworkInterface::getActiveVLANList(lua_State* vm,
+					char *sortColumn, u_int32_t maxHits,
+					u_int32_t toSkip, bool a2zSortOrder,
+					DetailsLevel details_level) {
+  struct flowHostRetriever retriever;
+
+  disablePurge(false);
+
+  if(sortVLANs(&retriever, sortColumn) < 0) {
+    enablePurge(false);
+    return -1;
+  }
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numVLANs", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  if(a2zSortOrder) {
+    for(int i = toSkip, num = 0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
+      Vlan *vl = retriever.elems[i].vlanValue;
+
+      vl->lua(vm, details_level, false);
+      lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
+    }
+  } else {
+    for(int i = (retriever.actNumEntries-1-toSkip), num = 0; i >= 0 && num < (int)maxHits; i--, num++) {
+      Vlan *vl = retriever.elems[i].vlanValue;
+
+      vl->lua(vm, details_level, false);
+      lua_rawseti(vm, -2, num + 1);
+    }
+  }
+
+  lua_pushstring(vm, "VLANs");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  enablePurge(false);
+
+  // finally free the elements regardless of the sorted kind
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
 /* **************************************** */
 
 int NetworkInterface::getActiveMacManufacturers(lua_State* vm, u_int16_t vlan_id,
@@ -5542,6 +5709,30 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
 
   if(info.as) {
     info.as->lua(vm, details_higher, false);
+    ret = true;
+  } else
+    ret = false;
+
+  enablePurge(false);
+
+  return ret;
+}
+
+/* **************************************** */
+
+bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
+  struct vlan_find_info info;
+  bool ret;
+
+  memset(&info, 0, sizeof(info));
+  info.vlan_id = vlan_id;
+
+  disablePurge(false);
+
+  walker(walker_vlans, find_vlan_by_vlan_id, (void*)&info);
+
+  if(info.vl) {
+    info.vl->lua(vm, details_higher, false);
     ret = true;
   } else
     ret = false;

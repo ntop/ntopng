@@ -87,7 +87,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 
   -- Save hosts stats
   local networks_aggr  = {}
-  local vlans_aggr     = {}
   local localHostsOnly = false
   
   local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
@@ -99,31 +98,11 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     if tcp_retr_ooo_lost_rrd_creation == "1" then
        for _, anom in pairs({"tcp.packets.out_of_order", "tcp.packets.retransmissions", "tcp.packets.lost"}) do
 	  if host[anom] then
-	     if host_vlan ~= nil and host_vlan ~= 0 then
-		vlans_aggr[host_vlan] = vlans_aggr[host_vlan] or {}
-		vlans_aggr[host_vlan][anom] = (vlans_aggr[host_vlan][anom] or 0) + host[anom]
-	     end
-
 	     if network_name ~= nil and isEmptyString(network_name) == false then
 		networks_aggr[network_name] = networks_aggr[network_name] or {}
 		networks_aggr[network_name][anom] = (networks_aggr[network_name][anom] or 0) + host[anom]
 	     end
 	  end
-       end
-    end
-
-    -- Aggregate VLAN stats
-    if host_vlan ~= nil and host_vlan ~= 0 then
-       if vlans_aggr[host_vlan] == nil then
-          vlans_aggr[host_vlan] = {}
-       end
-
-       if vlans_aggr[host_vlan]["bytes.sent"] == nil then
-          vlans_aggr[host_vlan]["bytes.sent"] = host["bytes.sent"]
-          vlans_aggr[host_vlan]["bytes.rcvd"] = host["bytes.rcvd"]
-       else
-          vlans_aggr[host_vlan]["bytes.sent"] = vlans_aggr[host_vlan]["bytes.sent"] + host["bytes.sent"]
-          vlans_aggr[host_vlan]["bytes.rcvd"] = vlans_aggr[host_vlan]["bytes.rcvd"] + host["bytes.rcvd"]
        end
     end
 
@@ -258,7 +237,11 @@ end, time_threshold) -- end foreachHost
 
   -- Create RRD for vlans
   local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
-  for vlan_id, vlan_stats in pairs(vlans_aggr) do
+
+  local vlan_info = interface.getVLANsInfo()
+  for _, vlan_stats in pairs(vlan_info["VLANs"]) do
+     local vlan_id = vlan_stats["vlan_id"]
+
      local vlanpath = getPathFromKey(vlan_id)
      vlanpath = fixPath(basedir.. "/" .. vlanpath)
      if not ntop.exists(vlanpath) then
@@ -269,12 +252,23 @@ end, time_threshold) -- end foreachHost
      createRRDcounter(vlanbytes, 300, false)
      ntop.rrd_update(vlanbytes, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
 
+     -- Save VLAN ndpi stats
+     if vlan_stats["ndpi"] ~= nil then
+	for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
+	   local vlan_ndpi_rrd = fixPath(vlanpath.."/"..proto_name..".rrd")
+	   createRRDcounter(vlan_ndpi_rrd, 300, verbose)
+	   ntop.rrd_update(vlan_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
+	end
+     end
+
      if tcp_retr_ooo_lost_rrd_creation == "1" then
+	--[[ TODO: implement for VLANs
 	local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
 	anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
 	if(anoms > 0) then
 	   makeRRD(vlanpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
 	end
+	--]]
      end
   end
 

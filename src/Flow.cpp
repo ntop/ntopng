@@ -943,7 +943,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 #endif
 	vl->incStats(tv->tv_sec, ndpiDetectedProtocol.app_protocol,
 		     diff_sent_packets, diff_sent_bytes,
-		     diff_rcvd_packets, diff_rcvd_packets);
+		     diff_rcvd_packets, diff_rcvd_bytes);
       }
 
 
