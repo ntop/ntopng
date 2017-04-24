@@ -5,7 +5,7 @@
 -- This file contains the description of all functions
 -- used to trigger host alerts
 
-local verbose = false
+local verbose = true
 local callback_utils = require "callback_utils"
 
 alerts_granularity = {
@@ -1628,7 +1628,7 @@ local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, 
   return "", "error"
 end
 
-local function engageReleaseAlert(engaged, ifid, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
+local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
   local alert_msg, alevel = formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
   local alert_type = alertType(atype)
   local alert_level = alertLevel(alevel)
@@ -1636,33 +1636,33 @@ local function engageReleaseAlert(engaged, ifid, entity_type, entity_value, atyp
 
   if entity.source == "interface" then
     if engaged then
-      return interface.engageInterfaceAlert(alert_key, alert_type, alert_level, alert_msg)
+      return interface.engageInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg)
     else
-      return interface.releaseInterfaceAlert(alert_key, alert_type, alert_level, alert_msg)
+      return interface.releaseInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg)
     end
   elseif entity.source == "host" then
     if engaged then
-      return interface.engageHostAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.engageHostAlert(engine, entity.value, alert_key, alert_type, alert_level, alert_msg)
     else
-      return interface.releaseHostAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.releaseHostAlert(engine, entity.value, alert_key, alert_type, alert_level, alert_msg)
     end
   elseif entity.source == "network" then
     if engaged then
-      return interface.engageNetworkAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.engageNetworkAlert(engine, entity.value, alert_key, alert_type, alert_level, alert_msg)
     else
-      return interface.releaseNetworkAlert(entity.value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.releaseNetworkAlert(engine, entity.value, alert_key, alert_type, alert_level, alert_msg)
     end
   end
 end
 
-local function engageAlert(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
   if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
-  engageReleaseAlert(true, ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
-local function releaseAlert(ifid, entity_type, entity_value, atype, entity_info, alert_info)
+local function releaseAlert(ifid, engine, entity_type, entity_value, atype, entity_info, alert_info)
   if(verbose) then io.write("Release Alert: "..entity_value.." "..alert.atype.." "..alert.akey.."\n") end
-  engageReleaseAlert(false, ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
 local function getEngagedAlertsCache(granularity)
@@ -1685,6 +1685,7 @@ end
 local function check_entity_alerts(ifid, entity_type, entity_value, working_status, old_entity_info, entity_info)
   if are_alerts_suppressed(entity_value, ifid) then return end
 
+  local engine = working_status.engine
   local granularity = working_status.granularity
   local engaged_cache = working_status.engaged_cache
   local current_alerts = {}
@@ -1735,7 +1736,7 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
           or (engaged_cache[entity_type][entity_value] == nil)
           or (engaged_cache[entity_type][entity_value][atype] == nil)
           or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
-        engageAlert(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+        engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
         working_status.dirty_cache = true
       end
     end
@@ -1752,7 +1753,7 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
           alert_info = {}
         end
 
-        releaseAlert(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+        releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
         working_status.dirty_cache = true
       end
     end
@@ -1884,6 +1885,7 @@ function scanAlerts(granularity, ifname)
 
    local working_status = {
       granularity = granularity,
+      engine = alertEngine(granularity),
       engaged_cache = getEngagedAlertsCache(granularity),
       configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity),
       dirty_cache = false,

@@ -1146,11 +1146,11 @@ void Host::incNumFlows(bool as_client) {
 	       h, iface->get_id(), h, max_num_active_flows);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      iface->getAlertsManager()->engageHostAlert(this,
-						 (char*)"scan_attacker",
-						 alert_flow_flood, alert_level_error, msg,
-						 this /* the originator of the alert, i.e., the cause of the trouble */,
-						 NULL /* the target of the alert, possibly many hosts */);
+      // iface->getAlertsManager()->engageHostAlert(this,
+      // 						 (char*)"scan_attacker",
+      // 						 alert_flow_flood, alert_level_error, msg,
+      // 						 this /* the originator of the alert, i.e., the cause of the trouble */,
+      // 						 NULL /* the target of the alert, possibly many hosts */);
       flow_flood_attacker_alert = true;
     }
   } else {
@@ -1167,11 +1167,11 @@ void Host::incNumFlows(bool as_client) {
 	       h, iface->get_id(), h, max_num_active_flows);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      iface->getAlertsManager()->engageHostAlert(this,
-						 (char*)"scan_victim",
-						 alert_flow_flood, alert_level_error, msg,
-						 NULL /* presently we don't know the originator(s) of the alert ... */,
-						 this /* ... but we can say that we're the victim ... */);
+      // iface->getAlertsManager()->engageHostAlert(this,
+      // 						 (char*)"scan_victim",
+      // 						 alert_flow_flood, alert_level_error, msg,
+      // 						 NULL /* presently we don't know the originator(s) of the alert ... */,
+      // 						 this /* ... but we can say that we're the victim ... */);
       flow_flood_victim_alert = true;
     }
   }
@@ -1195,9 +1195,9 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_id(), h, max_num_active_flows);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	iface->getAlertsManager()->releaseHostAlert(this,
-						    (char*)"scan_attacker",
-						    alert_flow_flood, alert_level_error, msg);
+	// iface->getAlertsManager()->releaseHostAlert(this,
+	// 					    (char*)"scan_attacker",
+	// 					    alert_flow_flood, alert_level_error, msg);
 	flow_flood_attacker_alert = false;
       }
     } else
@@ -1217,9 +1217,9 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_id(), h, max_num_active_flows);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
-	iface->getAlertsManager()->releaseHostAlert(this,
-						    (char*)"scan_victim",
-						    alert_flow_flood, alert_level_error, msg);
+	// iface->getAlertsManager()->releaseHostAlert(this,
+	// 					    (char*)"scan_victim",
+	// 					    alert_flow_flood, alert_level_error, msg);
 	flow_flood_victim_alert = false;
       }
     } else
@@ -1558,10 +1558,10 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     c, iface->get_id(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
-    iface->getAlertsManager()->engageHostAlert(this,
-					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
-					       asClient ? alert_host_under_attack : alert_host_attacker,
-					       alert_level_error, msg);
+    // iface->getAlertsManager()->engageHostAlert(this,
+    // 					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
+    // 					       asClient ? alert_host_under_attack : alert_host_attacker,
+    // 					       alert_level_error, msg);
 #endif
     good_low_flow_detected = true;
   }

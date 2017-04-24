@@ -92,6 +92,13 @@ typedef enum {
 } AlertEntity;
 
 typedef enum {
+  alert_engine_periodic_1min = 0,
+  alert_engine_periodic_5min,
+  alert_engine_periodic_hour,
+  alert_engine_periodic_day,
+} AlertEngine;
+
+typedef enum {
   alert_on = 1,       /* An issue has been discovered and an alert has been triggered */
   alert_off = 2,      /* A previous alert has been fixed */
   alert_permanent = 3 /* Alert that can't be fixed (e.g. a flow with an anomaly) */
