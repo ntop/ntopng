@@ -5,7 +5,7 @@
 -- This file contains the description of all functions
 -- used to trigger host alerts
 
-local verbose = true
+local verbose = false
 local callback_utils = require "callback_utils"
 
 alerts_granularity = {
@@ -159,7 +159,7 @@ function are_alerts_suppressed(observed, ifid)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       return false  -- alerts are not suppressed
    else
-      if(verbose) then print("Skipping alert check for("..address.."): disabled in preferences<br>\n") end
+      if(verbose) then print("Skipping alert check for("..observed.."): disabled in preferences<br>\n") end
       return true -- alerts are suppressed
    end
 end
@@ -241,12 +241,12 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
       for k2, metric in pairs(alarmable_metrics) do
 	 if new_alert_ids[timespan.."_"..metric] ~= true then
 	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       interface.releaseHostAlert(timespan --[[engine]], alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	       is_host = true
 	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       interface.releaseNetworkAlert(timespan --[[engine]], alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	    else
-	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	       interface.releaseInterfaceAlert(timespan --[[engine]], timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
 	 end
       end
@@ -366,6 +366,10 @@ function performAlertsQuery(statement, what, opts)
 
    if tonumber(opts.alert_severity) ~= nil then
       wargs[#wargs+1] = "AND alert_severity = "..(opts.alert_severity)
+   end
+
+   if tonumber(opts.alert_engine) ~= nil then
+      wargs[#wargs+1] = "AND alert_engine = "..(opts.alert_engine)
    end
 
    if((not isEmptyString(opts.sortColumn)) and (not isEmptyString(opts.sortOrder))) then
@@ -630,6 +634,7 @@ end
 -- #################################
 
 -- This function makes a consistent abstraction on entities
+-- TODO this inconsistency should be removed by dropping "iface_" stuff and migrate to entity_type + entity_value format
 function getAlertSource(entity, entity_value, alt_name)
    if ((entity == "host") or (string.find(entity_value, "@") ~= nil)) then
       local host_name
@@ -649,7 +654,7 @@ function getAlertSource(entity, entity_value, alt_name)
          friendly_value = host_name,
       }
    else
-      if string.find(entity_value, "/") ~= nil then
+      if ((entity == "network") or (string.find(entity_value, "/") ~= nil)) then
          local network_name
          if alt_name then
             network_name = alt_name
@@ -665,9 +670,14 @@ function getAlertSource(entity, entity_value, alt_name)
             value = entity_value,
             friendly_value = network_name,
          }
-      elseif string.find(entity_value, "iface_") == 1 then
+      elseif ((entity == "interface") or (string.find(entity_value, "iface_") == 1)) then
          local interface_name
-         local ifid = string.sub(entity_value, 7)
+         local ifid
+         if string.find(entity_value, "iface_") == 1 then
+           ifid = string.sub(entity_value, 7)
+         else
+           ifid = entity_value
+         end
          if alt_name then
             interface_name = alt_name
          else
@@ -1586,7 +1596,7 @@ end
 -- #################################
 
 local function formatInterface(ifid, ifjson)
-  return "<a href='"..ntop.getHttpPrefix().."/lua/ifstats.lua?ifid="..ifid.."'>"..ifjson.name.."</a>"
+  return "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid.."'>"..ifjson.name.."</a>"
 end
 
 local function formatHost(ifid, name, hostjson)
@@ -1614,8 +1624,12 @@ local function formatEntity(ifid, entity_type, entity_value, entity_info)
 end
 
 local function formatThresholdCross(ifid, entity_type, entity_value, entity_info, threshold_info)
-  return "Treshold <b>"..threshold_info.metric.."</b> crossed by "..formatEntity(ifid, entity_type, entity_value, entity_info)..
+  if threshold_info.metric then
+    return "Threshold <b>"..threshold_info.metric.."</b> crossed by "..formatEntity(ifid, entity_type, entity_value, entity_info)..
         " ["..(threshold_info.value).." &"..(threshold_info.operator).."; "..(threshold_info.edge).."]"
+  end
+
+  return ""
 end
 
 -- returns the pair (message, severity)
@@ -1656,18 +1670,42 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
 end
 
 local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-  if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
+  if(true) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
   engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
-local function releaseAlert(ifid, engine, entity_type, entity_value, atype, entity_info, alert_info)
-  if(verbose) then io.write("Release Alert: "..entity_value.." "..alert.atype.." "..alert.akey.."\n") end
+local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  if(true) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
 local function getEngagedAlertsCache(granularity)
-   -- TODO: this function should return the engaged alerts for the given granularity, from redis or from SQLite
-   return {}
+  local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(granularity))
+
+  if isEmptyString(engaged_cache) then
+    engaged_cache = {}
+    local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)})
+
+    for _, res in pairs(sql_res) do
+      local entity_type = alertEntityRaw(res.alert_entity)
+      local entity_value = res.alert_entity_val
+      local atype = alertTypeRaw(res.alert_type)
+      local akey = res.alert_id
+
+      engaged_cache[entity_type] = engaged_cache[entity_type] or {}
+      engaged_cache[entity_type][entity_value] = engaged_cache[entity_type][entity_value] or {}
+      engaged_cache[entity_type][entity_value][akey] = engaged_cache[entity_type][entity_value][akey] or {}
+      engaged_cache[entity_type][entity_value][atype] = engaged_cache[entity_type][entity_value][atype] or {}
+      engaged_cache[entity_type][entity_value][atype][akey] = true
+    end
+
+    -- update cache
+    ntop.setCache(getEngagedAlertsCacheKey(granularity), j.encode(engaged_cache))
+  else
+    engaged_cache = j.decode(engaged_cache, 1, nil)
+  end
+
+  return engaged_cache
 end
 
 function invalidateEngagedAlertsCache()
@@ -1682,8 +1720,8 @@ end
 
 -- #################################
 
-local function check_entity_alerts(ifid, entity_type, entity_value, working_status, old_entity_info, entity_info)
-  if are_alerts_suppressed(entity_value, ifid) then return end
+local function check_entity_alerts(ifid, entity, working_status, old_entity_info, entity_info)
+  if are_alerts_suppressed(entity, ifid) then return end
 
   local engine = working_status.engine
   local granularity = working_status.granularity
@@ -1697,17 +1735,21 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
     info_arr[atype][akey] = alert_info or {}
   end
 
-  if (granularity == "min") and (entity_type == "host") then
-    -- Populate current_alerts with host anomalies
-    for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
-      if starts(anomal_name, "syn_flood") then
-        addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
-      end
-    end
-  end
+  local alert_source = getAlertSource("", entity, "")
+  local entity_type = alert_source.source
+  local entity_value = alert_source.value
+
+  --~ if (granularity == "min") and (entity_type == "host") then
+    --~ -- Populate current_alerts with host anomalies
+    --~ for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
+      --~ if starts(anomal_name, "syn_flood") then
+        --~ addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
+      --~ end
+    --~ end
+  --~ end
 
   -- Populate current_alerts with threshold crosses
-  for _, threshold in pairs(working_status.configured_thresholds[entity_value] or {}) do
+  for _, threshold in pairs(working_status.configured_thresholds[entity] or {}) do
     local atype = "threshold_cross"
     local akey = threshold.key
     local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
@@ -1715,9 +1757,9 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
     if ntop.isPro() then
       -- Possibly send Nagios alert heartbeat
       if exceeded then
-        ntop.sendNagiosAlert(entity_value, granularity, alert_info.metric, formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info))
+        ntop.sendNagiosAlert(entity, granularity, alert_info.metric, formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info))
       else
-        ntop.withdrawNagiosAlert(entity_value, granularity, alert_info.metric, "service OK")
+        ntop.withdrawNagiosAlert(entity, granularity, alert_info.metric, "service OK")
       end
     end
 
@@ -1743,18 +1785,20 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
   end
 
   if (engaged_cache[entity_type] ~= nil) and (engaged_cache[entity_type][entity_value] ~= nil) then
-    for atype, akey in pairs(engaged_cache[entity_type][entity_value]) do
-      if (current_alerts[atype] ~= nil) and (current_alerts[atype][akey] ~= nil) then
-        local alert_info
+    for atype, akeys in pairs(engaged_cache[entity_type][entity_value]) do
+      for akey, _ in pairs(akeys) do
+        if (current_alerts[atype] == nil) or (current_alerts[atype][akey] == nil) then
+          local alert_info
 
-        if (past_alert_info[atype] ~= nil) and (past_alert_info[atype][akey] ~= nil) then
-          alert_info = past_alert_info[atype][akey]
-        else
-          alert_info = {}
+          if (past_alert_info[atype] ~= nil) and (past_alert_info[atype][akey] ~= nil) then
+            alert_info = past_alert_info[atype][akey]
+          else
+            alert_info = {}
+          end
+
+          releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+          working_status.dirty_cache = true
         end
-
-        releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-        working_status.dirty_cache = true
       end
     end
   end
@@ -1822,18 +1866,16 @@ end
 local function check_interface_alerts(ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
+   
+   local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
+   local new_entity_info = ifstats
 
-   if working_status.configured_thresholds[entity_value] then
-      local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
-      local new_entity_info = ifstats
-
-      -- Check if there is any threshold configured for the interface
-      if old_entity_info ~= nil then
-         check_entity_alerts(ifid, "iface", entity_value, working_status, old_entity_info, new_entity_info)
-      end
-
-      interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
+   -- Check if there is any threshold configured for the interface
+   if old_entity_info ~= nil then
+      check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
    end
+
+   interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
 end
 
 local function check_networks_alerts(ifid, working_status)
@@ -1846,7 +1888,7 @@ local function check_networks_alerts(ifid, working_status)
          local new_entity_info = sstats
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifid, "network", subnet, working_status, old_entity_info, new_entity_info)
+            check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info)
          end
 
          network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
@@ -1869,7 +1911,7 @@ local function check_hosts_alerts(ifid, working_status)
          new_entity_info["anomalies"] = hostinfo.anomalies
 
          if old_entity_info ~= nil then
-            check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
+            check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
          end
 
          host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
@@ -1880,6 +1922,8 @@ end
 -- #################################
 
 function scanAlerts(granularity, ifname)
+   if not areAlertsEnabled() then return end
+
    if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
    local ifid = getInterfaceId(ifname)
 
@@ -1899,3 +1943,6 @@ function scanAlerts(granularity, ifname)
       invalidateEngagedAlertsCache()
    end
 end
+
+-- DEBUG: uncomment this to test
+--~ scanAlerts("min", "wlan0")
