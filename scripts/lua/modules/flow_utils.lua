@@ -1643,7 +1643,7 @@ function printFlowQuota(ifid, info, as_client)
     print(string.gsub(printProtocolQuota(flow_quota, proto_stats, category_stats, {traffic=true, time=true}, true), "\n", ""))
     print("</tr></table>")
   else
-    print("No quota")
+    print(i18n("shaping.no_quota_applied"))
   end
 end
 -- #######################

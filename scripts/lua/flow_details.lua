@@ -657,8 +657,8 @@ print [[/lua/flow_stats.lua',
 			$('#s2clost').html(formatPackets(rsp["s2clost"]));
 			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
 			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
-         if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
-         if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["cli2srv_quota"]);
+			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
+			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 
 			/* **************************************** */
 

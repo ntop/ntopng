@@ -189,6 +189,7 @@ local  en = {
       daily_time_quota = "Daily Time Quota",
       daily_traffic = "Daily Traffic (Current / Quota)",
       no_quota_data = "No quota set",
+      no_quota_applied = "No Quota",
       daily_time = "Daily Time (Current / Quota)",
       delete_policy = "Delete Policy",
       confirm_delete_policy = "Do you really want to delete",
