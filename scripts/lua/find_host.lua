@@ -46,6 +46,14 @@ print [[
 
 	 for k, v in pairs(res) do
 	    if(v ~= "") then
+	       local link
+	       if starts(v, k) then
+	          -- v contains vlan information
+	          link = v
+	       else
+	          link = k
+	       end
+
 	       if values[v] > 1 then
 	          -- we matched both an ipv4 and ipv6 with same host name, display differently
 	          if isIPv6Address(k) then
@@ -54,7 +62,7 @@ print [[
 	       end
 	       
 	       if(num > 0) then print(",\n") end
-	       print('\t{"name": "'..v..'", "ip": "'..k..'"}')
+	       print('\t{"name": "'..v..'", "ip": "'..link..'"}')
 	       num = num + 1
 	    end -- if
 	  end -- for
