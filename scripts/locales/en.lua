@@ -506,6 +506,8 @@ local  en = {
             "For non sFlow devices, the ZMQ fields INPUT_SNMP and OUTPUT_SNMP are required.",
       toggle_pools_rrds_title = "Host Pools",
       toggle_pools_rrds_description = "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
+      toggle_vlan_rrds_title = "VLANs",
+      toggle_vlan_rrds_description = "Toggle the creation of bytes and application timeseries for VLANs.",
       toggle_asn_rrds_title = "Autonomous Systems",
       toggle_asn_rrds_description = "Toggle the creation of bytes and application timeseries for autonomous systems.",
       toggle_tcp_flags_rrds_title = "TCP Flags",

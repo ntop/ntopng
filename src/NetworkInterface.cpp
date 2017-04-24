@@ -2204,7 +2204,8 @@ void NetworkInterface::periodicStatsUpdate() {
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
   ases_hash->walk(update_ases_stats, (void*)&tv);
-  vlans_hash->walk(update_vlans_stats, (void*)&tv);
+  if (hasSeenVlanTaggedPackets())
+    vlans_hash->walk(update_vlans_stats, (void*)&tv);
   macs_hash->walk(update_macs_stats, (void*)&tv);
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
@@ -5584,6 +5585,12 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 					u_int32_t toSkip, bool a2zSortOrder,
 					DetailsLevel details_level) {
   struct flowHostRetriever retriever;
+
+  if (! hasSeenVlanTaggedPackets()) {
+    /* VLAN statistics are calculated only if VLAN tagged traffic has been seen */
+    lua_pushnil(vm);
+    return 0;
+  }
 
   disablePurge(false);
 

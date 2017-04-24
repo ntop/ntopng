@@ -187,6 +187,7 @@ end
 -- If network, must be prefixed with 'net:'
 -- If profile, must be prefixed with 'profile:'
 -- If host pool, must be prefixed with 'pool:'
+-- If vlan, must be prefixed with 'vlan:'
 -- If asn, must be prefixed with 'asn:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
@@ -212,6 +213,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'sflow:') then
       host_or_network = string.gsub(host_or_network, 'sflow:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
+      host_or_network = string.gsub(host_or_network, 'vlan:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
@@ -548,6 +552,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    -- hide historical tabs for networks and pools
    and not string.starts(host, 'net:')
    and not string.starts(host, 'pool:')
+   and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
 then
    print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
@@ -603,6 +608,7 @@ for k,v in ipairs(zoom_vals) do
    if host and (string.starts(host, 'net:')
       or string.starts(host, 'profile:')
       or string.starts(host, 'pool:')
+      or string.starts(host, 'vlan:')
       or string.starts(host, 'asn:')) then
        net_or_profile = true
    end
@@ -698,6 +704,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    -- hide historical tabs for networks and profiles and pools
    and not string.starts(host, 'net:')
    and not string.starts(host, 'pool:')
+   and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
 then
    print('<div class="tab-pane fade" id="historical-flows">')

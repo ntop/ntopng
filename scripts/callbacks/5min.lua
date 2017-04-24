@@ -34,6 +34,7 @@ local flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rr
 local host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
 local snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
 local asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
+local vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
@@ -236,40 +237,44 @@ end, time_threshold) -- end foreachHost
   end
 
   -- Create RRD for vlans
-  local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
+  if vlan_rrd_creation == "1" then
+    local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
+    local vlan_info = interface.getVLANsInfo()
 
-  local vlan_info = interface.getVLANsInfo()
-  for _, vlan_stats in pairs(vlan_info["VLANs"]) do
-     local vlan_id = vlan_stats["vlan_id"]
+    if (vlan_info ~= nil) and (vlan_info["VLANs"] ~= nil) then
+      for _, vlan_stats in pairs(vlan_info["VLANs"]) do
+        local vlan_id = vlan_stats["vlan_id"]
 
-     local vlanpath = getPathFromKey(vlan_id)
-     vlanpath = fixPath(basedir.. "/" .. vlanpath)
-     if not ntop.exists(vlanpath) then
-        ntop.mkdir(vlanpath)
-     end
+        local vlanpath = getPathFromKey(vlan_id)
+        vlanpath = fixPath(basedir.. "/" .. vlanpath)
+        if not ntop.exists(vlanpath) then
+          ntop.mkdir(vlanpath)
+        end
 
-     local vlanbytes = fixPath(vlanpath .. "/bytes.rrd")
-     createRRDcounter(vlanbytes, 300, false)
-     ntop.rrd_update(vlanbytes, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
+        local vlanbytes = fixPath(vlanpath .. "/bytes.rrd")
+        createRRDcounter(vlanbytes, 300, false)
+        ntop.rrd_update(vlanbytes, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
 
-     -- Save VLAN ndpi stats
-     if vlan_stats["ndpi"] ~= nil then
-	for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
-	   local vlan_ndpi_rrd = fixPath(vlanpath.."/"..proto_name..".rrd")
-	   createRRDcounter(vlan_ndpi_rrd, 300, verbose)
-	   ntop.rrd_update(vlan_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
-	end
-     end
+        -- Save VLAN ndpi stats
+        if vlan_stats["ndpi"] ~= nil then
+          for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
+            local vlan_ndpi_rrd = fixPath(vlanpath.."/"..proto_name..".rrd")
+            createRRDcounter(vlan_ndpi_rrd, 300, verbose)
+            ntop.rrd_update(vlan_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
+          end
+        end
 
-     if tcp_retr_ooo_lost_rrd_creation == "1" then
-	--[[ TODO: implement for VLANs
-	local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
-	anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
-	if(anoms > 0) then
-	   makeRRD(vlanpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
-	end
-	--]]
-     end
+        if tcp_retr_ooo_lost_rrd_creation == "1" then
+          --[[ TODO: implement for VLANs
+          local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
+          anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
+          if(anoms > 0) then
+             makeRRD(vlanpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
+          end
+          --]]
+        end
+      end
+    end
   end
 
   --- Create RRD for networks

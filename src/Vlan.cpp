@@ -38,6 +38,8 @@ Vlan::~Vlan() {
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted vlan %u", vlan_id);
 #endif
+
+  /* NOTE: ndpiStats is alredy freed by GenericTrafficElement */
 }
 
 /* *************************************** */

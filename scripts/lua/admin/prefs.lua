@@ -602,6 +602,10 @@ function printStatsTimeseries()
 			 "On", "1", "success", "Off", "0", "danger", "toggle_tcp_retr_ooo_lost_rrds",
 			 "ntopng.prefs.tcp_retr_ooo_lost_rrd_creation", "0")
 
+  toggleTableButtonPrefs(subpage_active.entries["toggle_vlan_rrds"].title, subpage_active.entries["toggle_vlan_rrds"].description.."<br>",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_vlan_rrds",
+			 "ntopng.prefs.vlan_rrd_creation", "0")
+
   toggleTableButtonPrefs(subpage_active.entries["toggle_asn_rrds"].title, subpage_active.entries["toggle_asn_rrds"].description.."<br>",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_asn_rrds",
 			 "ntopng.prefs.asn_rrd_creation", "0")

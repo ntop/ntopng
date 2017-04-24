@@ -390,12 +390,19 @@ else
    -- historical page
    require "graph_utils"
 
+   local title = ""
+   if asn ~= nil then
+      title = "ASN: "..asn
+   elseif vlan ~= nil then
+      title = "VLAN: "..vlan
+   end
+
    print[[
    <div class="bs-docs-example">
       <nav class="navbar navbar-default" role="navigation">
       <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li><a href="#">ASN: ]] print(asn) print[[</a> </li>]]
+        <li><a href="#">]] print(title) print[[</a> </li>]]
    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    print[[
       <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -411,7 +418,11 @@ else
       rrdfile = _GET["rrd_file"]
    end
 
-   drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
+   if asn ~= nil then
+      drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
+   elseif vlan ~= nil then
+      drawRRD(ifstats.id, 'vlan:'..vlan, rrdfile, _GET["zoom"], base_url.."?vlan="..vlan.."&page=historical", 1, _GET["epoch"])
+   end
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
