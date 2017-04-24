@@ -160,6 +160,13 @@ print [[/lua/logout.lua");  }, */
 	  success: function(rsp) {
     
 	  try {
+            if(rsp.a_to_b_out_pkts) {
+              /* This is a bridge, charts must show actually bridged traffic
+                 and not the total ingress traffic. That is,
+                 the sum of out packets/bytes on each interface */
+              rsp.bytes   = rsp.a_to_b_out_bytes + rsp.b_to_a_out_bytes;
+              rsp.packets = rsp.a_to_b_out_pkts + rsp.b_to_a_out_pkts;
+            }
 
 	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
