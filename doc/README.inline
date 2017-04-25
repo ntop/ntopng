@@ -103,6 +103,16 @@ ntopng as follows:
 
 # ntopng -i bridge:br0,wlan0 -w 80,3000
 
+Note for Raspbian linux: The new dhcp client ignores what the
+interfaces files does and doing its own things. This may cause
+innterfaces configured with 'inet manual' to get an ip address via
+dhcp. To prevent this behavior, /etc/dhcpcd.conf should be edited to
+to tell the DHCP daemon to completely ignore the physical interfaces:
+
+denyinterfaces eth0
+denyinterfaces wlan0
+
+Ref: https://www.raspberrypi.org/forums/viewtopic.php?p=798866#p798866
 
 * Centos 7
 ----------
