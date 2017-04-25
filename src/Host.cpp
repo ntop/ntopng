@@ -1287,9 +1287,10 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
   bool category = false; /* Default: no category */
+  int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
 
   if (policy) {
-    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol32, sd);
 
     if(sd) {
       /* A protocol quota has priority over the category quota */
@@ -1332,14 +1333,14 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
 
 #ifdef SHAPER_DEBUG
         {
-          char buf[64];
+          char buf[128];
 
           ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] [bytes: %ld/%lu][seconds: %d/%u] => %s",
-            ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
-            ip.print(buf, sizeof(buf)), vlan_id,
-            bytes, bytes_quota,
-            secs, secs_quota,
-            is_above ? "EXCEEDED" : "ok");
+				       ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
+				       ip.print(buf, sizeof(buf)), vlan_id,
+				       bytes, bytes_quota,
+				       secs, secs_quota,
+				       is_above ? (char*)"EXCEEDED" : (char*)"ok");
         }
 #endif
 

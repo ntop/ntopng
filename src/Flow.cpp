@@ -2611,7 +2611,7 @@ void Flow::updateFlowShapers() {
 
 #ifdef SHAPER_DEBUG
   {
-    char buf[512];
+    char buf[1024];
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SHAPERS] %s", print(buf, sizeof(buf)));
   }
