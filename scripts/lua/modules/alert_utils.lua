@@ -86,8 +86,8 @@ function inner(old, new, interval)
 end
 
 function flows(old, new, interval)
-   local new_flows = (new["flows.as_client"] + new["flows.as_server"])
-   local old_flows = (old["flows.as_client"] + old["flows.as_server"])
+   local new_flows = new["flows.as_client"] + new["flows.as_server"]
+   local old_flows = old["flows.as_client"] + old["flows.as_server"]
    return new_flows - old_flows
 end
 
@@ -870,6 +870,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       -- interface
       descr = table.clone(alert_functions_description)
       descr["active"] = nil
+      descr["flows"] = nil
    else
       -- host
       descr = alert_functions_description
