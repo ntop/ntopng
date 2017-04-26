@@ -15,7 +15,9 @@ alerts_granularity = {
    { "day", "Daily", 86400 }
 }
 
-alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput', 'ingress', 'egress', 'inner'}
+alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput',
+    'ingress', 'egress', 'inner',
+    'flows'}
 
 -- ##############################################################################
 
@@ -81,6 +83,12 @@ end
 
 function inner(old, new, interval)
    return new["inner"] - old["inner"]
+end
+
+function flows(old, new, interval)
+   local new_flows = (new["flows.as_client"] + new["flows.as_server"])
+   local old_flows = (old["flows.as_client"] + old["flows.as_server"])
+   return new_flows - old_flows
 end
 
 -- ##############################################################################
@@ -700,12 +708,10 @@ end
 
 function drawAlertSettings(alert_source, alert_val)
    local alerts_enabled
-   local host_or_network = ((alert_source.source == "host") or (alert_source.source == "network"))
 
    -- host specific
    local flow_rate_alert_thresh
    local syn_alert_thresh
-   local flows_alert_thresh
 
    if not isAdministrator() then
       return
@@ -734,14 +740,13 @@ function drawAlertSettings(alert_source, alert_val)
       end
    end
 
-   if host_or_network then
+   if alert_source.source == "host" then
       local hostInfo = hostkey2hostinfo(alert_val)
       local host_ip = hostInfo["host"]
       local host_vlan = hostInfo["vlan"]
 
       flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
       syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
-      flows_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold'
 
       if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
          ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
@@ -774,22 +779,6 @@ function drawAlertSettings(alert_source, alert_val)
             syn_alert_thresh = v
          else
             syn_alert_thresh = 10
-         end
-      end
-      if _POST["flows_alert_threshold"] ~= nil and _POST["flows_alert_threshold"] ~= "" then
-         ntop.setPref(flows_alert_thresh, _POST["flows_alert_threshold"])
-         flows_alert_thresh = _POST["flows_alert_threshold"]
-         config_changed = true
-      else
-         local v = nil
-         if _POST["flows_alert_threshold"] == nil then
-            v = ntop.getPref(flows_alert_thresh)
-         end
-
-         if v ~= nil and v ~= "" then
-            flows_alert_thresh = v
-         else
-            flows_alert_thresh = 32768
          end
       end
    end
@@ -830,7 +819,7 @@ function drawAlertSettings(alert_source, alert_val)
    print [[</tr>]]
 
    -- Source specific settings
-   if host_or_network then
+   if alert_source.source == "host" then
       print("<tr><th width=250>" .. alert_source.title .. " Flow Alert Threshold</th>\n")
       print [[<td>]]
       print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
@@ -862,22 +851,6 @@ function drawAlertSettings(alert_source, alert_val)
 	 print[[
        </td></tr>
           ]]
-
-      print("<tr><th width=250>" .. alert_source.title .. " Flows Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flows_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="]]
-      print(tostring(flows_alert_thresh))
-      print [["></input>
-         &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-       </form>
-   <small>
-       Max number of flows over which a host is considered a flooder. Default: 32768.<br>
-   </small>]]
-	 print[[
-       </td></tr>
-          ]]
    end
 
    print("</table>")
@@ -887,6 +860,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
 
+   -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
    if alert_source:match("/") then
       descr = network_alert_functions_description
@@ -895,6 +869,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       descr = table.clone(alert_functions_description)
       descr["active"] = nil
    else
+      -- host
       descr = alert_functions_description
    end
 

@@ -388,6 +388,7 @@ alert_functions_description = {
     ["packets"] = "Packets delta (sent + received)",
     ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
     ["throughput"]   = "Average throughput (sent + received) [Mbps]",
+    ["flows"]   = "Flows (sent + received)",
 }
 
 network_alert_functions_description = {

@@ -52,7 +52,6 @@ class Host : public GenericHost {
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
 #endif
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
-  bool flow_flood_attacker_alert, flow_flood_victim_alert;
   TrafficStats tcp_sent, tcp_rcvd;
   TrafficStats udp_sent, udp_rcvd;
   TrafficStats icmp_sent, icmp_rcvd;
@@ -67,7 +66,7 @@ class Host : public GenericHost {
   DnsStats *dns;
   HTTPstats *http;
   bool trigger_host_alerts, good_low_flow_detected;
-  u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
+  u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold;
   NetworkStats *networkStats;
   CategoryStats *categoryStats;
 
@@ -87,7 +86,6 @@ class Host : public GenericHost {
   json_object* getJSONObject();
   void loadFlowRateAlertPrefs(const char *ip_buf);
   void loadSynAlertPrefs(const char *ip_buf);
-  void loadFlowsAlertPrefs(const char *ip_buf);
   bool readDHCPCache();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
