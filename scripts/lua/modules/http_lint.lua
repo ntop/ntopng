@@ -461,7 +461,7 @@ local function validateActivityName(p)
    return validateChoiceByKeys(ndpi_categories, p)
 end
 
-local function validateTrafficProfile(p)
+function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
 end
 
@@ -687,8 +687,8 @@ local known_parameters = {
    ["alertstats_type"]         =  validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["status"]                  =  validateAlertStatus,           -- An alert type to filter
-   ["profile"]                 =  validateTrafficProfile,        -- Traffic Profile name
-   ["delete_profile"]          =  validateTrafficProfile,        -- A Traffic Profile to delete
+   ["profile"]                 =  http_lint.validateTrafficProfile,        -- Traffic Profile name
+   ["delete_profile"]          =  http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
    ["activity"]                =  validateActivityName,          -- User Activity name
    ["alert_type"]              =  validateNumber,                -- An alert type enum
    ["alert_severity"]          =  validateNumber,                -- An alert severity enum
