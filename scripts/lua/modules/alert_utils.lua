@@ -191,14 +191,14 @@ function delete_alert_configuration(alert_source, ifname)
 	    end
 	    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	       interface.releaseHostAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	       is_host = true
 	       -- check if this is a subnet
 	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	       interface.releaseNetworkAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	       -- finally assume it's an interface alert
 	    else
-	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	       interface.releaseInterfaceAlert(alertEngine(timespan), timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
 	 end
 	 ntop.delHashCache(key, alert_source)
@@ -208,6 +208,7 @@ function delete_alert_configuration(alert_source, ifname)
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
    end
+   invalidateEngagedAlertsCache()
    interface.refreshNumAlerts()
 end
 
@@ -249,12 +250,12 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
       for k2, metric in pairs(alarmable_metrics) do
 	 if new_alert_ids[timespan.."_"..metric] ~= true then
 	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(timespan --[[engine]], alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       interface.releaseHostAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	       is_host = true
 	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(timespan --[[engine]], alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       interface.releaseNetworkAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	    else
-	       interface.releaseInterfaceAlert(timespan --[[engine]], timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	       interface.releaseInterfaceAlert(alertEngine(timespan), timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
 	 end
       end
@@ -263,6 +264,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
    end
+   invalidateEngagedAlertsCache()
    interface.refreshNumAlerts()
 end
 
