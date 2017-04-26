@@ -19,7 +19,7 @@ if((nbox_password == nil) or (nbox_password == "")) then nbox_password = "nbox" 
 local base_url = "https://localhost"
 
 local status_url = base_url.."/ntop-bin/check_status_tasks_external.cgi"
-local schedule_url = base_url.."/ntop-bin/sudowrapper_external.cgi?script=npcapextract_external.cgi"
+local schedule_url = base_url.."/ntop-bin/run.cgi?script=npcapextract_external.cgi"
 
 -- Query parameters
 action       = _GET["nbox_action"]

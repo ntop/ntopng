@@ -1,7 +1,7 @@
 require "lua_utils"
 
 local json = require ("dkjson")
-		      
+
 local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=status"
 local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
@@ -32,7 +32,7 @@ function hostkey2hostid(host_key) {
 }
 /*
  * Returns a map of querystring parameters
- * 
+ *
  * Keys of type <fieldName>[] will automatically be added to an array
  *
  * @param String url
@@ -44,7 +44,7 @@ function getParams(url) {
     key = parts[1], value = parts[2];
     var isArray = /\[\]$/.test(key);
 
-    if(isArray) { 
+    if(isArray) {
       params[key] = params[key] || [];
         params[key].push(value);
     }
@@ -274,7 +274,7 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
        <div class='col-md-3'>
 	 ]] print(i18n("db_explorer.download_flows")) print[[: ]]
 
-	  if(ipv4_enabled) then	     
+	  if(ipv4_enabled) then
 	     print [[ <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">]] print(i18n("ipv4")) print[[</a>&nbsp;]]
 	  else
              print [[<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">]] print(i18n("ipv6")) print[[</a>]]
@@ -379,7 +379,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
    local isv6 = isIPv6Address(host)
-   
+
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_begin="..epoch_begin
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_end="..epoch_end
 
@@ -1343,7 +1343,7 @@ function download_pcap_from_nbox(task_id){
   url = res[0];
   res = url.split(":");
   url = res[0];
-  window.open("https://"+url+"/ntop-bin/sudowrapper.cgi?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"+task_id+".pcap", "_blank");
+  window.open("https://"+url+"/ntop-bin/run.cgi?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"+task_id+".pcap", "_blank");
 }
 
 var populatePcapsTable = function(){
@@ -1424,7 +1424,7 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
    -- prepare some attributes that will be attached to divs
    local div_data = ""
    local isv6 = isIPv6Address(host)
-   
+
    if ifId ~= "" and ifId ~= nil then
       _GET["ifid"] = ifId
       div_data = div_data..' ifid="'..tostring(ifId)..'" '
@@ -1471,7 +1471,7 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
     <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
 ]]
 
-if(not(isv6)) then 
+if(not(isv6)) then
     print '<li class="disabled"> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
 else
     print '<li class="disabled"> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
@@ -1541,7 +1541,7 @@ var abortQuery = function(){
   }
   // error message is populated in the ajax error callback
 }
-  
+
 $('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-flows"]').attr("loaded") == 1){
     enableAllDropdownsAndTabs();
@@ -1565,17 +1565,17 @@ print[[
     },
     error: function() {
       var err_msg = "."
-  
+
       if(xhr.responseText && xhr.responseText !== "")
         err_msg = ": " + xhr.responseText + err_msg
-  
+
       if(xhr.statusText === "error")
         err_msg = "An error occurred. Check database connections status" + err_msg
       else if(xhr.statusText === "abort")
         err_msg = "Query aborted" + err_msg
       else
         err_msg = "Query failed with an unknown status " + xhr.statusText + err_msg
-  
+
       $("#historical-flows-summary-body").html(err_msg).show()
     },
     success: function(msg){
@@ -1586,10 +1586,10 @@ print[[
         $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;]]print(i18n("error_no_search_results"))print[[</H5>').show()
         return;
       }
-  
+
       // re-enable all tabs
       $("#historical-flows-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
-  
+
       // populate the number of flows
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
       $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows)
@@ -1609,14 +1609,14 @@ print[[
       $("#flows-summary-table").show();
     }
   });
-  
+
 
   setInterval(function() {
     var too_slow = "The database is taking too long to produce results. Consider narrowing down the scope of the query"
     too_slow += " or tune the database for performance."
     $("#flows-summary-too-slow").html(too_slow).show()
   }, 15000)
-  
+
 });
 
 </script>
