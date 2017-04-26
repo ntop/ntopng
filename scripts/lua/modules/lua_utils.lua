@@ -378,6 +378,7 @@ alert_engine_keys = {
    {"5 Minutes", 1, "5mins"  },
    {"Hourly",    2, "hour"   },
    {"Daily",     3, "day"    },
+   {"Startup",   4, "startup"},
 }
 
 alert_functions_description = {
