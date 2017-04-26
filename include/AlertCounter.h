@@ -42,7 +42,8 @@ class AlertCounter {
   time_t time_last_alert_reported; /**< Time of last alert issued. */ 
   time_t last_trespassed_threshold; /**< Time of last event that trespassed the threshold. */
   u_int32_t num_trespassed_threshold; /**< Number of consecutives threshold trespassing. */
-  u_int32_t num_hits_rcvd_last_second; /**< Number of hits reported in the last second. */ 
+  u_int32_t num_hits_rcvd_last_second; /**< Number of hits reported in the last second. */
+  u_int32_t last_trespassed_hits; /**< Number of hits during last threshold trespassing */
   
   void init();
 

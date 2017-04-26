@@ -1623,7 +1623,7 @@ local function formatEntity(ifid, entity_type, entity_value, entity_info)
   return entity_value
 end
 
-local function formatThresholdCross(ifid, entity_type, entity_value, entity_info, threshold_info)
+local function formatThresholdCross(ifid, entity_type, entity_value, entity_info, alert_key, threshold_info)
   if threshold_info.metric then
     return "Threshold <b>"..threshold_info.metric.."</b> crossed by "..formatEntity(ifid, entity_type, entity_value, entity_info)..
         " ["..(threshold_info.value).." &"..(threshold_info.operator).."; "..(threshold_info.edge).."]"
@@ -1632,10 +1632,30 @@ local function formatThresholdCross(ifid, entity_type, entity_value, entity_info
   return ""
 end
 
+local function formatSynFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+  if entity_info.anomalies ~= nil then
+    if alert_key == "syn_flood_attacker" then
+      local anomaly_info = entity_info.anomalies.syn_flood_attacker
+
+      return "Host "..formatEntity(ifid, entity_type, entity_value, entity_info).." is a SYN Flooder ("..
+           (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    elseif alert_key == "syn_flood_victim" then
+      local anomaly_info = entity_info.anomalies.syn_flood_victim
+
+      return "Host "..formatEntity(ifid, entity_type, entity_value, entity_info).." is under SYN flood attack ("..
+           (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    end
+  end
+
+  return ""
+end
+
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
   if atype == "threshold_cross" then
-    return formatThresholdCross(ifid, entity_type, entity_value, entity_info, alert_info), "error"
+    return formatThresholdCross(ifid, entity_type, entity_value, entity_info, akey, alert_info), "error"
+  elseif atype == "tcp_syn_flood" then
+    return formatSynFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info), "error"
   end
 
   -- default
@@ -1643,7 +1663,7 @@ local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, 
 end
 
 local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
-  local alert_msg, alevel = formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  local alert_msg, alevel = formatAlertMessage(ifid, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
   local alert_type = alertType(atype)
   local alert_level = alertLevel(alevel)
   local entity = getAlertSource(entity_type, entity_value, "")
@@ -1670,12 +1690,12 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
 end
 
 local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-  if(true) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
+  if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
   engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
 local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-  if(true) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
+  if(verbose) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
@@ -1739,14 +1759,14 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
   local entity_type = alert_source.source
   local entity_value = alert_source.value
 
-  --~ if (granularity == "min") and (entity_type == "host") then
-    --~ -- Populate current_alerts with host anomalies
-    --~ for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
-      --~ if starts(anomal_name, "syn_flood") then
-        --~ addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
-      --~ end
-    --~ end
-  --~ end
+  if (granularity == "min") and (entity_type == "host") then
+    -- Populate current_alerts with host anomalies
+    for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
+      if starts(anomal_name, "syn_flood") then
+        addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
+      end
+    end
+  end
 
   -- Populate current_alerts with threshold crosses
   for _, threshold in pairs(working_status.configured_thresholds[entity] or {}) do
@@ -1902,19 +1922,21 @@ local function check_hosts_alerts(ifid, working_status)
    if hosts ~= nil then
       for host, hoststats in pairs(hosts["hosts"] or {}) do
          local hostinfo = interface.getHostInfo(host)
-         local entity_value = hostinfo2hostkey({host=host, vlan=hostinfo.vlan}, nil, true --[[force vlan]])
-         local old_entity_info = host_threshold_status_rw(working_status.granularity, ifid, hostinfo)  -- read old json
-         local new_entity_info_json = hostinfo["json"]
-         local new_entity_info = j.decode(new_entity_info_json, 1, nil)
+         if hostinfo ~= nil then
+            local entity_value = hostinfo2hostkey({host=host, vlan=hostinfo.vlan}, nil, true --[[force vlan]])
+            local old_entity_info = host_threshold_status_rw(working_status.granularity, ifid, hostinfo)  -- read old json
+            local new_entity_info_json = hostinfo["json"]
+            local new_entity_info = j.decode(new_entity_info_json, 1, nil)
 
-         -- TODO this is little hack to make anomalies apper into the json
-         new_entity_info["anomalies"] = hostinfo.anomalies
+            -- TODO this is little hack to make anomalies apper into the json
+            new_entity_info["anomalies"] = hostinfo.anomalies
 
-         if old_entity_info ~= nil then
-            check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
+            if old_entity_info ~= nil then
+               check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
+            end
+
+            host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
          end
-
-         host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
       end
    end
 end
