@@ -510,6 +510,7 @@ end
 function deleteAlerts(what, options)
    local opts = getUnpagedAlertOptions(options or {})
    performAlertsQuery("DELETE", what, opts)
+   invalidateEngagedAlertsCache()
 end
 
 -- #################################
