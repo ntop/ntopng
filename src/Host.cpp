@@ -1077,52 +1077,8 @@ bool Host::deserialize(char *json_str, char *key) {
 void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
-  if(!localHost || !triggerAlerts()) return;
-
-  if(counter->incHits(when)) {
-    char ip_buf[48], flow_buf[256], msg[512], *h;
-    const char *error_msg;
-
-#if 0
-    /*
-      It's normal that at startup several flows are created
-    */
-    if(ntop->getUptime() < 10 /* sec */) return;
-#endif
-
-    h = ip.print(ip_buf, sizeof(ip_buf));
-
-    if(syn_sent) {
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
-      snprintf(msg, sizeof(msg),
-	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_id(), h,
-	       counter->getCurrentHits(),
-	       counter->getOverThresholdDuration(),
-	       f->print(flow_buf, sizeof(flow_buf)));
-    } else {
-      char attacker_buf[64], *attacker_str;
-      Host *attacker = f->get_srv_host();
-      IpAddress *aip = attacker->get_ip();
-      char aip_buf[48], *aip_ptr;
-
-      attacker_str = attacker->get_ip()->print(attacker_buf, sizeof(attacker_buf));
-      aip_ptr = aip->print(aip_buf, sizeof(aip_buf));
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is under SYN flood attack by host %s [%u SYNs received in the last %u sec] %s";
-      snprintf(msg, sizeof(msg),
-	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_id(), attacker_str, aip_ptr,
-	       counter->getCurrentHits(),
-	       counter->getOverThresholdDuration(),
-	       f->print(flow_buf, sizeof(flow_buf)));
-    }
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    /* the f->get_srv_host() is just a guess */
-    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg,
-					      syn_sent ? this /* .. we are the cause of the trouble */ : f->get_srv_host(),
-					      syn_sent ? f->get_srv_host() /* .. the srve is a victim .. */: this);
-  }
+  if(localHost && triggerAlerts())
+    counter->incHits(when);
 }
 
 /* *************************************** */
