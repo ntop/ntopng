@@ -682,7 +682,7 @@ function printLogging()
 end
 
 function printSnmp()
-  if not ntop.isEnterprise() then return end
+  if not ntop.isPro() then return end
 
   print('<form method="post">')
   print('<table class="table">')

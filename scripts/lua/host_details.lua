@@ -297,7 +297,7 @@ else
 end
 
 if host["localhost"] == true then
-   if(ntop.isEnterprise()) then
+   if(ntop.isPro()) then
       if(page == "snmp") then
 	 print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
       elseif interface.isPcapDumpInterface() == false then
@@ -1655,7 +1655,7 @@ print [[
 </td></tr>
 </table>
 ]]  
-elseif(page == "snmp" and ntop.isEnterprise()) then
+elseif(page == "snmp" and ntop.isPro()) then
    local sys_object_id = true
    local community = get_snmp_community(host_ip)
 
@@ -1667,8 +1667,9 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
 
       local trying =  "<span id='trying_default_community'> Trying to retrieve host SNMP MIB using the default community '"..community.."'"
       trying = trying.. " <img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style='vertical-align:text-top;' id=throbber></span>"
-
-      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+      if ntop.isEnterprise() then
+        print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+      end
       print(trying)
 
       sys_object_id = get_snmp_value(host_ip, community, "1.3.6.1.2.1.1.2.0", false)
