@@ -847,9 +847,9 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
 
-    alertsManager->engageInterfaceAlert(this,
-					(char*)"app_misconfiguration",
-					alert_app_misconfiguration, alert_level_error, alert_msg);
+    // alertsManager->engageInterfaceAlert(this,
+    // 					(char*)"app_misconfiguration",
+    // 					alert_app_misconfiguration, alert_level_error, alert_msg);
     tooManyFlowsAlertTriggered = true;
   }
 }
@@ -865,9 +865,9 @@ void NetworkInterface::triggerTooManyHostsAlert() {
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
 
-    alertsManager->releaseInterfaceAlert(this,
-					 (char*)"app_misconfiguration",
-					 alert_app_misconfiguration, alert_level_error, alert_msg);
+    // alertsManager->releaseInterfaceAlert(this,
+    // 					 (char*)"app_misconfiguration",
+    // 					 alert_app_misconfiguration, alert_level_error, alert_msg);
     tooManyHostsAlertTriggered = true;
   }
 }
@@ -5827,7 +5827,9 @@ int NetworkInterface::getPeerBytes(AddressTree* allowed_networks, lua_State *vm,
 };
 
 int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
-        char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+					     AlertEngine alert_engine,
+					     char *engaged_alert_id,
+					     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
   Host *h;
   AlertsManager *am;
   int rv;
@@ -5836,11 +5838,11 @@ int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char
   if (((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL)
         && ((am = getAlertsManager()) != NULL)) {
     if(engage)
-      rv = am->engageHostAlert(h, engaged_alert_id,
-              alert_type, alert_severity, alert_json);
+      rv = am->engageHostAlert(h, alert_engine, engaged_alert_id,
+			       alert_type, alert_severity, alert_json);
     else
-      rv = am->releaseHostAlert(h, engaged_alert_id,
-              alert_type, alert_severity, alert_json);
+      rv = am->releaseHostAlert(h, alert_engine, engaged_alert_id,
+				alert_type, alert_severity, alert_json);
   } else
     rv = CONST_LUA_ERROR;
 

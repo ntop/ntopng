@@ -144,11 +144,11 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     num_resolve_attempts = 0;
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
-  max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
+  good_low_flow_detected = false;
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0, info = NULL;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  flow_flood_attacker_alert = flow_flood_victim_alert = false, host_label_set = false;
+  host_label_set = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     total_num_flows_as_client = total_num_flows_as_server = 0,
@@ -660,22 +660,26 @@ void Host::setName(char *name) {
 /* *************************************** */
 
 bool Host::hasAnomalies() {
-  return syn_flood_victim_alert->isAboveThreshold()
-    || syn_flood_attacker_alert->isAboveThreshold();
+  time_t now = time(NULL);
+
+  return syn_flood_victim_alert->isAboveThreshold(now)
+    || syn_flood_attacker_alert->isAboveThreshold(now);
 }
 
 /* *************************************** */
 
 void Host::luaAnomalies(lua_State* vm) {
+  time_t now = time(NULL);
+
   if(!vm)
     return;
 
   if(hasAnomalies()) {
     lua_newtable(vm);
 
-    if(syn_flood_victim_alert->isAboveThreshold())
+    if(syn_flood_victim_alert->isAboveThreshold(now))
       syn_flood_victim_alert->lua(vm, "syn_flood_victim");
-    if(syn_flood_attacker_alert->isAboveThreshold())
+    if(syn_flood_attacker_alert->isAboveThreshold(now))
       syn_flood_attacker_alert->lua(vm, "syn_flood_attacker");
 
     lua_pushstring(vm, "anomalies");
@@ -873,8 +877,6 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
-  json_object_object_add(my_object, "flow_flood_attacker_alert", json_object_new_boolean(flow_flood_attacker_alert));
-  json_object_object_add(my_object, "flow_flood_victim_alert",   json_object_new_boolean(flow_flood_victim_alert));
   json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());
   json_object_object_add(my_object, "tcp_rcvd", tcp_rcvd.getJSONObject());
   json_object_object_add(my_object, "udp_sent", udp_sent.getJSONObject());
@@ -1009,8 +1011,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
   if(user_activities) if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities->deserialize(obj);
 
-  if(json_object_object_get_ex(o, "flow_flood_attacker_alert", &obj)) flow_flood_attacker_alert = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "flow_flood_victim_alert", &obj))   flow_flood_victim_alert   = json_object_get_boolean(obj);
   if(json_object_object_get_ex(o, "is_blacklisted", &obj)) blacklisted_host     = json_object_get_boolean(obj);
 
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
@@ -1077,148 +1077,31 @@ bool Host::deserialize(char *json_str, char *key) {
 void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
-  if(!localHost || !triggerAlerts()) return;
-
-  if(counter->incHits(when)) {
-    char ip_buf[48], flow_buf[256], msg[512], *h;
-    const char *error_msg;
-
-#if 0
-    /*
-      It's normal that at startup several flows are created
-    */
-    if(ntop->getUptime() < 10 /* sec */) return;
-#endif
-
-    h = ip.print(ip_buf, sizeof(ip_buf));
-
-    if(syn_sent) {
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
-      snprintf(msg, sizeof(msg),
-	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_id(), h,
-	       counter->getCurrentHits(),
-	       counter->getOverThresholdDuration(),
-	       f->print(flow_buf, sizeof(flow_buf)));
-    } else {
-      char attacker_buf[64], *attacker_str;
-      Host *attacker = f->get_srv_host();
-      IpAddress *aip = attacker->get_ip();
-      char aip_buf[48], *aip_ptr;
-
-      attacker_str = attacker->get_ip()->print(attacker_buf, sizeof(attacker_buf));
-      aip_ptr = aip->print(aip_buf, sizeof(aip_buf));
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is under SYN flood attack by host %s [%u SYNs received in the last %u sec] %s";
-      snprintf(msg, sizeof(msg),
-	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_id(), attacker_str, aip_ptr,
-	       counter->getCurrentHits(),
-	       counter->getOverThresholdDuration(),
-	       f->print(flow_buf, sizeof(flow_buf)));
-    }
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    /* the f->get_srv_host() is just a guess */
-    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg,
-					      syn_sent ? this /* .. we are the cause of the trouble */ : f->get_srv_host(),
-					      syn_sent ? f->get_srv_host() /* .. the srve is a victim .. */: this);
-  }
+  if(localHost && triggerAlerts())
+    counter->incHits(when);
 }
 
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  if(as_client) {
+  if(as_client)
     total_num_flows_as_client++, num_active_flows_as_client++;
-
-    if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is a possible scanner [%u active flows exceeded]";
-      char ip_buf[48], *h, msg[512];
-
-      h = ip.print(ip_buf, sizeof(ip_buf));
-
-      snprintf(msg, sizeof(msg),
-	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_id(), h, max_num_active_flows);
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      iface->getAlertsManager()->engageHostAlert(this,
-						 (char*)"scan_attacker",
-						 alert_flow_flood, alert_level_error, msg,
-						 this /* the originator of the alert, i.e., the cause of the trouble */,
-						 NULL /* the target of the alert, possibly many hosts */);
-      flow_flood_attacker_alert = true;
-    }
-  } else {
+  else
     total_num_flows_as_server++, num_active_flows_as_server++;
-
-    if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is possibly under scan attack [%u active flows exceeded]";
-      char ip_buf[48], *h, msg[512];
-
-      h = ip.print(ip_buf, sizeof(ip_buf));
-
-      snprintf(msg, sizeof(msg),
-	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_id(), h, max_num_active_flows);
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      iface->getAlertsManager()->engageHostAlert(this,
-						 (char*)"scan_victim",
-						 alert_flow_flood, alert_level_error, msg,
-						 NULL /* presently we don't know the originator(s) of the alert ... */,
-						 this /* ... but we can say that we're the victim ... */);
-      flow_flood_victim_alert = true;
-    }
-  }
 }
 
 /* *************************************** */
 
 void Host::decNumFlows(bool as_client) {
   if(as_client) {
-    if(num_active_flows_as_client) {
+    if(num_active_flows_as_client)
       num_active_flows_as_client--;
-
-      if(num_active_flows_as_client <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_attacker_alert) {
-	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is no longer a possible scanner [less than %u active flows]";
-	char ip_buf[48], *h, msg[512];
-
-	h = ip.print(ip_buf, sizeof(ip_buf));
-
-	snprintf(msg, sizeof(msg),
-		 error_msg, ntop->getPrefs()->get_http_prefix(),
-		 h, iface->get_id(), h, max_num_active_flows);
-
-	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	iface->getAlertsManager()->releaseHostAlert(this,
-						    (char*)"scan_attacker",
-						    alert_flow_flood, alert_level_error, msg);
-	flow_flood_attacker_alert = false;
-      }
-    } else
+    else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   } else {
-    if(num_active_flows_as_server) {
+    if(num_active_flows_as_server)
       num_active_flows_as_server--;
-
-      if(num_active_flows_as_server <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_victim_alert) {
-	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifid=%d>%s</A> is no longer under scan attack [less than %u active flows]";
-	char ip_buf[48], *h, msg[512];
-
-	h = ip.print(ip_buf, sizeof(ip_buf));
-
-	snprintf(msg, sizeof(msg),
-		 error_msg, ntop->getPrefs()->get_http_prefix(),
-		 h, iface->get_id(), h, max_num_active_flows);
-
-	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
-	iface->getAlertsManager()->releaseHostAlert(this,
-						    (char*)"scan_victim",
-						    alert_flow_flood, alert_level_error, msg);
-	flow_flood_victim_alert = false;
-      }
-    } else
+    else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
 }
@@ -1422,19 +1305,6 @@ void Host::loadSynAlertPrefs(const char *ip_buf) {
 
 /* *************************************** */
 
-void Host::loadFlowsAlertPrefs(const char *ip_buf) {
-  u_int32_t retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
-  char rkey[128], rsp[16];
-
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_THRESHOLD, ip_buf, vlan_id);
-  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-    retval = (u_int32_t)strtoul(rsp, NULL, 10);
-
-  max_num_active_flows = retval;
-}
-
-/* *************************************** */
-
 void Host::resetPeriodicStats() {
   ((GenericHost*)this)->resetPeriodicStats();
 }
@@ -1492,7 +1362,6 @@ void Host::refreshHostAlertPrefs() {
 
         loadFlowRateAlertPrefs(key);
         loadSynAlertPrefs(key);
-        loadFlowsAlertPrefs(key);
       }
     }
   }
@@ -1555,10 +1424,10 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     c, iface->get_id(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
-    iface->getAlertsManager()->engageHostAlert(this,
-					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
-					       asClient ? alert_host_under_attack : alert_host_attacker,
-					       alert_level_error, msg);
+    // iface->getAlertsManager()->engageHostAlert(this,
+    // 					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
+    // 					       asClient ? alert_host_under_attack : alert_host_attacker,
+    // 					       alert_level_error, msg);
 #endif
     good_low_flow_detected = true;
   }

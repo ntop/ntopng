@@ -42,7 +42,8 @@ class AlertCounter {
   time_t time_last_alert_reported; /**< Time of last alert issued. */ 
   time_t last_trespassed_threshold; /**< Time of last event that trespassed the threshold. */
   u_int32_t num_trespassed_threshold; /**< Number of consecutives threshold trespassing. */
-  u_int32_t num_hits_rcvd_last_second; /**< Number of hits reported in the last second. */ 
+  u_int32_t num_hits_rcvd_last_second; /**< Number of hits reported in the last second. */
+  u_int32_t last_trespassed_hits; /**< Number of hits during last threshold trespassing */
   
   void init();
 
@@ -53,7 +54,7 @@ class AlertCounter {
   bool incHits(time_t when);
   inline u_int32_t getCurrentHits()          { return(num_hits_since_first_alert);  };
   inline u_int8_t getOverThresholdDuration() { return(over_threshold_duration_sec); };
-  inline bool isAboveThreshold()             { return(thresholdTrepassed);          };
+  inline bool isAboveThreshold(time_t when)  { return(thresholdTrepassed && (when <= last_trespassed_threshold+CONST_ALERT_GRACE_PERIOD) ); };
   void resetThresholds(u_int32_t _max_num_hits_sec, u_int8_t _over_threshold_duration_sec);
   void lua(lua_State* vm, const char *table_key);
 };

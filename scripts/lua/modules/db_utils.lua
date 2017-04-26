@@ -797,11 +797,11 @@ function checkOpenFiles()
       local engaged_alerts = alert_cache["num_alerts_engaged"]
 
       if open_files_too_small == true then
-	 interface.engageInterfaceAlert(alert_id, alert_type, alert_severity, alert_msg)
+	 interface.engageInterfaceAlert(alertEngine("startup"), alert_id, alert_type, alert_severity, alert_msg)
 	 engaged_alerts = engaged_alerts + 1
       else
 	 if engaged_alerts > 0 then
-	    interface.releaseInterfaceAlert(alert_id, alert_type, alert_severity, alert_msg)
+	    interface.releaseInterfaceAlert(alertEngine("startup"), alert_id, alert_type, alert_severity, alert_msg)
 	 end
       end
 

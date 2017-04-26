@@ -499,7 +499,8 @@ class NetworkInterface {
   int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
   int getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip, u_int16_t host_vlan, u_int32_t peer_key);
   int engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
-        char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+			     AlertEngine alert_engine,
+			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };

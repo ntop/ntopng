@@ -327,7 +327,6 @@
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
 #define CONST_MAX_NUM_SYN_PER_SECOND  8192
-#define CONST_MAX_NUM_HOST_ACTIVE_FLOWS 32768
 #define CONST_MAX_NEW_FLOWS_SECOND    25
 #define CONST_ALERT_GRACE_PERIOD      60 /* No more than 1 alert/min */
 #define CONST_CONTACTED_BY            "contacted_by"
@@ -363,12 +362,10 @@
 #define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
 #define CONST_IFACE_SYN_ALERT         "ntopng.prefs.%s:%d.syn_alert_threshold"
 #define CONST_IFACE_FLOW_RATE         "ntopng.prefs.%s:%d.flow_rate_alert_threshold"
-#define CONST_IFACE_FLOW_THRESHOLD    "ntopng.prefs.%s:%d.flows_alert_threshold"
 #define CONST_REMOTE_HOST_IDLE_PREFS  "ntopng.prefs.non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS     "ntopng.prefs.flow_max_idle"
 #define CONST_MAX_NEW_FLOWS_PREFS     "ntopng.prefs.host_max_new_flows_sec_threshold"
 #define CONST_MAX_NUM_SYN_PREFS       "ntopng.prefs.host_max_num_syn_sec_threshold"
-#define CONST_MAX_NUM_FLOWS_PREFS     "ntopng.prefs.host_max_num_active_flows"
 #define CONST_INTF_RRD_RAW_DAYS       "ntopng.prefs.intf_rrd_raw_days"
 #define CONST_INTF_RRD_1MIN_DAYS      "ntopng.prefs.intf_rrd_1min_days"
 #define CONST_INTF_RRD_1H_DAYS        "ntopng.prefs.intf_rrd_1h_days"
@@ -591,7 +588,7 @@
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v3.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v4.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_SET_NAME    "ntopng.alerts.ifid_%i.make_room"
 #define ALERTS_MANAGER_TYPE_FIELD            "alert_type"

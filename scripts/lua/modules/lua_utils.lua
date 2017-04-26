@@ -373,6 +373,14 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
+alert_engine_keys = {
+   {"1 Minute",  0, "min"    },
+   {"5 Minutes", 1, "5mins"  },
+   {"Hourly",    2, "hour"   },
+   {"Daily",     3, "day"    },
+   {"Startup",   4, "startup"},
+}
+
 alert_functions_description = {
     ["active"]  = "Active host time (seconds)",
     ["bytes"]   = "Layer 2 bytes delta (sent + received)",
@@ -381,6 +389,7 @@ alert_functions_description = {
     ["packets"] = "Packets delta (sent + received)",
     ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
     ["throughput"]   = "Average throughput (sent + received) [Mbps]",
+    ["flows"]   = "Flows (sent + received)",
 }
 
 network_alert_functions_description = {
@@ -428,6 +437,23 @@ function alertType(v)
       typetable[#typetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(typetable, v))
+end
+
+function alertEngine(v)
+   local enginetable = {}
+   for i, t in ipairs(alert_engine_keys) do
+      enginetable[#enginetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(enginetable, v))
+end
+
+function alertLevel(v)
+   local leveltable = {}
+
+   for i, t in ipairs(alert_level_keys) do
+      leveltable[#leveltable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(leveltable, v))
 end
 
 function alertTypeRaw(alert_idx)

@@ -46,6 +46,7 @@ void AlertCounter::init() {
   num_hits_rcvd_last_second = 0;
   last_trespassed_threshold = 0, num_trespassed_threshold = 0;
   num_hits_since_first_alert = 0;
+  last_trespassed_hits = 0;
   thresholdTrepassed = false;
 }
 
@@ -87,13 +88,17 @@ bool AlertCounter::incHits(time_t when) {
              num_hits_rcvd_last_second, max_num_hits_sec);
 #endif
 	time_last_alert_reported = when;
+	last_trespassed_hits = num_hits_rcvd_last_second;
 	thresholdTrepassed = true;
 	return(thresholdTrepassed);
       }
     }
   }  
 
-  thresholdTrepassed = false;
+  /* Do not reset the flag immediately, we need time to process it from LUA */
+  if(when > (time_last_alert_reported+CONST_ALERT_GRACE_PERIOD))
+    thresholdTrepassed = false;
+
   return(thresholdTrepassed);
 }
 
@@ -112,6 +117,7 @@ void AlertCounter::lua(lua_State* vm, const char *table_key) {
     lua_push_int_table_entry(vm, "last_trespassed_threshold", last_trespassed_threshold);
     lua_push_int_table_entry(vm, "num_trespassed_threshold", num_trespassed_threshold);
     lua_push_int_table_entry(vm, "num_hits_rcvd_last_second", num_hits_rcvd_last_second);
+    lua_push_int_table_entry(vm, "last_trespassed_hits", last_trespassed_hits);
     lua_push_bool_table_entry(vm, "threshold_trepassed", thresholdTrepassed);
 
     lua_pushstring(vm, table_key ? table_key : (char*)"alert_counter");
