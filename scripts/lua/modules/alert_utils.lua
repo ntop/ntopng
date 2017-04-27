@@ -1980,4 +1980,4 @@ function scanAlerts(granularity, ifname)
 end
 
 -- DEBUG: uncomment this to test
-scanAlerts("min", "wlan0")
+--~ scanAlerts("min", "wlan0")

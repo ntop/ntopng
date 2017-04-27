@@ -95,9 +95,7 @@ bool AlertCounter::incHits(time_t when) {
     }
   }  
 
-  /* Do not reset the flag immediately, we need time to process it from LUA */
-  if(when > (time_last_alert_reported+CONST_ALERT_GRACE_PERIOD))
-    thresholdTrepassed = false;
+  thresholdTrepassed = false;
 
   return(thresholdTrepassed);
 }
