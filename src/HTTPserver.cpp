@@ -411,6 +411,28 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 
 /* ****************************************** */
 
+static void redirect_to_password_change(struct mg_connection *conn,
+				    const struct mg_request_info *request_info) {
+  char session_id[33], buf[128];
+
+  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
+
+    mg_printf(conn,
+	      "HTTP/1.1 302 Found\r\n"
+	      "Set-Cookie: session=%s; path=/; HttpOnly\r\n"  // Session ID
+	      "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
+	      session_id,
+	      ntop->getPrefs()->get_http_prefix(),
+	      Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
+	      (char*)mg_get_header(conn, "Host"),
+	      conn->request_info.uri,
+	      conn->request_info.query_string ? "%3F" /* ? */: "",
+	      conn->request_info.query_string ? conn->request_info.query_string : "");
+}
+
+/* ****************************************** */
+
 // A handler for the /authorize endpoint.
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
@@ -566,6 +588,11 @@ static int handle_lua_request(struct mg_connection *conn) {
     ;
   else if((!whitelisted) && (!is_authorized(conn, request_info, username, sizeof(username)))) {
     redirect_to_login(conn, request_info, (char*)mg_get_header(conn, "Host"));
+    return(1);
+  } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
+      && (strcmp(request_info->uri, LOGOUT_URL) != 0)
+      && ntop->mustChangePassword(username)) {
+    redirect_to_password_change(conn, request_info);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
     authorize(conn, request_info, username);
