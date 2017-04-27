@@ -30,7 +30,7 @@ end
 
 -- It is safe to call this multiple times
 local function initInterfacePools(ifid)
-  host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
+  host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME, false)
 end
 
 local function get_pool_detail(ifid, pool_id, detail)
@@ -42,12 +42,13 @@ end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.createPool(ifid, pool_id, pool_name)
+function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe)
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
 
   ntop.setMembersCache(ids_key, pool_id)
   ntop.setHashCache(details_key, "name", pool_name)
+  ntop.setHashCache(details_key, "children_safe", tostring(children_safe))
 end
 
 function host_pools_utils.deletePool(ifid, pool_id)
@@ -171,7 +172,11 @@ function host_pools_utils.getPoolsList(ifid, without_info)
     if without_info then
       pool = {id=pool_id}
     else
-      pool = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+      pool = {
+        id = pool_id,
+        name = host_pools_utils.getPoolName(ifid, pool_id),
+        children_safe = host_pools_utils.getChildrenSafe(ifid, pool_id),
+      }
     end
 
     pools[#pools + 1] = pool
@@ -238,6 +243,10 @@ end
 
 function host_pools_utils.getPoolName(ifid, pool_id)
   return get_pool_detail(ifid, pool_id, "name")
+end
+
+function host_pools_utils.getChildrenSafe(ifid, pool_id)
+  return toboolean(get_pool_detail(ifid, pool_id, "children_safe"))
 end
 
 function host_pools_utils.initPools()

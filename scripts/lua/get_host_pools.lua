@@ -81,6 +81,7 @@ if((ifid ~= nil) and (isAdministrator())) then
             column_pool_id = pool.id,
             column_pool_name = pool.name,
             column_pool_undeletable = undeletable_pools[pool.id] or false,
+            column_children_safe = pool.children_safe,
             column_pool_link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool.id
           }
         end

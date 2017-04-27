@@ -24,16 +24,20 @@ if _POST["edit_pools"] ~= nil then
   local config = paramsPairsDecode(_POST, true)
 
   for pool_id, pool_name in pairs(config) do
-    if tonumber(pool_id) == nil then
-      http_lint.validationError(_POST, "pool_id", pool_id, "Invalid pool id")
-    end
+    -- Filter pool ids only
+    if tonumber(pool_id) ~= nil then
+      local children_safe = false
+      if config["_csafe_"..pool_id] ~= nil then
+        children_safe = config["_csafe_"..pool_id]
+      end
 
-    -- create or rename
-    host_pools_utils.createPool(ifId, pool_id, pool_name)
+      -- create or rename
+      host_pools_utils.createPool(ifId, pool_id, pool_name, children_safe)
 
-    if(interface.isBridgeInterface(ifId) == true) then
-      -- create default shapers
-      shaper_utils.initDefaultShapers(ifid, pool_id)
+      if(interface.isBridgeInterface(ifId) == true) then
+        -- create default shapers
+        shaper_utils.initDefaultShapers(ifid, pool_id)
+      end
     end
   end
   -- Note: do not call reload here
@@ -767,6 +771,10 @@ print [[
         nextPoolId = Math.min(nextPoolId, pool_id);
     }
 
+    function makeChildrenSafeInput(value) {
+      return $('<input name="children_safe" type="checkbox"' + ((value == true) ? " checked" : "") + '/>');
+    }
+
     function addPool() {
       var pool_id = nextPoolId;
 
@@ -784,8 +792,10 @@ print [[
       if (pool_id < maxPoolNum) {
         var newid = "added_pool_" + pool_id;
 
-        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center"></td></tr>');
-        datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
+        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center"></td><td class="text-center"></td></tr>');
+        var children_safe = $("td:nth-child(4)", tr);
+        children_safe.html(makeChildrenSafeInput());
+        datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
         datatableOrderedInsert("#table-create table", 1, tr, pool_id);
         $("input", tr).focus();
 
@@ -829,6 +839,13 @@ print [[
             field: "column_pool_undeletable",
             hidden: true,
          }, {
+            title: "]] print(i18n("host_pools.children_safe")) print[[",
+            field: "column_children_safe",
+            css : {
+               width: '7%',
+               textAlign: 'center',
+            }
+         }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
                width: '15%',
@@ -846,7 +863,8 @@ print [[
             var pool_id = $("td:nth-child(1)", $(this)).html();
             var pool_name = $("td:nth-child(2)", $(this));
             var pool_undeletable = $("td:nth-child(3)", $(this)).html() === "true";
-            var pool_link = $("td:nth-child(5)", $(this)).html();
+            var children_safe = $("td:nth-child(4)", $(this));
+            var pool_link = $("td:nth-child(6)", $(this)).html();
 
             /* Make pool name editable */
             var input = $(']] printPoolNameField('pool_id') print[[');
@@ -854,14 +872,17 @@ print [[
             $("input", input).first().val(value);
             pool_name.html(input);
 
+            /* Make children safe editable */
+            children_safe.html(makeChildrenSafeInput(children_safe.html() === "true"));
+
             if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
               $("input", input).first().attr("disabled", "disabled");
             } else {
-              datatableAddLinkButtonCallback.bind(this)(4, pool_link, "View");
-              datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+              datatableAddLinkButtonCallback.bind(this)(5, pool_link, "View");
+              datatableAddDeleteButtonCallback.bind(this)(5, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
               if (pool_undeletable)
-                $("td:nth-child(4) a", $(this)).last().attr("disabled", "disabled");
+                $("td:nth-child(5) a", $(this)).last().attr("disabled", "disabled");
             }
          });
 
@@ -891,8 +912,10 @@ print [[
       // build the settings object
       var settings = {};
       $("input[name^='pool_']", form).each(function() {
+        var children_safe = $("input[name='children_safe']", $(this).closest("tr")).is(':checked');
         var pool_id = $(this).attr("name").split("pool_")[1];
         settings[pool_id] = $(this).val();
+        settings["_csafe_" + pool_id] = children_safe;
       });
 
       // reset ays so that we can submit a custom form
