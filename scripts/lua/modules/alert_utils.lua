@@ -709,165 +709,16 @@ end
 
 -- #################################
 
-function drawAlertSettings(alert_source, alert_val)
-   local alerts_enabled
-
-   -- host specific
-   local flow_rate_alert_thresh
-   local syn_alert_thresh
-
-   if not isAdministrator() then
-      return
-   end
-
-   -- handle settings change
-   local config_changed = false
-
-   local trigger_alerts = _POST["trigger_alerts"]
-   local ifid = getInterfaceId(ifname)
-
-   if(trigger_alerts ~= nil) then
-      if(trigger_alerts == "true") then
-         ntop.delHashCache(get_alerts_suppressed_hash_name(ifid), alert_val)
-         alerts_enabled = true
-      else
-         ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), alert_val, trigger_alerts)
-         alerts_enabled = false
-      end
-      config_changed = true
-   else
-      if are_alerts_suppressed(alert_val, ifid) then
-         alerts_enabled = false
-      else
-         alerts_enabled = true
-      end
-   end
-
-   if alert_source.source == "host" then
-      local hostInfo = hostkey2hostinfo(alert_val)
-      local host_ip = hostInfo["host"]
-      local host_vlan = hostInfo["vlan"]
-
-      flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
-      syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
-
-      if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
-         ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
-         flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
-         config_changed = true
-      else
-         local v = nil
-         if _POST["flow_rate_alert_threshold"] == nil then
-            v = ntop.getPref(flow_rate_alert_thresh)
-         end
-
-         if v ~= nil and v ~= "" then
-            flow_rate_alert_thresh = v
-         else
-            flow_rate_alert_thresh = 25
-         end
-      end
-
-      if _POST["syn_alert_threshold"] ~= nil and _POST["syn_alert_threshold"] ~= "" then
-         ntop.setPref(syn_alert_thresh, _POST["syn_alert_threshold"])
-         syn_alert_thresh = _POST["syn_alert_threshold"]
-         config_changed = true
-      else
-         local v = nil
-         if _POST["syn_alert_threshold"] == nil then
-            v = ntop.getPref(syn_alert_thresh)
-         end
-
-         if v ~= nil and v ~= "" then
-            syn_alert_thresh = v
-         else
-            syn_alert_thresh = 10
-         end
-      end
-   end
-
-   if config_changed then
-      if alert_source.source == "host" then
-         local hostInfo = hostkey2hostinfo(alert_val)
-         local host_ip = hostInfo["host"]
-         local host_vlan = hostInfo["vlan"]
-
-         -- io.write("Reloading host '"..host_ip.."' alerts configuration...\n")
-         interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
-      end
-   end
-
-   print("<table class=\"table table-striped table-bordered\">\n")
-
-   -- Source agnostic settings
-
-   local alerts_checked
-   local alerts_value
-   if alerts_enabled then
-      alerts_checked = 'checked="checked"'
-      alerts_value = "false" -- Opposite
-   else
-      alerts_checked = ""
-      alerts_value = "true" -- Opposite
-   end
-
-   print [[
-         <tr><th>]] print(alert_source.title) print[[ Alerts</th><td nowrap>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print[[<input type="hidden" name="tab" value="alerts_preferences">]]
-   print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for '.. alert_source.label ..'</input>')
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print('</form>')
-   print('</td>')
-   print [[</tr>]]
-
-   -- Source specific settings
-   if alert_source.source == "host" then
-      print("<tr><th width=250>" .. alert_source.title .. " Flow Alert Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type="number" name="flow_rate_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="')
-      print(tostring(flow_rate_alert_thresh))
-      print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-       </form>
-   <small>
-       Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
-   </small>]]
-	 print[[
-       </td></tr>
-          ]]
-
-      print("<tr><th width=250>" .. alert_source.title .. " SYN Alert Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="syn_alert_threshold" style="width:7em;" placeholder="" min="0" step="5" max="100000" value="]]
-      print(tostring(syn_alert_thresh))
-      print [["></input>
-         &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-       </form>
-   <small>
-       Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
-   </small>]]
-	 print[[
-       </td></tr>
-          ]]
-   end
-
-   print("</table>")
-end
-
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
+   local source = getAlertSource("", alert_source, "")
 
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
-   if alert_source:match("/") then
+   if source.source == "network" then
       descr = network_alert_functions_description
-   elseif not alert_source:match("%.") then
+   elseif source.source == "interface" then
       -- interface
       descr = table.clone(alert_functions_description)
       descr["active"] = nil
@@ -875,6 +726,14 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    else
       -- host
       descr = alert_functions_description
+   end
+
+   local flow_rate_alert_thresh_key, syn_alert_thresh_key
+   local flow_rate_alert_thresh, syn_alert_thresh
+
+   if source.source == "host" then
+      flow_rate_alert_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
+      syn_alert_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
    end
 
    print('<ul class="nav nav-tabs">')
@@ -916,9 +775,8 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       end
    end
 
-   if(tab == nil) then tab = "alert_settings" end
-
-   printTab("alert_settings", '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;General Settings', tab)
+   -- Default tab
+   if(tab == nil) then tab = "min" end
 
    for _,e in pairs(alerts_granularity) do
       local k = e[1]
@@ -931,8 +789,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
    if((show_entity) and (tab == "alert_list")) then
       drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
-   elseif(tab == "alert_settings") then
-      drawAlertSettings(getAlertSource(show_entity, alert_source, alt_name), alert_source)
    else
       -- Before doing anything we need to check if we need to save values
 
@@ -941,6 +797,12 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       to_save = false
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
+         -- Delete spcific settings
+         if source.source == "host" then
+            ntop.delCache(flow_rate_alert_thresh_key)
+            ntop.delCache(syn_alert_thresh_key)
+            interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
+         end
          delete_alert_configuration(alert_source, ifname)
          alerts = nil
       else
@@ -959,6 +821,27 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 		  if ntop.isPro() then ntop.withdrawNagiosAlert(alert_source, tab, k, "alarm not installed") end
 	       end
 	    end
+
+          -- Save specific settings
+          if (source.source == "host") and (_POST["flow_rate_alert_threshold"] ~= nil) then
+            flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
+            syn_alert_thresh = _POST["syn_alert_threshold"]
+
+            if isEmptyString(flow_rate_alert_thresh) then
+              ntop.delCache(flow_rate_alert_thresh_key)
+            else
+              ntop.setPref(flow_rate_alert_thresh_key, flow_rate_alert_thresh)
+            end
+
+            if isEmptyString(syn_alert_thresh_key) then
+              ntop.delCache(syn_alert_thresh_key)
+            else
+              ntop.setPref(syn_alert_thresh_key, syn_alert_thresh)
+            end
+
+            -- io.write("Reloading host '"..host_ip.."' alerts configuration...\n")
+            interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
+          end
          end
 
          --print(alerts)
@@ -1017,6 +900,27 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          print("\">\n\n")
          print("<br><small>"..v.."</small>\n")
          print("</td></tr>\n")
+      end
+
+      if (source.source == "host") and (tab == "min") then
+        if isEmptyString(flow_rate_alert_thresh) then flow_rate_alert_thresh = ntop.getPref(flow_rate_alert_thresh_key) end
+        if isEmptyString(flow_rate_alert_thresh) then flow_rate_alert_thresh = 25 end
+        if isEmptyString(syn_alert_thresh) then syn_alert_thresh = ntop.getPref(syn_alert_thresh_key) end
+        if isEmptyString(syn_alert_thresh) then syn_alert_thresh = 10 end
+
+        print("<tr><th>" .. source.title .. " Flow Alert Threshold</th><td>\n")
+        print('<input type="number" name="flow_rate_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="')
+        print(tostring(flow_rate_alert_thresh))
+        print [["></input><br>
+          <small>Max number of new flows/sec over which a host is considered a flooder.</small>
+          </td></tr>]]
+
+        print("<tr><th>" .. source.title .. " SYN Alert Threshold</th><td>\n")
+        print('<input type="number" name="syn_alert_threshold" style="width:7em;" placeholder="" min="0" step="5" max="100000" value="')
+        print(tostring(syn_alert_thresh))
+        print [["></input><br>
+          <small>Max number of sent TCP SYN packets/sec over which a host is considered a flooder.</small>
+          </td></tr>]]
       end
 
       print [[
