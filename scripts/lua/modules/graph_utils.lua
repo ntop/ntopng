@@ -1148,8 +1148,10 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    --io.write(prefixLabel.."\n")
 
-   if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then
+   if(prefixLabel == "Bytes") then
       prefixLabel = "Traffic"
+   elseif string.starts(rrdFile, "categories/") then
+      prefixLabel = prefixLabel.." Traffic"
    end
 
    if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
