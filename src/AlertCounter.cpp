@@ -95,7 +95,8 @@ bool AlertCounter::incHits(time_t when) {
     }
   }  
 
-  thresholdTrepassed = false;
+  if ((num_hits_rcvd_last_second < max_num_hits_sec) && (last_trespassed_threshold < (when-1)))
+    thresholdTrepassed = false;
 
   return(thresholdTrepassed);
 }
