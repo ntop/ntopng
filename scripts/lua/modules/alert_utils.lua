@@ -1626,13 +1626,27 @@ local function formatSynFlood(ifid, entity_type, entity_value, entity_info, aler
     if alert_key == "syn_flood_attacker" then
       local anomaly_info = entity_info.anomalies.syn_flood_attacker
 
-      return "Host "..formatEntity(ifid, entity_type, entity_value, entity_info).." is a SYN Flooder ("..
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
            (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
     elseif alert_key == "syn_flood_victim" then
       local anomaly_info = entity_info.anomalies.syn_flood_victim
 
-      return "Host "..formatEntity(ifid, entity_type, entity_value, entity_info).." is under SYN flood attack ("..
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
            (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    end
+  end
+
+  return ""
+end
+
+local function formatMisconfiguredApp(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+  if entity_info.anomalies ~= nil then
+    if alert_key == "too_many_flows" then
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info))..
+          " has too many flows. Please extend the --max-num-flows/-X command line option"
+    elseif alert_key == "too_many_hosts" then
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info))..
+          " has too many hosts. Please extend the --max-num-hosts/-x command line option"
     end
   end
 
@@ -1641,14 +1655,19 @@ end
 
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+  -- Defaults
+  local msg = ""
+  local severity = "error"
+
   if atype == "threshold_cross" then
-    return formatThresholdCross(ifid, entity_type, entity_value, entity_info, akey, alert_info), "error"
+    msg = formatThresholdCross(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "tcp_syn_flood" then
-    return formatSynFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info), "error"
+    msg = formatSynFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+  elseif atype == "misconfigured_app" then
+    msg = formatMisconfiguredApp(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   end
 
-  -- default
-  return "", "error"
+  return msg, severity
 end
 
 local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
@@ -1748,11 +1767,16 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
   local entity_type = alert_source.source
   local entity_value = alert_source.value
 
-  if (granularity == "min") and (entity_type == "host") then
-    -- Populate current_alerts with host anomalies
+  if granularity == "min" then
+    -- Populate current_alerts with anomalies
     for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
       if starts(anomal_name, "syn_flood") then
         addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
+      elseif starts(anomal_name, "too_many_") then
+        addAlertInfo(current_alerts, "misconfigured_app", anomal_name, anomaly)
+      else
+        -- default anomaly - empty alert key
+        addAlertInfo(current_alerts, anomal_name, "", anomaly)
       end
     end
   end
@@ -1956,4 +1980,4 @@ function scanAlerts(granularity, ifname)
 end
 
 -- DEBUG: uncomment this to test
---~ scanAlerts("min", "wlan0")
+scanAlerts("min", "wlan0")

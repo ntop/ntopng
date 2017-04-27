@@ -84,7 +84,7 @@ class NetworkInterface {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
-  bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
+  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   u_int32_t ifSpeed, numL2Devices, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -177,8 +177,6 @@ class NetworkInterface {
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
-  void triggerTooManyHostsAlert();
-  void triggerTooManyFlowsAlert();
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   bool walker(WalkerType wtype,
 	      bool (*walker)(GenericHashEntry *h, void *user_data),

@@ -240,7 +240,7 @@ void NetworkInterface::init() {
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
-    tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
+    has_too_many_hosts = has_too_many_flows = false,
     pkt_dumper = NULL, numL2Devices = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false;
@@ -818,7 +818,7 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 	oom_warning_sent = true;
       }
 
-      triggerTooManyFlowsAlert();
+      has_too_many_flows = true;
       return(NULL);
     }
 
@@ -828,47 +828,13 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
     } else {
       delete ret;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many flows");
+      has_too_many_flows = true;
       return(NULL);
     }
   } else {
     *new_flow = false;
+    has_too_many_flows = false;
     return(ret);
-  }
-}
-
-/* **************************************************** */
-
-void NetworkInterface::triggerTooManyFlowsAlert() {
-  if(!tooManyFlowsAlertTriggered) {
-    char alert_msg[512];
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='%s/lua/if_stats.lua?ifid=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
-	     ntop->getPrefs()->get_http_prefix(),
-	     id, get_name());
-
-    // alertsManager->engageInterfaceAlert(this,
-    // 					(char*)"app_misconfiguration",
-    // 					alert_app_misconfiguration, alert_level_error, alert_msg);
-    tooManyFlowsAlertTriggered = true;
-  }
-}
-
-/* **************************************************** */
-
-void NetworkInterface::triggerTooManyHostsAlert() {
-  if(!tooManyHostsAlertTriggered) {
-    char alert_msg[512];
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='%s/lua/if_stats.lua?ifid=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
-	     ntop->getPrefs()->get_http_prefix(),
-	     id, get_name());
-
-    // alertsManager->releaseInterfaceAlert(this,
-    // 					 (char*)"app_misconfiguration",
-    // 					 alert_app_misconfiguration, alert_level_error, alert_msg);
-    tooManyHostsAlertTriggered = true;
   }
 }
 
@@ -2059,7 +2025,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
       *src = *dst = NULL;
-      triggerTooManyHostsAlert();
+      has_too_many_hosts = true;
       return;
     }
 
@@ -2068,9 +2034,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *src;
       *src = *dst = NULL;
-      triggerTooManyHostsAlert();
+      has_too_many_hosts = true;
       return;
     }
+
+    has_too_many_hosts = false;
   }
 
   /* ***************************** */
@@ -2080,7 +2048,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   if((*dst) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
       *dst = NULL;
-      triggerTooManyHostsAlert();
+      has_too_many_hosts = true;
       return;
     }
 
@@ -2089,9 +2057,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *dst;
       *dst = NULL;
-      triggerTooManyHostsAlert();
+      has_too_many_hosts = true;
       return;
     }
+
+    has_too_many_hosts = false;
   }
 }
 
@@ -4124,6 +4094,14 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "mtu", ifMTU);
   lua_push_int_table_entry(vm, "alertLevel", alertLevel);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
+
+  /* Anomalies */
+  lua_newtable(vm);
+  if (has_too_many_flows) lua_push_bool_table_entry(vm, "too_many_flows", true);
+  if (has_too_many_hosts) lua_push_bool_table_entry(vm, "too_many_hosts", true);
+  lua_pushstring(vm, "anomalies");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
 	   &_ndpiStats, &_pktStats, &_tcpPacketStats);
