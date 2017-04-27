@@ -52,6 +52,7 @@ class Host : public GenericHost {
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
 #endif
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
+  AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   TrafficStats tcp_sent, tcp_rcvd;
   TrafficStats udp_sent, udp_rcvd;
   TrafficStats icmp_sent, icmp_rcvd;

@@ -1623,16 +1623,32 @@ end
 
 local function formatSynFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
   if entity_info.anomalies ~= nil then
-    if alert_key == "syn_flood_attacker" then
+    if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
       local anomaly_info = entity_info.anomalies.syn_flood_attacker
 
       return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
            (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-    elseif alert_key == "syn_flood_victim" then
+    elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
       local anomaly_info = entity_info.anomalies.syn_flood_victim
 
       return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
            (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    end
+  end
+
+  return ""
+end
+
+local function formatFlowsFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+  if entity_info.anomalies ~= nil then
+    if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
+      local anomaly_info = entity_info.anomalies.flows_flood_attacker
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
+           (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
+      local anomaly_info = entity_info.anomalies.flows_flood_victim
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
+           (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
     end
   end
 
@@ -1663,6 +1679,8 @@ local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, 
     msg = formatThresholdCross(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "tcp_syn_flood" then
     msg = formatSynFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+  elseif atype == "flows_flood" then
+    msg = formatFlowsFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "misconfigured_app" then
     msg = formatMisconfiguredApp(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   end
@@ -1772,6 +1790,8 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
       if starts(anomal_name, "syn_flood") then
         addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
+      elseif starts(anomal_name, "flows_flood") then
+        addAlertInfo(current_alerts, "flows_flood", anomal_name, anomaly)
       elseif starts(anomal_name, "too_many_") then
         addAlertInfo(current_alerts, "misconfigured_app", anomal_name, anomaly)
       else
