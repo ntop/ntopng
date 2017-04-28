@@ -132,13 +132,16 @@ end
 -- Get the hash key used for saving global settings
 function get_global_alerts_hash_key(alert_source)
    local source = getAlertSource("", alert_source, "")
+   source = source and source.source
 
-   if source.source == "host" then
+   if source == "host" then
       return "local_hosts"
-   elseif source.source == "interface" then
+   elseif source == "interface" then
       return "interfaces"
-   elseif source.source == "network" then
+   elseif source == "network" then
       return "local_networks"
+   else
+      return "*"
    end
 end
 
@@ -726,6 +729,14 @@ end
 
 -- #################################
 
+function getGlobalAlertsConfigurationHash(granularity, alert_source)
+   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(alert_source)
+end
+
+local global_redis_thresholds_key = "thresholds"
+
+-- #################################
+
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
@@ -816,7 +827,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       }
    }
 
-   local global_redis_hash = 'ntopng.prefs.alerts_global.ifid_'..getInterfaceId(ifname).."_"..get_global_alerts_hash_key(alert_source)
+   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, alert_source)
 
    print('</ul>')
 
@@ -844,7 +855,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          interface.refreshHostsAlertsConfiguration()
 
          -- Load the global settings even if user clicked the delete entity configuration
-         global_alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), get_global_alerts_hash_key(alert_source))
+         global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
       else
          for k,_ in pairs(descr) do
 	    value    = _POST["value_"..k]
@@ -913,13 +924,13 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
             -- Global alerts
             if(global_alerts ~= "") then
-               ntop.setHashCache(get_alerts_hash_name(tab, ifname), get_global_alerts_hash_key(alert_source), global_alerts)
+               ntop.setHashCache(global_redis_hash, global_redis_thresholds_key, global_alerts)
             else
-               ntop.delHashCache(get_alerts_hash_name(tab, ifname), get_global_alerts_hash_key(alert_source))
+               ntop.delHashCache(global_redis_hash, global_redis_thresholds_key)
             end
          else
             alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), alert_source)
-            global_alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), get_global_alerts_hash_key(alert_source))
+            global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
          end
       end -- END if _POST["to_delete"] ~= nil
 
@@ -1561,9 +1572,23 @@ end
 
 local function getConfiguredAlertsThresholds(ifname, granularity)
   local thresholds_key = get_alerts_hash_name(granularity, ifname)
+  local thresholds_config = {}
   local res = {}
 
-  for entity_val, thresholds_str in pairs(ntop.getHashAllCache(thresholds_key) or {}) do
+  -- Handle the global configuration
+  local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*")) or {}
+  
+  for alert_key in pairs(global_conf_keys) do
+    local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
+
+    if not isEmptyString(thresholds_str) then
+      -- extract only the last part of the key
+      local k = string.sub(alert_key, string.find(alert_key, "%.[^%.]*$")+1)
+      thresholds_config[k] = thresholds_str
+    end
+  end
+
+  for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
     local thresholds = split(thresholds_str, ",")
     res[entity_val] = {}
 
