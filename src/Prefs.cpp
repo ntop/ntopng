@@ -33,6 +33,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   resolve_all_host_ip = false, online_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
+  max_num_new_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND, max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false;
   hostMask = no_host_mask;
@@ -486,6 +487,7 @@ void Prefs::reloadPrefsFromRedis() {
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
+  refreshHostsAlertsPrefs();
 }
 
 /* ******************************************* */
@@ -1467,6 +1469,24 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
     enable_captive_portal = pref_value[0] == '1' ? true : false;
 
   return 0;
+}
+
+/* *************************************** */
+
+void Prefs::refreshHostsAlertsPrefs() {
+  char rsp[32];
+
+  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+          (char*)CONST_HOSTS_FLOW_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
+    max_num_new_flows_per_sec = atol(rsp);
+  else
+    max_num_new_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
+
+  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+          (char*)CONST_HOSTS_SYN_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
+    max_num_syn_per_sec = atol(rsp);
+  else
+    max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
 }
 
 /* *************************************** */

@@ -848,11 +848,10 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          if source.source == "host" then
             ntop.delCache(flow_rate_alert_thresh_key)
             ntop.delCache(syn_alert_thresh_key)
-            interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
+            interface.refreshHostsAlertsConfiguration()
          end
          delete_alert_configuration(alert_source, ifname)
          alerts = nil
-         interface.refreshHostsAlertsConfiguration()
 
          -- Load the global settings even if user clicked the delete entity configuration
          global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
@@ -1018,7 +1017,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
                local key = prefix..config.key
 
                print("</td><td>\n")
-               print('<input type="number" name="'..key..'" style="width:7em;" placeholder="" min="0" step="'..(config.step)..'" max="100000" value="')
+               print('<input type="number" name="'..key..'" style="width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
                print(tostring(vals[key]))
                print[["></input>]]
             end

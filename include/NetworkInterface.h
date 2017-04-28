@@ -491,7 +491,7 @@ class NetworkInterface {
     if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
   };
 
-  int refreshHostAlertPrefs(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
+  void refreshHostsAlertPrefs();
   int resetPeriodicHostStats(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
   int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);

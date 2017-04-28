@@ -144,8 +144,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0;
-  max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
-  max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
+  max_new_flows_sec_threshold = ntop->getPrefs()->get_max_num_new_flows_per_sec();
+  max_num_syn_sec_threshold = ntop->getPrefs()->get_max_num_syn_per_sec();
   good_low_flow_detected = false;
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0, info = NULL;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
@@ -1290,7 +1290,7 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
 /* *************************************** */
 
 void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
-  int retval = CONST_MAX_NEW_FLOWS_SECOND;
+  int retval = ntop->getPrefs()->get_max_num_new_flows_per_sec();
   char rkey[128], rsp[16];
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_RATE, ip_buf, vlan_id);
@@ -1301,13 +1301,18 @@ void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
     max_new_flows_sec_threshold = retval;
     flow_flood_attacker_alert->resetThresholds(max_new_flows_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
     flow_flood_victim_alert->resetThresholds(max_new_flows_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+
+#if 0
+    char buf[32];
+    printf("%s: max_new_flows_sec_threshold = %d\n", ip.print(buf, sizeof(buf)), max_new_flows_sec_threshold);
+#endif
   }
 }
 
 /* *************************************** */
 
 void Host::loadSynAlertPrefs(const char *ip_buf) {
-  int retval = CONST_MAX_NUM_SYN_PER_SECOND;
+  int retval = ntop->getPrefs()->get_max_num_syn_per_sec();
   char rkey[128], rsp[16];
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ALERT, ip_buf, vlan_id);
@@ -1318,6 +1323,11 @@ void Host::loadSynAlertPrefs(const char *ip_buf) {
     max_num_syn_sec_threshold = retval;
     syn_flood_attacker_alert->resetThresholds(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
     syn_flood_victim_alert->resetThresholds(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+
+#if 0
+    char buf[32];
+    printf("%s: max_num_syn_sec_threshold = %d\n", ip.print(buf, sizeof(buf)), max_num_syn_sec_threshold);
+#endif
   }
 }
 

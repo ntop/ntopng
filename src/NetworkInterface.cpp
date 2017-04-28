@@ -5729,19 +5729,23 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
 
 /* **************************************** */
 
-int NetworkInterface::refreshHostAlertPrefs(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan) {
-  Host *h;
-  int rv;
+static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data) {
+  Host *h = (Host*)host;
+
+  h->refreshHostAlertPrefs();
+  return(false); /* false = keep on walking */
+}
+
+void NetworkInterface::refreshHostsAlertPrefs() {
+  /* Read the new configuration */
+  ntop->getPrefs()->refreshHostsAlertsPrefs();
+  
   disablePurge(false);
 
-  if ((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
-    h->refreshHostAlertPrefs();
-    rv = CONST_LUA_OK;
-  } else
-    rv = CONST_LUA_ERROR;
+  /* Update the hosts */
+  walker(walker_hosts, host_reload_alert_prefs, NULL);
 
   enablePurge(false);
-  return rv;
 };
 
 int NetworkInterface::resetPeriodicHostStats(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan) {
