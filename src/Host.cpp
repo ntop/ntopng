@@ -1277,7 +1277,7 @@ void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
   char rkey[128], rsp[16];
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_RATE, ip_buf, vlan_id);
-  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     retval = atoi(rsp);
 
   if ((u_int32_t)retval != max_new_flows_sec_threshold) {
@@ -1293,7 +1293,7 @@ void Host::loadSynAlertPrefs(const char *ip_buf) {
   char rkey[128], rsp[16];
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ALERT, ip_buf, vlan_id);
-  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     retval = atoi(rsp);
 
   if ((u_int32_t)retval != max_num_syn_sec_threshold) {
