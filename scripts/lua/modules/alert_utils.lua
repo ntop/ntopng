@@ -802,6 +802,22 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       printTab(k, l, tab)
    end
 
+   local anomalies_config = {
+      {
+         title = i18n("entity_thresholds.flow_alert_threshold"),
+         descr = i18n("entity_thresholds.flow_alert_description"),
+         key = "flow_rate_alert_threshold",
+         global_default = 25, step = 1
+      }, {
+         title = i18n("entity_thresholds.syn_alert_threshold"),
+         descr = i18n("entity_thresholds.syn_alert_description"),
+         key = "syn_alert_threshold",
+         global_default = 10, step = 5
+      }
+   }
+
+   local global_redis_hash = 'ntopng.prefs.alerts_global.ifid_'..getInterfaceId(ifname).."_"..get_global_alerts_hash_key(alert_source)
+
    print('</ul>')
 
    if((show_entity) and (tab == "alert_list")) then
@@ -812,6 +828,8 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       vals = { }
       alerts = ""
       global_alerts = ""
+      anomalies = {}
+      global_anomalies = {}
       to_save = false
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
@@ -823,6 +841,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          end
          delete_alert_configuration(alert_source, ifname)
          alerts = nil
+         interface.refreshHostsAlertsConfiguration()
 
          -- Load the global settings even if user clicked the delete entity configuration
          global_alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), get_global_alerts_hash_key(alert_source))
@@ -851,27 +870,32 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
             global_alerts = global_alerts..k..";"..global_operator..";"..global_value
          end
 	    end
+         end --END for k,_ in pairs(descr) do
 
-          -- Save specific settings
-          if (source.source == "host") and (_POST["flow_rate_alert_threshold"] ~= nil) then
-            flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
-            syn_alert_thresh = _POST["syn_alert_threshold"]
+         -- Save source specific anomalies
+         if (source.source == "host") and (tab == "min") and (to_save or (_POST["to_delete"] ~= nil)) then
+            for _, config in ipairs(anomalies_config) do
+               local value = _POST[config.key]
+               local global_value = _POST["global_"..config.key]
+               local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
 
-            if isEmptyString(flow_rate_alert_thresh) then
-              ntop.delCache(flow_rate_alert_thresh_key)
-            else
-              ntop.setPref(flow_rate_alert_thresh_key, flow_rate_alert_thresh)
+               if isEmptyString(value) then
+                  ntop.delCache(redis_key)
+               else
+                  ntop.setPref(redis_key, value)
+               end
+
+               if isEmptyString(global_value) then
+                  global_value = config.global_default
+               end
+
+               ntop.setHashCache(global_redis_hash, config.key, global_value)
+
+               if value ~= nil then anomalies[config.key] = value end
+               if global_value ~= nil then global_anomalies["global_"..config.key] = global_value end
+
+               interface.refreshHostsAlertsConfiguration()
             end
-
-            if isEmptyString(syn_alert_thresh_key) then
-              ntop.delCache(syn_alert_thresh_key)
-            else
-              ntop.setPref(syn_alert_thresh_key, syn_alert_thresh)
-            end
-
-            -- io.write("Reloading host '"..host_ip.."' alerts configuration...\n")
-            interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
-          end
          end
 
          --print(alerts)
@@ -897,7 +921,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
             alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), alert_source)
             global_alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), get_global_alerts_hash_key(alert_source))
          end
-      end
+      end -- END if _POST["to_delete"] ~= nil
 
          --print(alerts)
          --tokens = string.split(alerts, ",")
@@ -957,24 +981,39 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       end
 
       if (source.source == "host") and (tab == "min") then
-        if isEmptyString(flow_rate_alert_thresh) then flow_rate_alert_thresh = ntop.getPref(flow_rate_alert_thresh_key) end
-        if isEmptyString(flow_rate_alert_thresh) then flow_rate_alert_thresh = 25 end
-        if isEmptyString(syn_alert_thresh) then syn_alert_thresh = ntop.getPref(syn_alert_thresh_key) end
-        if isEmptyString(syn_alert_thresh) then syn_alert_thresh = 10 end
+         local vals = table.merge(anomalies, global_anomalies)
 
-        print("<tr><td><b>Flow Alert Threshold</b><br>\n")
-        print("<small>Max number of new flows/sec over which a host is considered a flooder.</small>")
-        print("</td><td>\n")
-        print('<input type="number" name="flow_rate_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="')
-        print(tostring(flow_rate_alert_thresh))
-        print [["></input></td></tr>]]
+         -- Possibly load old config
+         for _, config in ipairs(anomalies_config) do
+            if isEmptyString(vals[config.key]) then
+               local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
+               vals[config.key] = ntop.getCache(redis_key)
+            end
 
-        print("<tr><td><b>SYN Alert Threshold</b><br>")
-        print("<small>Max number of sent TCP SYN packets/sec over which a host is considered a flooder.</small>")
-        print("</td><td>\n")
-        print('<input type="number" name="syn_alert_threshold" style="width:7em;" placeholder="" min="0" step="5" max="100000" value="')
-        print(tostring(syn_alert_thresh))
-        print [["></input></td></tr>]]
+            if isEmptyString(vals["global_"..config.key]) then
+               vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
+               if isEmptyString(vals["global_"..config.key]) then
+                  vals["global_"..config.key] = config.global_default
+               end
+            end
+         end
+
+         -- Print the config
+         for _, config in pairs(anomalies_config) do
+            print("<tr><td><b>"..(config.title).."</b><br>\n")
+            print("<small>"..(config.descr)..".</small>")
+
+            for _, prefix in pairs({"", "global_"}) do
+               local key = prefix..config.key
+
+               print("</td><td>\n")
+               print('<input type="number" name="'..key..'" style="width:7em;" placeholder="" min="0" step="'..(config.step)..'" max="100000" value="')
+               print(tostring(vals[key]))
+               print[["></input>]]
+            end
+
+            print("</td></tr>")
+         end
       end
 
       print [[
