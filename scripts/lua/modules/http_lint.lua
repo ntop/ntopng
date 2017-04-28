@@ -146,6 +146,10 @@ local function validateAbsolutePath(p)
    return validateUnquoted(p)
 end
 
+local function validateNumMinutes(m)
+   return (m == "custom") or validateNumber(m)
+end
+
 -- #################################################################
 
 local function validateOnOff(mode)
@@ -698,7 +702,7 @@ local known_parameters = {
    ["step"]                    =  validateNumber,                -- A step value
    ["cf"]                      =  validateConsolidationFunction, -- An RRD consolidation function
    ["verbose"]                 =  validateBool,                  -- True if script should be verbose
-   ["num_minutes"]             =  validateNumber,                -- number of minutes
+   ["num_minutes"]             =  validateNumMinutes,            -- number of minutes
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
