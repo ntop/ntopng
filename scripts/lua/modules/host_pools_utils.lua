@@ -30,7 +30,7 @@ end
 
 -- It is safe to call this multiple times
 local function initInterfacePools(ifid)
-  host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME, false)
+  host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
 end
 
 local function get_pool_detail(ifid, pool_id, detail)
@@ -48,7 +48,7 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe)
 
   ntop.setMembersCache(ids_key, pool_id)
   ntop.setHashCache(details_key, "name", pool_name)
-  ntop.setHashCache(details_key, "children_safe", tostring(children_safe))
+  ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
 end
 
 function host_pools_utils.deletePool(ifid, pool_id)

@@ -26,7 +26,7 @@ if _POST["edit_pools"] ~= nil then
   for pool_id, pool_name in pairs(config) do
     -- Filter pool ids only
     if tonumber(pool_id) ~= nil then
-      local children_safe = false
+      local children_safe = nil
       if config["_csafe_"..pool_id] ~= nil then
         children_safe = config["_csafe_"..pool_id]
       end
@@ -792,7 +792,10 @@ print [[
       if (pool_id < maxPoolNum) {
         var newid = "added_pool_" + pool_id;
 
-        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center"></td><td class="text-center"></td></tr>');
+        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]]
+          printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center]]
+          if not is_bridge_iface then print(" hidden") end
+          print[["></td><td class="text-center"></td></tr>');
         var children_safe = $("td:nth-child(4)", tr);
         children_safe.html(makeChildrenSafeInput());
         datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
@@ -841,6 +844,11 @@ print [[
          }, {
             title: "]] print(i18n("host_pools.children_safe")) print[[",
             field: "column_children_safe",
+            ]]
+     if not is_bridge_iface then
+        print("hidden: true,")
+     end
+     print[[
             css : {
                width: '7%',
                textAlign: 'center',
