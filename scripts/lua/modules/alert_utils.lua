@@ -1804,7 +1804,7 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     end
   end
 
-  -- Process current_alerts to detect Engage / Release
+  -- Engage logic
   for atype, akeys in pairs(current_alerts) do
     for akey, alert_info in pairs(akeys) do
       if ((engaged_cache[entity_type] == nil)
@@ -1817,9 +1817,13 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     end
   end
 
+  -- Release logic
   if (engaged_cache[entity_type] ~= nil) and (engaged_cache[entity_type][entity_value] ~= nil) then
     for atype, akeys in pairs(engaged_cache[entity_type][entity_value]) do
       for akey, _ in pairs(akeys) do
+        -- mark the alert as processed
+        engaged_cache[entity_type][entity_value][atype][akey] = "processed"
+
         if (current_alerts[atype] == nil) or (current_alerts[atype][akey] == nil) then
           local alert_info
 
@@ -1973,6 +1977,20 @@ function scanAlerts(granularity, ifname)
    check_interface_alerts(ifid, working_status)
    check_networks_alerts(ifid, working_status)
    check_hosts_alerts(ifid, working_status)
+
+   -- Process the remaining alerts to release, e.g. related to expired hosts
+   for entity_type, entity_values in pairs(working_status.engaged_cache) do
+      for entity_value, alert_types in pairs(entity_values) do
+         for atype, alert_keys in pairs(alert_types) do
+            for akey, status in pairs(alert_keys) do
+               if status ~= "processed" then
+                  releaseAlert(ifid, working_status.engine, entity_type, entity_value, atype, akey, {}, {})
+                  working_status.dirty_cache = true
+               end
+            end
+         end
+      end
+   end
 
    if working_status.dirty_cache then
       invalidateEngagedAlertsCache()
