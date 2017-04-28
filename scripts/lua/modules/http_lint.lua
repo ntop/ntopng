@@ -521,6 +521,10 @@ local function validateShapedElement(elem_id)
 end
 
 local function validateAlertDescriptor(d)
+   if starts(d, "global_") then
+      d = split(d, "global_")[2]
+   end
+
    if ((validateChoiceByKeys(alert_functions_description, d)) or
        (validateChoiceByKeys(network_alert_functions_description, d))) then
       return true
@@ -889,7 +893,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["oldrule_"]                =  {validateShapedElement,     validateEmpty},       -- key: category or protocol ID, value: empty
 
 -- ALERTS (see alert_utils.lua)
-   ["operator_"]               =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
+   ["op_"]                     =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
    ["value_"]                  =  {validateAlertDescriptor,   validateEmptyOr(validateNumber)}, -- key: an alert descriptor, value: alert value
 
 -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
