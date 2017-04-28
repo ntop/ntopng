@@ -224,7 +224,7 @@ function delete_alert_configuration(alert_source, ifname)
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
    end
-   invalidateEngagedAlertsCache()
+   invalidateEngagedAlertsCache(getInterfaceId(ifname))
    interface.refreshNumAlerts()
 end
 
@@ -280,7 +280,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
    end
-   invalidateEngagedAlertsCache()
+   invalidateEngagedAlertsCache(getInterfaceId(ifname))
    interface.refreshNumAlerts()
 end
 
@@ -526,7 +526,7 @@ end
 function deleteAlerts(what, options)
    local opts = getUnpagedAlertOptions(options or {})
    performAlertsQuery("DELETE", what, opts)
-   invalidateEngagedAlertsCache()
+   invalidateEngagedAlertsCache(getInterfaceId(ifname))
 end
 
 -- #################################
@@ -1565,8 +1565,8 @@ end
 
 -- #################################
 
-local function getEngagedAlertsCacheKey(granularity)
-   return "ntopng.cache.engaged_alerts_cache_" .. granularity
+local function getEngagedAlertsCacheKey(ifid, granularity)
+   return "ntopng.cache.engaged_alerts_cache_ifid_"..ifid.."_".. granularity
 end
 
 local function getConfiguredAlertsThresholds(ifname, granularity)
@@ -1770,8 +1770,8 @@ local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey
   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
-local function getEngagedAlertsCache(granularity)
-  local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(granularity))
+local function getEngagedAlertsCache(ifid, granularity)
+  local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(ifid, granularity))
 
   if isEmptyString(engaged_cache) then
     engaged_cache = {}
@@ -1790,8 +1790,7 @@ local function getEngagedAlertsCache(granularity)
       engaged_cache[entity_type][entity_value][atype][akey] = true
     end
 
-    -- update cache
-    ntop.setCache(getEngagedAlertsCacheKey(granularity), j.encode(engaged_cache))
+    ntop.setCache(getEngagedAlertsCacheKey(ifid, granularity), j.encode(engaged_cache))
   else
     engaged_cache = j.decode(engaged_cache, 1, nil)
   end
@@ -1799,8 +1798,8 @@ local function getEngagedAlertsCache(granularity)
   return engaged_cache
 end
 
-function invalidateEngagedAlertsCache()
-  local keys = ntop.getKeysCache(getEngagedAlertsCacheKey("*")) or {}
+function invalidateEngagedAlertsCache(ifid)
+  local keys = ntop.getKeysCache(getEngagedAlertsCacheKey(ifid, "*")) or {}
 
   for key in pairs(keys) do
     ntop.delCache(key)
@@ -2030,7 +2029,7 @@ function scanAlerts(granularity, ifname)
    local working_status = {
       granularity = granularity,
       engine = alertEngine(granularity),
-      engaged_cache = getEngagedAlertsCache(granularity),
+      engaged_cache = getEngagedAlertsCache(ifid, granularity),
       configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity),
       dirty_cache = false,
    }
@@ -2054,7 +2053,7 @@ function scanAlerts(granularity, ifname)
    end
 
    if working_status.dirty_cache then
-      invalidateEngagedAlertsCache()
+      invalidateEngagedAlertsCache(ifid)
    end
 end
 
