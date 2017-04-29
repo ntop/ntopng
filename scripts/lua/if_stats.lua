@@ -1054,6 +1054,39 @@ elseif(page == "config") then
       </tr>]]
    end
 
+   -- Alerts
+   local trigger_alerts = true
+   local trigger_alerts_checked = "checked"
+
+   if (_POST["trigger_alerts"] ~= nil) then
+      if _POST["trigger_alerts"] ~= "true" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
+      end
+
+      ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), ifname_clean, tostring(trigger_alerts))
+   else
+      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), ifname_clean)
+      if trigger_alerts == "false" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
+      end
+   end
+
+      print [[<tr>
+         <th>Trigger Interface Alerts</th>
+         <td>
+            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
+               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
+               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+                  <i class="fa fa-exclamation-triangle fa-lg"></i>
+                  Trigger alerts for Interface ]] print(ifname) print[[
+               </input>
+               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+            </form>
+         </td>
+      </tr>]]
+
    print[[
    </table>]]
 

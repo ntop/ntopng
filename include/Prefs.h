@@ -61,6 +61,7 @@ class Prefs {
   bool enable_flow_activity;
   u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
+  u_int32_t max_num_new_flows_per_sec, max_num_syn_per_sec;
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
@@ -170,6 +171,8 @@ class Prefs {
   inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); }
   inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); }
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
+  inline u_int32_t get_max_num_new_flows_per_sec()      { return(max_num_new_flows_per_sec); };
+  inline u_int32_t get_max_num_syn_per_sec()            { return(max_num_syn_per_sec); };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  are_probing_alerts_enabled()             { return(enable_probing_alerts);            };
@@ -212,6 +215,7 @@ class Prefs {
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   int  refresh(const char *pref_name, const char *pref_value);
+  void refreshHostsAlertsPrefs();
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };

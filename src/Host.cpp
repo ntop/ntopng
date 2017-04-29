@@ -82,6 +82,8 @@ Host::~Host() {
   if(categoryStats)   delete categoryStats;
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
+  if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
+  if(flow_flood_victim_alert)  delete flow_flood_victim_alert;
   if(m)               delete m;
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
@@ -142,12 +144,14 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0;
-  max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
-  max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
+  max_new_flows_sec_threshold = ntop->getPrefs()->get_max_num_new_flows_per_sec();
+  max_num_syn_sec_threshold = ntop->getPrefs()->get_max_num_syn_per_sec();
   good_low_flow_detected = false;
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0, info = NULL;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+  flow_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+  flow_flood_victim_alert = new AlertCounter(max_new_flows_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   host_label_set = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
@@ -660,27 +664,32 @@ void Host::setName(char *name) {
 /* *************************************** */
 
 bool Host::hasAnomalies() {
-  time_t now = time(NULL);
+  time_t now = time(0);
 
   return syn_flood_victim_alert->isAboveThreshold(now)
-    || syn_flood_attacker_alert->isAboveThreshold(now);
+    || syn_flood_attacker_alert->isAboveThreshold(now)
+    || flow_flood_victim_alert->isAboveThreshold(now)
+    || flow_flood_attacker_alert->isAboveThreshold(now);
 }
 
 /* *************************************** */
 
 void Host::luaAnomalies(lua_State* vm) {
-  time_t now = time(NULL);
-
   if(!vm)
     return;
 
   if(hasAnomalies()) {
+    time_t now = time(0);
     lua_newtable(vm);
 
     if(syn_flood_victim_alert->isAboveThreshold(now))
       syn_flood_victim_alert->lua(vm, "syn_flood_victim");
     if(syn_flood_attacker_alert->isAboveThreshold(now))
       syn_flood_attacker_alert->lua(vm, "syn_flood_attacker");
+    if(flow_flood_victim_alert->isAboveThreshold(now))
+      flow_flood_victim_alert->lua(vm, "flows_flood_victim");
+    if(flow_flood_attacker_alert->isAboveThreshold(now))
+      flow_flood_attacker_alert->lua(vm, "flows_flood_attacker");
 
     lua_pushstring(vm, "anomalies");
     lua_insert(vm, -2);
@@ -1084,10 +1093,18 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  if(as_client)
+  AlertCounter *counter;
+
+  if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
-  else
+    counter = flow_flood_attacker_alert;
+  } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
+    counter = flow_flood_victim_alert;
+  }
+
+  if(localHost && triggerAlerts())
+    counter->incHits(time(0));
 }
 
 /* *************************************** */
@@ -1273,7 +1290,7 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
 /* *************************************** */
 
 void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
-  int retval = CONST_MAX_NEW_FLOWS_SECOND;
+  int retval = ntop->getPrefs()->get_max_num_new_flows_per_sec();
   char rkey[128], rsp[16];
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_RATE, ip_buf, vlan_id);
@@ -1282,14 +1299,20 @@ void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
 
   if ((u_int32_t)retval != max_new_flows_sec_threshold) {
     max_new_flows_sec_threshold = retval;
-    /* TODO reset the flow rate counter when it will be implemented */
+    flow_flood_attacker_alert->resetThresholds(max_new_flows_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+    flow_flood_victim_alert->resetThresholds(max_new_flows_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+
+#if 0
+    char buf[32];
+    printf("%s: max_new_flows_sec_threshold = %d\n", ip.print(buf, sizeof(buf)), max_new_flows_sec_threshold);
+#endif
   }
 }
 
 /* *************************************** */
 
 void Host::loadSynAlertPrefs(const char *ip_buf) {
-  int retval = CONST_MAX_NUM_SYN_PER_SECOND;
+  int retval = ntop->getPrefs()->get_max_num_syn_per_sec();
   char rkey[128], rsp[16];
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ALERT, ip_buf, vlan_id);
@@ -1300,6 +1323,11 @@ void Host::loadSynAlertPrefs(const char *ip_buf) {
     max_num_syn_sec_threshold = retval;
     syn_flood_attacker_alert->resetThresholds(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
     syn_flood_victim_alert->resetThresholds(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+
+#if 0
+    char buf[32];
+    printf("%s: max_num_syn_sec_threshold = %d\n", ip.print(buf, sizeof(buf)), max_num_syn_sec_threshold);
+#endif
   }
 }
 

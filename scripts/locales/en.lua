@@ -665,6 +665,13 @@ local  en = {
       remote_host_mask = "Mask Remote Hosts",      
    },
 
+   entity_thresholds = {
+      flow_alert_threshold = "Flow Alert Threshold",
+      flow_alert_description = "Max number of new flows/sec over which a host is considered a flooder",
+      syn_alert_threshold = "SYN Alert Threshold",
+      syn_alert_description = "Max number of sent TCP SYN packets/sec over which a host is considered a flooder",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

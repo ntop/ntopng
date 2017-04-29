@@ -129,6 +129,22 @@ function get_alerts_hash_name(timespan, ifname)
    return "ntopng.prefs.alerts_"..timespan..".ifid_"..tostring(ifid)
 end
 
+-- Get the hash key used for saving global settings
+function get_global_alerts_hash_key(alert_source)
+   local source = getAlertSource("", alert_source, "")
+   source = source and source.source
+
+   if source == "host" then
+      return "local_hosts"
+   elseif source == "interface" then
+      return "interfaces"
+   elseif source == "network" then
+      return "local_networks"
+   else
+      return "*"
+   end
+end
+
 function get_housekeeping_set_name(ifId)
    return "ntopng.alerts.ifid_"..ifId..".make_room"
 end
@@ -208,7 +224,7 @@ function delete_alert_configuration(alert_source, ifname)
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
    end
-   invalidateEngagedAlertsCache()
+   invalidateEngagedAlertsCache(getInterfaceId(ifname))
    interface.refreshNumAlerts()
 end
 
@@ -264,7 +280,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
    end
-   invalidateEngagedAlertsCache()
+   invalidateEngagedAlertsCache(getInterfaceId(ifname))
    interface.refreshNumAlerts()
 end
 
@@ -510,7 +526,7 @@ end
 function deleteAlerts(what, options)
    local opts = getUnpagedAlertOptions(options or {})
    performAlertsQuery("DELETE", what, opts)
-   invalidateEngagedAlertsCache()
+   invalidateEngagedAlertsCache(getInterfaceId(ifname))
 end
 
 -- #################################
@@ -655,6 +671,10 @@ function getAlertSource(entity, entity_value, alt_name)
       else
          local hostInfo = hostkey2hostinfo(entity_value)
          host_name = ntop.resolveAddress(hostInfo["host"])
+
+         if isEmptyString(host_name) then
+            host_name = hostinfo2hostkey({host=hostInfo["host"], vlan=hostInfo["vlan"]})
+         end
       end
 
       return {
@@ -709,165 +729,24 @@ end
 
 -- #################################
 
-function drawAlertSettings(alert_source, alert_val)
-   local alerts_enabled
-
-   -- host specific
-   local flow_rate_alert_thresh
-   local syn_alert_thresh
-
-   if not isAdministrator() then
-      return
-   end
-
-   -- handle settings change
-   local config_changed = false
-
-   local trigger_alerts = _POST["trigger_alerts"]
-   local ifid = getInterfaceId(ifname)
-
-   if(trigger_alerts ~= nil) then
-      if(trigger_alerts == "true") then
-         ntop.delHashCache(get_alerts_suppressed_hash_name(ifid), alert_val)
-         alerts_enabled = true
-      else
-         ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), alert_val, trigger_alerts)
-         alerts_enabled = false
-      end
-      config_changed = true
-   else
-      if are_alerts_suppressed(alert_val, ifid) then
-         alerts_enabled = false
-      else
-         alerts_enabled = true
-      end
-   end
-
-   if alert_source.source == "host" then
-      local hostInfo = hostkey2hostinfo(alert_val)
-      local host_ip = hostInfo["host"]
-      local host_vlan = hostInfo["vlan"]
-
-      flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
-      syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
-
-      if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
-         ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
-         flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
-         config_changed = true
-      else
-         local v = nil
-         if _POST["flow_rate_alert_threshold"] == nil then
-            v = ntop.getPref(flow_rate_alert_thresh)
-         end
-
-         if v ~= nil and v ~= "" then
-            flow_rate_alert_thresh = v
-         else
-            flow_rate_alert_thresh = 25
-         end
-      end
-
-      if _POST["syn_alert_threshold"] ~= nil and _POST["syn_alert_threshold"] ~= "" then
-         ntop.setPref(syn_alert_thresh, _POST["syn_alert_threshold"])
-         syn_alert_thresh = _POST["syn_alert_threshold"]
-         config_changed = true
-      else
-         local v = nil
-         if _POST["syn_alert_threshold"] == nil then
-            v = ntop.getPref(syn_alert_thresh)
-         end
-
-         if v ~= nil and v ~= "" then
-            syn_alert_thresh = v
-         else
-            syn_alert_thresh = 10
-         end
-      end
-   end
-
-   if config_changed then
-      if alert_source.source == "host" then
-         local hostInfo = hostkey2hostinfo(alert_val)
-         local host_ip = hostInfo["host"]
-         local host_vlan = hostInfo["vlan"]
-
-         -- io.write("Reloading host '"..host_ip.."' alerts configuration...\n")
-         interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
-      end
-   end
-
-   print("<table class=\"table table-striped table-bordered\">\n")
-
-   -- Source agnostic settings
-
-   local alerts_checked
-   local alerts_value
-   if alerts_enabled then
-      alerts_checked = 'checked="checked"'
-      alerts_value = "false" -- Opposite
-   else
-      alerts_checked = ""
-      alerts_value = "true" -- Opposite
-   end
-
-   print [[
-         <tr><th>]] print(alert_source.title) print[[ Alerts</th><td nowrap>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print[[<input type="hidden" name="tab" value="alerts_preferences">]]
-   print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for '.. alert_source.label ..'</input>')
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print('</form>')
-   print('</td>')
-   print [[</tr>]]
-
-   -- Source specific settings
-   if alert_source.source == "host" then
-      print("<tr><th width=250>" .. alert_source.title .. " Flow Alert Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type="number" name="flow_rate_alert_threshold" style="width:7em;" placeholder="" min="0" step="1" max="100000" value="')
-      print(tostring(flow_rate_alert_thresh))
-      print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-       </form>
-   <small>
-       Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
-   </small>]]
-	 print[[
-       </td></tr>
-          ]]
-
-      print("<tr><th width=250>" .. alert_source.title .. " SYN Alert Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="syn_alert_threshold" style="width:7em;" placeholder="" min="0" step="5" max="100000" value="]]
-      print(tostring(syn_alert_thresh))
-      print [["></input>
-         &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-       </form>
-   <small>
-       Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
-   </small>]]
-	 print[[
-       </td></tr>
-          ]]
-   end
-
-   print("</table>")
+function getGlobalAlertsConfigurationHash(granularity, alert_source)
+   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(alert_source)
 end
+
+local global_redis_thresholds_key = "thresholds"
+
+-- #################################
 
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
+   local source = getAlertSource("", alert_source, "")
 
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
-   if alert_source:match("/") then
+   if source.source == "network" then
       descr = network_alert_functions_description
-   elseif not alert_source:match("%.") then
+   elseif source.source == "interface" then
       -- interface
       descr = table.clone(alert_functions_description)
       descr["active"] = nil
@@ -875,6 +754,14 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    else
       -- host
       descr = alert_functions_description
+   end
+
+   local flow_rate_alert_thresh_key, syn_alert_thresh_key
+   local flow_rate_alert_thresh, syn_alert_thresh
+
+   if source.source == "host" then
+      flow_rate_alert_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
+      syn_alert_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
    end
 
    print('<ul class="nav nav-tabs">')
@@ -916,9 +803,8 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       end
    end
 
-   if(tab == nil) then tab = "alert_settings" end
-
-   printTab("alert_settings", '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;General Settings', tab)
+   -- Default tab
+   if(tab == nil) then tab = "min" end
 
    for _,e in pairs(alerts_granularity) do
       local k = e[1]
@@ -927,26 +813,52 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       printTab(k, l, tab)
    end
 
+   local anomalies_config = {
+      {
+         title = i18n("entity_thresholds.flow_alert_threshold"),
+         descr = i18n("entity_thresholds.flow_alert_description"),
+         key = "flow_rate_alert_threshold",
+         global_default = 25, step = 1
+      }, {
+         title = i18n("entity_thresholds.syn_alert_threshold"),
+         descr = i18n("entity_thresholds.syn_alert_description"),
+         key = "syn_alert_threshold",
+         global_default = 10, step = 5
+      }
+   }
+
+   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, alert_source)
+
    print('</ul>')
 
    if((show_entity) and (tab == "alert_list")) then
       drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
-   elseif(tab == "alert_settings") then
-      drawAlertSettings(getAlertSource(show_entity, alert_source, alt_name), alert_source)
    else
       -- Before doing anything we need to check if we need to save values
 
       vals = { }
       alerts = ""
+      global_alerts = ""
+      anomalies = {}
+      global_anomalies = {}
       to_save = false
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
+         -- Delete spcific settings
+         if source.source == "host" then
+            ntop.delCache(flow_rate_alert_thresh_key)
+            ntop.delCache(syn_alert_thresh_key)
+            interface.refreshHostsAlertsConfiguration()
+         end
          delete_alert_configuration(alert_source, ifname)
          alerts = nil
+
+         -- Load the global settings even if user clicked the delete entity configuration
+         global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
       else
          for k,_ in pairs(descr) do
 	    value    = _POST["value_"..k]
-	    operator = _POST["operator_"..k]
+	    operator = _POST["op_"..k]
 
 	    if((value ~= nil) and (operator ~= nil)) then
 	       --io.write("\t"..k.."\n")
@@ -958,51 +870,110 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 	       else
 		  if ntop.isPro() then ntop.withdrawNagiosAlert(alert_source, tab, k, "alarm not installed") end
 	       end
+
+         -- Handle global settings
+         local global_value = tonumber(_POST["value_global_"..k])
+         local global_operator = _POST["op_global_"..k]
+
+         if (global_value ~= nil) and (global_operator ~= nil) then
+            if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
+            global_alerts = global_alerts..k..";"..global_operator..";"..global_value
+         end
 	    end
+         end --END for k,_ in pairs(descr) do
+
+         -- Save source specific anomalies
+         if (source.source == "host") and (tab == "min") and (to_save or (_POST["to_delete"] ~= nil)) then
+            for _, config in ipairs(anomalies_config) do
+               local value = _POST[config.key]
+               local global_value = _POST["global_"..config.key]
+               local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
+
+               if isEmptyString(value) then
+                  ntop.delCache(redis_key)
+               else
+                  ntop.setPref(redis_key, value)
+               end
+
+               if isEmptyString(global_value) then
+                  global_value = config.global_default
+               end
+
+               ntop.setHashCache(global_redis_hash, config.key, global_value)
+
+               if value ~= nil then anomalies[config.key] = value end
+               if global_value ~= nil then global_anomalies["global_"..config.key] = global_value end
+
+               interface.refreshHostsAlertsConfiguration()
+            end
          end
 
          --print(alerts)
 
          if(to_save) then
-            refresh_alert_configuration(alert_source, ifname, tab, alerts)
+            -- TODO Do not release for now, needs to ensure consistency with global_alerts too
+            -- refresh_alert_configuration(alert_source, ifname, tab, alerts)
+
+            -- This specific entity alerts
             if(alerts == "") then
                ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
             else
                ntop.setHashCache(get_alerts_hash_name(tab, ifname), alert_source, alerts)
             end
+
+            -- Global alerts
+            if(global_alerts ~= "") then
+               ntop.setHashCache(global_redis_hash, global_redis_thresholds_key, global_alerts)
+            else
+               ntop.delHashCache(global_redis_hash, global_redis_thresholds_key)
+            end
          else
             alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+            global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
          end
-      end
+      end -- END if _POST["to_delete"] ~= nil
 
-      if(alerts ~= nil) then
          --print(alerts)
          --tokens = string.split(alerts, ",")
-         tokens = split(alerts, ",")
+      for _, al in pairs({
+         {prefix = "", config = alerts},
+         {prefix = "global_", config = global_alerts},
+      }) do
+       if al.config ~= nil then
+         tokens = split(al.config, ",")
 
          --print(tokens)
          if(tokens ~= nil) then
 	    for _,s in pairs(tokens) do
 	       t = string.split(s, ";")
 	       --print("-"..t[1].."-")
-	       if(t ~= nil) then vals[t[1]] = { t[2], t[3] } end
+	       if(t ~= nil) then vals[(al.prefix)..t[1]] = { t[2], t[3] } end
 	    end
          end
+       end
       end
 
 
       print [[
        </ul>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
+       <tr><th>Threshold Type</th><th width=30%>]] print(firstToUpper(source.source)) print[[ Threshold</th><th width=30%>Global Local ]]
+       print(firstToUpper(source.source))
+       print[[s Threshold]]
+       print[[</th></tr>
 
       <form method="post">
       ]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      for k,v in pairsByKeys(descr, asc) do
-         print("<tr><th>"..k.."</th><td>\n")
-         print("<select name=operator_".. k ..">\n")
+      for key,v in pairsByKeys(descr, asc) do
+         print("<tr><td><b>"..firstToUpper(key).."</b><br>")
+         print("<small>"..v.."</small>\n")
+
+        for _, prefix in pairs({"", "global_"}) do
+         local k = prefix..key
+         print("</td><td>")
+         print("<select name=op_".. k ..">\n")
          if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
          print("value=\"gt\">&gt;</option>\n")
 
@@ -1014,13 +985,49 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          print("</select>\n")
          print("<input type=text name=\"value_"..k.."\" value=\"")
          if(vals[k] ~= nil) then print(vals[k][2]) end
-         print("\">\n\n")
-         print("<br><small>"..v.."</small>\n")
+         print("\">\n")
+        end
          print("</td></tr>\n")
       end
 
+      if (source.source == "host") and (tab == "min") then
+         local vals = table.merge(anomalies, global_anomalies)
+
+         -- Possibly load old config
+         for _, config in ipairs(anomalies_config) do
+            if isEmptyString(vals[config.key]) then
+               local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
+               vals[config.key] = ntop.getCache(redis_key)
+            end
+
+            if isEmptyString(vals["global_"..config.key]) then
+               vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
+               if isEmptyString(vals["global_"..config.key]) then
+                  vals["global_"..config.key] = config.global_default
+               end
+            end
+         end
+
+         -- Print the config
+         for _, config in pairs(anomalies_config) do
+            print("<tr><td><b>"..(config.title).."</b><br>\n")
+            print("<small>"..(config.descr)..".</small>")
+
+            for _, prefix in pairs({"", "global_"}) do
+               local key = prefix..config.key
+
+               print("</td><td>\n")
+               print('<input type="number" name="'..key..'" style="width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
+               print(tostring(vals[key]))
+               print[["></input>]]
+            end
+
+            print("</td></tr>")
+         end
+      end
+
       print [[
-      <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
+      <tr><th colspan=3  style="text-align: center; white-space: nowrap;" >
 
          <input type="hidden" name="SaveAlerts" value="">
          <input type="submit" class="btn btn-primary" value="Save Configuration">
@@ -1558,15 +1565,29 @@ end
 
 -- #################################
 
-local function getEngagedAlertsCacheKey(granularity)
-   return "ntopng.cache.engaged_alerts_cache_" .. granularity
+local function getEngagedAlertsCacheKey(ifid, granularity)
+   return "ntopng.cache.engaged_alerts_cache_ifid_"..ifid.."_".. granularity
 end
 
 local function getConfiguredAlertsThresholds(ifname, granularity)
   local thresholds_key = get_alerts_hash_name(granularity, ifname)
+  local thresholds_config = {}
   local res = {}
 
-  for entity_val, thresholds_str in pairs(ntop.getHashAllCache(thresholds_key) or {}) do
+  -- Handle the global configuration
+  local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*")) or {}
+  
+  for alert_key in pairs(global_conf_keys) do
+    local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
+
+    if not isEmptyString(thresholds_str) then
+      -- extract only the last part of the key
+      local k = string.sub(alert_key, string.find(alert_key, "%.[^%.]*$")+1)
+      thresholds_config[k] = thresholds_str
+    end
+  end
+
+  for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
     local thresholds = split(thresholds_str, ",")
     res[entity_val] = {}
 
@@ -1580,6 +1601,30 @@ local function getConfiguredAlertsThresholds(ifname, granularity)
   end
 
   return res
+end
+
+-- #################################
+
+-- Extracts the configured thresholds for the entity, global and local
+local function getEntityThresholds(configured_thresholds, entity)
+   local res = {}
+   local global_conf_key = get_global_alerts_hash_key(entity)
+
+   if configured_thresholds[global_conf_key] ~= nil then
+      -- Global configuration exists
+      for k, v in pairs(configured_thresholds[global_conf_key]) do
+         res[k] = v
+      end
+   end
+
+   -- Possibly override global thresholds with local configured ones
+   if configured_thresholds[entity] ~= nil then
+      for k, v in pairs(configured_thresholds[entity]) do
+         res[k] = v
+      end
+   end
+
+   return res
 end
 
 -- #################################
@@ -1623,16 +1668,32 @@ end
 
 local function formatSynFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
   if entity_info.anomalies ~= nil then
-    if alert_key == "syn_flood_attacker" then
+    if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
       local anomaly_info = entity_info.anomalies.syn_flood_attacker
 
       return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
            (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-    elseif alert_key == "syn_flood_victim" then
+    elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
       local anomaly_info = entity_info.anomalies.syn_flood_victim
 
       return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
            (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    end
+  end
+
+  return ""
+end
+
+local function formatFlowsFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+  if entity_info.anomalies ~= nil then
+    if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
+      local anomaly_info = entity_info.anomalies.flows_flood_attacker
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
+           (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+    elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
+      local anomaly_info = entity_info.anomalies.flows_flood_victim
+      return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
+           (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
     end
   end
 
@@ -1663,6 +1724,8 @@ local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, 
     msg = formatThresholdCross(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "tcp_syn_flood" then
     msg = formatSynFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+  elseif atype == "flows_flood" then
+    msg = formatFlowsFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "misconfigured_app" then
     msg = formatMisconfiguredApp(ifid, entity_type, entity_value, entity_info, akey, alert_info)
   end
@@ -1707,8 +1770,8 @@ local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey
   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 end
 
-local function getEngagedAlertsCache(granularity)
-  local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(granularity))
+local function getEngagedAlertsCache(ifid, granularity)
+  local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(ifid, granularity))
 
   if isEmptyString(engaged_cache) then
     engaged_cache = {}
@@ -1727,8 +1790,7 @@ local function getEngagedAlertsCache(granularity)
       engaged_cache[entity_type][entity_value][atype][akey] = true
     end
 
-    -- update cache
-    ntop.setCache(getEngagedAlertsCacheKey(granularity), j.encode(engaged_cache))
+    ntop.setCache(getEngagedAlertsCacheKey(ifid, granularity), j.encode(engaged_cache))
   else
     engaged_cache = j.decode(engaged_cache, 1, nil)
   end
@@ -1736,8 +1798,8 @@ local function getEngagedAlertsCache(granularity)
   return engaged_cache
 end
 
-function invalidateEngagedAlertsCache()
-  local keys = ntop.getKeysCache(getEngagedAlertsCacheKey("*")) or {}
+function invalidateEngagedAlertsCache(ifid)
+  local keys = ntop.getKeysCache(getEngagedAlertsCacheKey(ifid, "*")) or {}
 
   for key in pairs(keys) do
     ntop.delCache(key)
@@ -1772,6 +1834,8 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
       if starts(anomal_name, "syn_flood") then
         addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
+      elseif starts(anomal_name, "flows_flood") then
+        addAlertInfo(current_alerts, "flows_flood", anomal_name, anomaly)
       elseif starts(anomal_name, "too_many_") then
         addAlertInfo(current_alerts, "misconfigured_app", anomal_name, anomaly)
       else
@@ -1782,7 +1846,7 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
   end
 
   -- Populate current_alerts with threshold crosses
-  for _, threshold in pairs(working_status.configured_thresholds[entity] or {}) do
+  for _, threshold in pairs(getEntityThresholds(working_status.configured_thresholds, entity)) do
     local atype = "threshold_cross"
     local akey = threshold.key
     local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
@@ -1907,7 +1971,6 @@ local function check_interface_alerts(ifid, working_status)
    local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
    local new_entity_info = ifstats
 
-   -- Check if there is any threshold configured for the interface
    if old_entity_info ~= nil then
       check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
    end
@@ -1919,17 +1982,14 @@ local function check_networks_alerts(ifid, working_status)
    local subnet_stats = interface.getNetworksStats()
 
    for subnet, sstats in pairs(subnet_stats) do
-      -- Check if there is any threshold configured for the network
-      if working_status.configured_thresholds[subnet] then
-         local old_entity_info = network_threshold_status_rw(working_status.granularity, ifid, subnet) -- read old json
-         local new_entity_info = sstats
+      local old_entity_info = network_threshold_status_rw(working_status.granularity, ifid, subnet) -- read old json
+      local new_entity_info = sstats
 
-         if old_entity_info ~= nil then
-            check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info)
-         end
-
-         network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
+      if old_entity_info ~= nil then
+         check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info)
       end
+
+      network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
    end
 end
 
@@ -1969,7 +2029,7 @@ function scanAlerts(granularity, ifname)
    local working_status = {
       granularity = granularity,
       engine = alertEngine(granularity),
-      engaged_cache = getEngagedAlertsCache(granularity),
+      engaged_cache = getEngagedAlertsCache(ifid, granularity),
       configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity),
       dirty_cache = false,
    }
@@ -1993,7 +2053,7 @@ function scanAlerts(granularity, ifname)
    end
 
    if working_status.dirty_cache then
-      invalidateEngagedAlertsCache()
+      invalidateEngagedAlertsCache(ifid)
    end
 end
 
