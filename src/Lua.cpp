@@ -3882,7 +3882,7 @@ static int ntop_get_resolved_address(lua_State* vm) {
   if(key == NULL)
     return(CONST_LUA_ERROR);
 
-  if(redis->getAddress(key, rsp, sizeof(rsp), true) == 0)
+  if((redis->getAddress(key, rsp, sizeof(rsp), true) == 0) && (rsp[0] != '\0'))
     tmp = rsp;
   else
     tmp = key;
