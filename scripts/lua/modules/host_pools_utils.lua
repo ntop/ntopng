@@ -35,7 +35,6 @@ end
 
 local function get_pool_detail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
-  initInterfacePools(ifid)
 
   return ntop.getHashCache(details_key, detail)
 end
