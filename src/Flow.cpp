@@ -328,20 +328,23 @@ void Flow::dumpFlowAlert() {
 /* *************************************** */
 
 void Flow::checkBlacklistedFlow() {
-  if(!blacklist_alarm_emitted) {
-    if(cli_host
+  if(cli_host
        && srv_host
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
-      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+    char c_buf[64], s_buf[64], *c, *s;
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+    c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+    if(c && cli_host->get_vlan_id())
+      sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
 
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+    s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+    if(s && srv_host->get_vlan_id())
+      sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+
+    /* Checks to generate the flow alert */
+    if(!blacklist_alarm_emitted) {
+      char fbuf[256], alert_msg[1024];
 
       snprintf(alert_msg, sizeof(alert_msg),
 	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> contacted %s host "
@@ -356,15 +359,42 @@ void Flow::checkBlacklistedFlow() {
 	       srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
-      /* force the vlan in the alert source and target */
-      if(!strstr(c, "@")) sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-      if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
 						alert_level_error, alert_msg);
     }
 
-    blacklist_alarm_emitted = true;
+    /* Checks to generate the host alert */
+    if (cli_host->isBlacklisted() && !cli_host->isBlacklistedAlarmEmitted()) {
+      char msg[1024];
+      snprintf(msg, sizeof(msg), "Blacklisted host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> "
+	       "contacted <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
+	       ntop->getPrefs()->get_http_prefix(),
+	       c, iface->get_id(),
+	       cli_host->get_name() ? cli_host->get_name() : c,
+	       ntop->getPrefs()->get_http_prefix(),
+	       s, iface->get_id(),
+	       srv_host->get_name() ? srv_host->get_name() : s);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
+      iface->getAlertsManager()->storeHostAlert(cli_host, alert_malware_detection, alert_level_error, msg);
+      cli_host->setBlacklistedAlarmEmitted();
+    }
+
+    if (srv_host->isBlacklisted() && !srv_host->isBlacklistedAlarmEmitted()) {
+      char msg[1024];
+      snprintf(msg, sizeof(msg), "Blacklisted host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> "
+	       "was contacted by <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
+	       ntop->getPrefs()->get_http_prefix(),
+	       s, iface->get_id(),
+	       srv_host->get_name() ? srv_host->get_name() : s,
+	       ntop->getPrefs()->get_http_prefix(),
+	       c, iface->get_id(),
+	       cli_host->get_name() ? cli_host->get_name() : c);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
+      iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg);
+      srv_host->setBlacklistedAlarmEmitted();
+    }
   }
 }
 

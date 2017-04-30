@@ -39,7 +39,7 @@ class Host : public GenericHost {
   char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char * old_sites;
-  bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
+  bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
   u_int32_t host_quota_mb;
   int16_t local_network_id;
   float latitude, longitude;
@@ -121,6 +121,8 @@ class Host : public GenericHost {
   inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(char *m);
   inline bool isBlacklisted()                  { return(blacklisted_host); }
+  inline bool isBlacklistedAlarmEmitted()      { return(blacklisted_alarm_emitted); }
+  inline void setBlacklistedAlarmEmitted()     { blacklisted_alarm_emitted = true; }
   bool hasAnomalies();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
