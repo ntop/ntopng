@@ -38,7 +38,7 @@ class Host : public GenericHost {
   Vlan *vlan;
   char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
-  char * old_sites;
+  char *old_sites;
   bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
   u_int32_t host_quota_mb;
   int16_t local_network_id;
@@ -76,7 +76,7 @@ class Host : public GenericHost {
   L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
 #endif
-  u_int16_t host_pool;
+  u_int16_t host_pool_id;
 
   struct {
     u_int32_t pktRetr, pktOOO, pktLost;
@@ -139,7 +139,7 @@ class Host : public GenericHost {
   bool checkQuota(u_int16_t protocol, bool *is_category);
   inline void resetBlockedTrafficStatus()      { has_blocking_quota = has_blocking_shaper = false; }
 #endif
-  inline u_int16_t get_host_pool()             { return(host_pool);        }
+  inline u_int16_t get_host_pool()             { return(host_pool_id);     }
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }

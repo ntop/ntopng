@@ -87,6 +87,7 @@ HostPools::~HostPools() {
       if(volatile_members[pool_id])
 	free(volatile_members[pool_id]);
     }
+
     free(volatile_members);
   }
 
@@ -229,11 +230,11 @@ void HostPools::dumpToRedis() {
 
   snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
 
-  for (int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
+  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
-      if (value) {
+      if(value) {
 	redis->hashSet(key, buf, value);
 	free(value);
       }
@@ -241,10 +242,10 @@ void HostPools::dumpToRedis() {
   }
 }
 
+/* *************************************** */
+
 void HostPools::loadFromRedis() {
-  char key[128];
-  char buf[32];
-  char *value;
+  char key[128], buf[32], *value;
   json_object *obj;
   enum json_tokener_error jerr = json_tokener_success;
   Redis *redis = ntop->getRedis();
@@ -253,20 +254,18 @@ void HostPools::loadFromRedis() {
 
   if((!redis) || (! stats) || (! iface)) return;
   if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "Unable to allocate memory to deserialize %s", key);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
     return;
   }
 
-  for (int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
+  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
-      if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
+      if(redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
 	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-		  json_tokener_error_desc(jerr),
-		  key,
-		  value);
+				       json_tokener_error_desc(jerr),
+				       key, value);
 	} else {
 	  stats[i]->deserialize(iface, obj);
 	  json_object_put(obj);
@@ -277,25 +276,26 @@ void HostPools::loadFromRedis() {
 
   free(value);
 }
-
- /* *************************************** */
  
- void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
-			      ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
-			      u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-   HostPoolStats *hps = getPoolStats(host_pool_id);
-
-   if (! hps)
+/* *************************************** */
+ 
+void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
+			     ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
+			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+  HostPoolStats *hps = getPoolStats(host_pool_id);
+  
+  if(!hps)
     return;
   
   /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
   hps->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 };
-
+ 
 /* *************************************** */
-
+ 
 void HostPools::updateStats(struct timeval *tv) {
   HostPoolStats *hps;
+
   if(stats && tv) {
     for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
       if((hps = stats[i]))
@@ -506,8 +506,7 @@ void HostPools::reloadPools() {
     new_stats[i] = NULL;
 #endif
 
-  snprintf(kname, sizeof(kname),
-	   HOST_POOL_IDS_KEY, iface->get_id());
+  snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY, iface->get_id());
 
 #ifdef NTOPNG_PRO
   /* Always allocate defaul pool stats */
@@ -521,6 +520,8 @@ void HostPools::reloadPools() {
   num_pools = redis->smembers(kname, &pools);
 
   for(int i = 0; i < num_pools; i++) {
+    char rsp[8];
+
     if(!pools[i])
       continue;
 
@@ -529,7 +530,7 @@ void HostPools::reloadPools() {
       continue;
 
 #ifdef NTOPNG_PRO
-    if (_pool_id != 0) { /* Pool id 0 stats already updated */
+    if(_pool_id != 0) { /* Pool id 0 stats already updated */
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
         new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
@@ -537,12 +538,15 @@ void HostPools::reloadPools() {
     }
 #endif
 
+    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
+    rsp[0] = '\0';
+    children_safe[i] = ((redis->hashGet(kname, (char*)"children_safe", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));
+
     snprintf(kname, sizeof(kname),
 	     HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
 
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
-
       for(int k = 0; k < num_members; k++) {
 	member = pool_members[k];
 
@@ -606,7 +610,7 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
   if(!tree || !(cur_tree = tree[mac->get_vlan_id()]))
     return false;
 
-  if (!mac->isSpecialMac()) {
+  if(!mac->isSpecialMac()) {
     int16_t ret = mac->findAddress(cur_tree);
 
     if(ret != -1) {
@@ -661,12 +665,13 @@ u_int16_t HostPools::getPool(Host *h) {
   if(h) {
     if(h->getMac())
       found = findMacPool(h->getMac(), &pool_id);
-    if (!found && h->get_ip()) {
+    if(!found && h->get_ip()) {
       found = findIpPool(h->get_ip(), h->get_vlan_id(), &pool_id, &node);
     }
   }
 
-  if (! found)
+  if(!found)
     return NO_HOST_POOL_ID;
+
   return pool_id;
 }

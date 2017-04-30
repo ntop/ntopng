@@ -132,7 +132,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
 #endif
-  host_pool = NO_HOST_POOL_ID;
+  host_pool_id = NO_HOST_POOL_ID;
 
   if(_mac == NULL)
     mac = NULL;
@@ -305,7 +305,7 @@ char* Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
   char ipbuf[64];
   char *key = ip.print(ipbuf, sizeof(ipbuf));
 
-  if ((vlan_id > 0) || force_vlan)
+  if((vlan_id > 0) || force_vlan)
     snprintf(buf, buf_len, "%s@%u", key, vlan_id);
   else
     strncpy(buf, key, buf_len);
@@ -369,8 +369,8 @@ void Host::updateHostL7Policy() {
 	}
 #endif
 
-	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool);
-  resetBlockedTrafficStatus();
+	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool_id);
+	resetBlockedTrafficStatus();
     }
 #endif
 }
@@ -381,13 +381,13 @@ void Host::updateHostPool() {
   if(!iface)
     return;
 
-  host_pool = iface->getHostPool(this);
+  host_pool_id = iface->getHostPool(this);
 
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Updating host pool for %s [host pool: %i]",
-			       ip.print(buf, sizeof(buf)), host_pool);
+			       ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
 }
 
@@ -485,7 +485,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "is_blacklisted", blacklisted_host);
   lua_push_int_table_entry(vm, "source_id", source_id);
   lua_push_int_table_entry(vm, "asn", asn);
-  lua_push_int_table_entry(vm, "host_pool_id", host_pool);
+  lua_push_int_table_entry(vm, "host_pool_id", host_pool_id);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
   lua_push_str_table_entry(vm, "os", os);
 
@@ -1163,9 +1163,9 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 #endif
 
   /* Update blocking status */
-  if (!has_blocking_shaper && getInterface()->getL7Policer()) {
+  if(!has_blocking_shaper && getInterface()->getL7Policer()) {
     TrafficShaper *shaper = getInterface()->getL7Policer()->getShaper(ret);
-    if (shaper->shaping_enabled() && (shaper->get_max_rate_kbit_sec() == 0))
+    if(shaper->shaping_enabled() && (shaper->get_max_rate_kbit_sec() == 0))
       has_blocking_shaper = true;
   }
 
@@ -1183,7 +1183,7 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   bool category = false; /* Default: no category */
   int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
 
-  if (policy) {
+  if(policy) {
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol32, sd);
 
     if(sd) {
@@ -1205,6 +1205,8 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   *is_category = category;
 }
 
+/* *************************************** */
+
 bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   u_int64_t bytes_quota, bytes;
   u_int32_t secs_quota, secs;
@@ -1212,16 +1214,16 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
 
-  if (!pools) return false;
+  if(!pools) return false;
 
   get_quota(protocol, &bytes_quota, &secs_quota, is_category);
 
-  if ((bytes_quota > 0) || (secs_quota > 0)) {
+  if((bytes_quota > 0) || (secs_quota > 0)) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
-      if ((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+      if((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
        || (!*is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
-        if (((bytes_quota > 0) && (bytes >= bytes_quota))
+        if(((bytes_quota > 0) && (bytes >= bytes_quota))
          || ((secs_quota > 0) && (secs >= secs_quota)))
         is_above = true;
 
@@ -1296,7 +1298,7 @@ void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
   if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     victim_pref = atoi(rsp);
 
-  if ((u_int32_t)attacker_pref != attacker_max_num_flows_per_sec) {
+  if((u_int32_t)attacker_pref != attacker_max_num_flows_per_sec) {
     attacker_max_num_flows_per_sec = attacker_pref;
     flow_flood_attacker_alert->resetThresholds(attacker_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
 
@@ -1306,7 +1308,7 @@ void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
 #endif
   }
 
-  if ((u_int32_t)victim_pref != victim_max_num_flows_per_sec) {
+  if((u_int32_t)victim_pref != victim_max_num_flows_per_sec) {
     victim_max_num_flows_per_sec = victim_pref;
     flow_flood_victim_alert->resetThresholds(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
 
@@ -1332,7 +1334,7 @@ void Host::loadSynAlertPrefs(const char *ip_buf) {
   if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     victim_pref = atoi(rsp);
 
-  if ((u_int32_t)attacker_pref != attacker_max_num_syn_per_sec) {
+  if((u_int32_t)attacker_pref != attacker_max_num_syn_per_sec) {
     attacker_max_num_syn_per_sec = attacker_pref;
     syn_flood_attacker_alert->resetThresholds(attacker_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
 
@@ -1342,7 +1344,7 @@ void Host::loadSynAlertPrefs(const char *ip_buf) {
 #endif
   }
 
-  if ((u_int32_t)victim_pref != victim_max_num_syn_per_sec) {
+  if((u_int32_t)victim_pref != victim_max_num_syn_per_sec) {
     victim_max_num_syn_per_sec = victim_pref;
     syn_flood_victim_alert->resetThresholds(victim_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
 
@@ -1399,14 +1401,14 @@ void Host::refreshHostAlertPrefs() {
 
     if(key) {
       snprintf(rkey, sizeof(rkey), CONST_SUPPRESSED_ALERT_PREFS, getInterface()->get_id());
-      if (ntop->getRedis()->hashGet(rkey, key, rsp, sizeof(rsp)) == 0)
+      if(ntop->getRedis()->hashGet(rkey, key, rsp, sizeof(rsp)) == 0)
         trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
       else
         trigger_host_alerts = true;
 
       alerts_read = true;
 
-      if (trigger_host_alerts) {
+      if(trigger_host_alerts) {
         /* This value does *not* contain vlan information, it is provided separately inside these functions */
         key = ip.print(ip_buf, sizeof(ip_buf));
 
@@ -1416,7 +1418,7 @@ void Host::refreshHostAlertPrefs() {
     }
   }
 
-  if (! alerts_read)
+  if(!alerts_read)
     trigger_host_alerts = false;
 }
 
@@ -1672,9 +1674,9 @@ void Host::setMDSNInfo(char *str) {
 
 bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
 #ifdef NTOPNG_PRO
-  if(! ntop->get_flashstart())
+  if(!ntop->get_flashstart())
     return(true);
-
+  
   L7Policy_t *policy = l7Policy; /*
 				   Cache value so that even if updateHostL7Policy()
 				   runs in the meantime, we're consistent with the policer

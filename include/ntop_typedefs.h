@@ -344,5 +344,14 @@ typedef struct {
   void *items[QUEUE_ITEMS];
 } spsc_queue_t;
 
+#ifdef NTOPNG_PRO
+
+typedef struct {
+  char *host_or_mac;
+  time_t lifetime;
+  UT_hash_handle hh; /* makes this structure hashable */
+} volatile_members_t;
+
+#endif
 
 #endif /* _NTOP_TYPEDEFS_H_ */

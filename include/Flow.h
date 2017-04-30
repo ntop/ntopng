@@ -206,7 +206,7 @@ class Flow : public GenericHashEntry {
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
-  inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
+  inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
   bool updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shaper_id, u_int8_t *egress_shaper_id);
 #endif
@@ -226,11 +226,11 @@ class Flow : public GenericHashEntry {
   void categorizeFlow();
   void freeDPIMemory();
   bool isTiny();
-  inline bool isSSL()                  { return(isProtoSSL(NDPI_PROTOCOL_SSL));  }
-  inline bool isSSH()                  { return(isProtoSSL(NDPI_PROTOCOL_SSH));  }
-  inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
-  inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
-  inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
+  inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
+  inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
+  inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
   char* serialize(bool es_json = false);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);

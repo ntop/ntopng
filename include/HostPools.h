@@ -27,16 +27,6 @@
 class NetworkInterface;
 class Host;
 class Mac;
-#ifdef NTOPNG_PRO
-
-typedef struct {
-  char *host_or_mac;
-  time_t lifetime;
-  UT_hash_handle hh;         /* makes this structure hashable */
-} volatile_members_t;
-#endif
-
-#define NO_HOST_POOL_ID 0
 
 class HostPools {
  private:
@@ -53,9 +43,8 @@ class HostPools {
   void swap(AddressTree **new_trees, HostPoolStats **new_stats);
 
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
-    if(host_pool_id >= MAX_NUM_HOST_POOLS
-     || !stats)
-     return NULL;
+    if((host_pool_id >= MAX_NUM_HOST_POOLS) || (!stats))
+      return NULL;
     return stats[host_pool_id];
   }
 
@@ -68,6 +57,7 @@ class HostPools {
   volatile time_t latest_swap;
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
+  bool children_safe[MAX_NUM_HOST_POOLS];
 
   void loadFromRedis();
   void dumpToRedis();

@@ -388,6 +388,7 @@
 #define HOST_POOL_DUMP_KEY                 "ntopng.prefs.%u.host_pools.dump"
 #define HOST_POOL_SHAPERS_KEY              "ntopng.prefs.%u.l7_policies.%s"
 #define HOST_POOL_SITE_CATEGORIES_KEY      "ntopng.prefs.%u.blocked_sites_categories.%s"
+#define HOST_POOL_DETAILS_KEY              "ntopng.prefs.%u.host_pools.details.%u"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"
@@ -697,5 +698,7 @@
 #define MARKER_NO_ACTION               0 /* Pass when a verdict is not yet reached */
 #define MARKER_PASS                    1
 #define MARKER_DROP                    2
+
+#define NO_HOST_POOL_ID                0
 
 #endif /* _NTOP_DEFINES_H_ */
