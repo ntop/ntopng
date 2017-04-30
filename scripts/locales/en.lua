@@ -666,10 +666,14 @@ local  en = {
    },
 
    entity_thresholds = {
-      flow_alert_threshold = "Flow Alert Threshold",
-      flow_alert_description = "Max number of new flows/sec over which a host is considered a flooder",
-      syn_alert_threshold = "SYN Alert Threshold",
-      syn_alert_description = "Max number of sent TCP SYN packets/sec over which a host is considered a flooder",
+      flow_attacker_title = "Flow Flood Attacker",
+      flow_attacker_description = "Max number of sent flows/sec over which a host is considered a flooder",
+      flow_victim_title = "Flow Flood Victim",
+      flow_victim_description = "Max number of received flows/sec over which a host is considered under flood attack",
+      syn_attacker_title = "SYN Flood Attacker",
+      syn_attacker_description = "Max number of sent TCP SYN packets/sec over which a host is considered a flooder",
+      syn_victim_title = "SYN Flood Victim",
+      syn_victim_description = "Max number of received TCP SYN packets/sec over which a host is considered under SYN flood attack",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

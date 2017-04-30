@@ -756,12 +756,18 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       descr = alert_functions_description
    end
 
-   local flow_rate_alert_thresh_key, syn_alert_thresh_key
+   local flow_rate_attacker_key = "flow_attacker_threshold"
+   local flow_rate_victim_key = "flow_victim_threshold"
+   local syn_attacker_key = "syn_attacker_threshold"
+   local syn_victim_key = "syn_victim_threshold"
+   local flow_rate_attacker_thresh_key, flow_rate_victim_thresh_key, syn_attacker_thresh_key, syn_victim_thresh_key
    local flow_rate_alert_thresh, syn_alert_thresh
 
    if source.source == "host" then
-      flow_rate_alert_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
-      syn_alert_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
+      flow_rate_attacker_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..flow_rate_attacker_key
+      flow_rate_victim_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..flow_rate_victim_key
+      syn_attacker_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..syn_attacker_key
+      syn_victim_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..syn_victim_key
    end
 
    print('<ul class="nav nav-tabs">')
@@ -815,14 +821,24 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
    local anomalies_config = {
       {
-         title = i18n("entity_thresholds.flow_alert_threshold"),
-         descr = i18n("entity_thresholds.flow_alert_description"),
-         key = "flow_rate_alert_threshold",
+         title = i18n("entity_thresholds.flow_attacker_title"),
+         descr = i18n("entity_thresholds.flow_attacker_description"),
+         key = flow_rate_attacker_key,
          global_default = 25, step = 1
       }, {
-         title = i18n("entity_thresholds.syn_alert_threshold"),
-         descr = i18n("entity_thresholds.syn_alert_description"),
-         key = "syn_alert_threshold",
+         title = i18n("entity_thresholds.flow_victim_title"),
+         descr = i18n("entity_thresholds.flow_victim_description"),
+         key = flow_rate_victim_key,
+         global_default = 25, step = 1
+      }, {
+         title = i18n("entity_thresholds.syn_attacker_title"),
+         descr = i18n("entity_thresholds.syn_attacker_description"),
+         key = syn_attacker_key,
+         global_default = 10, step = 5
+      }, {
+         title = i18n("entity_thresholds.syn_victim_title"),
+         descr = i18n("entity_thresholds.syn_victim_description"),
+         key = syn_victim_key,
          global_default = 10, step = 5
       }
    }
@@ -846,8 +862,10 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          -- Delete spcific settings
          if source.source == "host" then
-            ntop.delCache(flow_rate_alert_thresh_key)
-            ntop.delCache(syn_alert_thresh_key)
+            ntop.delCache(flow_rate_attacker_thresh_key)
+            ntop.delCache(flow_rate_victim_thresh_key)
+            ntop.delCache(syn_attacker_thresh_key)
+            ntop.delCache(syn_victim_thresh_key)
             interface.refreshHostsAlertsConfiguration()
          end
          delete_alert_configuration(alert_source, ifname)

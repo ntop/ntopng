@@ -67,7 +67,8 @@ class Host : public GenericHost {
   DnsStats *dns;
   HTTPstats *http;
   bool trigger_host_alerts, good_low_flow_detected;
-  u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold;
+  u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
+  u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   NetworkStats *networkStats;
   CategoryStats *categoryStats;
 
