@@ -376,7 +376,7 @@ void Flow::checkBlacklistedFlow() {
 	       s, iface->get_id(),
 	       srv_host->get_name() ? srv_host->get_name() : s);
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
-      iface->getAlertsManager()->storeHostAlert(cli_host, alert_malware_detection, alert_level_error, msg);
+      iface->getAlertsManager()->storeHostAlert(cli_host, alert_malware_detection, alert_level_error, msg, cli_host, srv_host);
       cli_host->setBlacklistedAlarmEmitted();
     }
 
@@ -392,7 +392,7 @@ void Flow::checkBlacklistedFlow() {
 	       c, iface->get_id(),
 	       cli_host->get_name() ? cli_host->get_name() : c);
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
-      iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg);
+      iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg, srv_host, cli_host);
       srv_host->setBlacklistedAlarmEmitted();
     }
   }
