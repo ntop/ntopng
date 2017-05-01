@@ -40,7 +40,9 @@ if _POST["edit_pools"] ~= nil then
       end
     end
   end
-  -- Note: do not call reload here
+
+  -- Reload is required here to load the new metadata
+  interface.reloadHostPools()
 elseif _POST["pool_to_delete"] ~= nil then
   local pool_id = _POST["pool_to_delete"]
   host_pools_utils.deletePool(ifId, pool_id)
