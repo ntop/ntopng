@@ -222,7 +222,13 @@ class Host : public GenericHost {
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
   bool IsAllowedTrafficCategory(struct site_categories *category);
-  inline bool isChildSafe() { return(iface->getHostPools()->isChildrenSafePool(host_pool_id)); }
+  inline bool isChildSafe() {
+#ifdef NTOPNG_PRO
+    return(iface->getHostPools()->isChildrenSafePool(host_pool_id));
+#else
+    return(false);
+#endif
+  }
 };
 
 #endif /* _HOST_H_ */
