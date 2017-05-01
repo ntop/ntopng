@@ -501,6 +501,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 #endif
 
   if(host_details) {
+    lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
+
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary

@@ -219,9 +219,10 @@ class Host : public GenericHost {
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
-  static void splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id);
+  void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
   bool IsAllowedTrafficCategory(struct site_categories *category);
+  inline bool isChildSafe() { return(iface->getHostPools()->isChildrenSafePool(host_pool_id)); }
 };
 
 #endif /* _HOST_H_ */

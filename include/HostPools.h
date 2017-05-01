@@ -95,7 +95,7 @@ public:
   }
 
   void resetPoolsStats();
-
+  inline bool isChildrenSafePool(u_int16_t pool_id) { return((pool_id < MAX_NUM_HOST_POOLS) ? children_safe[pool_id] : false); }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
   void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);

@@ -1941,48 +1941,6 @@ int Utils::numberOfSetBits(u_int32_t i) {
 
 /* ******************************************* */
 
-/*
- * Checksum routine for Internet Protocol family headers (C Version)
- *
- * Borrowed from DHCPd
- */
-u_int32_t Utils::in_cksum(unsigned char *buf, unsigned nbytes, u_int32_t sum) {
-  uint i;
-
-  /* Checksum all the pairs of bytes first... */
-  for (i = 0; i < (nbytes & ~1U); i += 2) {
-    sum += (u_int16_t) ntohs(*((u_int16_t *)(buf + i)));
-    /* Add carry. */
-    if(sum > 0xFFFF)
-      sum -= 0xFFFF;
-  }
-
-  /*
-     If there's a single byte left over, checksum it, too. Network
-     byte order is big-endian, so the remaining byte is the high byte.
-  */
-  if(i < nbytes) {
-#ifdef DEBUG_CHECKSUM_VERBOSE
-    debug ("sum = %x", sum);
-#endif
-    sum += buf [i] << 8;
-    /* Add carry. */
-    if(sum > 0xFFFF)
-      sum -= 0xFFFF;
-  }
-
-  return(sum);
-}
-
-/* ******************************************* */
-
-u_int32_t Utils::wrapsum(u_int32_t sum) {
-  sum = ~sum & 0xFFFF;
-  return(htons(sum));
-}
-
-/* ******************************************* */
-
 /* 
    IMPORTANT: line buffer is large enough to contain the replaced string
  */

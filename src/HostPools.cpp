@@ -406,8 +406,9 @@ void HostPools::addToPool(char *host_or_mac,
   }
 
   reloadPools();
-
 }
+
+/* *************************************** */
 
 void HostPools::purgeExpiredVolatileMembers() {
   volatile_members_t *current, *tmp;
@@ -542,8 +543,7 @@ void HostPools::reloadPools() {
     rsp[0] = '\0';
     children_safe[i] = ((redis->hashGet(kname, (char*)"children_safe", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));
 
-    snprintf(kname, sizeof(kname),
-	     HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
+    snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
 
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
