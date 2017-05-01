@@ -225,6 +225,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
 
+   if(value.childSafe == true) then print(getSafeChildIcon()) end
+
    if((value["country"] ~= nil) and (value["country"] ~= "")) then
       print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
    end

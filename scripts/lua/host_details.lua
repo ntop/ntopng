@@ -400,9 +400,7 @@ if((page == "overview") or (page == nil)) then
 	    print("<tr><th width=35%>(Router/AccessPoint) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
        end
 
-      if(host.childSafe == true) then
-	 print('&nbsp;<i class="fa fa-lg fa-child" aria-hidden="true"></i>')
-      end
+      if(host.childSafe == true) then print(getSafeChildIcon()) end
 
       print('</td><td>&nbsp;</td></tr>')
 

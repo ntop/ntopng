@@ -3053,6 +3053,10 @@ function stripVlan(name)
   end
 end
 
+function getSafeChildIcon()
+   return("&nbsp;<font color='#5cb85c'><i class='fa fa-lg fa-child' aria-hidden='true'></i></font>")
+end
+
 -- ###########################################
 --
 -- IMPORTANT
