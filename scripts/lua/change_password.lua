@@ -75,6 +75,16 @@ print [[
 	 <form role="form" data-toggle="validator" class="form-signin" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">Change Password</h2>
    <p>Default admin password must be changed. Please enter a new password below.</p>
+]]
+
+if error_msg ~= nil then
+   print[[<div class="alert alert-danger alert-dismissable">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            ]] print(error_msg) print[[.
+          </div>]]
+end
+
+print[[
   <div class="form-group has-feedback">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input type="password" class="form-control" name="new_password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
@@ -83,11 +93,7 @@ print [[
 
   ]]
 
-  if error_msg ~= nil then
-    print[[<p style="color:red;"><strong>Error: </strong>]] print(error_msg) print[[</a>.</p>]]
-  end
-
-  print[[
+print[[
     <button class="btn btn-lg btn-primary btn-block" type="submit">Change Password</button>
   	<div class="row">
       <div >&nbsp;</div>

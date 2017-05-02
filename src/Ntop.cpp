@@ -934,7 +934,8 @@ bool Ntop::mustChangePassword(const char *user) {
   char val[8];
 
   if ((strcmp(user, "admin") == 0)
-      && ntop->getRedis()->get((char *)CONST_DEFAULT_PASSWORD_CHANGED, val, sizeof(val)) < 0)
+      && (ntop->getRedis()->get((char *)CONST_DEFAULT_PASSWORD_CHANGED, val, sizeof(val)) < 0
+	  || val[0] == '0'))
     return true;
 
   return false;

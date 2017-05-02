@@ -248,10 +248,21 @@ print[[
   resetAddUserForm();
 
   frmadduser.submit(function () {
+    if(!isValidPassword($("#password_input").val())) {
+      add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
+      return(false);
+    }
+
+    if(isDefaultPassword($("#password_input").val())) {
+      add_user_alert.error("Password is weak. Please choose a stronger password.");
+      return(false);
+    }
+
     if(!isValid($("#username_input").val())) {
       add_user_alert.error("Username must contain only letters and numbers");
       return(false);
     }
+
     if($("#username_input").val().length < 5) {
       add_user_alert.error("Username too short (5 or more characters)");
       return(false);

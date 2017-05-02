@@ -66,6 +66,9 @@ print [[<script>
     if(!isValidPassword($("#new_password_input").val())) {
       password_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers"); return(false);
     }
+    if(isDefaultPassword($("#new_password_input").val())) {
+      password_alert.error("Password is weak. Please choose a stronger password."); return(false);
+    }
     if($("#new_password_input").val().length < 5) {
       password_alert.error("Password too short (< 5 characters)"); return(false);
     }
