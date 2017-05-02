@@ -29,7 +29,7 @@ class Flow;
 class GenericHost : public GenericHashEntry, public GenericTrafficElement {
  protected:
   bool localHost, systemHost;
-  u_int32_t host_serial, num_alerts_detected;
+  u_int32_t host_serial;
   nDPIStats *ndpiStats;
   ActivityStats activityStats;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
@@ -60,8 +60,6 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
 		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   inline u_int32_t get_host_serial()  { return(host_serial);               };
-  inline void incNumAlerts()          { num_alerts_detected++;             };
-  inline void decNumAlerts()          { num_alerts_detected--;             };
 
   inline u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
   void resetPeriodicStats(void);

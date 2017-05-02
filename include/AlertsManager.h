@@ -65,11 +65,11 @@ class AlertsManager : protected StoreManager {
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		   const char *alert_origin, const char *alert_target);
   
-  int engageReleaseHostAlert(Host *h,
+  int engageReleaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			     Host *alert_origin, Host *alert_target,
+			     const char *alert_origin, const char *alert_target,
 			     bool engage);
 
   int engageReleaseNetworkAlert(const char *cidr,
@@ -111,24 +111,24 @@ class AlertsManager : protected StoreManager {
   /*
     ========== HOST alerts API =========
    */
-  inline int engageHostAlert(Host *h,
+  inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(h, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
   };
-  inline int engageHostAlert(Host *h,
+  inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			     Host *alert_origin, Host *alert_target) {
-    return engageReleaseHostAlert(h, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
+			     const char *alert_origin, const char *alert_target) {
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
   };
-  inline int releaseHostAlert(Host *h,
+  inline int releaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			      AlertEngine alert_engine,
 			      const char *engaged_alert_id,
 			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(h, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */);
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */);
   };
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		     Host *alert_origin, Host *alert_target);

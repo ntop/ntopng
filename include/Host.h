@@ -42,6 +42,7 @@ class Host : public GenericHost {
   bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
   u_int32_t host_quota_mb;
   int16_t local_network_id;
+  u_int32_t num_alerts_detected;
   float latitude, longitude;
   IpAddress ip;
   Mutex *m;
@@ -190,6 +191,8 @@ class Host : public GenericHost {
 
   u_int32_t   getNumAlerts(bool from_alertsmanager = false);
   inline void setNumAlerts(u_int32_t num) { num_alerts_detected = num; };
+  void postHashAdd();
+  void loadAlertsCounter();
 
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 

@@ -142,6 +142,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   if((vlan = iface->getVlan(_vlanId, true)) != NULL)
     vlan->incUses();
 
+  num_alerts_detected = 0;
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0;
   attacker_max_num_syn_per_sec = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
@@ -1282,6 +1283,29 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
 			       num_alerts_detected);
 
   return(num_alerts_detected);
+}
+
+/* *************************************** */
+
+void Host::postHashAdd() {
+  loadAlertsCounter();
+}
+
+/* *************************************** */
+
+void Host::loadAlertsCounter() {
+  char buf[64];
+  char rsp[16];
+  char *key = get_hostkey(buf, sizeof(buf), true /* force vlan */);
+
+  if (ntop->getRedis()->hashGet((char*)CONST_HOSTS_ALERT_COUNTERS, key, rsp, sizeof(rsp)) == 0)
+    num_alerts_detected = atoi(rsp);
+  else
+    num_alerts_detected = 0;
+
+#if 0
+  printf("%s: num_alerts_detected = %d\n", key, num_alerts_detected);
+#endif
 }
 
 /* *************************************** */

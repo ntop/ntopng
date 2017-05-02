@@ -2046,6 +2046,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	return;
       }
 
+      (*src)->postHashAdd();
       has_too_many_hosts = false;
     }
 
@@ -2069,6 +2070,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	return;
       }
 
+      (*dst)->postHashAdd();
       has_too_many_hosts = false;
     }
   }
@@ -2483,6 +2485,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       return(false);
     }
 
+    h->postHashAdd();
     return(true);
   }
 
@@ -5864,23 +5867,18 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 					       AlertEngine alert_engine,
 					       char *engaged_alert_id,
 					       AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    Host *h;
     AlertsManager *am;
     int rv;
-    disablePurge(false);
 
-    if(((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL)
-       && ((am = getAlertsManager()) != NULL)) {
+    if((am = getAlertsManager()) != NULL) {
       if(engage)
-	rv = am->engageHostAlert(h, alert_engine, engaged_alert_id,
+	rv = am->engageHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
 				 alert_type, alert_severity, alert_json);
       else
-	rv = am->releaseHostAlert(h, alert_engine, engaged_alert_id,
+	rv = am->releaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
 				  alert_type, alert_severity, alert_json);
     } else
       rv = CONST_LUA_ERROR;
-
-    enablePurge(false);
     return rv;
   }
 

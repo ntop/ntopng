@@ -1033,36 +1033,53 @@ bool AlertsManager::isValidHost(Host *h, char *host_string, size_t host_string_l
 
 /* ******************************************* */
 
-int AlertsManager::engageReleaseHostAlert(Host *h,
+int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 					  AlertEngine alert_engine,
 					  const char *engaged_alert_id,
 					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-					  Host *alert_origin, Host *alert_target,
+					  const char *alert_origin, const char *alert_target,
 					  bool engage) {
-  char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
+  char ipbuf_id[64], rsp[16];
   int rc;
-
-  if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
-    return -1;
-
-  if(!h->triggerAlerts() || !h->isLocalHost())
-    return 0;
+  Host *h;
+  NetworkInterface *iface = getNetworkInterface();
+  snprintf(ipbuf_id, sizeof(ipbuf_id), "%s@%d", host_ip, host_vlan);
+  int num_alerts;
 
   if(engage) {
     rc = engageAlert(alert_engine, alert_entity_host, ipbuf_id,
 		     engaged_alert_id, alert_type, alert_severity, alert_json,
-		     isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
-		     isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
-    if(!rc)
-      h->incNumAlerts(); /* Only if the alert wasn't already engaged */
-    return rc;
+		     alert_origin, alert_target);
   } else {
     rc = releaseAlert(alert_engine, alert_entity_host, ipbuf_id,
 		      engaged_alert_id);
-    if(!rc)
-      h->decNumAlerts(); /* Only if the alter was actually engaged */
-    return rc;
   }
+
+  if (rc != 0)
+    /* error */
+    return rc;
+
+  /* Read current value from redis */
+  if (ntop->getRedis()->hashGet((char*)CONST_HOSTS_ALERT_COUNTERS, ipbuf_id, rsp, sizeof(rsp)) == 0)
+    num_alerts = atoi(rsp);
+  else
+    num_alerts = 0;
+
+  if (engage)
+    num_alerts++;
+  else
+    num_alerts--;
+
+  /* Dump new value to redis */
+  snprintf(rsp, sizeof(rsp), "%d", num_alerts);
+  ntop->getRedis()->hashSet((char*)CONST_HOSTS_ALERT_COUNTERS, ipbuf_id, rsp);
+
+  /* Update host */
+  h = iface->getHost((char*)host_ip, host_vlan);
+  if (h)
+    h->setNumAlerts(num_alerts);
+
+  return rc;
 };
 
 /* ******************************************* */
