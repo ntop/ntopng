@@ -1079,6 +1079,20 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       </tbody> </table>
       ]]
 
+      print("<b>NOTES:</b><ul>")
+
+      print("<li>Thresholds listed in these tabs are checked periodically. Use tabs to control threshold checks periods.</li>")
+      print("<li>Some thresholds are expressed as a delta. A delta is the difference of the same quantity between two consecutive checks.</li>")
+      print("<li>Consecutive checks are not necessarily performed on consecutive periods. For example, if an host goes idle, its thresholds will not be checked until it becomes active again.</li>")
+
+      if (source.source == "host") then
+	 print("<li>Deltas of an idle host that becomes active again will be computed as the difference of the same quantity during the latest check and the most recent check performed when the host was active before going idle.</li>")
+	 print("<li>An attacker/victim threshold is considered exceeded if the corresponding host has exceeded the configured threshold for at least three seconds when performing the periodic check.</li>")
+      end
+
+print("</ul>")
+
+
    end
 end
 
