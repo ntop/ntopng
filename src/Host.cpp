@@ -1286,78 +1286,6 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
 
 /* *************************************** */
 
-void Host::loadFlowRateAlertPrefs(const char *ip_buf) {
-  char rkey[128], rsp[16];
-  int attacker_pref = ntop->getPrefs()->get_attacker_max_num_flows_per_sec();
-  int victim_pref = ntop->getPrefs()->get_victim_max_num_flows_per_sec();
-
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_ATTACKER_RATE, ip_buf, vlan_id);
-  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-    attacker_pref = atoi(rsp);
-
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_VICTIM_RATE, ip_buf, vlan_id);
-  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-    victim_pref = atoi(rsp);
-
-  if((u_int32_t)attacker_pref != attacker_max_num_flows_per_sec) {
-    attacker_max_num_flows_per_sec = attacker_pref;
-    flow_flood_attacker_alert->resetThresholds(attacker_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-
-#if 0
-    char buf[32];
-    printf("%s: attacker_max_num_flows_per_sec = %d\n", ip.print(buf, sizeof(buf)), attacker_max_num_flows_per_sec);
-#endif
-  }
-
-  if((u_int32_t)victim_pref != victim_max_num_flows_per_sec) {
-    victim_max_num_flows_per_sec = victim_pref;
-    flow_flood_victim_alert->resetThresholds(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-
-#if 0
-    char buf[32];
-    printf("%s: victim_max_num_flows_per_sec = %d\n", ip.print(buf, sizeof(buf)), victim_max_num_flows_per_sec);
-#endif
-  }
-}
-
-/* *************************************** */
-
-void Host::loadSynAlertPrefs(const char *ip_buf) {
-  char rkey[128], rsp[16];
-  int attacker_pref = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
-  int victim_pref = ntop->getPrefs()->get_victim_max_num_syn_per_sec();
-
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ATTACKER_ALERT, ip_buf, vlan_id);
-  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-    attacker_pref = atoi(rsp);
-
-  snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_VICTIM_ALERT, ip_buf, vlan_id);
-  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-    victim_pref = atoi(rsp);
-
-  if((u_int32_t)attacker_pref != attacker_max_num_syn_per_sec) {
-    attacker_max_num_syn_per_sec = attacker_pref;
-    syn_flood_attacker_alert->resetThresholds(attacker_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-
-#if 0
-    char buf[32];
-    printf("%s: attacker_max_num_syn_per_sec = %d\n", ip.print(buf, sizeof(buf)), attacker_max_num_syn_per_sec);
-#endif
-  }
-
-  if((u_int32_t)victim_pref != victim_max_num_syn_per_sec) {
-    victim_max_num_syn_per_sec = victim_pref;
-    syn_flood_victim_alert->resetThresholds(victim_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-
-#if 0
-    char buf[32];
-    printf("%s: victim_max_num_syn_per_sec = %d\n", ip.print(buf, sizeof(buf)), victim_max_num_syn_per_sec);
-#endif
-  }
-}
-
-/* *************************************** */
-
 void Host::resetPeriodicStats() {
   ((GenericHost*)this)->resetPeriodicStats();
 }
@@ -1395,7 +1323,7 @@ void Host::refreshHostAlertPrefs() {
   if(!ntop->getPrefs()->are_alerts_disabled()
       && (localHost || systemHost)
       && (!ip.isEmpty())) {
-    char *key, ip_buf[48], rsp[32], rkey[128];
+    char *key, ip_buf[48], rsp[64], rkey[128];
 
     /* This value always contains vlan information */
     key = get_hostkey(ip_buf, sizeof(ip_buf), true);
@@ -1410,11 +1338,54 @@ void Host::refreshHostAlertPrefs() {
       alerts_read = true;
 
       if(trigger_host_alerts) {
-        /* This value does *not* contain vlan information, it is provided separately inside these functions */
-        key = ip.print(ip_buf, sizeof(ip_buf));
+        /* Defaults */
+        int flow_attacker_pref = ntop->getPrefs()->get_attacker_max_num_flows_per_sec();
+        int flow_victim_pref = ntop->getPrefs()->get_victim_max_num_flows_per_sec();
+        int syn_attacker_pref = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
+        int syn_victim_pref = ntop->getPrefs()->get_victim_max_num_syn_per_sec();
 
-        loadFlowRateAlertPrefs(key);
-        loadSynAlertPrefs(key);
+        key = ip.print(ip_buf, sizeof(ip_buf));
+        snprintf(rkey, sizeof(rkey), CONST_HOST_ANOMALIES_THRESHOLD, key, vlan_id);
+
+        /* per-host values */
+        if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
+          /* Note: the order of the fields must match that of anomalies_config into alerts_utils.lua */
+          sscanf(rsp, "%i|%i|%i|%i", &flow_attacker_pref, &flow_victim_pref, &syn_attacker_pref, &syn_victim_pref);
+
+        /* Counter reload logic */
+        if((u_int32_t)flow_attacker_pref != attacker_max_num_flows_per_sec) {
+          attacker_max_num_flows_per_sec = flow_attacker_pref;
+          flow_flood_attacker_alert->resetThresholds(attacker_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
+#if 0
+          printf("%s: attacker_max_num_flows_per_sec = %d\n", key, attacker_max_num_flows_per_sec);
+#endif
+        }
+
+        if((u_int32_t)flow_victim_pref != victim_max_num_flows_per_sec) {
+          victim_max_num_flows_per_sec = flow_victim_pref;
+          flow_flood_victim_alert->resetThresholds(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
+#if 0
+          printf("%s: victim_max_num_flows_per_sec = %d\n", key, victim_max_num_flows_per_sec);
+#endif
+        }
+
+        if((u_int32_t)syn_attacker_pref != attacker_max_num_syn_per_sec) {
+          attacker_max_num_syn_per_sec = syn_attacker_pref;
+          syn_flood_attacker_alert->resetThresholds(attacker_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
+
+#if 0
+          printf("%s: attacker_max_num_syn_per_sec = %d\n", key, attacker_max_num_syn_per_sec);
+#endif
+        }
+
+        if((u_int32_t)syn_victim_pref != victim_max_num_syn_per_sec) {
+          victim_max_num_syn_per_sec = syn_victim_pref;
+          syn_flood_victim_alert->resetThresholds(victim_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
+
+#if 0
+          printf("%s: victim_max_num_syn_per_sec = %d\n", key, victim_max_num_syn_per_sec);
+#endif
+        }
       }
     }
   }
