@@ -318,6 +318,12 @@ function printBridgingPrefs()
        "Off", "0", "danger",
        "toggle_shaping_directions", "ntopng.prefs.split_shaping_directions", "0")
 
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
+  prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
+        "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
+  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
+        "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
+
   print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
 
   toggleTableButtonPrefs(subpage_active.entries["toggle_captive_portal"].title, subpage_active.entries["toggle_captive_portal"].description .. label,

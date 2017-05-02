@@ -65,6 +65,7 @@ Prefs::Prefs(Ntop *_ntop) {
   logFd = NULL;
   disable_alerts = enable_captive_portal = false;
   enable_top_talkers = false;
+  safe_search_dns = strdup(DEFAULT_SAFE_SEARCH_DNS), global_dns = strdup(DEFAULT_GLOBAL_DNS);
   max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
   max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW;
@@ -162,6 +163,8 @@ Prefs::~Prefs() {
   if(ls_proto)	      free(ls_proto);
   if(http_binding_address)  free(http_binding_address);
   if(https_binding_address) free(https_binding_address);
+  if(safe_search_dns) free(safe_search_dns);
+  if(global_dns) free(global_dns);
   /* NOTE: flashstart is deleted by the Ntop class */
 }
 
@@ -489,6 +492,11 @@ void Prefs::reloadPrefsFromRedis() {
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
+
+  if (safe_search_dns) free(safe_search_dns);
+  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &safe_search_dns, DEFAULT_SAFE_SEARCH_DNS);
+  if (global_dns) free(global_dns);
+  getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &global_dns, DEFAULT_GLOBAL_DNS);
 }
 
 /* ******************************************* */
@@ -1311,6 +1319,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
   lua_push_bool_table_entry(vm, "slack_enabled", slack_enabled);
+  lua_push_str_table_entry(vm, "safe_search_dns", safe_search_dns);
+  lua_push_str_table_entry(vm, "global_dns", global_dns);
 
   /* Tiny flows preferences */
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
@@ -1437,6 +1447,16 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    strlen((char*)CONST_MAX_NUM_ALERTS_PER_ENTITY)))
     max_num_alerts_per_entity = atoi(pref_value);
   else if(!strncmp(pref_name,
+		    (char*)CONST_SAFE_SEARCH_DNS,
+		    strlen((char*)CONST_SAFE_SEARCH_DNS))) {
+    if(safe_search_dns) free(safe_search_dns);
+    safe_search_dns = strdup(pref_value);
+  } else if(!strncmp(pref_name,
+		    (char*)CONST_GLOBAL_DNS,
+		    strlen((char*)CONST_GLOBAL_DNS))) {
+    if(global_dns) free(global_dns);
+    global_dns = strdup(pref_value);
+  } else if(!strncmp(pref_name,
 		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
 		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
     max_num_flow_alerts = atoi(pref_value);

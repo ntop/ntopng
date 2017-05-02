@@ -254,7 +254,13 @@ menu_subpages = {
       description = i18n("prefs.toggle_host_mask_description"),
     }
   }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
-    toggle_shaping_directions = {
+    safe_search_dns = {
+      title       = i18n("prefs.safe_search_dns_title"),
+      description = i18n("prefs.safe_search_dns_description", {url="https://en.wikipedia.org/wiki/SafeSearch"}),
+    }, global_dns = {
+      title       = i18n("prefs.global_dns_title"),
+      description = i18n("prefs.global_dns_description"),
+    }, toggle_shaping_directions = {
       title       = i18n("prefs.toggle_shaping_directions_title"),
       description = i18n("prefs.toggle_shaping_directions_description"),
     }, toggle_captive_portal = {
@@ -391,9 +397,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     end
   end
 
-  if extra.disabled == true then
-    attributes["disabled"] = "disabled"
-  end
+  if extra.disabled == true then attributes["disabled"] = "disabled" end
+  if extra.required == true then attributes["required"] = "" end
+  if extra.pattern ~= nil then attributes["pattern"] = extra.pattern end
 
   if (_input_type == "number") then
     attributes["required"] = "required"

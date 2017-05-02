@@ -380,6 +380,8 @@
 #define CONST_HOST_ACTIVITY_RRD_RAW_HOURS  "ntopng.prefs.host_activity_rrd_raw_hours"
 #define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
 #define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
+#define CONST_SAFE_SEARCH_DNS              "ntopng.prefs.safe_search_dns"
+#define CONST_GLOBAL_DNS                   "ntopng.prefs.global_dns"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
 #define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
 #define CONST_PROFILES_PREFS               "ntopng.prefs.profiles"
@@ -592,6 +594,8 @@
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY              1024
 #define STORE_MANAGER_MAX_KEY                20
+#define DEFAULT_GLOBAL_DNS                   ""
+#define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123"
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"

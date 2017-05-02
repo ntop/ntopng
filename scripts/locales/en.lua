@@ -662,7 +662,13 @@ local  en = {
       toggle_host_mask_description = "For privacy reasons it might be necessary to mask hosts IP addresses. For instance if you are an ISP you are not supposed to know what local addresses are accessing rmote hosts.",
       no_host_mask = "Don't Mask Hosts",
       local_host_mask = "Mask Local Hosts",
-      remote_host_mask = "Mask Remote Hosts",      
+      remote_host_mask = "Mask Remote Hosts",
+      dns = "DNS",
+      safe_search_dns_title = "Safe Search DNS",
+      safe_search_dns_description = "The DNS server to be used to perform <a href='%{url}'>Safe Search</a> queries.<br>"..
+            "Safe Search can be enabled for individual host pools from the host pools configuration page. Default: 208.67.222.123.",
+      global_dns_title = "Global DNS",
+      global_dns_description = "A DNS server to redirect the clients DNS requests to. If empty, the redirection is disabled and the default DNS is used.",
    },
 
    entity_thresholds = {

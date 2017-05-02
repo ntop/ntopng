@@ -363,6 +363,10 @@ local function validateMac(p)
    end
 end
 
+local function validateIPV4(p)
+   return isIPv4(p)
+end
+
 local function validateIpAddress(p)
    if (isIPv4(p) or isIPv6(p)) then
       return true
@@ -802,6 +806,8 @@ local known_parameters = {
    ["host_activity_rrd_1h_days"]                   =  validateNumber,
    ["host_activity_rrd_1d_days"]                   =  validateNumber,
    ["host_activity_rrd_raw_hours"]                 =  validateNumber,
+   ["safe_search_dns"]                             =  validateIPV4,
+   ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
    -- Multiple Choice
 
    ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx"}),
