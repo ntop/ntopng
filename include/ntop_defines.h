@@ -85,6 +85,7 @@
 
 #define ZMQ_MSG_VERSION           1
 #define LOGIN_URL                 "/lua/login.lua"
+#define LOGOUT_URL                "/lua/logout.lua"
 #define CAPTIVE_PORTAL_URL        "/lua/captive_portal.lua"
 #define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"
@@ -92,6 +93,7 @@
 #define HOTSPOT_DETECT_URL        "/hotspot-detect.html"       /* iOS    */
 #define KINDLE_WIFISTUB_URL       "/kindle-wifi/wifistub.html" /* Kindle */
 #define HOTSPOT_DETECT_LUA_URL    "/lua/hotspot-detect.lua"
+#define CHANGE_PASSWORD_ULR       "/lua/change_password.lua"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 
@@ -161,6 +163,7 @@
 #define MAX_OPTIONS             24
 #define CONST_ADMINISTRATOR_USER      "administrator"
 #define CONST_UNPRIVILEGED_USER       "unprivileged"
+#define CONST_DEFAULT_PASSWORD_CHANGED "ntopng.prefs.admin_password_changed"
 #define CONST_STR_NTOPNG_LICENSE      "ntopng.license"
 #define CONST_STR_USER_GROUP          "ntopng.user.%s.group"
 #define CONST_STR_USER_FULL_NAME      "ntopng.user.%s.full_name"

@@ -930,6 +930,18 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
 
 /* ******************************************* */
 
+bool Ntop::mustChangePassword(const char *user) {
+  char val[8];
+
+  if ((strcmp(user, "admin") == 0)
+      && ntop->getRedis()->get((char *)CONST_DEFAULT_PASSWORD_CHANGED, val, sizeof(val)) < 0)
+    return true;
+
+  return false;
+}
+
+/* ******************************************* */
+
 bool Ntop::resetUserPassword(char *username, char *old_password, char *new_password) {
   char key[64];
   char password_hash[33];

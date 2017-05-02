@@ -2054,7 +2054,7 @@ function maxRateToString(max_rate)
 end
 
 function getPasswordInputPattern()
-  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}$]]
+  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{5,}$]]
 end
 
 -- makeTopStatsScriptsArray
