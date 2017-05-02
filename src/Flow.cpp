@@ -1029,8 +1029,11 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 				    */
       }
     }
-  }
 
+
+    if(!inDeleteMethod) iface->aggregatePartialFlow(this);
+  }
+  
   if(last_update_time.tv_sec > 0) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
     //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
@@ -2918,4 +2921,12 @@ bool Flow::isTiny() {
     return(true);
   else
     return(false);
+}
+
+/* ***************************************************** */
+
+void Flow::fixAggregatedFlowFields() {
+  ndpiDetectedProtocol.master_protocol = ntohs(cli_port),
+    ndpiDetectedProtocol.app_protocol = ntohs(srv_port);
+  cli_port = srv_port = 0;
 }

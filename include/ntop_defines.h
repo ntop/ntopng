@@ -707,5 +707,6 @@
 #define MARKER_DROP                    2
 
 #define NO_HOST_POOL_ID                0
+#define FLOW_AGGREGATION_DURATION    300 /* sec */
 
 #endif /* _NTOP_DEFINES_H_ */

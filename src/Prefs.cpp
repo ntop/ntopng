@@ -36,7 +36,7 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;  
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
-  enable_access_log = false;
+  enable_access_log = false, flow_aggregation_enabled = false;
   hostMask = no_host_mask;
   enable_flow_device_port_rrd_creation = false;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -977,13 +977,12 @@ int Prefs::setOption(int optkey, char *optarg) {
 	if((mysql_tablename == NULL)
 	   || (mysql_tablename[0] == '\0')
 	   || 1 /*forcefully defaults the table name*/) mysql_tablename  = strdup("flows");
-	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
+	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
 	dump_flows_on_mysql = true;
+	enable_flow_aggregation();
       }  else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
-
-
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
       /* logstash;<host[@port]; */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");  

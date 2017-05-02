@@ -92,6 +92,7 @@ class NetworkInterface {
   nDPIStats ndpiStats;
   PacketStats pktStats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
+  FlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
 
   /* Sub-interface views */
@@ -106,7 +107,7 @@ class NetworkInterface {
   u_int64_t lastSecTraffic,
     lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
-  time_t lastSecUpdate;
+  time_t lastSecUpdate, endNextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
 
@@ -519,6 +520,7 @@ class NetworkInterface {
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };
 #endif
+  void aggregatePartialFlow(Flow *flow);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
