@@ -47,7 +47,7 @@ end
 
 function active(old, new, interval)
    if(verbose) then print("active("..interval..")") end
-   local diff = new["duration"] - old["duration"]
+   local diff = (new["total_activity_time"] or 0) - (old["total_activity_time"] or 0)
    return(diff)
 end
 
@@ -987,9 +987,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
          print("value=\"gt\">&gt;</option>\n")
 
-         if((vals[k] ~= nil) and (vals[k][1] == "eq")) then print("<option selected=\"selected\"") else print("<option ") end
-         print("value=\"eq\">=</option>\n")
-
          if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
          print("value=\"lt\">&lt;</option>\n")
          print("</select>\n")
@@ -1079,10 +1076,9 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
       </th> </tr>
 
-
-
       </tbody> </table>
       ]]
+
    end
 end
 

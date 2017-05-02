@@ -382,14 +382,14 @@ alert_engine_keys = {
 }
 
 alert_functions_description = {
-    ["active"]  = "Active host time (seconds)",
-    ["bytes"]   = "Layer 2 bytes delta (sent + received)",
-    ["dns"]     = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
-    ["idle"]    = "Idle time since last packet sent (seconds)",	
-    ["packets"] = "Packets delta (sent + received)",
-    ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
-    ["throughput"]   = "Average throughput (sent + received) [Mbps]",
-    ["flows"]   = "Flows (sent + received)",
+   ["active"]  = "Activity time since last check (seconds).",
+   ["bytes"]   = "Layer 2 bytes delta (sent + received)",
+   ["dns"]     = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
+   ["idle"]    = "Idle time since last packet seen (seconds)",	
+   ["packets"] = "Packets delta (sent + received)",
+   ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
+   ["throughput"]   = "Average throughput (sent + received) [Mbps]",
+   ["flows"]   = "Flows (sent + received)",
 }
 
 network_alert_functions_description = {

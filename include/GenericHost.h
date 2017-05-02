@@ -35,7 +35,7 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
   u_int8_t source_id;
   time_t last_activity_update;
-  u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t total_activity_time /* sec */, last_epoch_update; /* useful to avoid multiple updates */
   
   /* Throughput */
   float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
