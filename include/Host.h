@@ -86,8 +86,6 @@ class Host : public GenericHost {
   void refreshHTTPBL();
   void computeHostSerial();
   json_object* getJSONObject();
-  void loadFlowRateAlertPrefs(const char *ip_buf);
-  void loadSynAlertPrefs(const char *ip_buf);
   bool readDHCPCache();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);

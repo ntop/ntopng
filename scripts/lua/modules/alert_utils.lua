@@ -760,14 +760,11 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    local flow_rate_victim_key = "flow_victim_threshold"
    local syn_attacker_key = "syn_attacker_threshold"
    local syn_victim_key = "syn_victim_threshold"
-   local flow_rate_attacker_thresh_key, flow_rate_victim_thresh_key, syn_attacker_thresh_key, syn_victim_thresh_key
+   local anomaly_config_key = nil
    local flow_rate_alert_thresh, syn_alert_thresh
 
    if source.source == "host" then
-      flow_rate_attacker_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..flow_rate_attacker_key
-      flow_rate_victim_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..flow_rate_victim_key
-      syn_attacker_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..syn_attacker_key
-      syn_victim_thresh_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..syn_victim_key
+      anomaly_config_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.alerts_config'
    end
 
    print('<ul class="nav nav-tabs">')
@@ -862,10 +859,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          -- Delete spcific settings
          if source.source == "host" then
-            ntop.delCache(flow_rate_attacker_thresh_key)
-            ntop.delCache(flow_rate_victim_thresh_key)
-            ntop.delCache(syn_attacker_thresh_key)
-            ntop.delCache(syn_victim_thresh_key)
+            ntop.delCache(anomaly_config_key)
             interface.refreshHostsAlertsConfiguration()
          end
          delete_alert_configuration(alert_source, ifname)
@@ -902,16 +896,12 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
          -- Save source specific anomalies
          if (source.source == "host") and (tab == "min") and (to_save or (_POST["to_delete"] ~= nil)) then
+            local config_to_dump = {}
+
             for _, config in ipairs(anomalies_config) do
                local value = _POST[config.key]
                local global_value = _POST["global_"..config.key]
-               local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
-
-               if isEmptyString(value) then
-                  ntop.delCache(redis_key)
-               else
-                  ntop.setPref(redis_key, value)
-               end
+               config_to_dump[#config_to_dump + 1] = value or ""
 
                if isEmptyString(global_value) then
                   global_value = config.global_default
@@ -921,9 +911,11 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
                if value ~= nil then anomalies[config.key] = value end
                if global_value ~= nil then global_anomalies["global_"..config.key] = global_value end
-
-               interface.refreshHostsAlertsConfiguration()
             end
+
+            -- Serialize the settings
+            ntop.setCache(anomaly_config_key, table.concat(config_to_dump, "|"))
+            interface.refreshHostsAlertsConfiguration()
          end
 
          --print(alerts)
@@ -1012,10 +1004,20 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          local vals = table.merge(anomalies, global_anomalies)
 
          -- Possibly load old config
-         for _, config in ipairs(anomalies_config) do
+         local serialized_config = ntop.getCache(anomaly_config_key)
+         local deserialized_config
+         if isEmptyString(serialized_config) then
+            deserialized_config = {}
+         else
+            deserialized_config = split(serialized_config, "|")
+         end
+
+         for idx, config in ipairs(anomalies_config) do
             if isEmptyString(vals[config.key]) then
                local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
-               vals[config.key] = ntop.getCache(redis_key)
+               if (idx <= #deserialized_config) and (not isEmptyString(deserialized_config[idx])) then
+                  vals[config.key] = deserialized_config[idx]
+               end
             end
 
             if isEmptyString(vals["global_"..config.key]) then
@@ -1027,7 +1029,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          end
 
          -- Print the config
-         for _, config in pairs(anomalies_config) do
+         for _, config in ipairs(anomalies_config) do
             print("<tr><td><b>"..(config.title).."</b><br>\n")
             print("<small>"..(config.descr)..".</small>")
 
