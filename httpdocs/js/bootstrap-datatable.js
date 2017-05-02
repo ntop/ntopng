@@ -907,7 +907,7 @@
             .click(function() { _updatePerPage.call(this, that); return false; })
         , $('<li data-value="100"><a href="#">100</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
-        , $('<li data-value="150"><a href="#">200</a></li>')
+        , $('<li data-value="200"><a href="#">200</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
       );
     this.buttons.push($perpage_values);
