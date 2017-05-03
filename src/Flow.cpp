@@ -258,7 +258,7 @@ Flow::~Flow() {
 void Flow::dumpFlowAlert() {
   FlowStatus status = getFlowStatus();
 
-  if((!isFlowAlerted()) && (status != status_normal)) {
+  if(true || (!isFlowAlerted()) && (status != status_normal)) {
     char buf[128], *f = print(buf, sizeof(buf));
     AlertType aType;
     const char *msg = Utils::flowStatus2str(status, &aType);
@@ -295,7 +295,7 @@ void Flow::dumpFlowAlert() {
       break;
     }
 
-    if(do_dump && cli_host && srv_host) {
+    if(true || do_dump && cli_host && srv_host) {
       char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
 
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));

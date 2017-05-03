@@ -51,6 +51,7 @@ local prefs = ntop.getPrefs()
 -- Scan "5 minute" alerts
 callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
    scanAlerts("5mins", ifname)
+   housekeepingAlertsMakeRoom(getInterfaceId(ifname))
 end)
 
 -- ########################################################
