@@ -394,5 +394,3 @@ end)
 if(tostring(snmp_devices_rrd_creation) == "1") then
    snmp_update_rrds(time_threshold, verbose)
 end
-
-housekeepingAlertsMakeRoom()
