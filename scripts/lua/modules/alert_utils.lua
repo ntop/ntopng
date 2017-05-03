@@ -189,102 +189,6 @@ function are_alerts_suppressed(observed, ifid)
    end
 end
 
--- #################################################################
-
-function delete_alert_configuration(alert_source, ifname)
-   local ifid = getInterfaceId(ifname)
-   local alert_level  = 2 -- alert_level_error
-   local alert_type   = 2 -- alert_threshold_exceeded
-   local is_host = false
-
-   for k1,timespan in pairs(alerts_granularity) do
-      timespan = timespan[1]
-      local key = get_alerts_hash_name(timespan, ifname)
-      local alarms = ntop.getHashCache(key, alert_source)
-      if alarms ~= "" then
-	 for k1, metric in pairs(alarmable_metrics) do
-	    if ntop.isPro() then
-	       ntop.withdrawNagiosAlert(alert_source, timespan, metric, "OK, alarm deactivated")
-	    end
-	    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	       is_host = true
-	       -- check if this is a subnet
-	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	       -- finally assume it's an interface alert
-	    else
-	       interface.releaseInterfaceAlert(alertEngine(timespan), timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    end
-	 end
-	 ntop.delHashCache(key, alert_source)
-      end
-   end
-
-   if is_host == true then
-      interface.refreshNumAlerts(alert_source)
-   end
-   invalidateEngagedAlertsCache(getInterfaceId(ifname))
-   interface.refreshNumAlerts()
-end
-
-function refresh_alert_configuration(alert_source, ifname, timespan, alerts_string)
-   if tostring(alerts_string) == nil then return nil end
-   if is_allowed_timespan(timespan) == false then return nil end
-   local ifid = getInterfaceId(ifname)
-   local alert_level  = 2 -- alert_level_error
-   local alert_type   = 2 -- alert_threshold_exceeded
-   local is_host = false
-   -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-
-   local new_alert_ids = {}
-
-   -- alerts_string is a string such as dns;gt;23,bytes;gt;1,p2p;gt;3
-   -- that string comes directly from the web interface and is a comma-separated
-   -- list of threshold alerts configured.
-   -- since formerly configured alerts may have been deleted, we need to check
-   -- the ongoing_alerts against alerts_string and move to the closed list
-   -- any ongoing alert that is no longer part of the alerts_string
-   local tokens = split(alerts_string, ",")
-   if tokens == nil then tokens = {} end
-   for _, s in pairs(tokens) do
-      if tostring(s) == nil then goto continue end
-      local metric = string.split(s, ";")--[1]
-      if metric == nil or metric[1] == nil then goto continue end
-      metric = metric[1]
-
-      if is_allowed_alarmable_metric(metric) == true then
-	 new_alert_ids[timespan.."_"..metric] = true
-      end
-      ::continue::
-   end
-
-   -- check if there are some ongoing alerts that no longer exist in new_alerts
-   -- we want to close those alerts
-   for k1, timespan in pairs(alerts_granularity) do
-      timespan = timespan[1]
-      for k2, metric in pairs(alarmable_metrics) do
-	 if new_alert_ids[timespan.."_"..metric] ~= true then
-	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	       is_host = true
-	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alertEngine(timespan), alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	    else
-	       interface.releaseInterfaceAlert(alertEngine(timespan), timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    end
-	 end
-      end
-   end
-
-   if is_host == true then
-      interface.refreshNumAlerts(alert_source)
-   end
-   invalidateEngagedAlertsCache(getInterfaceId(ifname))
-   interface.refreshNumAlerts()
-end
-
 -- #################################
 
 -- Note: see getConfiguredAlertsThresholds for threshold object format
@@ -863,7 +767,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
             ntop.delCache(anomaly_config_key)
             interface.refreshHostsAlertsConfiguration()
          end
-         delete_alert_configuration(alert_source, ifname)
          alerts = nil
 
          -- Load the global settings even if user clicked the delete entity configuration
@@ -880,8 +783,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 	       if(value ~= nil) then
 		  if(alerts ~= "") then alerts = alerts .. "," end
 		  alerts = alerts .. k .. ";" .. operator .. ";" .. value
-	       else
-		  if ntop.isPro() then ntop.withdrawNagiosAlert(alert_source, tab, k, "alarm not installed") end
 	       end
 
          -- Handle global settings
@@ -923,7 +824,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
          if(to_save) then
             -- TODO Do not release for now, needs to ensure consistency with global_alerts too
-            -- refresh_alert_configuration(alert_source, ifname, tab, alerts)
 
             -- This specific entity alerts
             if(alerts == "") then
@@ -1814,13 +1714,25 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
 end
 
 local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-  if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
-  engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+   if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
+
+   engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+
+   if ntop.isPro() then
+      tprint("SENDING")
+      ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info))
+   end
 end
 
 local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-  if(verbose) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
-  engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+   if(verbose) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
+
+   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+
+   if ntop.isPro() then
+      tprint("WITHDRAWING")
+      ntop.withdrawNagiosAlert(entity_value:gsub("@0", ""), akey, "Service OK.")
+   end
 end
 
 local function getEngagedAlertsCache(ifid, granularity)
@@ -1903,15 +1815,6 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     local atype = "threshold_cross"
     local akey = threshold.key
     local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
-
-    if ntop.isPro() then
-      -- Possibly send Nagios alert heartbeat
-      if exceeded then
-        ntop.sendNagiosAlert(entity, granularity, alert_info.metric, formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info))
-      else
-        ntop.withdrawNagiosAlert(entity, granularity, alert_info.metric, "service OK")
-      end
-    end
 
     if exceeded then
       addAlertInfo(current_alerts, atype, akey, alert_info)
