@@ -323,7 +323,7 @@ end
 function op2jsop(op)
    if op == "gt" then
       return ">"
-   elseif op "lt" then
+   elseif op == "lt" then
       return "<"
    else
       return "=="
