@@ -32,14 +32,12 @@ class AlertsManager : protected StoreManager {
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
   bool alerts_stored;
-  bool make_room;
   int openStore();
   
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
 		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp);
-  void markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
-  int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows);
+  void markForMakeRoom(const char *table_name);
   int engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
@@ -105,9 +103,6 @@ class AlertsManager : protected StoreManager {
  public:
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager() {};
-
-  inline bool makeRoomRequested() { return(make_room); };
-  void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
 
   /*
     ========== HOST alerts API =========

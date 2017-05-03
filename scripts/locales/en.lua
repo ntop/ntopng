@@ -557,10 +557,10 @@ local  en = {
             "<a href=\"%{url}\">malware-marked hosts</a>. Overnight new blacklist rules are refreshed.",
       alerts_retention = "Alerts Retention",
       max_num_alerts_per_entity_title = "Maximum Number of Alerts per Entity",
-      max_num_alerts_per_entity_description = "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces and flows. "..
-            "Once the maximum number of entity alerts is reached, oldest alerts will be overwritten. Default: 1024.",
+      max_num_alerts_per_entity_description = "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces. Alerts are checked periodically and, in case the actual number of alerts exceeds the maximum number for a given entity, oldest alerts will be deleted to preserve a number of alerts equal to the 80%% of the maximum configured number. "..
+            "Default: 1024.",
       max_num_flow_alerts_title = "Maximum Number of Flow Alerts",
-      max_num_flow_alerts_description = "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. Default: 16384.",
+      max_num_flow_alerts_description = "The maximum number of flow alerts. Alerts are checked periodically and, in case the actual number of flow alerts exceeds the configured maximum number, oldest alerts will be deleted to preserve a number of alerts equal to the 80%% of the maximum configured number. Default: 16384.",
       internal_log = "Internal Log",
       toggle_alert_syslog_title = "Alerts On Syslog",
       toggle_alert_syslog_description = "Enable alerts logging on system syslog.",

@@ -2,7 +2,7 @@
  *
  * (C) 2013-17 - ntop.org
  *
- *
+ *o
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -53,7 +53,6 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   store_initialized = init(fileFullPath) == 0 ? true : false;
   store_opened      = openStore()        == 0 ? true : false;
-  make_room         = false;
 
   if(!store_initialized)
     ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -412,8 +411,8 @@ bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_e
 
 /* **************************************************** */
 
-void AlertsManager::markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
+void AlertsManager::markForMakeRoom(const char *table_name) {
+  if(table_name) {
     Redis *r = ntop->getRedis();
     char k[128], buf[512];
 
@@ -424,117 +423,10 @@ void AlertsManager::markForMakeRoom(AlertEntity alert_entity, const char *alert_
 
     snprintf(k, sizeof(k), ALERTS_MANAGER_MAKE_ROOM_SET_NAME, ifid);
 
-    snprintf(buf, sizeof(buf), "%i|%s|%s",
-	     alert_entity,
-	     alert_entity_value ? alert_entity_value : "",
-	     table_name ? table_name : "");
+    snprintf(buf, sizeof(buf), "%s", table_name);
 
     r->sadd(k, buf);
-    make_room = true;
   }
-}
-
-/* **************************************************** */
-
-void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
-  if(!ntop->getPrefs()->are_alerts_disabled() && make_room) {
-    make_room = false;
-    int max_num = strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME))
-      ? ntop->getPrefs()->get_max_num_alerts_per_entity() : ntop->getPrefs()->get_max_num_flow_alerts();
-    int num = 0;
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum configured number of alerts per entity: %i", max_num);
-
-    if(max_num < 0)
-      return; /* unlimited allowance */
-
-    if(!strncmp(table_name, ALERTS_MANAGER_ENGAGED_TABLE_NAME, strlen(ALERTS_MANAGER_ENGAGED_TABLE_NAME)))
-      num = getNumAlerts(true, alert_entity, alert_entity_value);
-    else if(!strncmp(table_name, ALERTS_MANAGER_TABLE_NAME, strlen(ALERTS_MANAGER_TABLE_NAME)))
-      num = getNumAlerts(false, alert_entity, alert_entity_value);
-    else if(!strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME)))
-      num = getNumFlowAlerts(); /* no need to check alert entity if entity is a flow */
-
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Checking maximum %s for %s [got: %i]",
-				 table_name ? table_name : (char*)"",
-				 alert_entity_value ? alert_entity_value : (char*)"",
-				 num);
-
-    if(num >= max_num) {
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum number of %s exceeded for %s",
-				   table_name ? table_name : (char*)"",
-				   alert_entity_value ? alert_entity_value : (char*)"");
-      if(getNumAlerts(false /* too many alerts always go to not engaged table */,
-		      alert_entity, alert_entity_value,
-		      alert_too_many_alerts) > 0) {
-	/* possibly delete the old too-many-alerts alert so that the new ones becomes the most recent */
-	deleteAlerts(false /* not engaged */, alert_entity, alert_entity_value, alert_too_many_alerts, 0);
-      }
-
-      /* make room by deleting the oldest alert matching the input criteria */
-      deleteOldestAlert(alert_entity, alert_entity_value, table_name, max_num - 1);
-
-      char msg[256];
-      snprintf(msg, sizeof(msg), "Too many %s alerts. Oldest alerts will be overwritten "
-	       "unless you delete some alerts or increase their maximum number.",
-	       alert_entity_value ? alert_entity_value : "");
-    
-      storeAlert(alert_entity, alert_entity_value,
-		 alert_too_many_alerts, alert_level_error, msg,
-		 NULL, NULL,
-		 false /* force store alert, do not check maximum here */);
-    }
-  }
-}
-
-/* **************************************************** */
-
-int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value,
-				     const char *table_name, u_int32_t max_num_rows) {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
-    char query[STORE_MANAGER_MAX_QUERY];
-    sqlite3_stmt *stmt = NULL;
-    int rc = 0;
-    bool flows_table = !strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME));
-
-    if(!store_initialized || !store_opened)
-      return -1;
-
-    snprintf(query, sizeof(query),
-	     "DELETE FROM %s "
-	     "WHERE rowid NOT IN "
-	     "(SELECT rowid FROM %s "
-	     "WHERE alert_type <> ? %s"
-	     "ORDER BY alert_tstamp DESC LIMIT %u)",
-	     table_name, table_name, !flows_table ? (char*)" AND alert_entity = ? AND alert_entity_val = ? " : (char*)"",
-	     max_num_rows);
-
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to delete via: %s", query);
-
-    m.lock(__FILE__, __LINE__);
-
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
-       || (!flows_table && sqlite3_bind_text(stmt,  2, alert_entity_value, -1, SQLITE_STATIC))
-       || (!flows_table && sqlite3_bind_int(stmt,   3, static_cast<int>(alert_too_many_alerts)))) {
-      rc = 1;
-      goto out;
-    }
-
-    while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-      if(rc == SQLITE_ERROR) {
-	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-	rc = 1;
-	goto out;
-      }
-    }
-
-    rc = 0;
-  out:
-    if(stmt) sqlite3_finalize(stmt);
-    m.unlock(__FILE__, __LINE__);
-
-    return rc;
-  } return(0);
 }
 
 /* **************************************************** */
@@ -628,7 +520,7 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
       /* Cannot release an alert that has not been engaged */
       return 1;
     } else
-      markForMakeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
+      markForMakeRoom(ALERTS_MANAGER_TABLE_NAME);
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
@@ -880,7 +772,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     if(!store_initialized || !store_opened)
       return(-1);
     else if(check_maximum)
-      markForMakeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
+      markForMakeRoom(ALERTS_MANAGER_TABLE_NAME);
 
     /* This alert is being engaged */
     snprintf(query, sizeof(query),
@@ -940,7 +832,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
     if(!store_initialized || !store_opened || !f)
       return(-1);
 
-    markForMakeRoom(alert_entity_flow, (char*)"flow", ALERTS_MANAGER_FLOWS_TABLE_NAME);
+    markForMakeRoom(ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     cli = f->get_cli_host(), srv = f->get_srv_host();
     if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))

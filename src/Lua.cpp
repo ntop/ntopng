@@ -5213,53 +5213,6 @@ static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_make_room_alerts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int alert_entity;
-  char *alert_entity_value, *table_name;
-  AlertsManager *am;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  alert_entity = (int)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  alert_entity_value = (char*)lua_tostring(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  table_name = (char*)lua_tostring(vm, 3);
-
-  if((!ntop_interface)
-     || ((am = ntop_interface->getAlertsManager()) == NULL))
-    return(CONST_LUA_ERROR);
-
-  am->makeRoom((AlertEntity)alert_entity, alert_entity_value, table_name);
-
-  return CONST_LUA_OK;
-}
-
-
-/* ****************************************** */
-
-static int ntop_interface_make_room_requested(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  AlertsManager *am;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if((!ntop_interface)
-     || ((am = ntop_interface->getAlertsManager()) == NULL))
-    return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, am->makeRoomRequested());
-
-  return(CONST_LUA_OK);
-
-}
-
-/* ****************************************** */
-
 static int ntop_interface_query_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
@@ -5834,8 +5787,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "engageInterfaceAlert", ntop_interface_engage_interface_alert   },
   { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
   { "refreshNumAlerts",     ntop_interface_refresh_num_alerts       },
-  { "makeRoomAlerts",       ntop_interface_make_room_alerts         },
-  { "makeRoomRequested",    ntop_interface_make_room_requested      },
   { NULL,                             NULL }
 };
 
