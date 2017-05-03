@@ -1298,6 +1298,9 @@ void Host::loadAlertsCounter() {
   char rsp[16];
   char *key = get_hostkey(buf, sizeof(buf), true /* force vlan */);
 
+  if(ntop->getPrefs()->are_alerts_disabled() || !isLocalHost())
+    return;
+
   if (ntop->getRedis()->hashGet((char*)CONST_HOSTS_ALERT_COUNTERS, key, rsp, sizeof(rsp)) == 0)
     num_alerts_detected = atoi(rsp);
   else

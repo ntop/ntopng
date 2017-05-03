@@ -36,7 +36,8 @@ class AlertsManager : protected StoreManager {
   int openStore();
   
   /* methods used for alerts that have a timespan */
-  bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
+  bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
+		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp);
   void markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
   int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows);
   int engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
