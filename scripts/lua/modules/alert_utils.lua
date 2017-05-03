@@ -1122,7 +1122,9 @@ function housekeepingAlertsMakeRoom(ifId)
 						     "ORDER BY alert_tstamp ASC LIMIT "..to_delete)
 	 -- TODO: possibly raise a too many alerts for entity e
       end
-   elseif ntop.getCache(k["flows"]) == "1" then
+   end
+
+   if ntop.getCache(k["flows"]) == "1" then
       ntop.delCache(k["flows"])
       local res = interface.queryFlowAlertsRaw("SELECT count(*) count", "WHERE 1=1")
       local count = tonumber(res[1].count)
