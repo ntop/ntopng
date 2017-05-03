@@ -1174,7 +1174,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
 
 function checkAlertActionsPanel() {
    /* check if this tab is handled by this script */
-   if(getCurrentStatus() == "")
+   if(getCurrentStatus() == "" || getCurrentStatus() == "engaged")
       $("#alertsActionsPanel").css("display", "none");
    else
       $("#alertsActionsPanel").css("display", "");
@@ -1337,6 +1337,11 @@ function getCurrentStatus() {
 	 {
 	    title: "]]print(i18n("show_alerts.alert_actions"))print[[",
 	    field: "column_key",
+       ]]
+   if t["status"] == "engaged" then
+      print("hidden: true,")
+   end
+   print[[
 	    css: {
 	       textAlign: 'center', width: '100px'
 	    }
