@@ -411,21 +411,25 @@ bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_e
 
 /* **************************************************** */
 
-void AlertsManager::markForMakeRoom(const char *table_name) {
-  if(table_name) {
-    Redis *r = ntop->getRedis();
-    char k[128], buf[512];
+void AlertsManager::markForMakeRoom(bool on_flows) {
+  Redis *r = ntop->getRedis();
+  char k[128], buf[512];
 
-    if(!r) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get a valid Redis instances");
-      return;
-    }
+  if(!r) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get a valid Redis instances");
+    return;
+  }
 
-    snprintf(k, sizeof(k), ALERTS_MANAGER_MAKE_ROOM_SET_NAME, ifid);
+  if(on_flows)
+    snprintf(k, sizeof(k), ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS, ifid);
+  else
+    snprintf(k, sizeof(k), ALERTS_MANAGER_MAKE_ROOM_ALERTS, ifid);
 
-    snprintf(buf, sizeof(buf), "%s", table_name);
-
-    r->sadd(k, buf);
+  if(r->get(k, buf, sizeof(buf)) < 0 || buf[0] == 0) {
+    snprintf(buf, sizeof(buf), (char*)"1");
+    r->set(k, buf);
+  } else {
+    /* Already set */;
   }
 }
 
@@ -520,7 +524,7 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
       /* Cannot release an alert that has not been engaged */
       return 1;
     } else
-      markForMakeRoom(ALERTS_MANAGER_TABLE_NAME);
+      markForMakeRoom(false);
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
@@ -775,7 +779,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     if(!store_initialized || !store_opened)
       return(-1);
     else if(check_maximum)
-      markForMakeRoom(ALERTS_MANAGER_TABLE_NAME);
+      markForMakeRoom(false);
 
     /* This alert is being engaged */
     snprintf(query, sizeof(query),
@@ -835,7 +839,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
     if(!store_initialized || !store_opened || !f)
       return(-1);
 
-    markForMakeRoom(ALERTS_MANAGER_FLOWS_TABLE_NAME);
+    markForMakeRoom(true);
 
     cli = f->get_cli_host(), srv = f->get_srv_host();
     if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))

@@ -37,7 +37,7 @@ class AlertsManager : protected StoreManager {
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
 		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp);
-  void markForMakeRoom(const char *table_name);
+  void markForMakeRoom(bool on_flows);
   int engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
