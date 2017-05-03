@@ -1165,6 +1165,45 @@ function aggregation2String(value)
   end
 end
 
+-- #################################
+
+-- Aggregates items below some edge
+-- edge: minimum percentage value to create collision
+-- min_col: minimum collision groups to aggregate
+function aggregatePie(values, values_sum, edge, min_col)
+   local edge = edge or 0.05
+   min_col = min_col or 2
+   local aggr = {}
+   local other = i18n("other")
+   local below_edge = {}
+
+   -- Initial lookup
+   for k,v in pairs(values) do
+      if v / values_sum <= edge then
+         -- too small
+         below_edge[#below_edge + 1] = k
+      else
+         aggr[k] = v
+      end
+   end
+
+   -- Decide if to aggregate
+   for _,k in pairs(below_edge) do
+      if #below_edge >= min_col then
+         -- aggregate
+         aggr[other] = aggr[other] or 0
+         aggr[other] = aggr[other] + values[k]
+      else
+         -- do not aggregate
+         aggr[k] = values[k]
+      end
+   end
+
+   return aggr
+end
+
+-- #################################
+
 function getOSIcon(name)
   icon = ""
 

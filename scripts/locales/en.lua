@@ -59,6 +59,7 @@ local  en = {
    vlan = "VLAN",
    breakdown = "Breakdown",
    interface = "Interface",
+   other = "Other",
 
    graphs = {
       arp_requests = "ARP Requests",
