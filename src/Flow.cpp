@@ -361,6 +361,8 @@ void Flow::checkBlacklistedFlow() {
 
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
 						alert_level_error, alert_msg);
+
+      blacklist_alarm_emitted = true;
     }
 
     /* Checks to generate the host alert */

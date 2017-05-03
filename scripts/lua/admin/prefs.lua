@@ -215,10 +215,10 @@ function printExternalAlertsReport()
    toggleTableButtonPrefs(subpage_active.entries["toggle_slack_notification"].title, subpage_active.entries["toggle_slack_notification"].description,
                     "On", "1", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
 		    "Off", "0", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
-		    "toggle_slack_notification", "ntopng.alerts.notification_enabled", "0", showElements==false, elementToSwitchSlack)
+		    "toggle_slack_notification", "ntopng.alerts.slack_notifications_enabled", "0", showElements==false, elementToSwitchSlack)
 
   local showSlackNotificationPrefs = false
-  if ntop.getPref("ntopng.alerts.notification_enabled") == "1" then
+  if ntop.getPref("ntopng.alerts.slack_notifications_enabled") == "1" then
      showSlackNotificationPrefs = true
   else
      showSlackNotificationPrefs = false
@@ -233,11 +233,11 @@ function printExternalAlertsReport()
 
   prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
            "ntopng.alerts.", "sender_username",
-		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}})
+		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
 
   prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
 		       "ntopng.alerts.", "slack_webhook",
-		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}})
+		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true})
 
 
   if(ntop.isPro()) then

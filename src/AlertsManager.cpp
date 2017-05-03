@@ -490,7 +490,7 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
 
       notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
 		  alert_type, alert_severity, alert_json,
-		  alert_origin, alert_target);
+		  alert_origin, alert_target, true);
     }
 
     return rc;
@@ -527,7 +527,7 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
 
     notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
           alert_type, alert_severity, alert_json,
-          alert_origin, alert_target);
+          alert_origin, alert_target, false);
   
     /* Move the alert from engaged to closed */
     snprintf(query, sizeof(query),
@@ -673,7 +673,8 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity,
 				const char *alert_json,
-				const char *alert_origin, const char *alert_target) {
+				const char *alert_origin, const char *alert_target,
+        bool engage) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     json_object *notification;
     char alert_sender_name[64], message[2015], notification_username[96];
@@ -701,7 +702,8 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 			     json_object_new_string(notification_username));
     }
 
-    snprintf(message, sizeof(message), "%s [%s][%s][Origin: %s][Target: %s]",
+    snprintf(message, sizeof(message), "%s%s [%s][%s][Origin: %s][Target: %s]",
+	     engaged_alert_id ? (engage ? "Alert Engaged: " : "Alert Released: ") : "",
 	     getAlertType(alert_type),
 	     alert_entity_value ? alert_entity_value : "",
 	     engaged_alert_id ? engaged_alert_id : "",
@@ -728,13 +730,14 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity,
 				const char *alert_json,
-				const char *alert_origin, const char *alert_target) {
+				const char *alert_origin, const char *alert_target,
+				bool engage) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char choice[32];
     bool alert_to_be_notified = false;
     SlackNotificationChoice notification_choice;
 
-    if(ntop->getPrefs()->are_notifications_enabled()) {
+    if(ntop->getPrefs()->are_slack_notification_enabled()) {
       ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_SEVERITY, choice, sizeof(choice));
 
       notification_choice = getSlackNotificationChoice(choice);
@@ -752,7 +755,7 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
       if(alert_to_be_notified)
 	notifyAlert(alert_entity, alert_entity_value, engaged_alert_id,
 		    alert_type, alert_severity, alert_json,
-		    alert_origin, alert_target);
+		    alert_origin, alert_target, engage);
     }
   }
 }
@@ -842,7 +845,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
 
     notifySlack(alert_entity_flow, "flow", NULL,
 		alert_type, alert_severity, alert_json,
-		cli_ip, srv_ip);
+		cli_ip, srv_ip, false);
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %s", cli_ip, srv_ip);
     /* TODO: implement check maximum for flow alerts

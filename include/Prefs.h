@@ -42,9 +42,9 @@ class Prefs {
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
   char *http_binding_address, *https_binding_address;
   Ntop *ntop;
-  bool enable_dns_resolution, sniff_dns_responses, slack_enabled,
+  bool enable_dns_resolution, sniff_dns_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-    enable_auto_logout, use_promiscuous_mode, notifications_enabled,
+    enable_auto_logout, use_promiscuous_mode, slack_notifications_enabled,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
@@ -134,7 +134,6 @@ class Prefs {
   inline bool is_dns_resolution_enabled()               { return(enable_dns_resolution);  };
   inline bool is_users_login_enabled()                  { return(enable_users_login);     };
   inline bool is_localhost_users_login_disabled()       { return(disable_localhost_login);};
-  inline bool is_slack_enabled()                        { return(slack_enabled);          };
 
   inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };  
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
@@ -207,7 +206,7 @@ class Prefs {
   inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);          };
   inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);          };
   inline u_int32_t get_max_num_flows()                  { return(max_num_flows);          };
-  inline bool are_notifications_enabled()               { return(notifications_enabled);  };
+  inline bool are_slack_notification_enabled()          { return(slack_notifications_enabled);  };
   inline bool daemonize_ntopng()                        { return(daemonize);              };
   inline bool do_dump_flow_alerts_when_iface_alerted()  { return(dump_flow_alerts_when_iface_alerted); };
   void add_default_interfaces();

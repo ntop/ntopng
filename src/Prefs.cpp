@@ -65,6 +65,7 @@ Prefs::Prefs(Ntop *_ntop) {
   logFd = NULL;
   disable_alerts = enable_captive_portal = false;
   enable_top_talkers = false;
+  slack_notifications_enabled = false;
   safe_search_dns = strdup(DEFAULT_SAFE_SEARCH_DNS), global_dns = strdup(DEFAULT_GLOBAL_DNS);
   max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
@@ -453,7 +454,7 @@ void Prefs::reloadPrefsFromRedis() {
   host_activity_rrd_1d_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1D_DAYS, HOST_ACTIVITY_RRD_1D_DAYS);
   housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 						     HOUSEKEEPING_FREQUENCY);
-  notifications_enabled          = getDefaultPrefsValue(ALERTS_MANAGER_NOTIFICATION_ENABLED, 0 /* Disabled by default */);
+  slack_notifications_enabled          = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false /* Disabled by default */);
   dump_flow_alerts_when_iface_alerted = getDefaultPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, 0 /* Disabled by default */);
   hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, 0 /* Mask disabled by default */);
   
@@ -485,7 +486,6 @@ void Prefs::reloadPrefsFromRedis() {
   enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
 
-  slack_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_NOTIFICATION_WEBHOOK, false);
   enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
 
@@ -1317,7 +1317,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
-  lua_push_bool_table_entry(vm, "slack_enabled", slack_enabled);
+  lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
   lua_push_str_table_entry(vm, "safe_search_dns", safe_search_dns);
   lua_push_str_table_entry(vm, "global_dns", global_dns);
 
@@ -1487,6 +1487,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		   (char*)CONST_PREFS_CAPTIVE_PORTAL,
 		   strlen((char*)CONST_PREFS_CAPTIVE_PORTAL)))
     enable_captive_portal = pref_value[0] == '1' ? true : false;
+  else if(!strncmp(pref_name,
+		   (char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED,
+		   strlen((char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED)))
+    slack_notifications_enabled = pref_value[0] == '1' ? true : false;
 
   return 0;
 }
