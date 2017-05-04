@@ -575,11 +575,7 @@ function getAlertSource(entity, entity_value, alt_name)
          host_name = alt_name
       else
          local hostInfo = hostkey2hostinfo(entity_value)
-         host_name = resolveAddress(hostInfo)
-
-         if isEmptyString(host_name) then
-            host_name = hostinfo2hostkey({host=hostInfo["host"], vlan=hostInfo["vlan"]})
-         end
+         host_name = getResolvedAddress(hostInfo)
       end
 
       return {

@@ -1221,8 +1221,13 @@ end
 
 -- #################################
 
+-- NOTE: prefer the getResolvedAddress on this function
 function resolveAddress(hostinfo)
    local hostname = ntop.resolveName(hostinfo["host"])
+   if isEmptyString(hostname) then
+      -- Not resolved
+      return hostname
+   end
    return hostVisualization(hostinfo["host"], hostname)
 end
 
