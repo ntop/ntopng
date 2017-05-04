@@ -491,3 +491,9 @@ function handle_tab_state(nav_object, default_tab) {
    if (! hash) hash = "#" + default_tab;
    $('a[href="' + hash + '"]', nav_object).tab('show');
 }
+
+if (typeof(Math.sign) === "undefined") {
+  Math.sign = function(x) {
+    return (x >= 0) ? 1 : -1;
+  };
+}
