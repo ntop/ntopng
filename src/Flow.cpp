@@ -1213,10 +1213,13 @@ void Flow::update_pools_stats(const struct timeval *tv,
     if(srv_host) {
       srv_host_pool_id = srv_host->get_host_pool();
 
-      hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
-		       diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
-      hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
-		       diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      /* Update server pool stats only if the pool is not equal to the client pool */
+      if(!cli_host || srv_host_pool_id != cli_host_pool_id) {
+	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      }
     }
   }
 }

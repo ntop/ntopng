@@ -560,8 +560,8 @@ print("</script>\n")
 
    if((ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)) then
       print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
-      print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped/Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
-      print("<tr><th>".. ifstats["bridge.device_a"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_b"] .."</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
+      print("<tr><th nowrap>Interface</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped/Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
+      print("<tr><th>".. ifstats["bridge.device_a"] .. "</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
       print("<td><span id=a_to_b_out_pkts>".. formatPackets(ifstats["bridge.a_to_b.out_pkts"]) .."</span> <span id=a_to_b_out_pps></span></td>")
       print("<td><span id=a_to_b_filtered_pkts>".. formatPackets(ifstats["bridge.a_to_b.filtered_pkts"]) .."</span></td>")
 
@@ -570,7 +570,7 @@ print("</script>\n")
 
       print("</tr>\n")
 
-      print("<tr><th>".. ifstats["bridge.device_b"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_a"] .."</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span> <span id=b_to_a_in_pps></span></td>")
+      print("<tr><th>".. ifstats["bridge.device_b"] .. "</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span> <span id=b_to_a_in_pps></span></td>")
       print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span> <span id=b_to_a_out_pps></span></td>")
       print("<td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td>")
 
@@ -1463,7 +1463,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 print('</select>')
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
+  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-cog" aria-hidden="true"></i></A>')
 end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
@@ -1562,7 +1562,19 @@ local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_direc
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
 </form>
 
-]]..i18n("shaping.notes")..[[:
+<b>]]..i18n("shaping.notes")..[[</b>:]])
+
+if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then
+
+print([[
+<ul>
+<li>]]..i18n("shaping.note_default_pool_config", {url=ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools#create"})..[[</li>
+</ul>
+]])
+
+else
+
+print([[
 <ul>
 <li>]]..i18n("shaping.note_drop_core")..[[</li>
 <li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
@@ -1597,12 +1609,16 @@ $("#family_info_sel").change(function() {
       }
    }
 });
+</script>
 ]]
+
+end
 
 local rate_buttons = shaper_utils.buttons("rate")
 local traffic_buttons = shaper_utils.buttons("traffic")
 local time_buttons = shaper_utils.buttons("time")
 
+print("<script>")
 print(rate_buttons.init.."\n")
 
 local empty_quota_bar = string.gsub(string.gsub(printProtocolQuota({traffic_quota="0"}, {}, nil, {traffic=true}, false), "\n", ""), "'", "\"")
@@ -1677,9 +1693,17 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
    var ingress_shaper_id = ingress_shaper.html();
    var egress_shaper_id = egress_shaper.html();
+]]
 
-   ingress_shaper.html('<select class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
-   egress_shaper.html('<select class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+local disabled = ''
+if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then
+   disabled = 'disabled="disabled"'
+end
+
+print[[
+
+   ingress_shaper.html('<select ]] print(disabled) print[[ class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   egress_shaper.html('<select ]] print(disabled) print[[ class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
 
    /* Select the current value */
    $("select", ingress_shaper).val(ingress_shaper_id);
@@ -2099,9 +2123,20 @@ print[[
             }
          ]);
 
-         /* Only enable add button if we are in the last page */
-         $("#addNewShapedProtoBtn").attr("disabled", ! datatableIsLastPage("#table-protos"));
+         /* Only enable add button if we are in the last page and the pool is not the default unassigned */
+]]
 
+if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+print[[
+         $("#addNewShapedProtoBtn").attr("disabled", ! datatableIsLastPage("#table-protos"));
+]]
+else
+print[[
+         $("#addNewShapedProtoBtn").attr("disabled", "true");
+]]
+end
+
+print[[
          aysResetForm('#l7ProtosForm');
       }
    });

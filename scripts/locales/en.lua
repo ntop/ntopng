@@ -198,6 +198,7 @@ local  en = {
       delete_shaper = "Delete Shaper",
       confirm_delete_shaper = "Do you really want to delete shaper ",
       note_drop_core = "Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.",
+      note_default_pool_config = "Policies and quotas only apply to user-defined host pools. Select a different pool or create a new one <a href='%{url}'>here</a>.",
       note_quota_unlimited = "Set Traffic and Time Quota to 0 for unlimited traffic.",
       note_families = "Protocol Families can be used to set the same policy on multiple protocols at once.<br>Use the dropdown below to obtain the list of protocols contained into a Protocol Family:",
       see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas."

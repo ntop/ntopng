@@ -34,7 +34,7 @@ nDPIStats::nDPIStats(const nDPIStats &stats) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(stats.counters[i] != NULL) {
       counters[i] = (ProtoCounter*) malloc(sizeof(ProtoCounter));
-      *counters[i] = *stats.counters[i];
+      memcpy(counters[i], stats.counters[i], sizeof(ProtoCounter));
     } else {
       counters[i] = NULL;
     }
@@ -247,7 +247,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	  }
 
 	  if(json_object_object_get_ex(bytes, "duration", &duration))
-	    counters[proto_id]->duration = json_object_get_int64(duration);	  
+	    counters[proto_id]->duration = json_object_get_int(duration);	  
 	}
       }
     }

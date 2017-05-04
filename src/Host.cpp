@@ -1216,7 +1216,8 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
 
-  if(!pools) return false;
+  if(!pools || get_host_pool() == NO_HOST_POOL_ID) /* Enforce quotas only for custom pools */
+    return false;
 
   get_quota(protocol, &bytes_quota, &secs_quota, is_category);
 
