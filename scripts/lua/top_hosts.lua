@@ -99,7 +99,7 @@ for k,v in pairs(localhosts) do sortTable[v]=k end
 num = 0
 for _v,k in pairsByKeys(sortTable, rev) do key = k   
    if(num < max_num) then
-      symname = ntop.getResolvedAddress(key)
+      symname = getResolvedAddress(hostkey2hostinfo(key))
       print('var host'..num..' = fetchData("' .. key ..'", "'.. symname .. '");\n');
       num = num+1
    end

@@ -24,7 +24,7 @@ if(user_key == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Missing user name</div>")
 else
   if(host_key ~= nil) then
-    name = ntop.getResolvedAddress(host_key)
+    name = getResolvedAddress(hostkey2hostinfo(host_key))
     if (name == nil) then
       name = host_key
     end

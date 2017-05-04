@@ -495,7 +495,7 @@ function handleCustomFlowField(key, value)
       b3 = tonumber(b3)
       b4 = tonumber(b4)
       local ipaddr = string.format('%d.%d.%d.%d', b4, b3, b2, b1)
-      local res = ntop.getResolvedAddress(ipaddr)
+      local res = getResolvedAddress(hostkey2hostinfo(ipaddr))
 
       local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..ipaddr.."\">"
 

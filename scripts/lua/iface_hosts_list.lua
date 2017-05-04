@@ -29,7 +29,7 @@ for key, value in pairs(hosts_stats) do
       if(host_info["host"] == "255.255.255.255") then
 	 key = "Broadcast"
       end
-      _hosts_stats[value] = key -- ntop.getResolvedAddress(key)
+      _hosts_stats[value] = key -- ntop.getResolvedName(key)
       if((top_value < value) or (top_key == nil)) then
 	 top_key = key
 	 top_value = value

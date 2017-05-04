@@ -54,7 +54,7 @@ else
      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No traffic detected for this process, flow process expired, or process terminated.</div>")
   else
     if(host_key ~= nil) then
-      name = ntop.getResolvedAddress(host_key)
+      name = getResolvedAddress(hostkey2hostinfo(host_key))
       if (name == nil) then
         name = host_key
       end

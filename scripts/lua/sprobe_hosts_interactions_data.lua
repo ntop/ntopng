@@ -44,7 +44,7 @@ n = 0
 for key, value in pairs(links) do
    if(n > 0) then print(",") end
 
-   print('\n{"source": "'..key..'", "source_num": '.. links[key]["num"]..', "source_type": "host", "source_pid": -1, "source_name": "'..ntop.getResolvedAddress(key)..'", "target": "'..value["peer"]..'", "target_num": '.. value["num"]..', "target_type": "host", "target_pid": -1, "target_name": "'.. ntop.getResolvedAddress(value["peer"])..'", "type": "host2host"}')
+   print('\n{"source": "'..key..'", "source_num": '.. links[key]["num"]..', "source_type": "host", "source_pid": -1, "source_name": "'..ntop.getResolvedAddress(hostkey2hostinfo(key))..'", "target": "'..value["peer"]..'", "target_num": '.. value["num"]..', "target_type": "host", "target_pid": -1, "target_name": "'.. ntop.getResolvedAddress(hostkey2hostinfo(value["peer"]))..'", "type": "host2host"}')
    n = n + 1
 end
 print("\n]\n")

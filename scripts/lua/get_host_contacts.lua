@@ -222,7 +222,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    print("\"column_name\" : \"")
 	    if(value["protocol"] == 65535) then
-	       print(ntop.getResolvedAddress(key))
+	       print(getResolvedAddress(hostkey2hostinfo(key)))
 	    else
 	       print(key)
 	    end

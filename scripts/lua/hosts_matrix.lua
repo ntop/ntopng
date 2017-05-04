@@ -71,7 +71,7 @@ for key, value in pairs(hosts_stats) do
       -- exclude multicast / NoIP / broadcast
       if(not(isBroadcastMulticast(hosts_stats[key]["ip"]))) then
 	 if(hasLocalTraffic(flows_stats, hosts_stats, key)) then
-	    name_host_1 = ntop.getResolvedAddress(key);
+	    name_host_1 = getResolvedAddress(hostkey2hostinfo(key));
 	    localhosts[key] = hosts_stats[key]
 	    localhosts[key]["name"] = name_host_1
 	    found = true

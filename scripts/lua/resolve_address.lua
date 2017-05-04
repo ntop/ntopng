@@ -9,6 +9,6 @@ require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-sym = ntop.resolveAddress(_GET["host"])
+sym = ntop.resolveName(_GET["host"])
 
 print(sym)

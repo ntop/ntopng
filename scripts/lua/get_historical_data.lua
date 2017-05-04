@@ -122,14 +122,14 @@ if stats_type == "top_talkers" then
       -- CASE 01: compute interface-wide top-talkers for the selected time interval
       res = getOverallTopTalkers(ifid, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
       for _, record in pairs(res) do
-	 record["label"] = ntop.getResolvedAddress(record["addr"])
+	 record["label"] = getResolvedAddress(hostkey2hostinfo(record["addr"]))
       end
    elseif not peer1 and not peer2 and l7_proto_id and l7_proto_id ~= "" then
       -- CASE 02: compute top-talkers for the specified L7 protocol
       res = getAppTopTalkers(ifid, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
-	 record["label"] = ntop.getResolvedAddress(record["addr"])
+	 record["label"] = getResolvedAddress(hostkey2hostinfo(record["addr"]))
       end
    elseif peer1 and peer1 ~="" then
       -- CASE 03: compute top-talkers with the given peer1
@@ -138,7 +138,7 @@ if stats_type == "top_talkers" then
       res = getHostTopTalkers(ifid, peer1, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
-	 record["label"] = ntop.getResolvedAddress(record["addr"])
+	 record["label"] = getResolvedAddress(hostkey2hostinfo(record["addr"]))
       end
       -- tprint(res)
    end
@@ -163,8 +163,8 @@ elseif stats_type =="peers_traffic_histogram" and peer1 and peer2 then
    res = getPeersTrafficHistogram(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
 
    for _, record in pairs(res) do
-      record["peer1_label"] = ntop.getResolvedAddress(record["peer1_addr"])
-      record["peer2_label"] = ntop.getResolvedAddress(record["peer2_addr"])
+      record["peer1_label"] = getResolvedAddress(hostkey2hostinfo(record["peer1_addr"]))
+      record["peer2_label"] = getResolvedAddress(hostkey2hostinfo(record["peer2_addr"]))
    end
    -- tprint(res)
 end
