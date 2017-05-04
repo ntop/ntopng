@@ -14,7 +14,7 @@ if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 local show_advanced_prefs = false
 local alerts_disabled = false

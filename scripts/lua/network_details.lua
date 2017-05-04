@@ -25,7 +25,7 @@ local network_name = ntop.getNetworkNameById(tonumber(network))
 local network_vlan   = tonumber(_GET["vlan"])
 if network_vlan == nil then network_vlan = 0 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

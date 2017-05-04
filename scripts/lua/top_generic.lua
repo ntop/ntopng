@@ -8,7 +8,7 @@ require "lua_utils"
 require "top_talkers"
 json = require("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ifid = getInterfaceId(ifname)
 

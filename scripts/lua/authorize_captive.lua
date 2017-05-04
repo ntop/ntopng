@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 print [[
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">

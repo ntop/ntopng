@@ -8,7 +8,7 @@ require "lua_utils"
 require "vlan_utils"
 local json = require("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 -- sendHTTPHeader('application/json')
 interface.select(ifname)

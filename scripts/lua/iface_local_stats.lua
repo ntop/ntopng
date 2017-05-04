@@ -8,7 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ifid = _GET["ifid"]
 interface.select(ifid)

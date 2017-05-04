@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 json = require("dkjson")
 
---sendHTTPHeader('text/html; charset=iso-8859-1')
+--sendHTTPContentTypeHeader('text/html')
 sendHTTPHeader('application/json')
 
 function dumpInterfaceStats(interface_name)

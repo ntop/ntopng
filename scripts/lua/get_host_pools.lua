@@ -9,7 +9,7 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local json = require "dkjson"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 local ifid = _GET["ifid"]
 local pool_id = _GET["pool"]

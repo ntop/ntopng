@@ -8,7 +8,7 @@ require "lua_utils"
 require "as_utils" -- needed for the function mac2record
 local json = require("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 -- sendHTTPHeader('application/json')
 interface.select(ifname)

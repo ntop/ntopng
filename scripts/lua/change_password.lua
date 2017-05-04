@@ -26,7 +26,7 @@ if (_POST["new_password"] ~= nil) and (_SESSION["user"] == "admin") then
   end
 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 info = ntop.getInfo()

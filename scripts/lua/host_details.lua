@@ -48,7 +48,7 @@ local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local labelKey = host_info["host"].."@"..host_info["vlan"]
 
 if((host_name == nil) or (host_ip == nil)) then
-   sendHTTPHeader('text/html; charset=iso-8859-1')
+   sendHTTPContentTypeHeader('text/html')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host parameter is missing (internal error ?)</div>")
@@ -101,7 +101,7 @@ if(host == nil) then
    if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
       page = "historical"
       only_historical = true
-      sendHTTPHeader('text/html; charset=iso-8859-1')
+      sendHTTPContentTypeHeader('text/html')
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
       print [[
@@ -121,7 +121,7 @@ if(host == nil) then
    else
       -- We need to check if this is an aggregated host
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
-      sendHTTPHeader('text/html; charset=iso-8859-1')
+      sendHTTPContentTypeHeader('text/html')
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
       if page == "alerts" then
 	 print('<script>window.location.href = "')
@@ -148,7 +148,7 @@ if(host == nil) then
       return
    end
 else
-   sendHTTPHeader('text/html; charset=iso-8859-1')
+   sendHTTPContentTypeHeader('text/html')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

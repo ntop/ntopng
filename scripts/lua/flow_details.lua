@@ -19,7 +19,7 @@ require "voip_utils"
 
 local json = require ("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 warn_shown = 0

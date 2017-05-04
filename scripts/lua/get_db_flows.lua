@@ -84,7 +84,7 @@ if(format == "txt") then
       filename = filename.."_to_"..string.gsub(formatEpoch(epoch_end), ' ', '-')
    end
    filename = filename..".txt"
-   sendHTTPHeader('text/plain; charset=iso-8859-1', 'attachment; filename="'..filename..'"')
+   sendHTTPContentTypeHeader('text/plain', 'attachment; filename="'..filename..'"')
    local num = 0
    for _,flow in pairs(res) do
       if(num == 0) then
@@ -116,7 +116,7 @@ if(format == "txt") then
       num = num + 1
    end
 else
-   sendHTTPHeader('text/html; charset=iso-8859-1')
+   sendHTTPContentTypeHeader('text/html')
    -- JSON
    if((res == nil) or (type(res) == "string")) then
       return('{ "currentPage" : 1,  "data" : [], "perPage" : '..perPage..',  "sort" : [ [ "column_", "desc" ] ],"totalRows" : 0 }')

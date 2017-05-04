@@ -103,6 +103,14 @@ end
 
 -- ##############################################
 
+function sendHTTPContentTypeHeader(content_type, content_disposition, charset)
+  local charset = charset or "iso-8859-1"
+  local mime = content_type.."; charset="..charset
+  sendHTTPHeader(mime, content_disposition)
+end
+
+-- ##############################################
+
 function printGETParameters(get)
   for key, value in pairs(get) do
     io.write(key.."="..value.."\n")

@@ -9,7 +9,7 @@ require "top_talkers"
 require "db_utils"
 local json = require ("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 local ifid = _GET["ifid"]
 if ifid == nil or ifid == "" then

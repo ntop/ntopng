@@ -28,7 +28,7 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 local pool_name = host_pools_utils.getPoolName(ifId, pool_id)
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

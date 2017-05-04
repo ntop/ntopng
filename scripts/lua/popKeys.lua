@@ -46,7 +46,7 @@ end
 
 -- #########################
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 begin = os.clock()
 t = os.time() -- -86400

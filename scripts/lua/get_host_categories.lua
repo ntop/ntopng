@@ -108,6 +108,6 @@ result["totalRows"] = total_rows
 result["data"] = result_data
 result["sort"] = {{sort_column, sort_order}}
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 print(json.encode(result, nil))
 

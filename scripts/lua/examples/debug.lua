@@ -13,7 +13,7 @@ require "lua_utils"
 -- function sendHTTPHeaderIfName(mime, ifname, maxage)
 -- function sendHTTPHeader(mime)
 -- For more information please read the scripts/lua/modules/lua_utils.lua file.
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

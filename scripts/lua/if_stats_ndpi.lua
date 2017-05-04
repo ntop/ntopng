@@ -26,7 +26,7 @@ if(format == "json") then
    sendHTTPHeader('application/json')
    json_format = true
 else
-   sendHTTPHeader('text/html; charset=iso-8859-1')
+   sendHTTPContentTypeHeader('text/html')
    json_format = false
 end
 

@@ -9,7 +9,7 @@ require "lua_utils"
 require "graph_utils"
 require "historical_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 
 ifid = _GET["ifid"]

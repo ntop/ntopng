@@ -27,7 +27,7 @@ if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 page = _GET["page"]
 ifid = _GET["ifid"]

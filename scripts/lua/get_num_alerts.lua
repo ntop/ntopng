@@ -10,7 +10,7 @@ require "alert_utils"
 
 interface.select(ifname)
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 if(_GET["status"] ~= nil) then
    local num = getNumAlerts(_GET["status"], _GET)
