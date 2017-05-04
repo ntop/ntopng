@@ -28,6 +28,8 @@
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
 
+  memset(children_safe, 0, sizeof(children_safe));
+
 #ifdef NTOPNG_PRO
   stats = stats_shadow = NULL;
 

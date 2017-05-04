@@ -1050,18 +1050,6 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
    local alert_items = {}
    local url_params = {}
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
-
-      print [[
-     <div align=right><i id="PageRefresh" class="fa fa-refresh" aria-hidden="true"></i></div>
-
-        <script type="text/javascript">
-            $('#PageRefresh').click(function() {
-                document.location = "]] print(ntop.getHttpPrefix().."/lua/show_alerts.lua") print [[";
-            });
-        </script>
-]]
-
-
       if not alt_nav_tabs then
 	 print[[
 <br>
@@ -1257,7 +1245,8 @@ function getCurrentStatus() {
 	    field: "column_date",
             sortable: true,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+          whiteSpace: 'nowrap',
 	    }
 	 },
 ]]
@@ -1269,7 +1258,8 @@ function getCurrentStatus() {
 	    field: "column_duration",
             sortable: true,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+          whiteSpace: 'nowrap',
 	    }
 	 },
 	 ]]
@@ -1290,7 +1280,8 @@ function getCurrentStatus() {
 	    field: "column_type",
             sortable: true,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+          whiteSpace: 'nowrap',
 	    }
 	 },
 
@@ -1298,7 +1289,7 @@ function getCurrentStatus() {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",
 	    css: {
-	       textAlign: 'left'
+	       textAlign: 'left',
 	    }
 	 }
       ], tableCallback: function() {

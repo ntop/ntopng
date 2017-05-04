@@ -68,7 +68,7 @@ for _key,_value in ipairs(alerts) do
    --   tprint(alert_entity_val)
    local tdiff = os.time()-_value["alert_tstamp"]
 
-   if(tdiff < 3600) then
+   if(tdiff < 60) then
       column_date  = secondsToTime(tdiff).." ago"
    else
       column_date = os.date("%c", _value["alert_tstamp"])

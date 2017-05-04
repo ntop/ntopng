@@ -282,8 +282,15 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 
 	print [[</div>]]
 	  if interface.isPacketInterface() then
-       print[[ <div class='col-md-2'>
-	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
+	      local disabled = ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges()
+       print[[ <div class='col-md-2'><div style='margin-bottom:0.4em;'>
+	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm]]
+	       if disabled then print(" disabled") end
+	       print[[" href="#" role="button" id="extract_pcap_]] print(button_id)
+	       print[["><i class="fa fa-download fa-lg"></i></a></div>
+	       <span id="pcap_download_msg_]] print(button_id) print[[">]]
+	       if disabled then print("<small>"..i18n("db_explorer.nbox_disabled")..".<br>"..i18n("db_explorer.enable_it_via", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=nbox", icon="<i class=\"fa fa-flask\"></i>"}).."</small>") end
+	       print[[</span>
 	       </div>]]
 	  end
 
@@ -353,18 +360,6 @@ print[[
     });
   });
 ]]
-
-else -- either the nbox integration is disabled or the user doesn't have admin privileges
-
-   print[[
-  $('#extract_pcap_]] print(button_id) print[[').click(function (event)
-  {
-     event.preventDefault();
-     $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html(
-	 "<small>]] print(i18n("db_explorer.nbox_disabled")) print[[. <br>" +
-	 ' ]] print(i18n("db_explorer.enable_it_via", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua", icon="<i class=\"fa fa-flask\"></i>"})) print[[ .</small>');
-     });
-     ]]
   end
 
 

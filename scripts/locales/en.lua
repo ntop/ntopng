@@ -245,7 +245,7 @@ local  en = {
    alerts_dashboard = {
       flow_alert_origins  = "Flow Alert Origins",
       flow_alert_targets  = "Flow Alert Targets",
-      engaged_for_longest = "Engaged for Longest",
+      engaged_for_longest = "Past Alerts Engaged for Longest",
       starting_on = "starting on",
       total_alerts = "Total Alerts",
       no_alerts = "No alerts",
@@ -326,7 +326,7 @@ local  en = {
       request_failed = "Request failed",
       ok_request_sent = "OK, request sent",
       nbox_disabled = "nBox integration is disabled",
-      enable_it_via = "Enable it via <a href=\"%{url}\">%{icon} preferences</a>",
+      enable_it_via = "Enable it via the <a href=\"%{url}\">%{icon} expert preferences</a>",
       all = "all",
       unsave = "Unsave",
       application_flows = "Application flows",

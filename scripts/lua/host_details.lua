@@ -398,11 +398,8 @@ if((page == "overview") or (page == nil)) then
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	    print("<tr><th width=35%>(Router/AccessPoint) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
-       end
-
-      if(host.childSafe == true) then print(getSafeChildIcon()) end
-
-      print('</td><td>&nbsp;</td></tr>')
+	    print('</td><td>&nbsp;</td></tr>')
+      end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
 	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
@@ -432,6 +429,7 @@ if((page == "overview") or (page == nil)) then
       print("</tr>")
       
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
+      if(host.childSafe == true) then print(getSafeChildIcon()) end
       
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
       
