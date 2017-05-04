@@ -1171,7 +1171,7 @@ end
 -- edge: minimum percentage value to create collision
 -- min_col: minimum collision groups to aggregate
 function aggregatePie(values, values_sum, edge, min_col)
-   local edge = edge or 0.05
+   local edge = edge or 0.09
    min_col = min_col or 2
    local aggr = {}
    local other = i18n("other")

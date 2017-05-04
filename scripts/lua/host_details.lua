@@ -1987,7 +1987,7 @@ elseif (page == "config") then
          ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
 
          interface.select(ifname)
-         interface.refreshHostAlertsConfiguration(host_ip, host_vlan)
+         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
       else
          trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
          if trigger_alerts == "false" then

@@ -762,7 +762,10 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       to_save = false
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
-         -- Delete spcific settings
+         -- Delete threshold configuration
+         ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+
+         -- Delete specific settings
          if source.source == "host" then
             ntop.delCache(anomaly_config_key)
             interface.refreshHostsAlertsConfiguration()
