@@ -7,7 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 
-sendHTTPContentTypeHeader('text/html')
+--[[ Note: keep the old iso-8859-1 encoding to avoid breaking existing passwords ]]
+sendHTTPContentTypeHeader('text/html', nil, 'iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 info = ntop.getInfo()

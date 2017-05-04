@@ -805,10 +805,25 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
 	// || (param[i] == '.')
 	;
     } else {
-      is_good = Utils::isPrintableChar(param[i])
-	&& (param[i] != '<')
-	&& (param[i] != '>')
-	&& (param[i] != '"'); /* Prevents injections - single quotes are allowed and will be validated in http_lint.lua */
+      char c;
+      int new_i;
+
+      if ((u_char)param[i] == 0xC3) {
+        /* Latin-1 within UTF-8 - Align to ASCII encoding */
+        c = param[i+1] | 0x40;
+        new_i = i+1; /* We are actually validating two bytes */
+      } else {
+        c = param[i];
+        new_i = i;
+      }
+
+      is_good = Utils::isPrintableChar(c)
+        && (c != '<')
+        && (c != '>')
+        && (c != '"'); /* Prevents injections - single quotes are allowed and will be validated in http_lint.lua */
+
+      if (is_good)
+        i = new_i;
     }
 
     if(is_good)

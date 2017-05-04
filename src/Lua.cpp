@@ -6110,6 +6110,7 @@ static char* http_encode(char *str) {
 
 void Lua::purifyHTTPParameter(char *param) {
   char *ampersand;
+  bool utf8_found = false;
 
   if((ampersand = strchr(param, '%')) != NULL) {
     /* We allow only a few chars, removing all the others */
@@ -6148,6 +6149,18 @@ void Lua::purifyHTTPParameter(char *param) {
 	break;
 
       default:
+        if (((u_char)c == 0xC3) && (ampersand[3] == '%')) {
+          /* Latin-1 within UTF-8 */
+          b = ampersand[6];
+          ampersand[6] = '\0';
+          c = (char)strtol(&ampersand[4], NULL, 16);
+          ampersand[6] = b;
+
+          /* Align to ASCII encoding */
+          c |= 0x40;
+          utf8_found = true;
+        }
+
 	if(!Utils::isPrintableChar(c)) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '0x%02x' in URI [%s]", c, param);
 	  ampersand[0] = '\0';
@@ -6155,7 +6168,7 @@ void Lua::purifyHTTPParameter(char *param) {
 	}
       }
 
-      purifyHTTPParameter(&ampersand[3]);
+      purifyHTTPParameter(utf8_found ? &ampersand[6] : &ampersand[3]);
     } else
       ampersand[0] = '\0';
   }

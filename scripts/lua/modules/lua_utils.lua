@@ -104,7 +104,7 @@ end
 -- ##############################################
 
 function sendHTTPContentTypeHeader(content_type, content_disposition, charset)
-  local charset = charset or "iso-8859-1"
+  local charset = charset or "utf-8"
   local mime = content_type.."; charset="..charset
   sendHTTPHeader(mime, content_disposition)
 end
