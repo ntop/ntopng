@@ -167,7 +167,7 @@ if (_GET["hosts"] ~= nil) then
         vlan_id = " "
       end
 
-      print ("\t{\"name\": \"" .. ntop.getResolvedAddress(host_ip) .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
+      print ("\t{\"name\": \"" .. getResolvedHostAddress(hostkey2hostinfo(host_ip)) .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
       node_size = node_size + 1
     end
 

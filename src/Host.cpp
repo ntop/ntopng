@@ -473,7 +473,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
-  lua_push_str_table_entry(vm, "name", mask_host ? (char*)"" : get_name(buf, sizeof(buf), false));
+  lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);
@@ -546,7 +546,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(host_details) {
     lua_push_int_table_entry(vm, "total_activity_time", total_activity_time);
 
-    if(info) lua_push_str_table_entry(vm, "info", info);
+    if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
 
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
@@ -935,28 +935,40 @@ json_object* Host::getJSONObject() {
 
 /* *************************************** */
 
+char* Host::get_visual_name(char *buf, u_int buf_len, bool from_info) {
+  bool mask_host = Utils::maskHost(localHost);
+  char buf2[64];
+  char ipbuf[64];
+  char *sym_name;
+
+  if(! mask_host) {
+    sym_name = from_info ? info : get_name(buf2, sizeof(buf2), false);
+
+    if(sym_name && sym_name[0]) {
+      if(ip.isIPv6() && strcmp(ip.print(ipbuf, sizeof(ipbuf)), sym_name)) {
+        snprintf(buf, buf_len, "%s [IPv6]", sym_name);
+      } else
+        strncpy(buf, sym_name, buf_len);
+    } else
+      buf[0] = '\0';
+  } else
+    buf[0] = '\0';
+
+  return buf;
+}
+
+/* *************************************** */
+
 bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
-  char keybuf[64] = { 0 }, *r;
+  char keybuf[64] = { 0 };
+  char ipbuf[64] = { 0 }, *ipbuf_ptr;
 
   if(!match(ptree)) return(false);
 
-  // if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_WARNING, "%s/%s", symbolic_name, ip.print(keybuf, sizeof(keybuf)));
-
-  if(strcasestr((r = Utils::formatMac(mac ? mac->get_mac() : NULL, keybuf, sizeof(keybuf))), key)) {
-    lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), r);
-    return(true);
-  } else if(strcasestr((r = ip.print(keybuf, sizeof(keybuf))), key)) {
-    if(vlan_id != 0) {
-      char valuebuf[96];
-
-      snprintf(valuebuf, sizeof(valuebuf), "%s@%u", r, vlan_id);
-      lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), valuebuf);
-    } else
-      lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), r);
-
-    return(true);
-  } else if(symbolic_name && strcasestr(symbolic_name, key)) {
-    lua_push_str_table_entry(vm, ip.print(keybuf, sizeof(keybuf)), symbolic_name);
+  if(strcasestr((ipbuf_ptr = Utils::formatMac(mac ? mac->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
+     || strcasestr((ipbuf_ptr = ip.print(ipbuf, sizeof(ipbuf))), key)                              /* Match by IP */
+     || strcasestr((ipbuf_ptr = get_visual_name(ipbuf, sizeof(ipbuf))), key)) {                    /* Match by name */
+    lua_push_str_table_entry(vm, get_hostkey(keybuf, sizeof(keybuf)), ipbuf_ptr);
     return(true);
   }
 

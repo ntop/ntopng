@@ -146,6 +146,7 @@ class Host : public GenericHost {
   inline float get_longitude()                 { return(longitude);        }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
+  char* get_visual_name(char *buf, u_int buf_len, bool from_info=false);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   bool idle();
@@ -210,7 +211,7 @@ class Host : public GenericHost {
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
-  inline char* getInfo()       { return(info); }
+  inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   void incrVisitedWebSite(char *hostname);
   const UserActivityCounter * getActivityBytes(UserActivityID id);
   void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);

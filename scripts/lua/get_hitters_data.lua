@@ -77,7 +77,7 @@ print(' "top_destinations": [ ')
 
 local num = 0
 for _value,_key in pairsByKeys(sent_to_hitters, rev) do   
-   peer_name = ntop.getResolvedAddress(_key)
+   peer_name = getResolvedHostAddress(hostkey2hostinfo(_key))
    h="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=" .. _key.. "'>".. abbreviateString(peer_name, 20).."</A>"
    
    if(num > 0) then print(",") end
@@ -93,7 +93,7 @@ print('], "top_senders": [ ')
 
 num = 0
 for _value,_key in pairsByKeys(rcvd_from_hitters, rev) do
-   peer_name = ntop.getResolvedAddress(_key)
+   peer_name = getResolvedHostAddress(hostkey2hostinfo(_key))
    h="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=" .. _key.. "'>".. abbreviateString(peer_name, 20).."</A>"
    
    if(num > 0) then print(",") end

@@ -74,11 +74,11 @@ elseif action == "set" or action == "del" then
    if favourite_type == "talker" or favourite_type == "apps_per_host_pair" then
       if host ~= "" and host ~= nil then
 	 entry = host
-	 resolved = ntop.getResolvedAddress(host)
+	 resolved = getResolvedHostAddress(hostkey2hostinfo(host))
 
 	 if peer ~= "" and peer ~= nil then
 	    entry = entry..','..peer
-	    resolved = resolved..','..ntop.getResolvedAddress(peer)
+	    resolved = resolved..','..getResolvedHostAddress(hostkey2hostinfo(peer))
 	 end
       end
 
@@ -89,7 +89,7 @@ elseif action == "set" or action == "del" then
 	 resolved = interface.getnDPIProtoName(tonumber(l7_proto_id))
 	 if host ~= "" and host ~= nil then
 	    entry = entry..','..host
-	    resolved = resolved..','..ntop.getResolvedAddress(host)
+	    resolved = resolved..','..getResolvedHostAddress(hostkey2hostinfo(host))
 	 end
       end
    end

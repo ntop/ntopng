@@ -296,7 +296,8 @@ void Flow::dumpFlowAlert() {
     }
 
     if(do_dump && cli_host && srv_host) {
-      char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+      char cli_name[64], srv_name[64];
 
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
       if(c && cli_host->get_vlan_id())
@@ -312,10 +313,10 @@ void Flow::dumpFlowAlert() {
 	       msg, /* TODO: remove string and save numeric status */
 	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_id(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
+	       cli_host->get_visual_name(cli_name, sizeof(cli_name)),
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_id(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
+	       srv_host->get_visual_name(srv_name, sizeof(srv_name)),
 	       print(fbuf, sizeof(fbuf)));
 
       iface->getAlertsManager()->storeFlowAlert(this, aType, alert_level_warning, alert_msg);
@@ -333,6 +334,7 @@ void Flow::checkBlacklistedFlow() {
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
     char c_buf[64], s_buf[64], *c, *s;
+    char c_name[64], s_name[64];
 
     c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
     if(c && cli_host->get_vlan_id())
@@ -352,11 +354,11 @@ void Flow::checkBlacklistedFlow() {
 	       cli_host->isBlacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_id(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
+	       cli_host->get_visual_name(c_name, sizeof(c_name)),
 	       srv_host->isBlacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_id(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
+	       srv_host->get_visual_name(s_name, sizeof(s_name)),
 	       print(fbuf, sizeof(fbuf)));
 
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
@@ -373,10 +375,10 @@ void Flow::checkBlacklistedFlow() {
 	       "contacted <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
 	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_id(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
+	       cli_host->get_visual_name(c_name, sizeof(c_name)),
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_id(),
-	       srv_host->get_name() ? srv_host->get_name() : s);
+	       srv_host->get_visual_name(s_name, sizeof(s_name)));
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
       iface->getAlertsManager()->storeHostAlert(cli_host, alert_malware_detection, alert_level_error, msg, cli_host, srv_host);
       cli_host->setBlacklistedAlarmEmitted();
@@ -389,10 +391,10 @@ void Flow::checkBlacklistedFlow() {
 	       "was contacted by <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_id(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
+	       srv_host->get_visual_name(s_name, sizeof(s_name)),
 	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_id(),
-	       cli_host->get_name() ? cli_host->get_name() : c);
+	       cli_host->get_visual_name(c_name, sizeof(c_name)));
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
       iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg, srv_host, cli_host);
       srv_host->setBlacklistedAlarmEmitted();
@@ -1380,7 +1382,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   if(details_level >= details_high) {
     if(src && !mask_cli_host) {
-      lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
+      lua_push_str_table_entry(vm, "cli.host", src->get_visual_name(buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
 
@@ -1393,7 +1395,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
     if(dst && !mask_dst_host) {
-      lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
+      lua_push_str_table_entry(vm, "srv.host", dst->get_visual_name(buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());

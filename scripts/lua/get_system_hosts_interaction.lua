@@ -37,13 +37,13 @@ for key, value in ipairs(flows_stats) do
    if((srv_name == "") or (srv_name == nil)) then
       srv_name = flows_stats[key]["srv.ip"]
    end
-   srv_name = ntop.getResolvedAddress(srv_name)
+   srv_name = getResolvedHostAddress(hostkey2hostinfo(srv_name))
 
    cli_name = flows_stats[key]["cli.host"]
    if((cli_name == "") or (cli_name == nil)) then
       cli_name = flows_stats[key]["cli.ip"]
    end
-   cli_name = ntop.getResolvedAddress(cli_name)
+   cli_name = getResolvedHostAddress(hostkey2hostinfo(cli_name))
 
    -- consider only full meshed connections
    if((flows_stats[key]["client_process"] ~= nil) or (flows_stats[key]["system_process"] ~= nil) ) then

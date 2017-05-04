@@ -28,41 +28,15 @@ print [[
       local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey()) or {}
       for ip,name in pairs(ip_to_name) do
         if string.contains(string.lower(name), string.lower(query)) then
-          res[ip] = name
+          res[ip] = hostVisualization(ip, name)
         end
       end
 
       if(res ~= nil) then
-	 values = {}
 	 for k, v in pairs(res) do
 	    if(v ~= "") then
-	       if not values[v] then
-	          values[v] = 1
-	       else
-	          values[v] = values[v] + 1
-	       end
-	    end
-	 end
-
-	 for k, v in pairs(res) do
-	    if(v ~= "") then
-	       local link
-	       if starts(v, k) then
-	          -- v contains vlan information
-	          link = v
-	       else
-	          link = k
-	       end
-
-	       if values[v] > 1 then
-	          -- we matched both an ipv4 and ipv6 with same host name, display differently
-	          if isIPv6Address(k) then
-		     v = v .. " [IPv6]"
-	          end
-	       end
-	       
 	       if(num > 0) then print(",\n") end
-	       print('\t{"name": "'..v..'", "ip": "'..link..'"}')
+	       print('\t{"name": "'..v..'", "ip": "'..k..'"}')
 	       num = num + 1
 	    end -- if
 	  end -- for
