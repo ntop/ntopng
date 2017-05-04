@@ -97,7 +97,7 @@ while(num == 0) do
 		  host_info = hostkey2hostinfo(word)
 
 		  -- 3. print nodes
-		  name = shortHostName(ntop.getResolvedAddress(word))
+		  name = shortHostName(getResolvedHostAddress(hostkey2hostinfo(word)))
 
 		  print ("\t{\"name\": \"" .. name .. "\", \"host\": \"" .. host_info["host"] .. "\", \"vlan\": \"" .. host_info["vlan"] .. "\"}")
 		  num = num + 1

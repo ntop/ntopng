@@ -3428,6 +3428,7 @@ static int ntop_delete_user(lua_State* vm) {
 
 /* ****************************************** */
 
+/* Similar to getResolvedAddress but actually perfoms the address resolution now */
 static int ntop_resolve_address(lua_State* vm) {
   char *numIP, symIP[64];
 
@@ -5910,8 +5911,8 @@ static const luaL_Reg ntop_reg[] = {
   { "postHTTPJsonData",       ntop_post_http_json_data },
 
   /* Address Resolution */
-  { "resolveAddress",     ntop_resolve_address },
-  { "getResolvedAddress", ntop_get_resolved_address },
+  { "resolveAddress",     ntop_resolve_address },       /* Note: you should use resolveHostAddress() to call from Lua */
+  { "getResolvedAddress", ntop_get_resolved_address },  /* Note: you should use getResolvedHostAddress() to call from Lua */
 
   /* Logging */
   { "syslog",         ntop_syslog },

@@ -403,7 +403,7 @@ print(
       query_field = "host",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
       query_title = "Search Host",
-      style       = "width:15em;",
+      style       = "width:16em;",
     }
   })
 )

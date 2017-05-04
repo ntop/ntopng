@@ -418,7 +418,7 @@ if((page == "overview") or (page == nil)) then
 		       local community = get_snmp_community(snmp_device_ip)
 		       local trunk
 
-		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..ntop.getResolvedAddress(snmp_device_ip).."</A></td>")
+		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..getResolvedHostAddress(hostkey2hostinfo(snmp_device_ip)).."</A></td>")
 
 		       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
 		       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..get_snmp_port_label(snmp_device_ip, community, port.id).."</span>"..trunk.."</A></td></tr>\n")
@@ -487,12 +487,12 @@ if((page == "overview") or (page == nil)) then
 
    if(host["ip"] ~= nil) then
       if(host["name"] == nil) then
-	 host["name"] = ntop.getResolvedAddress(host["ip"])
+	 host["name"] = getResolvedHostAddress(hostkey2hostinfo(host["ip"]))
       end
       print("<tr><th>Name</th>")
 
       if(isAdministrator()) then
-	 print("<td><A HREF=\"http://" .. host["name"] .. "\"> <span id=name>")
+	 print("<td><A HREF=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
       else
 	 print("<td colspan=2>")
       end
@@ -1758,7 +1758,7 @@ max_hosts = 10
 
 n = 0
 
-if(host["name"] == nil) then host["name"] = ntop.getResolvedAddress(host["ip"]) end
+if(host["name"] == nil) then host["name"] = getResolvedHostAddress(hostkey2hostinfo(host["ip"])) end
 
 for v,k in pairsByKeys(vals, rev) do
 
@@ -1771,7 +1771,7 @@ for v,k in pairsByKeys(vals, rev) do
       correlated_host = interface.getHostInfo(k)
       if(correlated_host ~= nil) then
 
-	 if(correlated_host["name"] == nil) then correlated_host["name"] = ntop.getResolvedAddress(correlated_host["ip"]) end
+	 if(correlated_host["name"] == nil) then correlated_host["name"] = getResolvedHostAddress(hostkey2hostinfo(correlated_host["ip"])) end
 
          -- print the host row together with the Jaccard coefficient
 	 print("<tr>")
@@ -1851,7 +1851,7 @@ elseif(page == "contacts") then
 
 if(num > 0) then
    mode = "embed"
-   if(host["name"] == nil) then host["name"] = ntop.getResolvedAddress(host["ip"]) end
+   if(host["name"] == nil) then host["name"] = getResolvedHostAddress(hostkey2hostinfo(host["ip"])) end
    name = host["name"]
    dofile(dirs.installdir .. "/scripts/lua/hosts_interaction.lua")
 
@@ -1887,7 +1887,7 @@ if(num > 0) then
    info = interface.getHostInfo(k)
 
    if(info ~= nil) then
-      if(info["name"] ~= nil) then n = info["name"] else n = ntop.getResolvedAddress(info["ip"]) end
+      if(info["name"] ~= nil) then n = info["name"] else n = getResolvedHostAddress(hostkey2hostinfo(info["ip"])) end
       url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
    else
       url = k
@@ -1916,7 +1916,7 @@ if(num > 0) then
 	 v = host["contacts"]["server"][k]
    info = interface.getHostInfo(k)
 	 if(info ~= nil) then
-	    if(info["name"] ~= nil) then n = info["name"] else n = ntop.getResolvedAddress(info["ip"]) end
+	    if(info["name"] ~= nil) then n = info["name"] else n = getResolvedHostAddress(hostkey2hostinfo(info["ip"])) end
 	    url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
 	 else
 	    url = k

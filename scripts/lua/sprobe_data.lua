@@ -25,7 +25,7 @@ for key, value in pairs(flows_stats) do
    if(flow["cli.host"] ~= nil) then 
       c_sym = flow["cli.host"] 
    else
-      c_sym = ntop.getResolvedAddress(flow["cli.ip"])
+      c_sym = getResolvedAddress(hostkey2hostinfo(flow["cli.ip"]))
 
       if(c_sym ~= flow["cli.ip"]) then
 	 c_sym = c_sym .." (".. flow["cli.ip"] ..")"
@@ -36,7 +36,7 @@ for key, value in pairs(flows_stats) do
    if(flow["srv.host"] ~= nil) then 
       s_sym = flow["srv.host"] 
    else
-      s_sym = ntop.getResolvedAddress(flow["srv.ip"])
+      s_sym = getResolvedAddress(hostkey2hostinfo(flow["srv.ip"]))
       
       if(s_sym ~= flow["srv.ip"]) then
 	 s_sym = s_sym .." (".. flow["srv.ip"] .. ")" 

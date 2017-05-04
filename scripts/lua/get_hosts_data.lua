@@ -35,7 +35,7 @@ mac          = _GET["mac"]
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
-	 h["name"] = ntop.getResolvedAddress(h["ip"])
+	 h["name"] = getResolvedHostAddress(hostkey2hostinfo(h["ip"]))
       else
 	 h["name"] = h["mac"]
       end
@@ -251,7 +251,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    print("\"column_name\" : \"")
 
    if(value["name"] == nil) then
-      value["name"] = ntop.getResolvedAddress(key)
+      value["name"] = getResolvedHostAddress(hostkey2hostinfo(key))
    end
 
    if(value["name"] == "") then

@@ -1212,6 +1212,39 @@ end
 
 -- #################################
 
+function hostVisualization(ip, name)
+   if (ip ~= name) and isIPv6(ip) then
+      return name.." [IPv6]"
+   end
+   return name
+end
+
+-- #################################
+
+function resolveHostAddress(hostinfo)
+   local hostname = ntop.resolveAddress(hostinfo["host"])
+   return hostVisualization(hostinfo["host"], hostname)
+end
+
+-- #################################
+
+function getResolvedHostAddress(hostinfo)
+   local hostname = ntop.getResolvedAddress(hostinfo["host"])
+   return hostVisualization(hostinfo["host"], hostname)
+end
+
+-- #################################
+
+function getIpUrl(ip)
+   if isIPv6(ip) then
+      -- https://www.ietf.org/rfc/rfc2732.txt
+      return "["..ip.."]"
+   end
+   return ip
+end
+
+-- #################################
+
 function getOSIcon(name)
   icon = ""
 
@@ -1372,7 +1405,7 @@ function host2name(name, vlan)
    name = getHostAltName(name)
 
    if(name == orig_name) then
-      rname = ntop.getResolvedAddress(name)
+      rname = getResolvedHostAddress({host=name, vlan=vlan})
 
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname
