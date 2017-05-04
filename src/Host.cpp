@@ -960,15 +960,16 @@ char* Host::get_visual_name(char *buf, u_int buf_len, bool from_info) {
 /* *************************************** */
 
 bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
-  char keybuf[64] = { 0 };
+  char keybuf[64] = { 0 }, *keybuf_ptr;
   char ipbuf[64] = { 0 }, *ipbuf_ptr;
 
   if(!match(ptree)) return(false);
+  keybuf_ptr = get_hostkey(keybuf, sizeof(keybuf));
 
   if(strcasestr((ipbuf_ptr = Utils::formatMac(mac ? mac->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
-     || strcasestr((ipbuf_ptr = ip.print(ipbuf, sizeof(ipbuf))), key)                              /* Match by IP */
+     || strcasestr((ipbuf_ptr = keybuf_ptr), key)                                                  /* Match by hostkey */
      || strcasestr((ipbuf_ptr = get_visual_name(ipbuf, sizeof(ipbuf))), key)) {                    /* Match by name */
-    lua_push_str_table_entry(vm, get_hostkey(keybuf, sizeof(keybuf)), ipbuf_ptr);
+    lua_push_str_table_entry(vm, keybuf_ptr, ipbuf_ptr);
     return(true);
   }
 
