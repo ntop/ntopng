@@ -1308,14 +1308,16 @@ void Host::postHashAdd() {
 /* *************************************** */
 
 void Host::loadAlertsCounter() {
-  char buf[64];
+  char buf[64], counters_key[64];
   char rsp[16];
   char *key = get_hostkey(buf, sizeof(buf), true /* force vlan */);
 
   if(ntop->getPrefs()->are_alerts_disabled() || !isLocalHost())
     return;
 
-  if (ntop->getRedis()->hashGet((char*)CONST_HOSTS_ALERT_COUNTERS, key, rsp, sizeof(rsp)) == 0)
+  snprintf(counters_key, sizeof(counters_key), CONST_HOSTS_ALERT_COUNTERS, iface->get_id());
+
+  if (ntop->getRedis()->hashGet(counters_key, key, rsp, sizeof(rsp)) == 0)
     num_alerts_detected = atoi(rsp);
   else
     num_alerts_detected = 0;

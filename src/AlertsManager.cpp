@@ -1002,8 +1002,11 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 				 ipbuf_id);
 
   /* Dump new value to redis */
-  snprintf(rsp, sizeof(rsp), "%d", num_alerts);
-  ntop->getRedis()->hashSet(counters_key, ipbuf_id, rsp);
+  if (num_alerts > 0) {
+    snprintf(rsp, sizeof(rsp), "%d", num_alerts);
+    ntop->getRedis()->hashSet(counters_key, ipbuf_id, rsp);
+  } else
+    ntop->getRedis()->hashDel(counters_key, ipbuf_id);
 
   /* Update host */
   h = iface->getHost((char*)host_ip, host_vlan);
