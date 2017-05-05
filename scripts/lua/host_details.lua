@@ -443,7 +443,9 @@ if((page == "overview") or (page == nil)) then
 
       print[[</td><td><span>Host Pool: ]]
       if not ifstats.isView then
-        print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
+	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Change Host Pool"></i></a></span>]]
       else
         -- no link for view interfaces
         print(host_pools_utils.getPoolName(ifId, host_pool_id))
