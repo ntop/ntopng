@@ -988,6 +988,38 @@ local flow_fields_description = {
 
  -- #######################
 
+-- See Utils::l4proto2name()
+l4_protocols = {
+   ['IP'] = 0,
+   ['ICMP'] = 1,
+   ['IGMP'] = 2,
+   ['TCP'] = 6,
+   ['UDP'] = 17,
+   ['IPv6'] = 41,
+   ['RSVP'] = 46,
+   ['GRE'] = 47,
+   ['ESP'] = 50,
+   ['IPv6-ICMP'] = 58,
+   ['OSPF'] = 89,
+   ['PIM'] = 103,
+   ['VRRP'] = 112,
+   ['HIP'] = 139,
+}
+
+function getL4ProtoName(proto_id)
+  local proto_id = tonumber(proto_id)
+
+  for k,v in pairs(l4_protocols) do
+    if v == proto_id then
+      return k
+    end
+  end
+
+  return nil
+end
+ 
+ -- #######################
+
  function extractSIPCaller(caller)
    local i
    local j
