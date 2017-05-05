@@ -367,6 +367,12 @@ void Flow::checkBlacklistedFlow() {
       blacklist_alarm_emitted = true;
     }
 
+    /* TODO
+     * the host alerts are temporary disabled because, as soon as the host
+     * stays in memory, at most 1 alerts would be generated even if the host
+     * was/contacted by many hosts.
+     */
+#if 0
     /* Checks to generate the host alert */
     if (cli_host->isBlacklisted() && !cli_host->isBlacklistedAlarmEmitted()) {
       char msg[1024];
@@ -399,6 +405,8 @@ void Flow::checkBlacklistedFlow() {
       iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg, srv_host, cli_host);
       srv_host->setBlacklistedAlarmEmitted();
     }
+#endif
+
   }
 }
 
