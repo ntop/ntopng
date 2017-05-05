@@ -350,63 +350,10 @@ function performAlertsQuery(statement, what, opts)
    -- trigger counters refresh
    if trimSpace(statement:lower()) == "delete" then
       -- keep counters in sync only for engaged alerts
-      if what == "engaged" then
-	 refreshHostsEngagedAlertsCounters()
-      end
       interface.refreshNumAlerts()
    end
 
    return res
-end
-
--- #################################
-function refreshHostsEngagedAlertsCounters(host_vlan)
-   local hosts
-
-   if isEmptyString(host_vlan) == false then
-      hosts[host_vlan:gsub("@0","")] = {updated = false}
-   else
-      hosts = interface.getHostsInfo(false --[[ no details --]])
-      hosts = hosts["hosts"]
-   end
-
-   for k, v in pairs(hosts) do
-      if v["num_alerts"] > 0 then
-	 hosts[k] = {updated = false}
-      else
-	 hosts[k] = nil
-      end
-   end
-
-   local res = interface.queryAlertsRaw(true, "select alert_entity_val, count(*) cnt",
-					"where alert_entity="..alertEntity("host")
-					   .. " group by alert_entity_val having cnt > 0")
-
-   if res == nil then res = {} end
-
-   -- update the hosts that actually have engaged alerts
-   for _, k in pairs(res) do
-      local entity_val = k["alert_entity_val"]
-      local sp = split(entity_val, "@")
-      local host = sp[1]
-      local vlan = tonumber(sp[2])
-      if vlan == 0 then
-	 entity_val = host -- no vlan in the key if vlan is zero
-      end
-
-      interface.refreshNumAlerts(host, vlan, tonumber(k["cnt"]))
-
-      if hosts[entity_val] ~= nil then
-	 hosts[entity_val]["updated"] = true
-      end
-   end
-
-   -- finally update the hosts that no longer have engaged alerts
-   for k, v in pairs(hosts) do
-      if v["updated"] == false then
-	 interface.refreshNumAlerts(k, nil, 0);
-      end
-   end
 end
 
 -- #################################

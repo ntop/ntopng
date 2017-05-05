@@ -36,6 +36,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v3.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v4.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -961,7 +963,7 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 					  const char *alert_origin, const char *alert_target,
 					  bool engage) {
-  char ipbuf_id[64], rsp[16];
+  char counters_key[64], ipbuf_id[64], rsp[16];
   int rc;
   Host *h;
   NetworkInterface *iface = getNetworkInterface();
@@ -982,19 +984,26 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
     return rc;
 
   /* Read current value from redis */
-  if (ntop->getRedis()->hashGet((char*)CONST_HOSTS_ALERT_COUNTERS, ipbuf_id, rsp, sizeof(rsp)) == 0)
+  snprintf(counters_key, sizeof(counters_key), CONST_HOSTS_ALERT_COUNTERS, iface->get_id());
+
+  if(ntop->getRedis()->hashGet(counters_key, ipbuf_id, rsp, sizeof(rsp)) == 0)
     num_alerts = atoi(rsp);
   else
     num_alerts = 0;
 
-  if (engage)
+  if(engage)
     num_alerts++;
   else
     num_alerts--;
 
+  if(num_alerts < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Internal error, negative engaged alerts counter detected [host: %s].",
+				 ipbuf_id);
+
   /* Dump new value to redis */
   snprintf(rsp, sizeof(rsp), "%d", num_alerts);
-  ntop->getRedis()->hashSet((char*)CONST_HOSTS_ALERT_COUNTERS, ipbuf_id, rsp);
+  ntop->getRedis()->hashSet(counters_key, ipbuf_id, rsp);
 
   /* Update host */
   h = iface->getHost((char*)host_ip, host_vlan);
