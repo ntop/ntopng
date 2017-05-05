@@ -110,11 +110,15 @@ NetworkInterface::NetworkInterface(const char *name,
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
     flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 
+#if 0
     if(isViewInterface || (!ntop->getPrefs()->is_flow_aggregation_enabled()))
       aggregated_flows_hash = NULL;
     else
       aggregated_flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows()),
 	endNextFlowAggregation = time(NULL) + FLOW_AGGREGATION_DURATION;
+#else
+    aggregated_flows_hash = NULL;
+#endif
 
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts()/4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
