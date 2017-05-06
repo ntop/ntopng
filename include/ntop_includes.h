@@ -252,6 +252,10 @@ using namespace std;
 #include "VlanHash.h"
 #include "AutonomousSystemHash.h"
 #include "HostHash.h"
+#ifdef NTOPNG_PRO
+#include "AggregatedFlow.h"
+#include "AggregatedFlowHash.h"
+#endif
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "MacManufacturers.h"

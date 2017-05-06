@@ -41,6 +41,8 @@ class DB;
 class Paginator;
 
 #ifdef NTOPNG_PRO
+class AggregatedFlow;
+class AggregatedFlowHash;
 class L7Policer;
 class FlowInterfacesStats;
 #endif
@@ -77,6 +79,7 @@ class NetworkInterface {
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
   FlowInterfacesStats *flow_interfaces_stats;
+  AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
 #endif
   EthStats ethStats;
   u_int32_t arp_requests, arp_replies;
@@ -92,7 +95,6 @@ class NetworkInterface {
   nDPIStats ndpiStats;
   PacketStats pktStats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
-  FlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
 
   /* Sub-interface views */
@@ -107,7 +109,8 @@ class NetworkInterface {
   u_int64_t lastSecTraffic,
     lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
-  time_t lastSecUpdate, endNextFlowAggregation;
+  time_t lastSecUpdate;
+  u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
 
@@ -253,6 +256,9 @@ class NetworkInterface {
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, bool idle_flow, Flow *f);
+#ifdef NTOPNG_PRO
+  int dumpAggregatedFlow(time_t aggregationBegin, time_t aggregationEnd, AggregatedFlow *f);
+#endif
   int dumpDBFlow(time_t when, bool idle_flow, Flow *f);
   int dumpEsFlow(time_t when, Flow *f);
   int dumpLsFlow(time_t when, Flow *f);
@@ -519,8 +525,9 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };
-#endif
   void aggregatePartialFlow(Flow *flow);
+#endif
+
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

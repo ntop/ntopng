@@ -110,14 +110,14 @@ NetworkInterface::NetworkInterface(const char *name,
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
     flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 
-#if 0
-    if(isViewInterface || (!ntop->getPrefs()->is_flow_aggregation_enabled()))
+#ifdef NTOPNG_PRO
+    if(isViewInterface || (!ntop->getPrefs()->is_flow_aggregation_enabled()) || (!ntop->getPrefs()->is_enterprise_edition()))
       aggregated_flows_hash = NULL;
-    else
-      aggregated_flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows()),
-	endNextFlowAggregation = time(NULL) + FLOW_AGGREGATION_DURATION;
-#else
-    aggregated_flows_hash = NULL;
+    else {
+      aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
+      nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+    }
+    
 #endif
 
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts()/4);
@@ -176,7 +176,11 @@ NetworkInterface::NetworkInterface(const char *name,
     ifSpeed = Utils::getMaxIfSpeed(name);
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
   } else {
-    flows_hash = NULL, aggregated_flows_hash = NULL, hosts_hash = NULL;
+#ifdef NTOPNG_PRO
+    aggregated_flows_hash = NULL;
+#endif
+    flows_hash = NULL, hosts_hash = NULL;
+    macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
     pkt_dumper = NULL, pkt_dumper_tap = NULL;
   }
@@ -238,7 +242,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL,
-    aggregated_flows_hash = NULL, hosts_hash = NULL,
+    hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
@@ -273,6 +277,7 @@ void NetworkInterface::init() {
 
   db = NULL;
 #ifdef NTOPNG_PRO
+  aggregated_flows_hash = NULL;
   policer = NULL;
 #endif
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
@@ -297,6 +302,58 @@ void NetworkInterface::init() {
 void NetworkInterface::initL7Policer() {
   /* Instantiate the policer */
   policer = new L7Policer(this);
+}
+
+/* **************************************** */
+
+void NetworkInterface::aggregatePartialFlow(Flow *flow) {
+  if(flow && aggregated_flows_hash) {
+    AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
+
+    if(aggregatedFlow == NULL) {
+
+#ifdef AGGREGATED_FLOW_DEBUG
+      char buf[256];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
+				   flow->print(buf, sizeof(buf)));
+#endif
+
+      try {
+	aggregatedFlow = new AggregatedFlow(this, flow);
+
+	if(aggregated_flows_hash->add(aggregatedFlow) == false) {
+	  /* Too many flows */
+	  delete aggregatedFlow;
+	  return;
+	} else {
+
+#ifdef AGGREGATED_FLOW_DEBUG
+	  char buf[256];
+
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "New AggregatedFlow successfully created and added to the hash table [%s]",
+				       aggregatedFlow->print(buf, sizeof(buf)));
+#endif
+	}
+      } catch(std::bad_alloc& ba) {
+	return; /* Not enough memory */
+      }
+    }
+
+    aggregatedFlow->sumFlowStats(flow->get_current_packets_cli2srv(), flow->get_current_bytes_cli2srv(),
+				 flow->get_current_packets_srv2cli(), flow->get_current_bytes_srv2cli());
+
+#ifdef AGGREGATED_FLOW_DEBUG
+    char buf[256];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Stats updated for AggregatedFlow [%s]",
+				 aggregatedFlow->print(buf, sizeof(buf)));
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Aggregated Flows hash table [num items: %i]",
+				 aggregated_flows_hash->getCurrentSize());
+#endif
+
+  }
 }
 
 #endif
@@ -513,11 +570,13 @@ bool NetworkInterface::checkIdle() {
 
 void NetworkInterface::deleteDataStructures() {
   if(flows_hash)            { delete(flows_hash); flows_hash = NULL; }
-  if(aggregated_flows_hash) { delete(aggregated_flows_hash); aggregated_flows_hash = NULL; }
   if(hosts_hash)            { delete(hosts_hash); hosts_hash = NULL; }
   if(ases_hash)             { delete(ases_hash);  ases_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
+#ifdef NTOPNG_PRO
+  if(aggregated_flows_hash) { delete(aggregated_flows_hash); aggregated_flows_hash = NULL; }
+#endif
 
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
@@ -633,6 +692,24 @@ int NetworkInterface::dumpDBFlow(time_t when, bool idle_flow, Flow *f) {
 
   return(rc);
 }
+
+/* **************************************************** */
+
+#ifdef NTOPNG_PRO
+
+int NetworkInterface::dumpAggregatedFlow(time_t aggregationBegin, time_t aggregationEnd, AggregatedFlow *f) {
+  if(ntop->getPrefs()->is_enterprise_edition() && db && f && (f->get_packets() > 0)) {
+#ifdef AGGREGATED_FLOW_DEBUG
+    char buf[256];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to dump AggregatedFlow to database [%s]",
+				 f->print(buf, sizeof(buf)));
+#endif
+    return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(aggregationBegin, aggregationEnd, f));
+  }
+  return(-1);
+}
+
+#endif
 
 /* **************************************************** */
 
@@ -2128,20 +2205,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* **************************************************** */
 
-  static bool aggregated_flow_dump_walker(GenericHashEntry *node, void *user_data) {
-    Flow *flow = (Flow*)node;
-    char buf[256];
-    u_int32_t *num_flows = (u_int32_t*)user_data;
-    
-    flow->fixAggregatedFlowFields();
-    ntop->getTrace()->traceEvent(TRACE_INFO, "%s", flow->print(buf, sizeof(buf)));
-
-    *num_flows = (*num_flows) + 1;
-    return(false); /* false = keep on walking */
-  }
-
-  /* **************************************************** */
-
   static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
     Host *host = (Host*)node;
     struct timeval *tv = (struct timeval*)user_data;
@@ -2201,22 +2264,30 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
 
+#ifdef NTOPNG_PRO
     if(aggregated_flows_hash) {
-      if(endNextFlowAggregation < tv.tv_sec) {
-	/* Time to flush flows */
-	u_int32_t num_flows = 0;
-	
-	aggregated_flows_hash->walk(aggregated_flow_dump_walker, &num_flows);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Found %u aggregated flows",
-				     ifname, num_flows);
-	
+      if(--nextFlowAggregation == 0) {
 	/* Start over */
 	aggregated_flows_hash->cleanup();
-	endNextFlowAggregation = tv.tv_sec + FLOW_AGGREGATION_DURATION;
+	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+
+#ifdef AGGREGATED_FLOW_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Aggregated flows exported. "
+				     "Aggregated flows hash cleared. [num_items: %i]",
+				     aggregated_flows_hash->getCurrentSize());
+#endif
+
       } else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Aggregation too early (-%d sec)",
-				     ifname, endNextFlowAggregation - tv.tv_sec);
+#ifdef AGGREGATED_FLOW_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+	  "Aggregation in %i housekeeping cycles [housekeeping frequency: %i] [inter-aggregation housekeeping cycles: %i] ",
+	  nextFlowAggregation, ntop->getPrefs()->get_housekeeping_frequency(), FLOW_AGGREGATION_DURATION,
+	  aggregated_flows_hash->getCurrentSize());
+#endif
+	;
     }
+#endif
 
     hosts_hash->walk(update_hosts_stats, (void*)&tv);
     ases_hash->walk(update_ases_stats, (void*)&tv);
@@ -5884,48 +5955,4 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     } else
       rv = CONST_LUA_ERROR;
     return rv;
-  }
-
-  /* **************************************** */
-
-  void NetworkInterface::aggregatePartialFlow(Flow *flow) {
-    if(aggregated_flows_hash) {
-      ndpi_protocol l7 = flow->get_detected_protocol();
-      bool s2d_direction;
-      u_int16_t sport = htons(l7.master_protocol), dport = htons(l7.app_protocol);
-      Flow *aggregatedFlow = aggregated_flows_hash->find(NULL, NULL,
-							 flow->get_cli_host()->get_ip(),
-							 flow->get_srv_host()->get_ip(),
-							 sport, dport,
-							 flow->get_vlan_id(), flow->get_protocol(),
-							 &s2d_direction);
-
-      if(aggregatedFlow == NULL) {
-	try {
-	  aggregatedFlow = new Flow(this, flow->get_vlan_id(), flow->get_protocol(),
-				    NULL, flow->get_cli_host()->get_ip(), sport,
-				    NULL, flow->get_srv_host()->get_ip(), dport,
-				    flow->get_partial_first_seen(), flow->get_partial_last_seen());
-
-	  if(aggregated_flows_hash->add(aggregatedFlow) == false) {
-	    /* Too many flows */
-	    delete aggregatedFlow;
-	    return;
-	  } else {
-#ifdef DEBUG
-	    char buf[256];
-	    
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "NEW %s", aggregatedFlow->print(buf, sizeof(buf)));
-#endif
-	  }
-	} catch(std::bad_alloc& ba) {
-	  return; /* Not enough memory */
-	}
-      }
-
-      aggregatedFlow->addFlowStats(s2d_direction,
-				   flow->get_partial_packets_cli2srv(), flow->get_partial_bytes_cli2srv(), 0,
-				   flow->get_partial_packets_srv2cli(), flow->get_partial_bytes_srv2cli(), 0,
-				   flow->get_partial_last_seen());
-    }
   }

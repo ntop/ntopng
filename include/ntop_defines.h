@@ -574,6 +574,7 @@
 #define MYSQL_TOP_TALKERS_HOUR_TABLE   "talkersv4_hour"
 #define MYSQL_TOP_TALKERS_DAY_TABLE    "talkersv4_day"
 
+#define MYSQL_AGGREGATION_TABLES_PREFIX "aggr"
 #define MYSQL_INSERT_PROFILE ",PROFILE"
 #define MYSQL_PROFILE_VALUE ",'%s'"
 #else
@@ -705,6 +706,8 @@
 #define MARKER_DROP                    2
 
 #define NO_HOST_POOL_ID                0
-#define FLOW_AGGREGATION_DURATION    300 /* sec */
+/* Flow aggregation duration is expressed in housekeeping periods. If housekeeping frequency
+   is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
+#define FLOW_AGGREGATION_DURATION      12 * 5 /* 1 minute * 5 = 5 minutes */
 
 #endif /* _NTOP_DEFINES_H_ */

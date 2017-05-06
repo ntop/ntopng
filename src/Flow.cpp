@@ -939,22 +939,36 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
     }
   }
 
+
   sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes, sent_goodput_bytes = cli2srv_goodput_bytes;
   diff_sent_packets = sent_packets - cli2srv_last_packets,
     diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
   prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes,
     prev_cli2srv_last_packets = cli2srv_last_packets;
-  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
-    cli2srv_last_goodput_bytes = sent_goodput_bytes;
 
   rcvd_packets = srv2cli_packets, rcvd_bytes = srv2cli_bytes, rcvd_goodput_bytes = srv2cli_goodput_bytes;
   diff_rcvd_packets = rcvd_packets - srv2cli_last_packets,
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
     prev_srv2cli_last_packets = srv2cli_last_packets;
-  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes, srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
 
-  if(cli_host && srv_host) {
+#ifdef NTOPNG_PRO
+  if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition()
+     && !inDeleteMethod
+     && isDetectionCompleted())
+    /* Aggregated flow updates are skipped when this method is called in a flow destructor.
+       This choice allows aggregated flow structures to always be accessed from the same thread and thus
+       there's no need to lock. The drawback is that flow aggregations slightly underestimate the actual flows traffic.
+       The worst case occurs for short lived flows that terminate before the first call to update_hosts_stats. */
+    iface->aggregatePartialFlow(this); /* must go before updating _last_ updates as it uses them */
+#endif
+
+  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
+    cli2srv_last_goodput_bytes = sent_goodput_bytes;
+  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes,
+    srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
+
+    if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
     srv_network_id = srv_host->get_local_network_id();
 
@@ -974,6 +988,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       }
+
 #endif
 
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
@@ -1041,9 +1056,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 				    */
       }
     }
-
-
-    if(!inDeleteMethod) iface->aggregatePartialFlow(this);
   }
   
   if(last_update_time.tv_sec > 0) {
