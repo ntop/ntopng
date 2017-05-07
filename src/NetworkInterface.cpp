@@ -120,14 +120,14 @@ NetworkInterface::NetworkInterface(const char *name,
     
 #endif
 
-    num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts()/4);
+    num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
     /* The number of ASes cannot be greater than the number of hosts */
     ases_hash = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-    vlans_hash = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts(), (u_int16_t)-1));
+    vlans_hash = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
 
-    macs_hash = new MacHash(this, 4, ntop->getPrefs()->get_max_num_hosts());
+    macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
