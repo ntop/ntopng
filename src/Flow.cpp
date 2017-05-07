@@ -1922,7 +1922,7 @@ json_object* Flow::flow2json() {
     }
   }
 
-  if(categorization.categorized_requested
+  if(!categorization.categorized_requested
      && (categorization.category.categories[0] != NTOP_UNKNOWN_CATEGORY_ID)) {
     char buf[64];
 

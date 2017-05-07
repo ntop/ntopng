@@ -1054,7 +1054,7 @@ var populateAppTopTalkersTable = function(proto_id){
 	columns:
 	[
 	  {title: "]] print(i18n("db_explorer.host_name")) print[[", field: "column_label", sortable: true},
-	  {title: "]] print(i18n("db_explorer.address")) print[[", field: "column_addr", hidden: false, sortable: true},
+	  {title: "]] print(i18n("ip_address")) print[[", field: "column_addr", hidden: false, sortable: true},
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
@@ -1111,7 +1111,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	columns:
 	[
 	  {title: "]] print(i18n("db_explorer.host_name")) print[[", field: "column_label", sortable: true},
-	  {title: "]] print(i18n("db_explorer.address")) print[[", field: "column_addr", hidden: false, sortable: true},
+	  {title: "]] print(i18n("ip_address")) print[[", field: "column_addr", hidden: false, sortable: true},
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true,css: {textAlign:'right'}},

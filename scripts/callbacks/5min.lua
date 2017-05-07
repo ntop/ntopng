@@ -96,12 +96,15 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     local host_vlan = host["vlan"]
     local network_name = host["local_network_name"]
 
+    if not isEmptyString(network_name) then
+      networks_aggr[network_name] = networks_aggr[network_name] or {}
+    end
+
     -- Crunch TCP anomalies
     if tcp_retr_ooo_lost_rrd_creation == "1" then
        for _, anom in pairs({"tcp.packets.out_of_order", "tcp.packets.retransmissions", "tcp.packets.lost"}) do
 	  if host[anom] then
 	     if network_name ~= nil and isEmptyString(network_name) == false then
-		networks_aggr[network_name] = networks_aggr[network_name] or {}
 		networks_aggr[network_name][anom] = (networks_aggr[network_name][anom] or 0) + host[anom]
 	     end
 	  end
@@ -150,7 +153,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	     ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
 	     -- Aggregate network NDPI stats
-	     networks_aggr[network_name] = (networks_aggr[network_name] or {})
 	     networks_aggr[network_name]["ndpi"] = (networks_aggr[network_name]["ndpi"] or {})
 	     networks_aggr[network_name]["ndpi"][k] = (networks_aggr[network_name]["ndpi"][k] or {})
 	     networks_aggr[network_name]["ndpi"][k]["bytes.sent"] =
