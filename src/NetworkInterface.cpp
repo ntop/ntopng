@@ -339,8 +339,7 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
       }
     }
 
-    aggregatedFlow->sumFlowStats(flow->get_current_packets_cli2srv(), flow->get_current_bytes_cli2srv(),
-				 flow->get_current_packets_srv2cli(), flow->get_current_bytes_srv2cli());
+    aggregatedFlow->sumFlowStats(flow);
 
 #ifdef AGGREGATED_FLOW_DEBUG
     char buf[256];
@@ -697,14 +696,14 @@ int NetworkInterface::dumpDBFlow(time_t when, bool idle_flow, Flow *f) {
 
 #ifdef NTOPNG_PRO
 
-int NetworkInterface::dumpAggregatedFlow(time_t aggregationBegin, time_t aggregationEnd, AggregatedFlow *f) {
+int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
   if(ntop->getPrefs()->is_enterprise_edition() && db && f && (f->get_packets() > 0)) {
 #ifdef AGGREGATED_FLOW_DEBUG
     char buf[256];
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to dump AggregatedFlow to database [%s]",
 				 f->print(buf, sizeof(buf)));
 #endif
-    return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(aggregationBegin, aggregationEnd, f));
+    return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(f));
   }
   return(-1);
 }

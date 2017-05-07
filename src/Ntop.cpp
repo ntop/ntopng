@@ -327,13 +327,23 @@ void Ntop::start() {
   address->startResolveAddressLoop();
 
   while(!globals->isShutdown()) {
-    u_int16_t nap = ntop->getPrefs()->get_housekeeping_frequency();
-    ntop->getTrace()->traceEvent(TRACE_DEBUG,
-				 "Sleeping %i seconds before doing the chores.",
-				 nap);
-    sleep(nap);
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to do the chores.");
+    struct timeval begin, end;
+    u_long usec_diff;
+    u_long nap = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
+
+    gettimeofday(&begin, NULL);
     runHousekeepingTasks();
+    gettimeofday(&end, NULL);
+
+    usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
+
+    if(usec_diff < nap)
+      nap -= usec_diff;
+
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				 "Sleeping %i microsecods before doing the chores.",
+				 nap);
+    _usleep(nap);
   }
 }
 
