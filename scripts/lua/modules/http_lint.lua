@@ -882,7 +882,6 @@ local known_parameters = {
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
-   ["export"]                  =  validateEmpty,                 -- set if data has to be exported
    ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua

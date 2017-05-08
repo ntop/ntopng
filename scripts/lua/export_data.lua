@@ -28,11 +28,8 @@ print [[</H2>
 
 <form class="form-horizontal" action="]]
 print (ntop.getHttpPrefix())
-print [[/lua/do_export_data.lua" method="post">
+print [[/lua/do_export_data.lua">
 ]]
-
-print('<input name="export" type="hidden" value="" />\n')
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[
 
@@ -42,6 +39,7 @@ print(i18n("export_data.host"))
 print[[</label>
     <div class="controls">
       <input type="hidden" id="hostIP" name="ip">
+      <input type="hidden" name="ifid" value="]] print(getInterfaceId(ifname).."") print[[">
       <input type="text" id="hostIPSearch" placeholder="]] print(i18n("export_data.ip_or_mac_address")) print[[" class="form-control">
     </div>
 <label><small>]] print(i18n("export_data.note_host")) print[[</small></label>

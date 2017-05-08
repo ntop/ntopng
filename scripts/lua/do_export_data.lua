@@ -9,16 +9,17 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(_POST["export"] ~= nil) then
+if _GET["ifid"] ~= nil then
+   interface.select(_GET["ifid"])
+end
 
-interface.select(ifname)
-if((_POST["ip"] ~= nil) and (_POST["ip"] ~= "")) then
+if((_GET["ip"] ~= nil) and (_GET["ip"] ~= "")) then
    vlan = 0
-   if ((_POST["vlan"] ~= nil) and (_POST["vlan"] ~= "")) then
-      vlan = tonumber(_POST["vlan"])
+   if ((_GET["vlan"] ~= nil) and (_GET["vlan"] ~= "")) then
+      vlan = tonumber(_GET["vlan"])
    end
   
-   host = interface.getHostInfo(_POST["ip"], vlan)
+   host = interface.getHostInfo(_GET["ip"], vlan)
 
    if(host == nil) then 
       print("{ }\n")
@@ -49,5 +50,4 @@ else
    end
 
    print("\n]\n")
-end
 end
