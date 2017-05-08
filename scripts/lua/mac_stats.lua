@@ -25,10 +25,11 @@ local host_macs_only = false
 local host_macs_only_filter = ""
 
 if(not isEmptyString(_GET["host_macs_only"])) then
-   host_macs_only = true
-   page_params["host_macs_only"] = "true"
+   if(_GET["host_macs_only"]) == "true" then host_macs_only = true else host_macs_only = false end
+   page_params["host_macs_only"] = _GET["host_macs_only"]
    host_macs_only_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
+
 
 local manufacturer = nil
 local manufacturer_filter = ""
@@ -57,7 +58,7 @@ print [[
 
 local title
 if host_macs_only == true then
-   title = "Layer 2 Devices"
+   title = "Layer 2 Host Devices"
 else
    title = "All Layer 2 Devices"
 end
@@ -83,6 +84,7 @@ print('buttons: [')
    local hosts_macs_params = table.clone(page_params)
    hosts_macs_params.host_macs_only = nil
    print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs'..host_macs_only_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   hosts_macs_params.host_macs_only = "false"
    print(getPageUrl(base_url, hosts_macs_params))
    print('">All Devices</a></li>')
    print('<li')

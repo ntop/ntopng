@@ -16,7 +16,6 @@ local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
 
 local vlan         = _GET["vlan"]
-local include_special_macs  = _GET["include_special_macs"]
 local host_macs_only        = _GET["host_macs_only"]
 local manufacturer          = _GET["manufacturer"]
 
@@ -53,14 +52,9 @@ else
    tablePreferences("rows_number", perPage)
 end
 
-if isEmptyString(include_special_macs) == false then
-   include_special_macs = true
-else
-   include_special_macs = false
-end
 
 if isEmptyString(host_macs_only) == false then
-   host_macs_only = true
+   if(host_macs_only == "true") then host_macs_only = true else host_macs_only = false end
 else
    host_macs_only = false
 end
@@ -72,9 +66,11 @@ to_skip = (currentPage-1) * perPage
 if(isEmptyString(vlan)) then vlan = 0 end
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
+--host_macs_only = false
+
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
 					 tonumber(vlan),
-					 include_special_macs == false --[[ skip special macs ]],
+					 host_macs_only --[[ skip special macs ]],
 					 host_macs_only, manufacturer)
 
 local total_rows = 0

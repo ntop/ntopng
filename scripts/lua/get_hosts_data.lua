@@ -65,8 +65,6 @@ if(criteria ~= nil) then
    mode = "local"
 end
 
-
-
 if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
 else

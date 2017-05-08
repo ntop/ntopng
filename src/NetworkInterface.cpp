@@ -3649,7 +3649,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     if(sortHosts(&retriever, allowed_hosts, host_details, location,
 		 countryFilter, mac_filter, vlan_id, osFilter,
 		 asnFilter, networkFilter, pool_filter, ipver_filter, proto_filter,
-		 true, sortColumn) < 0) {
+		 false /* All MACs */, sortColumn) < 0) {
       enablePurge(false);
       return -1;
     }
