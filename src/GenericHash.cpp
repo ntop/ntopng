@@ -201,7 +201,7 @@ u_int GenericHash::purgeIdle() {
       while(head) {
 	GenericHashEntry *next = head->next();
 
-	if(head->idle()) {
+	if(head->is_ready_to_be_purged()) {
 	  if(prev == NULL) {
 	    table[i] = next;
 	  } else {
@@ -212,6 +212,10 @@ u_int GenericHash::purgeIdle() {
 	  delete(head);
 	  head = next;
 	} else {
+	  /* Purge at the next run */
+	  if(head->idle())
+	    head->set_to_purge();
+	  
 	  prev = head;
 	  head = next;
 	}
