@@ -240,6 +240,10 @@ local  en = {
       network_delete_config_confirm = "Do you really want to delete all configured alerts for network",
       host_delete_config_btn = "Delete All Host Configured Alerts",
       host_delete_config_confirm = "Do you really want to delete all configured alerts for host",
+      explorer = "Explore",
+      purge_num_alerts = "Purge [%{num_alerts} alerts]",
+      delete_alert = "Delete Alert",
+      confirm_delete_alert = "Do you really want to delete the specified alert",
    },
 
    alerts_dashboard = {

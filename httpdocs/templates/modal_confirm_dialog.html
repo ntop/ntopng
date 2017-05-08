@@ -3,15 +3,15 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-        <h3 id="delete_user_dialog_label">{{dialog.title}}</h3>
+        <h3>{{dialog.title}}</h3>
       </div>
 
       <div class="modal-body">
         <div class="alert alert-warning">{*dialog.message*}?</div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-default btn-sm" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>
-        <button class="btn btn-primary btn-sm" onclick="{{dialog.action}}">{{dialog.confirm}}</button>
+        <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>
+        <button type="submit" class="btn btn-primary" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
       </div>
     </div>
   </div>

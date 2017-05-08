@@ -7,6 +7,7 @@
 
 local verbose = false
 local callback_utils = require "callback_utils"
+local template = require "template_utils"
 
 alerts_granularity = {
    { "min", "Every Minute", 60 },
@@ -992,6 +993,33 @@ end
 function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs)
    local alert_items = {}
    local url_params = {}
+
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "delete_alert_dialog",
+         action  = "deleteAlertById(delete_alert_id)",
+         title   = i18n("show_alerts.delete_alert"),
+         message = i18n("show_alerts.confirm_delete_alert"),
+         confirm = i18n("delete"),
+       }
+     })
+   )
+
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "myModal",
+         action  = "checkModalDelete()",
+         title   = "",
+         message = 'Do you really want to purge all the<span id="modalDeleteContext"></span> alerts<span id="modalDeleteAlertsMsg"></span>',
+         confirm = i18n("show_alerts.purge_num_alerts", {
+            num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
+         }),
+       }
+     })
+   )
+
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
       if not alt_nav_tabs then
 	 print[[
@@ -1026,7 +1054,6 @@ $(function() {
       var id = $(e.target).attr("href").substr(1);
       history.replaceState(null, null, "#"+id);
       updateDeleteLabel(id);
-      updateDeleteContext(id);
       checkAlertActionsPanel();
    });
 
@@ -1059,10 +1086,6 @@ function updateDeleteLabel(tabid) {
       val = "Past Flow ";
 
    label.html(prefix + val);
-}
-
-function updateDeleteContext(tabid) {
-   $("#modalDeleteForm input[name='status']").val(getCurrentStatus());
 }
 
 function getCurrentStatus() {
@@ -1118,6 +1141,14 @@ function getCurrentStatus() {
       </div>
 
       <script type="text/javascript">
+         function deleteAlertById(alert_id) {
+            var params = {};
+            params.id_to_delete = alert_id;
+            params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+            var form = paramsToForm('<form method="post"></form>', params);
+            form.appendTo('body').submit();
+         }
 
          $("#]] print(nav_tab_id) print[[").append('<li><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
 
@@ -1171,19 +1202,6 @@ function getCurrentStatus() {
 	        title: "]] print(title) print[[",
       columns: [
 	 {
-	    title: "]]print(i18n("show_alerts.alert_actions"))print[[",
-	    field: "column_key",
-       ]]
-   if t["status"] == "engaged" then
-      print("hidden: true,")
-   end
-   print[[
-	    css: {
-	       textAlign: 'center', width: '100px'
-	    }
-	 },
-
-	 {
 	    title: "]]print(i18n("show_alerts.alert_datetime"))print[[",
 	    field: "column_date",
             sortable: true,
@@ -1192,23 +1210,24 @@ function getCurrentStatus() {
           whiteSpace: 'nowrap',
 	    }
 	 },
-]]
 
-	 if t["status"] ~= "historical-flows" then
-	    print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_duration"))print[[",
 	    field: "column_duration",
             sortable: true,
+       ]]
+
+   if t["status"] == "historical-flows" then
+      print("hidden: true,")
+   end
+
+   print[[
 	    css: {
 	       textAlign: 'center',
           whiteSpace: 'nowrap',
 	    }
 	 },
-	 ]]
-	 end
 
-	 print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_severity"))print[[",
 	    field: "column_severity",
@@ -1234,16 +1253,41 @@ function getCurrentStatus() {
 	    css: {
 	       textAlign: 'left',
 	    }
+	 },
+
+    {
+      field: "column_key",
+      hidden: true
+    },
+
+    {
+	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
+       ]]
+   if t["status"] == "engaged" then
+      print("hidden: true,")
+   end
+   print[[
+	    css: {
+	       textAlign: 'center',
+	    }
 	 }
       ], tableCallback: function() {
             datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
-               $("form", this).submit(function() {
-               // add "status" parameter to the form
-               var get_params = paramsExtend(]] print(tableToJsObject(getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
-               $(this).attr("action", "?" + $.param(get_params));
+               var alert_key = $("td:nth(5)", this).html().split("|");
+               var alert_id = alert_key[0];
+               var historical_url = alert_key[1];
 
-               return true;
-            });
+               if (typeof(historical_url) === "string")
+                  datatableAddLinkButtonCallback.bind(this)(7, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
+               datatableAddDeleteButtonCallback.bind(this)(7, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+
+               $("form", this).submit(function() {
+                  // add "status" parameter to the form
+                  var get_params = paramsExtend(]] print(tableToJsObject(getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+                  $(this).attr("action", "?" + $.param(get_params));
+
+                  return true;
+               });
          });
       }
    });
@@ -1264,7 +1308,6 @@ function getCurrentStatus() {
             }
 
             updateDeleteLabel(tabid);
-            updateDeleteContext(tabid);
          });
       ]]
 	 end
@@ -1314,39 +1357,19 @@ $("[clicked=1]").trigger("click");
 	 print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">All</option>\n')
 
 
-	 print[[</select>]]
-	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
-    <h3 id="myModalLabel">Confirm Action</h3>
-  </div>
-  <div class="modal-body">
-    <p>Do you really want to purge all the<span id="modalDeleteContext"></span> alerts<span id="modalDeleteAlertsMsg"></span>?</p>
-  </div>
-  <div class="modal-footer">
-
-    <form id="modalDeleteForm" class=form-inline style="margin-bottom: 0px;" method="post" onsubmit="return checkModalDelete();">
+	 print[[</select>
+       <form id="modalDeleteForm" class="form-inline" style="display:none;" method="post" onsubmit="return checkModalDelete();">
          <input type="hidden" id="modalDeleteAlertsOlderThan" value="-1" />
-      ]]
-	    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+      </form>
+    ]]
 
-	 -- we need to dynamically modify parameters at js-time because we switch tab
+    -- we need to dynamically modify parameters at js-time because we switch tab
 	 local delete_params = getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
 
-	 print [[
-    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" type="submit">Purge [<img id="alerts-summary-wait" src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\><span id="alerts-summary-body"></span> alerts]</button>
-</form>
-  </div>
-  </div>
-</div>
-</div>
-</div> <!-- closes alertsActionsPanel -->
+	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> <span id="purgeBtnMessage">Purge <span id="purgeBtnLabel"></span>Alerts</span></button>
+   </div> <!-- closes alertsActionsPanel -->
 
 <script>
 
@@ -1386,6 +1409,7 @@ var cur_alert_num_req = null;
 $('#buttonOpenDeleteModal').on('click', function() {
    var lb = $("#purgeBtnLabel");
    var zoomsel = $("#deleteZoomSelector").find(":selected");
+   $("#myModal h3").html($("#purgeBtnMessage").html());
 
    $(".modal-body #modalDeleteAlertsMsg").html(zoomsel.data('msg') + ']]
 	 if tonumber(_GET["alert_severity"]) ~= nil then

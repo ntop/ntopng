@@ -36,6 +36,9 @@
 
   $('#{{typeahead.base_id}}_search_field').typeahead({
     source: function (query, process) {
+      /* Avoid this kind of queries which generates file path warnings into the ntopng log */
+      if (query.startsWith(".")) return;
+
       var _get = {};
     {% for k,v in pairs(typeahead.parameters or {}) do %}
       _get["{{k}}"] = "{{v}}";
