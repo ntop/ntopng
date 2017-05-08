@@ -333,7 +333,8 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
   void handle_process(ProcessInfo *pinfo, bool client_process);
-  bool idle();
+  inline bool idle() { return(false); } /* Idle flows are checked in Flow::update_hosts_stats */
+  bool isReadyToPurge();
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
   void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);

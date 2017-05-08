@@ -215,7 +215,7 @@ void Flow::categorizeFlow() {
 
 Flow::~Flow() {
   struct timeval tv = { 0, 0 };
-
+  
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
     if(srv_host) srv_host->decLowGoodputFlows(false);
@@ -922,7 +922,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   bool cli_and_srv_in_same_subnet = false;
   int16_t cli_network_id, srv_network_id;
   Vlan *vl;
-
+  NetworkStats *cli_network_stats;
+  
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 
@@ -938,7 +939,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
       }
     }
   }
-
 
   sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes, sent_goodput_bytes = cli2srv_goodput_bytes;
   diff_sent_packets = sent_packets - cli2srv_last_packets,
@@ -983,12 +983,12 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 
       /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
-       pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp */
+	 pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp 
+      */
       if(iface && !iface->is_bridge_interface())
 	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       }
-
 #endif
 
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
@@ -1002,10 +1002,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 		     diff_sent_packets, diff_sent_bytes,
 		     diff_rcvd_packets, diff_rcvd_bytes);
       }
-
-
-
-      NetworkStats *cli_network_stats;
 
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(tv->tv_sec, protocol,
@@ -1202,6 +1198,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   */
   if(!inDeleteMethod)
     iface->luaEvalFlow(this, callback_flow_update);
+
+  if(isReadyToPurge())
+    set_to_purge();
 }
 
 /* *************************************** */
@@ -1655,7 +1654,7 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-bool Flow::idle() {
+bool Flow::isReadyToPurge() {
   u_int8_t tcp_flags;
 
   if(!iface->is_purge_idle_interface()) return(false);
