@@ -684,6 +684,16 @@ local  en = {
       syn_victim_description = "Max number of received TCP SYN packets/sec over which a host is considered under SYN flood attack",
    },
 
+   export_data = {
+      export_data = "Export Data",
+      host = "Host",
+      ip_or_mac_address = "IP or MAC Address",
+      note_host = "NOTE: If the field is empty all hosts will be exported",
+      note_vlan = "NOTE: If the field is empty vlan is set to 0.",
+      export_json_data = "Export JSON Data",
+      reset_form = "Reset Form",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

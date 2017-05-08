@@ -21,7 +21,9 @@ print [[
    </style>
 <div class="container-fluid">
 <hr>
-<h2>Export Data</H2>
+<h2>]]
+print(i18n("export_data.export_data"))
+print [[</H2>
 <p>&nbsp;<p>
 
 <form class="form-horizontal" action="]]
@@ -35,28 +37,30 @@ print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFVa
 print [[
 
   <div class="control-group">
-    <label class="control-label">Host</label>
+    <label class="control-label">]]
+print(i18n("export_data.host"))
+print[[</label>
     <div class="controls">
       <input type="hidden" id="hostIP" name="ip">
-      <input type="text" id="hostIPSearch" placeholder="IP or MAC Address" class="form-control">
+      <input type="text" id="hostIPSearch" placeholder="]] print(i18n("export_data.ip_or_mac_address")) print[[" class="form-control">
     </div>
-<label><small>NOTE: If the field is empty all hosts will be exported</small></label>
+<label><small>]] print(i18n("export_data.note_host")) print[[</small></label>
   </div>
 
 
 <div class="control-group">
-    <label class="control-label" for="hostVlan">Vlan:</label>
+    <label class="control-label" for="hostVlan">]] print(i18n("vlan")) print[[:</label>
     <div class="controls">
-      <input type="text" id="hostVlan" name="vlan" placeholder="Vlan" class="form-control">
+      <input type="text" id="hostVlan" name="vlan" placeholder="]] print(i18n("vlan")) print[[" class="form-control">
     </div>
-     <label><small>NOTE: If the field is empty vlan is set to 0.</small></label>
+     <label><small>]] print(i18n("export_data.note_vlan")) print[[</small></label>
   </div>
 </br>
 
 <div class="control-group">
 <div class="controls">
-  <button type="submit" class="btn btn-primary">Export JSON Data</button> 
-  <button class="btn btn-default" type="reset">Reset Form</button>
+  <button type="submit" class="btn btn-primary">]] print(i18n("export_data.export_json_data")) print[[</button>
+  <button class="btn btn-default" type="reset">]] print(i18n("export_data.reset_form")) print[[Reset Form</button>
 </div>
 </div>
 
