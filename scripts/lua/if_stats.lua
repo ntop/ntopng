@@ -1020,7 +1020,7 @@ end
 elseif(page == "alerts") then
 
    drawAlertSourceSettings(ifname_clean,
-      i18n("show_alerts.iface_delete_config_btn"), i18n("show_alerts.iface_delete_config_confirm"),
+      i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
       "if_stats.lua", {ifid=ifid},
       if_name)
 

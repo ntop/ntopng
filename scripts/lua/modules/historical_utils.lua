@@ -281,15 +281,14 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 	end
 
 	print [[</div>]]
-	  if interface.isPacketInterface() then
-	      local disabled = ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges()
+	  if interface.isPacketInterface()
+	    and ntop.getCache("ntopng.prefs.nbox_integration") == "1"
+	    and haveAdminPrivileges() then
        print[[ <div class='col-md-2'><div style='margin-bottom:0.4em;'>
 	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm]]
-	       if disabled then print(" disabled") end
 	       print[[" href="#" role="button" id="extract_pcap_]] print(button_id)
 	       print[["><i class="fa fa-download fa-lg"></i></a></div>
 	       <span id="pcap_download_msg_]] print(button_id) print[[">]]
-	       if disabled then print("<small>"..i18n("db_explorer.nbox_disabled")..".<br>"..i18n("db_explorer.enable_it_via", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=nbox", icon="<i class=\"fa fa-flask\"></i>"}).."</small>") end
 	       print[[</span>
 	       </div>]]
 	  end

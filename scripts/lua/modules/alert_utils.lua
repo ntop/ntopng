@@ -20,6 +20,43 @@ alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throug
     'ingress', 'egress', 'inner',
     'flows'}
 
+alert_functions_info = {
+   ["active"] = {
+      label = "Activity Time",
+      fmt = secondsToTime,
+   }, ["bytes"] = {
+      label = "Traffic",
+      fmt = bytesToSize,
+   }, ["dns"] = {
+      label = "DNS Traffic",
+      fmt = bytesToSize,
+   }, ["idle"] = {
+      label = "Idle Time",
+      fmt = secondsToTime,
+   }, ["packets"] = {
+      label = "Packets",
+      fmt = formatPackets,
+   }, ["p2p"] = {
+      label = "P2P Traffic",
+      fmt = bytesToSize,
+   }, ["throughput"] = {
+      label = "Throughput",
+      fmt = bytesToSize,
+   }, ["flows"] = {
+      label = "Flows",
+      fmt = formatFlows,
+   }, ["inner"] = {
+      label = "Inner Traffic",
+      fmt = bytesToSize
+   }, ["ingress"] = {
+      label = "Ingress Traffic",
+      fmt = bytesToSize
+   }, ["egress"] = {
+      label = "Egress Traffic",
+      fmt = bytesToSize
+   }, 
+}
+
 -- ##############################################################################
 
 function bytes(old, new, interval)
@@ -523,7 +560,7 @@ function getAlertSource(entity, entity_value, alt_name)
          host_name = alt_name
       else
          local hostInfo = hostkey2hostinfo(entity_value)
-         host_name = getResolvedAddress(hostInfo)
+         host_name = resolveAddress(hostInfo)
       end
 
       return {
@@ -658,6 +695,34 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    -- Default tab
    if(tab == nil) then tab = "min" end
 
+   if(tab ~= "alert_list") then
+      local granularity_label = alertEngineLabel(alertEngine(tab))
+
+      print(
+        template.gen("modal_confirm_dialog.html", {
+          dialog={
+            id      = "deleteAlertSourceSettings",
+            action  = "deleteAlertSourceSettings()",
+            title   = i18n("show_alerts.delete_alerts_configuration"),
+            message = i18n(delete_confirm_msg, {granularity=granularity_label}) .. " <span style='white-space: nowrap;'>" .. ternary(alt_name ~= nil, alt_name, alert_source).."</span>",
+            confirm = i18n("delete")
+          }
+        })
+      )
+
+      print(
+        template.gen("modal_confirm_dialog.html", {
+          dialog={
+            id      = "deleteGlobalAlertConfig",
+            action  = "deleteGlobalAlertConfig()",
+            title   = i18n("show_alerts.delete_alerts_configuration"),
+            message = i18n("show_alerts.delete_config_message", {conf = source.source, granularity=granularity_label}),
+            confirm = i18n("delete")
+          }
+        })
+      )
+   end
+
    for _,e in pairs(alerts_granularity) do
       local k = e[1]
       local l = e[2]
@@ -706,19 +771,26 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       to_save = false
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
-         -- Delete threshold configuration
-         ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+         if _POST["to_delete"] == "local" then
+            -- Delete threshold configuration
+            ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
 
-         -- Delete specific settings
-         if source.source == "host" then
-            ntop.delCache(anomaly_config_key)
-            interface.refreshHostsAlertsConfiguration()
+            -- Delete specific settings
+            if source.source == "host" then
+               ntop.delCache(anomaly_config_key)
+               interface.refreshHostsAlertsConfiguration()
+            end
+            alerts = nil
+
+            -- Load the global settings normally
+            global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
+         else
+            -- Only delete global configuration
+            ntop.delCache(global_redis_hash)
          end
-         alerts = nil
+      end
 
-         -- Load the global settings even if user clicked the delete entity configuration
-         global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
-      else
+      if _POST["to_delete"] ~= "local" then
          for k,_ in pairs(descr) do
 	    value    = _POST["value_"..k]
 	    operator = _POST["op_"..k]
@@ -770,8 +842,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          --print(alerts)
 
          if(to_save) then
-            -- TODO Do not release for now, needs to ensure consistency with global_alerts too
-
             -- This specific entity alerts
             if(alerts == "") then
                ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
@@ -814,18 +884,16 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
       print [[
        </ul>
+       <form method="post">
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th>Threshold Type</th><th width=30%>]] print(firstToUpper(source.source)) print[[ Threshold</th><th width=30%>Global Local ]]
+       <tr><th>Threshold Type</th><th width=30%>]] print(firstToUpper(source.source)) print(" ") print(ternary(alt_name ~= nil, alt_name, alert_source)) print[[ Thresholds</th><th width=30%>Local ]]
        print(firstToUpper(source.source))
-       print[[s Threshold]]
-       print[[</th></tr>
-
-      <form method="post">
-      ]]
+       print[[s Common Thresholds]]
+       print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
       for key,v in pairsByKeys(descr, asc) do
-         print("<tr><td><b>"..firstToUpper(key).."</b><br>")
+         print("<tr><td><b>".. alert_functions_info[key].label .."</b><br>")
          print("<small>"..v.."</small>\n")
 
         for _, prefix in pairs({"", "global_"}) do
@@ -838,7 +906,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
          print("value=\"lt\">&lt;</option>\n")
          print("</select>\n")
-         print("<input type=text name=\"value_"..k.."\" value=\"")
+         print("<input type=number min=1 step=1 class=\"text-right form-control\" style=\"display:inline; width:12em;\" name=\"value_"..k.."\" value=\"")
          if(vals[k] ~= nil) then print(vals[k][2]) end
          print("\">\n")
         end
@@ -882,7 +950,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
                local key = prefix..config.key
 
                print("</td><td>\n")
-               print('<input type="number" name="'..key..'" style="width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
+               print('<input type="number" class=\"text-right form-control\" name="'..key..'" style="display:inline; width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
                print(tostring(vals[key]))
                print[["></input>]]
             end
@@ -892,42 +960,17 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       end
 
       print [[
-      <tr><th colspan=3  style="text-align: center; white-space: nowrap;" >
-
-         <input type="hidden" name="SaveAlerts" value="">
-         <input type="submit" class="btn btn-primary" value="Save Configuration">
+      </tbody> </table>
+      <input type="hidden" name="SaveAlerts" value="">
+      
+      <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
       </form>
 
-      <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> ]] print(delete_button_msg) print[[ ]</button></a>
-      <!-- Modal -->
-      <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-       <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
-          <h3 id="myModalLabel">Confirm Action</h3>
-        </div>
-        <div class="modal-body">
-       <p>]] print(delete_confirm_msg) print(" ") if alt_name ~= nil then print(alt_name) else print(alert_source) end print[[?</p>
-        </div>
-        <div class="modal-footer">
-          <form class=form-inline style="margin-bottom: 0px;" method="post">
-          <input type=hidden name=to_delete value="">
-      ]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-          <button class="btn btn-primary" type="submit">Delete All</button>
-         </form>
-        </div>
-      </div>
-      </div>
-
-      </th> </tr>
-
-      </tbody> </table>
+      <button class="btn btn-default" onclick="$('#deleteGlobalAlertConfig').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print("Delete Local "..firstToUpper(source.source).."s Common Configuration") print[[</button>
+      <button class="btn btn-default" onclick="$('#deleteAlertSourceSettings').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(delete_button_msg) print[[</button>
       ]]
 
-      print("<b>NOTES:</b><ul>")
+      print("<div style='margin-top:4em;'><b>NOTES:</b><ul>")
 
       print("<li>Thresholds listed in these tabs are checked periodically. Use tabs to control threshold checks periods.</li>")
       print("<li>Some thresholds are expressed as a delta. A delta is the difference of the same quantity between two consecutive checks.</li>")
@@ -937,10 +980,35 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 	 print("<li>Deltas of an idle host that becomes active again will be computed as the difference of the same quantity during the latest check and the most recent check performed when the host was active before going idle.</li>")
 	 print("<li>An attacker/victim threshold is considered exceeded if the corresponding host has exceeded the configured threshold for at least three seconds when performing the periodic check.</li>")
       end
+      print("</ul></div>")
 
-print("</ul>")
+      print[[
+      <script>
+         function deleteAlertSourceSettings() {
+            var params = {};
 
+            params.to_delete = "local";
+            params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
+            var form = paramsToForm('<form method="post"></form>', params);
+            form.appendTo('body').submit();
+         }
+
+         function deleteGlobalAlertConfig() {
+            var params = {};
+
+            params.to_delete = "global";
+            params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+            var form = paramsToForm('<form method="post"></form>', params);
+            form.appendTo('body').submit();
+         }
+
+         aysHandleForm("form", {
+            handle_tabs: true,
+         });
+      </script>
+      ]]
    end
 end
 
@@ -1571,16 +1639,21 @@ local function formatEntity(ifid, entity_type, entity_value, entity_info)
   return entity_value
 end
 
-local function formatThresholdCross(ifid, entity_type, entity_value, entity_info, alert_key, threshold_info)
+local function formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, alert_key, threshold_info)
   if threshold_info.metric then
-    return "Threshold <b>"..threshold_info.metric.."</b> crossed by "..formatEntity(ifid, entity_type, entity_value, entity_info)..
-        " ["..(threshold_info.value).." &"..(threshold_info.operator).."; "..(threshold_info.edge).."]"
+    local info = alert_functions_info[threshold_info.metric]
+    local label = info and info.label or threshold_info.metric
+    local value = info and info.fmt(threshold_info.value) or threshold_info.value
+    local edge = info and info.fmt(threshold_info.edge) or threshold_info.edge
+
+    return alertEngineLabel(engine).." <b>".. label .."</b> crossed by "..formatEntity(ifid, entity_type, entity_value, entity_info)..
+        " ["..value.." &"..(threshold_info.operator).."; "..edge.."]"
   end
 
   return ""
 end
 
-local function formatSynFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+local function formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
   if entity_info.anomalies ~= nil then
     if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
       local anomaly_info = entity_info.anomalies.syn_flood_attacker
@@ -1598,7 +1671,7 @@ local function formatSynFlood(ifid, entity_type, entity_value, entity_info, aler
   return ""
 end
 
-local function formatFlowsFlood(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+local function formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
   if entity_info.anomalies ~= nil then
     if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
       local anomaly_info = entity_info.anomalies.flows_flood_attacker
@@ -1614,7 +1687,7 @@ local function formatFlowsFlood(ifid, entity_type, entity_value, entity_info, al
   return ""
 end
 
-local function formatMisconfiguredApp(ifid, entity_type, entity_value, entity_info, alert_key, alert_info)
+local function formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
   if entity_info.anomalies ~= nil then
     if alert_key == "too_many_flows" then
       return firstToUpper(formatEntity(ifid, entity_type, entity_value, entity_info))..
@@ -1629,26 +1702,26 @@ local function formatMisconfiguredApp(ifid, entity_type, entity_value, entity_in
 end
 
 -- returns the pair (message, severity)
-local function formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info)
+local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
   -- Defaults
   local msg = ""
   local severity = "error"
 
   if atype == "threshold_cross" then
-    msg = formatThresholdCross(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+    msg = formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "tcp_syn_flood" then
-    msg = formatSynFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+    msg = formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "flows_flood" then
-    msg = formatFlowsFlood(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+    msg = formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "misconfigured_app" then
-    msg = formatMisconfiguredApp(ifid, entity_type, entity_value, entity_info, akey, alert_info)
+    msg = formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
   end
 
   return msg, severity
 end
 
 local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
-  local alert_msg, alevel = formatAlertMessage(ifid, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
+  local alert_msg, alevel = formatAlertMessage(ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
   local alert_type = alertType(atype)
   local alert_level = alertLevel(alevel)
   local entity = getAlertSource(entity_type, entity_value, "")
@@ -1680,7 +1753,7 @@ local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey,
    engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 
    if ntop.isPro() then
-      ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, formatAlertMessage(ifid, entity_type, entity_value, atype, akey, entity_info, alert_info))
+      ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info))
    end
 end
 

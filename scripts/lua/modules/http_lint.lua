@@ -417,6 +417,12 @@ local function validateIdToDelete(i)
    end
 end
 
+local function validateLocalGlobal(p)
+   local values = {"local", "global"}
+   
+   return validateChoice(values, p)
+end
+
 local function validateBool(p)
    if((p == "true") or (p == "false")) then
       return true
@@ -850,7 +856,7 @@ local known_parameters = {
    ["captive_portal_users"]    =  validateBool,                  -- to show or hide captive portal users
    ["long_names"]              =  validateBool,                  -- get_hosts_data
    ["id_to_delete"]            =  validateIdToDelete,            -- alert_utils.lua, alert ID to delete
-   ["to_delete"]               =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should be dropped
+   ["to_delete"]               =  validateLocalGlobal,           -- alert_utils.lua, set if alert configuration should be dropped
    ["SaveAlerts"]              =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should change
    ["host_pool_id"]            =  validateNumber,                -- change_user_prefs, new pool id for host
    ["old_host_pool_id"]        =  validateNumber,                -- change_user_prefs, old pool id for host

@@ -382,13 +382,14 @@ alert_entity_keys = {
 }
 
 alert_engine_keys = {
-   {"1 Minute",  0, "min"    },
-   {"5 Minutes", 1, "5mins"  },
+   {"Per Minute",  0, "min"    },
+   {"Five Minutes", 1, "5mins"  },
    {"Hourly",    2, "hour"   },
    {"Daily",     3, "day"    },
    {"Startup",   4, "startup"},
 }
 
+-- Note: keep in sync with alarmable_metrics and alert_functions_infoes
 alert_functions_description = {
    ["active"]  = "Activity time since last check (seconds).",
    ["bytes"]   = "Layer 2 bytes delta (sent + received)",
@@ -453,6 +454,10 @@ function alertEngine(v)
       enginetable[#enginetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(enginetable, v))
+end
+
+function alertEngineLabel(v)
+   return _handleArray(alert_engine_keys, tonumber(v))
 end
 
 function alertLevel(v)
@@ -567,7 +572,8 @@ function bytesToSize(bytes)
       terabyte = gigabyte * 1024;
 
       bytes = tonumber(bytes)
-      if((bytes >= 0) and (bytes < kilobyte)) then
+      if bytes == 1 then return "1 Byte"
+	 elseif((bytes >= 0) and (bytes < kilobyte)) then
 	 return round(bytes, precision) .. " Bytes";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
 	 return round(bytes / kilobyte, precision) .. ' KB';
@@ -632,7 +638,15 @@ function formatValue(amount)
 end
 
 function formatPackets(amount)
-   return formatValue(tonumber(amount)).." Pkts"
+   local amount = tonumber(amount)
+   if (amount == 1) then return "1 Pkt" end
+   return formatValue(amount).." Pkts"
+end
+
+function formatFlows(amount)
+   local amount = tonumber(amount)
+   if (amount == 1) then return "1 Flow" end
+   return formatValue(amount).." Flows"
 end
 
 function capitalize(str)
@@ -738,7 +752,11 @@ function formatEpoch(epoch)
 end
 
 function secondsToTime(seconds)
+  local seconds = tonumber(seconds)
   if(seconds == nil) then return "" end
+  if(seconds == 0) then
+   return("0 sec")
+  end
   if(seconds < 1) then
     return("< 1 sec")
   end
@@ -1222,11 +1240,16 @@ end
 -- #################################
 
 -- NOTE: prefer the getResolvedAddress on this function
-function resolveAddress(hostinfo)
+function resolveAddress(hostinfo, allow_empty)
    local hostname = ntop.resolveName(hostinfo["host"])
    if isEmptyString(hostname) then
       -- Not resolved
-      return hostname
+      if allow_empty == true then
+         return hostname
+      else
+         -- this function will take care of formatting the IP
+         return getResolvedAddress(hostinfo)
+      end
    end
    return hostVisualization(hostinfo["host"], hostname)
 end

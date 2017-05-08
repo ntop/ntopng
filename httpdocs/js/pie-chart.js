@@ -328,7 +328,7 @@ function create_pie_chart(name, units) {
     var r = 116; //100;
 
     if($(name).hasClass("pie-chart-small")) {
-	w = 380;
+	w = 330;
 	h = 250;
 	r = w / 5 + 15;
 	ir = r / 2;

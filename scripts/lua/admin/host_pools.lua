@@ -244,7 +244,7 @@ print('</select>')
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 if is_bridge_iface then
-  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
+  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-cog' aria-hidden='true'></i></a>")
 end
 
 print('</td>\n')
@@ -672,8 +672,8 @@ print[[            css : {
             if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
 
-            if (link_value)
-              datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
+            datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
+            if (!link_value) $("td:nth(5) a:nth(0)", this).css("visibility", "hidden");
             datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
