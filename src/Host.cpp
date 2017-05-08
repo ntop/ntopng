@@ -1312,8 +1312,10 @@ void Host::loadAlertsCounter() {
   char rsp[16];
   char *key = get_hostkey(buf, sizeof(buf), true /* force vlan */);
 
-  if(ntop->getPrefs()->are_alerts_disabled() || !isLocalHost())
+  if(ntop->getPrefs()->are_alerts_disabled() || !isLocalHost()) {
+    num_alerts_detected = 0;
     return;
+  }
 
   snprintf(counters_key, sizeof(counters_key), CONST_HOSTS_ALERT_COUNTERS, iface->get_id());
 

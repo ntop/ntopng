@@ -1627,6 +1627,20 @@ static int ntop_reload_preferences(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_temporary_disable_alerts(lua_State* vm) {
+  bool to_disable;
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  if(ntop->getPrefs()->hasCmdlDisableAlerts()) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN)) return(CONST_LUA_PARAM_ERROR);
+  to_disable = lua_toboolean(vm, 1);
+
+  ntop->getPrefs()->set_alerts_status(!to_disable);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Check if the trace level of ntop is verbose.
  * @details Push true into the lua stack if the trace level of ntop is set to MAX_TRACE_LEVEL, false otherwise.
@@ -2356,14 +2370,16 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_refresh_hosts_alerts_configuration(lua_State* vm) {
+  bool full_refresh = false;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) full_refresh = lua_toboolean(vm, 1);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->refreshHostsAlertPrefs();
+  ntop_interface->refreshHostsAlertPrefs(full_refresh);
   return(CONST_LUA_OK);
 }
 
@@ -5219,6 +5235,7 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
   AlertsManager *am;
   bool engaged = false;
   char *selection = NULL, *clauses = NULL;
+  bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5236,7 +5253,10 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
     if((clauses = (char*)lua_tostring(vm, 3)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
 
-  if(am->queryAlertsRaw(vm, engaged, selection, clauses))
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 4);
+
+  if(am->queryAlertsRaw(vm, engaged, selection, clauses, ignore_disabled))
     return(CONST_LUA_ERROR);
 
   return (CONST_LUA_OK);
@@ -5248,6 +5268,7 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
   char *selection = NULL, *clauses = NULL;
+  bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5262,7 +5283,10 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
     if((clauses = (char*)lua_tostring(vm, 2)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
 
-  if(am->queryFlowAlertsRaw(vm, selection, clauses))
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 3);
+
+  if(am->queryFlowAlertsRaw(vm, selection, clauses, ignore_disabled))
     return(CONST_LUA_ERROR);
 
   return (CONST_LUA_OK);
@@ -5780,6 +5804,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "engageInterfaceAlert", ntop_interface_engage_interface_alert   },
   { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
   { "refreshNumAlerts",     ntop_interface_refresh_num_alerts       },
+  
   { NULL,                             NULL }
 };
 
@@ -5831,6 +5856,7 @@ static const luaL_Reg ntop_reg[] = {
   { "zmq_receive",    ntop_zmq_receive },
   { "getLocalNetworks",  ntop_get_local_networks },
   { "reloadPreferences", ntop_reload_preferences },
+  { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
 
 #ifdef NTOPNG_PRO
   { "sendNagiosAlert",      ntop_nagios_send_alert },

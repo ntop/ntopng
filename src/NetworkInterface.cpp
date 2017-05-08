@@ -5847,22 +5847,26 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   /* **************************************** */
 
   static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data) {
+    bool full_refresh = (user_data != NULL) ? true : false;
     Host *h = (Host*)host;
 
     h->refreshHostAlertPrefs();
+
+    if (full_refresh)
+      h->loadAlertsCounter();
     return(false); /* false = keep on walking */
   }
 
   /* **************************************** */
 
-  void NetworkInterface::refreshHostsAlertPrefs() {
+  void NetworkInterface::refreshHostsAlertPrefs(bool full_refresh) {
     /* Read the new configuration */
     ntop->getPrefs()->refreshHostsAlertsPrefs();
 
     disablePurge(false);
 
     /* Update the hosts */
-    walker(walker_hosts, host_reload_alert_prefs, NULL);
+    walker(walker_hosts, host_reload_alert_prefs, (void *)full_refresh);
 
     enablePurge(false);
   };

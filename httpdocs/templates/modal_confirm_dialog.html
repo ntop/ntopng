@@ -11,7 +11,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>
-        <button type="submit" class="btn btn-primary" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
+        <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
       </div>
     </div>
   </div>

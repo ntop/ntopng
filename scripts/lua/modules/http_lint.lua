@@ -814,8 +814,8 @@ local known_parameters = {
    ["host_activity_rrd_raw_hours"]                 =  validateNumber,
    ["safe_search_dns"]                             =  validateIPV4,
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
-   -- Multiple Choice
 
+   -- Multiple Choice
    ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx"}),
    ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
@@ -823,6 +823,9 @@ local known_parameters = {
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
    ["toggle_thpt_content"]                         =  validateChoiceInline({"bps", "pps"}),
    ["toggle_host_mask"]                            =  validateChoiceInline({"0", "1", "2"}),
+
+   -- Other
+   ["flush_alerts_data"]                           =  validateEmpty,
 --
 
 -- PAGE SPECIFIC

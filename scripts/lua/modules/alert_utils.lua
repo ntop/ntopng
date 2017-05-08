@@ -164,6 +164,7 @@ function get_alerts_hash_name(timespan, ifname)
    if not is_allowed_timespan(timespan) or tonumber(ifid) == nil then
       return nil
    end
+
    return "ntopng.prefs.alerts_"..timespan..".ifid_"..tostring(ifid)
 end
 
@@ -272,7 +273,7 @@ function op2jsop(op)
    end
 end
 
-function performAlertsQuery(statement, what, opts)
+function performAlertsQuery(statement, what, opts, force_query)
    local wargs = {"WHERE", "1=1"}
 
    if tonumber(opts.row_id) ~= nil then
@@ -375,12 +376,11 @@ function performAlertsQuery(statement, what, opts)
    --~ tprint(statement.." (from "..what..") "..query)
 
    if what == "engaged" then
-      res = interface.queryAlertsRaw(true, statement, query)
-
+      res = interface.queryAlertsRaw(true, statement, query, force_query)
    elseif what == "historical" then
-      res = interface.queryAlertsRaw(false, statement, query)
+      res = interface.queryAlertsRaw(false, statement, query, force_query)
    elseif what == "historical-flows" then
-      res = interface.queryFlowAlertsRaw(statement, query)
+      res = interface.queryFlowAlertsRaw(statement, query, force_query)
    else
       error("Invalid alert subject: "..what)
    end
@@ -2043,6 +2043,62 @@ function scanAlerts(granularity, ifname)
    if working_status.dirty_cache then
       invalidateEngagedAlertsCache(ifid)
    end
+end
+
+
+-- #################################
+
+function flushAlertsData()
+   if not haveAdminPrivileges() then
+      return
+   end
+
+   local function deleteCachePattern(pattern)
+      local keys = ntop.getKeysCache(pattern)
+
+      for key in pairs(keys or {}) do
+         ntop.delCache(key)
+      end
+   end
+
+   local selected_interface = ifname
+   local ifnames = interface.getIfNames()
+   local force_query = true
+
+   if(verbose) then io.write("[Alerts] Temporary disabling alerts generation...\n") end
+   ntop.setAlertsTemporaryDisabled(true);
+   os.execute("sleep 3")
+
+   callback_utils.foreachInterface(ifnames, false, function(ifname, ifstats)
+      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
+
+      -- Clear hosts status
+      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
+
+      if(verbose) then io.write("[Alerts] Flushing SQLite configuration...\n") end
+      performAlertsQuery("DELETE", "engaged", {}, force_query)
+      performAlertsQuery("DELETE", "historical", {}, force_query)
+      performAlertsQuery("DELETE", "historical-flows", {}, force_query)
+   end)
+
+   if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
+   deleteCachePattern("ntopng.prefs.*alert*")
+   deleteCachePattern("ntopng.alerts.*")
+   deleteCachePattern(getEngagedAlertsCacheKey("*", "*"))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*"))
+   ntop.delCache(get_alerts_suppressed_hash_name("*"))
+   for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
+
+   if(verbose) then io.write("[Alerts] Enabling alerts generation...\n") end
+   ntop.setAlertsTemporaryDisabled(false);
+
+   callback_utils.foreachInterface(ifnames, false, function(_ifname, ifstats)
+      -- Reload hosts status
+      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
+   end)
+
+   if(verbose) then io.write("[Alerts] Flush done\n") end
+   interface.select(selected_interface)
 end
 
 -- DEBUG: uncomment this to test

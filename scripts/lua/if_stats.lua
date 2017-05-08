@@ -41,7 +41,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
 
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
-      if(value ~= nil) then print(value) end
+      if(value ~= nil) then print(value.."") end
       print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">Save</button>]]
    else
       if(value ~= nil) then print(value) end
@@ -1065,7 +1065,7 @@ elseif(page == "config") then
       -- Interface refresh rate
       print[[
       <tr>
-         <th>Realtime Stats Refresh Rate (s)</th>
+         <th>Realtime Stats Refresh Rate (sec)</th>
          <td>]]
       local refreshrate = getInterfaceRefreshRate(ifstats.id)
       inline_input_form("ifRate", "Refresh Rate",

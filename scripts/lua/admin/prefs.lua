@@ -20,6 +20,11 @@ local show_advanced_prefs = false
 local alerts_disabled = false
 
 if(haveAdminPrivileges()) then
+   if(_POST["flush_alerts_data"] ~= nil) then
+    require "alert_utils"
+    flushAlertsData()
+   end
+
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
    active_page = "admin"
@@ -123,6 +128,20 @@ end
 
 function printAlerts()
    if prefs.has_cmdl_disable_alerts then return end
+
+  print(
+    template.gen("modal_confirm_dialog.html", {
+      dialog={
+        id      = "flushAlertsData",
+        action  = "flushAlertsData()",
+        title   = i18n("show_alerts.reset_alert_database"),
+        message = i18n("show_alerts.reset_alert_database_message"),
+        confirm = i18n("show_alerts.flush_data"),
+        confirm_button = "btn-danger",
+      }
+    })
+  )
+
   print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("show_alerts.alerts")..'</th></tr>')
@@ -185,10 +204,26 @@ function printAlerts()
   prefsInputFieldPrefs(subpage_active.entries["max_num_flow_alerts"].title, subpage_active.entries["max_num_flow_alerts"].description,
         "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;">')
+  print('<button class="btn btn-default" type="button" onclick="$(\'#flushAlertsData\').modal(\'show\');" style="width:230px; float:left;">'..i18n("show_alerts.reset_alert_database")..'</button>')
+  print('<button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button>')
+  print('</th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
+  </form>
+
+  <script>
+    function flushAlertsData() {
+      var params = {};
+
+      params.flush_alerts_data = "";
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+    }
+  </script>
+  ]]
 end
 
 -- ================================================================================

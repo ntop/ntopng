@@ -248,6 +248,13 @@ local  en = {
       purge_num_alerts = "Purge [%{num_alerts} alerts]",
       delete_alert = "Delete Alert",
       confirm_delete_alert = "Do you really want to delete the specified alert",
+      reset_alert_database = "Flush Alerts Data",
+      reset_alert_database_message = "This action will remove any alerts related data, including<ul>"..
+            "<li>Runtime alerts status</li>"..
+            "<li>Alerts configuration</li>"..
+            "<li>Persistent alerts SQLite storage</li>"..
+            "</ul><br>Do you really want to proceed",
+      flush_data = "Flush Data",
    },
 
    alerts_dashboard = {
