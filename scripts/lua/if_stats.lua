@@ -106,6 +106,19 @@ if (isAdministrator()) then
 	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
    end
 
+   if(_POST["ifSpeed"] ~= nil) then
+      local ifspeed_cache = 'ntopng.prefs.'..ifstats.name..'.speed'
+      if isEmptyString(_POST["ifSpeed"]) then
+         ntop.delCache(ifspeed_cache)
+      else
+         ntop.setCache(ifspeed_cache, _POST["ifSpeed"])
+      end
+   end
+
+   if(_POST["ifRate"] ~= nil) then
+      setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
+   end
+
    if(_POST["scaling_factor"] ~= nil) then
 	 local sf = tonumber(_POST["scaling_factor"])
 	 if(sf == nil) then sf = 1 end
@@ -181,7 +194,7 @@ url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
-print('\n<script>var refresh = 3000 /* ms */;</script>\n')
+print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000; /* ms */;</script>\n')
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -819,7 +832,7 @@ print [[
 			  }
 			}
 	  });
-}, 3000);
+}, ]] print(getInterfaceRefreshRate(ifstats.id).."") print[[ * 1000);
 
    </script>
 ]]
@@ -1020,10 +1033,10 @@ elseif(page == "config") then
    print[[
    <table class="table table-bordered table-striped">]]
 
-   -- Custom name
    if ((not interface.isPcapDumpInterface()) and
        (ifstats.name ~= nil) and
        (ifstats.name ~= "dummy")) then
+      -- Custom name
       print[[
       <tr>
          <th>Custom Name</th>
@@ -1032,6 +1045,32 @@ elseif(page == "config") then
       inline_input_form("custom_name", "Custom Name",
          "Specify an alias for the interface",
          label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9\\. ]*$"')
+      print[[
+         </td>
+      </tr>]]
+
+      -- Interface speed
+      print[[
+      <tr>
+         <th>Interface Speed (Mbit/s)</th>
+         <td>]]
+      local ifspeed = getInterfaceSpeed(ifstats)
+      inline_input_form("ifSpeed", "Interface Speed",
+         "Specify the maximum interface speed",
+         ifspeed, isAdministrator(), 'type="number" min="1"')
+      print[[
+         </td>
+      </tr>]]
+
+      -- Interface refresh rate
+      print[[
+      <tr>
+         <th>Realtime Stats Refresh Rate (s)</th>
+         <td>]]
+      local refreshrate = getInterfaceRefreshRate(ifstats.id)
+      inline_input_form("ifRate", "Refresh Rate",
+         "Specify the stats refresh rate for the interface",
+         refreshrate, isAdministrator(), 'type="number" min="1"')
       print[[
          </td>
       </tr>]]
@@ -1048,7 +1087,7 @@ elseif(page == "config") then
          <td>]]
       inline_input_form("scaling_factor", "Scaling Factor",
          "This should match your capture interface sampling rate",
-         label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
+         label, isAdministrator(), 'type="number" min="1" step="1"')
       print[[
          </td>
       </tr>]]
@@ -2532,7 +2571,7 @@ end
 print [[
 	   }
 	       });
-       }, 3000)
+       }, ]] print(getInterfaceRefreshRate(ifstats.id).."") print[[ * 1000)
 
 </script>
 

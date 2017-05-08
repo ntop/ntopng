@@ -874,6 +874,7 @@ local known_parameters = {
    ["trigger_alerts"]          =  validateBool,                  -- true if alerts should be active for this entity
    ["show_advanced_prefs"]     =  validateBool,                  -- true if advanced preferences should be shown
    ["ifSpeed"]                 =  validateEmptyOr(validateNumber), -- interface speed
+   ["ifRate"]                  =  validateEmptyOr(validateNumber), -- interface refresh rate
    ["scaling_factor"]          =  validateEmptyOr(validateNumber), -- interface scaling factor
    ["drop_host_traffic"]       =  validateBool,                  -- to drop an host traffic
    ["lifetime_limited"]        =  validateEmptyOr(validateOnOff), -- set if user should have a limited lifetime

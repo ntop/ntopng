@@ -1913,6 +1913,40 @@ function getInterfaceNameAlias(interface_name)
    end
 end
 
+function getInterfaceSpeed(ifstats)
+   local ifspeed = ntop.getCache('ntopng.prefs.'..ifstats.name..'.speed')
+   if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
+      ifspeed = tonumber(ifspeed)
+   else
+      ifspeed = ifstats.speed
+   end
+
+   return ifspeed
+end
+
+function getInterfaceRefreshRate(ifid)
+   local key = getRedisIfacePrefix(ifid)..".refresh_rate"
+   local refreshrate = ntop.getCache(key)
+
+   if isEmptyString(refreshrate) or tonumber(refreshrate) == nil then
+      refreshrate = 3
+   else
+      refreshrate = tonumber(refreshrate)
+   end
+
+   return refreshrate
+end
+
+function setInterfaceRegreshRate(ifid, refreshrate)
+   local key = getRedisIfacePrefix(ifid)..".refresh_rate"
+
+   if isEmptyString(refreshrate) then
+      ntop.delCache(key)
+   else
+      ntop.setCache(key, tostring(refreshrate))
+   end
+end
+
 function getHumanReadableInterfaceName(interface_name)
    key = 'ntopng.prefs.'..interface_name..'.name'
    custom_name = ntop.getCache(key)

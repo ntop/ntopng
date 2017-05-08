@@ -82,8 +82,7 @@ print [[</font>
 
 if interface.isPcapDumpInterface() == false then
    if(ifname ~= nil) then
-     key = 'ntopng.prefs.'..ifname..'.speed'
-     maxSpeed = ntop.getCache(key)
+     maxSpeed = getInterfaceSpeed(_ifstats)
    end
    -- io.write(maxSpeed)
    if((maxSpeed == "") or (maxSpeed == nil)) then
@@ -98,7 +97,7 @@ if interface.isPcapDumpInterface() == false then
       -- use the user-specified custom value for the speed
       maxSpeed = tonumber(maxSpeed)*1000000
    end
-   addGauge('networkload', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', 100, 100, 50)
+   addGauge('networkload', ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname).."&page=config", 100, 100, 50)
    print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
 
    print [[
@@ -214,7 +213,7 @@ print [[/lua/logout.lua");  }, */
    if interface.isPcapDumpInterface() == false then
       print[[
 
-		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
+		$('#gauge_text_allTraffic').html(bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
@@ -327,7 +326,7 @@ print [[/lua/logout.lua");  */
 }
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, 3000);  /* re-schedule every three seconds */
+setInterval(footerRefresh, ]] print(getInterfaceRefreshRate(_ifstats.id).."") print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
 
 //Enable tooltip without a fixer placement
 $(document).ready(function () { $("[rel='tooltip']").tooltip(); });
