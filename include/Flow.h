@@ -337,7 +337,7 @@ class Flow : public GenericHashEntry {
   bool isReadyToPurge();
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
-  void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);
+  void update_hosts_stats(struct timeval *tv);
 #ifdef NTOPNG_PRO
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,

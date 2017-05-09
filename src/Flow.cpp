@@ -214,17 +214,10 @@ void Flow::categorizeFlow() {
 /* *************************************** */
 
 Flow::~Flow() {
-  struct timeval tv = { 0, 0 };
-  
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
     if(srv_host) srv_host->decLowGoodputFlows(false);
   }
-
-  checkBlacklistedFlow();
-  update_hosts_stats(&tv, true); /* dumpFlow is done inside */
-
-  iface->luaEvalFlow(this, callback_flow_delete);
 
   if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
@@ -890,7 +883,7 @@ bool Flow::dumpFlow(bool idle_flow) {
 
     if(cli_host) {
       if(ntop->getPrefs()->do_dump_flows_on_mysql())
-	cli_host->getInterface()->dumpDBFlow(last_seen, idle_flow, this);
+	cli_host->getInterface()->dumpDBFlow(last_seen, this);
       else if(ntop->getPrefs()->do_dump_flows_on_es())
 	cli_host->getInterface()->dumpEsFlow(last_seen, this);
       else if(ntop->getPrefs()->do_dump_flows_on_ls())
@@ -914,16 +907,20 @@ bool Flow::dumpFlow(bool idle_flow) {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
+void Flow::update_hosts_stats(struct timeval *tv) {
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
+  bool is_idle_flow;
   int16_t cli_network_id, srv_network_id;
   Vlan *vl;
   NetworkStats *cli_network_stats;
-  
+
+  if((is_idle_flow = isReadyToPurge()))
+    set_to_purge(); /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
+
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 
@@ -953,13 +950,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
     prev_srv2cli_last_packets = srv2cli_last_packets;
 
 #ifdef NTOPNG_PRO
-  if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition()
-     && !inDeleteMethod
-     && isDetectionCompleted())
-    /* Aggregated flow updates are skipped when this method is called in a flow destructor.
-       This choice allows aggregated flow structures to always be accessed from the same thread and thus
-       there's no need to lock. The drawback is that flow aggregations slightly underestimate the actual flows traffic.
-       The worst case occurs for short lived flows that terminate before the first call to update_hosts_stats. */
+  if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
     iface->aggregatePartialFlow(this); /* must go before updating _last_ updates as it uses them */
 #endif
 
@@ -1181,7 +1172,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(inDeleteMethod /* whether this is an active or idle flow */)) {
+  if(dumpFlow(is_idle_flow /* whether this is an active or idle flow */)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
       last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
@@ -1192,15 +1183,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
   checkBlacklistedFlow();
 
-  /*
-    No need to call the method below as
-    the delete callback will be called in a moment
-  */
-  if(!inDeleteMethod)
+  if(!is_idle_flow)
     iface->luaEvalFlow(this, callback_flow_update);
+  else {
+    checkBlacklistedFlow();
+    iface->luaEvalFlow(this, callback_flow_delete);
+  }
 
-  if(isReadyToPurge())
-    set_to_purge();
 }
 
 /* *************************************** */

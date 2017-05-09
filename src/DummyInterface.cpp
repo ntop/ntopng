@@ -33,11 +33,28 @@ void DummyInterface::forgeFlow(u_int iteration) {
   char payload[256];
   u_int32_t srcIp = 0xC0A80000;
   u_int32_t dstIp = 0x0A000000;
-  u_int id, mval = 1+(ntop->getPrefs()->get_max_num_hosts()/ntop->getPrefs()->get_max_num_flows());
+  u_int id, mval = (ntop->getPrefs()->get_max_num_flows() / 2) / (ntop->getPrefs()->get_max_num_hosts() / 4);
+  if(!mval)
+    mval = 1;
+
   time_t now = time(NULL);
 
-  id = iteration % ntop->getPrefs()->get_max_num_hosts();
+  id = iteration % (ntop->getPrefs()->get_max_num_hosts() / 4);
   srcIp += id, dstIp += id;
+
+  static bool msg_printed = false;
+  if(!msg_printed) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow simulation "
+				 "[num_simulated_flows: %u] "
+				 "[max_num_flows: %u]"
+				 "[num_iterations: %u] "
+				 "[mval: %u]",
+				 (ntop->getPrefs()->get_max_num_hosts() / 4) * mval,
+				 ntop->getPrefs()->get_max_num_flows(),
+				 (ntop->getPrefs()->get_max_num_hosts() / 4),
+				 mval);
+    msg_printed = true;
+  }
   
   for(u_int i=0; i<mval; i++) {
     char a[32], b[32];
@@ -48,12 +65,12 @@ void DummyInterface::forgeFlow(u_int iteration) {
 	     Utils::intoaV4(srcIp, a, sizeof(a)),
 	     Utils::intoaV4(dstIp, b, sizeof(b)),
 	     iteration, iteration*1500,
-	     now-60, now, sport, dport);
+	     now-120, now-60, sport, dport);
 
     parseFlow(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
   }
 
-  if(id == 0) sleep(1);
+  if(id == 0) sleep(ntop->getPrefs()->get_housekeeping_frequency());
 }
 
 /* **************************************************** */

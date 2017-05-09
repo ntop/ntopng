@@ -43,7 +43,7 @@ Flow* FlowHash::find(u_int8_t *src_eth, u_int8_t *dst_eth,
   u_int16_t num_loops = 0;
   
   while(head) {
-    if((!head->idle())
+    if((!head->idle() && !head->is_ready_to_be_purged())
        && head->equal(src_eth, dst_eth, src_ip, dst_ip, src_port, dst_port, vlanId, protocol, src2dst_direction)) {
       if(num_loops > max_num_loops) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);

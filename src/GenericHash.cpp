@@ -152,7 +152,7 @@ bool GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), voi
       while(head) {
 	GenericHashEntry *next = head->next();
 
-	if((!head->idle()) && walker(head, user_data)) {
+	if(!head->idle() && !head->is_ready_to_be_purged() && walker(head, user_data)) {
 	  found = true;
 	  break;
 	}
@@ -240,7 +240,7 @@ GenericHashEntry* GenericHash::findByKey(u_int32_t key) {
 
   locks[hash]->lock(__FILE__, __LINE__);
   while(head != NULL) {
-    if((!head->idle()) && (head->key() == key))
+    if((!head->idle()) && (!head->is_ready_to_be_purged()) && (head->key() == key))
       break;
     else
       head = head->next();

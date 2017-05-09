@@ -58,8 +58,8 @@ class MySQLDB : public DB {
   inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows; };
   inline float exportRate()          const { return mysqlExportRate; };
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
-  virtual bool dumpFlow(time_t when, bool idle_flow, Flow *f, char *json);
-  virtual void flush(bool idle) { ; };
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  virtual void flush() { ; };
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created = true);
   void startDBLoop();
   void updateStats(const struct timeval *tv);

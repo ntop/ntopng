@@ -635,10 +635,10 @@ NetworkInterface::~NetworkInterface() {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpFlow(time_t when, bool idle_flow, Flow *f) {
+int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping flow.");
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    return(dumpDBFlow(when, idle_flow, f));
+    return(dumpDBFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()){
     return(dumpEsFlow(when, f));
   }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
@@ -679,12 +679,12 @@ int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpDBFlow(time_t when, bool idle_flow, Flow *f) {
+int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
   char *json = f->serialize(false);
   int rc;
 
   if(json) {
-    rc = db->dumpFlow(when, idle_flow, f, json);
+    rc = db->dumpFlow(when, f, json);
     free(json);
   } else
     rc = -1;
@@ -2198,7 +2198,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Flow *flow = (Flow*)node;
     struct timeval *tv = (struct timeval*)user_data;
 
-    flow->update_hosts_stats(tv, false);
+    flow->update_hosts_stats(tv);
     return(false); /* false = keep on walking */
   }
 
@@ -2296,7 +2296,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       static_cast<MySQLDB*>(db)->updateStats(&tv);
-      db->flush(false /* not idle, periodic activities */);
+      db->flush();
     }
 
 #ifdef NTOPNG_PRO
@@ -3906,11 +3906,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				   "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				   ifname, id, flows_hash->getCurrentSize());
       n = flows_hash->purgeIdle();
-
-      if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-	// flush the queue
-	db->flush(true /* idle */);
-      }
 
       if(flowHashing) {
 	FlowHashing *current, *tmp;
