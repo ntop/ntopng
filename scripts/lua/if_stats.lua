@@ -338,12 +338,12 @@ print [[
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%>Id</th><td colspan=6>" .. ifstats.id .. " ")
+   print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
    print("</td></tr>\n")
 
    if interface.isPcapDumpInterface() == false then
-      print("<tr><th width=250>State</th><td colspan=6>")
-      state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
+      print("<tr><th width=250>"..i18n("if_stats_overview.state").."</th><td colspan=6>")
+      state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1","primary", i18n("if_stats_overview.paused"), "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
 
       if(state == "0") then
 	 on_state = true
@@ -357,11 +357,11 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-      print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
-      if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
-      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td><td></td>") end
+      print("<tr><th>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
+      if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"].."</td>") end
+      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>"..i18n("if_stats_overview.probe_ip").."</b>: "..ifstats["probe.ip"].."</td><td></td>") end
       if(ifstats["probe.public_ip"] ~= "") then
-         print("<td nowrap><b>Public Probe IP</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
+         print("<td nowrap><b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
       else
          print("<td colspan=2>&nbsp;</td>\n")
       end
@@ -379,15 +379,16 @@ if((page == "overview") or (page == nil)) then
       else
          s = ifstats.name
       end
-      print('<tr><th width="250">Name</th><td colspan="2">' .. s ..'</td>\n')
+      print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..'</td>\n')
    else
-      print("<tr><th>Bridge</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
+      print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
    end
 
-   print("<th>Family</th><td colspan=2>")
+   print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
    print(ifstats.type)
+
    if(ifstats.inline) then
-      print(" In-Path Interface (Bump in the Wire)")
+      print(" "..i18n("if_stats_overview.in_path_interface"))
    end
    print("</tr>")
 
@@ -397,7 +398,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(tokens ~= nil) then
-         print("<tr><th width=250>IP Address</th><td colspan=5>")
+         print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
          local addresses = {}
 
          for _,s in pairs(tokens) do
@@ -419,14 +420,14 @@ if((page == "overview") or (page == nil)) then
 
    if is_physical_iface then
       print("<tr>")
-      print("<th>MTU</th><td colspan=2  nowrap>"..ifstats.mtu.." bytes</td>\n")
+      print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
       if (not is_bridge_iface) then
          local speed_key = 'ntopng.prefs.'..ifname..'.speed'
          local speed = ntop.getCache(speed_key)
          if (tonumber(speed) == nil) then
             speed = ifstats.speed
          end
-         print("<th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
+         print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
       else
          print("<td colspan=3></td></tr>")
       end
@@ -434,14 +435,14 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["pkt_dumper"] ~= nil) then
-      print("<tr><th rowspan=2>Packet Dumper</th><th colspan=2>Dumped Packets</th><th colspan=2>Dumped Files</th></tr>\n")
+      print("<tr><th rowspan=2>"..i18n("if_stats_overview.packet_dumper").."</th><th colspan=2>"..i18n("if_stats_overview.dumped_packets").."</th><th colspan=2>"..i18n("if_stats_overview.dumped_files").."</th></tr>\n")
       print("<tr><td colspan=2><div id=dumped_pkts>".. formatValue(ifstats["pkt_dumper"]["num_dumped_pkts"]) .."</div></td>")
       print("<td colspan=2><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
    end
 
    label = "Pkts"
 
-   print[[ <tr><th colspan=1 nowrap>Traffic Breakdown</th> ]]
+   print[[ <tr><th colspan=1 nowrap>]] print(i18n("if_stats_overview.traffic_breakdown")) print[[</th> ]]
 
    if(ifstats.type ~= "zmq") then
       print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=3> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
@@ -467,16 +468,16 @@ print [[ }
 print("</script>\n")
 
    if(ifstats.zmqRecvStats ~= nil) then
-   print("<tr><th colspan=7 nowrap>ZMQ RX Statistics</th></tr>\n")
-   print("<tr><th nowrap>Collected Flows</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
-   print("<th nowrap>Interface RX Updates</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
-   -- print("<th nowrap>sFlow Counter Updates</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
-   print("<th nowrap>ZMQ Message Drops</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></tr>")
+   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
+   print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
+   -- print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
+   print("<th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></tr>")
    end
 
-   print("<tr><th colspan=7 nowrap>Ingress Traffic</th></tr>\n")
-   print("<tr><th nowrap>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
-   print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
+   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+   print("<span id=pkts_trend></span></td><th width=20%>"..i18n("if_stats_overview.dropped_packets").."</th><td width=20%><span id=if_drops>")
 
    if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
    print(formatValue(ifstats.stats.drops).. " " .. label)
@@ -493,9 +494,9 @@ print("</script>\n")
    print("</span>&nbsp;<span id=drops_trend></span>")
    if(ntop.getCache("ntopng.prefs.dynamic_iface_vlan_creation") == "1") then
       if(ifstats.type == "Dynamic VLAN") then
-	 print("<br><small><b>NOTE:</b> The main interface reports drops for all VLAN sub-interfaces</small>")
+	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic_vlan").."</small>")
       else
-	 print("<br><small><b>NOTE:</b> The above drops are the sum of drops for all VLAN sub-interfaces</small>")
+	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_not_dynamic_vlan").."</small>")
       end
    end
    print("</td><td colspan=3>")
@@ -520,16 +521,16 @@ print("</script>\n")
 	 export_drops_pct = export_drops / export_count * 100
       end
 
-      print("<tr><th colspan=7 nowrap>"..dump_to.." Flows Export Statistics</th></tr>\n")
+      print("<tr><th colspan=7 nowrap>"..dump_to.." "..i18n("if_stats_overview.flows_export_statistics").."</th></tr>\n")
 
       print("<tr>")
-      print("<th nowrap>Exported Flows</th>")
+      print("<th nowrap>"..i18n("if_stats_overview.exported_flows").."</th>")
       print("<td><span id=exported_flows>"..formatValue(export_count).."</span>")
       if export_rate == nil then
 	export_rate = 0
       end
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
-      print("<th>Dropped Flows</th>")
+      print("<th>"..i18n("if_stats_overview.dropped_flows").."</th>")
       local span_danger = ""
       if export_drops == nil then 
 
@@ -545,7 +546,7 @@ print("</script>\n")
    end
 
    if (isAdministrator() and ifstats.isView == false) then
-      print("<tr><th width=250>Reset Counters</th>")
+      print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 
       local cls = ""
@@ -557,7 +558,7 @@ print("</script>\n")
       if tot == 0 then
 	 cls = " disabled"
       end
-      print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">All Counters</button>&nbsp;')
+      print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
 
       cls = ""
       if(ifstats.stats.flow_export_count ~= nil) then
@@ -565,15 +566,15 @@ print("</script>\n")
 	 cls = " disabled"
 	end
       end
-      print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">Drops Only</button>')
+      print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
       print("</td>")
 
       print("</tr>\n")
    end
 
    if((ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)) then
-      print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
-      print("<tr><th nowrap>Interface</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped/Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
+      print("<tr><th colspan=7>"..i18n("if_stats_overview.bridged_traffic").."</th></tr>\n")
+      print("<tr><th nowrap>"..i18n("interface").."</th><th nowrap>"..i18n("if_stats_overview.ingress_packets").."</th><th nowrap>"..i18n("if_stats_overview.egress_packets").."</th><th nowrap>"..i18n("if_stats_overview.shaped_filtered_packets").."</th><th nowrap>"..i18n("if_stats_overview.send_error").."</th><th nowrap>"..i18n("if_stats_overview.buffer_full").."</th></tr>\n")
       print("<tr><th>".. ifstats["bridge.device_a"] .. "</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
       print("<td><span id=a_to_b_out_pkts>".. formatPackets(ifstats["bridge.a_to_b.out_pkts"]) .."</span> <span id=a_to_b_out_pps></span></td>")
       print("<td><span id=a_to_b_filtered_pkts>".. formatPackets(ifstats["bridge.a_to_b.filtered_pkts"]) .."</span></td>")
@@ -585,6 +586,7 @@ print("</script>\n")
 
       print("<tr><th>".. ifstats["bridge.device_b"] .. "</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span> <span id=b_to_a_in_pps></span></td>")
       print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span> <span id=b_to_a_out_pps></span></td>")
+
       print("<td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td>")
 
       print("<td><span id=b_to_a_num_pkts_send_error>".. formatPackets(ifstats["bridge.b_to_a.num_pkts_send_error"]) .."</span></td>")
@@ -594,7 +596,7 @@ print("</script>\n")
    end
 
    print [[
-   <tr><td colspan=7> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=\"https://en.wikipedia.org/wiki/Ethernet_frame\">overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=\"http://en.wikipedia.org/wiki/Interframe_gap\">IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
+   <tr><td colspan=7> <small> <b>]] print(i18n("if_stats_overview.note").."</b>:<p>"..i18n("if_stats_overview.note_packets")) print[[</small> </td></tr>
    ]]
 
    print("</table>\n")
