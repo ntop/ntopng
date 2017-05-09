@@ -544,6 +544,8 @@ void HostPools::reloadPools() {
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
     rsp[0] = '\0';
     children_safe[i] = ((redis->hashGet(kname, (char*)"children_safe", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));
+
+#ifdef NTOPNG_PRO
     enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)"enforce_quotas_per_pool_member", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));;
 
 #ifdef HOST_POOLS_DEBUG
@@ -551,6 +553,8 @@ void HostPools::reloadPools() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s] [children_safe: %i] [enforce_quotas_per_pool_member: %i]",
 				 rsp, children_safe[i], enforce_quotas_per_pool_member[i]);    
 #endif
+
+#endif /* NTOPNG_PRO */
 
     snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
 

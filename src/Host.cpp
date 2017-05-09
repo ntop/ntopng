@@ -382,14 +382,14 @@ void Host::updateHostL7Policy() {
 /* *************************************** */
 
 void Host::updateHostPool() {
-  HostPools *hp;
-
   if(!iface)
     return;
 
   host_pool_id = iface->getHostPool(this);
 
-  hp = iface->getHostPools();
+#ifdef NTOPNG_PRO
+  HostPools *hp = iface->getHostPools();
+
   if(hp && hp->enforceQuotasPerPoolMember(host_pool_id)) {
     /* must allocate a structure to keep track of used quotas */
     if(!quota_enforcement_stats) {
@@ -430,6 +430,7 @@ void Host::updateHostPool() {
 #endif
     }
   }
+#endif /* NTOPNG_PRO */
 
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
