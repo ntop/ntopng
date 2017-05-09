@@ -62,7 +62,7 @@ else
   print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\"><i class='fa fa-area-chart fa-lg'></i>\n")
 end
 
-if ntop.isEnterprise() and ifstats.inline then
+if ntop.isEnterprise() and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
     print("<li class=\"active\"><a href=\"#\">Quotas</i>\n")
   else
@@ -82,57 +82,8 @@ print [[
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
-if ntop.isEnterprise() and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
-  local ndpi_stats = pool_stats.ndpi
-  local category_stats = pool_stats.ndpi_categories
-  local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
-
-  -- Empty check
-  local empty = true
-  for _, proto in pairs(quota_and_protos) do
-    if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
-      -- at least a quota is set
-      empty = false
-      break
-    end
-  end
-
-  if empty then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("shaping.no_quota_data")..
-      ". Create new quotas <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?page=filtering&pool="..pool_id.."\">here</a>.</div>")
-  else
-    print[[
-    <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th>]] print(i18n("protocol")) print[[</th>
-        <th class="text-center">]] print(i18n("shaping.daily_traffic")) print[[</th>
-        <th class="text-center">]] print(i18n("shaping.daily_time")) print[[</th>
-      </tr>
-    </thead>
-    <tbody id="pool_quotas_ndpi_tbody">
-    </tbody>
-    </table>
-
-    <script>
-      function update_ndpi_table() {
-        $.ajax({
-          type: 'GET',
-          url: ']]
-    print(getPageUrl(ntop.getHttpPrefix().."/lua/pro/pool_details_ndpi.lua").."', data: ")
-    print(tableToJsObject(page_params))
-    print[[,
-          success: function(content) {
-            if(content)
-              $('#pool_quotas_ndpi_tbody').html(content);
-          }
-        });
-      }
-
-      setInterval(update_ndpi_table, 5000);
-      update_ndpi_table();
-     </script>]]
-  end
+if ntop.isEnterprise() and pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
+  host_pools_utils.printQuotas(pool_id, nil, page_params)
 elseif page == "historical" then
   local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)
 

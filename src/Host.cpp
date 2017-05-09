@@ -64,8 +64,10 @@ Host::~Host() {
   if(as)   as->decUses();
   if(vlan) vlan->decUses();
 #ifdef NTOPNG_PRO
-  if(sent_to_sketch)   delete sent_to_sketch;
-  if(rcvd_from_sketch) delete rcvd_from_sketch;
+  if(sent_to_sketch)                 delete sent_to_sketch;
+  if(rcvd_from_sketch)               delete rcvd_from_sketch;
+  if(quota_enforcement_stats)        delete quota_enforcement_stats;
+  if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
 
   if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
   if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
@@ -131,6 +133,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   sent_to_sketch = rcvd_from_sketch = NULL;
   l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
+  quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
 #endif
   host_pool_id = NO_HOST_POOL_ID;
 
@@ -379,10 +382,54 @@ void Host::updateHostL7Policy() {
 /* *************************************** */
 
 void Host::updateHostPool() {
+  HostPools *hp;
+
   if(!iface)
     return;
 
   host_pool_id = iface->getHostPool(this);
+
+  hp = iface->getHostPools();
+  if(hp && hp->enforceQuotasPerPoolMember(host_pool_id)) {
+    /* must allocate a structure to keep track of used quotas */
+    if(!quota_enforcement_stats) {
+      quota_enforcement_stats = new HostPoolStats();
+
+#ifdef HOST_POOLS_DEBUG
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+	"Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
+	ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
+#endif
+
+    }
+  } else { /* Free the structure that is no longer needed */
+    /* It is ensured by the caller that this method is called no more than 1 time per second.
+     Therefore, it is safe to delete a previously allocated shadow class */
+    if(quota_enforcement_stats_shadow) {
+      delete quota_enforcement_stats_shadow;
+      quota_enforcement_stats_shadow = NULL;
+
+#ifdef HOST_POOLS_DEBUG
+      char buf[128];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
+				   ip.print(buf, sizeof(buf)), host_pool_id);
+#endif
+
+    }
+    if(quota_enforcement_stats) {
+      quota_enforcement_stats_shadow = quota_enforcement_stats;
+      quota_enforcement_stats = NULL;
+
+#if 1 //#ifdef HOST_POOLS_DEBUG
+      char buf[128];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Moving quota stats to the shadow pointer for %s [host pool: %i]",
+				   ip.print(buf, sizeof(buf)), host_pool_id);
+#endif
+    }
+  }
 
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
@@ -1187,6 +1234,8 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   return(ret);
 }
 
+/* *************************************** */
+
 void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category) {
   L7Policy_t *policy = l7Policy; /*
 				    Cache value so that even if updateHostL7Policy()
@@ -1237,32 +1286,53 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   if((bytes_quota > 0) || (secs_quota > 0)) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
-      if((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
-       || (!*is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
-        if(((bytes_quota > 0) && (bytes >= bytes_quota))
-         || ((secs_quota > 0) && (secs >= secs_quota)))
-        is_above = true;
+      if(!pools->enforceQuotasPerPoolMember(get_host_pool())) {
+
+	if((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+	   || (!*is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
+	  if(((bytes_quota > 0) && (bytes >= bytes_quota))
+	     || ((secs_quota > 0) && (secs >= secs_quota)))
+	    is_above = true;
+	}
+
+      } else if(quota_enforcement_stats) { /* Per pool member quota enforcement */
+
+	if(*is_category)
+	  quota_enforcement_stats->getCategoryStats(category, &bytes, &secs);
+	else
+	  quota_enforcement_stats->getProtoStats(protocol, &bytes, &secs);
+
+	if(((bytes_quota > 0) && (bytes >= bytes_quota))
+	   || ((secs_quota > 0) && (secs >= secs_quota)))
+	  is_above = true;
+
+      }
 
 #ifdef SHAPER_DEBUG
-        {
-          char buf[128];
+      char buf[128];
 
-          ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] [bytes: %ld/%lu][seconds: %d/%u] => %s",
-				       ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
-				       ip.print(buf, sizeof(buf)), vlan_id,
-				       bytes, bytes_quota,
-				       secs, secs_quota,
-				       is_above ? (char*)"EXCEEDED" : (char*)"ok");
-        }
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] [bytes: %ld/%lu][seconds: %d/%u] => %s %s",
+				   ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
+				   ip.print(buf, sizeof(buf)), vlan_id,
+				   bytes, bytes_quota,
+				   secs, secs_quota,
+				   is_above ? (char*)"EXCEEDED" : (char*)"ok",
+				   quota_enforcement_stats ? "[QUOTAS enforced per pool member]" : "");
 #endif
-
-    }
   }
 
   has_blocking_quota |= is_above;
   return is_above;
 }
 
+/* *************************************** */
+
+void Host::luaUsedQuotas(lua_State* vm) {
+  if(quota_enforcement_stats)
+    quota_enforcement_stats->lua(vm, iface);
+  else
+    lua_newtable(vm);
+}
 #endif
 
 /* *************************************** */

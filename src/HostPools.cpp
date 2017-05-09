@@ -544,6 +544,13 @@ void HostPools::reloadPools() {
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
     rsp[0] = '\0';
     children_safe[i] = ((redis->hashGet(kname, (char*)"children_safe", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));
+    enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)"enforce_quotas_per_pool_member", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));;
+
+#ifdef HOST_POOLS_DEBUG
+    redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s] [children_safe: %i] [enforce_quotas_per_pool_member: %i]",
+				 rsp, children_safe[i], enforce_quotas_per_pool_member[i]);    
+#endif
 
     snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
 
@@ -636,7 +643,6 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
   AddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
-  char *k;
 #endif
 
   if(!tree || !(cur_tree = tree[vlan_id]))

@@ -76,6 +76,7 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
+  HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
 #endif
   u_int16_t host_pool_id;
 
@@ -136,7 +137,18 @@ class Host : public GenericHost {
   inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
   inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
   bool checkQuota(u_int16_t protocol, bool *is_category);
-  inline void resetBlockedTrafficStatus()      { has_blocking_quota = has_blocking_shaper = false; }
+  inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
+				       ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
+				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+    if(quota_enforcement_stats)
+      quota_enforcement_stats->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  };
+  inline void resetBlockedTrafficStatus(){
+    if(quota_enforcement_stats)
+      quota_enforcement_stats->resetStats();
+    has_blocking_quota = has_blocking_shaper = false;
+  };
+  void luaUsedQuotas(lua_State* vm);
 #endif
   inline u_int16_t get_host_pool()             { return(host_pool_id);     }
   inline u_int32_t get_asn()                   { return(asn);              }
