@@ -422,7 +422,7 @@ void Host::updateHostPool() {
       quota_enforcement_stats_shadow = quota_enforcement_stats;
       quota_enforcement_stats = NULL;
 
-#if 1 //#ifdef HOST_POOLS_DEBUG
+#ifdef HOST_POOLS_DEBUG
       char buf[128];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Moving quota stats to the shadow pointer for %s [host pool: %i]",

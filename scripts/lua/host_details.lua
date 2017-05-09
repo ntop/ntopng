@@ -1956,7 +1956,7 @@ elseif(page == "alerts") then
       host_name, "host")
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
-   local page_params = {ifid=ifId, pool=host_pool_id, host=hostinfo2hostkey(host), page=page}
+   local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then

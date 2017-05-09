@@ -2418,9 +2418,10 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     return(false); /* false = keep on walking */
   }
 
-  static bool host_reset_blocked_traffic_status(GenericHashEntry *host, void *user_data) {
+  static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
     Host *h = (Host*)host;
 
+    h->resetQuotaStats();
     h->resetBlockedTrafficStatus();
     return(false); /* false = keep on walking */
   }
@@ -2430,7 +2431,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       disablePurge(true);
 
       host_pools->resetPoolsStats();
-      walker(walker_hosts, host_reset_blocked_traffic_status, NULL);
+      walker(walker_hosts, host_reset_quotas, NULL);
       walker(walker_flows, flow_recheck_quota_walker, NULL);
 
       enablePurge(true);
