@@ -5,18 +5,19 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local shaper_utils
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "snmp_utils"
    shaper_utils = require("shaper_utils")
+   host_pools_utils = require "host_pools_utils"
 end
 
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 
@@ -373,6 +374,14 @@ if host["localhost"] == true then
    else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
+end
+
+if ntop.isEnterprise() and ifstats.inline and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
+  if page == "quotas" then
+    print("\n<li class=\"active\"><a href=\"#\">Quotas</a></li>\n")
+  else
+    print("\n<li><a href=\""..url.."&page=quotas\">Quotas</a></li>\n")
+  end
 end
 
 if ((isAdministrator()) and (host["ip"] ~= nil)) then
@@ -1945,6 +1954,10 @@ elseif(page == "alerts") then
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
       "host_details.lua", {ifid=ifId, host=host_ip},
       host_name, "host")
+
+elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
+   local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
+   host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then
 

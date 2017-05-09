@@ -387,6 +387,37 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+/**
+ * @brief Get the Host statistics corresponding to the amount of host quotas used
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_get_host_used_quotas_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  Host *h;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[128];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((!ntop_interface))
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+   /* Optional VLAN id */
+  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  if((h = ntop_interface->getHost(host_ip, vlan_id)))
+    h->luaUsedQuotas(vm);
+  else
+    lua_newtable(vm);
+
+  return(CONST_LUA_OK);
+}
 
 #endif
 
@@ -5771,11 +5802,12 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "findMemberPool",                 ntop_find_member_pool                 },
 
   #ifdef NTOPNG_PRO
-  { "resetPoolsStats",                ntop_reset_pools_stats          },
+  { "resetPoolsStats",                ntop_reset_pools_stats                },
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
   { "removeVolatileMemberFromPool",   ntop_remove_volatile_member_from_pool },
+  { "getHostUsedQuotasStats",         ntop_get_host_used_quotas_stats       },
   
   /* SNMP */
   { "getSNMPStats",                   ntop_interface_get_snmp_stats },
