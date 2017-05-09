@@ -1515,6 +1515,7 @@ print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();
 local protos = interface.getnDPIProtocols()
 local protos_in_use = shaper_utils.getPoolProtoShapers(ifid, selected_pool.id, true --[[ do not aggregate into categories ]])
 local protocol_categories = shaper_utils.getCategoriesWithProtocols()
+local uses_per_member_quota = selected_pool.enforce_quotas_per_pool_member
 
 -- families of protocols which are currently used by at least one protocol
 local categories_in_use = {}
@@ -1602,18 +1603,10 @@ local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_direc
    print ([[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
 </form>
-
-<b>]]..i18n("shaping.notes")..[[</b>:]])
-
-if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then
-
-print([[
-<ul>
-<li>]]..i18n("shaping.note_default_pool_config", {url=ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools#create"})..[[</li>
-</ul>
 ]])
 
-else
+if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+print([[<b>]]..i18n("shaping.notes")..[[</b>:]])
 
 print([[
 <ul>
@@ -1652,7 +1645,6 @@ $("#family_info_sel").change(function() {
 });
 </script>
 ]]
-
 end
 
 local rate_buttons = shaper_utils.buttons("rate")
@@ -1662,7 +1654,7 @@ local time_buttons = shaper_utils.buttons("time")
 print("<script>")
 print(rate_buttons.init.."\n")
 
-local empty_quota_bar = string.gsub(string.gsub(printProtocolQuota({traffic_quota="0"}, {}, nil, {traffic=true}, false), "\n", ""), "'", "\"")
+local empty_quota_bar = string.gsub(string.gsub(printProtocolQuota({traffic_quota="0"}, {}, nil, {traffic=true}, false, true), "\n", ""), "'", "\"")
 
 print[[
 var rate_buttons_code = ']] print(rate_buttons.js) print[[';
@@ -1670,13 +1662,13 @@ var rate_buttons_html = '<table style="width:100%"><tr><td>]] print(rate_buttons
 
 var traffic_buttons_code = ']] print(traffic_buttons.js) print[[';
 var traffic_buttons_html = '<table style="width:100%"><tr><td>]] print(traffic_buttons.html)
-print[[</td><td style="width:35%">]]
+print[[</td><td style="width:35%" class="]] if uses_per_member_quota then print("hidden") end print[[">]]
 print(empty_quota_bar)
 print[[</tr></table>';
 
 var time_buttons_code = ']] print(time_buttons.js) print[[';
 var time_buttons_html = '<table style="width:100%"><tr><td>]] print(time_buttons.html)
-print[[</td><td style="width:35%">]]
+print[[</td><td style="width:35%" class="]] if uses_per_member_quota then print("hidden") end print[[">]]
 print(empty_quota_bar)
 print[[</tr></table>';
 
@@ -1736,15 +1728,10 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
    var egress_shaper_id = egress_shaper.html();
 ]]
 
-local disabled = ''
-if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then
-   disabled = 'disabled="disabled"'
-end
-
 print[[
 
-   ingress_shaper.html('<select ]] print(disabled) print[[ class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
-   egress_shaper.html('<select ]] print(disabled) print[[ class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   ingress_shaper.html('<select class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   egress_shaper.html('<select class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
 
    /* Select the current value */
    $("select", ingress_shaper).val(ingress_shaper_id);
@@ -2143,6 +2130,19 @@ print[[
             }
          }
       ], tableCallback: function() {
+]]
+
+if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then
+   print[[
+         datatableForEachRow("#table-protos", function() {
+            $(this).remove();
+         });
+
+         datatableAddEmptyRow("#table-protos", "]] print(i18n("shaping.note_default_pool_config", {url=ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools#create"})) print[[");
+         $("#addNewShapedProtoBtn").attr("disabled", "true");
+   ]]
+else
+   print[[
          var proto_id;
 
          datatableForEachRow("#table-protos", [
@@ -2164,21 +2164,12 @@ print[[
             }
          ]);
 
-         /* Only enable add button if we are in the last page and the pool is not the default unassigned */
-]]
-
-if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-print[[
          $("#addNewShapedProtoBtn").attr("disabled", ! datatableIsLastPage("#table-protos"));
-]]
-else
-print[[
-         $("#addNewShapedProtoBtn").attr("disabled", "true");
-]]
+         aysResetForm('#l7ProtosForm');
+   ]]
 end
 
 print[[
-         aysResetForm('#l7ProtosForm');
       }
    });
 </script>

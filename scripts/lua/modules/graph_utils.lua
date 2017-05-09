@@ -1640,7 +1640,7 @@ end
 --    bool  traffic
 --    bool  time
 --
-function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, show_td)
+function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, show_td, hide_limit)
     local total_bytes = 0
     local total_duration = 0
     local output = {}
@@ -1670,12 +1670,12 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken+traffic_remaining), 0)
 
       if show_td then
-        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes.." / "..lb_bytes_quota.."</span>"
+        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes..ternary(hide_limit, "", " / "..lb_bytes_quota).."</span>"
       end
       output[#output + 1] = [[
           <div class='progress' style=']]..(quotas_to_show.traffic_style or "")..[['>
             <div class='progress-bar progress-bar-warning' aria-valuenow=']]..traffic_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..traffic_quota_ratio..'%;\'>'..
-              ternary(proto.traffic_quota ~= "0", bytesToSize(traffic_taken), "")..[[
+              ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]], traffic_quota_ratio, 0)..[[%
             </div>
           </div>]]
       if show_td then output[#output + 1] = ("</td>") end
@@ -1690,13 +1690,13 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local duration_quota_ratio = round(duration_taken * 100 / (duration_taken+duration_remaining), 0)
 
       if show_td then
-        output[#output + 1] = [[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_duration.." / "..lb_duration_quota.."</span>"
+        output[#output + 1] = [[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_duration..ternary(hide_limit, "", " / "..lb_duration_quota).."</span>"
       end
 
       output[#output + 1] = ([[
           <div class='progress' style=']]..(quotas_to_show.time_style or "")..[['>
             <div class='progress-bar progress-bar-warning' aria-valuenow=']]..duration_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..duration_quota_ratio..'%;\'>'..
-              ternary(proto.time_quota ~= "0", secondsToTime(duration_taken), "")..[[
+              ternary(duration_quota_ratio == duration_quota_ratio --[[nan check]], duration_quota_ratio, 0)..[[%
             </div>
           </div>]])
       if show_td then output[#output + 1] = ("</td>") end
