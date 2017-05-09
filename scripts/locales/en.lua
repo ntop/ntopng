@@ -206,7 +206,8 @@ local  en = {
       note_default_pool_config = "Policies and quotas only apply to user-defined host pools. Select a different pool or create a new one <a href='%{url}'>here</a>.",
       note_quota_unlimited = "Set Traffic and Time Quota to 0 for unlimited traffic.",
       note_families = "Protocol Families can be used to set the same policy on multiple protocols at once.<br>Use the dropdown below to obtain the list of protocols contained into a Protocol Family:",
-      see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas."
+      see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas.",
+      no_quota_traffic = "No quota related traffic so far",
    },
 
    alert_messages = {

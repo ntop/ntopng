@@ -374,6 +374,8 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
           success: function(content) {
             if(content)
               $('#pool_quotas_ndpi_tbody').html(content);
+            else
+              $('#pool_quotas_ndpi_tbody').html('<tr><td colspan="3"><i>]] print(i18n("shaping.no_quota_traffic")) print[[</i></td></tr>');
           }
         });
       }

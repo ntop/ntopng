@@ -223,7 +223,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
       if(json_object_object_get_ex(o, name, &obj)) {
 	json_object *bytes, *packets;
 
-	if((counters[proto_id] = (ProtoCounter*)malloc(sizeof(ProtoCounter))) != NULL) {
+	if((counters[proto_id] = (ProtoCounter*)calloc(1, sizeof(ProtoCounter))) != NULL) {
 	  json_object *duration;
 	  
 	  if(json_object_object_get_ex(obj, "bytes", &bytes)) {
@@ -246,7 +246,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	      counters[proto_id]->packets.rcvd = json_object_get_int64(rcvd);
 	  }
 
-	  if(json_object_object_get_ex(bytes, "duration", &duration))
+	  if(json_object_object_get_ex(obj, "duration", &duration))
 	    counters[proto_id]->duration = json_object_get_int(duration);	  
 	}
       }
