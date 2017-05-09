@@ -9,6 +9,8 @@ require "lua_utils"
 require "db_utils"
 local json = require ("dkjson")
 
+local prefs = ntop.getPrefs()
+
 local ifId        = _GET["ifid"]
 local host        = _GET["host"] or ""
 local epoch_end   = tonumber(_GET["epoch_end"]   or os.time())
@@ -27,22 +29,25 @@ end
 local timediff = epoch_end - epoch_begin + 1
 
 local totals = { ["count"] = {}, ["timespan"] = timediff, ["status"] = "ok" }
-local versions
-local isv6 = isIPv6Address(host)
+local versions  = { [4] = 'IPv4', [6] = 'IPv6' }
 
-if(isv6) then
-   versions  = { [6] = 'IPv6' }
-   totals["count"]['IPv4'] = { ["tot_flows"] = 0, ["tot_bytes"] = 0, ["tot_packets"] = 0 }
-else
-   versions  = { [4] = 'IPv4' }
-   totals["count"]['IPv6'] = { ["tot_flows"] = 0, ["tot_bytes"] = 0, ["tot_packets"] = 0 }
+if host ~= "" then
+   local isv6 = isIPv6Address(host)
+
+   if(isv6) then
+      versions  = { [6] = 'IPv6' }
+      totals["count"]['IPv4'] = { ["tot_flows"] = 0, ["tot_bytes"] = 0, ["tot_packets"] = 0 }
+   else
+      versions  = { [4] = 'IPv4' }
+      totals["count"]['IPv6'] = { ["tot_flows"] = 0, ["tot_bytes"] = 0, ["tot_packets"] = 0 }
+   end
 end
 
 headerShown = false
 
 -- os.execute("sleep 30") -- this is to test slow responses
-
 for k,v in pairs(versions) do
+
    local res = getNumFlows(ifId, k, host, _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["epoch_begin"], _GET["epoch_end"])
 
    if res == nil or res[1] == nil then
@@ -61,6 +66,8 @@ for k,v in pairs(versions) do
 
    ::continue::
 end
+
+totals["aggregated_flows"] = (prefs.is_flow_aggregation_enabled == true)
 
 sendHTTPHeader('application/json')
 print(json.encode(totals, nil))

@@ -13,6 +13,8 @@ sendHTTPContentTypeHeader('text/html')
 
 ifid = getInterfaceId(ifname)
 
+local prefs = ntop.getPrefs()
+
 -- query parameters
 local epoch_start = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
@@ -44,7 +46,7 @@ end
 
 -- specify the type of stats
 local stats_type = _GET["stats_type"]
-if stats_type == nil or (stats_type ~= "top_talkers" and stats_type ~= "top_applications" and stats_type ~= "peers_traffic_histogram") then
+if stats_type == nil or (stats_type ~= "top_talkers" and stats_type ~= "top_applications") then
 	-- default to top traffic
 	stats_type = "top_talkers"
 end
@@ -157,14 +159,6 @@ elseif stats_type =="top_applications" then
    if res ~= nil then
       for _, record in pairs(res) do
       end
-   end
-   -- tprint(res)
-elseif stats_type =="peers_traffic_histogram" and peer1 and peer2 then
-   res = getPeersTrafficHistogram(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
-
-   for _, record in pairs(res) do
-      record["peer1_label"] = getResolvedAddress(hostkey2hostinfo(record["peer1_addr"]))
-      record["peer2_label"] = getResolvedAddress(hostkey2hostinfo(record["peer2_addr"]))
    end
    -- tprint(res)
 end

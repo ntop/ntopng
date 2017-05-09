@@ -768,6 +768,7 @@ local  en = {
 
    flow_search_criteria = "Flow Search Criteria",
    flow_search_results = "Flow Search Results",
+   flow_search_from_aggregated = "(Aggregated)",
    summary = "Summary",
    date_from = "Begin Date/Time:",
    date_to    = "End Date/Time:"

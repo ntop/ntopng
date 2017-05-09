@@ -10,6 +10,8 @@ require "lua_utils"
 
 local db_debug = false
 
+
+
 --- ====================================================================
 
 function iptonumber(str)
@@ -36,10 +38,22 @@ function expandIpV4Network(net)
    return({ addr, addr+num_hosts-1 })
 end
 
+function flowsTableName(version)
+   if tblname_prefs == nil then
+      tblname_prefs = ntop.getPrefs()
+   end
+   local tblname = "flowsv"..version
+   if tblname_prefs.is_flow_aggregation_enabled == true then
+      tblname = "aggr"..tblname
+   end
+
+   return "flowsv"..version -- FIXX: remove this line when ready
+   -- return tblname
+end
 
 --- ====================================================================
 
-function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
+function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order, aggregated_flows)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
    if(version == 4) then
@@ -50,13 +64,14 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
 
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,IN_BYTES,OUT_BYTES,idx,L7_PROTO,INFO"
    if ntop.isPro() then follow = follow..",PROFILE" end
-   follow = follow.." from flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+
+   follow = follow.." from "..flowsTableName(version, aggregated_flows).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
 
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
    if(info ~= "") then follow = follow .." AND (INFO='"..info.."')" end
-   follow = follow.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   follow = follow.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    follow = follow.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if host_or_profile ~= nil and host_or_profile ~= "" and string.starts(host_or_profile, 'profile:') then
@@ -153,8 +168,8 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       end
    end
 
-   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM "..flowsTableName(version).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
@@ -194,126 +209,12 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    end
 end
 
-
-function getTopPeers(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
-   if(host == nil or host == "") then return {} end
-   if(version == nil) then version = 4 end
-
-   if(info == "") then info = nil end
-   if(l7proto == "") then l7proto = nil end
-   if(protocol == "") then protocol = nil end
-
-   sql = " SELECT "
-   if(version == 4) then
-      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END PEER_ADDR, "
-      -- when the selected host is the source, we consider its peer that is a destination an thus RECEIVES bytes and packets
-      -- similarly, when the selected host is the destination, we consider its peer as a source that SENDS bytes and packets
-      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN BYTES ELSE 0 END peer_cli_bytes, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = INET_ATON('"..host.."') THEN BYTES ELSE 0 END peer_srv_bytes, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN PACKETS ELSE 0 END peer_cli_packets, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = INET_ATON('"..host.."') THEN PACKETS ELSE 0 END peer_srv_packets, "
-   else
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END PEER_ADDR, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN BYTES ELSE 0 END peer_cli_bytes, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = '"..host.."' THEN BYTES ELSE 0 END peer_srv_bytes, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN PACKETS ELSE 0 END peer_cli_packets, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = '"..host.."' THEN PACKETS ELSE 0 END peer_srv_packets, "
-   end
-
-   sql = sql.."sum(peer_cli_bytes + peer_srv_bytes) as TOT_BYTES, sum(peer_cli_packets + peer_srv_packets) as TOT_PACKETS, "
-   sql = sql.."sum(peer_cli_bytes) as CLI_BYTES, sum(peer_cli_packets) as CLI_PACKETS, "
-   sql = sql.."sum(peer_srv_bytes) as SRV_BYTES, sum(peer_srv_packets) as SRV_PACKETS, "
-   sql = sql.."count(*) as TOT_FLOWS "
-   sql = sql.." FROM flowsv"..version
-
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
-
-   if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
-   if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
-
-   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
-
-   if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
-
-   if((host ~= nil) and (host ~= "")) then
-      if(version == 4) then
-    sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
-      else
-    sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
-      end
-   end
-
-   -- we don't care about the order so we group by least and greatest
-   sql = sql.." group by PEER_ADDR "
-
-   sql = sql.." order by TOT_BYTES desc limit 10"
-
-   if(db_debug == true) then io.write(sql.."\n") end
-
-   res = interface.execSQLQuery(sql)
-   if(type(res) == "string") then
-      if(db_debug == true) then io.write(res.."\n") end
-      return {}
-   elseif res == nil then
-      return {}
-   else
-      return(res)
-   end
-end
-
-function getTopL7Protocols(interface_id, version, host, protocol, port, info, begin_epoch, end_epoch)
-   if(host == nil or host == "") then return {} end
-   if(version == nil) then version = 4 end
-
-   if(info == "") then info = nil end
-   if(protocol == "") then protocol = nil end
-
-   sql = " SELECT L7_PROTO, "
-   sql = sql.."sum(BYTES) as TOT_BYTES, sum(PACKETS) as TOT_PACKETS, count(*) as TOT_FLOWS "
-   sql = sql.." FROM flowsv"..version
-
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
-
-   if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
-
-   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
-
-   if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
-
-   if((host ~= nil) and (host ~= "")) then
-      if(version == 4) then
-    sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
-      else
-    sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
-      end
-   end
-
-   -- we don't care about the order so we group by least and greatest
-   sql = sql.." group by L7_PROTO "
-
-   sql = sql.." order by TOT_BYTES desc limit 10"
-
-   if(db_debug == true) then io.write(sql.."\n") end
-
-   res = interface.execSQLQuery(sql)
-   if(type(res) == "string") then
-      if(db_debug == true) then io.write(res.."\n") end
-      return {}
-   elseif res == nil then
-      return {}
-   else
-      return(res)
-   end
-end
-
 function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
+   local exclude_same_src_dst = false
    if src_or_dst     == "IP_DST_ADDR" then
+      exclude_same_src_dst = true
       -- if this is a destination address, we account it INGRESS traffic
       sql_bytes_packets = sql_bytes_packets .. "OUT_BYTES as bytes_sent, IN_BYTES  as bytes_rcvd, "
    elseif src_or_dst == "IP_SRC_ADDR" then
@@ -326,17 +227,21 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    if v4_or_v6 == 6 then
       sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
       sql = sql..sql_bytes_packets
-      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM flowsv6 "
+      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM "..flowsTableName(6).." "
    elseif v4_or_v6 == 4 then -- ipv4
       sql = " SELECT "..src_or_dst.." addrv4, NULL addrv6, "
       sql = sql..sql_bytes_packets
-      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM flowsv4 "
+      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM "..flowsTableName(4).." "
    else
       sql = ""
    end
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='') "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
+   if(exclude_same_src_dst == true) then
+      -- avoid double counting flows that have source == destination
+      sql = sql.." AND IP_SRC_ADDR <> IP_DST_ADDR"
+   end
    if((l4proto ~= nil) and (l4proto ~= "") and (l4proto ~= "-1")) then
       sql = sql .." AND PROTOCOL="..l4proto
    end
@@ -438,10 +343,10 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
       sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IN_BYTES  ELSE OUT_BYTES END peer_bytes_rcvd, "
    end
    sql = sql.." FIRST_SWITCHED, LAST_SWITCHED "
-   sql = sql.." FROM flowsv"..version
+   sql = sql.." FROM "..flowsTableName(version)
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if((port ~= nil) and (port ~= "")) then
@@ -509,8 +414,9 @@ end
 function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
-
+   local exclude_same_src_dst = false
    if src_or_dst     == "IP_DST_ADDR" then
+      exclude_same_src_dst = true
       -- if this is a destination address, we account it INGRESS traffic
       sql_bytes_packets = sql_bytes_packets .. "OUT_BYTES as bytes_sent, IN_BYTES  as bytes_rcvd, "
    elseif src_or_dst == "IP_SRC_ADDR" then
@@ -523,25 +429,30 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
    if v4_or_v6 == 6 then
       sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
       sql = sql..sql_bytes_packets
-      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM flowsv6 "
+      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM "..flowsTableName(6).." "
    elseif v4_or_v6 == 4 then -- ipv4
       sql = " SELECT "..src_or_dst.." addrv4, NULL addrv6, "
       sql = sql..sql_bytes_packets
-      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM flowsv4 "
+      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM "..flowsTableName(4).." "
    else
       sql = ""
    end
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='') "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
    sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id)
+   if(exclude_same_src_dst == true) then
+      -- avoid double counting flows that have source == destination
+      sql = sql.." AND IP_SRC_ADDR <> IP_DST_ADDR"
+   end
    if((l4_proto_id ~= nil) and (l4_proto_id ~= "") and (l4_proto_id ~= "-1")) then
       sql = sql .." AND PROTOCOL="..l4_proto_id
    end
    if((port ~= nil) and (port ~= "")) then
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
    end
+
    return sql..'\n'
 end
 
@@ -622,16 +533,17 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    sql = " SELECT L7_PROTO application, "
    sql = sql.."sum(IN_BYTES + OUT_BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
    -- sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
-   sql = sql.." FROM flowsv"..version
+   sql = sql.." FROM "..flowsTableName(version)
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
 
    if((port ~= nil) and (port ~= "")) then
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
    end
+
    if l7_proto_id and l7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
    if l4_proto_id and l4_proto_id ~="" then sql = sql.." AND PROTOCOL = "..tonumber(l4_proto_id) end
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
@@ -690,61 +602,6 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    end
 end
 
-
-function getPeersTrafficHistogram(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
-   if peer1 == nil or peer1 == "" or peer2 == nil or peer2 == "" then return {} end
-
-   local max_bins = 2000  -- do not return more than 2k datapoints
-   local interval = end_epoch - begin_epoch  -- the larger the interval the coarser the aggregation
-   local bin_width = math.floor(interval / max_bins)
-
-   local version = 4
-   if isIPv6(peer1) then version = 6 end
-   if(info == "") then info = nil end
-
-   if(version == 4) then
-      sql = " SELECT INET_NTOA(least(IP_SRC_ADDR, IP_DST_ADDR)) peer1_addr, INET_NTOA(greatest(IP_SRC_ADDR, IP_DST_ADDR)) peer2_addr, "
-   else
-      sql = " SELECT least(IP_SRC_ADDR, IP_DST_ADDR) peer1_addr, greatest(IP_SRC_ADDR, IP_DST_ADDR) peer2_addr, "
-   end
-   sql = sql.." MIN(FIRST_SWITCHED) first_switched_bin, " -- the oldest datapoint in each bin
-   sql = sql.." sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows, "
-   sql = sql.." (sum(FIRST_SWITCHED) - sum(LAST_SWITCHED)) / count(*) as avg_flow_duration "
-
-   sql = sql.." FROM flowsv"..version
-
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
-
-   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
-
-   if(version == 4) then
-      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer1.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
-      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer2.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
-   else
-      sql = sql .." AND (IP_SRC_ADDR='"..peer1.."' OR IP_DST_ADDR='"..peer2.."')"
-      sql = sql .." AND (IP_SRC_ADDR='"..peer2.."' OR IP_DST_ADDR='"..peer2.."')"
-   end
-
-   -- we don't care about the order so we group by least and greatest
-   sql = sql.." group by least(IP_SRC_ADDR, IP_DST_ADDR), greatest(IP_SRC_ADDR, IP_DST_ADDR), FIRST_SWITCHED DIV ("..bin_width..")"
-
-   sql = sql.." order by TOT_BYTES desc limit 100"
-
-   if(db_debug == true) then io.write(sql.."\n") end
-
-   res = interface.execSQLQuery(sql)
-   if(type(res) == "string") then
-      if(db_debug == true) then io.write(res.."\n") end
-      return {}
-   elseif res == nil then
-      return {}
-   else
-      return(res)
-   end
-end
-
 function checkOpenFiles()
    local prefs = ntop.getPrefs()
 
@@ -762,8 +619,8 @@ function checkOpenFiles()
    if prefs.are_alerts_enabled == true and prefs.is_dump_flows_to_mysql_enabled == true and
    ntop.getPref("ntopng.prefs.mysql_check_open_files_limit") == "1" then
 
-      local num_tables = 2 -- flowsv4 and flowsv6
-      local num_partitions = 32 -- keep this in sync with mysql create table statements in MySQLDB.cpp
+      local num_tables = 4 -- flowsv4, flowsv6, aggrflowsv4 and aggrflowsv6
+      local num_partitions = 8 -- keep this in sync with mysql create table statements in MySQLDB.cpp
       local data_and_indices = 2 -- MYD for data and MYI for indices (valid only for MyISAM)
       local num_connections_per_interface = 2 -- one in MySQLDB::queryLoop and the other is mysql class member
 

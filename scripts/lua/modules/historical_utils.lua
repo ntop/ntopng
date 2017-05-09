@@ -1417,7 +1417,6 @@ end
 function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
    -- prepare some attributes that will be attached to divs
    local div_data = ""
-   local isv6 = isIPv6Address(host)
 
    if ifId ~= "" and ifId ~= nil then
       _GET["ifid"] = ifId
@@ -1465,11 +1464,8 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
     <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
 ]]
 
-if(not(isv6)) then
-    print '<li class="disabled"> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
-else
-    print '<li class="disabled"> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
-end
+   print '<li> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
+   print '<li> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
 
 print [[
   </ul>
@@ -1479,7 +1475,7 @@ print [[
     <div class="tab-pane fade in active" id="historical-flows-summary">
       <br>
       <div class="panel panel-default" id="historical-flows-summary-div">
-        <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[</h3> </div>
+        <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[&nbsp;<span id="results-from-aggregated-flows"></span></h3> </div>
         <div class="panel-body" id="historical-flows-summary-body" style="display:true;">
           <div id="flows-summary-too-slow" style="display:none;" class="alert alert-warning"></div>
           <div id="flows-summary-wait" style="display:true;">
@@ -1498,7 +1494,6 @@ print [[
     </div>
 ]]
 
-if(not(isv6)) then
    print [[
     <div class="tab-pane fade" id="tab-ipv4" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows4"></div>
@@ -1508,7 +1503,6 @@ if(not(isv6)) then
     </div>
 ]]
 
-else
    print [[
     <div class="tab-pane fade" id="tab-ipv6" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows6"></div>
@@ -1518,8 +1512,6 @@ else
 			       ) print[[
     </div>
 ]]
-
-end
 
 print [[
   </div>
@@ -1598,6 +1590,10 @@ print[[
         tr += "<td align='right'>" + fpackets(item.tot_packets / msg.timespan) + "</td>"
         tr += "</tr>"
       });
+
+//      if(msg.aggregated_flows) {
+//        $("#results-from-aggregated-flows").html("]] print(i18n("flow_search_from_aggregated")) print[[");
+//      }
       $("#flows-summary-table").append(tr)
       $("#historical-flows-summary-body").remove()
       $("#flows-summary-table").show();

@@ -10,7 +10,6 @@ require "graph_utils"
 require "db_utils"
 require "template"
 
-
 interface.select(ifname)
 ifstats = interface.getStats()
 
