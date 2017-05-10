@@ -58,8 +58,7 @@ if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
    key = getRedisPrefix("ntopng.prefs") .. ".ifname"
    ntop.setCache(key, ifname)
 
-   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg_pre") .. " <b>" .. getHumanReadableInterfaceName(ifid)
-   msg = msg .. "</b> [ifid: ".. ifid .."] " .. i18n("if_stats_overview.iface_switch_active_msg_after") .. "</div>"
+   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg", {interface=getHumanReadableInterfaceName(ifid), ifid=ifid}) .. "</div>"
 
    ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
 else
