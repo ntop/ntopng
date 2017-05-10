@@ -58,14 +58,14 @@ if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
    key = getRedisPrefix("ntopng.prefs") .. ".ifname"
    ntop.setCache(key, ifname)
 
-   msg = "<div class=\"alert alert-success\">The selected interface <b>" .. getHumanReadableInterfaceName(ifid)
-   msg = msg .. "</b> [ifid: ".. ifid .."] is now active</div>"
+   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg_pre") .. " <b>" .. getHumanReadableInterfaceName(ifid)
+   msg = msg .. "</b> [ifid: ".. ifid .."] " .. i18n("if_stats_overview.iface_switch_active_msg_after") .. "</div>"
 
    ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
 else
-   msg = "<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Error while switching interfaces</div>"
+   msg = "<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("if_stats_overview.iface_switch_error_msg") .. "</div>"
 if(_SESSION["session"] == nil) then
-   msg = msg .."<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Empty session</div>"
+   msg = msg .."<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("if_stats_overview.iface_switch_empty_session_msg") .. "</div>"
 end
 end
 end
@@ -208,7 +208,7 @@ if(short_name ~= if_name) then
    short_name = short_name .. "..."
 end
 
-print("<li><a href=\"#\">Interface: " .. short_name .."</a></li>\n")
+print("<li><a href=\"#\">" .. i18n("interface") .. ": " .. short_name .."</a></li>\n")
 
 if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
@@ -219,30 +219,30 @@ end
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    if(page == "packets") then
-      print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=packets\">Packets</a></li>")
+      print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
    end
 
    if(page == "ndpi") then
-      print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("protocols") .. "</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=ndpi\">Protocols</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("protocols") .. "</a></li>")
    end
 end
 
 if(page == "ICMP") then
-  print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">" .. i18n("icmp") .. "</a></li>\n")
 else
-  print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
+  print("<li><a href=\""..url.."&page=ICMP\">" .. i18n("icmp") .. "</a></li>")
 end
 
 -- only show if the interface has seen mac addresses
 if ifstats["has_macs"] then
    if(page == "ARP") then
-     print("<li class=\"active\"><a href=\"#\">ARP</a></li>\n")
+     print("<li class=\"active\"><a href=\"#\">" .. i18n("arp") .. "</a></li>\n")
    else
-     print("<li><a href=\""..url.."&page=ARP\">ARP</a></li>")
+     print("<li><a href=\""..url.."&page=ARP\">" .. i18n("arp") .. "</a></li>")
    end
 end
 
@@ -312,9 +312,9 @@ end
 
 if(hasSnmpDevices(ifstats.id) and is_packet_interface) then
    if(page == "snmp_bind") then
-      print("\n<li class=\"active\"><a href=\"#\">SNMP</li>")
+      print("\n<li class=\"active\"><a href=\"#\">" .. i18n("if_stats_overview.snmp") .. "</li>")
    else
-      print("\n<li><a href=\""..url.."&page=snmp_bind\">SNMP</a></li>")
+      print("\n<li><a href=\""..url.."&page=snmp_bind\">" .. i18n("if_stats_overview.snmp") .. "</a></li>")
    end
 end
 
@@ -440,7 +440,7 @@ if((page == "overview") or (page == nil)) then
       print("<td colspan=2><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
    end
 
-   label = "Pkts"
+   label = i18n("pkts")
 
    print[[ <tr><th colspan=1 nowrap>]] print(i18n("if_stats_overview.traffic_breakdown")) print[[</th> ]]
 
@@ -602,17 +602,17 @@ print("</script>\n")
    print("</table>\n")
 elseif((page == "packets")) then
    print [[ <table class="table table-bordered table-striped"> ]]
-   print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-   print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-   print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+   print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+   print("<tr></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+   print("<tr></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
     if(ifstats.type ~= "zmq") then
-      print [[<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
+      print [[<tr><th class="text-left">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
     end
 
     print[[
-  	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
-    <tr><th class="text-left">IP Version Distribution</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
+  	 <tr><th class="text-left">]] print(i18n("packets_page.tcp_flags_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
+    <tr><th class="text-left">]] print(i18n("packets_page.ip_version_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
       </table>
 
 	<script type='text/javascript'>
@@ -649,14 +649,14 @@ elseif(page == "ndpi") then
    print [[
 	    <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
       <table class="table table-bordered table-striped">
-      <tr><th class="text-left">Cumulative Protocol Stats</th>
+      <tr><th class="text-left">]] print(i18n("ndpi_page.cumulative_protocol_stats")) print [[</th>
 	       <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></div></td>
 	       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
 	       </tr>
-      <tr><th class="text-left">Live Flows Count</th>
+      <tr><th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
 	       <td colspan=3><div class="pie-chart" id="topFlowsCount"></div></td>
 	       <td colspan=2><div class="pie-chart" id="topTCPFlowsStats"></div>
-               <br><small><b>NOTE:</b> This chart depicts only TCP connections.
+               <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
                </td>
 	       </tr>
   </div>
@@ -689,7 +689,7 @@ elseif(page == "ndpi") then
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      ]]
 
-   print("<thead><tr><th>Application Protocol</th><th>Total (Since Startup)</th><th>Percentage</th></tr></thead>\n")
+   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
 
    print ('<tbody id="if_stats_ndpi_tbody">\n')
    print ("</tbody>")
@@ -726,7 +726,7 @@ elseif(page == "ICMP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th style='text-align:right;'>Traffic</th></tr></thead>
+     <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th style='text-align:right;'>]] print(i18n("traffic")) print[[</th></tr></thead>
      <tbody id="iface_details_icmp_tbody">
      </tbody>
      </table>
@@ -755,7 +755,7 @@ elseif(page == "ARP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ARP Type</th><th style='text-align:right;'>Traffic</th></tr></thead>
+     <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("traffic")) print[[</th></tr></thead>
      <tbody id="iface_details_arp_tbody">
      </tbody>
      </table>
@@ -885,22 +885,22 @@ if is_packetdump_enabled then
 
    print("<table class=\"table table-striped table-bordered\">\n")
 
-   print("<tr><th width=30%>Packet Dump</th><td>")
+   print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
+	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">'..' '..i18n("packetdump_page.dump_all_traffic"))
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
 
-   print("<tr><th width=30%>Packet Dump To Disk</th><td>")
+   print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump_to_disk").. "</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
+	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
-		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+		 print(" - "..ternary(dumped, dumped, 0).." "..i18n("packetdump_page.packets_dumped"))
 	       end
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -910,7 +910,7 @@ if is_packetdump_enabled then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
+	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_unknown_traffic_to_disk")..' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
@@ -918,16 +918,16 @@ if is_packetdump_enabled then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
+	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk_on_security_alert")..' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
 
-   print("<tr><th>Packet Dump To Tap</th><td>")
+   print("<tr><th>" .. i18n("packetdump_page.packet_dump_to_tap") .. "</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
+	       print('<input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
@@ -937,11 +937,11 @@ if is_packetdump_enabled then
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    else
-      print("Disabled. Please restart ntopng with --enable-taps")
+      print(i18n("packetdump_page.packet_dump_to_tap_disabled_message"))
 end
 
    print("</td></tr>\n")
-   print("<tr><th width=250>Sampling Rate</th>\n")
+   print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
    print [[<td>]]
    if(dump_security_checked ~= "") then
    print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
@@ -950,24 +950,23 @@ end
 	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
 	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
 	 print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-<small>
-    NOTE: Sampling rate is applied only when dumping packets caused by a security alert<br>
-(e.g. a volumetric DDoS attack) and not to those hosts/flows that have been marked explicitly for dump.
-</small>]]
+<small> ]]
+    print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_sampling_rate"))
+print[[</small>]]
   else
-    print('Disabled. Enable packet dump on security alert.')
+    print(i18n("packetdump_page.sampling_rate_disabled_message"))
   end
   print[[
     </td></tr>
        ]]
 
-   print("<tr><th colspan=2>Dump To Disk Parameters</th></tr>")
-   print("<tr><th width=250>Pcap Dump Directory</th><td>")
+   print("<tr><th colspan=2>" .. i18n("packetdump_page.dump_to_disk_parameters") .. "</th></tr>")
+   print("<tr><th width=250>" .. i18n("packetdump_page.pcap_dump_directory") .. "</th><td>")
    pcapdir = dirs.workingdir .."/"..ifstats.id.."/pcap/"
    print(pcapdir.."</td></tr>\n")
-   print("<tr><th width=250>Max Packets per File</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_packets_per_file") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -978,12 +977,12 @@ end
 	 else
 	   print(interface.getInterfaceDumpMaxPkts().."")
 	 end
-	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-    <small>Maximum number of packets to store on a pcap file before creating a new file.</small>
+    <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
     </td></tr>
        ]]
-   print("<tr><th width=250>Max Duration of File</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_duration_file") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -995,12 +994,12 @@ end
 	   print(interface.getInterfaceDumpMaxSec().."")
 	 end
 	 print [["></input>
-		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-    <small>Maximum pcap file duration before creating a new file.<br>NOTE: a dump file is closed when it reaches first the maximum size or duration specified.</small>
+    <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
     </td></tr>
        ]]
-   print("<tr><th width=250>Max Size of Dump Files</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_size_dump_files") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -1012,9 +1011,9 @@ end
 	   print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
 	 end
 	 print [["></input>
-		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-    <small>Maximum size of created pcap files.<br>NOTE: total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.</small>
+    <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
     </td></tr>
       ]]
    print("</table>")
@@ -1041,11 +1040,11 @@ elseif(page == "config") then
       -- Custom name
       print[[
       <tr>
-         <th>Custom Name</th>
+         <th>]] print(i18n("if_stats_config.custom_name")) print[[</th>
          <td>]]
       local label = getInterfaceNameAlias(ifstats.name)
       inline_input_form("custom_name", "Custom Name",
-         "Specify an alias for the interface",
+         i18n("if_stats_config.custom_name_popup_msg"),
          label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9\\. ]*$"')
       print[[
          </td>
@@ -1054,11 +1053,11 @@ elseif(page == "config") then
       -- Interface speed
       print[[
       <tr>
-         <th>Interface Speed (Mbit/s)</th>
+         <th>]] print(i18n("if_stats_config.interface_speed")) print[[</th>
          <td>]]
       local ifspeed = getInterfaceSpeed(ifstats)
       inline_input_form("ifSpeed", "Interface Speed",
-         "Specify the maximum interface speed",
+         i18n("if_stats_config.interface_speed_popup_msg"),
          ifspeed, isAdministrator(), 'type="number" min="1"')
       print[[
          </td>
@@ -1067,11 +1066,11 @@ elseif(page == "config") then
       -- Interface refresh rate
       print[[
       <tr>
-         <th>Realtime Stats Refresh Rate (sec)</th>
+         <th>]] print(i18n("if_stats_config.refresh_rate")) print[[</th>
          <td>]]
       local refreshrate = getInterfaceRefreshRate(ifstats.id)
       inline_input_form("ifRate", "Refresh Rate",
-         "Specify the stats refresh rate for the interface",
+         i18n("if_stats_config.refresh_rate_popup_msg"),
          refreshrate, isAdministrator(), 'type="number" min="1"')
       print[[
          </td>
@@ -1085,10 +1084,10 @@ elseif(page == "config") then
 
       print[[
       <tr>
-         <th>Scaling Factor</th>
+         <th>]] print(i18n("if_stats_config.scaling_factor")) print[[</th>
          <td>]]
       inline_input_form("scaling_factor", "Scaling Factor",
-         "This should match your capture interface sampling rate",
+         i18n("if_stats_config.scaling_factor_popup_msg"),
          label, isAdministrator(), 'type="number" min="1" step="1"')
       print[[
          </td>
@@ -1115,13 +1114,13 @@ elseif(page == "config") then
    end
 
       print [[<tr>
-         <th>Trigger Interface Alerts</th>
+         <th>]] print(i18n("if_stats_config.trigger_interface_alerts")) print[[</th>
          <td>
             <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
                <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
                <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  Trigger alerts for Interface ]] print(ifname) print[[
+                  ]] print(i18n("if_stats_config.trigger_alerts").." ") print(ifname) print[[
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
