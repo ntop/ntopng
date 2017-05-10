@@ -349,6 +349,20 @@ $(document).ready(function(){
     });
 });
 
+]]
+
+-- This code rewrites the current page state after a POST request to avoid Document Expired errors
+if not table.empty(_POST) then
+  print[[
+    if ((typeof(history) === "object")
+      && (typeof(history).replaceState === "function")
+      && (typeof(window.location.href) === "string"))
+    history.replaceState(history.state, "", window.location.href);
+  ]]
+end
+
+print[[
+
 // hide the possibly shown alerts icon in the header
 ]]
 if ntop.getPrefs().are_alerts_enabled == false then
