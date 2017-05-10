@@ -284,7 +284,7 @@ void Flow::dumpFlowAlert() {
       break;
 
     case status_ssl_certificate_mismatch: /* 10 */
-      do_dump = true;
+      do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
       break;
     }
 

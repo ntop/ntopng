@@ -188,6 +188,12 @@ function printAlerts()
 		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "0",
 		    false, nil, nil, showElements)
 
+  toggleTableButtonPrefs(subpage_active.entries["toggle_ssl_alerts"].title, subpage_active.entries["toggle_ssl_alerts"].description,
+                    "On", "1", "success",
+		    "Off","0", "danger",
+		    "toggle_ssl_alerts", "ntopng.prefs.ssl_alerts", "0",
+		    false, nil, nil, showElements)
+
   toggleTableButtonPrefs(subpage_active.entries["toggle_malware_probing"].title, subpage_active.entries["toggle_malware_probing"].description,
                     "On", "1", "success",
 		    "Off", "0", "danger",

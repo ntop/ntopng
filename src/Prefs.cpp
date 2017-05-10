@@ -77,8 +77,9 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_idle_local_hosts_cache   = true;
   enable_active_local_hosts_cache = false; /* only cache active hosts on exit */
   enable_probing_alerts = CONST_DEFAULT_ALERT_PROBING_ENABLED;
+  enable_ssl_alerts = CONST_DEFAULT_ALERT_SSL_ENABLED;
   enable_syslog_alerts =  CONST_DEFAULT_ALERT_SYSLOG_ENABLED;
-  enable_probing_alerts = enable_syslog_alerts = false; /* set later */
+  enable_probing_alerts = enable_ssl_alerts = enable_syslog_alerts = false; /* set later */
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   enable_taps = false;
@@ -483,6 +484,8 @@ void Prefs::reloadPrefsFromRedis() {
   // alert preferences
   enable_probing_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING,
 					       CONST_DEFAULT_ALERT_PROBING_ENABLED);
+  enable_ssl_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL,
+					       CONST_DEFAULT_ALERT_SSL_ENABLED);
   enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
 
@@ -1479,6 +1482,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))
     enable_probing_alerts = pref_value[0] == '1' ? true : false;
+  else if(!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_PREFS_ALERT_SSL,
+		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SSL)))
+    enable_ssl_alerts = pref_value[0] == '1' ? true : false;
   else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))

@@ -48,7 +48,7 @@ class Prefs {
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
-    enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
+    enable_probing_alerts, enable_ssl_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
     enable_top_talkers, enable_captive_portal, enable_access_log, enable_flow_device_port_rrd_creation,
     enable_tiny_flows_export, flow_aggregation_enabled;
   HostMask hostMask;
@@ -183,6 +183,7 @@ class Prefs {
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  are_probing_alerts_enabled()             { return(enable_probing_alerts);            };
+  inline bool  are_ssl_alerts_enabled()                 { return(enable_ssl_alerts);                };
   inline bool  are_alerts_syslog_enabled()              { return(enable_syslog_alerts);             };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };

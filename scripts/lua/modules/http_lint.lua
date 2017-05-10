@@ -749,6 +749,7 @@ local known_parameters = {
    ["disable_alerts_generation"]                   =  validateBool,
    ["toggle_alert_probing"]                        =  validateBool,
    ["toggle_flow_alerts_iface"]                    =  validateBool,
+   ["toggle_ssl_alerts"]                           =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
    ["toggle_slack_notification"]                   =  validateBool,
