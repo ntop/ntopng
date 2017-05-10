@@ -65,6 +65,10 @@ local  en = {
    bridge = "Bridge",
    mtu = "MTU",
    speed = "Speed",
+   pkts = "Pkts",
+   icmp = "ICMP",
+   arp = "ARP",
+   percentage = "Percentage",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -714,6 +718,11 @@ local  en = {
    },
 
    if_stats_overview = {
+      snmp = "SNMP",
+      iface_switch_active_msg_pre = "The selected interface",
+      iface_switch_active_msg_after = "is now active",
+      iface_switch_error_msg = "Error while switching interfaces",
+      iface_switch_empty_session_msg = "Empty session",
       id = "Id",
       state = "State",
       active = "Active",
@@ -753,6 +762,78 @@ local  en = {
       send_error = "Send Error",
       buffer_full = "Buffer Full",
       note_packets = "In ethernet networks, each packet has an <A HREF=\"https://en.wikipedia.org/wiki/Ethernet_frame\">overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=\"http://en.wikipedia.org/wiki/Interframe_gap\">IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values.",
+   },
+
+   packets_page = {
+      tcp_packets_analysis = "TCP Packets Analysis",
+      retransmissions = "Retransmissions",
+      out_of_order = "Out of Order",
+      lost = "Lost",
+      size_distribution = "Size Distribution",
+      tcp_flags_distribution = "TCP Flags Distribution",
+      ip_version_distribution = "IP Version Distribution",
+      sent_distribution = "Sent Distribution",
+      arp_distribution = "ARP Distribution",
+   },
+
+   ndpi_page = {
+      cumulative_protocol_stats = "Cumulative Protocol Stats",
+      live_flows_count = "Live Flows Count",
+      note = "NOTE",
+      note_live_flows_chart = "This chart depicts only TCP connections.",
+      application_protocol = "Application Protocol",
+      total_since_startup = "Total (Since Startup)",
+      protocol_overview = "Protocol Overview",
+   },
+
+   icmp_page = {
+      icmp_message = "ICMP Message",
+   },
+
+   arp_page = {
+      arp_type = "ARP Type",
+   },
+
+   packetdump_page = {
+      packets_dumped = "packets dumped",
+      packet_dump = "Packet Dump",
+      dump_all_traffic = "Dump All Traffic",
+      packet_dump_to_disk = "Packet Dump To Disk",
+      dump_traffic_to_disk = "Dump Traffic To Disk",
+      dump_unknown_traffic_to_disk = "Dump Unknown Traffic To Disk",
+      dump_traffic_to_disk_on_security_alert = "Dump Traffic To Disk On Security Alert",
+      packet_dump_to_tap = "Packet Dump To Tap",
+      dump_traffic_to_tap = "Dump Traffic To Tap",
+      packets_dumped = "packets dumped",
+      packet_dump_to_tap_disabled_message = "Disabled. Please restart ntopng with --enable-taps",
+      sampling_rate = "Sampling Rate",
+      note = "NOTE",
+      note_sampling_rate = "Sampling rate is applied only when dumping packets caused by a security alert<br>"..
+            "(e.g. a volumetric DDoS attack) and not to those hosts/flows that have been marked explicitly for dump.",
+      sampling_rate_disabled_message = "Disabled. Enable packet dump on security alert.",
+      dump_to_disk_parameters = "Dump To Disk Parameters",
+      pcap_dump_directory = "Pcap Dump Directory",
+      max_packets_per_file = "Max Packets per File",
+      max_packets_per_file_description = "Maximum number of packets to store on a pcap file before creating a new file.",
+      max_duration_file = "Max Duration of File",
+      max_duration_file_description = "Maximum pcap file duration before creating a new file.",
+      note_max_duration_file = "a dump file is closed when it reaches first the maximum size or duration specified.",
+      max_size_dump_files = "Max Size of Dump Files",
+      max_size_dump_files_description = "Maximum size of created pcap files.",
+      note_max_size_dump_files = "total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.",
+   },
+
+   if_stats_config = {
+      custom_name = "Custom Name",
+      custom_name_popup_msg = "Specify an alias for the interface",
+      interface_speed = "Interface Speed (Mbit/s)",
+      interface_speed_popup_msg = "Specify the maximum interface speed",
+      refresh_rate = "Realtime Stats Refresh Rate (sec)",
+      refresh_rate_popup_msg = "Specify the stats refresh rate for the interface",
+      scaling_factor = "Scaling Factor",
+      scaling_factor_popup_msg = "This should match your capture interface sampling rate",
+      trigger_interface_alerts = "Trigger Interface Alerts",
+      trigger_alerts = "Trigger alerts for Interface",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",
