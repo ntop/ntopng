@@ -31,7 +31,7 @@ class Mac;
 class HostPools {
  private:
 #ifdef NTOPNG_PRO
-  bool enforce_quotas_per_pool_member[MAX_NUM_HOST_POOLS]; /* quotas can be pool-wide or per pool member */
+  bool *enforce_quotas_per_pool_member; /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
   Mutex **volatile_members_lock;
@@ -44,7 +44,7 @@ class HostPools {
   void swap(AddressTree **new_trees, HostPoolStats **new_stats);
 
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
-    if((host_pool_id >= MAX_NUM_HOST_POOLS) || (!stats))
+    if((host_pool_id >= max_num_pools) || (!stats))
       return NULL;
     return stats[host_pool_id];
   }
@@ -58,7 +58,8 @@ class HostPools {
   volatile time_t latest_swap;
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
-  bool children_safe[MAX_NUM_HOST_POOLS];
+  bool *children_safe;
+  u_int16_t max_num_pools;
 
   void loadFromRedis();
   void dumpToRedis();
@@ -98,10 +99,10 @@ public:
 
   void resetPoolsStats();
   inline bool isChildrenSafePool(u_int16_t pool_id) {
-    return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? children_safe[pool_id] : false);
+    return((pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools) ? children_safe[pool_id] : false);
   }
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
-    return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? enforce_quotas_per_pool_member[pool_id] : false);
+    return((pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools) ? enforce_quotas_per_pool_member[pool_id] : false);
   }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);

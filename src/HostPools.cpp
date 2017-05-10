@@ -27,17 +27,20 @@
 
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
+  max_num_pools = MAX_NUM_HOST_POOLS;
 
-  memset(children_safe, 0, sizeof(children_safe));
+  if((children_safe = (bool*)calloc(max_num_pools, sizeof(bool))) == NULL)
+    throw 1;
 
 #ifdef NTOPNG_PRO
   stats = stats_shadow = NULL;
 
-  if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
-     || (volatile_members_lock = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL)
+  if((volatile_members = (volatile_members_t**)calloc(max_num_pools, sizeof(volatile_members_t))) == NULL
+     || (volatile_members_lock = new Mutex*[max_num_pools]) == NULL
+     || (enforce_quotas_per_pool_member = (bool*)calloc(max_num_pools, sizeof(bool))) == NULL)
     throw 1;
 
-  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+  for(int i = 0; i < max_num_pools; i++) {
     if((volatile_members_lock[i] = new Mutex()) == NULL)
       throw 2;
   }
@@ -55,6 +58,10 @@ HostPools::HostPools(NetworkInterface *_iface) {
 #ifdef NTOPNG_PRO
   loadFromRedis();
 #endif
+
+  assert(MAX_NUM_HOST_POOLS == max_num_pools);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host Pools Available: %u", max_num_pools);
 }
 
 /* *************************************** */
@@ -64,10 +71,15 @@ HostPools::~HostPools() {
     delete []tree_shadow;
   if(tree)
     delete []tree;
+  if(children_safe)
+    free(children_safe);
 
 #ifdef NTOPNG_PRO
   dumpToRedis();
 
+  if(enforce_quotas_per_pool_member)
+    free(enforce_quotas_per_pool_member);
+  
   if(stats)
     delete []stats;
   if(stats_shadow)
@@ -77,7 +89,7 @@ HostPools::~HostPools() {
     delete []volatile_members_lock;
 
   if(volatile_members) {
-    for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
+    for(int pool_id = 0; pool_id < max_num_pools; pool_id++) {
       volatile_members_t *current, *tmp;
 
       HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
@@ -149,7 +161,7 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
   if(!_trees)
     return;
 
-  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
+  for(int pool_id = 0; pool_id < max_num_pools; pool_id++) {
 
     if(!volatile_members[pool_id])
       continue;
@@ -198,7 +210,7 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
 void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, time_t lifetime) {
   volatile_members_t *m;
 
-  if(!host_or_mac || host_pool_id >= MAX_NUM_HOST_POOLS)
+  if(!host_or_mac || host_pool_id >= max_num_pools)
     return;
 
   volatile_members_lock[host_pool_id]->lock(__FILE__, __LINE__);
@@ -232,7 +244,7 @@ void HostPools::dumpToRedis() {
 
   snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
 
-  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
+  for(int i = 0; i<max_num_pools; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
@@ -260,7 +272,7 @@ void HostPools::loadFromRedis() {
     return;
   }
 
-  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
+  for(int i = 0; i<max_num_pools; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       if(redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
@@ -299,7 +311,7 @@ void HostPools::updateStats(struct timeval *tv) {
   HostPoolStats *hps;
 
   if(stats && tv) {
-    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
+    for(int i = 0; i < max_num_pools; i++)
       if((hps = stats[i]))
 	hps->updateStats(tv); /* Use hps, stats[i] can become NULL after a swap */
   }
@@ -314,7 +326,7 @@ void HostPools::luaStats(lua_State *vm) {
     lua_newtable(vm);
 
     if(stats) {
-      for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+      for(int i = 0; i < max_num_pools; i++) {
 	if((hps = stats[i])) {
 	  /* Must use the assigned hps as stats can be swapped
 	     and accesses such as stats[i] could yield a NULL value */
@@ -332,7 +344,7 @@ void HostPools::resetPoolsStats() {
     HostPoolStats *hps;
 
   if(stats) {
-    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    for(int i = 0; i < max_num_pools; i++) {
       if((hps = stats[i])) {
         /* Must use the assigned hps as stats can be swapped
            and accesses such as stats[i] could yield a NULL value */
@@ -354,7 +366,7 @@ void HostPools::luaVolatileMembers(lua_State *vm) {
 
   lua_newtable(vm);
 
-  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
+  for(int pool_id = 0; pool_id < max_num_pools; pool_id++) {
 
     if(!volatile_members[pool_id])
       continue;
@@ -417,7 +429,7 @@ void HostPools::purgeExpiredVolatileMembers() {
   bool purged = false;
   time_t now = time(NULL);
 
-  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
+  for(int pool_id = 0; pool_id < max_num_pools; pool_id++) {
     volatile_members_lock[pool_id]->lock(__FILE__, __LINE__);
 
     HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
@@ -457,7 +469,7 @@ void HostPools::removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_p
   volatile_members_t *m;
   bool purged = false;
 
-  if(user_pool_id == NO_HOST_POOL_ID || user_pool_id >= MAX_NUM_HOST_POOLS || !host_or_mac)
+  if(user_pool_id == NO_HOST_POOL_ID || user_pool_id >= max_num_pools || !host_or_mac)
     return;
 
   volatile_members_lock[user_pool_id]->lock(__FILE__, __LINE__);
@@ -496,7 +508,7 @@ void HostPools::reloadPools() {
 
   if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL
 #ifdef NTOPNG_PRO
-     || (new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS]) == NULL
+     || (new_stats = new HostPoolStats*[max_num_pools]) == NULL
 #endif
      ) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
@@ -505,7 +517,7 @@ void HostPools::reloadPools() {
   for(u_int32_t i = 0; i < MAX_NUM_VLAN; i++)
     new_tree[i] = NULL;
 #ifdef NTOPNG_PRO
-  for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
+  for(u_int32_t i = 0; i < max_num_pools; i++)
     new_stats[i] = NULL;
 #endif
 
@@ -529,7 +541,7 @@ void HostPools::reloadPools() {
       continue;
 
     _pool_id = (u_int16_t)atoi(pools[i]);
-    if(_pool_id >= MAX_NUM_HOST_POOLS)
+    if(_pool_id >= max_num_pools)
       continue;
 
 #ifdef NTOPNG_PRO

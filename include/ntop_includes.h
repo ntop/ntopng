@@ -144,18 +144,19 @@ using namespace std;
 #include "mongoose.h"
 #include "patricia.h"
 #include "ntop_defines.h"
+#include "Mutex.h"
 #include "AddressTree.h"
 #include "AddressList.h"
 #include "IpAddress.h"
 #include "ntop_typedefs.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
-#include "Profile.h"
-#include "Profiles.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
 #include "GenericTrafficElement.h"
 #ifdef NTOPNG_PRO
+#include "Profile.h"
+#include "Profiles.h"
 #include "CountMinSketch.h"
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
@@ -174,7 +175,6 @@ using namespace std;
 #include "FrequentNumericItems.h"
 #include "HostPools.h"
 #include "Prefs.h"
-#include "Mutex.h"
 #include "Utils.h"
 #include "ActivityStats.h"
 #include "DnsStats.h"
@@ -276,5 +276,8 @@ extern "C" {
 };
 #endif
 
+#ifdef NTOPNG_PRO
+#include "ntoppro_defines.h"
+#endif
 
 #endif /* _NTOP_H_ */
