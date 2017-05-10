@@ -468,7 +468,7 @@ var emptyBreadCrumb = function(){
 
 var refreshBreadCrumbInterface = function(){
   emptyBreadCrumb();
-  $("#bc-talkers").append('<li>]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print [[</li>');
+  $("#bc-talkers").append('<li>]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print [[</li>');
   $('#historical-container').removeAttr("host");
   $('#historical-container').removeAttr("peer");
   addObservationPeriodToBreadCrumb(']] print(interface_talkers_url_params) print[[', '#bc-talkers');
@@ -476,7 +476,7 @@ var refreshBreadCrumbInterface = function(){
 
 var refreshBreadCrumbHost = function(host){
   emptyBreadCrumb();
-  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
 
   // append a pair of li to the breadcrumb: the first is shown if the host has not been added to the favourites,
   // the second is shown if it has been added...
@@ -519,7 +519,7 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
     $('#historical-container').removeAttr("l7_proto_id");
   }
 
-  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
   $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">]] print(i18n("db_explorer.host_talkers", {host="' + peer1 + '"})) print[[</a></li>');
 
   // here we append to li: one will be shown if the pair of peers is favorited, the other is shown in the opposite case
@@ -905,7 +905,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
   }
 
   if (root === "interface"){
-    $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</a></li>');
+    $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
     $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">]] print(i18n("db_explorer.app_talkers", {app="' + app + '"})) print[[</a></li>');
 
     // append two li: one is to be shown when the favourites has not been added;
@@ -945,7 +945,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
     if(app.toLowerCase().endsWith("unknown")){
       bc_apps_text = 'Unknown protocol talkers with ' + host;
     } else {
-      bc_apps_text = ']] print(i18n("app_talkers_with", {app="' + app +'", peer="' + host +'"})) print[[';
+      bc_apps_text = app + ' talkers with ' + host;
     }
     if (typeof peer2 !== "undefined"){
       bc_apps_text = '<a onclick="populatePeersPerHostByApplication(\'' + peer1 + '\',\'' + proto_id + '\');">' + bc_apps_text + '</a>';
@@ -962,7 +962,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
 var populateInterfaceTopAppsTable = function(){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').removeAttr("host");
-  $("#bc-apps").append('<li>]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</li>');
+  $("#bc-apps").append('<li>]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</li>');
   addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 
   hideAll("app-talkers");
@@ -1014,7 +1014,7 @@ var populateAppTopTalkersTable = function(proto_id){
   var app = $('#historical-apps-container').attr("l7_proto");
 
   // UPDATE THE BREADCRUMB
-  $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</a></li>');
+  $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
 
   // add two li: show the first li when no favourite has been added; show the second li in the other case
   $("#bc-apps").append('<li class="bc-app-item-add app"> ]] print(i18n("db_explorer.app_talkers", {app="' + app + '"})) print[[ <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a> </li>');
