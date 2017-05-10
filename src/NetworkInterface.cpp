@@ -110,16 +110,6 @@ NetworkInterface::NetworkInterface(const char *name,
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
     flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 
-#ifdef NTOPNG_PRO
-    if(isViewInterface || (!ntop->getPrefs()->is_flow_aggregation_enabled()) || (!ntop->getPrefs()->is_enterprise_edition()))
-      aggregated_flows_hash = NULL;
-    else {
-      aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
-      nextFlowAggregation = FLOW_AGGREGATION_DURATION;
-    }
-    
-#endif
-
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
     /* The number of ASes cannot be greater than the number of hosts */
@@ -163,7 +153,14 @@ NetworkInterface::NetworkInterface(const char *name,
 
     if((!isViewInterface) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
+      if(ntop->getPrefs()->is_enterprise_edition()){
+	db = new BatchedMySQLDB(this);
+
+	ntop->getPrefs()->enable_flow_aggregation();
+	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
+	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+      } else
+	aggregated_flows_hash = NULL;
 #endif
 
       if(db == NULL)

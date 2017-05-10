@@ -980,7 +980,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
 	dump_flows_on_mysql = true;
-	enable_flow_aggregation();
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {

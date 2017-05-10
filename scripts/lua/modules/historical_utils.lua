@@ -1,4 +1,5 @@
 require "lua_utils"
+require "flow_aggregation_utils"
 
 local json = require ("dkjson")
 
@@ -368,6 +369,17 @@ print[[
   ]]
 end
 
+function printFlowsCountColumn()
+   -- hides the flows count column when aggregated database flows are being used
+   local col = '{title: "'..i18n("flows")
+   local hide_count = ""
+   if useAggregatedFlows() == true then
+      hide_count = " hidden :true, "
+   end
+   col = col..'", field: "column_flows", '..hide_count..' sortable: true, css: {textAlign:\'right\'}}'
+   return col
+end
+
 function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, l4proto, port)
    local breadcrumb_root = "interface"
    local host_talkers_url_params = ""
@@ -585,8 +597,9 @@ var populateInterfaceTopTalkersTable = function(){
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[", field: "column_bytes_sent",     sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[", field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes",         sortable: true,css: {textAlign:'right'}},
-	  {title: "]] print(i18n("db_explorer.total_packets")) print[[", field: "column_packets",       sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[",         field: "column_flows",         sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.total_packets")) print[[", field: "column_packets",       sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -637,8 +650,9 @@ var populateHostTopTalkersTable = function(host){
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[",   field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
-	  {title: "]] print(i18n("db_explorer.total_packets")) print[[",   field: "column_packets",    sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[",           field: "column_flows",      sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.total_packets")) print[[",   field: "column_packets",    sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -698,8 +712,9 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	  {title: "]] print(i18n("db_explorer.protocol_id")) print[[", field: "column_application", hidden: true},
 	  {title: "]] print(i18n("application")) print[[", field: "column_label", sortable: false},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -740,7 +755,14 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
+
+	if useAggregatedFlows() == false then
+	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
+	   print("+ '&limit=' + num_flows")
+	end
+
+	print(",")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
@@ -977,8 +999,9 @@ print [[
 	  {title: "]] print(i18n("db_explorer.protocol_id")) print[[", field: "column_application", hidden: true},
 	  {title: "]] print(i18n("application")) print[[", field: "column_label", sortable: false},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+print(printFlowsCountColumn())
+print[[
 	]
     });
   }
@@ -1057,8 +1080,9 @@ var populateAppTopTalkersTable = function(proto_id){
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
-	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -1114,8 +1138,9 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
-	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -1156,8 +1181,16 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
-  if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
+	
+	if useAggregatedFlows() == false then
+	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
+	   print("+ '&limit=' + num_flows")
+	end
+
+	print(",")
+
+	if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
@@ -1233,8 +1266,9 @@ print [[
 	  {title: "]] print(i18n("db_explorer.protocol_id")) print[[", field: "column_application", hidden: true},
 	  {title: "]] print(i18n("application")) print[[", field: "column_label", sortable: false},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+print(printFlowsCountColumn())
+print[[
 	]
     });
   }
@@ -1486,7 +1520,13 @@ print [[
         </div>
         <table border=0 class="table table-bordered table-striped" id="flows-summary-table" style="display:none;">
            <tr>
-             <th>&nbsp;</th><th>]] print(i18n("db_explorer.total_flows")) print[[</th><th>]] print(i18n("db_explorer.traffic_volume")) print[[</th>
+             <th>&nbsp;</th>]]
+
+if useAggregatedFlows() == false then -- pointless to show counters for aggregations to the user
+   print[[<th>]] print(i18n("db_explorer.total_flows"))print[[</th>]]
+end
+
+print[[<th>]] print(i18n("db_explorer.traffic_volume")) print[[</th>
              <th>]] print(i18n("db_explorer.total_packets")) print[[</th><th>]] print(i18n("db_explorer.traffic_rate")) print[[</th><th>]] print(i18n("db_explorer.packet_rate")) print[[</th>
            </tr>
         </table>
@@ -1583,7 +1623,15 @@ print[[
       var tr=""
       $.each(msg.count, function(ipvers, item){
         tr += "<tr><th>" + ipvers + "</th>"
+]]
+
+if useAggregatedFlows() == false then -- only show flow counters when querying from raw flows
+print[[
         tr += "<td align='right'>" + item.tot_flows + " Flows</td>"
+]]
+end
+
+print[[
         tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
         tr += "<td align='right'>" + formatPackets(item.tot_packets) + "</td>"
         tr += "<td align='right'>" + fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
@@ -1617,7 +1665,7 @@ end
 
 -- ##########################################
 
-function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
+function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
    local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..ifId.. "&peer1="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
 
    if(l7proto ~= "") then
@@ -1656,14 +1704,6 @@ function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l
       ipv6_title = ""
    end
 
-
-if(host ~= nil) then
-  local chunks = {host:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")}
-  if(#chunks == 4) then
-     limitv6="0"
-  end
-end
-
 print [[
 
       <script type="text/javascript">
@@ -1681,7 +1721,16 @@ print [[
    ]]
 
 print [[
-  var url_update4 = "]] print(url_update) print [[&version=4&limit=" + $("#tab-ipv4").attr("num_flows") ;
+  var url_update4 = "]] print(url_update) print [[&version=4]]
+
+if useAggregatedFlows() == false then
+   print[[&limit=" + $("#tab-ipv4").attr("num_flows")]]
+else
+   -- limit computed dynamically
+   print('"')
+end
+
+print[[ ;
   var graph_options4 = {
   url: url_update4,
 	       perPage: 5, ]]
@@ -1823,7 +1872,16 @@ print [[
         $('a[href="#tab-ipv6"]').attr("loaded", 1);
 
 
-	    var url_update6 = "]] print(url_update) print [[&version=6&limit=" + $("#tab-ipv6").attr("num_flows") ;
+	    var url_update6 = "]] print(url_update) print [[&version=6]]
+
+if useAggregatedFlows() == false then
+   print[[&limit=" + $("#tab-ipv6").attr("num_flows")]]
+else
+   -- limit computed dynamically
+   print('"')
+end
+
+print[[ ;
 
 	    var graph_options6 = {
 						    url: url_update6,

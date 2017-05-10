@@ -55,6 +55,15 @@ if(format == "txt") then
    limit = 99999
    currentPage = 1
    perPage = limit
+else
+   if limit == nil then
+      -- when flow aggregation is used, requests can be made with a nil limit so it is important to re-calculate it
+      local count = getNumFlows(ifId, ip_version, host, (l4proto or ""), (port or ""), (l7proto or ""), (info or ""),
+				epoch_begin, epoch_end, true --[[ force count from the raw flows table --]])
+      if count ~= nil and count[1] ~= nil then
+	 limit = count[1]["TOT_FLOWS"]
+      end
+   end
 end
 
 res = getInterfaceTopFlows(ifId, ip_version, host, peer, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""),

@@ -7,10 +7,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "lua_utils"
+require "flow_aggregation_utils"
 
 local db_debug = false
-
-
 
 --- ====================================================================
 
@@ -38,17 +37,21 @@ function expandIpV4Network(net)
    return({ addr, addr+num_hosts-1 })
 end
 
-function flowsTableName(version)
+function flowsTableName(version, force_raw)
    if tblname_prefs == nil then
       tblname_prefs = ntop.getPrefs()
    end
+
    local tblname = "flowsv"..version
-   if tblname_prefs.is_flow_aggregation_enabled == true then
-      tblname = "aggr"..tblname
+
+   if force_raw ~= true and ntop.isEnterprise() == true then
+      if useAggregatedFlows() == true then
+	 tblname = "aggr"..tblname
+      end
    end
 
-   return "flowsv"..version -- FIXX: remove this line when ready
-   -- return tblname
+   -- return "flowsv"..version -- FIXX: remove this line when ready
+   return tblname
 end
 
 --- ====================================================================
@@ -65,7 +68,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,IN_BYTES,OUT_BYTES,idx,L7_PROTO,INFO"
    if ntop.isPro() then follow = follow..",PROFILE" end
 
-   follow = follow.." from "..flowsTableName(version, aggregated_flows).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   follow = follow.." from "..flowsTableName(version, true --[[ force raw flows --]]).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
 
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
@@ -142,7 +145,7 @@ end
 
 --- ====================================================================
 
-function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
+function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch, force_raw_flows)
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -168,7 +171,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       end
    end
 
-   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM "..flowsTableName(version).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM "..flowsTableName(version, force_raw_flows --[[force count from raw flows --]]).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
