@@ -719,8 +719,7 @@ local  en = {
 
    if_stats_overview = {
       snmp = "SNMP",
-      iface_switch_active_msg_pre = "The selected interface",
-      iface_switch_active_msg_after = "is now active",
+      iface_switch_active_msg = "The selected interface <b>%{interface}</b> [ifid: %{ifid}] is now active",
       iface_switch_error_msg = "Error while switching interfaces",
       iface_switch_empty_session_msg = "Empty session",
       id = "Id",
