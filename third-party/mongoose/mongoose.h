@@ -51,9 +51,7 @@ struct mg_request_info {
   } http_headers[64];         // Maximum 64 headers
 };
 
-#if !defined(_WIN32)
-#define USE_IPV6 1
-#endif
+
 
 // This structure needs to be passed to mg_start(), to let mongoose know
 // which callbacks to invoke. For detailed description, see
