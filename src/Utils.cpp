@@ -309,6 +309,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
   case status_tcp_connection_refused:
     *aType = alert_suspicious_activity;
     return("TCP connection refused");
+  case status_ssl_certificate_mismatch:
+    *aType = alert_suspicious_activity;
+    return("SSL certificate mismatch");
   default:
     return("Unknown status");
     break;
