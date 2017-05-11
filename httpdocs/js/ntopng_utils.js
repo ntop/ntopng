@@ -497,3 +497,10 @@ if (typeof(Math.sign) === "undefined") {
     return (x >= 0) ? 1 : -1;
   };
 }
+
+function memberValueValidator(input) {
+  var member = input.val();
+  if (member === "") return true;
+
+  return is_mac_address(member) || is_network_mask(member, true);
+}

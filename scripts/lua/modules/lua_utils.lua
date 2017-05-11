@@ -3152,16 +3152,30 @@ function isBridgeInterface(ifstats)
   return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 end
 
-function isCaptivePortalActive(ifstats)
+-- Returns true if the captive portal can be started with the current configuration
+function isCaptivePortalSupported(ifstats, prefs)
+   if not ntop.isEnterprise() then
+      return false
+   end
+
+   local ifstats = ifstats or interface.getStats()
+   local prefs = prefs or ntop.getPrefs()
+   local is_bridge_iface = isBridgeInterface(ifstats)
+
+   return is_bridge_iface and (prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)
+end
+
+-- Returns true if the captive portal is active right now
+function isCaptivePortalActive(ifstats, prefs)
   if not ntop.isEnterprise() then
     return false
   end
 
   local ifstats = ifstats or interface.getStats()
+  local prefs = prefs or ntop.getPrefs()
   local is_bridge_iface = isBridgeInterface(ifstats)
-  local is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
 
-  return is_bridge_iface and is_captive_portal_enabled
+  return is_bridge_iface and prefs["is_captive_portal_enabled"] and isCaptivePortalSupported(ifstats, prefs)
 end
 
 function hasSnmpDevices(ifid)

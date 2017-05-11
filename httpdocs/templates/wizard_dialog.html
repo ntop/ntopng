@@ -1,0 +1,144 @@
+<div id="{{wizard.id}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{wizard.id}}Label" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog" style="{{wizard.style or ''}}">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+        <h3 id="{{wizard.id}}Label">{{wizard.title}}</h3>
+      </div>
+
+      <div class="modal-body" style="{{wizard.body_style or ""}}">
+        <div class="navbar">
+          <div class="navbar-inner">
+            <ul class="nav nav-wizard">
+            {% wizard.actual_steps = 0 %}
+            {% for step_idx, step in ipairs(wizard.steps) do %}
+            {% if not step.disabled then %}
+              <li{% if step_idx == 1 then %} class="active" {% end %}><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
+              {% wizard.actual_steps = wizard.actual_steps + 1 %}
+            {% end %}
+            {% end %}
+            </ul>
+          </div>
+        </div>
+
+        <form id="{{wizard.id}}Form" style="height:95%;">
+          <div class="tab-content" style="height:100%;">
+          {% for step_idx, step in ipairs(wizard.steps) do %}
+          {% if not step.disabled then %}
+            <div class="tab-pane fade in{% if step_idx == 1 then %} active {% end %}" id="{{wizard.id}}Step{{step_idx}}" style="height:100%;">
+              <div class="well well-wizard" style="height:75%;">
+                {*step.content*}
+              </div>
+
+              <a class="btn btn-default wizard-prev{% if step_idx == 1 then %} disabled {% end %}" href="#">{{i18n("previous")}}</a>
+              <a class="btn btn-default wizard-next pull-right{% if (step_idx == wizard.actual_steps) or (wizard.cannot_proceed) then %} disabled {% end %}" href="#">{{i18n("next")}}</a>            
+            </div>
+          {% end %}
+          {% end %}
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("abort")}}</button>
+        <button id="{{wizard.id}}SaveBtn" class="btn btn-primary">{{i18n("save_configuration")}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var {{wizard.id}}CurrentStep = 1;
+
+  /* Before modal open */
+  $("#{{wizard.id}}").on("show.bs.modal", function() {
+    /* Begin from the first tab */
+    $("ul.nav-wizard li:first a", $(this)).tab('show');
+
+    $("input", $(this)).each(function() {
+      if (typeof $(this).attr("data-input-value") === "undefined")
+        /* Dump original value */
+        $(this).attr("data-input-value", $(this).val());
+      else
+        /* Restore original value */
+        $(this).val($(this).attr("data-input-value"));
+    });
+
+    $("#{{wizard.id}}SaveBtn").attr("disabled", "disabled");
+});
+
+  /* On Next button click */
+  $('#{{wizard.id}} a.wizard-next').click(function(){
+    /* Trigger validation */
+    var form = $("#{{wizard.id}}Form");
+    form.data("bs.validator").validate();
+
+    /* Only consider current panel fields */
+    var invalid = $(".has-error", form).filter(function() {
+      return $(this).closest(".tab-pane").attr("id") === ("{{wizard.id}}Step" + {{wizard.id}}CurrentStep);
+    }).length > 0;
+
+    if (! invalid) {
+      var nextId = $(this).parents('.tab-pane').next().attr("id");
+      var nextTab = $('[href=#'+nextId+']');
+      nextTab.tab('show');
+      return false;
+    } else {
+      return false;
+    }
+  });
+
+  /* On Previous button click */
+  $('#{{wizard.id}} a.wizard-prev').click(function(){
+    var prevId = $(this).parents('.tab-pane').prev().attr("id");
+    $('[href=#'+prevId+']').tab('show');
+    return false;
+  });
+
+  $('#{{wizard.id}} a[data-toggle="tab"]')
+    /* On Tab click */
+    .on("click", function(e) {
+      if ($(this).hasClass("disabled")) {
+        e.preventDefault();
+        return false;
+      }
+    })
+    /* On Tab shown */
+    .on('shown.bs.tab', function (e) {
+      var savebt = $("#{{wizard.id}}SaveBtn");
+      var cur_step = $(this).attr("data-step");
+
+      if (cur_step != {{wizard.actual_steps}})
+        savebt.attr("disabled", "disabled");
+      else
+        savebt.removeAttr("disabled");
+
+      {{wizard.id}}CurrentStep = cur_step;
+      var form = $("#{{wizard.id}}Form");
+
+      /* Clear any validation errors */
+      $(".has-error", form).removeClass("has-error");
+      $(".with-errors", form).html("");
+
+      /* Enable previous tabs, disable next tabs */
+      $(this).parent().prevAll().find("a").removeClass("disabled");
+      $(this).parent().nextAll().find("a").addClass("disabled");
+    });
+
+  $("#{{wizard.id}}Form")
+    .validator({*wizard.validator_options or "{}"*})
+    .on('validate.bs.validator', function(e) {
+      var savebt = $("#{{wizard.id}}SaveBtn");
+      var invalid = $(".has-error", $(this)).length > 0;
+
+      if (invalid) {
+        savebt.addClass("disabled");
+      } else {
+        savebt.removeClass("disabled");
+      }
+    });
+
+  /* Justify the tabs properly */
+  var wizard_perc = 100 / {{wizard.actual_steps}};
+  $('#{{wizard.id}} .navbar li').css("width", wizard_perc+"%");
+  
+</script>

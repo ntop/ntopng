@@ -148,6 +148,16 @@ min-width: 100px;
   margin-left: 1em;
 }
 
+.well-wizard {
+  background: rgb(249, 249, 249);
+}
+
+nav-wizard a:active, a:focus {
+  outline:0;
+  border:none;
+  -moz-outline-style: none;
+}
+
 .text-middle, .table > tbody > tr > td.text-middle {
   vertical-align: middle;
 }

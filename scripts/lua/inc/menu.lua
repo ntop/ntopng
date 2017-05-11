@@ -365,6 +365,12 @@ if(user_group == "administrator") then
 
 end
 
+local show_bridge_wizard = false
+if (user_group == "administrator") and isBridgeInterface(_ifstats) and ntop.isEnterprise() and _GET["w"] then
+   print[[<li><a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-magic"></i> Bridge Configuration</a></li>]]
+   show_bridge_wizard = true
+end
+
 print [[
       <li class="divider"></li>
       <li><a href="]]
@@ -429,6 +435,10 @@ end
 addLogoSvg()
 
 print("</A></h3>\n</div>\n")
+
+if show_bridge_wizard then
+   dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
+end
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)

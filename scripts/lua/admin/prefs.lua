@@ -337,10 +337,14 @@ end
 -- ================================================================================
 
 function printBridgingPrefs()
+  if not isAdministrator() then
+    return
+  end
+
   local show
   local label
 
-  if((prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)) then
+  if isCaptivePortalSupported(nil, prefs) then
      show = true
      label = ""
   else

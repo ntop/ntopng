@@ -417,7 +417,7 @@ print[[
         return true;
 
       recheckFields(input);
-      return is_mac_address(member) || is_network_mask(member, true);
+      return memberValueValidator(input);
     }
   
     function memberValidator(input) {
