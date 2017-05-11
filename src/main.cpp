@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
       } else {
 	iface = NULL;
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) and !defined(WIN32)
 	if(strncmp(ifName, "bridge:", 7) == 0)
 	  iface = new PacketBridge(ifName);
 #endif

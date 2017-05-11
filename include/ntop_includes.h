@@ -214,7 +214,9 @@ using namespace std;
 #endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
+#ifndef WIN32
 #include "PacketBridge.h"
+#endif
 #include "TrafficShaper.h"
 #include "L7Policer.h"
 #include "BatchedMySQLDB.h"
