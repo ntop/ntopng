@@ -29,6 +29,10 @@ local function hasBridgeInterfaces()
   return found
 end
 
+function hasNagiosSupport()
+   return prefs.nagios_nsca_host ~= nil
+end
+
 -- This table is used both to control access to the preferences and to filter preferences results
 menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true,   disabled=false, entries={
@@ -177,27 +181,6 @@ menu_subpages = {
     }, slack_webhook = {
       title       = i18n("prefs.slack_webhook_title"),
       description = i18n("prefs.slack_webhook_description"),
-    }, toggle_alert_nagios = {
-      title       = i18n("prefs.toggle_alert_nagios_title"),
-      description = i18n("prefs.toggle_alert_nagios_description"),
-    }, nagios_nsca_host = {
-      title       = i18n("prefs.nagios_nsca_host_title"),
-      description = i18n("prefs.nagios_nsca_host_description"),
-    }, nagios_nsca_port = {
-      title       = i18n("prefs.nagios_nsca_port_title"),
-      description = i18n("prefs.nagios_nsca_port_description"),
-    }, nagios_send_nsca_executable = {
-      title       = i18n("prefs.nagios_send_nsca_executable_title"),
-      description = i18n("prefs.nagios_send_nsca_executable_description"),
-    }, nagios_send_nsca_config = {
-      title       = i18n("prefs.nagios_send_nsca_config_title"),
-      description = i18n("prefs.nagios_send_nsca_config_description"),
-    }, nagios_host_name = {
-      title       = i18n("prefs.nagios_host_name_title"),
-      description = i18n("prefs.nagios_host_name_description"),
-    }, nagios_service_name = {
-      title       = i18n("prefs.nagios_service_name_title"),
-      description = i18n("prefs.nagios_service_name_description"),
     },
   }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  disabled=false, entries={
     toggle_top_sites = {
@@ -272,6 +255,41 @@ menu_subpages = {
     },
   }},
 }
+
+-- Add nagios configuration (if available)
+-- Presently, nagios is not available under windows
+if hasNagiosSupport() then
+   for _, i in pairs(menu_subpages) do
+      if i["id"] == "ext_alerts" then
+	 local nagios = {
+	    toggle_alert_nagios = {
+	       title       = i18n("prefs.toggle_alert_nagios_title"),
+	       description = i18n("prefs.toggle_alert_nagios_description"),
+	    }, nagios_nsca_host = {
+	       title       = i18n("prefs.nagios_nsca_host_title"),
+	       description = i18n("prefs.nagios_nsca_host_description"),
+	    }, nagios_nsca_port = {
+	       title       = i18n("prefs.nagios_nsca_port_title"),
+	       description = i18n("prefs.nagios_nsca_port_description"),
+	    }, nagios_send_nsca_executable = {
+	       title       = i18n("prefs.nagios_send_nsca_executable_title"),
+	       description = i18n("prefs.nagios_send_nsca_executable_description"),
+	    }, nagios_send_nsca_config = {
+	       title       = i18n("prefs.nagios_send_nsca_config_title"),
+	       description = i18n("prefs.nagios_send_nsca_config_description"),
+	    }, nagios_host_name = {
+	       title       = i18n("prefs.nagios_host_name_title"),
+	       description = i18n("prefs.nagios_host_name_description"),
+	    }, nagios_service_name = {
+	       title       = i18n("prefs.nagios_service_name_title"),
+	       description = i18n("prefs.nagios_service_name_description"),
+	    },
+	 }
+	 i["entries"] = table.merge(i["entries"], nagios)
+      end
+   end
+end
+
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then

@@ -246,8 +246,12 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
 #ifdef NTOPNG_PRO
 void Ntop::registerNagios(void) {
+  #ifndef WIN32
   if(nagios_manager) { delete nagios_manager; nagios_manager = NULL; }
   nagios_manager = new NagiosManager();
+  #else
+  nagios_manager = NULL;
+  #endif
 }
 #endif
 

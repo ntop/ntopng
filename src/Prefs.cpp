@@ -1344,9 +1344,11 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
   lua_push_bool_table_entry(vm, "has_cmdl_disable_alerts", has_cmdl_disable_alerts);
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(WIN32)
   if(ntop->getNagios()) ntop->getNagios()->lua(vm);
+#endif
 
+#ifdef NTOPNG_PRO
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);
   strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);
   strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);

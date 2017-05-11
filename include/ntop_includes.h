@@ -221,7 +221,9 @@ using namespace std;
 #include "BatchedMySQLDBEntry.h"
 #include "SPSCQueue.h"
 #include "LuaHandler.h"
+#ifndef WIN32
 #include "NagiosManager.h"
+#endif
 #include "FlowChecker.h"
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
