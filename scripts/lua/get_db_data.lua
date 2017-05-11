@@ -47,7 +47,6 @@ headerShown = false
 
 -- os.execute("sleep 30") -- this is to test slow responses
 for k,v in pairs(versions) do
-
    local res = getNumFlows(ifId, k, host, _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["epoch_begin"], _GET["epoch_end"])
 
    if res == nil or res[1] == nil then

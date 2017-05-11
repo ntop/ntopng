@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 require "db_utils"
+require "flow_aggregation_utils"
 require "template"
 
 interface.select(ifname)
@@ -156,13 +157,29 @@ else
 	       flow["CLIENT"] = base_host_url..flow["IP_SRC_ADDR"] .."'>"..client.."</A>"
 	       flow["SERVER"] = base_host_url..flow["IP_DST_ADDR"] .."'>"..server.."</A>"
 
-	       if((sport ~= nil) and (sport ~= "0")) then flow["CLIENT"] = flow["CLIENT"] .. ":"..base_port_url..flow["L4_SRC_PORT"].."'>"..sport.."</A>" end
-	       if((dport ~= nil) and (dport ~= "0")) then flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>" end
+	       if((sport ~= nil) and (sport ~= "0")) then
+		  if useAggregatedFlows() == false then
+		     flow["CLIENT"] = flow["CLIENT"] .. ":"..base_port_url..flow["L4_SRC_PORT"].."'>"..sport.."</A>"
+		  else
+		     flow["CLIENT"] = flow["CLIENT"] .. ":"..sport
+		  end
+	       end
+	       if((dport ~= nil) and (dport ~= "0")) then
+		  if useAggregatedFlows() == false then
+		     flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>"
+		  else
+		     flow["SERVER"] = flow["SERVER"] .. ":"..dport
+		  end
+	       end
+
+	       if useAggregatedFlows() == false then
+		  flow["INFO"] = base.."&info="..flow["INFO"].."'>"..flow["INFO"].."</A>"
+	       end
 
 	       flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	       flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
 	       flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
-	       flow["INFO"] = base.."&info="..flow["INFO"].."'>"..flow["INFO"].."</A>"
+
                if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
                    flow["INFO"] = "<span class='label label-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]
                end
@@ -173,6 +190,10 @@ else
 	       flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))
 	       flow["FLOW_URL"] = ""
 	    end
+	 end
+
+	 for _, k in pairs({"CLIENT", "SERVER", "PROTOCOL", "L7_PROTO", "INFO"}) do
+	    flow[k] = "<i>"..flow[k].."</i>"
 	 end
 
 	 duration = tonumber(flow["LAST_SWITCHED"])-tonumber(flow["FIRST_SWITCHED"])+1
