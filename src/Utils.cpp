@@ -2050,3 +2050,22 @@ bool Utils::maskHost(bool isLocalIP) {
 
   return(mask_host);
 }
+
+/* ****************************************************** */
+
+void Utils::luaCpuLoad(lua_State* vm) {
+#if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
+  u_int64_t user, nice, system, idle, iowait, irq, softirq;
+  FILE *fp;
+
+  if(vm) {
+    if((fp = fopen("/proc/stat", "r"))) {
+      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu", &user, &nice, &system, &idle, &iowait, &irq, &softirq);
+      fclose(fp);
+
+      lua_push_int_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
+      lua_push_int_table_entry(vm, "cpu_idle", idle);
+    }
+  }
+#endif
+};

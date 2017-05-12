@@ -146,6 +146,9 @@ var prev_local   = 0;
 var prev_remote  = 0;
 var prev_epoch   = 0;
 
+var prev_cpu_load = 0;
+var prev_cpu_idle = 0;
+
 var footerRefresh = function() {
     $.ajax({
       type: 'GET',
@@ -227,7 +230,27 @@ print [[/lua/logout.lua");  }, */
 print[[
 }
 	      } /* closes if (prev_bytes > 0) */
-		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small><br>";
+
+		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small>";
+
+                if(rsp.system_host_stats.cpu_load !== undefined) {
+                  var load = "...";
+                  if(prev_cpu_load == 0) {
+                    prev_cpu_load = rsp.system_host_stats.cpu_load;
+                    prev_cpu_idle = rsp.system_host_stats.cpu_idle;
+
+                  } else {
+                     var active = (rsp.system_host_stats.cpu_load - prev_cpu_load);
+                     var idle = (rsp.system_host_stats.cpu_idle - prev_cpu_idle);
+                     load = active / (active + idle);
+                     load = load * 100;
+                     load = Math.round(load * 100) / 100;
+                     load = load + "%";
+                  }
+                  msg += "<small> | <i class='fa fa-microchip' aria-hidden='true'></i> CPU load: " + load + "</small>";
+                }
+
+                msg += "<br>";
 
 		if(rsp.engaged_alerts > 0) {
                    // var warning_color = "#F0AD4E"; // bootstrap warning orange

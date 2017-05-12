@@ -3834,6 +3834,17 @@ static int ntop_get_uptime(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_system_host_stat(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_newtable(vm);
+  Utils::luaCpuLoad(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_check_license(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5848,6 +5859,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getUptime",      ntop_get_uptime },
   { "dumpFile",       ntop_dump_file },
   { "checkLicense",   ntop_check_license },
+  { "systemHostStat", ntop_system_host_stat },
 
   /* Redis */
   { "getCache",        ntop_get_redis },

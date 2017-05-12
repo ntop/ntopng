@@ -56,6 +56,7 @@ function dumpInterfaceStats(interface_name)
       -- res["localtime"]  = format_time(res["epoch"], "!%H:%M:%S %z", res["tz_offset"])
       res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
       res["uptime"]     = secondsToTime(uptime)
+      res["system_host_stats"] = ntop.systemHostStat()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
       res["remote_pps"] = ifstats.remote_pps
