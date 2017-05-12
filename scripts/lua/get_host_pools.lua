@@ -33,13 +33,15 @@ if((ifid ~= nil) and (isAdministrator())) then
       if(isEmptyString(member_filter) or (member.key == member_filter)) then
         if (i >= start_i) and (i <= stop_i) then
           local host_key, is_network = host_pools_utils.getMemberKey(member.key)
+          local is_mac = isMacAddress(member.address)
+          local is_host = (not is_network) and (not is_mac)
           local link
 
           if active_hosts[host_key] then
             link = ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url(active_hosts[host_key])
-          elseif interface.getMacInfo(host_key) ~= nil then
+          elseif is_mac and interface.getMacInfo(host_key) ~= nil then
             link = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. host_key
-          elseif network_stats[host_key] ~= nil then
+          elseif is_network and network_stats[host_key] ~= nil then
             link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?network=" .. network_stats[host_key].network_id
           else
             link = ""
@@ -47,12 +49,31 @@ if((ifid ~= nil) and (isAdministrator())) then
 
           local alias = ""
           local icon = ""
-          if not is_network then
-            icon = getHostIconName(host_key)
-            alias = getHostAltName(host_key)
+          if is_mac then
+            alias = getHostAltName(member.address)
+            icon = getHostIconName(member.address)
 
             if alias == host_key then
               alias = ""
+            end
+          elseif is_host then
+            alias = getHostAltName(host_key)
+            icon = getHostIconName(hostinfo2hostkey(hostkey2hostinfo(host_key), nil, true)) -- with vlan
+
+            if alias == host_key then
+              alias = ""
+            end
+
+            if active_hosts[host_key] and active_hosts[host_key].mac then
+              if isEmptyString(alias) then
+                alias = getHostAltName(active_hosts[host_key].mac)
+                if alias == active_hosts[host_key].mac then
+                  alias = ""
+                end
+              end
+              if isEmptyString(icon) then
+                icon = getHostIconName(active_hosts[host_key].mac)
+              end
             end
           end
 
