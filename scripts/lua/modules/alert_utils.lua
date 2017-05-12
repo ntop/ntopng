@@ -10,10 +10,10 @@ local callback_utils = require "callback_utils"
 local template = require "template_utils"
 
 alerts_granularity = {
-   { "min", "Every Minute", 60 },
-   { "5mins", "Every 5 Minutes", 300 },
-   { "hour", "Hourly", 3600 },
-   { "day", "Daily", 86400 }
+   { "min", i18n("alerts_thresholds_config.every_minute"), 60 },
+   { "5mins", i18n("alerts_thresholds_config.every_5_minutes"), 300 },
+   { "hour", i18n("alerts_thresholds_config.hourly"), 3600 },
+   { "day", i18n("alerts_thresholds_config.daily"), 86400 }
 }
 
 alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput',
@@ -22,39 +22,39 @@ alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throug
 
 alert_functions_info = {
    ["active"] = {
-      label = "Activity Time",
+      label = i18n("alerts_thresholds_config.activity_time"),
       fmt = secondsToTime,
    }, ["bytes"] = {
-      label = "Traffic",
+      label = i18n("traffic"),
       fmt = bytesToSize,
    }, ["dns"] = {
-      label = "DNS Traffic",
+      label = i18n("alerts_thresholds_config.dns_traffic"),
       fmt = bytesToSize,
    }, ["idle"] = {
-      label = "Idle Time",
+      label = i18n("alerts_thresholds_config.idle_time"),
       fmt = secondsToTime,
    }, ["packets"] = {
-      label = "Packets",
+      label = i18n("packets"),
       fmt = formatPackets,
    }, ["p2p"] = {
-      label = "P2P Traffic",
+      label = i18n("alerts_thresholds_config.p2p_traffic"),
       fmt = bytesToSize,
    }, ["throughput"] = {
-      label = "Throughput",
+      label = i18n("alerts_thresholds_config.throughput"),
       fmt = bytesToSize,
    }, ["flows"] = {
-      label = "Flows",
+      label = i18n("flows"),
       fmt = formatFlows,
    }, ["inner"] = {
-      label = "Inner Traffic",
+      label = i18n("alerts_thresholds_config.inner_traffic"),
       fmt = bytesToSize
    }, ["ingress"] = {
-      label = "Ingress Traffic",
+      label = i18n("alerts_thresholds_config.ingress_traffic"),
       fmt = bytesToSize
    }, ["egress"] = {
-      label = "Egress Traffic",
+      label = i18n("alerts_thresholds_config.egress_traffic"),
       fmt = bytesToSize
-   }, 
+   },
 }
 
 -- ##############################################################################
@@ -886,9 +886,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
        </ul>
        <form method="post">
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th>Threshold Type</th><th width=30%>]] print(firstToUpper(source.source)) print(" ") print(ternary(alt_name ~= nil, alt_name, alert_source)) print[[ Thresholds</th><th width=30%>Local ]]
-       print(firstToUpper(source.source))
-       print[[s Common Thresholds]]
+       <tr><th>]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(source.source),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=firstToUpper(source.source)}))
        print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
@@ -966,19 +964,19 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
       </form>
 
-      <button class="btn btn-default" onclick="$('#deleteGlobalAlertConfig').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print("Delete Local "..firstToUpper(source.source).."s Common Configuration") print[[</button>
+      <button class="btn btn-default" onclick="$('#deleteGlobalAlertConfig').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_config_btn",{conf=firstToUpper(source.source)})) print[[</button>
       <button class="btn btn-default" onclick="$('#deleteAlertSourceSettings').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(delete_button_msg) print[[</button>
       ]]
 
-      print("<div style='margin-top:4em;'><b>NOTES:</b><ul>")
+      print("<div style='margin-top:4em;'><b>" .. i18n("alerts_thresholds_config.notes") .. ":</b><ul>")
 
-      print("<li>Thresholds listed in these tabs are checked periodically. Use tabs to control threshold checks periods.</li>")
-      print("<li>Some thresholds are expressed as a delta. A delta is the difference of the same quantity between two consecutive checks.</li>")
-      print("<li>Consecutive checks are not necessarily performed on consecutive periods. For example, if an host goes idle, its thresholds will not be checked until it becomes active again.</li>")
+      print("<li>" .. i18n("alerts_thresholds_config.note_control_threshold_checks_periods") .. "</li>")
+      print("<li>" .. i18n("alerts_thresholds_config.note_thresholds_expressed_as_delta") .. "</li>")
+      print("<li>" .. i18n("alerts_thresholds_config.note_consecutive_checks") .. "</li>")
 
       if (source.source == "host") then
-	 print("<li>Deltas of an idle host that becomes active again will be computed as the difference of the same quantity during the latest check and the most recent check performed when the host was active before going idle.</li>")
-	 print("<li>An attacker/victim threshold is considered exceeded if the corresponding host has exceeded the configured threshold for at least three seconds when performing the periodic check.</li>")
+         print("<li>" .. i18n("alerts_thresholds_config.note_deltas_of_idle_host_become_active") .. "</li>")
+	 print("<li>" .. i18n("alerts_thresholds_config.note_attacker_victime_threshold") .. "</li>")
       end
       print("</ul></div>")
 

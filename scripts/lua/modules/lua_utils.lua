@@ -391,20 +391,20 @@ alert_engine_keys = {
 
 -- Note: keep in sync with alarmable_metrics and alert_functions_infoes
 alert_functions_description = {
-   ["active"]  = "Activity time since last check (seconds).",
-   ["bytes"]   = "Layer 2 bytes delta (sent + received)",
-   ["dns"]     = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
-   ["idle"]    = "Idle time since last packet seen (seconds)",	
-   ["packets"] = "Packets delta (sent + received)",
-   ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
-   ["throughput"]   = "Average throughput (sent + received) [Mbps]",
-   ["flows"]   = "Flows delta (as client + as server)",
+   ["active"]  = i18n("alerts_thresholds_config.alert_active_description"),
+   ["bytes"]   = i18n("alerts_thresholds_config.alert_bytes_description"),
+   ["dns"]     = i18n("alerts_thresholds_config.alert_dns_description"),
+   ["idle"]    = i18n("alerts_thresholds_config.alert_idle_description"),
+   ["packets"] = i18n("alerts_thresholds_config.alert_packets_description"),
+   ["p2p"]     = i18n("alerts_thresholds_config.alert_p2p_description"),
+   ["throughput"]   = i18n("alerts_thresholds_config.alert_throughput_description"),
+   ["flows"]   = i18n("alerts_thresholds_config.alert_flows_description"),
 }
 
 network_alert_functions_description = {
-    ["ingress"] = "Ingress Bytes delta",
-    ["egress"]  = "Egress Bytes delta",
-    ["inner"]   = "Inner Bytes delta",
+    ["ingress"] = i18n("alerts_thresholds_config.alert_network_ingress_description"),
+    ["egress"]  = i18n("alerts_thresholds_config.alert_network_egress_description"),
+    ["inner"]   = i18n("alerts_thresholds_config.alert_network_inner_description"),
 }
 
 function noHtml(s)
