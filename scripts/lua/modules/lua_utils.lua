@@ -382,11 +382,11 @@ alert_entity_keys = {
 }
 
 alert_engine_keys = {
-   {"Per Minute",  0, "min"    },
-   {"Five Minutes", 1, "5mins"  },
-   {"Hourly",    2, "hour"   },
-   {"Daily",     3, "day"    },
-   {"Startup",   4, "startup"},
+   {i18n("show_alerts.minute"),  0, "min"    },
+   {i18n("show_alerts.five_minutes"), 1, "5mins"  },
+   {i18n("show_alerts.hourly"),    2, "hour"   },
+   {i18n("show_alerts.daily"),     3, "day"    },
+   {i18n("show_alerts.startup"),   4, "startup"},
 }
 
 -- Note: keep in sync with alarmable_metrics and alert_functions_infoes

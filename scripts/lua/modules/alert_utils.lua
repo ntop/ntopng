@@ -1640,7 +1640,7 @@ end
 local function formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, alert_key, threshold_info)
   if threshold_info.metric then
     local info = alert_functions_info[threshold_info.metric]
-    local label = info and info.label or threshold_info.metric
+    local label = info and string.lower(info.label) or threshold_info.metric
     local value = info and info.fmt(threshold_info.value) or threshold_info.value
     local edge = info and info.fmt(threshold_info.edge) or threshold_info.edge
 

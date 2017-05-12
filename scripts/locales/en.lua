@@ -271,6 +271,11 @@ local  en = {
             "<li>Persistent alerts SQLite storage</li>"..
             "</ul><br>Do you really want to proceed",
       flush_data = "Flush Data",
+      minute = "Minute",
+      five_minutes = "Five minutes",
+      hourly = "Hourly",
+      daily = "Daily",
+      startup = "Startup",
    },
 
    alerts_dashboard = {
