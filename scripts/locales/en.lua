@@ -72,6 +72,9 @@ local  en = {
    previous = "Previous",
    ["next"] = "Next",
    abort = "Abort",
+   chart = "Chart",
+   ingress = "Ingress",
+   egress = "Egress",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -248,6 +251,7 @@ local  en = {
       last_hour = "Last Hour",
       last_day = "Last Day",
       delete_alerts_configuration = "Delete Alerts Configuration",
+      delete_config_btn = "Delete Local %{conf}s Common Configuration",
       delete_config_message = "Do you really want to delete the common %{granularity} alerts configuration of local %{conf}s",
       delete_all = "Delete All",
       iface_delete_config_btn = "Delete Interface %{iface} Configuration",
@@ -442,6 +446,10 @@ local  en = {
    },
 
    snmp = {
+      snmp_device = "SNMP Device",
+      view_device = "View Device",
+      snmp_interface = "SNMP Interface",
+      note = "NOTE",
       bound_interface_description = "Binding a network interface to an SNMP interface is useful to compare network traffic monitored by ntopng with that reported by SNMP",
    },
 
@@ -799,7 +807,6 @@ local  en = {
    },
 
    packetdump_page = {
-      packets_dumped = "packets dumped",
       packet_dump = "Packet Dump",
       dump_all_traffic = "Dump All Traffic",
       packet_dump_to_disk = "Packet Dump To Disk",
@@ -808,7 +815,7 @@ local  en = {
       dump_traffic_to_disk_on_security_alert = "Dump Traffic To Disk On Security Alert",
       packet_dump_to_tap = "Packet Dump To Tap",
       dump_traffic_to_tap = "Dump Traffic To Tap",
-      packets_dumped = "packets dumped",
+      num_dumped_packets = "%{num_pkts} packets dumped",
       packet_dump_to_tap_disabled_message = "Disabled. Please restart ntopng with --enable-taps",
       sampling_rate = "Sampling Rate",
       note = "NOTE",
@@ -837,7 +844,7 @@ local  en = {
       scaling_factor = "Scaling Factor",
       scaling_factor_popup_msg = "This should match your capture interface sampling rate",
       trigger_interface_alerts = "Trigger Interface Alerts",
-      trigger_alerts = "Trigger alerts for Interface",
+      trigger_alerts_for_interface = "Trigger alerts for Interface %{ifname}",
    },
 
    bridge_wizard = {
@@ -874,6 +881,41 @@ local  en = {
       business_preset = "Business: no P2P, limited social networks and games time",
       children_preset = "Children: Safe Search enabled, limited games time",
       no_preset = "Do not use a preset",
+   },
+
+   alerts_thresholds_config = {
+      every_minute = "Every Minute",
+      every_5_minutes = "Every 5 Minutes",
+      hourly = "Hourly",
+      daily = "Daily",
+      activity_time = "Activity Time",
+      dns_traffic = "DNS Traffic",
+      idle_time = "Idle Time",
+      p2p_traffic = "P2P Traffic",
+      throughput = "Throughput",
+      inner_traffic = "Inner Traffic",
+      ingress_traffic = "Ingress Traffic",
+      egress_traffic = "Egress Traffic",
+      threshold_type = "Threshold Type",
+      thresholds_single_source = "%{source} %{alt_name} Thresholds",
+      common_thresholds_local_sources = "Local %{source}s Common Thresholds",
+      alert_active_description = "Activity time since last check (seconds).",
+      alert_bytes_description = "Layer 2 bytes delta (sent + received)",
+      alert_dns_description = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
+      alert_idle_description = "Idle time since last packet seen (seconds)",
+      alert_packets_description = "Packets delta (sent + received)",
+      alert_p2p_description = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
+      alert_throughput_description = "Average throughput (sent + received) [Mbps]",
+      alert_flows_description = "Flows delta (as client + as server)",
+      alert_network_ingress_description = "Ingress Bytes delta",
+      alert_network_egress_description = "Egress Bytes delta",
+      alert_network_inner_description = "Inner Bytes delta",
+      notes = "NOTES",
+      note_control_threshold_checks_periods ="Thresholds listed in these tabs are checked periodically. Use tabs to control threshold checks periods.",
+      note_thresholds_expressed_as_delta = "Some thresholds are expressed as a delta. A delta is the difference of the same quantity between two consecutive checks.",
+      note_consecutive_checks = "Consecutive checks are not necessarily performed on consecutive periods. For example, if an host goes idle, its thresholds will not be checked until it becomes active again.",
+      note_deltas_of_idle_host_become_active = "Deltas of an idle host that becomes active again will be computed as the difference of the same quantity during the latest check and the most recent check performed when the host was active before going idle.",
+      note_attacker_victime_threshold = "An attacker/victim threshold is considered exceeded if the corresponding host has exceeded the configured threshold for at least three seconds when performing the periodic check.",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

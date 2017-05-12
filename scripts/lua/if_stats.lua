@@ -42,7 +42,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value.."") end
-      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">Save</button>]]
+      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">]] print(i18n("save")) print[[</button>]]
    else
       if(value ~= nil) then print(value) end
    end
@@ -791,7 +791,7 @@ elseif(page == "historical") then
    --drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Chart</th><th>Traffic</th></tr>\n")
+   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
      local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
@@ -899,7 +899,7 @@ if is_packetdump_enabled then
 	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
-		 print(" - "..ternary(dumped, dumped, 0).." "..i18n("packetdump_page.packets_dumped"))
+	         print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -930,7 +930,7 @@ if is_packetdump_enabled then
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
-		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+ 		 print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print(' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -1119,7 +1119,7 @@ elseif(page == "config") then
                <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
                <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  ]] print(i18n("if_stats_config.trigger_alerts").." ") print(ifname) print[[
+                  ]] print(i18n("if_stats_config.trigger_alerts_for_interface", {ifname=ifname})) print[[
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
@@ -1157,7 +1157,7 @@ elseif(page == "snmp_bind") then
 
    print[[
       <tr>
-         <th>SNMP Device</th>
+         <th>]] print(i18n("snmp.snmp_device")) print[[</th>
          <td>
             <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
                <option]] if isEmptyString(snmp_host) then print(" selected") end print[[ value="">Not Bound</option>
@@ -1179,11 +1179,11 @@ elseif(page == "snmp_bind") then
       print(" disabled")
    end
 
-   print[[>View Device</i></a>
+   print[[>]] print(i18n("snmp.view_device"))  print[[</i></a>
          </td>
       </tr>
       <tr>
-         <th>SNMP Interface</th>
+         <th>]] print(i18n("snmp.snmp_interface")) print[[</th>
             <td>
                <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
 
@@ -1203,7 +1203,7 @@ elseif(page == "snmp_bind") then
    <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
 
-<b>NOTE:</b><br>
+<b>]] print(i18n("snmp.note") .. ":") print[[</b><br>
 <small>]] print(i18n("snmp.bound_interface_description")) print[[</small>
 
 <script>
