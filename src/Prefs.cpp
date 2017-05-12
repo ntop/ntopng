@@ -410,7 +410,7 @@ void Prefs::setAlertsEnabledFromRedis(){
 void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value) {
   char rsp[MAX_PATH];
 
-  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
+  if((ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     *buffer = strdup(rsp);
   else
     *buffer = strdup(default_value);

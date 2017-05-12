@@ -365,7 +365,19 @@ function printBridgingPrefs()
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
   prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
         "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
-  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
+  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description..[[
+        <ul>
+          <li><a href="https://www.comodo.com/secure-dns/">Comodo Secure DNS</a>: 8.26.56.26, 8.20.247.20</li>
+          <li><a href="http://dyn.com/labs/dyn-internet-guide/">Dyn Internet Guide</a>: 216.146.35.35, 216.146.36.36</li>
+          <li><a href="http://www.fooldns.com/fooldns-community/english-version/">FoolDNS</a>: 87.118.111.215, 213.187.11.62</li>
+          <li><a href="http://members.greentm.co.uk/">GreenTeam Internet</a>: 81.218.119.11, 209.88.198.133</li>
+          <li><a href="https://www.opendns.com/">OpenDNS</a>: 208.67.222.222, 208.67.220.220</li>
+          <li><a href="https://www.opendns.com/setupguide/?url=familyshield">OpenDNS - FamilyShield</a>: 208.67.222.123, 208.67.220.123</li>
+          <li><a href="https://dns.norton.com/">Norton ConnectSafe - Security</a>: 199.85.126.10, 199.85.127.10</li>
+          <li><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Pornography</a>: 199.85.126.20, 199.85.127.20</li>
+          <li><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Other</a>: 199.85.126.30, 199.85.127.30</li>
+        </ul>
+        ]],
         "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')

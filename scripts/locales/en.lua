@@ -698,7 +698,8 @@ local  en = {
       safe_search_dns_description = "The DNS server to be used to perform <a href='%{url}'>Safe Search</a> queries.<br>"..
             "Safe Search can be enabled for individual host pools from the host pools configuration page. Default: 208.67.222.123.",
       global_dns_title = "Global DNS",
-      global_dns_description = "A DNS server to redirect the clients DNS requests to. If empty, the redirection is disabled and the default DNS is used.",
+      global_dns_description = "A DNS server to redirect the clients DNS requests to. If empty, the redirection is disabled and the default DNS is used.<br>"..
+            "Here is a list of featured DNS secure servers:",
    },
 
    entity_thresholds = {
