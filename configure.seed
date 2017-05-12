@@ -193,7 +193,7 @@ if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a"
       fi
     fi
   else
-  LDFLAGS="${LDFLAGS} -lpfring"
+  LDFLAGS="${LDFLAGS} -lpfring -lpcap"
   echo "Compiling ntopng with PF_RING support"
  fi
  fi
