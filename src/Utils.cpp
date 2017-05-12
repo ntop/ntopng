@@ -2097,10 +2097,10 @@ void Utils::luaMeminfo(lua_State* vm) {
 	  lua_push_int_table_entry(vm, "mem_shmem", shmem);
       }
       fclose(fp);
-    }
 
-    /* Equivalent to top utility mem used */
-    lua_push_int_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
+      /* Equivalent to top utility mem used */
+      lua_push_int_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
+    }
   }
 #endif
 };
