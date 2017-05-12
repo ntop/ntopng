@@ -144,6 +144,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 /* *************************************** */
 
 bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
+  if(!_mac)
+    return(false);
   if((vlan_id == _vlanId) && (memcmp(mac, _mac, 6) == 0))
     return(true);
   else

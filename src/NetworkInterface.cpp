@@ -2098,14 +2098,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				       u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 				       u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst) {
 
-    if(!isView())
-      (*src) = hosts_hash->get(vlanId, _src_ip);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-	if(((*src) = subInterfaces[s]->get_hosts_hash()->get(vlanId, _src_ip)) != NULL)
-	  break;
-      }
-    }
+    /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
+    (*src) = hosts_hash->get(vlanId, src_mac, _src_ip);
 
     if((*src) == NULL) {
       if(!hosts_hash->hasEmptyRoom()) {
@@ -2129,7 +2123,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     /* ***************************** */
 
-    (*dst) = hosts_hash->get(vlanId, _dst_ip);
+    (*dst) = hosts_hash->get(vlanId, dst_mac, _dst_ip);
 
     if((*dst) == NULL) {
       if(!hosts_hash->hasEmptyRoom()) {
