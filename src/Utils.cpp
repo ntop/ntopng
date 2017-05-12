@@ -2069,3 +2069,38 @@ void Utils::luaCpuLoad(lua_State* vm) {
   }
 #endif
 };
+
+/* ****************************************************** */
+
+void Utils::luaMeminfo(lua_State* vm) {
+#if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
+  u_int64_t memtotal = 0, memfree = 0, buffers = 0, cached = 0, sreclaimable = 0, shmem = 0;
+  char *line;
+  size_t len;
+  ssize_t read;
+  FILE *fp;
+
+  if(vm) {
+    if((fp = fopen("/proc/meminfo", "r"))) {
+      while ((read = getline(&line, &len, fp)) != -1) {
+	if(!strncmp(line, "MemTotal", strlen("MemTotal")) && sscanf(line, "%*s %lu kB", &memtotal))
+	  lua_push_int_table_entry(vm, "mem_total", memtotal);
+	else if(!strncmp(line, "MemFree", strlen("MemFree")) && sscanf(line, "%*s %lu kB", &memfree))
+	  lua_push_int_table_entry(vm, "mem_free", memfree);
+	else if(!strncmp(line, "Buffers", strlen("Buffers")) && sscanf(line, "%*s %lu kB", &buffers))
+	  lua_push_int_table_entry(vm, "mem_buffers", buffers);
+	else if(!strncmp(line, "Cached", strlen("Cached")) && sscanf(line, "%*s %lu kB", &cached))
+	  lua_push_int_table_entry(vm, "mem_cached", cached);
+	else if(!strncmp(line, "SReclaimable", strlen("SReclaimable")) && sscanf(line, "%*s %lu kB", &sreclaimable))
+	  lua_push_int_table_entry(vm, "mem_sreclaimable", sreclaimable);
+	else if(!strncmp(line, "Shmem", strlen("Shmem")) && sscanf(line, "%*s %lu kB", &shmem))
+	  lua_push_int_table_entry(vm, "mem_shmem", shmem);
+      }
+      fclose(fp);
+    }
+
+    /* Equivalent to top utility mem used */
+    lua_push_int_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
+  }
+#endif
+};

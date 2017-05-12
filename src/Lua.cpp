@@ -3839,6 +3839,7 @@ static int ntop_system_host_stat(lua_State* vm) {
 
   lua_newtable(vm);
   Utils::luaCpuLoad(vm);
+  Utils::luaMeminfo(vm);
 
   return(CONST_LUA_OK);
 }

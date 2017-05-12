@@ -104,6 +104,7 @@ class Utils {
 
   /* System Host Montiring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
+  static void luaMeminfo(lua_State* vm);
   
 };
 

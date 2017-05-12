@@ -233,6 +233,17 @@ print[[
 
 		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small>";
 
+                if(rsp.system_host_stats.mem_total !== undefined) {
+                   var mem_total = rsp.system_host_stats.mem_total;
+                   var mem_used = rsp.system_host_stats.mem_used;
+
+                   var mem_used_ratio = mem_used / mem_total;
+                   mem_used_ratio = mem_used_ratio * 100;
+                   mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
+                   mem_used_ratio = mem_used_ratio + "%";
+                  msg += "<small> | RAM used: " + mem_used_ratio + "</small>";
+                }
+
                 if(rsp.system_host_stats.cpu_load !== undefined) {
                   var load = "...";
                   if(prev_cpu_load == 0) {
