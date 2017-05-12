@@ -248,6 +248,12 @@ local function validateFlowStatus(mode)
    return validateChoice(modes, mode)
 end
 
+local function validatePolicyPreset(mode)
+   local modes = {"children", "business"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateStatsType(mode)
    local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
       "top_targets", "duration_pie", "longest_engaged", "counts_pie",
@@ -610,6 +616,7 @@ local known_parameters = {
    ["nagios_host_name"]        =  validateUnquoted,
    ["nagios_service_name"]     =  validateUnquoted,
    ["bind_dn"]                 =  validateUnquoted,
+   ["pool_name"]               =  validateUnquoted,
 
 -- HOST SPECIFICATION
    ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -896,6 +903,7 @@ local known_parameters = {
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
    ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua
+   ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

@@ -6,41 +6,46 @@
         <h3 id="{{wizard.id}}Label">{{wizard.title}}</h3>
       </div>
 
+      {% wizard.actual_steps = {}; wizard.size_sum = 0 %}
+      {% for step_idx, step in ipairs(wizard.steps) do %}
+        {% if not step.disabled then %}
+          {% wizard.actual_steps[#wizard.actual_steps + 1] = step; wizard.size_sum = wizard.size_sum + (step.size or 1) %}
+        {% end %}
+      {% end %}
+
       <div class="modal-body" style="{{wizard.body_style or ""}}">
         <div class="navbar">
           <div class="navbar-inner">
             <ul class="nav nav-wizard">
-            {% wizard.actual_steps = 0 %}
-            {% for step_idx, step in ipairs(wizard.steps) do %}
-            {% if not step.disabled then %}
-              <li{% if step_idx == 1 then %} class="active" {% end %}><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
-              {% wizard.actual_steps = wizard.actual_steps + 1 %}
-            {% end %}
+            {% for step_idx, step in ipairs(wizard.actual_steps) do %}
+              <li{% if step_idx == 1 then %} class="active" {% end %} style="width: {{ (step.size or 1) / wizard.size_sum *100 }}%;"><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
             {% end %}
             </ul>
           </div>
         </div>
 
-        <form id="{{wizard.id}}Form" style="height:95%;">
+        <form id="{{wizard.id}}Form" style="height:95%;"
+         method="{{wizard.form_method or "post"}}"
+         {% if wizard.form_action ~= nil then %} action="{{wizard.form_action}} {% end %}"
+         {% if wizard.form_onsubmit ~= nil then %} onsubmit="return {{wizard.form_onsubmit}}(this)" {% end %}>
+          <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
           <div class="tab-content" style="height:100%;">
-          {% for step_idx, step in ipairs(wizard.steps) do %}
-          {% if not step.disabled then %}
+          {% for step_idx, step in ipairs(wizard.actual_steps) do %}
             <div class="tab-pane fade in{% if step_idx == 1 then %} active {% end %}" id="{{wizard.id}}Step{{step_idx}}" style="height:100%;">
               <div class="well well-wizard" style="height:75%;">
                 {*step.content*}
               </div>
 
               <a class="btn btn-default wizard-prev{% if step_idx == 1 then %} disabled {% end %}" href="#">{{i18n("previous")}}</a>
-              <a class="btn btn-default wizard-next pull-right{% if (step_idx == wizard.actual_steps) or (wizard.cannot_proceed) then %} disabled {% end %}" href="#">{{i18n("next")}}</a>            
+              <a class="btn btn-default wizard-next pull-right{% if (step_idx == #wizard.actual_steps) or (wizard.cannot_proceed) then %} disabled {% end %}" href="#">{{i18n("next")}}</a>            
             </div>
-          {% end %}
           {% end %}
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("abort")}}</button>
-        <button id="{{wizard.id}}SaveBtn" class="btn btn-primary">{{i18n("save_configuration")}}</button>
+        <button id="{{wizard.id}}SaveBtn" class="btn btn-primary" onClick="$('#{{wizard.id}}Form').submit();">{{i18n("save_configuration")}}</button>
       </div>
     </div>
   </div>
@@ -107,7 +112,7 @@
       var savebt = $("#{{wizard.id}}SaveBtn");
       var cur_step = $(this).attr("data-step");
 
-      if (cur_step != {{wizard.actual_steps}})
+      if (cur_step != {{#wizard.actual_steps}})
         savebt.attr("disabled", "disabled");
       else
         savebt.removeAttr("disabled");
@@ -136,9 +141,4 @@
         savebt.removeClass("disabled");
       }
     });
-
-  /* Justify the tabs properly */
-  var wizard_perc = 100 / {{wizard.actual_steps}};
-  $('#{{wizard.id}} .navbar li').css("width", wizard_perc+"%");
-  
 </script>

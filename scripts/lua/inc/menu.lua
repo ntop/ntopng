@@ -366,7 +366,7 @@ if(user_group == "administrator") then
 end
 
 local show_bridge_wizard = false
-if (user_group == "administrator") and isBridgeInterface(_ifstats) and ntop.isEnterprise() and _GET["w"] then
+if (user_group == "administrator") and isBridgeInterface(_ifstats) and ntop.isEnterprise() then
    print[[<li><a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-magic"></i> Bridge Configuration</a></li>]]
    show_bridge_wizard = true
 end

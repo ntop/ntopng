@@ -9,6 +9,7 @@ require "lua_utils"
 
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
+host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 16
 

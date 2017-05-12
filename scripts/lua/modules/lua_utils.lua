@@ -3178,6 +3178,26 @@ function isCaptivePortalActive(ifstats, prefs)
   return is_bridge_iface and prefs["is_captive_portal_enabled"] and isCaptivePortalSupported(ifstats, prefs)
 end
 
+function getCaptivePortalUsers()
+  local keys = ntop.getKeysCache("ntopng.user.*.host_pool_id")
+  local users = {}
+
+  for key in pairs(keys or {}) do
+    local host_pool = ntop.getCache(key)
+
+    if not isEmptyString(host_pool) then
+      local username = split(key, "%.")[3]
+      users[username] = host_pool
+    end
+  end
+
+  return users
+end
+
+function getBridgeInitializedKey()
+  return "ntopng.prefs.bridge_initialized"
+end
+
 function hasSnmpDevices(ifid)
   if (not ntop.isEnterprise()) or (not isAdministrator()) then
     return false

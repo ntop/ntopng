@@ -385,6 +385,15 @@ $(document).ready(function(){
 
 ]]
 
+-- Bridge wizard check
+if isAdministrator()
+ and isBridgeInterface(_ifstats)
+ and ntop.isEnterprise()
+ and (ntop.getCache(getBridgeInitializedKey()) ~= "1") then
+  print("$('#bridgeWizardModal').modal();")
+  ntop.setCache(getBridgeInitializedKey(), "1")
+end
+
 -- This code rewrites the current page state after a POST request to avoid Document Expired errors
 if not table.empty(_POST) then
   print[[

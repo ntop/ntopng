@@ -855,14 +855,12 @@ local  en = {
 
    bridge_wizard = {
       intro_1 = "This wizard will help you to setup some basic configuration to enable bridge specific features of ntopng.",
-      runtime_status = "Status",
-      captive_portal_available = "The captive portal is available but <b>not running</b>",
-      captive_portal_running = "The captive portal is <b>up and running</b>",
-      captive_portal_unavailable = "The captive portal is <b>not available</b><br>Check the -w command line parameter e.g. -w 80,3000",
-      bridge_running = "The bridge is <b>running</b> in %{mode} mode, %{packets} pkts forwarded so far",
-      warning_configuration_exist = "A bridge configuration already exist. It will be discarder after the wizard is complete.",
+      start = "Start",
+      captive_portal_available = "The captive portal is available but <b>not running</b>.",
+      captive_portal_running = "Note: the captive portal is <b>up and running</b>.",
+      captive_portal_unavailable = "Note: the captive portal is <b>not available</b>.<br>Check the -w command line parameter e.g. -w 80,3000",
+      warning_configuration_exist = "A bridge configuration already exists. It will be discarder after clicking the save button.",
       click_on_next = "Click on the Next button to proceed.",
-      bridge_missing_ip = "An IP address is missing on the linux bridged interface %{iface}.",
       check_doc = "Instructions on properly configuring the bridge can be found <a href='%{url}'>on our github docs</a>.",
       configure_host_pools = "Host Pool",
       host_pool_info = "An host pool represents an aggregation of network hosts.<br>You need to create an host pool to start applying traffic policies to it.",
@@ -877,13 +875,14 @@ local  en = {
       policy = "Policy",
       define_policy = "When running in bridge mode, it is possible to limit the traffic flowing through the bridge by the mean of traffic policies.<br><br>"..
             "You can define an initial set of policies to be applied on the bridge from one of the presets below:",
-      done = "Done",
-      configuration_complete = "You have succesfully configured the bridge interface."..
-            "With this wizard, you have set up just a basic configuration.<br><br>You can access more advanced settings from the following pages:",
+      fine_tune = "You can fine tune the specific policies at any time through the <a href='%{url}'>Traffic Policy</a> page.",
+      done = "Apply",
+      configuration_complete = "You are going to apply the specified settings on the bridge.<br><br>"..
+            "Click on the save button below to apply the configured settings.<br><br><br>"..
+            "You can access more advanced settings from the following pages:",
       host_pools_config = "Host Pools",
       policies_config = "Traffic Policies, Shaping and Quotas",
       captive_portal_users = "Captive Portal Users",
-      save_notice = "Click on the save button below to apply the configured settings.",
       business_preset = "Business: no P2P, limited social networks and games time",
       children_preset = "Children: Safe Search enabled, limited games time",
       no_preset = "Do not use a preset",
