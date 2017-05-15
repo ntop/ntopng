@@ -3,7 +3,7 @@
 #### ntopng 3.0 (May 2017)
 
 
-== New features (Community)
+## New features (Community)
 
 * Layer-2 Devices
   * MAC devices page
@@ -35,7 +35,7 @@
 * Implemented DHCP dissection for name resolution
 
 
-== New features
+## New features
 
 * Traffic bridging
   * Per host pool, per host pool member policies
@@ -101,7 +101,7 @@
 * Improves VoIP visualization (RTP)
 
 
-*Security Fixes*
+## Security Fixes
 
 * Disable TLS 1.0 (vulnerable) in mongoose
 * Disabled insecure cyphers in SSL (when using ntopng over SSL)
@@ -111,7 +111,7 @@
 * Prevent HTTP splitting attacks
 * Force default admin password change
 
-
+----------------------------------------------------------------
 
 #### ntopng 2.4.0
 
