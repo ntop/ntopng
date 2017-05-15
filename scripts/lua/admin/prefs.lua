@@ -344,7 +344,7 @@ function printBridgingPrefs()
   local show
   local label
 
-  if isCaptivePortalSupported(nil, prefs) then
+  if isCaptivePortalSupported(nil, prefs, true --[[ skip interface check ]]) then
      show = true
      label = ""
   else

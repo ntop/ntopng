@@ -870,6 +870,7 @@ print [[
             css : {
                width: '7%',
                textAlign: 'center',
+               whiteSpace: 'nowrap',
             }
          }, {
             title: "]] print(i18n("host_pools.enforce_quotas_per_pool_member")) print[[",

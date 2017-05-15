@@ -3153,14 +3153,20 @@ function isBridgeInterface(ifstats)
 end
 
 -- Returns true if the captive portal can be started with the current configuration
-function isCaptivePortalSupported(ifstats, prefs)
+function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
    if not ntop.isEnterprise() then
       return false
    end
 
-   local ifstats = ifstats or interface.getStats()
-   local prefs = prefs or ntop.getPrefs()
-   local is_bridge_iface = isBridgeInterface(ifstats)
+   local is_bridge_iface
+
+   if not skip_interface_check then
+      local ifstats = ifstats or interface.getStats()
+      local prefs = prefs or ntop.getPrefs()
+      is_bridge_iface = isBridgeInterface(ifstats)
+   else
+      is_bridge_iface = true
+   end
 
    return is_bridge_iface and (prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)
 end
