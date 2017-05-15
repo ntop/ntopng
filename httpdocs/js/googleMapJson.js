@@ -188,7 +188,7 @@ function createMarkers(p_data) {
       
       var l_currMarker = g_aMarker[g_aMarker.length - 1];
 
-      var l_html = "<div class='infowin'><strong><A HREF=/lua/host_details.lua?interface=any&host=" + hostData.name + ">" + hostData.name + "</A></strong><hr>";
+      var l_html = "<div class='infowin'><strong><A HREF=/lua/host_details.lua?host=" + hostData.name + ">" + hostData.name + "</A></strong><hr>";
       l_html = l_html + hostData.html;
       google.maps.event.addListener(l_currMarker, 'mouseover', function() {
     g_InfoWindowMarker.setContent(l_html);

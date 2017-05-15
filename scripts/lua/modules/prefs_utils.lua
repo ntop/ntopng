@@ -231,7 +231,7 @@ menu_subpages = {
       description = i18n("prefs.toggle_autologout_description"),
     }, google_apis_browser_key = {
       title       = i18n("prefs.google_apis_browser_key_title"),
-      description = i18n("prefs.google_apis_browser_key_description", {url="https://googlegeodevelopers.blogspot.it/2016-17/06/building-for-scale-updates-to-google.html"}),
+      description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),
     }, toggle_thpt_content = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),
