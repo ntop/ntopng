@@ -21,8 +21,14 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    print("<tr><th nowrap>"..i18n("about.system_id").."</th><td>".. info["pro.systemid"].."</td></tr>\n")
 end
 
-print("<tr><th nowrap>"..i18n("about.cpu_load").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
-print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
+local system_host_stats = ntop.systemHostStat()
+
+if system_host_stats["cpu_load"] ~= nil then
+   print("<tr><th nowrap>"..i18n("about.cpu_load").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
+end
+if system_host_stats["mem_total"] ~= nil then
+   print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
+end
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
