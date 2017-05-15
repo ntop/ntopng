@@ -31,7 +31,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Hosts by Country",\n')
+print('title: "'.. i18n("country_stats.hosts_by_country")..'",\n')
 print ('rowCallback: function ( row ) { return country_table_setID(row); },')
 
 -- Set the preference table
@@ -54,7 +54,7 @@ print [[
                                 }
            },
 	     {
-			     title: "Name",
+			     title: "]] print(i18n("name")) print[[",
 				 field: "column_id",
 				 sortable: true,
                              css: {

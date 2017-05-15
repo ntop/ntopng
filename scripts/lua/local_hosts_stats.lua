@@ -137,7 +137,7 @@ var host_table_interval = window.setInterval(host_table_update, 10000);
 
 label = criteria2label(criteria)
 
-print('title: "Looking Glass: '..label..'",\n')
+print('title: ' .. '\"' .. i18n("local_hosts_stats.looking_glass") .. ': '..label..'",\n')
 
 print ('rowCallback: function ( row ) { return host_table_setID(row, "'..criteria..'"); },')
 
@@ -187,7 +187,7 @@ print [[
 	   }
 			},
 			{
-			     title: "IP Address",
+			     title: "]] print(i18n("ip_address")) print[[",
 				 field: "column_ip",
 				 sortable: true,
 			     css: {
@@ -195,7 +195,7 @@ print [[
 			     }
 				 },
 			{
-			     title: "VLAN",
+			     title: "]] print(i18n("vlan")) print [[",
 				 field: "column_vlan",
 				 sortable: true,
 			     css: {

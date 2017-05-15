@@ -31,7 +31,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Autonomous Systems",\n')
+print('title: "' .. i18n("as_stats.autonomous_systems") .. '",\n')
 print ('rowCallback: function ( row ) { return as_table_setID(row); },')
 
 -- Set the preference table
@@ -54,7 +54,7 @@ print [[
                                 }
            },
                          {
-			     title: "AS number",
+			     title: "]] print(i18n("as_number")) print[[",
 				 field: "column_asn",
 				 sortable: true,
                              css: {
@@ -62,7 +62,7 @@ print [[
 			     }
 				 },
                          {
-			     title: "Chart",
+			     title: "]] print(i18n("chart")) print[[",
 				 field: "column_chart",
 				 sortable: false,
                              css: {

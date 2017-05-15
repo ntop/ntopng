@@ -30,7 +30,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Host Pool List",\n')
+print('title: "' .. i18n("pool_stats.host_pool_list") .. '",\n')
 print ('rowCallback: function ( row ) { return pool_table_setID(row); },')
 
 -- Set the preference table
@@ -52,7 +52,7 @@ print [[
                  textAlign: 'center'
               }
             },{
-              title: "Pool Name",
+              title: "]] print(i18n("host_pools.pool_name")) print[[",
               field: "column_id",
               sortable: false,
                 css: {
