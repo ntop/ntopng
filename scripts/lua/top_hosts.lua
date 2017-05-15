@@ -38,7 +38,7 @@ if(found) then
 print [[
 
 <div class="page-header">
-<h2>Top Hosts (Local)</H2>
+<h2>]] print(i18n("top_hosts.top_hosts_local")) print[[</H2>
 </div>
 
 <script type="text/javascript">
@@ -146,7 +146,7 @@ context.on("focus", function(i) {
 
 ]]
 else 
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No results found</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

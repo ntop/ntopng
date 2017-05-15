@@ -75,6 +75,8 @@ local  en = {
    chart = "Chart",
    ingress = "Ingress",
    egress = "Egress",
+   mac_address = "MAC Address",
+   as_number = "AS number",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -923,11 +925,80 @@ local  en = {
       note_attacker_victime_threshold = "An attacker/victim threshold is considered exceeded if the corresponding host has exceeded the configured threshold for at least three seconds when performing the periodic check.",
    },
 
+   mac_stats = {
+      layer_2_host_devices = "Layer 2 Host Devices",
+      all_layer_2_devices = "All Layer 2 Devices",
+      layer_2_devices_with_manufacturer = "%{title} from '%{manufacturer}' manufacturer",
+      filter_macs = "Filter MACs",
+      manufacturer = "Manufacturer",
+      all_devices = "All Devices",
+      hosts_only = "Hosts Only",
+      all_manufacturers = "All Manufacturers",
+   },
+
+   details = {
+      mac = "Mac",
+      first_last_seen = "First / Last Seen",
+      sent_vs_received_traffic_breakdown = "Sent vs Received Traffic Breakdown",
+      traffic_sent_received = "Traffic Sent / Received",
+      address_resolution_protocol = "Address Resolution Protocol",
+      show_hosts = "Show Hosts",
+      arp_requests = "ARP Requests",
+      arp_replies = "ARP Replies",
+      ago = "ago",
+   },
+
+   local_flow_matrix = {
+      local_hosts_active_flows_matrix = "Local Hosts Active Flows Matrix",
+      error_no_local_hosts = "No local hosts can be found",
+   },
+
+   tree_map = {
+      hosts_treemap = "Hosts TreeMap",
+   },
+
+   geo_map = {
+      hosts_geomap = "Hosts GeoMap",
+   },
+
+   top_hosts = {
+      top_hosts_local = "Top Hosts (Local)",
+   },
+
+   local_hosts_stats = {
+      looking_glass = "Looking Glass",
+      criteria = "Criteria",
+   },
+
+   os_stats = {
+      hosts_by_operating_system = "Hosts by Operating System",
+   },
+
+   country_stats = {
+      hosts_by_country = "Hosts by Country",
+   },
+
+   as_stats = {
+      autonomous_systems = "Autonomous Systems",
+   },
+
+   pool_stats = {
+      host_pool_list = "Host Pool List",
+   },
+
+   network_stats = {
+      networks = "Networks",
+      networks_traffic_with_ipver = "%{networks} with IPv%{ipver} traffic",
+      network_list = "Network List",
+      network_name = "Network Name",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
    error_no_search_results = "No results found. Please modify your search criteria.";
    enterpriseOnly = "This feature is only available in the ntopng enterprise edition",
+   no_results_found = "No results found",
 
    uploaders = "Upload Volume",
    downloaders = "Download Volume",

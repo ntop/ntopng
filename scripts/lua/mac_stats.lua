@@ -58,13 +58,13 @@ print [[
 
 local title
 if host_macs_only == true then
-   title = "Layer 2 Host Devices"
+   title = i18n("mac_stats.layer_2_host_devices")
 else
-   title = "All Layer 2 Devices"
+   title = i18n("mac_stats.all_layer_2_devices")
 end
 
 if manufacturer ~= nil then
- title = title.." from '"..manufacturer.."' manufacturer"
+ title = i18n("mac_stats.layer_2_devices_with_manufacturer",{title=title, manufacturer=manufacturer})
 end
 
 print('title: "'..title..'",\n')
@@ -83,16 +83,16 @@ print('buttons: [')
    -- Filter MACS
    local hosts_macs_params = table.clone(page_params)
    hosts_macs_params.host_macs_only = nil
-   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs'..host_macs_only_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..host_macs_only_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
    hosts_macs_params.host_macs_only = "false"
    print(getPageUrl(base_url, hosts_macs_params))
-   print('">All Devices</a></li>')
+   print('">'..i18n("mac_stats.all_devices")..'</a></li>')
    print('<li')
    if host_macs_only == true then print(' class="active"') end
    print('><a href="')
    hosts_macs_params.host_macs_only = "true"
    print(getPageUrl(base_url, hosts_macs_params))
-   print('">Hosts Only</a></li>')
+   print('">'..i18n("mac_stats.hosts_only")..'</a></li>')
    print("</div>'")
 
    -- Filter Manufacturers
@@ -100,9 +100,9 @@ print('buttons: [')
    manufacturer_params.manufacturer = nil
    print[[, '\
        <div class="btn-group pull-right">\
-       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Manufacturer]] print(manufacturer_filter) print[[<span class="caret"></span></button>\
+       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("mac_stats.manufacturer")) print(manufacturer_filter) print[[<span class="caret"></span></button>\
        <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-          <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">All Manufacturers</a></li>\
+          <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
    for manuf, count in pairsByKeys(interface.getMacManufacturers(), asc) do
@@ -131,7 +131,7 @@ print [[
                                 }
            },
                          {
-			     title: "MAC Address",
+			     title: "]] print(i18n("mac_address")) print[[",
 				 field: "column_mac",
 				 sortable: true,
                              css: {
@@ -139,7 +139,7 @@ print [[
 			     }
 				 },
                          {
-			     title: "Manufacturer",
+			     title: "]] print(i18n("mac_stats.manufacturer")) print[[",
 				 field: "column_manufacturer",
 				 sortable: true,
                              css: {

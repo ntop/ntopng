@@ -27,7 +27,7 @@ print [[
    </style>
 
 <hr>
-<h2>Hosts GeoMap</H2>
+<h2>]] print(i18n("geo_map.hosts_geomap")) print[[</H2>
 
 ]]
 
@@ -60,7 +60,7 @@ var url_prefix = "]] print(ntop.getHttpPrefix()) print [[";
 </html>
 ]]
 else 
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No results found</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

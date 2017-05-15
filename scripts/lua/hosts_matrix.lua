@@ -81,9 +81,9 @@ for key, value in pairs(hosts_stats) do
 end
 
 if(found == false) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No local hosts can be found</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("local_flow_matrix.error_no_local_hosts") .."</div>")
 else
-   print("<hr><h2>Local Hosts Active Flows Matrix</h2>\n<p>&nbsp;<p>\n<table class=\"table table-striped table-bordered\">\n")
+   print("<hr><h2>" .. i18n("local_flow_matrix.local_hosts_active_flows_matrix") .. "</h2>\n<p>&nbsp;<p>\n<table class=\"table table-striped table-bordered\">\n")
 
    -- Header
    print("<tr><th>&nbsp;</th>")
