@@ -1,7 +1,119 @@
 # Changelog
 
-#### ntopng 2.4.0
+#### ntopng 3.0 (May 2017)
 
+
+== New features (Community)
+
+* Layer-2 Devices
+  * MAC devices page
+  * Implemented MAC last seen tracking in redis
+  * Manufacturer filter and sort
+* Host pools (logical groups of hosts)
+* Logstash flow export extension
+* Implemented data anonymization: hosts and top sites
+* Implements CPU load average and memory usage
+* Virtual Interfaces
+  * ZMQ: disaggregate based on probeIP or ingress interfaceId
+  * Packet: disaggregate on VLANId
+* ElasticSearch and MySQL flow export statistics
+* Tiny Flows
+* Alerts
+  * Implements alerts on a per-interface per-vlan basis
+  * Global alert thresolds for all local hosts/interfaces/local networks
+  * LUA alerts generation
+  * Adds hosts stateful syn attacks alerts
+  * Visualization/Retrieval of Host Alerts
+  * Added the ability to generate alert when ntopng detects traffic produced by malware hosts
+  * Slack integration: send alerts to slack
+  * Alerts for anomalous flows
+  * Host blacklisted alerts
+  * Alerts delete by type, older than, by host
+  * SSL certificates mismatch alerts generation
+* Implement SSL/TLS handshake detection
+* Integrated MSDN support
+* Implemented DHCP dissection for name resolution
+
+
+== New features
+
+* Traffic bridging
+  * Per host pool, per host pool member policies
+  * Per L7 protocol category policies
+  * Flashstart categories to block
+  * Time and Traffic quotas
+  * Support to google Safe Search DNS
+  * Ability to set custom DNS
+* Captive portal
+  * Limited lifetime users
+  * Support for pc, kindle, android, ipad devices
+* SNMP
+  * Periodic SNMP device monitoring and polling
+  * Historical SNMP timeseries
+  * Host-to-SNMP devices mapping
+* Daily/Weekly/Monthly Traffic Report: per host, interface, network
+* Added ability to define host blacklists
+* DNS flow characterization with FlashStart (www.flashstart.it)
+* Flow LUA scripts: on flow creation, protocol detected, expire
+* Periodic MySQL flows aggregation
+* Batched MySQL flows insertions
+* sFlow device/interface counters
+* Implementation of flow devices stats
+
+
+## Improvements
+
+* Allows web server binding to system ports for non-privileged users
+* Improved VLAN support
+* Improved IPv6 support
+* Implements a script to add users from the command line
+* View interfaces rework
+* Reported number of Layer-2 devices in ntopng footer
+* Preferences re-organization and search
+* Adds RIPE integration for Autonomous Systems
+* Search host by custom name
+* Move to the UTF-8 encoding
+* Make real-time statics refresh time configurable (footer, dashboard)
+* Adds support for localization (i18n)
+* Traffic bridging: improved stability
+* Traffic profiles: improved stability and data persistence
+* Charts
+  * Improved historical graphs
+  * Traffic report rework and optimizations
+  * Improves the responsiveness and interactivity of historical exploration (ajax)
+  * Stacked top hosts
+  * Add ZMQ flows/sec graph
+  * Profiles graphs
+  * Implemented ICMP detailed stats for local hosts
+  * ASN graphs: traffic and protocols history
+  * ARP requests VS replies sent and received by hosts
+  * Implement host TCP flags distribution
+  * DNS packets ratio
+  * FlashStart category graphs
+  * Added ARP protocol in interface statistics
+  * SNMP port graphs
+
+
+## Voip (nProbe required)
+
+* Changes and rework for SIP and RTP protocol
+* Adds VoIP SIP to RTP flow search
+* Improves VoIP visualization (RTP)
+
+
+*Security Fixes*
+
+* Disable TLS 1.0 (vulnerable) in mongoose
+* Disabled insecure cyphers in SSL (when using ntopng over SSL)
+* Hardens the code to prevent SQL injections
+* Enforce POST form CSRF to prevent programmer mistakes
+* Strict GET and POST parameters validation to prevent XSS
+* Prevent HTTP splitting attacks
+* Force default admin password change
+
+
+
+#### ntopng 2.4.0
 
 - Fundamental memory-management, stability and speed improvements
 - Security fixes to prevent privileges escalation and XSS
@@ -55,4 +167,4 @@
 - Documentation and User Guide significantly improved
 - Added a great deal of READMEs, including ElasticSearch, bridging, traffic shaping and policing, NetBeans development
 - Improved stability both under normal and high network loads
-- Fixed tens of minor bugs 
+- Fixed tens of minor bugs
