@@ -246,11 +246,7 @@ print[[
 
                 if(rsp.system_host_stats.cpu_load !== undefined) {
                   var load = "...";
-                  if(prev_cpu_load == 0) {
-                    prev_cpu_load = rsp.system_host_stats.cpu_load;
-                    prev_cpu_idle = rsp.system_host_stats.cpu_idle;
-
-                  } else {
+                  if(prev_cpu_load > 0) {
                      var active = (rsp.system_host_stats.cpu_load - prev_cpu_load);
                      var idle = (rsp.system_host_stats.cpu_idle - prev_cpu_idle);
                      load = active / (active + idle);
@@ -348,6 +344,10 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
             prev_local   = rsp.local2remote;
             prev_remote  = rsp.remote2local;
 	    prev_epoch   = rsp.epoch;
+            if(rsp.system_host_stats.cpu_load !== undefined) {
+              prev_cpu_load = rsp.system_host_stats.cpu_load;
+              prev_cpu_idle = rsp.system_host_stats.cpu_idle;
+            }
 
 	  } catch(e) {
 	     console.log(e);
