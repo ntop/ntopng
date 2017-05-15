@@ -241,7 +241,7 @@ print[[
                    mem_used_ratio = mem_used_ratio * 100;
                    mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
                    mem_used_ratio = mem_used_ratio + "%";
-                  msg += "<small> | RAM used: " + mem_used_ratio + "</small>";
+                   $('#ram-used').html('used: ' + mem_used_ratio + ' / available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / total: ' + bytesToSize(mem_total * 1024));
                 }
 
                 if(rsp.system_host_stats.cpu_load !== undefined) {
@@ -254,7 +254,7 @@ print[[
                      load = Math.round(load * 100) / 100;
                      load = load + "%";
                   }
-                  msg += "<small> | <i class='fa fa-microchip' aria-hidden='true'></i> CPU load: " + load + "</small>";
+                  $('#cpu-load-pct').html(load);
                 }
 
                 msg += "<br>";

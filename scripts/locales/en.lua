@@ -473,6 +473,8 @@ local  en = {
    about = {
       about = "About",
       licence = "License",
+      cpu_load = "CPU load",
+      ram_memory = "RAM",
       version = "Version",
       licence_generation = "Click on the above URL to generate your professional version license, or <br>purchase a license at <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education<br>institution please read <a href=\"%{universities_url}\">this</a>.",
       specify_licence = "Specify here your ntopng License",
