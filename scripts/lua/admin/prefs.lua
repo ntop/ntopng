@@ -58,16 +58,14 @@ if(haveAdminPrivileges()) then
       if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
    end
 
-   if ((prefs.has_cmdl_disable_alerts == true) or
-      ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
-      ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))) then
+   if hasAlertsDisabled() then
     alerts_disabled = true
    end
 
 local subpage_active = nil
 
 for _, subpage in ipairs(menu_subpages) do
-  if not isSubpageAvailable(subpage, show_advanced_prefs) and subpage.id ~= tab then
+  if not isSubpageAvailable(subpage, show_advanced_prefs) then
     subpage.disabled = true
     
     if subpage.id == tab then
@@ -127,8 +125,6 @@ end
 -- ================================================================================
 
 function printAlerts()
-   if prefs.has_cmdl_disable_alerts then return end
-
   print(
     template.gen("modal_confirm_dialog.html", {
       dialog={
@@ -154,7 +150,7 @@ function printAlerts()
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
   "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
-  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header"}
+  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header", "row_toggle_ssl_alerts"}
 
   toggleTableButtonPrefs(subpage_active.entries["disable_alerts_generation"].title, subpage_active.entries["disable_alerts_generation"].description,
                     "On", "0", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
@@ -176,7 +172,7 @@ function printAlerts()
 		    false, nil, nil, showElements)
 
   toggleTableButtonPrefs(subpage_active.entries["toggle_mysql_check_open_files_limit"].title, subpage_active.entries["toggle_mysql_check_open_files_limit"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1", nil, nil, nil, not (subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden))
+			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1", nil, nil, nil, showElements and (not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden))
 
   print('<tr id="row_alerts_security_header" ')
   if (showElements == false) then print(' style="display:none;"') end

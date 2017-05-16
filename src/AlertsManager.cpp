@@ -1522,8 +1522,10 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
     m.unlock(__FILE__, __LINE__);
 
     return rc;
-  } else
+  } else {
+    lua_pushnil(vm);
     return(0);
+  }
 }
 
 /* ******************************************* */
