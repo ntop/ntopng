@@ -121,6 +121,10 @@ void MacManufacturers::init() {
 	}
       }
     }
+
+    if(line)
+      free(line);
+
     fclose(fd);
   }
 }

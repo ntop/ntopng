@@ -2075,7 +2075,7 @@ void Utils::luaCpuLoad(lua_State* vm) {
 void Utils::luaMeminfo(lua_State* vm) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
   u_int64_t memtotal = 0, memfree = 0, buffers = 0, cached = 0, sreclaimable = 0, shmem = 0;
-  char *line;
+  char *line = NULL;
   size_t len;
   ssize_t read;
   FILE *fp;
@@ -2096,6 +2096,10 @@ void Utils::luaMeminfo(lua_State* vm) {
 	else if(!strncmp(line, "Shmem", strlen("Shmem")) && sscanf(line, "%*s %lu kB", &shmem))
 	  lua_push_int_table_entry(vm, "mem_shmem", shmem);
       }
+
+      if(line)
+	free(line);
+
       fclose(fp);
 
       /* Equivalent to top utility mem used */
