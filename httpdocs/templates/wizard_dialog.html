@@ -85,7 +85,7 @@
 
     if (! invalid) {
       var nextId = $(this).parents('.tab-pane').next().attr("id");
-      var nextTab = $('[href=#'+nextId+']');
+      var nextTab = $('[href="#'+nextId+'"]');
       nextTab.tab('show');
       return false;
     } else {
