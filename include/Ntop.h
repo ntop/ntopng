@@ -67,7 +67,9 @@ class Ntop {
   int udp_socket;
   NtopPro *pro;
 #ifdef NTOPNG_PRO
+#ifndef WIN32
   NagiosManager *nagios_manager;
+#endif
   FlowChecker *flow_checker;
 #endif
   AddressTree *hostBlacklist, *hostBlacklistShadow;
@@ -370,7 +372,9 @@ class Ntop {
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 
 #ifdef NTOPNG_PRO
+#ifndef WIN32
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };
+#endif
 #endif
 
   void getUsers(lua_State* vm);

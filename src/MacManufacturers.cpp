@@ -45,7 +45,7 @@ void MacManufacturers::init() {
   FILE *fd;
   char * line = NULL, *manuf = NULL, *cr;
   size_t len = 0;
-  ssize_t read;
+  ssize_t readb;
   u_int8_t mac[3];
   char short_name[9];
   mac_manufacturers_t *s;
@@ -57,7 +57,7 @@ void MacManufacturers::init() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read %s", manufacturers_file);
 
   if(fd) {
-    while ((read = getline(&line, &len, fd)) != -1) {
+    while ((readb = getline(&line, &len, fd)) != -1) {
       char *tab = strchr(line, '\t');
 
       if((sscanf(line, "%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2]) == 3) &&

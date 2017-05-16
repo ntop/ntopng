@@ -666,7 +666,9 @@
 /* Macros */
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
+#ifndef _STATIC_ASSERT
 #define _STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(!!(COND))*2-1]
+#endif
 #define _COMPILE_TIME_ASSERT3(X,L) _STATIC_ASSERT(X,static_assertion_at_line_##L)
 #define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
 #define COMPILE_TIME_ASSERT(X)     _COMPILE_TIME_ASSERT2(X,__LINE__)

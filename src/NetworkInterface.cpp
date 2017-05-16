@@ -5218,11 +5218,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     if(!f) return(CONST_LUA_ERROR);
 
     if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    activityID = (UserActivityID)lua_tonumber(vm, ++params);
+    activityID = (UserActivityID)((int)lua_tonumber(vm, ++params));
     if(activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
 
     if(lua_type(vm, params+1) == LUA_TNUMBER)
-      filterID = (ActivityFilterID)lua_tonumber(vm, ++params);
+      filterID = (ActivityFilterID)((int)lua_tonumber(vm, ++params));
     else
       return(CONST_LUA_ERROR);
 

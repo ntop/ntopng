@@ -5338,6 +5338,7 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
 /* ****************************************** */
 
 #if NTOPNG_PRO
+#ifndef WIN32
 
 static int ntop_nagios_reload_config(lua_State* vm) {
   NagiosManager *nagios = ntop->getNagios();
@@ -5398,7 +5399,7 @@ static int ntop_nagios_withdraw_alert(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
-
+#endif
 #endif
 
 /* ****************************************** */
@@ -5904,9 +5905,11 @@ static const luaL_Reg ntop_reg[] = {
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
 
 #ifdef NTOPNG_PRO
+#ifndef WIN32
   { "sendNagiosAlert",      ntop_nagios_send_alert },
   { "withdrawNagiosAlert",  ntop_nagios_withdraw_alert },
   { "reloadNagiosConfig",   ntop_nagios_reload_config },
+#endif
   { "checkProfileSyntax",   ntop_check_profile_syntax },
   { "reloadProfiles",       ntop_reload_traffic_profiles },
 #endif

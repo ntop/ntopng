@@ -114,7 +114,9 @@ Ntop::Ntop(char *appName) {
 
 #ifdef NTOPNG_PRO
   pro = new NtopPro();
+#ifndef WIN32
   nagios_manager = NULL;
+#endif
   flow_checker = new FlowChecker();
 
   if((pro == NULL)
@@ -183,7 +185,11 @@ Ntop::~Ntop() {
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
+#ifdef WIN32
+#ifndef WIN32
   if(nagios_manager) delete nagios_manager;
+#endif
+#endif
   if(flow_checker) delete flow_checker;
 #endif
 }
@@ -246,12 +252,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
 #ifdef NTOPNG_PRO
 void Ntop::registerNagios(void) {
-  #ifndef WIN32
+#ifndef WIN32
   if(nagios_manager) { delete nagios_manager; nagios_manager = NULL; }
   nagios_manager = new NagiosManager();
-  #else
-  nagios_manager = NULL;
-  #endif
+#endif
 }
 #endif
 

@@ -2008,6 +2008,9 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 /* ****************************************************** */
 
 bool Utils::isInterfaceUp(char *ifname) {
+#ifdef WIN32
+	return(true);
+#else
   struct ifreq ifr;
   char *colon;
   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -2028,6 +2031,7 @@ bool Utils::isInterfaceUp(char *ifname) {
   close(sock);
 
   return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
+#endif
 }
 
 /* ****************************************************** */
