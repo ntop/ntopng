@@ -3162,12 +3162,12 @@ function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
 
    if not skip_interface_check then
       local ifstats = ifstats or interface.getStats()
-      local prefs = prefs or ntop.getPrefs()
       is_bridge_iface = isBridgeInterface(ifstats)
    else
       is_bridge_iface = true
    end
 
+   local prefs = prefs or ntop.getPrefs()
    return is_bridge_iface and (prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)
 end
 

@@ -37,6 +37,8 @@ local steps = {
      title = i18n("bridge_wizard.configure_user"),
      content = i18n("bridge_wizard.configure_user_message")..[[<br><br>
   <label>]]..i18n("bridge_wizard.username")..[[</label>
+  <input style="display:none" type="text" name="_" data-ays-ignore="true"/>
+  <input style="display:none" type="password" name="_" data-ays-ignore="true"/>
   <div class="form-group has-feedback" style="margin-bottom:0;">
      <input class="form-control" name="username" placeholder="]]..i18n("bridge_wizard.username_title")..[[" required/>
      <div class="help-block with-errors"></div>

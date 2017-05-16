@@ -949,7 +949,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
                print("</td><td>\n")
                print('<input type="number" class=\"text-right form-control\" name="'..key..'" style="display:inline; width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
-               print(tostring(vals[key]))
+               print(tostring(vals[key] or ""))
                print[["></input>]]
             end
 
