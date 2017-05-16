@@ -32,14 +32,14 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(mac == nil) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Mac parameter is missing (internal error ?)</div>")
+   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("details.mac_parameter_missing_message") .. "</div>")
    return
 end
 
 mac_info = interface.getMacInfo(mac, vlanId)
 
 if(mac_info == nil) then
-      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Mac '.. mac  .. ' cannot be found. ')
+      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("details.mac_cannot_be_found",{mac=mac}))
       print("</div>")
       dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       return
@@ -111,7 +111,7 @@ print("<td  width='35%'><span id=last_seen>" .. formatEpoch(mac_info["seen.last"
 
 if((mac_info["bytes.sent"]+mac_info["bytes.rcvd"]) > 0) then
    print("<tr><th>" .. i18n("details.sent_vs_received_traffic_breakdown") .. "</th><td colspan=2>")
-   breakdownBar(mac_info["bytes.sent"], "Sent", mac_info["bytes.rcvd"], "Rcvd", 0, 100)
+   breakdownBar(mac_info["bytes.sent"], i18n("sent"), mac_info["bytes.rcvd"], i18n("details.rcvd"), 0, 100)
    print("</td></tr>\n")
 end
 
@@ -123,8 +123,8 @@ print([[
    <th>]] print(i18n("details.arp_replies")) print([[</th>
 </tr>
 <tr>
-   <td>]]..formatValue(mac_info["arp_requests.sent"])..[[ Sent / ]]..formatValue(mac_info["arp_requests.rcvd"])..[[ Received</td>
-   <td>]]..formatValue(mac_info["arp_replies.sent"])..[[ Sent / ]]..formatValue(mac_info["arp_replies.rcvd"])..[[ Received</td>
+   <td>]]..formatValue(mac_info["arp_requests.sent"])..[[ ]]..i18n("sent")..[[ / ]]..formatValue(mac_info["arp_requests.rcvd"])..[[ ]]..i18n("received")..[[</td>
+   <td>]]..formatValue(mac_info["arp_replies.sent"])..[[ ]]..i18n("sent")..[[ / ]]..formatValue(mac_info["arp_replies.rcvd"])..[[ ]]..i18n("received")..[[</td>
 </tr>]])
 
 print("</table>")

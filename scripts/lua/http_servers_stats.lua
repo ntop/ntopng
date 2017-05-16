@@ -31,7 +31,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Local HTTP Servers",\n')
+print('title: "' .. i18n("http_servers_stats.local_http_servers") .. '",\n')
 print ('rowCallback: function ( row ) { return http_table_setID(row); },')
 
 -- Set the preference table
@@ -54,7 +54,7 @@ print [[
                                 }
            },
 	     {
-			     title: "HTTP Virtual Host",
+			     title: "]] print(i18n("http_servers_stats.http_virtual_host")) print[[",
 				 field: "column_http_virtual_host",
 				 sortable: true,
                              css: {
@@ -63,7 +63,7 @@ print [[
 
 				 },
 	     {
-			     title: "HTTP Server IP",
+			     title: "]] print(i18n("http_servers_stats.http_server_ip")) print[[",
 				 field: "column_server_ip",
 				 sortable: true,
                              css: {

@@ -77,6 +77,7 @@ local  en = {
    egress = "Egress",
    mac_address = "MAC Address",
    as_number = "AS number",
+   asn = "ASN",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -278,6 +279,8 @@ local  en = {
       hourly = "Hourly",
       daily = "Daily",
       startup = "Startup",
+      no_recorded_alerts_message = "No recorded alerts for interface %{ifname}",
+      alerts_are_disabled_message = "Alerts are disabled. Please check the preferences page to enable them.",
    },
 
    alerts_dashboard = {
@@ -948,6 +951,9 @@ local  en = {
       arp_requests = "ARP Requests",
       arp_replies = "ARP Replies",
       ago = "ago",
+      rcvd = "Rcvd",
+      mac_parameter_missing_message = "Mac parameter is missing (internal error ?)",
+      mac_cannot_be_found = "Mac %{mac} cannot be found. ",
    },
 
    local_flow_matrix = {
@@ -965,6 +971,12 @@ local  en = {
 
    top_hosts = {
       top_hosts_local = "Top Hosts (Local)",
+   },
+
+   http_servers_stats = {
+      local_http_servers = "Local HTTP Servers",
+      http_virtual_host = "HTTP Virtual Host",
+      http_server_ip = "HTTP Server IP",
    },
 
    local_hosts_stats = {
