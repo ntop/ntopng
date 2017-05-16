@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "flow_aggregation_utils"
 
 local callback_utils = {}
 
@@ -131,17 +132,19 @@ end
 function callback_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
    interface.select(ifname)
 
-   local sql = "DELETE FROM flowsv4 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
-   interface.execSQLQuery(sql)
-   if(verbose) then io.write(sql.."\n") end
+   local dbtables = {"flowsv4", "flowsv6"}
+   if useAggregatedFlows() then
+      dbtables[#dbtables+1] = "aggrflowsv4"
+      dbtables[#dbtables+1] = "aggrflowsv6"
+   end
 
-   sql = "DELETE FROM flowsv6 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
-   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
-   interface.execSQLQuery(sql)
-   if(verbose) then io.write(sql.."\n") end
+   for _, tb in pairs(dbtables) do
+      local sql = "DELETE FROM "..tb.." where FIRST_SWITCHED < "..mysql_retention
+      sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
+      sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
+      interface.execSQLQuery(sql)
+      if(verbose) then io.write(sql.."\n") end
+   end
 end
 
 -- ########################################################
