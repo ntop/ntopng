@@ -22,7 +22,9 @@ USES=           ssl sqlite mysql
 
 LIB_DEPENDS=	librrd.so:databases/rrdtool \
 		libcurl.so:ftp/curl \
-		libGeoIP.so:net/GeoIP
+		libGeoIP.so:net/GeoIP \
+                libjson-c.so:devel/json-c \
+                libsodium.so:security/libsodium
 
 # DATADIR gets expanded to PREFIX/share/PORTNAME
 # DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME
