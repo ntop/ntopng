@@ -59,7 +59,7 @@ print [[
                   textAlign: 'left'
               }
             },{
-              title: "Chart",
+              title: "]] print(i18n("chart")) print[[",
               field: "column_chart",
 ]]
 if not ntop.isPro() then
