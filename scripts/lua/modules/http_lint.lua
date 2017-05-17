@@ -770,7 +770,6 @@ local known_parameters = {
    ["toggle_active_local_host_cache_enabled"]      =  validateBool,
    ["toggle_local"]                                =  validateBool,
    ["toggle_local_ndpi"]                           =  validateBool,
-   ["toggle_local_activity"]                       =  validateBool,
    ["toggle_flow_rrds"]                            =  validateBool,
    ["toggle_pools_rrds"]                           =  validateBool,
    ["toggle_local_categorization"]                 =  validateBool,

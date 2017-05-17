@@ -24,6 +24,13 @@
 
 #include "ntop_includes.h"
 
+typedef struct {
+  const Flow *flow;
+  time_t first;
+  time_t last;
+  u_int16_t pkts;
+} InterFlowActivityStats;
+
 class Host : public GenericHost {
  private:
   u_int32_t asn;
@@ -53,6 +60,8 @@ class Host : public GenericHost {
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
   ICMPstats *icmp;
+  UserActivityStats *user_activities;
+  InterFlowActivityStats *ifa_stats;
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -213,6 +222,11 @@ class Host : public GenericHost {
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   void incrVisitedWebSite(char *hostname);
+  const UserActivityCounter * getActivityBytes(UserActivityID id);
+  void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
+  void incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_t when);
+  void getIfaStats(InterFlowActivityProtos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
+  inline UserActivityStats* get_user_activities() { return(user_activities); }
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }

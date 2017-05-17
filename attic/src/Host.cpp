@@ -75,6 +75,8 @@ Host::~Host() {
   if(icmp)            delete icmp;
   if(dns)             delete dns;
   if(http)            delete http;
+  if(user_activities) delete user_activities;
+  if(ifa_stats)       delete ifa_stats;
   if(symbolic_name)   free(symbolic_name);
   if(continent)       free(continent);
   if(country)         free(country);
@@ -175,7 +177,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
-    icmp = NULL;
+    user_activities = NULL, ifa_stats = NULL, icmp = NULL;
 
   if(init_all) {
     char *strIP = ip.print(buf, sizeof(buf));
@@ -260,6 +262,14 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       rcvd_from_sketch = new CountMinSketch();
 #endif
       readStats();
+
+      if(ntop->getPrefs()->is_flow_activity_enabled()) {
+	ifa_stats = new InterFlowActivityStats[IFA_STATS_PROTOS_N*INTER_FLOW_ACTIVITY_SLOTS];
+	user_activities = new UserActivityStats;
+
+	if(ifa_stats) memset(ifa_stats, 0, sizeof(InterFlowActivityStats)*IFA_STATS_PROTOS_N*INTER_FLOW_ACTIVITY_SLOTS);
+	if(user_activities) memset(user_activities, 0, sizeof(UserActivityStats));
+      }
     }
   }
 
@@ -951,6 +961,8 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+  if(user_activities)
+    json_object_object_add(my_object, "userActivities", user_activities->getJSONObject());
 
   /* Generic Host */
   json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
@@ -1063,6 +1075,7 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
+  if(user_activities) if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities->deserialize(obj);
 
   if(json_object_object_get_ex(o, "is_blacklisted", &obj)) blacklisted_host     = json_object_get_boolean(obj);
 
@@ -1601,6 +1614,97 @@ void Host::incrVisitedWebSite(char *hostname) {
 
     top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
 
+  }
+}
+
+/* *************************************** */
+
+void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes) {
+  if(user_activities) user_activities->incBytes(id, upbytes, downbytes, bgbytes);
+}
+
+/* *************************************** */
+
+const UserActivityCounter* Host::getActivityBytes(UserActivityID id) {
+  return(user_activities ? user_activities->getBytes(id) : NULL);
+}
+
+/* *************************************** */
+
+void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_t when) {
+  if(!ifa_stats)
+    return;
+  else {
+    int k = -1;
+    float worst = 0.f;
+    int i, idx;
+    uint tbase = proto*INTER_FLOW_ACTIVITY_SLOTS;
+
+    for (i=0; (i < INTER_FLOW_ACTIVITY_SLOTS)
+	   && (ifa_stats[tbase+i].flow != flow); i++) {
+      float bad;
+
+      idx = tbase+i;
+      if(ifa_stats[idx].flow == NULL)
+        // empty slot
+        bad = 1.f;
+      else
+        // old value: estimate goodness
+        bad = (when - ifa_stats[idx].last) * 1.f / INTER_FLOW_ACTIVITY_MAX_INTERVAL - ifa_stats[idx].pkts / 100.f;
+
+      if(bad > worst) {
+        k = i;
+        worst = bad;
+      }
+    }
+
+    if(i < INTER_FLOW_ACTIVITY_SLOTS) {
+      idx = tbase+i;
+
+      if((when - ifa_stats[idx].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
+        // update slot
+        ifa_stats[idx].pkts += 1;
+        ifa_stats[idx].last = when;
+        k = -1;
+      } else {
+        // reset slot counters
+        k = i;
+      }
+    }
+
+    if(k != -1) {
+      u_int idx = tbase+k;
+      // allocate or reset slot
+      ifa_stats[idx].flow = flow, ifa_stats[idx].pkts = 1,
+	ifa_stats[idx].first = when, ifa_stats[idx].last = when;
+    }
+  }
+}
+
+/* *************************************** */
+
+void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
+		       int * count, u_int32_t * packets, time_t * max_diff) {
+  *count = 0, *max_diff = 0, *packets = 0;
+
+  if(ifa_stats) {
+    uint tbase = proto*INTER_FLOW_ACTIVITY_SLOTS;
+
+    for(int i=0; i < INTER_FLOW_ACTIVITY_SLOTS; i++) {
+      int idx = tbase+i;
+      bool timeok = (when - ifa_stats[idx].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL;
+      bool continuity = (when - ifa_stats[idx].last) <= INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL;
+
+      if(continuity || timeok) {
+        if(timeok) {
+          *count += 1;
+          *max_diff = max(ifa_stats[idx].last - ifa_stats[idx].first, *max_diff);
+        }
+
+        // this is affected by activity continuity
+        *packets += ifa_stats[idx].pkts;
+      }
+    }
   }
 }
 

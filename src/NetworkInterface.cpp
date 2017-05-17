@@ -25,9 +25,6 @@
 #include <uuid/uuid.h>
 #endif
 
-/* UserActivityStats.cpp */
-extern const char* activity_names[];
-
 /* Lua.cpp */
 extern int ntop_lua_cli_print(lua_State* vm);
 extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
@@ -1614,43 +1611,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-
-  // Detect user activities
-  if((!isSampledTraffic())
-     && (ntop->getPrefs()->is_flow_activity_enabled())) {
-    Host *cli = flow->get_cli_host();
-    Host *srv = flow->get_srv_host();
-
-    if((cli->isLocalHost() || srv->isLocalHost())
-       && (!flow->isSSLProto() || flow->isSSLData())) {
-      UserActivityID activity;
-      u_int64_t up = 0, down = 0, backgr = 0, bytes = payload_len;
-
-      if(flow->getActivityId(&activity)) {
-#ifdef __OpenBSD__
-        struct timeval* tv_when;
-        tv_when->tv_sec  = when->tv_sec;
-        tv_when->tv_usec = when->tv_usec;
-        if(flow->invokeActivityFilter(tv_when, src2dst_direction, payload_len)) {
-#else
-	  if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
-#endif
-	    if(src2dst_direction)
-	      up = bytes;
-	    else
-	      down = bytes;
-	  } else {
-	    backgr = bytes;
-	  }
-
-	  if(cli->isLocalHost())
-	    cli->incActivityBytes(activity, up, down, backgr);
-
-	  if(srv->isLocalHost())
-	    srv->incActivityBytes(activity, down, up, backgr);
-	}
-      }
-    }
 
     return(pass_verdict);
   }
@@ -3834,52 +3794,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* **************************************************** */
 
-  static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
-    HostActivityRetriever * r = (HostActivityRetriever *)user_data;
-    Host *h = (Host*)he;
-    int i;
-
-    if(!h
-       || !h->equal(NULL, &r->search)
-       || (!h->get_user_activities()))
-      return(false); /* false = keep on walking */
-
-    r->found = true;
-    for(i=0; i<UserActivitiesN; i++)
-      r->counters[i] = *h->getActivityBytes((UserActivityID)i);
-
-    return true; /* found, stop walking */
-  }
-
-  /* **************************************************** */
-
-  void NetworkInterface::getLocalHostActivity(lua_State* vm, const char *host) {
-    HostActivityRetriever retriever(host);
-    int i;
-
-    disablePurge(false);
-    walker(walker_hosts, host_activity_walker, &retriever);
-    enablePurge(false);
-
-    if(retriever.found) {
-      lua_newtable(vm);
-      for(i=0; i<UserActivitiesN; i++) {
-	lua_newtable(vm);
-
-	lua_push_int_table_entry(vm, "up", retriever.counters[i].up);
-	lua_push_int_table_entry(vm, "down", retriever.counters[i].down);
-	lua_push_int_table_entry(vm, "background", retriever.counters[i].background);
-
-	lua_pushstring(vm, activity_names[i]);
-	lua_insert(vm, -2);
-	lua_settable(vm, -3);
-      }
-    } else
-      lua_pushnil(vm);
-  }
-
-  /* **************************************************** */
-
   u_int NetworkInterface::purgeIdleFlows() {
     time_t last_packet_time = getTimeLastPktRcvd();
 
@@ -5011,7 +4925,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_ndpi_category(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5025,7 +4939,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Flow *f;
     char buf[32];
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5039,7 +4953,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Flow *f;
     ndpi_protocol p;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR); else p = f->get_detected_protocol();
 
@@ -5052,7 +4966,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_first_seen(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5065,7 +4979,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_last_seen(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5080,7 +4994,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     char buf[64];
     const char *srv;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5098,7 +5012,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_http_url(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5111,7 +5025,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_http_content_type(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5124,279 +5038,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_dump(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
     f->lua(vm, NULL, details_high, false);
-    return(CONST_LUA_OK);
-  }
-
-  /* **************************************** */
-
-  /* -1 on error */
-  static int lua_flow_get_profile_id(lua_State* vm) {
-    Flow *f;
-
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
-    f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-    if(!f) return(CONST_LUA_ERROR);
-
-    UserActivityID uaid;
-    lua_pushnumber(vm, f->getActivityId(&uaid) ? uaid : -1);
-    return(CONST_LUA_OK);
-  }
-
-  /* ****************************************** */
-
-  /* -1 on error */
-  static int lua_flow_get_activity_filter_id(lua_State* vm) {
-    Flow * f;
-
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
-    f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-    if(!f) return(CONST_LUA_ERROR);
-
-    ActivityFilterID fid;
-    lua_pushnumber(vm, f->getActivityFilterId(&fid) ? fid : -1);
-    return(CONST_LUA_OK);
-  }
-
-  /* ****************************************** */
-
-  /*
-   * lua params:
-   *    activityID  - ID of the activity to apply for filtered bytes
-   *    filterID    - ID of the filter to apply to the flow for activity recording
-   *    *parameters  - parameters to pass to the filter - See below
-   *
-   * SMA/WMA filter params:
-   *    edge         - moving average edge to trigger activity
-   *    minsamples   - minimum number of samples for activity detection
-   * WMA filter params:
-   *    timescale    - division scale for each second difference from previous packet. 0 to disable
-   *    aggrsecs     - max packet seconds difference to aggregate. 0 to disable
-   * SMA filter params:
-   *    timebound    - expected time tick in milliseconds between activity packets. 0 to disable
-   *    sustain      - time, in milliseconds, between packets to be considered activity. 0 to disable
-   *
-   * CommandSequence filter params:
-   *    mustwait     - if true, activity trigger requires server to wait after command request
-   *    minbytes     - minimum number of bytes to trigger activity
-   *    maxinterval  - maximum milliseconds difference between interactions
-   *    mincommands  - minimum number of commands seen in the flow to trigger activity
-   *    minflips     - minimum number of server interactions to trigger activity
-   *
-   * Web filter params:
-   *    numsamples   - number of packets to process for detection
-   *    minbytes     - minimum number of bytes to trigger activity
-   *    maxinterval  - maximum milliseconds difference between packets
-   *    serverdominant - if true, server bytes must be more then client bytes
-   *    forceWebProfile - if true, force 'web' profile for unknown and 'other' flow profiles
-   *
-   * Ratio filter params:
-   *    numsamples   - number of packets to process for detection
-   *    minbytes     - minimum number of bytes to trigger activity
-   *    clisrv_ratio - minimum (positive ? client/server : server/client) bytes to trigger activity
-   *
-   * Interflow filter params:
-   *    minflows     - minimum number of concurrent flows. -1 to disable [1]
-   *    minpkts      - minimum number of cumulative packets in concurrent flows to trigger activity
-   *    minduration  - minimum (max duration of cumulative packets) in concurrent flows. -1 to disable [1]
-   *    sslonly      - if true, only SSL traffic can trigger activity
-   *   NOTE: At least one of [1] must be satisfied to trigger activity
-   */
-  static int lua_flow_set_activity_filter(lua_State* vm) {
-    UserActivityID activityID;
-    ActivityFilterID filterID;
-    Flow *f;
-    activity_filter_config config = {};
-    u_int8_t params = 0;
-
-    lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
-    f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-    if(!f) return(CONST_LUA_ERROR);
-
-    if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    activityID = (UserActivityID)((int)lua_tonumber(vm, ++params));
-    if(activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
-
-    if(lua_type(vm, params+1) == LUA_TNUMBER)
-      filterID = (ActivityFilterID)((int)lua_tonumber(vm, ++params));
-    else
-      return(CONST_LUA_ERROR);
-
-    // filter specific parameters
-    switch(filterID) {
-    case activity_filter_all:
-      if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
-        config.all.pass = lua_toboolean(vm, ++params);
-      }
-      switch (params) {
-      case 2+0: config.all.pass = true;
-      }
-      break;
-
-    case activity_filter_web:
-      if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.web.numsamples = lua_tonumber(vm, ++params);
-
-        if(lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.web.minbytes = lua_tonumber(vm, ++params);
-
-          if(lua_type(vm, params+1) == LUA_TNUMBER) {
-            config.web.maxinterval = lua_tonumber(vm, ++params);
-
-            if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
-              config.web.forceWebProfile = lua_toboolean(vm, ++params);
-
-              if(lua_type(vm, params+1) == LUA_TBOOLEAN)
-                config.web.serverdominant = lua_toboolean(vm, ++params);
-            }
-          }
-        }
-      }
-      // defaults
-      switch (params) {
-      case 2+0: config.web.numsamples = 4;
-      case 2+1: config.web.minbytes = 0;
-      case 2+2: config.web.maxinterval = 2000;
-      case 2+3: config.web.forceWebProfile = true;
-      case 2+4: config.web.serverdominant = true;
-      }
-      break;
-
-    case activity_filter_ratio:
-      if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.ratio.numsamples = lua_tonumber(vm, ++params);
-
-        if(lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.ratio.minbytes = lua_tonumber(vm, ++params);
-
-          if(lua_type(vm, params+1) == LUA_TNUMBER)
-            config.ratio.clisrv_ratio = lua_tonumber(vm, ++params);
-        }
-      }
-      // defaults
-      switch (params) {
-      case 2+0: config.ratio.numsamples = 4;
-      case 2+1: config.ratio.minbytes = 0;
-      case 2+2: config.ratio.clisrv_ratio = -1.f;
-      }
-      break;
-
-    case activity_filter_interflow:
-      if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.interflow.minflows = min((int)lua_tonumber(vm, ++params), INTER_FLOW_ACTIVITY_SLOTS);
-
-        if(lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.interflow.minpkts = lua_tonumber(vm, ++params);
-
-          if(lua_type(vm, params+1) == LUA_TNUMBER) {
-            config.interflow.minduration = lua_tonumber(vm, ++params);
-
-            if(lua_type(vm, params+1) == LUA_TBOOLEAN)
-              config.interflow.sslonly = lua_toboolean(vm, ++params);
-          }
-        }
-      }
-      // defaults
-      switch (params) {
-      case 2+0: config.interflow.minflows = INTER_FLOW_ACTIVITY_SLOTS;
-      case 2+1: config.interflow.minpkts = 200;
-      case 2+2: config.interflow.minduration = -1;
-      case 2+3: config.interflow.sslonly = false;
-      }
-      break;
-
-    case activity_filter_metrics_test:
-      break;
-
-    case activity_filter_sma:
-      if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.sma.edge = lua_tonumber(vm, ++params);
-
-        if(lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.sma.minsamples = lua_tonumber(vm, ++params);
-
-          if(lua_type(vm, params+1) == LUA_TNUMBER) {
-            config.sma.timebound = lua_tonumber(vm, ++params);
-
-            if(lua_type(vm, params+1) == LUA_TNUMBER)
-              config.sma.sustain = lua_tonumber(vm, ++params);
-          }
-        }
-      }
-      // defaults
-      switch (params) {
-      case 2+0: config.sma.edge = 0;
-      case 2+1: config.sma.minsamples = ACTIVITY_FILTER_WMA_SAMPLES;
-      case 2+2: config.sma.timebound = 2000;
-      case 2+3: config.sma.sustain = 1000;
-      }
-      break;
-
-    case activity_filter_wma:
-      if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.wma.edge = lua_tonumber(vm, ++params);
-
-        if(lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.wma.minsamples = lua_tonumber(vm, ++params);
-
-          if(lua_type(vm, params+1) == LUA_TNUMBER) {
-            config.wma.timescale = lua_tonumber(vm, ++params);
-
-            if(lua_type(vm, params+1) == LUA_TNUMBER)
-              config.wma.aggrsecs = lua_tonumber(vm, ++params);
-          }
-        }
-      }
-      // defaults
-      switch (params) {
-      case 2+0: config.wma.edge = 0;
-      case 2+1: config.wma.minsamples = ACTIVITY_FILTER_WMA_SAMPLES;
-      case 2+2: config.wma.timescale = 1.f;
-      case 2+3: config.wma.aggrsecs = 0;
-      }
-      break;
-
-    case activity_filter_command_sequence:
-      if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
-        config.command_sequence.mustwait = lua_toboolean(vm, ++params);
-
-        if(lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.command_sequence.minbytes = lua_tonumber(vm, ++params);
-
-          if(lua_type(vm, params+1) == LUA_TNUMBER) {
-            config.command_sequence.maxinterval = lua_tonumber(vm, ++params);
-
-            if(lua_type(vm, params+1) == LUA_TNUMBER) {
-              config.command_sequence.mincommands = lua_tonumber(vm, ++params);
-
-              if(lua_type(vm, params+1) == LUA_TNUMBER)
-                config.command_sequence.minflips = lua_tonumber(vm, ++params);
-            }
-          }
-        }
-      }
-      switch (params) {
-      case 2+0: config.command_sequence.mustwait = false;
-      case 2+1: config.command_sequence.minbytes = 0;
-      case 2+2: config.command_sequence.maxinterval = 3000;
-      case 2+3: config.command_sequence.mincommands = 1;
-      case 2+4: config.command_sequence.minflips = 1;
-      }
-      break;
-
-    default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
-      return (CONST_LUA_ERROR);
-    }
-
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Flow %p setActivityFilter: filter=%d activity=%d", f, filterID, activityID);
-    f->setActivityFilter(filterID, &config);
-    f->setActivityId(activityID);
-
     return(CONST_LUA_OK);
   }
 
@@ -5412,9 +5058,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     { "getHTTPUrl",        lua_flow_get_http_url },
     { "getHTTPContentType",lua_flow_get_http_content_type },
     { "dump",              lua_flow_dump },
-    { "setActivityFilter", lua_flow_set_activity_filter },
-    { "getProfileId",      lua_flow_get_profile_id },
-    { "getActivityFilterId", lua_flow_get_activity_filter_id },
     { NULL,         NULL }
   };
 
@@ -5469,24 +5112,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     lua_register(L, "print", ntop_lua_cli_print);
 
-    // Activity profiles - see ntop_typedefs.h
-    lua_newtable(L);
-    for(int i=0; i<UserActivitiesN; i++)
-      lua_push_int_table_entry(L, activity_names[i], i);
-    lua_setglobal(L, CONST_USERACTIVITY_PROFILES);
-
-    // Activity filters
-    lua_newtable(L);
-    lua_push_int_table_entry(L, "All", activity_filter_all);
-    lua_push_int_table_entry(L, "SMA", activity_filter_sma);
-    lua_push_int_table_entry(L, "WMA", activity_filter_wma);
-    lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
-    lua_push_int_table_entry(L, "Web", activity_filter_web);
-    lua_push_int_table_entry(L, "Ratio", activity_filter_ratio);
-    lua_push_int_table_entry(L, "Interflow", activity_filter_interflow);
-    lua_push_int_table_entry(L, "Metrics", activity_filter_metrics_test);
-    lua_setglobal(L, CONST_USERACTIVITY_FILTERS);
-
     if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
 				   script_path, lua_tostring(L, -1));
@@ -5496,7 +5121,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s", script_path);
 
       lua_pushlightuserdata(L, NULL);
-      lua_setglobal(L, CONST_USERACTIVITY_FLOW);
+      lua_setglobal(L, CONST_FLOW_SCRIPT_FLOW);
     }
 
     return(L);
@@ -5519,8 +5144,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     return(0); // FIX
     if(reloadLuaInterpreter) {
       if(L_flow_create_delete_ndpi || L_flow_update) termLuaInterpreter();
-      L_flow_create_delete_ndpi = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
-      L_flow_update = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
+      L_flow_create_delete_ndpi = initLuaInterpreter(CONST_FLOWSCRIPTS_SCRIPT);
+      L_flow_update = initLuaInterpreter(CONST_FLOWSCRIPTS_SCRIPT);
       reloadLuaInterpreter = false;
     }
 
@@ -5551,7 +5176,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     lua_settop(L, 0); /* Reset stack */
     lua_pushlightuserdata(L, f);
-    lua_setglobal(L, CONST_USERACTIVITY_FLOW);
+    lua_setglobal(L, CONST_FLOW_SCRIPT_FLOW);
 
     lua_getglobal(L, luaFunction); /* function to be called */
     if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {

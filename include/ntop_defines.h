@@ -125,10 +125,7 @@
 #define OTHER_RRD_1MIN_DAYS      30
 #define OTHER_RRD_1H_DAYS        100
 #define OTHER_RRD_1D_DAYS        365
-#define HOST_ACTIVITY_RRD_RAW_HOURS  48
-#define HOST_ACTIVITY_RRD_1H_DAYS    15
-#define HOST_ACTIVITY_RRD_1D_DAYS    90
-#define CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED   false /* disabled by default */
+#define CONST_DEFAULT_ARE_FLOW_SCRIPTS_ENABLED   false
 #define CONST_DEFAULT_TOP_TALKERS_ENABLED        false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
@@ -312,7 +309,7 @@
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
-#define CONST_FLOWACTIVITY_SCRIPT    "flowactivity.lua"
+#define CONST_FLOWSCRIPTS_SCRIPT     "flowactivity.lua"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
@@ -324,9 +321,7 @@
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
-#define CONST_USERACTIVITY_FLOW      "useractivityflow"
-#define CONST_USERACTIVITY_PROFILES  "profile"
-#define CONST_USERACTIVITY_FILTERS   "filter"
+#define CONST_FLOW_SCRIPT_FLOW       "useractivityflow"
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
@@ -376,9 +371,6 @@
 #define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
 #define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
-#define CONST_HOST_ACTIVITY_RRD_RAW_HOURS  "ntopng.prefs.host_activity_rrd_raw_hours"
-#define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
-#define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
 #define CONST_SAFE_SEARCH_DNS              "ntopng.prefs.safe_search_dns"
 #define CONST_GLOBAL_DNS                   "ntopng.prefs.global_dns"
 #define CONST_SECONDARY_DNS                "ntopng.prefs.secondary_dns"
@@ -677,10 +669,6 @@
 #define COMPILE_TIME_ASSERT(X)     _COMPILE_TIME_ASSERT2(X,__LINE__)
 
 #define MAX_NUM_HTTP_REPLACEMENTS                    3
-
-#define INTER_FLOW_ACTIVITY_SLOTS                    5
-#define INTER_FLOW_ACTIVITY_MAX_INTERVAL             5
-#define INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL 20
 
 #define CACHE_LINE_LEN          64
 #define QUEUE_ITEMS             2048 /* pow of 2 */

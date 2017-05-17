@@ -287,32 +287,6 @@ typedef enum {
 } LuaCallback;
 
 typedef enum {
-  user_activity_other = 0,
-  user_activity_web,
-  user_activity_media,
-  user_activity_vpn,
-  user_activity_mail_sync,
-  user_activity_mail_send,
-  user_activity_file_sharing,
-  user_activity_file_transfer,
-  user_activity_chat,
-  user_activity_game,
-  user_activity_remote_control,
-  user_activity_social_network,
-
-  UserActivitiesN /* Unused as value but useful to
-		     getting the number of elements
-		     in this datastructure
-		  */
-} UserActivityID;
-
-typedef enum {
-  ifa_facebook_stats = 0,
-  ifa_twitter_stats,
-  IFA_STATS_PROTOS_N
-} InterFlowActivityProtos;
-
-typedef enum {
   walker_hosts = 0,
   walker_flows,
   walker_macs,

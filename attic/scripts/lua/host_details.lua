@@ -249,10 +249,10 @@ else
 end
 
 if(page == "activities") then
- print("<li class=\"active\"><a href=\"#\">Activity</a></li>\n")
+ print("<li class=\"active\"><a href=\"#\">Activities</a></li>\n")
 else
  if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
-   print("<li><a href=\""..url.."&page=activities\">Activity</a></li>")
+   print("<li><a href=\""..url.."&page=activities\">Activities</a></li>")
  end
 end
 
@@ -1065,6 +1065,163 @@ print [[
 
 	    </td></tr>
       ]]
+
+-- Host activity stats
+if host["localhost"] == true then
+   print [[ <tr><th>Protocol Activity</th><td colspan=2>
+      <div style='margin-top:0.5em;'>
+         <input type="radio" name="showmode" value="updown" onclick="if(this.value != curmode) setShowMode(this.value);" checked> User Traffic<br>
+         <input type="radio" name="showmode" value="bg" onclick="if(this.value != curmode) setShowMode(this.value);"> Background Traffic
+      </div>
+
+      <div id="useractivityContainer"></div>
+
+      <div style='margin-bottom:1em;'>
+	 Resolution:&nbsp;
+	 <select onchange="onChangeStep(this);">
+]]
+
+if(ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == "1") then
+print [[
+
+
+<option disabled>Historical</option>
+	   <option value="86400">1 day</option>
+	   <option value="3600">1 hour</option>
+	   <option value="300" selected="selected">5 min</option>
+<option disabled></option>
+]]
+end
+
+print [[
+<option disabled>Realtime</option>
+	   <option value="60">1 min</option>
+	   <option value="10">10 sec</option>
+	   <option value="5">5 sec</option>
+	   <option value="1">1 sec</option>
+	 </select>
+      </div>
+]]
+
+if(ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == "0") then
+  print('Please enable <A HREF="/lua/admin/prefs.lua?tab=on_disk_rrds">Activities Timeseries</A> preferences to save historical host activities.<p>')
+end
+
+print [[
+      <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
+      <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.rrd-server.js"></script>
+      <style type = "text/css">
+         ]] ntop.dumpFile(dirs.installdir .. "/httpdocs/css/cubism.css") print[[
+      </style>
+      
+         <script type="text/javascript">
+	 var activitiesurl = "]] print(ntop.getHttpPrefix().."/lua/get_host_activity.lua?ifid="..ifId.."&host="..host_ip) print[[";
+         var HorizonGraphWidth = 576;
+	 var curmode = "updown";
+	 var curstep = 0;
+         var context = null;
+         var horizon = null;
+	 var rrdserver = null;
+
+	 function onChangeStep(control) {
+	    var newvalue = control.value;
+	    
+	    if (curstep != newvalue) {
+	       $(control).blur();
+	       setShowMode(curmode, newvalue);
+	    }
+	 }
+
+	 function resetContext(newstep) {	 
+	    if (newstep != curstep) {
+	       // hard reset
+	       curstep = newstep;
+	       $('#useractivity').remove();
+
+	       if (context) {
+		  context.stop();
+		  delete rrdserver;
+		  delete horizon;
+		  delete context;
+	       }
+
+	       var div = $('<div id="useractivity"></div>')
+		  .css("margin", "2em 0 1em 0")
+		  .css("position", "relative")
+		  .css("width", HorizonGraphWidth);
+	       $('#useractivityContainer').append(div);
+
+	       context = cubism.context().size(HorizonGraphWidth).step(curstep*1000);
+	       horizon = context.horizon();
+	       rrdserver = cubism.rrdserver(context, HorizonGraphWidth);
+
+	       // to set labels place on mousemove
+	       context.on("focus", function(i) {
+		  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+	       });
+	    } else {
+	       // soft reset
+	       d3.selectAll(".horizon").remove();
+	       $('#useractivity').empty();
+	    }
+	 }
+
+         function setShowMode(mode, newstep) {
+	    curmode = mode;
+	    newstep = newstep ? newstep : curstep;
+	    if (context)
+	       context.stop();
+	    
+            $.ajax({
+               type: 'GET',
+               url: activitiesurl + '&step=' + newstep,
+               success: function(content) {
+		  resetContext(newstep);
+                  
+                  var metrics = [];
+                  var parsed = JSON.parse(content);
+                  Object.keys(parsed).sort().map(function(activity_name) {
+                     metrics.push(rrdserver.metric(activitiesurl+"&activity="+parsed[activity_name], activity_name, mode === "bg"));
+                  });
+		  if (metrics.length > 0) {
+		     // data
+		     d3.select("#useractivity")
+			.selectAll(".horizon")
+			.data(metrics)
+			.enter().append("div", ".bottom")
+			.attr("class", "horizon")
+			.call(horizon.format(function(x) { return bytesToSize(x); }));
+
+		     // bottom axis
+		     d3.select("#useractivity")
+			.append("div")
+			.attr("class", "axis")
+			.call(context.axis().orient("bottom"));
+
+		     // vertical line on mousemove
+		     d3.select("#useractivity")
+			.append("div")
+			.attr("class", "rule")
+			.call(context.rule());
+
+		     context.start();
+		  } else {
+		     $('#useractivity').text("No data so far");
+		  }
+               }
+            });
+         }
+	 
+         setShowMode("updown", 300);
+      </script>
+      <p>
+      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user traffic (e.g. web page access)
+<br>and background traffic (e.g. your email client periodically checks for email presence). Host traffic sent (upload)<br>
+is marked as negative value in <font color=blue>blue</font>, traffic received (download) is marked as positive in <font color=green>green</font>.
+   </td></tr> ]]
+
+   -- showHostActivityStats(hostbase, "", "1h")
+end
 
 	 print("</table>\n")
    elseif(page == "dns") then

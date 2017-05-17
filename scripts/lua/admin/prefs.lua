@@ -649,12 +649,6 @@ function printStatsTimeseries()
     "host_activity_rrd_1h_days", "id_input_host_activity_rrd_1h_days",
     "host_activity_rrd_1d_days", "id_input_host_activity_rrd_1d_days"}
 
-  if prefs.is_flow_activity_enabled then
-    toggleTableButtonPrefs(subpage_active.entries["toggle_local_activity"].title, subpage_active.entries["toggle_local_activity"].description,
-  	 	         "On", "1", "success", "Off", "0", "danger", "toggle_local_activity", "ntopng.prefs.host_activity_rrd_creation", "0",
-                         not prefs.is_flow_activity_enabled, activityPrefsToSwitch, false)
-  end
-
   local info = ntop.getInfo()
 
   if ntop.isPro() then
@@ -712,14 +706,6 @@ if show_advanced_prefs and false --[[ hide these settings for now ]] then
   --prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "other_rrd_1min_days", prefs.other_rrd_1min_days)
   prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "other_rrd_1h_days", prefs.other_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "other_rrd_1d_days", prefs.other_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
-
-  -- Only shown when toggle_local_activity switch is on
-  if prefs.is_flow_activity_enabled then
-     print('<tr id="local_activity_prefs"><th colspan=2 class="info">Local Activity Timeseries</th></tr>')
-     prefsInputFieldPrefs("Hours for raw stats", "Number of hours for which raw stats are kept. Default: 48.", "ntopng.prefs.", "host_activity_rrd_raw_hours", prefs.host_activity_rrd_raw_hours, "number", nil, nil, nil, {min=1, max=24*7, --[[ TODO check min/max ]]})
-     prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 15.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
-     prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
-  end
 end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
   print('</table>')

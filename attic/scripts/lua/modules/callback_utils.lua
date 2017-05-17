@@ -98,6 +98,37 @@ end
 
 -- ########################################################
 
+-- Creates RRD with local hosts activity.
+-- This is designed to be used as the *callback* parameter of callback_utils.foreachHost
+-- TODO: host is not used so it is useless to call this function through a callback that
+-- retrieves it via getHostInfo every time
+function callback_utils.saveLocalHostsActivity(hostname, host--[[hostinfo]], hostbase, verbose)
+   if host.localhost then
+      local actStats = interface.getHostActivity(hostname)
+      if actStats then
+         local hostsbase = fixPath(hostbase .. "/activity")
+         if(not(ntop.exists(hostsbase))) then
+            if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating host activity directory ", hostsbase, '\n') end
+            ntop.mkdir(hostsbase)
+         end
+
+         for act, val in pairs(actStats) do
+            name = fixPath(hostsbase .. "/" .. act .. ".rrd")
+
+            -- up, down, background bytes
+            createActivityRRDCounter(name, verbose)
+            ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. tolongint(val.background))
+
+            if(verbose) then
+               print("["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..' ['..val.up.."/"..val.down.."/"..val.background..']\n')
+            end
+         end
+      end
+   end
+end
+
+-- ########################################################
+
 function callback_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
    interface.select(ifname)
 

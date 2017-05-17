@@ -381,7 +381,6 @@ class NetworkInterface {
   int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
 		Host *host,
 		Paginator *p);
-  void getLocalHostActivity(lua_State* vm, const char * host);
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();

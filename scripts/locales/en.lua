@@ -547,10 +547,6 @@ local  en = {
       toggle_local_ndpi_title = "Layer-7 Application",
       toggle_local_ndpi_description = "Toggle the creation of application protocols timeseries for local hosts and defined local networks.<br>"..
             "Turn it off to save storage space.",
-      toggle_local_activity_title = "Activities",
-      toggle_local_activity_description = "Toggle the creation of activities timeseries for local hosts.<br>"..
-            "This enables the activity detection heuristics, which try to extract human behaviours from host traffic (e.g. web browsing, chat).<br>"..
-            "Creation is only possible if the ntopng instance has been launched with option --enable-flow-activity.",
       toggle_flow_rrds_title = "Flow Devices",
       toggle_flow_rrds_description = "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
             "For non sFlow devices, the ZMQ fields INPUT_SNMP and OUTPUT_SNMP are required.",

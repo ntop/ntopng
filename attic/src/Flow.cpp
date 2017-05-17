@@ -45,6 +45,13 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
+  if(ntop->getPrefs()->is_flow_activity_enabled()){
+    if((activityDetection = (FlowActivityDetection*)calloc(1, sizeof(FlowActivityDetection))) == NULL)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow activity detection");
+  } else {
+    activityDetection = NULL;
+  }
+
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
     dissect_next_http_packet = false,
@@ -218,6 +225,7 @@ Flow::~Flow() {
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
   if(host_server_name) free(host_server_name);
+  if(activityDetection)free(activityDetection);
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -2902,6 +2910,38 @@ FlowStatus Flow::getFlowStatus() {
    return(status_flow_when_interface_alerted);
 
   return status_normal;
+}
+
+/* ***************************************************** */
+
+void Flow::setActivityFilter(ActivityFilterID fid,
+			     const activity_filter_config * config) {
+  if(activityDetection == NULL)
+    return /* detection disabled */;
+
+  if(activityDetection && (fid < ActivityFiltersN) && config) {
+    activityDetection->filterId = fid;
+    activityDetection->filterSet = true;
+    activityDetection->config = *config;
+    memset(&activityDetection->status, 0, sizeof(activityDetection->status));
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "[%s] Invalid activity filter ID: %u", this, fid);
+  }
+}
+
+/* ***************************************************** */
+
+bool Flow::invokeActivityFilter(const struct timeval *when,
+				bool cli2srv, u_int16_t payload_len) {
+  if(activityDetection == NULL)
+    return false /* detection disabled */;
+
+  if(activityDetection->filterSet)
+    return(activity_filter_funcs[activityDetection->filterId])(&activityDetection->config,
+							       &activityDetection->status, this,
+							       when, cli2srv, payload_len);
+  return(false);
 }
 
 /* ***************************************************** */

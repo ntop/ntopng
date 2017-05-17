@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-17 - ntop.org
+ * (C) 2016-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,18 +19,29 @@
  *
  */
 
-#ifndef _HOST_ACTIVITY_RETRIEVER_H_
-#define _HOST_ACTIVITY_RETRIEVER_H_
+#ifndef _USER_ACTIVITY_STATS_H_
+#define _USER_ACTIVITY_STATS_H_
 
 #include "ntop_includes.h"
 
-class HostActivityRetriever {
-public:
-  IpAddress search;
-  bool found;
+typedef struct {
+    u_int64_t up;
+    u_int64_t down;
+    u_int64_t background;
+  } UserActivityCounter;
+
+class UserActivityStats {
+ private:
   UserActivityCounter counters[UserActivitiesN];
 
-  HostActivityRetriever(const char * ip) { search.set((char *)ip), found = false; };
+ public:
+  UserActivityStats();
+
+  void reset();
+  void incBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
+  const UserActivityCounter * getBytes(UserActivityID id);
+  json_object* getJSONObject();
+  void deserialize(json_object *o);
 };
 
-#endif /* _HOST_ACTIVITY_RETRIEVER_H_ */
+#endif

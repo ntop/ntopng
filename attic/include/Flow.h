@@ -39,6 +39,15 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
+typedef struct {
+  ActivityFilterID filterId;
+  activity_filter_config config;
+  activity_filter_status status;
+  UserActivityID activityId;
+  bool filterSet;
+  bool activitySet;
+} FlowActivityDetection;
+
 typedef enum {
   flow_state_other = 0,
   flow_state_syn,
@@ -144,6 +153,7 @@ class Flow : public GenericHashEntry {
   float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
+  FlowActivityDetection *activityDetection;
 
   /* Counter values at last host update */
   struct {
@@ -402,6 +412,30 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()                  { return state == flow_state_established; }
   inline bool      isFlowAlerted()                  { return(flow_alerted);                   }
   inline void      setFlowAlerted()                 { flow_alerted = true;                    }
+
+  void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
+
+  inline bool getActivityFilterId(ActivityFilterID *out) {
+    if(activityDetection && activityDetection->filterSet) {
+        *out = activityDetection->filterId; return true;
+    }
+    return false;
+  }
+
+  bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
+
+  inline void setActivityId(UserActivityID id) {
+    if(activityDetection == NULL) return;
+    activityDetection->activityId = id; activityDetection->activitySet = true;
+  }
+
+  inline bool getActivityId(UserActivityID *out) {
+    if(activityDetection == NULL) return false;
+    if(activityDetection->activitySet) {
+      *out = activityDetection->activityId; return true;
+    }
+    return false;
+  }
 
 #ifdef NTOPNG_PRO
   void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {

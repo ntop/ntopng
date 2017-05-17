@@ -372,18 +372,6 @@ end, time_threshold) -- end foreachHost
 
   end
 
-  -- Save host activity stats only if flow activities are actually enabled
-  -- TODO: it is pointless to call foreachHost one more time. This is too expensive
-  -- and determines an attitional call to getHostInfo for every host
-  if ((prefs.is_flow_activity_enabled == true) and (ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == true)) then
-     local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
-     if not in_time then
-        callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD activity dump in 5 minutes. Please check your RRD configuration.")
-        return false
-     end
-  end
-
-
   -- Save Host Pools stats every 5 minutes
   if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
     host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)

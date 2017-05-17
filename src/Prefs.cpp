@@ -93,7 +93,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-  enable_flow_activity   = CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED;
+  enable_flow_scripts   = CONST_DEFAULT_ARE_FLOW_SCRIPTS_ENABLED;
 
   /* Defaults */
   active_local_hosts_cache_interval = CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL /* sec */;
@@ -110,9 +110,6 @@ Prefs::Prefs(Ntop *_ntop) {
   other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
   other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
   other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
-  host_activity_rrd_raw_hours = HOST_ACTIVITY_RRD_RAW_HOURS;
-  host_activity_rrd_1h_days   = HOST_ACTIVITY_RRD_1H_DAYS;
-  host_activity_rrd_1d_days   = HOST_ACTIVITY_RRD_1D_DAYS;
   housekeeping_frequency  = HOUSEKEEPING_FREQUENCY;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
@@ -320,7 +317,7 @@ void usage() {
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 "--online-license-check              | Check license online\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
-	 "[--enable-flow-activity]            | Enable local hosts flow activities\n"
+	 "[--enable-flow-scripts]             | Enable LUA scripts executed throughout flows lifetime\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N] <name>         | Assign an identifier to the ntopng instance.\n"
@@ -453,9 +450,6 @@ void Prefs::reloadPrefsFromRedis() {
   other_rrd_1min_days    = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
-  host_activity_rrd_raw_hours = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_RAW_HOURS, HOST_ACTIVITY_RRD_RAW_HOURS);
-  host_activity_rrd_1h_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1H_DAYS, HOST_ACTIVITY_RRD_1H_DAYS);
-  host_activity_rrd_1d_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1D_DAYS, HOST_ACTIVITY_RRD_1D_DAYS);
   housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 						     HOUSEKEEPING_FREQUENCY);
   slack_notifications_enabled          = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false /* Disabled by default */);
@@ -581,7 +575,7 @@ static const struct option long_options[] = {
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
-  { "enable-flow-activity",              no_argument,       NULL, 216 },
+  { "enable-flow-scripts",               no_argument,       NULL, 216 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1093,7 +1087,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
     
   case 216:
-    enable_flow_activity = true;
+    enable_flow_scripts = true;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow activity detection enabled");
     break;
 
@@ -1311,7 +1305,7 @@ void Prefs::lua(lua_State* vm) {
   if(enable_active_local_hosts_cache)
     lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
 
-  lua_push_bool_table_entry(vm, "is_flow_activity_enabled", enable_flow_activity);
+  lua_push_bool_table_entry(vm, "are_flow_scripts_enabled", enable_flow_scripts);
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
@@ -1327,9 +1321,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
-  lua_push_int_table_entry(vm, "host_activity_rrd_raw_hours", host_activity_rrd_raw_hours);
-  lua_push_int_table_entry(vm, "host_activity_rrd_1h_days", host_activity_rrd_1h_days);
-  lua_push_int_table_entry(vm, "host_activity_rrd_1d_days", host_activity_rrd_1d_days);
   lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
@@ -1434,18 +1425,6 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_OTHER_RRD_1D_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
     other_rrd_1d_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS,
-		    strlen((char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS)))
-    host_activity_rrd_raw_hours = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS,
-		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS)))
-    host_activity_rrd_1h_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS,
-		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS)))
-    host_activity_rrd_1d_days = atoi(pref_value);
   else if(!strncmp(pref_name,
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
