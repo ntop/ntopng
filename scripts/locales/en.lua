@@ -942,7 +942,6 @@ local  en = {
    },
 
    details = {
-      mac = "Mac",
       first_last_seen = "First / Last Seen",
       sent_vs_received_traffic_breakdown = "Sent vs Received Traffic Breakdown",
       traffic_sent_received = "Traffic Sent / Received",
@@ -952,8 +951,23 @@ local  en = {
       arp_replies = "ARP Replies",
       ago = "ago",
       rcvd = "Rcvd",
+   },
+
+   mac_details = {
+      mac = "Mac",
       mac_parameter_missing_message = "Mac parameter is missing (internal error ?)",
-      mac_cannot_be_found = "Mac %{mac} cannot be found. ",
+      mac_cannot_be_found_message = "Mac %{mac} cannot be found.",
+   },
+
+   network_details = {
+      network = "Network",
+      network_parameter_missing_message = "Network parameter is missing (internal error ?)",
+      no_available_stats_for_network = "No available stats for network %{network}",
+   },
+
+   network_alert_config = {
+      trigger_network_alerts = "Trigger Network Alerts",
+      trigger_alerts_for_network = "Trigger alerts for Network %{network}",
    },
 
    local_flow_matrix = {
@@ -1005,6 +1019,30 @@ local  en = {
       networks_traffic_with_ipver = "%{networks} with IPv%{ipver} traffic",
       network_list = "Network List",
       network_name = "Network Name",
+   },
+
+   hosts_stats = {
+      ipver_title = "IPv%{version_num}",
+      asn_title = "for AS %{asn}",
+      country_title = "for Country %{country}",
+      mac_title = "with Mac %{mac}",
+      pool_title = "for Pool %{poolname}",
+      vlan_title = "VLAN %{vlan}",
+      hosts = "Hosts",
+      as_info = "AS Info",
+      as_path = "AS Path",
+      as_geolocation = "AS Geolocation",
+      as_prefixes = "AS Prefixes",
+      bgp_updates = "BGP Updates",
+      filter_hosts = "Filter Hosts",
+      all_hosts = "All Hosts",
+      local_hosts_only = "Local Hosts Only",
+      remote_hosts_only = "Remote Hosts Only",
+      host_pool = "Host Pool %{pool_name}",
+      source_id = "Source Id",
+      location = "Location",
+      httpbl = "HTTP:BL",
+      more_info_about_as_popup_msg = "More Information about AS",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

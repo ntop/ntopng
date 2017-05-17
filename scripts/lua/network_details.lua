@@ -30,14 +30,14 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(network == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Network parameter is missing (internal error ?)</div>")
+    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> ".. i18n("network_details.network_parameter_missing_message") .. "</div>")
     return
 end
 
 rrdname = dirs.workingdir .. "/" .. ifId .. "/subnetstats/" .. getPathFromKey(network_name) .. "/bytes.rrd"
 
 if(not ntop.exists(rrdname)) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for network "..network_name.."</div>")
+    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("network_details.no_available_stats_for_network",{network=network_name}) .. "</div>")
     return
 end
 
@@ -52,7 +52,7 @@ print [[
 <ul class="nav navbar-nav">
 ]]
 
-print("<li><a href=\"#\">Network: "..network_name.."</A> </li>")
+print("<li><a href=\"#\">" .. i18n("network_details.network") .. ": "..network_name.."</A> </li>")
 
 if(page == "historical") then
     print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
@@ -136,13 +136,13 @@ elseif (page == "config") then
    end
 
       print [[<tr>
-         <th>Trigger Network Alerts</th>
+         <th>]] print(i18n("network_alert_config.trigger_network_alerts")) print[[</th>
          <td>
             <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
                <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
                <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  Trigger alerts for Network ]] print(network_name) print[[
+                  ]] print(i18n("network_alert_config.trigger_alerts_for_network",{network=network_name})) print[[
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
