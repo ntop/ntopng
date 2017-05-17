@@ -21,7 +21,6 @@
 
 #include "ntop_includes.h"
 
-
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
 
@@ -641,24 +640,25 @@ const char* AlertsManager::getAlertLevel(AlertLevel alert_severity) {
 
 /* **************************************************** */
 
+/* Note: keep in sync with lua  */
 const char* AlertsManager::getAlertType(AlertType alert_type) {
   switch(alert_type) {
   case alert_none:                   return("No alert");
-  case alert_syn_flood:              return("SYN flood");
-  case alert_flow_flood:             return("Flow flood");
-  case alert_threshold_exceeded:     return("Threshold exceeded");
-  case alert_dangerous_host:         return("Dangerous host");
+  case alert_syn_flood:              return("TCP SYN Flood");
+  case alert_flow_flood:             return("Flows Flood");
+  case alert_threshold_exceeded:     return("Threshold Cross");
+  case alert_dangerous_host:         return("Blacklisted Host");
   case alert_periodic_activity:      return("Periodic activity");
-  case alert_quota:                  return("Quota exceeded");
-  case alert_malware_detection:      return("Malware detection");
-  case alert_host_under_attack:      return("Under attack");
-  case alert_host_attacker:          return("Host attacker");
-  case alert_app_misconfiguration:   return("Application misconfigured");
-  case alert_suspicious_activity:    return("Suspicious activity");
-  case alert_too_many_alerts:        return("Too many alerts");
+  case alert_quota:                  return("Quota Exceeded");
+  case alert_malware_detection:      return("Malware Detected");
+  case alert_host_under_attack:      return("Under Attack");
+  case alert_host_attacker:          return("Ongoing Attacker");
+  case alert_app_misconfiguration:   return("Misconfigured App");
+  case alert_suspicious_activity:    return("Suspicious Activity");
+  case alert_too_many_alerts:        return("Too Many Alerts");
   case alert_db_misconfiguration:    return("MySQL open_files_limit too small");
   case alert_interface_alerted:      return("Interface Alerted");
-  case alert_flow_misbehaviour:      return("Flow misbehaviour");
+  case alert_flow_misbehaviour:      return("Flow Misbehaviour");
   }
 
   return(""); /* NOTREACHED */
@@ -683,7 +683,7 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
         bool engage) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     json_object *notification;
-    char alert_sender_name[64], message[2015], notification_username[96];
+    char alert_sender_name[64], message[1024], notification_username[96];
     const char *json_alert, *level;
 
     if((notification = json_object_new_object()) == NULL) return;
@@ -708,13 +708,35 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 			     json_object_new_string(notification_username));
     }
 
-    snprintf(message, sizeof(message), "%s%s [%s][%s][Origin: %s][Target: %s]",
-	     engaged_alert_id ? (engage ? "Alert Engaged: " : "Alert Released: ") : "",
-	     getAlertType(alert_type),
-	     alert_entity_value ? alert_entity_value : "",
-	     engaged_alert_id ? engaged_alert_id : "",
-	     alert_origin ? alert_origin : "",
-	     alert_target ? alert_target : "");
+    /* Initial information */
+    size_t len = snprintf(message, sizeof(message), "%s[%s] ",
+       engaged_alert_id ? (engage ? "Alert Engaged" : "Alert Released") : "",
+       getAlertType(alert_type));
+
+    if ((alert_json != NULL) && (alert_json[0] != '\0')) {
+      /* A message has been provided - convert HTML characters to slack format */
+      int open_tags = 0;
+      int j = len;
+
+      for (int i=0; (alert_json[i] != '\0') && (j < (int)sizeof(message)); i++) {
+        if (alert_json[i] == '<')
+          open_tags++;
+        else if (alert_json[i] == '>')
+          open_tags--;
+        else if (! open_tags)
+          message[j++] = alert_json[i];
+      }
+
+      message[j] = '\0';
+    } else {
+      /* Use a standard message */
+      snprintf(&message[len], sizeof(message)-len, "[%s][%s][Origin: %s][Target: %s]",
+        alert_entity_value ? alert_entity_value : "",
+        engaged_alert_id ? engaged_alert_id : "",
+        alert_origin ? alert_origin : "",
+        alert_target ? alert_target : "");
+    }
+
     json_object_object_add(notification, "text", json_object_new_string(message));
 
     json_alert = json_object_to_json_string(notification);

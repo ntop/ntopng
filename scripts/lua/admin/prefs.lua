@@ -274,7 +274,7 @@ function printExternalAlertsReport()
 
   prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
 		       "ntopng.alerts.", "slack_webhook",
-		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true})
+		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
 
   if(ntop.isPro() and hasNagiosSupport()) then
     print('<tr><th colspan=2 class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')

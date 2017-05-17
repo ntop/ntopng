@@ -810,7 +810,7 @@ char* Flow::print(char *buf, u_int buf_len) {
     ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.app_protocol;
 
   snprintf(buf, buf_len,
-	   "%s %s:%u > %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
+	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
 #endif

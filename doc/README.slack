@@ -18,17 +18,21 @@ All you need to do is:
 3. Invite people to channels
 
 4. Find on the slack page your webhook
-   Browse Apps > Custom Integrations > Incoming WebHooks > Edit configuration
-   It should look similar to
+   - Login into Slack
+   - Visit https://my.slack.com/services/new/incoming-webhook/
+   - Click "Add Incoming WebHooks integration", the channel does not matter
+   - Annotate the "Webhook URL"
+   - Click "Save", the other settings do not matter
+
+   The Webhook URL should look similar to
    https://hooks.slack.com/services/ZZZZZZZZZZZz/YYYYYYYYY/XXXXXXXXXXXXX
 
    See https://api.slack.com/tutorials/your-first-slash-command for more details
    about creating your webhook
-   
+
 5. Go to ntopng menu Preferences > Alerts and set
    - Enable slack integration to ON
    - Set a name for the alert sender (e.g. myntopbot)
    - Set the webhook to the value you have found on the previous step
 
 6. Wait until an alert is generated
-
