@@ -664,9 +664,5 @@ function checkOpenFiles()
 	    interface.releaseInterfaceAlert(alertEngine("startup"), alert_id, alert_type, alert_severity, alert_msg)
 	 end
       end
-
-      if engaged_alerts > 0 then
-	 interface.refreshNumAlerts() -- light refresh just for the footer
-      end
    end
 end

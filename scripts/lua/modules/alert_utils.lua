@@ -385,12 +385,6 @@ function performAlertsQuery(statement, what, opts, force_query)
       error("Invalid alert subject: "..what)
    end
 
-   -- trigger counters refresh
-   if trimSpace(statement:lower()) == "delete" then
-      -- keep counters in sync only for engaged alerts
-      interface.refreshNumAlerts()
-   end
-
    return res
 end
 

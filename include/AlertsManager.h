@@ -93,7 +93,7 @@ class AlertsManager : protected StoreManager {
   int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
 		    u_int32_t start_offset, u_int32_t end_offset,
 		    const char *sql_where_clause);
-  int getNumAlerts(bool engaged, const char *sql_where_clause);
+  int getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled=false);
   int getNumFlowAlerts(const char *sql_where_clause);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */
@@ -101,6 +101,11 @@ class AlertsManager : protected StoreManager {
   bool isValidFlow(Flow *f);
   bool isValidNetwork(const char *cidr);
   bool isValidInterface(NetworkInterface *n);
+
+  inline void refreshCachedNumAlerts() {
+    num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL), true);
+    alerts_stored = (getNumAlerts(false,  static_cast<char*>(NULL), true) + getNumFlowAlerts()) > 0;
+  }
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
@@ -205,10 +210,6 @@ class AlertsManager : protected StoreManager {
     ========== counters API ======
   */
   int getCachedNumAlerts(lua_State *vm);
-  inline void refreshCachedNumAlerts() {
-    num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
-    alerts_stored = (getNumAlerts(false,  static_cast<char*>(NULL)) + getNumFlowAlerts()) > 0;
-  }
   inline int getNumAlerts(bool engaged) {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
     return getNumAlerts(engaged, "alert_severity=2" /* errors only */);

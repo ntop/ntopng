@@ -1300,8 +1300,8 @@ int AlertsManager::getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
 
 /* **************************************************** */
 
-int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
+int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled) {
+  if(ignore_disabled || !ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc;
