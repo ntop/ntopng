@@ -249,7 +249,7 @@ local function validateFlowStatus(mode)
 end
 
 local function validatePolicyPreset(mode)
-   local modes = {"children", "business"}
+   local modes = {"children", "business", "no_obfuscation", "walled_garden"}
 
    return validateChoice(modes, mode)
 end

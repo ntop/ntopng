@@ -900,6 +900,8 @@ local  en = {
       captive_portal_users = "Captive Portal Users",
       business_preset = "Business: no P2P, limited social networks and games time",
       children_preset = "Children: Safe Search enabled, limited games time",
+      no_obfuscation_preset = "No Obfuscation: no obfuscation software (e.g. VPNs)",
+      walled_garden_preset = "Walled Garden: no obfuscation software, no social networks",
       no_preset = "Do not use a preset",
    },
 

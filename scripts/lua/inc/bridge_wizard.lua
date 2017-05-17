@@ -75,6 +75,8 @@ local steps = {
         <option value="" selected>]]..i18n("bridge_wizard.no_preset")..[[</option>
         <option value="children">]]..i18n("bridge_wizard.children_preset")..[[</option>
         <option value="business">]]..i18n("bridge_wizard.business_preset")..[[</option>
+        <option value="no_obfuscation">]]..i18n("bridge_wizard.no_obfuscation_preset")..[[</option>
+        <option value="walled_garden">]]..i18n("bridge_wizard.walled_garden_preset")..[[</option>
      </select><br><br>]]..i18n("bridge_wizard.fine_tune", {url=ntop.getHttpPrefix().."/lua/if_stats.lua?page=filtering"}),
      size = 2,
   }, { -- Step 5
