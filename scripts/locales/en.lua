@@ -681,6 +681,8 @@ local  en = {
       toggle_shaping_directions_description = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",
       toggle_captive_portal_title = "Captive Portal",
       toggle_captive_portal_description = "Enable the web captive portal for authenticating network users.",
+      captive_portal_url_title = "Redirection URL",
+      captive_portal_url_description = "The URL your clients will be redirected to after a successful captive portal authentication.",
       captive_portal_disabled_message = "This button is <b>disabled</b> as the ntopng web GUI has NOT been started on port 80 that is required by the captive portal (-w command line parameter, e.g. -w 80,3000).",
       bind_dn_title = "LDAP Bind DN",
       bind_dn_description = "Bind Distinguished Name of LDAP server. Example:",
@@ -717,9 +719,15 @@ local  en = {
       safe_search_dns_title = "Safe Search DNS",
       safe_search_dns_description = "The DNS server to be used to perform <a href='%{url}'>Safe Search</a> queries.<br>"..
             "Safe Search can be enabled for individual host pools from the host pools configuration page. Default: 208.67.222.123.",
-      global_dns_title = "Global DNS",
-      global_dns_description = "A DNS server to redirect the clients DNS requests to. If empty, the redirection is disabled and the default DNS is used.<br>"..
-            "Here is a list of featured DNS secure servers:",
+      global_dns_title = "Global Primary DNS",
+      global_dns_description = "A DNS server to redirect the clients DNS requests to. If empty, the redirection is disabled and the default DNS is used.",
+      secondary_dns_title = "Global Secondary DNS",
+      secondary_dns_description = "A fallback DNS server to use when the primary DNS server is not available.",
+      featured_dns_title = "Featured DNS Servers",
+      featured_dns_description = "The following is a list of secure DNS servers. You can use them as a global DNS servers or as as safe search provider.",
+      dns_service = "Service",
+      primary_dns = "Primary DNS",
+      secondary_dns = "Secondary DNS",
    },
 
    entity_thresholds = {

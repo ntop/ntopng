@@ -381,12 +381,14 @@
 #define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
 #define CONST_SAFE_SEARCH_DNS              "ntopng.prefs.safe_search_dns"
 #define CONST_GLOBAL_DNS                   "ntopng.prefs.global_dns"
+#define CONST_SECONDARY_DNS                "ntopng.prefs.secondary_dns"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
 #define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
 #define CONST_PROFILES_PREFS               "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS            "ntopng.profiles_counters.ifid_%i"
 #define CONST_MAC_LAST_SEEN                "ntopng.mac_last_seen.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
+#define CONST_PREFS_REDIRECTION_URL        "ntopng.prefs.redirection_url"
 #define HOST_POOL_IDS_KEY                  "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY              "ntopng.prefs.%u.host_pools.members.%s"
 #define HOST_POOL_DUMP_KEY                 "ntopng.prefs.%u.host_pools.dump"
@@ -597,6 +599,7 @@
 #define STORE_MANAGER_MAX_KEY                20
 #define DEFAULT_GLOBAL_DNS                   ""
 #define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
+#define DEFAULT_REDIRECTION_URL              "http://www.ntop.org"
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"

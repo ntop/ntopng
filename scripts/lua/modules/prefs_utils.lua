@@ -252,13 +252,22 @@ menu_subpages = {
     }, global_dns = {
       title       = i18n("prefs.global_dns_title"),
       description = i18n("prefs.global_dns_description"),
+    }, secondary_dns = {
+      title       = i18n("prefs.secondary_dns_title"),
+      description = i18n("prefs.secondary_dns_description"),
+    }, featured_dns = {
+      title       = i18n("prefs.featured_dns_title"),
+      description = i18n("prefs.featured_dns_description"),
     }, toggle_shaping_directions = {
       title       = i18n("prefs.toggle_shaping_directions_title"),
       description = i18n("prefs.toggle_shaping_directions_description"),
     }, toggle_captive_portal = {
       title       = i18n("prefs.toggle_captive_portal_title"),
       description = i18n("prefs.toggle_captive_portal_description"),
-    },
+    }, captive_portal_url = {
+      title       = i18n("prefs.captive_portal_url_title"),
+      description = i18n("prefs.captive_portal_url_description"),
+    }
   }},
 }
 
@@ -378,7 +387,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         ntop.setPref(k, tostring(v))
         value = v
       elseif (v_s ~= nil) then
-      	if(allowURLs) then
+      	if(allowURLs or (extra.pattern == getURLPattern())) then
 	        v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
         	v_s = string.gsub(v_s, "ldap:__", "ldap://")
 		v_s = string.gsub(v_s, "http:__", "http://")
@@ -391,12 +400,17 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       notifyNtopng(key)
     end
   else
-    v_s = ntop.getPref(k)
+    local v_s = nil
+    if not isEmptyString(prekey) then
+      v_s = ntop.getPref(k)
+    end
     value = v_s
     if((v_s==nil) or (v_s=="")) then
-      ntop.setPref(k, tostring(default_value))
       value = default_value
-      notifyNtopng(key)
+      if not isEmptyString(prekey) then
+        ntop.setPref(k, tostring(default_value))
+        notifyNtopng(key)
+      end
     end
   end
 
@@ -482,6 +496,13 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   </td></tr>
 ]]
 
+end
+
+function prefsInformativeField(label, comment, showEnabled, extra)
+  local extra = extra or {}
+  extra["style"] = extra["style"] or {}
+  extra["style"]["display"] = "none"
+  prefsInputFieldPrefs(label, comment, "", "", "", nil, showEnabled, nil, nil, extra)
 end
 
 function toggleTableButton(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field, redis_key, disabled)

@@ -352,37 +352,50 @@ function printBridgingPrefs()
 
   print('<table class="table">')
 
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.traffic_shaping")..'</th></tr>')
-  toggleTableButtonPrefs(subpage_active.entries["toggle_shaping_directions"].title, subpage_active.entries["toggle_shaping_directions"].description,
+  if show_advanced_prefs then
+    print('<tr><th colspan=2 class="info">'..i18n("prefs.traffic_shaping")..'</th></tr>')
+    toggleTableButtonPrefs(subpage_active.entries["toggle_shaping_directions"].title, subpage_active.entries["toggle_shaping_directions"].description,
        "On", "1", "success",
        "Off", "0", "danger",
        "toggle_shaping_directions", "ntopng.prefs.split_shaping_directions", "0")
+  end
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
+
   prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
         "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
-  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description..[[
-        <ul>
-          <li><a href="https://www.comodo.com/secure-dns/">Comodo Secure DNS</a>: 8.26.56.26, 8.20.247.20</li>
-          <li><a href="http://dyn.com/labs/dyn-internet-guide/">Dyn Internet Guide</a>: 216.146.35.35, 216.146.36.36</li>
-          <li><a href="http://www.fooldns.com/fooldns-community/english-version/">FoolDNS</a>: 87.118.111.215, 213.187.11.62</li>
-          <li><a href="http://members.greentm.co.uk/">GreenTeam Internet</a>: 81.218.119.11, 209.88.198.133</li>
-          <li><a href="https://www.opendns.com/">OpenDNS</a>: 208.67.222.222, 208.67.220.220</li>
-          <li><a href="https://www.opendns.com/setupguide/?url=familyshield">OpenDNS - FamilyShield</a>: 208.67.222.123, 208.67.220.123</li>
-          <li><a href="https://dns.norton.com/">Norton ConnectSafe - Security</a>: 199.85.126.10, 199.85.127.10</li>
-          <li><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Pornography</a>: 199.85.126.20, 199.85.127.20</li>
-          <li><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Other</a>: 199.85.126.30, 199.85.127.30</li>
-        </ul>
-        ]],
+  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
         "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
+  prefsInputFieldPrefs(subpage_active.entries["secondary_dns"].title, subpage_active.entries["secondary_dns"].description,
+        "ntopng.prefs.", "secondary_dns", prefs.secondary_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
+
+  prefsInformativeField(subpage_active.entries["featured_dns"].title, subpage_active.entries["featured_dns"].description..[[<br><br>
+        <table class='table table-bordered table-condensed small'>
+          <tr><th>]]..i18n("prefs.dns_service")..[[</th><th>]]..i18n("prefs.primary_dns")..[[</th><th>]]..i18n("prefs.secondary_dns")..[[</th></tr>
+          <tr><td><a href="https://www.comodo.com/secure-dns/">Comodo Secure DNS</a></td><td>8.26.56.26</td><td>8.20.247.20</td></tr>
+          <tr><td><a href="http://dyn.com/labs/dyn-internet-guide/">Dyn Internet Guide</a><td>216.146.35.35</td><td>216.146.36.36</td></tr>
+          <tr><td><a href="http://www.fooldns.com/fooldns-community/english-version/">FoolDNS</a></td><td>87.118.111.215</td><td>213.187.11.62</td></tr>
+          <tr><td><a href="http://members.greentm.co.uk/">GreenTeam Internet</a></td><td>81.218.119.11</td><td>209.88.198.133</td></tr>
+          <tr><td><a href="https://www.opendns.com/">OpenDNS</a></td><td>208.67.222.222</td><td>208.67.220.220</td></tr>
+          <tr><td><a href="https://www.opendns.com/setupguide/?url=familyshield">OpenDNS - FamilyShield</a></td><td>208.67.222.123</td><td>208.67.220.123</td></tr>
+          <tr><td><a href="https://dns.norton.com/">Norton ConnectSafe - Security</a></td><td>199.85.126.10</td><td>199.85.127.10</td></tr>
+          <tr><td><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Pornography</a></td><td>199.85.126.20</td><td>199.85.127.20</td></tr>
+          <tr><td><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Other</a></td><td>199.85.126.30</td><td>199.85.127.30</td></tr>
+        </table>
+        ]], true)
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
 
+  local captivePortalElementsToSwitch = {"redirection_url"}
   toggleTableButtonPrefs(subpage_active.entries["toggle_captive_portal"].title, subpage_active.entries["toggle_captive_portal"].description .. label,
 			 "On", "1", "success",
 			 "Off", "0", "danger",
 			 "toggle_captive_portal", "ntopng.prefs.enable_captive_portal", "0",
-			 not(show))
+			 not(show), captivePortalElementsToSwitch)
+
+  local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
+  prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
+        "ntopng.prefs.", "redirection_url", prefs.redirection_url, nil, to_show, false, nil, {required=true, pattern=getURLPattern()})
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
 

@@ -822,6 +822,8 @@ local known_parameters = {
    ["host_activity_rrd_raw_hours"]                 =  validateNumber,
    ["safe_search_dns"]                             =  validateIPV4,
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
+   ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
+   ["redirection_url"]                             =  validateSingleWord,
 
    -- Multiple Choice
    ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx"}),
