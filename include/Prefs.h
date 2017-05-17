@@ -84,7 +84,7 @@ class Prefs {
   char *redis_password;
   char *pid_path;
   char *cpu_affinity;
-  char *safe_search_dns, *global_dns;
+  u_int32_t safe_search_dns_ip, global_dns_ip;
   u_int8_t redis_db_id;
   int redis_port;
   int dns_mode;
@@ -169,8 +169,6 @@ class Prefs {
   inline char* get_httpbl_key()                         { return(httpbl_key);  };
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline char* get_instance_name()                      { return(instance_name); };
-  inline char* get_safe_search_dns()                    { return(safe_search_dns); };
-  inline char* get_global_dns()                         { return(global_dns); };
   inline int   get_max_num_alerts_per_entity()          { return(max_num_alerts_per_entity); };
   inline int   get_max_num_flow_alerts()                { return(max_num_flow_alerts); };
   inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); }
@@ -247,7 +245,9 @@ class Prefs {
   inline char* get_ls_proto()		{ return(ls_proto);		 };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
-  inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
+  inline u_int32_t get_safe_search_dns_ip() { return(safe_search_dns_ip);};
+  inline u_int32_t get_global_dns_ip()      { return(global_dns_ip);     };
+  inline char* getInterfaceAt(int id)   { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }

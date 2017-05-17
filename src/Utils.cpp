@@ -2059,12 +2059,13 @@ bool Utils::maskHost(bool isLocalIP) {
 
 void Utils::luaCpuLoad(lua_State* vm) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
-  u_int64_t user, nice, system, idle, iowait, irq, softirq;
+  long unsigned int user, nice, system, idle, iowait, irq, softirq;
   FILE *fp;
 
   if(vm) {
     if((fp = fopen("/proc/stat", "r"))) {
-      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu", &user, &nice, &system, &idle, &iowait, &irq, &softirq);
+      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu", 
+	     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
       fclose(fp);
 
       lua_push_int_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
@@ -2078,7 +2079,7 @@ void Utils::luaCpuLoad(lua_State* vm) {
 
 void Utils::luaMeminfo(lua_State* vm) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
-  u_int64_t memtotal = 0, memfree = 0, buffers = 0, cached = 0, sreclaimable = 0, shmem = 0;
+  long unsigned int memtotal = 0, memfree = 0, buffers = 0, cached = 0, sreclaimable = 0, shmem = 0;
   char *line = NULL;
   size_t len;
   ssize_t read;
