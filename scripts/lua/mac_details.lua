@@ -32,14 +32,14 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(mac == nil) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("details.mac_parameter_missing_message") .. "</div>")
+   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("mac_details.mac_parameter_missing_message") .. "</div>")
    return
 end
 
 mac_info = interface.getMacInfo(mac, vlanId)
 
 if(mac_info == nil) then
-      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("details.mac_cannot_be_found",{mac=mac}))
+      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
       print("</div>")
       dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       return
@@ -52,7 +52,7 @@ print [[
 <ul class="nav navbar-nav">
 ]]
 
-print("<li><a href=\"#\">"..i18n("details.mac")..": "..mac.."</A> </li>")
+print("<li><a href=\"#\">"..i18n("mac_details.mac")..": "..mac.."</A> </li>")
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 
    print("<li><a href='javascript:history.go(-1)'><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
