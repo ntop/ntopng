@@ -42,7 +42,8 @@ MacManufacturers::MacManufacturers(const char * const home) {
 
 void MacManufacturers::init() {
   struct stat buf;
-  char * line = NULL, *manuf = NULL, *cr;
+  FILE *fd;
+  char line[256], *manuf = NULL, *cr;
   u_int8_t mac[3];
   char short_name[9];
   mac_manufacturers_t *s;
@@ -50,78 +51,77 @@ void MacManufacturers::init() {
   if(!(stat(manufacturers_file, &buf) == 0) && (S_ISREG(buf.st_mode)))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "File %s doesn't exists or is not readable", manufacturers_file);
 
-  ifstream infile(manufacturers_file);
-  string stringline;
+  if((fd = fopen(manufacturers_file, "r")) == NULL)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read %s", manufacturers_file);
 
-  while (std::getline(infile, stringline)) {
-    line = strdup(stringline.c_str());
-    //while ((readb = getline(&line, &len, fd)) != -1) {
-    char *tab = strchr(line, '\t');
+  if(fd) {
+    while (fgets(line, sizeof(line), fd)) {
+      char *tab = strchr(line, '\t');
 
-    if((sscanf(line, "%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2]) == 3) &&
-       (tab != NULL)) {
+      if((sscanf(line, "%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2]) == 3) &&
+         (tab != NULL)) {
 
-      // printf("Retrieved line of length %zu :\n", read);
-      // printf("%s", line);
+	// printf("Retrieved line of length %zu :\n", read);
+	// printf("%s", line);
 
-      /* Lines are like:
-	 00:05:02        Apple                  # Apple, Inc.
-	 So it is possible to use '# ' as the full manufacturer name separator
-      */
-      if((manuf = strstr(line, "# ")) == NULL)
-	continue;
-      manuf += 2;
+	/* Lines are like:
+	   00:05:02        Apple                  # Apple, Inc.
+	   So it is possible to use '# ' as the full manufacturer name separator
+	 */
+	if((manuf = strstr(line, "# ")) == NULL)
+	  continue;
+	manuf += 2;
 
-      if((cr = strchr(manuf, '\n')))
-	*cr = '\0';
+	if((cr = strchr(manuf, '\n')))
+	   *cr = '\0';
 
-      HASH_FIND(hh, mac_manufacturers, mac, 3, s);
-      if(!s) {
-	if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
-	  int i, j;
+	HASH_FIND(hh, mac_manufacturers, mac, 3, s);
+	if(!s) {
+	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
+	    int i, j;
 	    
-	  memcpy(s->mac_manufacturer, mac, 3);
-	  s->manufacturer_name = (char*)malloc(strlen(manuf)+1);
+	    memcpy(s->mac_manufacturer, mac, 3);
+	    s->manufacturer_name = (char*)malloc(strlen(manuf)+1);
 
-	  /* TODO: reduce memory usage for recurrent manufacturers */
-	  if(s->manufacturer_name) {
-	    /* 
-	       We need to zap chars like ' and " that
-	       can corrupt html
-	    */
-	    for(i=0, j=0; manuf[i] != '\0'; i++) {
-	      switch(manuf[i]) {
-	      case '"':
-	      case '\'':
-		break;
+	    /* TODO: reduce memory usage for recurrent manufacturers */
+	    if(s->manufacturer_name) {
+	      /* 
+		 We need to zap chars like ' and " that
+		 can corrupt html
+	      */
+	      for(i=0, j=0; manuf[i] != '\0'; i++) {
+		switch(manuf[i]) {
+		case '"':
+		case '\'':
+		  break;
 		  
-	      default:
-		s->manufacturer_name[j++] = manuf[i];
+		default:
+		  s->manufacturer_name[j++] = manuf[i];
+		}
 	      }
-	    }
 
-	    s->manufacturer_name[j++] = '\0';
-	  }
+	      s->manufacturer_name[j++] = '\0';
+	    }
 	    
-	  sscanf(tab, "%8s", short_name);
-	  s->short_name = strdup(short_name);
-	  HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
+	    sscanf(tab, "%8s", short_name);
+	    s->short_name = strdup(short_name);
+	    HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
 
 #ifdef MANUF_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				       "Adding mac %02x:%02x:%02x [manufacturer name: %s]",
-				       s->mac_manufacturer[0],
-				       s->mac_manufacturer[1],
-				       s->mac_manufacturer[2],
-				       s->manufacturer_name);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					 "Adding mac %02x:%02x:%02x [manufacturer name: %s]",
+					 s->mac_manufacturer[0],
+					 s->mac_manufacturer[1],
+					 s->mac_manufacturer[2],
+					 s->manufacturer_name);
 #endif
+	  }
 	}
       }
     }
-    if(line)
-      free(line);
-  }
 
+    fclose(fd);
+  }
 }
 
 /* *************************************** */
