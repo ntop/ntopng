@@ -1,4 +1,4 @@
-/*
+ /*
  *
  * (C) 2013-17 - ntop.org
  *
@@ -56,12 +56,11 @@ void MacManufacturers::init() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read %s", manufacturers_file);
 
   if(fd) {
-    while (fgets(line, sizeof(line), fd)) {
+    while(fgets(line, sizeof(line), fd)) {
       char *tab = strchr(line, '\t');
 
-      if((sscanf(line, "%02hhx:%02hhx:%02hhx", &_mac[0], &_mac[1], &_mac[2]) == 3)
-		  && (tab != NULL)) {
-
+      if((sscanf(line, "%02x:%02x:%02x", &_mac[0], &_mac[1], &_mac[2]) == 3)
+	 && (tab != NULL)) {
 	// printf("Retrieved line of length %zu :\n", read);
 	// printf("%s", line);
 

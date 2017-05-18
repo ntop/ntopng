@@ -246,6 +246,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       asname = as->get_asname();
     }
 
+    if(city) free(city);
     ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
     if(localHost || systemHost) {
@@ -906,6 +907,7 @@ json_object* Host::getJSONObject() {
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
+  if(city) free(city);
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
@@ -1028,6 +1030,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
+  if(city) free(city);
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   if(json_object_object_get_ex(o, "localHost", &obj)) localHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "systemHost", &obj)) systemHost = (json_object_get_boolean(obj) ? true : false);

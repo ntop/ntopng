@@ -58,8 +58,6 @@ end
 
 if(protocol_id == nil) then protocol_id = "" end
 
-
-
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host_info["host"] .. ", Vlan: "..host_vlan.."\n") end
 
