@@ -3251,7 +3251,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     p->serverMode(&server_mode);
     bool local_hosts = ((client_mode == location_local_only) && (server_mode == location_local_only));
 
-    highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
+    if (! p->getDetailsLevel(&highDetails))
+      highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
     retriever.pag = p;
     retriever.host = host, retriever.location = location_all;

@@ -46,6 +46,9 @@ Paginator::Paginator() {
   unidirectional_traffic = -1;
   alerted_flows = -1;
 
+  details_level = details_normal;
+  details_level_set = false;
+
   /*
     TODO MISSING
 
@@ -107,6 +110,21 @@ void Paginator::readOptions(lua_State *L, int index) {
 	    server_mode = location_remote_only;
 	  else
 	    server_mode = location_all;
+	} else if(!strcmp(key, "detailsLevel")) {
+	  const char* value = lua_tostring(L, -1);
+	  if(!strcmp(value, "normal")) {
+	    details_level = details_normal;
+	    details_level_set = true;
+	  } else if(!strcmp(value, "high")) {
+	    details_level = details_high;
+	    details_level_set = true;
+	  } else if(!strcmp(value, "higher")) {
+	    details_level = details_higher;
+	    details_level_set = true;
+	  } else if(!strcmp(value, "max")) {
+	    details_level = details_max;
+	    details_level_set = true;
+	  }
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;

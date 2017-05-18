@@ -1012,7 +1012,7 @@ function addGoogleMapsScript()
    else
    g_maps_key = ""
    end
-   print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"..g_maps_key.."\"></script>\n")
+   print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp"..g_maps_key.."\"></script>\n")
 end
 
 function addLogoSvg()
@@ -3224,7 +3224,7 @@ function hasSnmpDevices(ifid)
   return has_snmp_devices(ifid)
 end
 
-function getTopFlowPeers(hostname_vlan, max_hits, detailed)
+function getTopFlowPeers(hostname_vlan, max_hits, detailed, other_options)
   local detailed = detailed or false
 
   local paginator_options = {
@@ -3233,6 +3233,10 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed)
     detailedResults = detailed,
     maxHits = max_hits,
   }
+
+  if other_options ~= nil then
+    paginator_options = table.merge(paginator_options, other_options)
+  end
 
   local res = interface.getFlowsInfo(hostname_vlan, paginator_options)
   if ((res ~= nil) and (res.flows ~= nil)) then

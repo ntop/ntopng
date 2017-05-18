@@ -27,13 +27,16 @@
 class Paginator {
  protected:
   u_int16_t max_hits, to_skip;
-  bool a2z_sort_order, detailed_results;
+  bool a2z_sort_order;
+  bool detailed_results /* deprecated, use DetailsLevel instead */;
   char *sort_column, *country_filter, *host_filter;
   int l7proto_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows;
+  DetailsLevel details_level;
+  bool details_level_set;
   LocationPolicy client_mode;
   LocationPolicy server_mode;
 
@@ -47,6 +50,10 @@ class Paginator {
   inline bool a2zSortOrder() const    { return(a2z_sort_order); }
   inline char *sortColumn() const     { return(sort_column); }
   inline bool detailedResults() const { return(detailed_results); }
+
+  inline bool getDetailsLevel(DetailsLevel *f) const {
+    if(details_level_set) { (*f) = details_level; return true; } return false;
+  }
 
   inline bool countryFilter(char **f) const {
     if(country_filter) { (*f) = country_filter; return true; } return false;
