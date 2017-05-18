@@ -1168,10 +1168,18 @@ function purifyInterfaceName(interface_name)
   return(interface_name)
 end
 
+function getPathDivider()
+   if(ntop.isWindows()) then
+      return "\\"
+   else
+      return "/"
+   end
+end
+
 -- Fix path format Unix <-> Windows
 function fixPath(path)
    if(ntop.isWindows() and (string.len(path) > 2)) then
-      path = string.gsub(path, "/", "\\")
+      path = string.gsub(path, "/", getPathDivider())
       -- Avoid changing c:\.... into c_\....
       path = string.sub(path, 1, 2) .. string.gsub(string.sub(path, 3), ":", "_")
       -- io.write("->"..path.."\n")
