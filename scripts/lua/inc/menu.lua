@@ -46,6 +46,7 @@ print [[/lua/about.lua"><i class="fa fa-question-circle"></i> About ntopng</a></
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> Runtime Status</a></li>
+      <li><a href="https://github.com/ntop/ntopng/tree/dev/doc" target="_blank"><i class="fa fa-book"></i> Readme and Manual <i class="fa fa-external-link"></i></a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ntop Blog <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>
 </ul>

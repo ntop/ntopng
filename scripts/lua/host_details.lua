@@ -510,6 +510,11 @@ if((page == "overview") or (page == nil)) then
 
 --tprint(host) io.write("\n")
       print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
+
+      print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
+      print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
+
+
       if(host["localhost"] == true) then print('<span class="label label-success">Local Host</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">System IP <i class=\"fa fa-flag\"></i></span>') end

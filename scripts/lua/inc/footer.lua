@@ -67,6 +67,10 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    end
    print('</span></A>')
 
+   if(info["pro.out_of_maintenance"] == true) then
+      print('<span class="badge badge-error">ntopng maintenance is expired</span>')
+   end
+   
    if(do_show) then
       print('<br><iframe src="https://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
    end

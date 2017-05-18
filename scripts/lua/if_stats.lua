@@ -378,7 +378,12 @@ if((page == "overview") or (page == nil)) then
       else
          s = ifstats.name
       end
-      print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..'</td>\n')
+
+      if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
+	 s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
+      end
+      
+      print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
    else
       print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
    end
@@ -1025,7 +1030,6 @@ elseif(page == "alerts") then
       if_name)
 
 elseif(page == "config") then
-
    if(not isAdministrator()) then
       return
    end
