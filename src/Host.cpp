@@ -76,9 +76,6 @@ Host::~Host() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(symbolic_name)   free(symbolic_name);
-  if(continent)       free(continent);
-  if(country)         free(country);
-  if(city)            free(city);
   if(categoryStats)   delete categoryStats;
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
@@ -249,9 +246,6 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       asname = as->get_asname();
     }
 
-    if(continent) { free(continent); continent = NULL; }
-    if(country)   { free(country);   country = NULL; }
-    if(city)      { free(city);      city = NULL;       }
     ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
     if(localHost || systemHost) {
@@ -907,16 +901,12 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
-  if(continent)           json_object_object_add(my_object, "continent", json_object_new_string(continent));
-  if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
-  if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
   if(strlen(os))          json_object_object_add(my_object, "os",        json_object_new_string(os));
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
-  if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
-  if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
@@ -1033,14 +1023,12 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "source_id", &obj)) source_id = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "continent", &obj))      { if(continent) free(continent); continent = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   if(json_object_object_get_ex(o, "localHost", &obj)) localHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "systemHost", &obj)) systemHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);

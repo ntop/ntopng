@@ -1555,7 +1555,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     flow->processDetectedProtocol();
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(WIN32)
     if(is_bridge_interface()) {
       pass_verdict = flow->isPassVerdict();
 

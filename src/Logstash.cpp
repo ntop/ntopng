@@ -30,8 +30,6 @@ static void* lsLoop(void* ptr) {
 
 /* **************************************** */
 
-
-
 Logstash::Logstash() {
   num_queued_elems = 0;
   head = NULL;
@@ -169,9 +167,9 @@ void Logstash::sendLSdata() {
   }
   portno = atoi(portstr);
 
-  bzero((char *) &serv_addr,sizeof(serv_addr));
+  memset((char *) &serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
-  bcopy((char *) server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
 
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
@@ -188,9 +186,9 @@ void Logstash::sendLSdata() {
 
   portno = atoi(portstr);
 
-  bzero((char*)&serv_addr, sizeof(serv_addr));
+  memset((char*)&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
-  bcopy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
+  memcpy((char*)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(portno);
 
   while(!ntop->getGlobals()->isShutdown()) {
@@ -206,7 +204,8 @@ void Logstash::sendLSdata() {
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket. Skipping dequeue");
           continue;
         }
-        
+		
+#ifndef WIN32
         //Set nonblocking
         retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
         if(retval == -1){
@@ -216,6 +215,7 @@ void Logstash::sendLSdata() {
           sleep(1);
           continue;
         }
+#endif
 
         if(sendTCP
            && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0)

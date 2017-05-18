@@ -1214,9 +1214,13 @@ void Ntop::fixPath(char *str, bool replaceDots) {
       Allowed windows path and file characters:
       https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#win32_file_namespaces
     */
-    if(str[i] == '/')
-      str[i] = '\\';
-    else if(str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
+	  if (str[i] == '/')
+		  str[i] = '\\';
+	  else if (str[i] == '\\')
+		  continue;
+	  else if ((i == 1) && (str[i] == ':')) // c:\\...
+		  continue;
+	  else if (str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
       str[i] = '_';
 #endif
 

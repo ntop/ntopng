@@ -82,10 +82,12 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <string.h>
+#include <string.h>
 #include <math.h>
 #include <sys/stat.h>
 #include <zmq.h>
 #include <assert.h>
+#include <fcntl.h>
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
