@@ -59,16 +59,44 @@ alert_functions_info = {
 
 -- ##############################################################################
 
+local function ndpival_bytes(json, protoname)
+   key = "ndpiStats"
+
+   -- Host
+   if((json[key] == nil) or (json[key][protoname] == nil)) then
+      if(verbose) then print("## ("..protoname..") Empty<br>\n") end
+      return(0)
+   else
+      local v = (json[key][protoname]["bytes"]["sent"] or 0) + (json[key][protoname]["bytes"]["rcvd"] or 0)
+      if(verbose) then print("##  ("..protoname..") "..v.."<br>\n") end
+      return(v)
+   end
+end
+
+local function proto_bytes(old, new, protoname)
+   return(ndpival_bytes(new, protoname) - ndpival_bytes(old, protoname))
+end
+
+--
+-- NOTE
+--
+-- These functions are called by the loadstring function to evaluate
+-- threshold crosses.
+-- When reading a field from the "old" parameter, an "or" operator should be used
+-- to avoid working on nil value. Nil values can be found, for example, when a
+-- new entity appear and it has not previous dump or across ntopng reboot.
+--
+
 function bytes(old, new, interval)
    -- io.write(debug.traceback().."\n")
    if(verbose) then print("bytes("..interval..")") end
 
    if(new["sent"] ~= nil) then
       -- Host
-      return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
+      return((new["sent"]["bytes"] + new["rcvd"]["bytes"]) - ((old["sent"] and old["sent"]["bytes"] or 0) + (old["rcvd"] and old["rcvd"]["bytes"] or 0)))
    else
       -- Interface
-      return(new.stats.bytes - old.stats.bytes)
+      return(new.stats.bytes - (old.stats and old.stats.bytes or 0))
    end
 end
 
@@ -76,10 +104,10 @@ function packets(old, new, interval)
    if(verbose) then print("packets("..interval..")") end
    if(new["sent"] ~= nil) then
       -- Host
-      return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
+      return((new["sent"]["packets"] + new["rcvd"]["packets"]) - ((old["sent"] and old["sent"]["packets"] or 0) + (old["rcvd"] and old["rcvd"]["packets"] or 0)))
    else
       -- Interface
-      return(new.stats.packets - old.stats.packets)
+      return(new.stats.packets - (old.stats and old.stats.packets or 0))
    end
 end
 
@@ -102,7 +130,7 @@ end
 
 function p2p(old, new, interval)
    if(verbose) then print("p2p("..interval..")") end
-   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype"))
+   return(proto_bytes(old, new, "eDonkey") + proto_bytes(old, new, "BitTorrent") + proto_bytes(old, new, "Skype"))
 end
 
 function throughput(old, new, interval)
@@ -112,20 +140,20 @@ function throughput(old, new, interval)
 end
 
 function ingress(old, new, interval)
-   return new["ingress"] - old["ingress"]
+   return new["ingress"] - (old["ingress"] or 0)
 end
 
 function egress(old, new, interval)
-   return new["egress"] - old["egress"]
+   return new["egress"] - (old["egress"] or 0)
 end
 
 function inner(old, new, interval)
-   return new["inner"] - old["inner"]
+   return new["inner"] - (old["inner"] or 0)
 end
 
 function flows(old, new, interval)
    local new_flows = new["flows.as_client"] + new["flows.as_server"]
-   local old_flows = old["flows.as_client"] + old["flows.as_server"]
+   local old_flows = (old["flows.as_client"] or 0) + (old["flows.as_server"] or 0)
    return new_flows - old_flows
 end
 
@@ -189,23 +217,6 @@ function get_make_room_keys(ifId)
 	   entities="ntopng.prefs.alerts.ifid_"..ifId..".make_room_closed_alerts"}
 end
 
-function ndpival_bytes(json, protoname)
-   key = "ndpiStats"
-
-   -- Host
-   if((json[key] == nil) or (json[key][protoname] == nil)) then
-      if(verbose) then print("## ("..protoname..") Empty<br>\n") end
-      return(0)
-   else
-      local v = json[key][protoname]["bytes"]["sent"]+json[key][protoname]["bytes"]["rcvd"]
-      if(verbose) then print("##  ("..protoname..") "..v.."<br>\n") end
-      return(v)
-   end
-end
-
-function proto_bytes(old, new, protoname)
-   return(ndpival_bytes(new, protoname)-ndpival_bytes(old, protoname))
-end
 -- =====================================================
 
 function get_alerts_suppressed_hash_name(ifid)
@@ -1891,11 +1902,11 @@ local function entity_threshold_status_rw(granularity, ifname_id, fname, use_per
    local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. granularity .. (additional_path and ("/"..additional_path) or ""))
    local fpath = fixPath(basedir.."/"..fname)
 
-   if not(ntop.exists(basedir)) then
-      ntop.mkdir(basedir)
-   end
-
    if to_write ~= nil then
+      if not(ntop.exists(basedir)) then
+         ntop.mkdir(basedir)
+      end
+
       -- Write new version
       if use_persistance then
          persistence.store(fpath, to_write)
@@ -1951,8 +1962,18 @@ local function check_interface_alerts(ifid, working_status)
    local new_entity_info = ifstats
 
    if old_entity_info ~= nil then
-      check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
+      -- wrap check
+      if old_entity_info.stats.bytes > ifstats.stats.bytes then
+         -- reset
+         if(verbose) then print("entity '"..entity_value.."' stats reset("..working_status.granularity..")") end
+         old_entity_info = {}
+      end
+   else
+      -- empty
+      old_entity_info = {}
    end
+
+   check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
 
    interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
 end
@@ -1965,8 +1986,20 @@ local function check_networks_alerts(ifid, working_status)
       local new_entity_info = sstats
 
       if old_entity_info ~= nil then
-         check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info)
+         -- wrap check
+         if (old_entity_info["egress"] > new_entity_info["egress"])
+          or (old_entity_info["ingress"] > new_entity_info["ingress"])
+          or (old_entity_info["inner"] > new_entity_info["inner"]) then
+            -- reset
+            if(verbose) then print("entity '"..subnet.."' stats reset("..working_status.granularity..")") end
+            old_entity_info = {}
+         end
+      else
+         -- empty
+         old_entity_info = {}
       end
+
+      check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info)
 
       network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
    end
@@ -1988,8 +2021,19 @@ local function check_hosts_alerts(ifid, working_status)
             new_entity_info["anomalies"] = hostinfo.anomalies
 
             if old_entity_info ~= nil then
-               check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
+               -- wrap check
+               if (old_entity_info["sent"]["packets"] > new_entity_info["sent"]["packets"])
+                or (old_entity_info["rcvd"]["packets"] > new_entity_info["rcvd"]["packets"]) then
+                  -- reset
+                  if(verbose) then print("entity '"..entity_value.."' stats reset("..working_status.granularity..")") end
+                  old_entity_info = {}
+               end
+            else
+               -- empty
+               old_entity_info = {}
             end
+
+            check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
 
             host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
          end
