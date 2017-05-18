@@ -710,7 +710,7 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 
     /* Initial information */
     size_t len = snprintf(message, sizeof(message), "%s[%s] ",
-       engaged_alert_id ? (engage ? "Alert Engaged" : "Alert Released") : "",
+       engaged_alert_id ? (engage ? "Alert Engaged " : "Alert Released ") : "",
        getAlertType(alert_type));
 
     if ((alert_json != NULL) && (alert_json[0] != '\0')) {

@@ -1887,16 +1887,15 @@ end
 
 -- #################################
 
-local function entity_threshold_status_rw(granularity, ifname_id, fname, use_persistance, to_write --[[nil if it's a read]])
-   local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. granularity)
+local function entity_threshold_status_rw(granularity, ifname_id, fname, use_persistance, to_write --[[nil if it's a read]], additional_path)
+   local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. granularity .. (additional_path and ("/"..additional_path) or ""))
    local fpath = fixPath(basedir.."/"..fname)
 
-   if to_write ~= nil then
-      local path = string.match(fpath, ".*/")
-      if not(ntop.exists(path)) then
-         ntop.mkdir(path)
-      end
+   if not(ntop.exists(basedir)) then
+      ntop.mkdir(basedir)
+   end
 
+   if to_write ~= nil then
       -- Write new version
       if use_persistance then
          persistence.store(fpath, to_write)
@@ -1935,7 +1934,7 @@ local function interface_threshold_status_rw(granularity, ifid,  to_write)
 end
 
 local function network_threshold_status_rw(granularity, ifid, network, to_write)
-   return entity_threshold_status_rw(granularity, ifid, getPathFromKey(network) .. "/alarmed_subnet_stats_lastdump", true, to_write)
+   return entity_threshold_status_rw(granularity, ifid, "alarmed_subnet_stats_lastdump", true, to_write, getPathFromKey(network))
 end
 
 local function host_threshold_status_rw(granularity, ifid, hostinfo, to_write)
