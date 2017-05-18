@@ -174,7 +174,7 @@ menu_subpages = {
       description = i18n("prefs.toggle_alert_syslog_description"),
     }, toggle_slack_notification = {
       title       = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"}),
-      description = i18n("prefs.toggle_slack_notification_description"),
+      description = i18n("prefs.toggle_slack_notification_description", {url="https://github.com/ntop/ntopng/blob/dev/doc/README.slack"}),
     }, slack_notification_severity_preference = {
       title       = i18n("prefs.slack_notification_severity_preference_title", {url="http://www.slack.com"}),
       description = i18n("prefs.slack_notification_severity_preference_description"),

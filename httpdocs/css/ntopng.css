@@ -254,3 +254,13 @@ table, tr, td, th, tbody, thead, tfoot {
 .table-borderless tfoot tr td {
     border: none;
 }
+
+/* Avoids popup data-original-title flickering */
+.fade {
+   opacity: 0;
+   -webkit-transition: opacity 0s linear;
+      -moz-transition: opacity 0s linear;
+       -ms-transition: opacity 0s linear;
+        -o-transition: opacity 0s linear;
+           transition: opacity 0s linear;
+ }

@@ -248,7 +248,7 @@ print('</select>')
 
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
-if is_bridge_iface then
+if is_bridge_iface and selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
   print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-cog' aria-hidden='true'></i></a>")
 end
 
@@ -319,18 +319,17 @@ print[[
         <br/><div id="table-create"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
-      <br/><br/>]]
-
-if isCaptivePortalActive() then
-  print[[
+      <br/><br/>
       NOTES:
       <ul>
-        <li>A pool cannot be deleted if there is any Captive Portal user associated. Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>
-      </ul>
-  ]]
+        <li>A pool cannot be deleted if there is any Captive Portal user associated. ]]
+
+if isCaptivePortalActive() then
+  print [[Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>]]
 end
 
 print[[
+      </ul>
     </div>
   </div>
 ]]
