@@ -267,7 +267,8 @@ void NetworkInterface::init() {
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  reloadLuaInterpreter = true, L_user_scripts_inline = L_user_scripts_periodic = NULL;
+  L_user_scripts_inline = L_user_scripts_periodic = NULL;
+  forceLuaInterpreterReload();
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -5099,12 +5100,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     lua_setglobal(L, CONST_USER_SCRIPTS_CONTEXT);
 
     if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
-				   script_path, lua_tostring(L, -1));
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s[%s]: %s",
+				   script_path, context, lua_tostring(L, -1));
       lua_close(L);
       L = NULL;
     } else {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s", script_path);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s[%s]", script_path, context);
 
       lua_pushlightuserdata(L, NULL);
       lua_setglobal(L, CONST_USER_SCRIPTS_FLOW);
@@ -5126,37 +5127,52 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     int rc;
     lua_State *L;
     const char *luaFunction;
+    UserScriptContext context;
 
     if(! ntop->getPrefs()->are_user_scripts_enabled())
       return 0;
 
-    if(reloadLuaInterpreter) {
-      if(L_user_scripts_inline || L_user_scripts_periodic) termLuaInterpreter();
-      L_user_scripts_inline = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_INLINE);
-      L_user_scripts_periodic = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_PERIODIC);
-      reloadLuaInterpreter = false;
-    }
-
     switch(cb) {
     case callback_flow_create:
-      L = L_user_scripts_inline, luaFunction = CONST_LUA_FLOW_CREATE;
+      context = user_script_context_inline, luaFunction = CONST_LUA_FLOW_CREATE;
       break;
 
     case callback_flow_delete:
-      L = L_user_scripts_inline, luaFunction = CONST_LUA_FLOW_DELETE;
+      context = user_script_context_inline, luaFunction = CONST_LUA_FLOW_DELETE;
       break;
 
     case callback_flow_update:
-      L = L_user_scripts_periodic, luaFunction = CONST_LUA_FLOW_UPDATE;
+      context = user_script_context_periodic, luaFunction = CONST_LUA_FLOW_UPDATE;
       break;
 
     case callback_flow_proto_callback:
-      L = L_user_scripts_inline, luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
+      context = user_script_context_inline, luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
       break;
 
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid lua callback (%d)", cb);
       return(-1);
+    }
+
+    switch(context) {
+    case user_script_context_inline:
+      if (user_scripts_reload_inline) {
+        if(L_user_scripts_inline) lua_close(L_user_scripts_inline);
+        L_user_scripts_inline = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_INLINE);
+        user_scripts_reload_inline = false;
+      }
+
+      L = L_user_scripts_inline;
+      break;
+    case user_script_context_periodic:
+      if (user_scripts_reload_periodic) {
+        if(L_user_scripts_periodic) lua_close(L_user_scripts_periodic);
+        L_user_scripts_periodic = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_PERIODIC);
+        user_scripts_reload_periodic = false;
+      }
+
+      L = L_user_scripts_periodic;
+      break;
     }
 
     if(L == NULL)

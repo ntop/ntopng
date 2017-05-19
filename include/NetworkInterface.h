@@ -102,7 +102,7 @@ class NetworkInterface {
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
 
   /* Lua */
-  bool reloadLuaInterpreter;
+  bool user_scripts_reload_inline, user_scripts_reload_periodic;
   lua_State *L_user_scripts_inline, *L_user_scripts_periodic;
 
   /* Second update */
@@ -507,7 +507,7 @@ class NetworkInterface {
 			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   int luaEvalFlow(Flow *f, const LuaCallback cb);
-  inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
+  inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
   bool getASInfo(lua_State* vm, u_int32_t asn);

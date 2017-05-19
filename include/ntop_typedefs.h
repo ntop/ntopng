@@ -287,6 +287,11 @@ typedef enum {
 } LuaCallback;
 
 typedef enum {
+  user_script_context_inline,
+  user_script_context_periodic,
+} UserScriptContext;
+
+typedef enum {
   walker_hosts = 0,
   walker_flows,
   walker_macs,
