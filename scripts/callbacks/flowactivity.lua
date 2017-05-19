@@ -2,6 +2,9 @@
 -- (C) 2016-17 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+require("lua_utils")
 
 -- Enable tracings here
 local trace_hk = false
@@ -10,30 +13,6 @@ local trace_hk = false
 
 function getFlowKey(f)
    return(f["cli.ip"]..":"..f["cli.port"].." <-> " ..f["srv.ip"]..":"..f["srv.port"])
-end
-
--- Print contents of `tbl`, with indentation.
--- You can call it as tprint(mytable)
--- The other two parameters should not be set
-function tprint(s, l, i)
-   l = (l) or 1000; i = i or "";-- default item limit, indent string
-   if (l<1) then io.write("ERROR: Item limit reached.\n"); return l-1 end;
-   local ts = type(s);
-   if (ts ~= "table") then io.write(i..' '..ts..' '..tostring(s)..'\n'); return l-1 end
-   io.write(i..' '..ts..'\n');
-   for k,v in pairs(s) do
-      local indent = ""
-
-      if(i ~= "") then
-	 indent = i .. "."
-      end
-      indent = indent .. tostring(k)
-
-      l = tprint(v, l, indent);
-      if (l < 0) then break end
-   end
-
-   return l
 end
 
 -- ########################################################

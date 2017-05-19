@@ -477,10 +477,6 @@ local function validateCategory(cat)
    return validateChoiceByKeys(site_categories, cat)
 end
 
-local function validateActivityName(p)
-   return validateChoiceByKeys(ndpi_categories, p)
-end
-
 function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
 end
@@ -714,7 +710,6 @@ local known_parameters = {
    ["status"]                  =  validateAlertStatus,           -- An alert type to filter
    ["profile"]                 =  http_lint.validateTrafficProfile,        -- Traffic Profile name
    ["delete_profile"]          =  http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
-   ["activity"]                =  validateActivityName,          -- User Activity name
    ["alert_type"]              =  validateNumber,                -- An alert type enum
    ["alert_severity"]          =  validateNumber,                -- An alert severity enum
    ["entity"]                  =  validateNumber,                -- An alert entity type

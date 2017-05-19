@@ -5068,7 +5068,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   };
 
   lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
-    static const luaL_Reg _meta[] = { { NULL, NULL } };
     int i;
     char script_path[256];
     lua_State *L;
@@ -5088,28 +5087,10 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     luaL_openlibs(L); /* Load base libraries */
 
-    for(i=0; ntop_lua_reg[i].class_name != NULL; i++) {
-      int lib_id, meta_id;
+    Lua::luaRegisterInternalRegs(L);
 
-      /* newclass = {} */
-      lua_createtable(L, 0, 0);
-      lib_id = lua_gettop(L);
-
-      /* metatable = {} */
-      luaL_newmetatable(L, ntop_lua_reg[i].class_name);
-      meta_id = lua_gettop(L);
-      luaL_register(L, NULL, _meta);
-
-      /* metatable.__index = class_methods */
-      lua_newtable(L), luaL_register(L, NULL, ntop_lua_reg[i].class_methods);
-      lua_setfield(L, meta_id, "__index");
-
-      /* class.__metatable = metatable */
-      lua_setmetatable(L, lib_id);
-
-      /* _G["Foo"] = newclass */
-      lua_setglobal(L, ntop_lua_reg[i].class_name);
-    }
+    for(i=0; ntop_lua_reg[i].class_name != NULL; i++)
+      Lua::luaRegister(L, &ntop_lua_reg[i]);
 
     lua_register(L, "print", ntop_lua_cli_print);
 
@@ -5142,7 +5123,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     lua_State *L;
     const char *luaFunction;
 
-    return(0); // FIX
+    if(! ntop->getPrefs()->are_flow_scripts_enabled())
+      return 0;
+
     if(reloadLuaInterpreter) {
       if(L_flow_create_delete_ndpi || L_flow_update) termLuaInterpreter();
       L_flow_create_delete_ndpi = initLuaInterpreter(CONST_FLOWSCRIPTS_SCRIPT);

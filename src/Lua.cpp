@@ -5949,8 +5949,31 @@ static const luaL_Reg ntop_reg[] = {
 
 /* ****************************************** */
 
-void Lua::lua_register_classes(lua_State *L, bool http_mode) {
-  static const luaL_Reg _meta[] = { { NULL, NULL } };
+void Lua::luaRegister(lua_State *L, const ntop_class_reg *reg) {
+   static const luaL_Reg _meta[] = { { NULL, NULL } };
+   int lib_id, meta_id;
+
+   /* newclass = {} */
+   lua_createtable(L, 0, 0);
+   lib_id = lua_gettop(L);
+
+   /* metatable = {} */
+   luaL_newmetatable(L, reg->class_name);
+   meta_id = lua_gettop(L);
+   luaL_register(L, NULL, _meta);
+
+   /* metatable.__index = class_methods */
+   lua_newtable(L), luaL_register(L, NULL, reg->class_methods);
+   lua_setfield(L, meta_id, "__index");
+
+   /* class.__metatable = metatable */
+   lua_setmetatable(L, lib_id);
+
+   /* _G["Foo"] = newclass */
+   lua_setglobal(L, reg->class_name);
+}
+
+void Lua::luaRegisterInternalRegs(lua_State *L) {
   int i;
 
   ntop_class_reg ntop_lua_reg[] = {
@@ -5959,32 +5982,16 @@ void Lua::lua_register_classes(lua_State *L, bool http_mode) {
     {NULL,         NULL}
   };
 
+  for(i=0; ntop_lua_reg[i].class_name != NULL; i++)
+    Lua::luaRegister(L, &ntop_lua_reg[i]);
+}
+
+void Lua::lua_register_classes(lua_State *L, bool http_mode) {
   if(!L) return;
 
   luaopen_lsqlite3(L);
 
-  for(i=0; ntop_lua_reg[i].class_name != NULL; i++) {
-    int lib_id, meta_id;
-
-    /* newclass = {} */
-    lua_createtable(L, 0, 0);
-    lib_id = lua_gettop(L);
-
-    /* metatable = {} */
-    luaL_newmetatable(L, ntop_lua_reg[i].class_name);
-    meta_id = lua_gettop(L);
-    luaL_register(L, NULL, _meta);
-
-    /* metatable.__index = class_methods */
-    lua_newtable(L), luaL_register(L, NULL, ntop_lua_reg[i].class_methods);
-    lua_setfield(L, meta_id, "__index");
-
-    /* class.__metatable = metatable */
-    lua_setmetatable(L, lib_id);
-
-    /* _G["Foo"] = newclass */
-    lua_setglobal(L, ntop_lua_reg[i].class_name);
-  }
+  Lua::luaRegisterInternalRegs(L);
 
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */

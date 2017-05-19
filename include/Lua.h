@@ -83,7 +83,12 @@ class Lua {
   void setParamsTable(lua_State* vm,
 		      const char* table_name,
 		      const char* query) const;
+
   static void purifyHTTPParameter(char *param);
+
+  static void luaRegister(lua_State *L, const ntop_class_reg *reg);
+  static void luaRegisterInternalRegs(lua_State *L);
+
   void setInterface(const char *user);
 };
 
