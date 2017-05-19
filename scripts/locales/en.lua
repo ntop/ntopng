@@ -22,6 +22,7 @@ local  en = {
    from = "from",
    protocol = "Protocol",
    port = "Port",
+   ports = "Ports",
    max_rate = "Max Rate",
    duration = "Duration",
    traffic = "Traffic",
@@ -78,6 +79,16 @@ local  en = {
    mac_address = "MAC Address",
    as_number = "AS number",
    asn = "ASN",
+   peers = "Peers",
+   activities = "Activities",
+   dns = "DNS",
+   http = "HTTP",
+   similarity = "Similarity",
+   quotas = "Quotas",
+   l7_protocol = "L7 Protocol",
+   activity = "Activity",
+   ["os"] = "OS",
+   download = "Download",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -127,6 +138,9 @@ local  en = {
       ipv6_only = "IPv6 Only",
       actual_throughput = "Actual Thpt",
       total_bytes = "Total Bytes",
+      applications = "Applications",
+      l4_proto = "L4 Proto",
+      source_id = "Source Id",
    },
 
    traffic_report = {
@@ -803,6 +817,26 @@ local  en = {
       ip_version_distribution = "IP Version Distribution",
       sent_distribution = "Sent Distribution",
       arp_distribution = "ARP Distribution",
+      received_distribution = "Received Distribution",
+   },
+
+   traffic_page = {
+      no_traffic_observed_message = "No traffic has been observed for the specified host",
+      l4_proto_overview = "L4 Protocol Overview",
+      rcvd  = "Rcvd",
+   },
+
+   ports_page = {
+      client_ports = "Client Ports",
+      server_ports = "Server Ports",
+   },
+
+   peers_page = {
+      top_peers_for_host = "Top %{hostkey} Peers",
+      top_peer_protocol = "Top Peer Protocols",
+      traffic_volume = "Traffic Volume",
+      host = "Host",
+      no_active_flows_message = "No active flows have been observed for the specified host",
    },
 
    ndpi_page = {
@@ -813,10 +847,16 @@ local  en = {
       application_protocol = "Application Protocol",
       total_since_startup = "Total (Since Startup)",
       protocol_overview = "Protocol Overview",
+      sent_only = "Sent only",
+      received_only = "Received only",
    },
 
    icmp_page = {
       icmp_message = "ICMP Message",
+      last_sent_peer = "Last Sent Peer",
+      last_rcvd_peer = "Last Rcvd Peer",
+      packets_sent = "Packets Sent",
+      packets_received = "Packets Received",
    },
 
    arp_page = {
@@ -849,6 +889,105 @@ local  en = {
       max_size_dump_files = "Max Size of Dump Files",
       max_size_dump_files_description = "Maximum size of created pcap files.",
       note_max_size_dump_files = "total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.",
+   },
+
+   activities_page = {
+      host_activity = "Host Activity",
+   },
+
+   dns_page = {
+      dns_breakdown = "DNS Breakdown",
+      queries = "Queries",
+      positive_replies = "Positive Replies",
+      error_replies = "Error Replies",
+      reply_breakdown = "Reply Breakdown",
+      dns_query_sent_distribution = "DNS Query Sent Distribution",
+      rcvd = "Rcvd",
+      request_vs_reply = "Request vs Reply",
+      ratio = "Ratio",
+      replies = "Replies",
+      note = "NOTE",
+      note_dns_ratio = "Ideally the request vs reply DNS ratio should be 1 (one reply per request). When much lower than that then there are issues worth to be investigated as it means that the number of replies received is much lower than expected and this can indicate that we are using unresponsive DNS resolvers or that they are misconfigured (e.g. they have been move to another IP).",
+   },
+
+   http_page = {
+      top_visited_sites = "Top Visited Sites",
+      current_sites = "Current Sites",
+      contacts = "Contacts",
+      last_5_minutes_sites = "Last 5 Minute Sites",
+      http_queries ="HTTP Queries",
+      method = "Method",
+      requests = "Requests",
+      distribution = "Distribution",
+      other_method = "Other Method",
+      http_responses = "HTTP Responses",
+      response_code ="Response code",
+      responses = "Responses",
+      response_code_1xx = "1xx (Informational)",
+      response_code_2xx = "2xx (Success)",
+      response_code_3xx = "3xx (Redirection)",
+      response_code_4xx = "4xx (Client Error)",
+      response_code_5xx = "5xx (Server Error)",
+      virtual_hosts = "Virtual Hosts",
+      traffic_sent = "Traffic Sent",
+      traffic_received = "Traffic Received",
+      requests_served = "Requests Served",
+   },
+
+   categories_page = {
+      traffic_categories = "Traffic Categories",
+      category_id = "Category Id",
+      traffic_category = "Traffic Category",
+      traffic_volume = "Traffic Volume",
+      traffic_percentage = "Traffic %%",
+      note = "NOTE",
+      note_percentages = "Percentages are related only to classified traffic.",
+      note_historical_per_category_traffic = "Historical per-category traffic data can be enabled via ntopng <a href='%{url}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
+      note_rrd_samples = "When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category.",
+      note_category_label = "Category labels can be clicked to browse historical data.",
+   },
+
+   snmp_page = {
+      not_configured_as_snmp_device_message = "Host %{host_ip} has not been configured as an SNMP device.",
+      guide_snmp_page_message = "Visit page <a href='%{url}'> SNMP</a> to add this host to the list of configured SNMP devices.",
+      trying_to_retrive_message = "Trying to retrieve host SNMP MIB using the default community \'%{community}\'",
+      showing_snmp_mib_info_default_community_message = "Showing SNMP MIB information retrieved using the default community \'%{community}\'",
+      unable_to_retrive_snmp_default_community_message = "Unable to retrieve host SNMP MIB using the default community \'%{community}\'.",
+   },
+
+   contacts_page = {
+      client_contacts_initiator = "Client Contacts (Initiator)",
+      server_contacts_receiver = "Server Contacts (Receiver)",
+      no_client_contacts_so_far = "No client contacts so far",
+      server_address = "Server Address",
+      contacts = "Contacts",
+      no_server_contacts_so_far = "No server contacts so far",
+      client_address = "Client Address",
+      no_contacts_message = "No contacts for this host",
+   },
+
+   host_config = {
+      host_alias = "Host Alias",
+      host_pool = "Host Pool",
+      trigger_host_alerts = "Trigger Host Alerts",
+      trigger_alerts_for_host = "Trigger alerts for Host %{host}",
+      dump_host_traffic = "Dump Host Traffic",
+      dump_traffic = "Dump Traffic",
+      host_traffic_policy = "Host Traffic Policy",
+      drop_all_host_traffic = "Drop All Host Traffic",
+      modify_host_pool_policy_btn = "Modify Host Pool Policy",
+   },
+
+   sprobe_page = {
+      users = "Users",
+      processes = "Processes",
+      tree = "Tree",
+      active_memory = "Active memory",
+      latency = "Latency",
+      top_users = "Top Users",
+      top_processes = "Top Processes",
+      processes_traffic_tree = "Processes Traffic Tree",
+      show_more_info = "Mouse over to show the process information or double click to show more information.",
    },
 
    if_stats_config = {
@@ -957,6 +1096,47 @@ local  en = {
       arp_replies = "ARP Replies",
       ago = "ago",
       rcvd = "Rcvd",
+      router_access_point_mac_address = "(Router/AccessPoint) MAC Address",
+      host_snmp_localization ="Host SNMP Localization",
+      note_hosts_located_snmp_device = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
+      device_port = "Device Port",
+      host_pool = "Host Pool",
+      source_id = "Source Id",
+      vlan_id = "VLAN ID",
+      alerts = "Alerts",
+      note = "NOTE",
+      whois_lookup = "Whois Lookup",
+      label_local_host = "Local Host",
+      label_remote = "Remote",
+      label_private_ip = "Private IP",
+      label_system_ip = "System IP",
+      label_blacklisted_host = "Blacklisted Host",
+      flows_non_packet_iface = "Recently Active Flows / Total",
+      flows_packet_iface = "Active Flows / Total Active / Low Goodput",
+      flows_packet_pcap_dump_iface = "Flows / Total Active / Low Goodput",
+      as_client = "As Client",
+      as_server = "As Server",
+      tcp_packets_sent_analysis = "TCP Packets Sent Analysis",
+      retransmissions = "Retransmissions",
+      out_of_order = "Out of Order",
+      lost = "Lost",
+      further_host_names_information = "Further Host Names/Information",
+   },
+
+   host_details = {
+      host_parameter_missing_message = "Host parameter is missing (internal error ?)",
+      host_cannot_be_found_message = "Host %{host} cannot be found.",
+      host = "Host",
+      trace_debug_host_info = "Host:%{hostinfo}, Vlan: %{vlan}",
+      trace_debug_restored_host_info = "Restored Host Info",
+      restore_from_cache_message = "Click <a href=%{js_code}> here</a> to restore it from cache.",
+      trace_debug_host_ip = "Host:%{hostip}, Vlan: %{vlan}",
+      snmp = "SNMP",
+      change_host_pool_popup_msg = "Change Host Pool",
+      blocked_traffic = "Blocked Traffic",
+      host_traffic_blocked_quota = "Some host traffic has been blocked by an exceeded quota",
+      host_traffic_blocked_shaper = "Some host traffic has been blocked by a blocking shaper",
+      host_traffic_blocked_quota_and_shaper = "Some host traffic has been blocked by an exceeded quota and a blocking shaper",
    },
 
    mac_details = {
@@ -1057,6 +1237,7 @@ local  en = {
    error_no_search_results = "No results found. Please modify your search criteria.";
    enterpriseOnly = "This feature is only available in the ntopng enterprise edition",
    no_results_found = "No results found",
+   purged_error_message = "Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>.",
 
    uploaders = "Upload Volume",
    downloaders = "Download Volume",
