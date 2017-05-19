@@ -28,7 +28,7 @@ end
 ```
 
 In order to load the newly create script, you can either restart ntopng or send a
-SIGHUP signal with `sudo pkil -SIGHUP ntopng`.
+SIGHUP signal with `pkill -SIGHUP ntopng`.
 See `default.lua` scripts in each context folder for more information on the available callbacks.
 
 Performance impact

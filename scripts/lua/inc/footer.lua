@@ -291,7 +291,7 @@ print [[/lua/show_alerts.lua\"><i class=\"fa fa-warning\" style=\"color: " + col
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;    
             
-            msg += "<a href=\"]]
+            msg += "<a style=\"margin-left:0.5em;\" href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua\">";
 		if(rsp.hosts_pctg < alarm_threshold_low) {
