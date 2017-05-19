@@ -93,7 +93,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-  enable_flow_scripts   = CONST_DEFAULT_ARE_FLOW_SCRIPTS_ENABLED;
+  enable_user_scripts   = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
 
   /* Defaults */
   active_local_hosts_cache_interval = CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL /* sec */;
@@ -320,8 +320,7 @@ void usage() {
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 "--online-license-check              | Check license online\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
-	 "[--enable-flow-scripts]             | Enable LUA scripts executed throughout\n"
-	 "                                    | flows lifetime\n"
+	 "[--enable-user-scripts]             | Enable LUA user scripts\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N] <name>         | Assign a name to this ntopng instance.\n"
@@ -580,7 +579,7 @@ static const struct option long_options[] = {
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
-  { "enable-flow-scripts",               no_argument,       NULL, 216 },
+  { "enable-user-scripts",               no_argument,       NULL, 216 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1092,8 +1091,8 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
     
   case 216:
-    enable_flow_scripts = true;
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow activity detection enabled");
+    enable_user_scripts = true;
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "User scripts enabled");
     break;
 
 #ifdef NTOPNG_PRO
@@ -1310,7 +1309,7 @@ void Prefs::lua(lua_State* vm) {
   if(enable_active_local_hosts_cache)
     lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
 
-  lua_push_bool_table_entry(vm, "are_flow_scripts_enabled", enable_flow_scripts);
+  lua_push_bool_table_entry(vm, "are_user_scripts_enabled", enable_user_scripts);
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 

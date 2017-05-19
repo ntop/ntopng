@@ -103,7 +103,7 @@ class NetworkInterface {
 
   /* Lua */
   bool reloadLuaInterpreter;
-  lua_State *L_flow_create_delete_ndpi, *L_flow_update;
+  lua_State *L_user_scripts_inline, *L_user_scripts_periodic;
 
   /* Second update */
   u_int64_t lastSecTraffic,
@@ -144,7 +144,7 @@ class NetworkInterface {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
 
-  lua_State* initLuaInterpreter(const char *lua_file);
+  lua_State* initUserScriptsInterpreter(const char *lua_file, const char *context);
   void termLuaInterpreter();
   void init();
   void deleteDataStructures();

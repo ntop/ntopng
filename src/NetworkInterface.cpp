@@ -267,7 +267,7 @@ void NetworkInterface::init() {
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  reloadLuaInterpreter = true, L_flow_create_delete_ndpi = L_flow_update = NULL;
+  reloadLuaInterpreter = true, L_user_scripts_inline = L_user_scripts_periodic = NULL;
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -4926,7 +4926,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_ndpi_category(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -4940,7 +4940,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Flow *f;
     char buf[32];
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -4954,7 +4954,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Flow *f;
     ndpi_protocol p;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR); else p = f->get_detected_protocol();
 
@@ -4967,7 +4967,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_first_seen(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -4980,7 +4980,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_last_seen(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -4995,7 +4995,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     char buf[64];
     const char *srv;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5013,7 +5013,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_http_url(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5026,7 +5026,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_get_http_content_type(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5039,7 +5039,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   static int lua_flow_dump(lua_State* vm) {
     Flow *f;
 
-    lua_getglobal(vm, CONST_FLOW_SCRIPT_FLOW);
+    lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
     f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
     if(!f) return(CONST_LUA_ERROR);
 
@@ -5049,6 +5049,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* ****************************************** */
 
+  /* These callbacks operate on the global flow of user scripts */
   static const luaL_Reg flow_reg[] = {
     { "getNdpiCategory",   lua_flow_get_ndpi_category },
     { "getNdpiProto",      lua_flow_get_ndpi_proto },
@@ -5062,12 +5063,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     { NULL,         NULL }
   };
 
-  ntop_class_reg ntop_lua_reg[] = {
+  static const ntop_class_reg ntop_lua_reg[] = {
     { "flow",   flow_reg  },
     {NULL,      NULL}
   };
 
-  lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
+  lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, const char *context) {
     int i;
     char script_path[256];
     lua_State *L;
@@ -5094,6 +5095,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     lua_register(L, "print", ntop_lua_cli_print);
 
+    lua_pushstring(L, context);
+    lua_setglobal(L, CONST_USER_SCRIPTS_CONTEXT);
+
     if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
 				   script_path, lua_tostring(L, -1));
@@ -5103,7 +5107,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s", script_path);
 
       lua_pushlightuserdata(L, NULL);
-      lua_setglobal(L, CONST_FLOW_SCRIPT_FLOW);
+      lua_setglobal(L, CONST_USER_SCRIPTS_FLOW);
     }
 
     return(L);
@@ -5112,8 +5116,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   /* **************************************** */
 
   void NetworkInterface::termLuaInterpreter() {
-    if(L_flow_create_delete_ndpi) { lua_close(L_flow_create_delete_ndpi); L_flow_create_delete_ndpi = NULL; }
-    if(L_flow_update) { lua_close(L_flow_update); L_flow_update = NULL; }
+    if(L_user_scripts_inline) { lua_close(L_user_scripts_inline); L_user_scripts_inline = NULL; }
+    if(L_user_scripts_periodic) { lua_close(L_user_scripts_periodic); L_user_scripts_periodic = NULL; }
   }
 
   /* **************************************** */
@@ -5123,31 +5127,31 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     lua_State *L;
     const char *luaFunction;
 
-    if(! ntop->getPrefs()->are_flow_scripts_enabled())
+    if(! ntop->getPrefs()->are_user_scripts_enabled())
       return 0;
 
     if(reloadLuaInterpreter) {
-      if(L_flow_create_delete_ndpi || L_flow_update) termLuaInterpreter();
-      L_flow_create_delete_ndpi = initLuaInterpreter(CONST_FLOWSCRIPTS_SCRIPT);
-      L_flow_update = initLuaInterpreter(CONST_FLOWSCRIPTS_SCRIPT);
+      if(L_user_scripts_inline || L_user_scripts_periodic) termLuaInterpreter();
+      L_user_scripts_inline = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_INLINE);
+      L_user_scripts_periodic = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_PERIODIC);
       reloadLuaInterpreter = false;
     }
 
     switch(cb) {
     case callback_flow_create:
-      L = L_flow_create_delete_ndpi, luaFunction = CONST_LUA_FLOW_CREATE;
+      L = L_user_scripts_inline, luaFunction = CONST_LUA_FLOW_CREATE;
       break;
 
     case callback_flow_delete:
-      L = L_flow_create_delete_ndpi, luaFunction = CONST_LUA_FLOW_DELETE;
+      L = L_user_scripts_inline, luaFunction = CONST_LUA_FLOW_DELETE;
       break;
 
     case callback_flow_update:
-      L = L_flow_update, luaFunction = CONST_LUA_FLOW_UPDATE;
+      L = L_user_scripts_periodic, luaFunction = CONST_LUA_FLOW_UPDATE;
       break;
 
     case callback_flow_proto_callback:
-      L = L_flow_create_delete_ndpi, luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
+      L = L_user_scripts_inline, luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
       break;
 
     default:
@@ -5160,7 +5164,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     lua_settop(L, 0); /* Reset stack */
     lua_pushlightuserdata(L, f);
-    lua_setglobal(L, CONST_FLOW_SCRIPT_FLOW);
+    lua_setglobal(L, CONST_USER_SCRIPTS_FLOW);
 
     lua_getglobal(L, luaFunction); /* function to be called */
     if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {

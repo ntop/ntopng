@@ -125,7 +125,6 @@
 #define OTHER_RRD_1MIN_DAYS      30
 #define OTHER_RRD_1H_DAYS        100
 #define OTHER_RRD_1D_DAYS        365
-#define CONST_DEFAULT_ARE_FLOW_SCRIPTS_ENABLED   false
 #define CONST_DEFAULT_TOP_TALKERS_ENABLED        false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
@@ -309,7 +308,6 @@
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
-#define CONST_FLOWSCRIPTS_SCRIPT     "flowactivity.lua"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
@@ -321,7 +319,6 @@
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
-#define CONST_FLOW_SCRIPT_FLOW       "useractivityflow"
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
@@ -330,6 +327,13 @@
 #define CONST_ALERT_GRACE_PERIOD      60 /* No more than 1 alert/min */
 #define CONST_CONTACTED_BY            "contacted_by"
 #define CONST_CONTACTS                "contacted_peers" /* Peers contacted by this host */
+
+#define CONST_USER_SCRIPTS_LOADER    "user_scripts/loader.lua"
+#define CONST_USER_SCRIPTS_FLOW      "global_flow"
+#define CONST_USER_SCRIPTS_CONTEXT   "script_context"
+#define CONST_USER_SCRIPTS_CONTEXT_INLINE     "inline"
+#define CONST_USER_SCRIPTS_CONTEXT_PERIODIC   "periodic"
+#define CONST_DEFAULT_USER_SCRIPTS_ENABLED   false
 
 #define CONST_HISTORICAL_OK               1
 #define CONST_HISTORICAL_FILE_ERROR       0
