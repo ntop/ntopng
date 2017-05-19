@@ -23,8 +23,9 @@ $ sudo ntopng -i eth0 --traffic-filtering flashstart:user@email.com:mypassword
 Inline Mode
 $ sudo ntopng -i bridge:eth0,eth1 --traffic-filtering flashstart:user@email.com:mypassword
 
-
-NOTE
-----
-Flashstart services are queried via DNS TXT requests sent by ntopng to flashstart, i.e.
-no connection with ntop.org hosts are performed, nor ntop.org sees any data/query performed
+NOTES
+-----
+1. ntop has not affiliation whatsoever with Flashstart nor we encourage our users to
+   use Flashstart services
+2. Flashstart services are queried via DNS TXT requests sent by ntopng to flashstart, i.e.
+   no connection with ntop.org hosts are performed, nor ntop.org sees any data/query performed
