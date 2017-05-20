@@ -1807,21 +1807,6 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 }
 
 /* ****************************************** */
-
-static int ntop_get_interface_hosts_with_anomalies(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-  else {
-    ntop_interface->listHostsWithAnomalies(vm);
-    return(CONST_LUA_OK);
-  }
-}
-
-/* ****************************************** */
 #ifdef NOTUSED
 static int ntop_get_grouped_interface_host(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -5677,7 +5662,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getRemoteHostsInfo",     ntop_get_interface_remote_hosts_info },
-  { "getHostsWithAnomalies",  ntop_get_interface_hosts_with_anomalies },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },

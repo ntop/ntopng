@@ -4679,27 +4679,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* **************************************** */
 
-  static bool hosts_with_anomalies_walker(GenericHashEntry *node, void *data) {
-    Host *h = (Host*)node;
-    lua_State *vm = (lua_State*)data;
-
-    if(h && h->hasAnomalies()) {
-      h->lua(vm, NULL, true, true, false, true, false);
-    }
-
-    return(false); /* false = keep on walking */
-  }
-
-  /* **************************************** */
-
-  void NetworkInterface::listHostsWithAnomalies(lua_State *vm) {
-    lua_newtable(vm);
-
-    walker(walker_hosts, hosts_with_anomalies_walker, vm);
-  }
-
-  /* **************************************** */
-
   bool NetworkInterface::isInterfaceUp(char *name) {
 #ifdef WIN32
     return(true);
