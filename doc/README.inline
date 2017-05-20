@@ -74,6 +74,41 @@ can attach.
 
 In this setup you need to configure the interfaces as described below.
 
+
+Using ntopng in routing mode
+----------------------------
+
+Supposing to have this network configuration
+
+	       eth0    +-----------+  eth1
+    Internet  <---->   |   ntopng  | <----> Local network
+                       +-----------+
+
+- eth0 connects to the Internet
+- eth1 connects your clients
+- you want the ntopng box to NAT your clients and assign them an IP
+  address with DHCP. The private network used for NAT
+  will be 172.16.0.0/24 , and your ntopng box will act
+  as gateway at IP 172.16.0.1 (just as example).
+
+PRIOR TO START NTOPNG, you need to do once:
+1. Setup a tap interface on your box
+   # tunctl -t tap0
+   # ifconfig tap0 172.16.0.1 netmask 255.255.255.0
+   # ifconfig tap0 up
+
+2. Setup NAT
+   # iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
+   # iptables --append FORWARD --in-interface tap0 -j ACCEPT
+
+3. Setup your DHCP server serving addresses on tap0 from
+   network 172.16.0.0/24 (of course except 172.16.0.1 that is
+   used by ntopng)
+
+Then you can start ntopng as:
+   # ntopng -i bridge:tap0,eth1 -m "172.16.0.0/24" -w 80,3000 
+
+
 * Debian-based distributions
 ----------------------------
 For Debian-based distributions such as Raspbian the configuration is as follows.
