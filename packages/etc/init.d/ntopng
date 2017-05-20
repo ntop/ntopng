@@ -22,6 +22,15 @@ ERROR=0
 NTOPNG_BINARY=/usr/bin/ntopng
 
 #
+# How to create a ramdisk under /storage/ntopng
+#
+# Add in /etc/fstab
+# tmpfs /storage/ntopng tmpfs   nodev,nosuid,noexec,nodiratime,size=50M   0 0
+#
+# NOTE: 50M = 50 MB ramdisk
+#
+
+#
 # This to avoid issues in case there are local files 
 # (Example when ntopng has been cloned from git)
 #
