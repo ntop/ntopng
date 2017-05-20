@@ -817,7 +817,7 @@ local known_parameters = {
    ["safe_search_dns"]                             =  validateIPV4,
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
    ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
-   ["redirection_url"]                             =  validateSingleWord,
+   ["redirection_url"]                             =  validateEmptyOr(validateSingleWord),
 
    -- Multiple Choice
    ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx"}),

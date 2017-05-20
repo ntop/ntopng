@@ -395,7 +395,7 @@ function printBridgingPrefs()
 
   local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
   prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
-        "ntopng.prefs.", "redirection_url", prefs.redirection_url, nil, to_show, false, nil, {required=true, pattern=getURLPattern()})
+        "ntopng.prefs.", "redirection_url", prefs.redirection_url, nil, to_show, false, nil, {pattern=getURLPattern()})
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
 
