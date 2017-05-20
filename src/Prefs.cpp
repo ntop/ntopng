@@ -31,7 +31,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   safe_search_dns_ip = inet_addr((char*)DEFAULT_SAFE_SEARCH_DNS);
   redirection_url = strdup(DEFAULT_REDIRECTION_URL);
-  global_dns_ip = secondary_dns_ip = 0; /* No DNS */
+  global_primary_dns_ip = global_secondary_dns_ip = 0; /* No DNS */
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   resolve_all_host_ip = false, online_license_check = false;
@@ -505,11 +505,11 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
 
   getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &global_dns, DEFAULT_GLOBAL_DNS);
-  global_dns_ip = global_dns[0] ? inet_addr(global_dns) : 0;
+  global_primary_dns_ip = global_dns[0] ? inet_addr(global_dns) : 0;
   free(global_dns);
 
   getDefaultStringPrefsValue(CONST_SECONDARY_DNS, &secondary_dns, DEFAULT_GLOBAL_DNS);
-  secondary_dns_ip = secondary_dns[0] ? inet_addr(secondary_dns) : 0;
+  global_secondary_dns_ip = secondary_dns[0] ? inet_addr(secondary_dns) : 0;
   free(secondary_dns);
 }
 
@@ -1332,8 +1332,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
   lua_push_str_table_entry(vm, "safe_search_dns", Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "redirection_url", redirection_url);
-  lua_push_str_table_entry(vm, "global_dns", global_dns_ip ? Utils::intoaV4(ntohl(global_dns_ip), buf, sizeof(buf)) : (char*)"");
-  lua_push_str_table_entry(vm, "secondary_dns", secondary_dns_ip ? Utils::intoaV4(ntohl(secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
+  lua_push_str_table_entry(vm, "global_dns", global_primary_dns_ip ? Utils::intoaV4(ntohl(global_primary_dns_ip), buf, sizeof(buf)) : (char*)"");
+  lua_push_str_table_entry(vm, "secondary_dns", global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
 
   /* Tiny flows preferences */
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
@@ -1456,11 +1456,11 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
   } else if(!strncmp(pref_name,
 		    (char*)CONST_GLOBAL_DNS,
 		    strlen((char*)CONST_GLOBAL_DNS))) {
-    global_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
+    global_primary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
   } else if(!strncmp(pref_name,
 		    (char*)CONST_SECONDARY_DNS,
 		    strlen((char*)CONST_SECONDARY_DNS))) {
-    secondary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
+    global_secondary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
   } else if(!strncmp(pref_name,
 		    (char*)CONST_PREFS_REDIRECTION_URL,
 		    strlen((char*)CONST_PREFS_REDIRECTION_URL))) {

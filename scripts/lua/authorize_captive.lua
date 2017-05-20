@@ -8,17 +8,29 @@ require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
+local prefs = ntop.getPrefs()
 print [[
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
 <TITLE>Authentication Successful</TITLE>
-<meta http-equiv="refresh" Content="5; url=http://www.ntop.org"/>
+]]
+
+if((prefs.redirection_url ~= nil) and (prefs.redirection_url ~= "")) then
+   print('<meta http-equiv="refresh" Content="0; url='..prefs.redirection_url..'"/>')
+end
+print [[
 </HEAD>
 <BODY>
 Success ']] print(_GET["label"]) print [['.
 <p>
-We're redirecting you to the Internet...
+]]
+
+if((prefs.redirection_url ~= nil) and (prefs.redirection_url ~= "")) then
+   print("We're redirecting you to the Internet...")
+end
+
+print [[
 </BODY>
 </HTML>
    ]]

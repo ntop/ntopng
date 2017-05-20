@@ -730,9 +730,9 @@ local  en = {
       safe_search_dns_description = "The DNS server to be used to perform <a href='%{url}'>Safe Search</a> queries.<br>"..
             "Safe Search can be enabled for individual host pools from the host pools configuration page. Default: 208.67.222.123.",
       global_dns_title = "Global Primary DNS",
-      global_dns_description = "A DNS server to redirect the clients DNS requests to. If empty, the redirection is disabled and the default DNS is used.",
+      global_dns_description = "A DNS server to redirect the clients DNS requests to for non Safe Search host pools. If empty, the redirection is disabled and the default DNS is used.",
       secondary_dns_title = "Global Secondary DNS",
-      secondary_dns_description = "A fallback DNS server to use when the primary DNS server is not available.",
+      secondary_dns_description = "A fallback DNS server to use when the global primary DNS server is not available.",
       featured_dns_title = "Featured DNS Servers",
       featured_dns_description = "The following is a list of secure DNS servers. You can use them as a global DNS servers or as as safe search provider.",
       dns_service = "Service",
