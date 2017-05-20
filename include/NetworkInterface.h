@@ -413,7 +413,6 @@ class NetworkInterface {
   inline StatsManager  *getStatsManager()          { return statsManager;           }
   inline AlertsManager *getAlertsManager()         { return alertsManager;          }
   void listHTTPHosts(lua_State *vm, char *key);
-  void listHostsWithAnomalies(lua_State *vm);
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
   void refreshShapers();
