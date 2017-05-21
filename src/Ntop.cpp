@@ -242,7 +242,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if(((ntop->getPrefs()->get_http_port() != 80) && (ntop->getPrefs()->get_alt_http_port() != 80))
      || ((ntop->getPrefs()->get_http_port() == 80) && (ntop->getPrefs()->get_alt_http_port() == 0))) {
     redis->del((char*)CONST_PREFS_CAPTIVE_PORTAL);
-  }    
+  }
 
   pro->init_license();
 #endif
@@ -392,19 +392,16 @@ IpAddress* Ntop::getLocalNetworkIp(int16_t local_network_id) {
 #include <iphlpapi.h>
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
-#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+#define FREE(x)   HeapFree(GetProcessHeap(), 0, (x))
 
 /* Note: could also use malloc() and free() */
 
 char* getIfName(int if_id, char *name, u_int name_len) {
-
   // Declare and initialize variables
   PIP_INTERFACE_INFO pInfo = NULL;
   ULONG ulOutBufLen = 0;
-
   DWORD dwRetVal = 0;
   int iReturn = 1;
-
   int i;
 
   name[0] = '\0';
@@ -418,6 +415,7 @@ char* getIfName(int if_id, char *name, u_int name_len) {
       return(name);
     }
   }
+
   // Make a second call to GetInterfaceInfo to get
   // the actual data we need
   dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
@@ -444,15 +442,6 @@ char* getIfName(int if_id, char *name, u_int name_len) {
   return(name);
 }
 
-/* ******************************************* */
-
-int NumberOfSetBits(u_int32_t i) {
-  // Java: use >>> instead of >>
-  // C or C++: use uint32_t
-  i = i - ((i >> 1) & 0x55555555);
-  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-  return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
-}
 #endif
 
 /* ******************************************* */
@@ -507,22 +496,29 @@ void Ntop::loadLocalInterfaceAddress() {
 
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-	u_int32_t bits = NumberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+	bpf_u_int32 mask;              /* The netmask of our sniffing device */
+	bpf_u_int32 net;               /* The IP of our sniffing device */
+	char errbuf[PCAP_ERRBUF_SIZE]; /* Error string */
 
-	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+	if (pcap_lookupnet(name, &net, &mask, errbuf) == -1)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read network/mask of %s", name);
+	else {
+	  u_int32_t bits = Utils::numberOfSetBits((u_int32_t)mask);
 
-	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
-	address->setLocalNetwork(buf);
+	  IPAddr.S_un.S_addr = (u_long)net;
 
-	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
-	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
-	iface[id]->addInterfaceAddress(buf);
+	  snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
+	  address->setLocalNetwork(buf);
+
+	  snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
+	  iface[id]->addInterfaceAddress(buf);
+	}
       }
     }
   }
-
+  
   /* TODO: add IPv6 support */
   if(pIPAddrTable) {
     FREE(pIPAddrTable);
@@ -543,6 +539,7 @@ void Ntop::loadLocalInterfaceAddress() {
     struct ifreq ifr;
     u_int32_t netmask;
     int cidr, ifId = -1;
+
     if((ifa->ifa_addr == NULL)
        || ((ifa->ifa_addr->sa_family != AF_INET)
 	   && (ifa->ifa_addr->sa_family != AF_INET6))

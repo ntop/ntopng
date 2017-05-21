@@ -97,7 +97,7 @@ class Utils {
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 
   static inline u_int64_t toUs(struct timeval *t) { return(((u_int64_t)t->tv_sec)*1000000+((u_int64_t)t->tv_usec)); };
-  static void replacestr(char *line, const char *search, const char *replace);	  
+  static void replacestr(char *line, const char *search, const char *replace);
   static u_int32_t getHostManagementIPv4Address();
   static bool isInterfaceUp(char *ifname);
   static bool maskHost(bool isLocalIP);
@@ -105,7 +105,6 @@ class Utils {
   /* System Host Montiring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
   static void luaMeminfo(lua_State* vm);
-  
 };
 
 #endif /* _UTILS_H_ */
