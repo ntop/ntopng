@@ -507,6 +507,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
 	    IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
 	    snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+		local_interface_addresses.addAddress(buf);
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
 	    iface[id]->addInterfaceAddress(buf);
       }
