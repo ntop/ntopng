@@ -158,6 +158,7 @@ class NetworkInterface {
 		time_t first_seen, time_t last_seen,
 		bool *new_flow);
   int sortHosts(struct flowHostRetriever *retriever,
+		u_int8_t bridge_iface_idx,
 		AddressTree *allowed_hosts,
 		bool host_details,
 		LocationPolicy location,
@@ -171,6 +172,7 @@ class NetworkInterface {
   int sortVLANs(struct flowHostRetriever *retriever,
 		char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
+	       u_int8_t bridge_iface_idx,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
 	       bool hostMacsOnly, const char *manufacturer,
 	       char *sortColumn);
@@ -300,9 +302,12 @@ class NetworkInterface {
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
-  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol,
+  bool dissectPacket(u_int8_t bridge_iface_idx,
+		     const struct pcap_pkthdr *h, const u_char *packet,
+		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  bool processPacket(const struct bpf_timeval *when,
+  bool processPacket(u_int8_t bridge_iface_idx,
+		     const struct bpf_timeval *when,
 		     const u_int64_t time,
 		     struct ndpi_ethhdr *eth,
 		     u_int16_t vlan_id,
@@ -339,6 +344,7 @@ class NetworkInterface {
   int getLatestActivityHostsList(lua_State* vm,
 				 AddressTree *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
+			 u_int8_t bridge_iface_idx,
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
 			 char *countryFilter, char *mac_filter,
@@ -363,14 +369,18 @@ class NetworkInterface {
 			char *sortColumn, u_int32_t maxHits,
 			u_int32_t toSkip, bool a2zSortOrder,
 			DetailsLevel details_level);
-  int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
+  int getActiveMacList(lua_State* vm,
+		       u_int8_t bridge_iface_idx,
+		       u_int16_t vlan_id,
 		       bool skipSpecialMacs,
 		       bool hostMacsOnly, const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder);
-  int getActiveMacManufacturers(lua_State* vm, u_int16_t vlan_id,
-		       bool skipSpecialMacs,
-		       bool hostMacsOnly, u_int32_t maxHits);
+  int getActiveMacManufacturers(lua_State* vm,
+				u_int8_t bridge_iface_idx,
+				u_int16_t vlan_id,
+				bool skipSpecialMacs,
+				bool hostMacsOnly, u_int32_t maxHits);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
 #ifdef NOTUSED

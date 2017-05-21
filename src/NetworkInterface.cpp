@@ -1145,7 +1145,8 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
-bool NetworkInterface::processPacket(const struct bpf_timeval *when,
+bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
+				     const struct bpf_timeval *when,
 				     const u_int64_t time,
 				     struct ndpi_ethhdr *eth,
 				     u_int16_t vlan_id,
@@ -1180,7 +1181,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-      ret = vIface->processPacket(when, time, eth, vlan_id,
+      ret = vIface->processPacket(bridge_iface_idx,
+				  when, time, eth, vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
@@ -1333,6 +1335,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;
 
+    if(*srcHost) (*srcHost)->setInterfaceId(bridge_iface_idx);
+    
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -1640,7 +1644,8 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 /* **************************************************** */
 
-bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
+bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
+				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
 				     u_int16_t *ndpiProtocol,
 				     Host **srcHost, Host **dstHost,
@@ -1876,7 +1881,8 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr) & 0xFF;
 
       try {
-	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
+	pass_verdict = processPacket(bridge_iface_idx,
+				     &h->ts, time, ethernet, vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch(std::bad_alloc& ba) {
@@ -1962,7 +1968,8 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr) & 0xFF;
 
 	try {
-	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
+	  pass_verdict = processPacket(bridge_iface_idx,
+				       &h->ts, time, ethernet, vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
 	} catch(std::bad_alloc& ba) {
@@ -2651,7 +2658,7 @@ struct flowHostRetriever {
   /* Search criteria */
   AddressTree *allowed_hosts;
   Host *host;
-  u_int8_t *mac;
+  u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
   bool skipSpecialMacs, hostMacsOnly;
   char *country;
@@ -2815,17 +2822,17 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   if(!h || h->idle() || !h->match(r->allowed_hosts))
     return(false);
 
-  if((r->location == location_local_only      && !h->isLocalHost())         ||
-     (r->location == location_remote_only     && h->isLocalHost())          ||
-     (r->vlan_id       && (r->vlan_id         != h->get_vlan_id()))         ||
-     ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))        ||
-     ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))              ||
-     ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id())) ||
-     (r->hostMacsOnly  && h->getMac() && h->getMac()->isSpecialMac())       ||
-     (r->mac           && (! h->getMac()->equal(r->vlan_id, r->mac)))       ||
-     ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))        ||
+  if((r->location == location_local_only      && !h->isLocalHost())                       ||
+     (r->location == location_remote_only     && h->isLocalHost())                        ||
+     (r->vlan_id       && (r->vlan_id         != h->get_vlan_id()))                       ||
+     ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
+     ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
+     ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
+     (r->hostMacsOnly  && h->getMac() && h->getMac()->isSeenIface(r->bridge_iface_idx))   ||
+     (r->mac           && (! h->getMac()->equal(r->vlan_id, r->mac)))                     ||
+     ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
-     (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))) ||
+     (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
      (r->ipVersionFilter && (((r->ipVersionFilter == 4) && (!h->get_ip()->isIPv4()))
 			     || ((r->ipVersionFilter == 6) && (!h->get_ip()->isIPv6())))))
     return(false); /* false = keep on walking */
@@ -3382,6 +3389,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, AddressTree *all
 /* **************************************************** */
 
 int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
+				u_int8_t bridge_iface_idx,
 				AddressTree *allowed_hosts,
 				bool host_details,
 				LocationPolicy location,
@@ -3421,7 +3429,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
     retriever->country = countryFilter, retriever->vlan_id = vlan_id,
     retriever->osFilter = osFilter, retriever->asnFilter = asnFilter,
     retriever->networkFilter = networkFilter, retriever->actNumEntries = 0,
-    retriever->poolFilter = pool_filter;
+    retriever->poolFilter = pool_filter, retriever->bridge_iface_idx = 0;
   retriever->ipVersionFilter = ipver_filter;
   retriever->ndpi_proto = proto_filter;
   retriever->maxNumEntries = maxHits, retriever->hostMacsOnly = hostMacsOnly;
@@ -3469,6 +3477,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 /* **************************************************** */
 
 int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
+			       u_int8_t bridge_iface_idx,
 			       u_int16_t vlan_id, bool skipSpecialMacs,
 			       bool hostMacsOnly, const char *manufacturer,
 			       char *sortColumn) {
@@ -3590,7 +3599,9 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortC
 
 /* **************************************************** */
 
-int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hosts,
+int NetworkInterface::getActiveHostsList(lua_State* vm,
+					 u_int8_t bridge_iface_idx,
+					 AddressTree *allowed_hosts,
 					 bool host_details, LocationPolicy location,
 					 char *countryFilter, char *mac_filter,
 					 u_int16_t vlan_id, char *osFilter,
@@ -3602,7 +3613,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hos
 
   disablePurge(false);
 
-  if(sortHosts(&retriever, allowed_hosts, host_details, location,
+  if(sortHosts(&retriever, bridge_iface_idx,
+	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter, ipver_filter, proto_filter,
 	       false /* All MACs */, sortColumn) < 0) {
@@ -3654,7 +3666,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hos
 
 /* **************************************************** */
 
-int NetworkInterface::getActiveHostsGroup(lua_State* vm, AddressTree *allowed_hosts,
+int NetworkInterface::getActiveHostsGroup(lua_State* vm,	       
+					  AddressTree *allowed_hosts,
 					  bool host_details, LocationPolicy location,
 					  char *countryFilter,
 					  u_int16_t vlan_id, char *osFilter,
@@ -3667,7 +3680,8 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, AddressTree *allowed_ho
   disablePurge(false);
 
   // sort hosts according to the grouping criterion
-  if(sortHosts(&retriever, allowed_hosts, host_details, location,
+  if(sortHosts(&retriever, 0 /* bridge_iface_idx TODO */,
+	       allowed_hosts, host_details, location,
 	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter, pool_filter, ipver_filter, -1 /* no protocol filter */,
 	       local_macs, groupColumn) < 0 ) {
@@ -5176,7 +5190,9 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
 /* **************************************** */
 
-int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
+int NetworkInterface::getActiveMacList(lua_State* vm,
+				       u_int8_t bridge_iface_idx,
+				       u_int16_t vlan_id,
 				       bool skipSpecialMacs,
 				       bool hostMacsOnly, const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
@@ -5186,7 +5202,8 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, manufacturer, sortColumn) < 0) {
+  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, skipSpecialMacs,
+	      hostMacsOnly, manufacturer, sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -5329,14 +5346,17 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 
 /* **************************************** */
 
-int NetworkInterface::getActiveMacManufacturers(lua_State* vm, u_int16_t vlan_id,
+int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
+						u_int8_t bridge_iface_idx,
+						u_int16_t vlan_id,
 						bool skipSpecialMacs,
 						bool hostMacsOnly, u_int32_t maxHits) {
   struct flowHostRetriever retriever;
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, NULL, (char*)"column_manufacturer") < 0) {
+  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, skipSpecialMacs,
+	      hostMacsOnly, NULL, (char*)"column_manufacturer") < 0) {
     enablePurge(false);
     return -1;
   }

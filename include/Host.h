@@ -219,6 +219,7 @@ class Host : public GenericHost {
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
   bool IsAllowedTrafficCategory(struct site_categories *category);
+  inline void setInterfaceId(u_int8_t bridge_iface_idx) { mac->setSeenIface(bridge_iface_idx); };
   inline bool isChildSafe() {
 #ifdef NTOPNG_PRO
     return(iface->getHostPools()->isChildrenSafePool(host_pool_id));

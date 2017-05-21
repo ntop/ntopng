@@ -29,7 +29,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   u_int8_t mac[6];
   const char * manuf;
   u_int16_t vlan_id;
-  bool special_mac;
+  bool special_mac:1, bridge_seen_iface[2] /* , notused:5 */;
   ArpStats arp_stats;
 
  public:
@@ -54,10 +54,12 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
     rcvd.incStats(num_pkts, num_bytes);
   }
 
-  inline void incSentArpRequests()   { arp_stats.sent_requests++; }
-  inline void incSentArpReplies()    { arp_stats.sent_replies++; }
-  inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++; }
-  inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++; }
+  inline void incSentArpRequests()   { arp_stats.sent_requests++;         }
+  inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
+  inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
+  inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
+  inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; }
+  inline bool isSeenIface(u_int8_t idx)   { return(bridge_seen_iface[idx & 0x01]); }
   inline u_int64_t getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
   inline u_int64_t getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
 

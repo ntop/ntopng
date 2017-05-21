@@ -186,7 +186,7 @@ static void* packetPollLoop(void* ptr) {
 	  iface->dissectPacket(&hdr_copy, (const u_char*)pkt_copy, &p, &srcHost, &dstHost, &flow);
 #else
 	  hdr->caplen = min_val(hdr->caplen, iface->getMTU());
-	  iface->dissectPacket(hdr, pkt, &p, &srcHost, &dstHost, &flow);
+	  iface->dissectPacket(0, hdr, pkt, &p, &srcHost, &dstHost, &flow);
 #endif
 	}
       } else if(rc < 0) {

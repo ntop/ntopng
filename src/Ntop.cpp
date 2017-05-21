@@ -619,9 +619,9 @@ void Ntop::loadLocalInterfaceAddress() {
   closesocket(sock);
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Local Interface Addresses (System Host)");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Local Interface Addresses (System Host)");
   local_interface_addresses.dump();
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Local Networks");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Local Networks");
   address->dump();
 
   if(0) {

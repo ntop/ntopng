@@ -602,7 +602,9 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
 
   if(!ntop_interface ||
-    ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
+    ntop_interface->getActiveHostsList(vm,
+				       0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+				       get_allowed_nets(vm),
                                        show_details, location,
                                        country, mac_filter,
 				       vlan_filter, os_filter, asn_filter,
@@ -712,12 +714,13 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 	    if(lua_type(vm, 6) == LUA_TBOOLEAN) {
 	      skipSpecialMacs = lua_toboolean(vm, 6) ? true : false;
 	    }
+	    
 	    if(lua_type(vm, 7) == LUA_TBOOLEAN) {
 	      hostMacsOnly = lua_toboolean(vm, 7) ? true : false;
-
-        if(lua_type(vm, 8) == LUA_TSTRING) {
-          manufacturer = lua_tostring(vm, 8);
-        }
+	      
+	      if(lua_type(vm, 8) == LUA_TSTRING) {
+		manufacturer = lua_tostring(vm, 8);
+	      }
 	    }
 	  }
 	}
@@ -726,7 +729,9 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   }
 
   if(!ntop_interface ||
-     ntop_interface->getActiveMacList(vm, vlan_id, skipSpecialMacs,
+     ntop_interface->getActiveMacList(vm,
+				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+				      vlan_id, skipSpecialMacs,
 				      hostMacsOnly, manufacturer,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder) < 0)
@@ -893,8 +898,10 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   }
 
   if(!ntop_interface ||
-     ntop_interface->getActiveMacManufacturers(vm, vlan_id, skipSpecialMacs,
-				      hostMacsOnly,maxHits) < 0)
+     ntop_interface->getActiveMacManufacturers(vm,
+					       0, /* bridge_iface_idx - TODO */
+					       vlan_id, skipSpecialMacs,
+					       hostMacsOnly,maxHits) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

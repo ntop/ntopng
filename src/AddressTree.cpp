@@ -168,7 +168,7 @@ static void address_tree_dump_funct(prefix_t *prefix, void *data, void *user_dat
   if(user_data)
     lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
   else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", ret);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[AddressTree] %s", ret);
 }
 
 /* **************************************************** */
