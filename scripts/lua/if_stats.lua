@@ -203,6 +203,10 @@ print [[
 
 short_name = getHumanReadableInterfaceName(if_name)
 
+if(string.contains(short_name, "{")) then -- Windows
+   short_name = ifstats.description
+end
+
 if(short_name ~= if_name) then
    short_name = short_name .. "..."
 end
@@ -338,6 +342,7 @@ print [[
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
+   if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
    print("</td></tr>\n")
 
    if interface.isPcapDumpInterface() == false then
@@ -1123,7 +1128,7 @@ elseif(page == "config") then
                <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
                <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  ]] print(i18n("if_stats_config.trigger_alerts_for_interface", {ifname=ifname})) print[[
+                  ]] print(i18n("if_stats_config.trigger_alerts_for_interface", {ifname=short_name})) print[[
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>

@@ -45,7 +45,7 @@ alias = getInterfaceNameAlias(ifname)
 if((alias ~= nil) and (alias ~= ifname)) then
    print(alias)
 else
-   print(_ifstats.name)
+   print(_ifstats.description)
 end
 
 print('</span></a>')

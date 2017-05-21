@@ -319,10 +319,14 @@ for k,v in pairsByKeys(ifnames, asc) do
 
    descr = getHumanReadableInterfaceName(v.."")
 
-   if(v ~= ifdescr[k]) then
-      descr = descr .. " (".. ifdescr[k] ..")"
-   elseif(v ~= descr) then
-      descr = descr .. " (".. v ..")"
+   if(string.contains(descr, "{")) then -- Windows
+      descr = ifdescr[k]      
+   else
+      if(v ~= ifdescr[k]) then
+	 descr = descr .. " (".. ifdescr[k] ..")"
+      elseif(v ~= descr) then
+	 descr = descr .. " (".. v ..")"
+      end
    end
    
    print(descr)
