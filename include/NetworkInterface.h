@@ -62,7 +62,7 @@ typedef struct {
  */
 class NetworkInterface {
  protected:
-  char *ifname; /**< Network interface name. */
+  char *ifname, *ifDescription;
   const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   u_int8_t alertLevel, purgeRuns;
@@ -244,6 +244,7 @@ class NetworkInterface {
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
+  inline char* get_description()               { return(ifDescription);                                };
   inline int  get_id()                         { return(id);                                           };
   inline bool get_sprobe_interface()           { return sprobe_interface;  }
   inline bool get_inline_interface()           { return inline_interface;  }

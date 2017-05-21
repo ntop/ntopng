@@ -41,7 +41,7 @@ NetworkInterface::NetworkInterface() { init(); }
 NetworkInterface::NetworkInterface(const char *name,
 				   const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
-  char _ifname[64];
+  char _ifname[64], buf[64];
   bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0; /* We need to do it as isView() is not yet initialized */
 
   customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
@@ -98,7 +98,8 @@ NetworkInterface::NetworkInterface(const char *name,
 
   pkt_dumper_tap = NULL, lastSecUpdate = 0;
   ifname = strdup(name);
-
+  ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
+    
   if(id >= 0) {
     u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
@@ -236,7 +237,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL,
-    hosts_hash = NULL,
+    hosts_hash = NULL, ifDescription = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
@@ -596,7 +597,7 @@ NetworkInterface::~NetworkInterface() {
 
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
-
+  if(ifDescription)     free(ifDescription);
   if(remoteIfname)      free(remoteIfname);
   if(remoteIfIPaddr)    free(remoteIfIPaddr);
   if(remoteProbeIPaddr) free(remoteProbeIPaddr);
@@ -4052,7 +4053,8 @@ void NetworkInterface::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  lua_push_str_table_entry(vm, "name", ifname);
+  lua_push_str_table_entry(vm, "name", get_name());
+  lua_push_str_table_entry(vm, "description", get_description());
   lua_push_int_table_entry(vm, "scalingFactor", scalingFactor);
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
