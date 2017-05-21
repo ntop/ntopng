@@ -7,7 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+--[[ Note: keep the old iso-8859-1 encoding to avoid breaking existing passwords ]]
+sendHTTPContentTypeHeader('text/html', nil, 'iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 info = ntop.getInfo()
@@ -58,7 +59,7 @@ print [[
   <div class="form-group has-feedback">
 
       <input type="text" class="form-control" name="user" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
-      <input type="password" class="form-control" name="password" placeholder="Password" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}$" required>
+      <input type="password" class="form-control" name="password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
 

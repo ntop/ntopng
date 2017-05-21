@@ -45,13 +45,6 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
-  if(ntop->getPrefs()->is_flow_activity_enabled()){
-    if((activityDetection = (FlowActivityDetection*)calloc(1, sizeof(FlowActivityDetection))) == NULL)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow activity detection");
-  } else {
-    activityDetection = NULL;
-  }
-
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
     dissect_next_http_packet = false,
@@ -214,17 +207,10 @@ void Flow::categorizeFlow() {
 /* *************************************** */
 
 Flow::~Flow() {
-  struct timeval tv = { 0, 0 };
-
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
     if(srv_host) srv_host->decLowGoodputFlows(false);
   }
-
-  checkBlacklistedFlow();
-  update_hosts_stats(&tv, true); /* dumpFlow is done inside */
-
-  iface->luaEvalFlow(this, callback_flow_delete);
 
   if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
@@ -232,7 +218,6 @@ Flow::~Flow() {
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
   if(host_server_name) free(host_server_name);
-  if(activityDetection)free(activityDetection);
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -291,12 +276,13 @@ void Flow::dumpFlowAlert() {
       break;
 
     case status_ssl_certificate_mismatch: /* 10 */
-      do_dump = true;
+      do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
       break;
     }
 
     if(do_dump && cli_host && srv_host) {
-      char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+      char cli_name[64], srv_name[64];
 
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
       if(c && cli_host->get_vlan_id())
@@ -312,10 +298,10 @@ void Flow::dumpFlowAlert() {
 	       msg, /* TODO: remove string and save numeric status */
 	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_id(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
+	       cli_host->get_visual_name(cli_name, sizeof(cli_name)),
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_id(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
+	       srv_host->get_visual_name(srv_name, sizeof(srv_name)),
 	       print(fbuf, sizeof(fbuf)));
 
       iface->getAlertsManager()->storeFlowAlert(this, aType, alert_level_warning, alert_msg);
@@ -328,43 +314,84 @@ void Flow::dumpFlowAlert() {
 /* *************************************** */
 
 void Flow::checkBlacklistedFlow() {
-  if(!blacklist_alarm_emitted) {
-    if(cli_host
+  if(cli_host
        && srv_host
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
-      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+    char c_buf[64], s_buf[64], *c, *s;
+    char c_name[64], s_name[64];
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+    c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+    if(c && cli_host->get_vlan_id())
+      sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
 
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+    s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+    if(s && srv_host->get_vlan_id())
+      sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+
+    /* Checks to generate the flow alert */
+    if(!blacklist_alarm_emitted) {
+      char fbuf[256], alert_msg[1024];
 
       snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> contacted %s host "
+	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> contacted %s "
 	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> [%s]",
-	       cli_host->isBlacklisted() ? "blacklisted" : "",
+	       cli_host->isBlacklisted() ? "blacklisted host" : "host",
 	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_id(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
-	       srv_host->isBlacklisted() ? "blacklisted" : "",
+	       cli_host->get_visual_name(c_name, sizeof(c_name)),
+	       srv_host->isBlacklisted() ? "blacklisted host" : "host",
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_id(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
+	       srv_host->get_visual_name(s_name, sizeof(s_name)),
 	       print(fbuf, sizeof(fbuf)));
-
-      /* force the vlan in the alert source and target */
-      if(!strstr(c, "@")) sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-      if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
 						alert_level_error, alert_msg);
+
+      blacklist_alarm_emitted = true;
     }
 
-    blacklist_alarm_emitted = true;
+    /* TODO
+     * the host alerts are temporary disabled because, as soon as the host
+     * stays in memory, at most 1 alerts would be generated even if the host
+     * was/contacted by many hosts.
+     */
+#if 0
+    /* Checks to generate the host alert */
+    if (cli_host->isBlacklisted() && !cli_host->isBlacklistedAlarmEmitted()) {
+      char msg[1024];
+      snprintf(msg, sizeof(msg), "Blacklisted host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> "
+	       "contacted <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
+	       ntop->getPrefs()->get_http_prefix(),
+	       c, iface->get_id(),
+	       cli_host->get_visual_name(c_name, sizeof(c_name)),
+	       ntop->getPrefs()->get_http_prefix(),
+	       s, iface->get_id(),
+	       srv_host->get_visual_name(s_name, sizeof(s_name)));
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
+      iface->getAlertsManager()->storeHostAlert(cli_host, alert_malware_detection, alert_level_error, msg, cli_host, srv_host);
+      cli_host->setBlacklistedAlarmEmitted();
+    }
+
+    if (srv_host->isBlacklisted() && !srv_host->isBlacklistedAlarmEmitted()) {
+      char msg[1024];
+      snprintf(msg, sizeof(msg), "Blacklisted host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> "
+	       "was contacted by <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
+	       ntop->getPrefs()->get_http_prefix(),
+	       s, iface->get_id(),
+	       srv_host->get_visual_name(s_name, sizeof(s_name)),
+	       ntop->getPrefs()->get_http_prefix(),
+	       c, iface->get_id(),
+	       cli_host->get_visual_name(c_name, sizeof(c_name)));
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
+      iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg, srv_host, cli_host);
+      srv_host->setBlacklistedAlarmEmitted();
+    }
+#endif
+
   }
 }
 
@@ -452,13 +479,6 @@ void Flow::processDetectedProtocol() {
 						 true);
 	}
       }
-    }
-    break;
-
-  case NDPI_PROTOCOL_NETBIOS:
-    if((ndpiFlow->host_server_name[0] != '\0') && (!strstr((char*)ndpiFlow->host_server_name, "__MSBROWSE__"))) {
-      get_cli_host()->set_host_label((char*)ndpiFlow->host_server_name, false);
-      protocol_processed = true;
     }
     break;
 
@@ -782,7 +802,7 @@ char* Flow::print(char *buf, u_int buf_len) {
     ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.app_protocol;
 
   snprintf(buf, buf_len,
-	   "%s %s:%u > %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
+	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
 #endif
@@ -855,7 +875,7 @@ bool Flow::dumpFlow(bool idle_flow) {
 
     if(cli_host) {
       if(ntop->getPrefs()->do_dump_flows_on_mysql())
-	cli_host->getInterface()->dumpDBFlow(last_seen, idle_flow, this);
+	cli_host->getInterface()->dumpDBFlow(last_seen, this);
       else if(ntop->getPrefs()->do_dump_flows_on_es())
 	cli_host->getInterface()->dumpEsFlow(last_seen, this);
       else if(ntop->getPrefs()->do_dump_flows_on_ls())
@@ -879,13 +899,19 @@ bool Flow::dumpFlow(bool idle_flow) {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
+void Flow::update_hosts_stats(struct timeval *tv) {
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
+  bool is_idle_flow;
   int16_t cli_network_id, srv_network_id;
+  Vlan *vl;
+  NetworkStats *cli_network_stats;
+
+  if((is_idle_flow = isReadyToPurge()))
+    set_to_purge(); /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
@@ -908,17 +934,24 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
     diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
   prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes,
     prev_cli2srv_last_packets = cli2srv_last_packets;
-  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
-    cli2srv_last_goodput_bytes = sent_goodput_bytes;
 
   rcvd_packets = srv2cli_packets, rcvd_bytes = srv2cli_bytes, rcvd_goodput_bytes = srv2cli_goodput_bytes;
   diff_rcvd_packets = rcvd_packets - srv2cli_last_packets,
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
     prev_srv2cli_last_packets = srv2cli_last_packets;
-  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes, srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
 
-  if(cli_host && srv_host) {
+#ifdef NTOPNG_PRO
+  if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
+    iface->aggregatePartialFlow(this); /* must go before updating _last_ updates as it uses them */
+#endif
+
+  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
+    cli2srv_last_goodput_bytes = sent_goodput_bytes;
+  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes,
+    srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
+
+    if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
     srv_network_id = srv_host->get_local_network_id();
 
@@ -933,76 +966,77 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 
       /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
-       pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp */
-      if(!iface->is_bridge_interface())
+	 pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp 
+      */
+      if(iface && !iface->is_bridge_interface())
 	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       }
 #endif
 
-      if(cli_host) {
-	NetworkStats *cli_network_stats;
-
-	cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-	cli_host->incStats(tv->tv_sec, protocol,
-			   ndpiDetectedProtocol.app_protocol,
-			   &categorization.category,
-			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
-
-	// update per-subnet byte counters
-	if(cli_network_stats) { // only if the network is known and local
-	  if(!cli_and_srv_in_same_subnet) {
-	    cli_network_stats->incEgress(diff_sent_bytes);
-	    cli_network_stats->incIngress(diff_rcvd_bytes);
-	  } else // client and server ARE in the same subnet
-	    // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	    cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
-	}
-
-#ifdef NOTUSED
-	if(srv_host && cli_host->isLocalHost()) {
-	  cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
-	}
+      if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
+	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
+	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least 
+	   two hosts exists for that vlan and that any purge attempt will be prevented. */
+#ifdef VLAN_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
 #endif
+	vl->incStats(tv->tv_sec, ndpiDetectedProtocol.app_protocol,
+		     diff_sent_packets, diff_sent_bytes,
+		     diff_rcvd_packets, diff_rcvd_bytes);
       }
 
-      if(srv_host) {
-	NetworkStats *srv_network_stats;
+      cli_network_stats = cli_host->getNetworkStats(cli_network_id);
+      cli_host->incStats(tv->tv_sec, protocol,
+			 ndpiDetectedProtocol.app_protocol,
+			 &categorization.category,
+			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
 
-	srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-	srv_host->incStats(tv->tv_sec, protocol, ndpiDetectedProtocol.app_protocol,
-			   NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+      // update per-subnet byte counters
+      if(cli_network_stats) { // only if the network is known and local
+	if(!cli_and_srv_in_same_subnet) {
+	  cli_network_stats->incEgress(diff_sent_bytes);
+	  cli_network_stats->incIngress(diff_rcvd_bytes);
+	} else // client and server ARE in the same subnet
+	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
+	  cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
+      }
 
-	if(srv_network_stats) {
-	  // local and known server network
-	  if(!cli_and_srv_in_same_subnet) {
-	    srv_network_stats->incIngress(diff_sent_bytes);
-	    srv_network_stats->incEgress(diff_rcvd_bytes);
-	  }
+      NetworkStats *srv_network_stats;
+
+      srv_network_stats = srv_host->getNetworkStats(srv_network_id);
+      srv_host->incStats(tv->tv_sec, protocol, ndpiDetectedProtocol.app_protocol,
+			 NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+
+      if(srv_network_stats) {
+	// local and known server network
+	if(!cli_and_srv_in_same_subnet) {
+	  srv_network_stats->incIngress(diff_sent_bytes);
+	  srv_network_stats->incEgress(diff_rcvd_bytes);
 	}
+      }
 
 #ifdef NOTUSED
-	if(cli_host && srv_host->isLocalHost())
-	  srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
+      if(cli_host && srv_host->isLocalHost())
+	srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
 #endif
 
-	if(host_server_name
-	   && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
-	       || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
-	  srv_host->updateHTTPHostRequest(host_server_name,
-					  diff_num_http_requests,
-					  diff_sent_bytes, diff_rcvd_bytes);
-	  diff_num_http_requests = 0; /*
-					As this is a difference it is reset
-					whenever we update the counters
-				      */
-	}
+      if(host_server_name
+	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
+	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
+	srv_host->updateHTTPHostRequest(host_server_name,
+					diff_num_http_requests,
+					diff_sent_bytes, diff_rcvd_bytes);
+	diff_num_http_requests = 0; /*
+				      As this is a difference it is reset
+				      whenever we update the counters
+				    */
       }
     }
   }
-
+  
   if(last_update_time.tv_sec > 0) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
     //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
@@ -1130,7 +1164,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(inDeleteMethod /* whether this is an active or idle flow */)) {
+  if(dumpFlow(is_idle_flow /* whether this is an active or idle flow */)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
       last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
@@ -1141,12 +1175,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 
   checkBlacklistedFlow();
 
-  /*
-    No need to call the method below as
-    the delete callback will be called in a moment
-  */
-  if(!inDeleteMethod)
+  if(!is_idle_flow)
     iface->luaEvalFlow(this, callback_flow_update);
+  else {
+    checkBlacklistedFlow();
+    iface->luaEvalFlow(this, callback_flow_delete);
+  }
+
 }
 
 /* *************************************** */
@@ -1170,20 +1205,40 @@ void Flow::update_pools_stats(const struct timeval *tv,
     if(cli_host) {
       cli_host_pool_id = cli_host->get_host_pool();
 
+      /* Overal host pool stats */
       hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+
+      /* Per host quota-enforcement stats */
+      if(hp->enforceQuotasPerPoolMember(cli_host_pool_id)) {
+	cli_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.master_protocol, master_category_id,
+					   diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+	cli_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.app_protocol, app_category_id,
+					   diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+      }
     }
 
     /* Server host */
     if(srv_host) {
       srv_host_pool_id = srv_host->get_host_pool();
 
-      hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
-		       diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
-      hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
-		       diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      /* Update server pool stats only if the pool is not equal to the client pool */
+      if(!cli_host || srv_host_pool_id != cli_host_pool_id) {
+	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      }
+
+      /* When quotas have to be enforced per pool member, stats must be increased even if cli and srv are on the same pool */
+      if(hp->enforceQuotasPerPoolMember(srv_host_pool_id)) {
+	srv_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.master_protocol, master_category_id,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+	srv_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.app_protocol, app_category_id,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      }
     }
   }
 }
@@ -1301,7 +1356,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	       DetailsLevel details_level, bool skipNewTable) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
-  bool src_match, dst_match;
+  bool src_match = true, dst_match = true;
   bool mask_cli_host = true, mask_dst_host = true, mask_flow;
   
   if((src == NULL) || (dst == NULL)) return;
@@ -1347,7 +1402,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   if(details_level >= details_high) {
     if(src && !mask_cli_host) {
-      lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
+      lua_push_str_table_entry(vm, "cli.host", src->get_visual_name(buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
 
@@ -1360,7 +1415,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
     if(dst && !mask_dst_host) {
-      lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
+      lua_push_str_table_entry(vm, "srv.host", dst->get_visual_name(buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
@@ -1597,7 +1652,7 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-bool Flow::idle() {
+bool Flow::isReadyToPurge() {
   u_int8_t tcp_flags;
 
   if(!iface->is_purge_idle_interface()) return(false);
@@ -1864,7 +1919,7 @@ json_object* Flow::flow2json() {
     }
   }
 
-  if(categorization.categorized_requested
+  if(!categorization.categorized_requested
      && (categorization.category.categories[0] != NTOP_UNKNOWN_CATEGORY_ID)) {
     char buf[64];
 
@@ -2027,11 +2082,9 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
-    cli_host->incMacStats(true, pkt_len), srv_host->incMacStats(false, pkt_len),
       cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
   } else {
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
-    cli_host->incMacStats(false, pkt_len), srv_host->incMacStats(true, pkt_len),
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
 
@@ -2615,7 +2668,7 @@ void Flow::updateFlowShapers() {
 
 #ifdef SHAPER_DEBUG
   {
-    char buf[512];
+    char buf[1024];
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SHAPERS] %s", print(buf, sizeof(buf)));
   }
@@ -2853,38 +2906,6 @@ FlowStatus Flow::getFlowStatus() {
 
 /* ***************************************************** */
 
-void Flow::setActivityFilter(ActivityFilterID fid,
-			     const activity_filter_config * config) {
-  if(activityDetection == NULL)
-    return /* detection disabled */;
-
-  if(activityDetection && (fid < ActivityFiltersN) && config) {
-    activityDetection->filterId = fid;
-    activityDetection->filterSet = true;
-    activityDetection->config = *config;
-    memset(&activityDetection->status, 0, sizeof(activityDetection->status));
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "[%s] Invalid activity filter ID: %u", this, fid);
-  }
-}
-
-/* ***************************************************** */
-
-bool Flow::invokeActivityFilter(const struct timeval *when,
-				bool cli2srv, u_int16_t payload_len) {
-  if(activityDetection == NULL)
-    return false /* detection disabled */;
-
-  if(activityDetection->filterSet)
-    return(activity_filter_funcs[activityDetection->filterId])(&activityDetection->config,
-							       &activityDetection->status, this,
-							       when, cli2srv, payload_len);
-  return(false);
-}
-
-/* ***************************************************** */
-
 bool Flow::isTiny() {
   //if((cli2srv_packets < 3) && (srv2cli_packets == 0))
   if((get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow())
@@ -2892,4 +2913,12 @@ bool Flow::isTiny() {
     return(true);
   else
     return(false);
+}
+
+/* ***************************************************** */
+
+void Flow::fixAggregatedFlowFields() {
+  ndpiDetectedProtocol.master_protocol = ntohs(cli_port),
+    ndpiDetectedProtocol.app_protocol = ntohs(srv_port);
+  cli_port = srv_port = 0;
 }

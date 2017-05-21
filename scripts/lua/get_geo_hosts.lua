@@ -7,9 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
---sendHTTPHeader('text/html; charset=iso-8859-1')
+--sendHTTPContentTypeHeader('text/html')
 sendHTTPHeader('application/json')
-
 
 host_info = url2hostinfo(_GET)
 interface.select(ifname)
@@ -24,11 +23,12 @@ print [[
     num = 0
 
     if (host_info["host"] == nil) then
+       -- here no host has been specified
        hosts_stats = interface.getHostsInfo(true, "column_traffic", max_num)
        hosts_stats = hosts_stats["hosts"]
 
        for key, value in pairs(hosts_stats) do
-	  if(value["ip"] ~= nil) then
+	  if((value["ip"] ~= nil) and (not value["privatehost"]) and (not isBroadMulticast(value["ip"]))) then
 	     if(num > 0) then print(",") end
 	     print('{\n"host": [ { ')
 	     print('"lat": '..value["latitude"]..',\n')
@@ -57,7 +57,7 @@ print [[
     -- Flows with trajectory
 
     interface.select(ifname)
-    peers = getTopFlowPeers(hostinfo2hostkey(host_info), max_num - num)
+    peers = getTopFlowPeers(hostinfo2hostkey(host_info), max_num - num, nil, {detailsLevel="max"})
 
     maxval = 0
     for key, values in pairs(peers) do
@@ -71,13 +71,12 @@ print [[
        t = values["bytes"]
        pctg = (t*100)/maxval
 
-       if(not(values["cli.private"])
-       and not(values["srv.private"])
+       if(not(values["cli.private"] and values["srv.private"]) -- at least one of the two must be public
     and not(isBroadMulticast(values["cli.ip"])) 
  and not(isBroadMulticast(values["srv.ip"]))) then
 	  if((pctg >= min_threshold)
 	  and (values["cli.latitude"] ~= nil)
-       and (values["cli.longitude"] ~= nil)) then 
+       and (values["cli.longitude"] ~= nil)) then
 	     if(num > 0) then print(",") end
 	     print('\n{\n"host":\n[	\n{\n')
 	     print('"lat": '..values["cli.latitude"]..',\n')

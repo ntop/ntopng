@@ -146,6 +146,10 @@ local function validateAbsolutePath(p)
    return validateUnquoted(p)
 end
 
+local function validateNumMinutes(m)
+   return (m == "custom") or validateNumber(m)
+end
+
 -- #################################################################
 
 local function validateOnOff(mode)
@@ -191,7 +195,7 @@ local function validateSflowDistroMode(mode)
 end
 
 local function validateSflowDistroType(mode)
-   local modes = {"size", "memory", "bytes", "latency", "server"}
+   local modes = {"size", "memory", "bytes", "latency", "server", "ipver"}
 
    return validateChoice(modes, mode)
 end
@@ -220,6 +224,12 @@ local function validateDirection(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateSendersReceivers(mode)
+   local modes = {"senders", "receivers"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateClientOrServer(mode)
    local modes = {"client", "server"}
 
@@ -234,6 +244,12 @@ end
 
 local function validateFlowStatus(mode)
    local modes = {"normal", "alerted"}
+
+   return validateChoice(modes, mode)
+end
+
+local function validatePolicyPreset(mode)
+   local modes = {"children", "business", "no_obfuscation", "walled_garden"}
 
    return validateChoice(modes, mode)
 end
@@ -353,6 +369,10 @@ local function validateMac(p)
    end
 end
 
+local function validateIPV4(p)
+   return isIPv4(p)
+end
+
 local function validateIpAddress(p)
    if (isIPv4(p) or isIPv6(p)) then
       return true
@@ -403,6 +423,12 @@ local function validateIdToDelete(i)
    end
 end
 
+local function validateLocalGlobal(p)
+   local values = {"local", "global"}
+   
+   return validateChoice(values, p)
+end
+
 local function validateBool(p)
    if((p == "true") or (p == "false")) then
       return true
@@ -427,6 +453,11 @@ local ndpi_categories = interface.getnDPICategories()
 local site_categories = ntop.getSiteCategories()
 
 local function validateApplication(app)
+   local modes = {"TCP", "UDP"}
+   if validateChoice(modes, app) then
+      return true
+   end
+
    local dot = string.find(app, "%.")
 
    if dot ~= nil then
@@ -446,11 +477,7 @@ local function validateCategory(cat)
    return validateChoiceByKeys(site_categories, cat)
 end
 
-local function validateActivityName(p)
-   return validateChoiceByKeys(ndpi_categories, p)
-end
-
-local function validateTrafficProfile(p)
+function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
 end
 
@@ -506,6 +533,10 @@ local function validateShapedElement(elem_id)
 end
 
 local function validateAlertDescriptor(d)
+   if starts(d, "global_") then
+      d = split(d, "global_")[2]
+   end
+
    if ((validateChoiceByKeys(alert_functions_description, d)) or
        (validateChoiceByKeys(network_alert_functions_description, d))) then
       return true
@@ -581,6 +612,7 @@ local known_parameters = {
    ["nagios_host_name"]        =  validateUnquoted,
    ["nagios_service_name"]     =  validateUnquoted,
    ["bind_dn"]                 =  validateUnquoted,
+   ["pool_name"]               =  validateUnquoted,
 
 -- HOST SPECIFICATION
    ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -676,9 +708,8 @@ local known_parameters = {
    ["alertstats_type"]         =  validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["status"]                  =  validateAlertStatus,           -- An alert type to filter
-   ["profile"]                 =  validateTrafficProfile,        -- Traffic Profile name
-   ["delete_profile"]          =  validateTrafficProfile,        -- A Traffic Profile to delete
-   ["activity"]                =  validateActivityName,          -- User Activity name
+   ["profile"]                 =  http_lint.validateTrafficProfile,        -- Traffic Profile name
+   ["delete_profile"]          =  http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
    ["alert_type"]              =  validateNumber,                -- An alert type enum
    ["alert_severity"]          =  validateNumber,                -- An alert severity enum
    ["entity"]                  =  validateNumber,                -- An alert entity type
@@ -687,7 +718,7 @@ local known_parameters = {
    ["step"]                    =  validateNumber,                -- A step value
    ["cf"]                      =  validateConsolidationFunction, -- An RRD consolidation function
    ["verbose"]                 =  validateBool,                  -- True if script should be verbose
-   ["num_minutes"]             =  validateNumber,                -- number of minutes
+   ["num_minutes"]             =  validateNumMinutes,            -- number of minutes
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
@@ -698,14 +729,20 @@ local known_parameters = {
    ["search_flows"]            =  validateBool,                  -- When set, a flow search should be performed
    ["criteria"]                =  validateLookingGlassCriteria,  -- A looking glass criteria
    ["row_id"]                  =  validateNumber,                -- A number used to identify a record in a database
-   ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
+   ["rrd_file"]                =  validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    =  validatePort,                  -- An application port
    ["ntopng_license"]          =  validateSingleWord,            -- ntopng licence string
-   ["syn_alert_threshold"]     =  validateEmptyOr(validateNumber),                -- Threshold to trigger a syn alert
-   ["flows_alert_threshold"]   =  validateEmptyOr(validateNumber),                --
-   ["flow_rate_alert_threshold"] =  validateEmptyOr(validateNumber),              --
+   ["syn_attacker_threshold"]        = validateEmptyOr(validateNumber),
+   ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
+   ["syn_victim_threshold"]          = validateEmptyOr(validateNumber),
+   ["global_syn_victim_threshold"]   = validateEmptyOr(validateNumber),
+   ["flow_attacker_threshold"]         = validateEmptyOr(validateNumber),
+   ["global_flow_attacker_threshold"]  =  validateEmptyOr(validateNumber),
+   ["flow_victim_threshold"]           = validateEmptyOr(validateNumber),
+   ["global_flow_victim_threshold"]    =  validateEmptyOr(validateNumber),
    ["re_arm_minutes"]          =  validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
    ["custom_icon"]             =  validateSingleWord,            -- A custom icon for the host
+   ["senders_receivers"]       =  validateSendersReceivers,      -- Used in top scripts
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
@@ -714,6 +751,7 @@ local known_parameters = {
    ["disable_alerts_generation"]                   =  validateBool,
    ["toggle_alert_probing"]                        =  validateBool,
    ["toggle_flow_alerts_iface"]                    =  validateBool,
+   ["toggle_ssl_alerts"]                           =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
    ["toggle_slack_notification"]                   =  validateBool,
@@ -727,7 +765,6 @@ local known_parameters = {
    ["toggle_active_local_host_cache_enabled"]      =  validateBool,
    ["toggle_local"]                                =  validateBool,
    ["toggle_local_ndpi"]                           =  validateBool,
-   ["toggle_local_activity"]                       =  validateBool,
    ["toggle_flow_rrds"]                            =  validateBool,
    ["toggle_pools_rrds"]                           =  validateBool,
    ["toggle_local_categorization"]                 =  validateBool,
@@ -735,6 +772,7 @@ local known_parameters = {
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
    ["toggle_tiny_flows_export"]                    =  validateBool,
+   ["toggle_vlan_rrds"]                            =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
    ["toggle_shaping_directions"]                   =  validateBool,
    ["toggle_tcp_flags_rrds"]                       =  validateBool,
@@ -748,7 +786,7 @@ local known_parameters = {
    ["max_num_flow_alerts"]                         =  validateNumber,
    ["max_num_packets_per_tiny_flow"]               =  validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 =  validateNumber,
-   ["nagios_nsca_port"]                            =  validatePort,
+   ["nagios_nsca_port"]                            =  validateEmptyOr(validatePort),
    ["nagios_send_nsca_executable"]                 =  validateAbsolutePath,
    ["nagios_send_nsca_config"]                     =  validateAbsolutePath,
    ["nbox_user"]                                   =  validateSingleWord,
@@ -756,7 +794,7 @@ local known_parameters = {
    ["google_apis_browser_key"]                     =  validateSingleWord,
    ["ldap_server_address"]                         =  validateSingleWord,
    ["bind_pwd"]                                    =  validateSingleWord,
-   ["search_path"]                                 =  validateSingleWord,
+   ["search_path"]                                 =  validateUnquoted,
    ["user_group"]                                  =  validateSingleWord,
    ["admin_group"]                                 =  validateSingleWord,
    ["local_host_max_idle"]                         =  validateNumber,
@@ -776,8 +814,12 @@ local known_parameters = {
    ["host_activity_rrd_1h_days"]                   =  validateNumber,
    ["host_activity_rrd_1d_days"]                   =  validateNumber,
    ["host_activity_rrd_raw_hours"]                 =  validateNumber,
-   -- Multiple Choice
+   ["safe_search_dns"]                             =  validateIPV4,
+   ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
+   ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
+   ["redirection_url"]                             =  validateEmptyOr(validateSingleWord),
 
+   -- Multiple Choice
    ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx"}),
    ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
@@ -785,6 +827,9 @@ local known_parameters = {
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
    ["toggle_thpt_content"]                         =  validateChoiceInline({"bps", "pps"}),
    ["toggle_host_mask"]                            =  validateChoiceInline({"0", "1", "2"}),
+
+   -- Other
+   ["flush_alerts_data"]                           =  validateEmpty,
 --
 
 -- PAGE SPECIFIC
@@ -818,7 +863,7 @@ local known_parameters = {
    ["captive_portal_users"]    =  validateBool,                  -- to show or hide captive portal users
    ["long_names"]              =  validateBool,                  -- get_hosts_data
    ["id_to_delete"]            =  validateIdToDelete,            -- alert_utils.lua, alert ID to delete
-   ["to_delete"]               =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should be dropped
+   ["to_delete"]               =  validateLocalGlobal,           -- alert_utils.lua, set if alert configuration should be dropped
    ["SaveAlerts"]              =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should change
    ["host_pool_id"]            =  validateNumber,                -- change_user_prefs, new pool id for host
    ["old_host_pool_id"]        =  validateNumber,                -- change_user_prefs, old pool id for host
@@ -842,6 +887,7 @@ local known_parameters = {
    ["trigger_alerts"]          =  validateBool,                  -- true if alerts should be active for this entity
    ["show_advanced_prefs"]     =  validateBool,                  -- true if advanced preferences should be shown
    ["ifSpeed"]                 =  validateEmptyOr(validateNumber), -- interface speed
+   ["ifRate"]                  =  validateEmptyOr(validateNumber), -- interface refresh rate
    ["scaling_factor"]          =  validateEmptyOr(validateNumber), -- interface scaling factor
    ["drop_host_traffic"]       =  validateBool,                  -- to drop an host traffic
    ["lifetime_limited"]        =  validateEmptyOr(validateOnOff), -- set if user should have a limited lifetime
@@ -849,10 +895,11 @@ local known_parameters = {
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
-   ["export"]                  =  validateEmpty,                 -- set if data has to be exported
    ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
+   ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua
+   ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
@@ -871,7 +918,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["oldrule_"]                =  {validateShapedElement,     validateEmpty},       -- key: category or protocol ID, value: empty
 
 -- ALERTS (see alert_utils.lua)
-   ["operator_"]               =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
+   ["op_"]                     =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
    ["value_"]                  =  {validateAlertDescriptor,   validateEmptyOr(validateNumber)}, -- key: an alert descriptor, value: alert value
 
 -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
@@ -933,7 +980,7 @@ local function lintParams()
 
    for _,id in pairs(params_to_validate) do
       for k,v in pairs(id) do
-         if(debug) then io.write("[LINT] Validating ["..k.."]["..p[k].."]\n") end
+         if(debug) then io.write("[LINT] Validating ["..k.."]["..v.."]\n") end
 
          if enableValidation then
             if ((v == "") and

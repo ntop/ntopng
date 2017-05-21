@@ -42,25 +42,26 @@ class Prefs {
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
   char *http_binding_address, *https_binding_address;
   Ntop *ntop;
-  bool enable_dns_resolution, sniff_dns_responses, slack_enabled,
+  bool enable_dns_resolution, sniff_dns_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-    enable_auto_logout, use_promiscuous_mode, notifications_enabled,
+    enable_auto_logout, use_promiscuous_mode, slack_notifications_enabled,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
-    enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
+    enable_probing_alerts, enable_ssl_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
     enable_top_talkers, enable_captive_portal, enable_access_log, enable_flow_device_port_rrd_creation,
-    enable_tiny_flows_export;
+    enable_tiny_flows_export, flow_aggregation_enabled;
   HostMask hostMask;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int active_local_hosts_cache_interval;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
-  u_int16_t host_activity_rrd_raw_hours, host_activity_rrd_1h_days, host_activity_rrd_1d_days;
-  bool enable_flow_activity;
+  bool enable_user_scripts;
   u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
+  u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
+  u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
@@ -72,6 +73,7 @@ class Prefs {
   char *categorization_key;
   char *httpbl_key;
   char *zmq_encryption_pwd;
+  char *redirection_url;
   Flashstart *flashstart;
   char *http_prefix;
   char *instance_name;
@@ -82,6 +84,7 @@ class Prefs {
   char *redis_password;
   char *pid_path;
   char *cpu_affinity;
+  u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int8_t redis_db_id;
   int redis_port;
   int dns_mode;
@@ -131,7 +134,6 @@ class Prefs {
   inline bool is_dns_resolution_enabled()               { return(enable_dns_resolution);  };
   inline bool is_users_login_enabled()                  { return(enable_users_login);     };
   inline bool is_localhost_users_login_disabled()       { return(disable_localhost_login);};
-  inline bool is_slack_enabled()                        { return(slack_enabled);          };
 
   inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };  
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
@@ -139,6 +141,8 @@ class Prefs {
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
   inline bool is_flow_device_port_rrd_creation_enabled()  { return(enable_flow_device_port_rrd_creation); };
   inline bool is_tiny_flows_export_enabled()            { return(enable_tiny_flows_export);  };
+  inline void enable_flow_aggregation()                 { flow_aggregation_enabled = true;   }
+  inline bool is_flow_aggregation_enabled()             { return(flow_aggregation_enabled);  };
   inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
   inline bool is_flashstart_enabled()                   { return(flashstart ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
@@ -170,13 +174,18 @@ class Prefs {
   inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); }
   inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); }
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
+  inline u_int32_t get_attacker_max_num_flows_per_sec() { return(attacker_max_num_flows_per_sec); };
+  inline u_int32_t get_victim_max_num_flows_per_sec()   { return(victim_max_num_flows_per_sec); };
+  inline u_int32_t get_attacker_max_num_syn_per_sec()   { return(attacker_max_num_syn_per_sec); };
+  inline u_int32_t get_victim_max_num_syn_per_sec()     { return(victim_max_num_syn_per_sec); };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  are_probing_alerts_enabled()             { return(enable_probing_alerts);            };
+  inline bool  are_ssl_alerts_enabled()                 { return(enable_ssl_alerts);                };
   inline bool  are_alerts_syslog_enabled()              { return(enable_syslog_alerts);             };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
-  inline bool  is_flow_activity_enabled()               { return(enable_flow_activity);             };
+  inline bool  are_user_scripts_enabled()               { return(enable_user_scripts);              };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
@@ -196,7 +205,7 @@ class Prefs {
   inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);          };
   inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);          };
   inline u_int32_t get_max_num_flows()                  { return(max_num_flows);          };
-  inline bool are_notifications_enabled()               { return(notifications_enabled);  };
+  inline bool are_slack_notification_enabled()          { return(slack_notifications_enabled);  };
   inline bool daemonize_ntopng()                        { return(daemonize);              };
   inline bool do_dump_flow_alerts_when_iface_alerted()  { return(dump_flow_alerts_when_iface_alerted); };
   void add_default_interfaces();
@@ -212,6 +221,7 @@ class Prefs {
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   int  refresh(const char *pref_name, const char *pref_value);
+  void refreshHostsAlertsPrefs();
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
@@ -235,12 +245,17 @@ class Prefs {
   inline char* get_ls_proto()		{ return(ls_proto);		 };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
-  inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
+  inline u_int32_t get_safe_search_dns_ip()      { return(safe_search_dns_ip);                          };
+  inline u_int32_t get_global_primary_dns_ip()   { return(global_primary_dns_ip);                       };
+  inline u_int32_t get_global_secondary_dns_ip() { return(global_secondary_dns_ip);                     };
+  inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
+  inline char* getInterfaceAt(int id)   { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
   inline bool hasCmdlDisableAlerts()   { return has_cmdl_disable_alerts; }
   inline bool isCaptivePortalEnabled() { return(enable_captive_portal);  }
+  inline char* getRedirectionUrl()     { return(redirection_url);  }
   inline HostMask getHostMask()        { return(hostMask);               }
 };
 

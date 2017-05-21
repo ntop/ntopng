@@ -15,8 +15,30 @@
 </div>
 
 <script type='text/javascript'>
+  var _typeahead_prototype = $.fn.typeahead.Constructor.prototype;
+  var _typeahead_overridden_callbacks = {
+    "click": null,
+    "select": null,
+  }
+
+  /* Temporary override the typeahead click callback */
+  for (var callback_name in _typeahead_overridden_callbacks) {
+    /* Dump original callback */
+    _typeahead_overridden_callbacks[callback_name] = _typeahead_prototype[callback_name];
+
+    _typeahead_prototype[callback_name] = function() {
+      if (this.$menu.find("> li[data-no-results]").length == 0) {
+        /* invoke the original callback */
+        _typeahead_overridden_callbacks[callback_name].apply(this, arguments);
+      }
+    };
+  }
+
   $('#{{typeahead.base_id}}_search_field').typeahead({
     source: function (query, process) {
+      /* Avoid this kind of queries which generates file path warnings into the ntopng log */
+      if (query.startsWith(".")) return;
+
       var _get = {};
     {% for k,v in pairs(typeahead.parameters or {}) do %}
       _get["{{k}}"] = "{{v}}";
@@ -24,12 +46,28 @@
       _get["query"] = query;
 
       return $.get("{*typeahead.query_url*}", _get, function (data) {
-        if (data.results)
-          return process(data.results);
+        var res = process(data.results);
+        var menu = res.$menu;
+
+        menu.click(function (e) { e.preventDefault(); });
+
+        if (data.results && data.results.length > 0) {
+          $("li:last", menu).addClass("hidden");
+        } else {
+          $("li:last", menu)
+            .attr("data-no-results", "")
+            .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
+        }
+
+        return res;
       });
     }, afterSelect: function(item) {
-      $("#{{typeahead.base_id}}_query").val(item["{{typeahead.json_key}}"]);
-    }
+      if (! item.no_results) {
+        $("#{{typeahead.base_id}}_query")
+          .val(item["{{typeahead.json_key}}"])
+          .closest("form").submit();
+      }
+    }, addItem: {name:"", no_results:true},
   });
 
   $('#{{typeahead.base_id}}_submit').click(function(e) {
@@ -44,5 +82,9 @@
       }
     }
   });
+
+  /* Restore the original callbacks for new objects */
+  for (var callback_name in _typeahead_overridden_callbacks)
+    _typeahead_prototype[callback_name] = _typeahead_overridden_callbacks[callback_name];
 </script>
 </form>

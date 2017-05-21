@@ -9,7 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 print('<html><head><title>ntop</title></head><body>Hello ' .. os.date("%d.%m.%Y"))
 

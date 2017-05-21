@@ -45,7 +45,7 @@ alias = getInterfaceNameAlias(ifname)
 if((alias ~= nil) and (alias ~= ifname)) then
    print(alias)
 else
-   print(_ifstats.name)
+   print(_ifstats.description)
 end
 
 print('</span></a>')
@@ -67,6 +67,10 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    end
    print('</span></A>')
 
+   if(info["pro.out_of_maintenance"] == true) then
+      print('<span class="badge badge-error">ntopng maintenance is expired</span>')
+   end
+   
    if(do_show) then
       print('<br><iframe src="https://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
    end
@@ -82,8 +86,7 @@ print [[</font>
 
 if interface.isPcapDumpInterface() == false then
    if(ifname ~= nil) then
-     key = 'ntopng.prefs.'..ifname..'.speed'
-     maxSpeed = ntop.getCache(key)
+     maxSpeed = getInterfaceSpeed(_ifstats)
    end
    -- io.write(maxSpeed)
    if((maxSpeed == "") or (maxSpeed == nil)) then
@@ -98,7 +101,7 @@ if interface.isPcapDumpInterface() == false then
       -- use the user-specified custom value for the speed
       maxSpeed = tonumber(maxSpeed)*1000000
    end
-   addGauge('networkload', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', 100, 100, 50)
+   addGauge('networkload', ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname).."&page=config", 100, 100, 50)
    print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
 
    print [[
@@ -147,6 +150,9 @@ var prev_local   = 0;
 var prev_remote  = 0;
 var prev_epoch   = 0;
 
+var prev_cpu_load = 0;
+var prev_cpu_idle = 0;
+
 var footerRefresh = function() {
     $.ajax({
       type: 'GET',
@@ -160,6 +166,13 @@ print [[/lua/logout.lua");  }, */
 	  success: function(rsp) {
     
 	  try {
+            if(rsp.a_to_b_out_pkts) {
+              /* This is a bridge, charts must show actually bridged traffic
+                 and not the total ingress traffic. That is,
+                 the sum of out packets/bytes on each interface */
+              rsp.bytes   = rsp.a_to_b_out_bytes + rsp.b_to_a_out_bytes;
+              rsp.packets = rsp.a_to_b_out_pkts + rsp.b_to_a_out_pkts;
+            }
 
 	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
@@ -207,7 +220,7 @@ print [[/lua/logout.lua");  }, */
    if interface.isPcapDumpInterface() == false then
       print[[
 
-		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
+		$('#gauge_text_allTraffic').html(bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
@@ -221,7 +234,34 @@ print [[/lua/logout.lua");  }, */
 print[[
 }
 	      } /* closes if (prev_bytes > 0) */
-		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small><br>";
+
+		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small>";
+
+                if(rsp.system_host_stats.mem_total !== undefined) {
+                   var mem_total = rsp.system_host_stats.mem_total;
+                   var mem_used = rsp.system_host_stats.mem_used;
+
+                   var mem_used_ratio = mem_used / mem_total;
+                   mem_used_ratio = mem_used_ratio * 100;
+                   mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
+                   mem_used_ratio = mem_used_ratio + "%";
+                   $('#ram-used').html('used: ' + mem_used_ratio + ' / available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / total: ' + bytesToSize(mem_total * 1024));
+                }
+
+                if(rsp.system_host_stats.cpu_load !== undefined) {
+                  var load = "...";
+                  if(prev_cpu_load > 0) {
+                     var active = (rsp.system_host_stats.cpu_load - prev_cpu_load);
+                     var idle = (rsp.system_host_stats.cpu_idle - prev_cpu_idle);
+                     load = active / (active + idle);
+                     load = load * 100;
+                     load = Math.round(load * 100) / 100;
+                     load = load + "%";
+                  }
+                  $('#cpu-load-pct').html(load);
+                }
+
+                msg += "<br>";
 
 		if(rsp.engaged_alerts > 0) {
                    // var warning_color = "#F0AD4E"; // bootstrap warning orange
@@ -251,7 +291,7 @@ print [[/lua/show_alerts.lua\"><i class=\"fa fa-warning\" style=\"color: " + col
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;    
             
-            msg += "<a href=\"]]
+            msg += "<a style=\"margin-left:0.5em;\" href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua\">";
 		if(rsp.hosts_pctg < alarm_threshold_low) {
@@ -308,6 +348,10 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
             prev_local   = rsp.local2remote;
             prev_remote  = rsp.remote2local;
 	    prev_epoch   = rsp.epoch;
+            if(rsp.system_host_stats.cpu_load !== undefined) {
+              prev_cpu_load = rsp.system_host_stats.cpu_load;
+              prev_cpu_idle = rsp.system_host_stats.cpu_idle;
+            }
 
 	  } catch(e) {
 	     console.log(e);
@@ -320,7 +364,7 @@ print [[/lua/logout.lua");  */
 }
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, 3000);  /* re-schedule every three seconds */
+setInterval(footerRefresh, ]] print(getInterfaceRefreshRate(_ifstats.id).."") print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
 
 //Enable tooltip without a fixer placement
 $(document).ready(function () { $("[rel='tooltip']").tooltip(); });
@@ -342,6 +386,29 @@ $(document).ready(function(){
         $(this).parent().find(".fa-caret-up").removeClass("fa-caret-up").addClass("fa-caret-down");
     });
 });
+
+]]
+
+-- Bridge wizard check
+if isAdministrator()
+ and isBridgeInterface(_ifstats)
+ and ntop.isEnterprise()
+ and (ntop.getCache(getBridgeInitializedKey()) ~= "1") then
+  print("$('#bridgeWizardModal').modal();")
+  ntop.setCache(getBridgeInitializedKey(), "1")
+end
+
+-- This code rewrites the current page state after a POST request to avoid Document Expired errors
+if not table.empty(_POST) then
+  print[[
+    if ((typeof(history) === "object")
+      && (typeof(history).replaceState === "function")
+      && (typeof(window.location.href) === "string"))
+    history.replaceState(history.state, "", window.location.href);
+  ]]
+end
+
+print[[
 
 // hide the possibly shown alerts icon in the header
 ]]

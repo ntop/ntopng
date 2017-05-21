@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -137,7 +137,7 @@ var host_table_interval = window.setInterval(host_table_update, 10000);
 
 label = criteria2label(criteria)
 
-print('title: "Looking Glass: '..label..'",\n')
+print('title: ' .. '\"' .. i18n("local_hosts_stats.looking_glass") .. ': '..label..'",\n')
 
 print ('rowCallback: function ( row ) { return host_table_setID(row, "'..criteria..'"); },')
 
@@ -152,7 +152,7 @@ print ('sort: [ ["' .. getDefaultTableSort("localhosts_"..criteria) ..'","' .. g
 print [[    showPagination: true, 
 ]]
 
-print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Criteria<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("local_hosts_stats.criteria") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 local criteria_params = table.clone(page_params)
 
 --for id, _ in ipairs(looking_glass_criteria) do
@@ -187,7 +187,7 @@ print [[
 	   }
 			},
 			{
-			     title: "IP Address",
+			     title: "]] print(i18n("ip_address")) print[[",
 				 field: "column_ip",
 				 sortable: true,
 			     css: {
@@ -195,7 +195,7 @@ print [[
 			     }
 				 },
 			{
-			     title: "VLAN",
+			     title: "]] print(i18n("vlan")) print [[",
 				 field: "column_vlan",
 				 sortable: true,
 			     css: {

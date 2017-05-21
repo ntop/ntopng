@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -133,7 +133,7 @@ print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A>
 print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td>"..info["version.redis"].."</td></tr>\n")
 print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td>"..info["version.httpd"].."</td></tr>\n")
 print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td>"..info["version.luajit"].."</td></tr>\n")
-print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><td>"..info["version.zmq"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">Ã˜MQ</A></th><td>"..info["version.zmq"].."</td></tr>\n")
 if(info["version.geoip"] ~= nil) then
 print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoIP</A></th><td>"..info["version.geoip"])
 

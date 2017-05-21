@@ -103,6 +103,14 @@ end
 
 -- ##############################################
 
+function sendHTTPContentTypeHeader(content_type, content_disposition, charset)
+  local charset = charset or "utf-8"
+  local mime = content_type.."; charset="..charset
+  sendHTTPHeader(mime, content_disposition)
+end
+
+-- ##############################################
+
 function printGETParameters(get)
   for key, value in pairs(get) do
     io.write(key.."="..value.."\n")
@@ -233,11 +241,11 @@ function printIpVersionDropdown(base_url, page_params)
    ipversion_params["version"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">IP Version]] print(ipversion_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.ip_version")) print[[]] print(ipversion_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(base_url, ipversion_params)) print[[">All Versions</a></li>\
-         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">IPv4 Only</a></li>\
-         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">IPv6 Only</a></li>\
+         <li><a href="]] print(getPageUrl(base_url, ipversion_params)) print[[">]] print(i18n("flows_page.all_ip_versions")) print[[</a></li>\
+         <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv4_only")) print[[</a></li>\
+         <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv6_only")) print[[</a></li>\
       </ul>]]
 end
 
@@ -351,7 +359,7 @@ alert_type_keys = {
   { "<i class='fa fa-tint'></i> TCP SYN Flood",                            0, "tcp_syn_flood"              },
   { "<i class='fa fa-tint'></i> Flows Flood",                              1, "flows_flood"                },
   { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",               2, "threshold_cross"            },
-  { "<i class='fa fa-frown-o'></i> Blacklist Host",                        3, "blacklist_host"             },
+  { "<i class='fa fa-frown-o'></i> Blacklisted Host",                        3, "blacklist_host"             },
   { "<i class='fa fa-clock-o'></i> Periodic Activity",                     4, "periodic_activity"          },
   { "<i class='fa fa-sort-asc'></i> Quota Exceeded",                       5, "quota_exceeded"             },
   { "<i class='fa fa-ban'></i> Malware Detected",                          6, "malware_detected"           },
@@ -373,20 +381,30 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
+alert_engine_keys = {
+   {i18n("show_alerts.minute"),  0, "min"    },
+   {i18n("show_alerts.five_minutes"), 1, "5mins"  },
+   {i18n("show_alerts.hourly"),    2, "hour"   },
+   {i18n("show_alerts.daily"),     3, "day"    },
+   {i18n("show_alerts.startup"),   4, "startup"},
+}
+
+-- Note: keep in sync with alarmable_metrics and alert_functions_infoes
 alert_functions_description = {
-    ["active"]  = "Active host time (seconds)",
-    ["bytes"]   = "Layer 2 bytes delta (sent + received)",
-    ["dns"]     = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
-    ["idle"]    = "Idle time since last packet sent (seconds)",	
-    ["packets"] = "Packets delta (sent + received)",
-    ["p2p"]     = "Layer 2 bytes delta (sent + received) for peer-to-peer detected traffic",
-    ["throughput"]   = "Average throughput (sent + received) [Mbps]",
+   ["active"]  = i18n("alerts_thresholds_config.alert_active_description"),
+   ["bytes"]   = i18n("alerts_thresholds_config.alert_bytes_description"),
+   ["dns"]     = i18n("alerts_thresholds_config.alert_dns_description"),
+   ["idle"]    = i18n("alerts_thresholds_config.alert_idle_description"),
+   ["packets"] = i18n("alerts_thresholds_config.alert_packets_description"),
+   ["p2p"]     = i18n("alerts_thresholds_config.alert_p2p_description"),
+   ["throughput"]   = i18n("alerts_thresholds_config.alert_throughput_description"),
+   ["flows"]   = i18n("alerts_thresholds_config.alert_flows_description"),
 }
 
 network_alert_functions_description = {
-    ["ingress"] = "Ingress Bytes delta",
-    ["egress"]  = "Egress Bytes delta",
-    ["inner"]   = "Inner Bytes delta",
+    ["ingress"] = i18n("alerts_thresholds_config.alert_network_ingress_description"),
+    ["egress"]  = i18n("alerts_thresholds_config.alert_network_egress_description"),
+    ["inner"]   = i18n("alerts_thresholds_config.alert_network_inner_description"),
 }
 
 function noHtml(s)
@@ -428,6 +446,27 @@ function alertType(v)
       typetable[#typetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(typetable, v))
+end
+
+function alertEngine(v)
+   local enginetable = {}
+   for i, t in ipairs(alert_engine_keys) do
+      enginetable[#enginetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(enginetable, v))
+end
+
+function alertEngineLabel(v)
+   return _handleArray(alert_engine_keys, tonumber(v))
+end
+
+function alertLevel(v)
+   local leveltable = {}
+
+   for i, t in ipairs(alert_level_keys) do
+      leveltable[#leveltable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(leveltable, v))
 end
 
 function alertTypeRaw(alert_idx)
@@ -533,7 +572,8 @@ function bytesToSize(bytes)
       terabyte = gigabyte * 1024;
 
       bytes = tonumber(bytes)
-      if((bytes >= 0) and (bytes < kilobyte)) then
+      if bytes == 1 then return "1 Byte"
+	 elseif((bytes >= 0) and (bytes < kilobyte)) then
 	 return round(bytes, precision) .. " Bytes";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
 	 return round(bytes / kilobyte, precision) .. ' KB';
@@ -598,7 +638,15 @@ function formatValue(amount)
 end
 
 function formatPackets(amount)
-   return formatValue(tonumber(amount)).." Pkts"
+   local amount = tonumber(amount)
+   if (amount == 1) then return "1 Pkt" end
+   return formatValue(amount).." Pkts"
+end
+
+function formatFlows(amount)
+   local amount = tonumber(amount)
+   if (amount == 1) then return "1 Flow" end
+   return formatValue(amount).." Flows"
 end
 
 function capitalize(str)
@@ -704,7 +752,11 @@ function formatEpoch(epoch)
 end
 
 function secondsToTime(seconds)
+  local seconds = tonumber(seconds)
   if(seconds == nil) then return "" end
+  if(seconds == 0) then
+   return("0 sec")
+  end
   if(seconds < 1) then
     return("< 1 sec")
   end
@@ -960,7 +1012,7 @@ function addGoogleMapsScript()
    else
    g_maps_key = ""
    end
-   print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"..g_maps_key.."\"></script>\n")
+   print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp"..g_maps_key.."\"></script>\n")
 end
 
 function addLogoSvg()
@@ -1038,13 +1090,13 @@ function isValidPoolMember(member)
   return false
 end
 
-function host2member(ip, vlan)
-  local prefix
-
-  if isIPv4(ip) then
-    prefix = 32
-  else
-    prefix = 128
+function host2member(ip, vlan, prefix)
+  if prefix == nil then
+    if isIPv4(ip) then
+      prefix = 32
+    else
+      prefix = 128
+    end
   end
 
   return ip .. "/" .. tostring(prefix) .. "@" .. tostring(vlan)
@@ -1116,10 +1168,18 @@ function purifyInterfaceName(interface_name)
   return(interface_name)
 end
 
+function getPathDivider()
+   if(ntop.isWindows()) then
+      return "\\"
+   else
+      return "/"
+   end
+end
+
 -- Fix path format Unix <-> Windows
 function fixPath(path)
    if(ntop.isWindows() and (string.len(path) > 2)) then
-      path = string.gsub(path, "/", "\\")
+      path = string.gsub(path, "/", getPathDivider())
       -- Avoid changing c:\.... into c_\....
       path = string.sub(path, 1, 2) .. string.gsub(string.sub(path, 3), ":", "_")
       -- io.write("->"..path.."\n")
@@ -1138,6 +1198,88 @@ function aggregation2String(value)
   else return(value)
   end
 end
+
+-- #################################
+
+-- Aggregates items below some edge
+-- edge: minimum percentage value to create collision
+-- min_col: minimum collision groups to aggregate
+function aggregatePie(values, values_sum, edge, min_col)
+   local edge = edge or 0.09
+   min_col = min_col or 2
+   local aggr = {}
+   local other = i18n("other")
+   local below_edge = {}
+
+   -- Initial lookup
+   for k,v in pairs(values) do
+      if v / values_sum <= edge then
+         -- too small
+         below_edge[#below_edge + 1] = k
+      else
+         aggr[k] = v
+      end
+   end
+
+   -- Decide if to aggregate
+   for _,k in pairs(below_edge) do
+      if #below_edge >= min_col then
+         -- aggregate
+         aggr[other] = aggr[other] or 0
+         aggr[other] = aggr[other] + values[k]
+      else
+         -- do not aggregate
+         aggr[k] = values[k]
+      end
+   end
+
+   return aggr
+end
+
+-- #################################
+
+function hostVisualization(ip, name)
+   if (ip ~= name) and isIPv6(ip) then
+      return name.." [IPv6]"
+   end
+   return name
+end
+
+-- #################################
+
+-- NOTE: prefer the getResolvedAddress on this function
+function resolveAddress(hostinfo, allow_empty)
+   local hostname = ntop.resolveName(hostinfo["host"])
+   if isEmptyString(hostname) then
+      -- Not resolved
+      if allow_empty == true then
+         return hostname
+      else
+         -- this function will take care of formatting the IP
+         return getResolvedAddress(hostinfo)
+      end
+   end
+   return hostVisualization(hostinfo["host"], hostname)
+end
+
+-- #################################
+
+function getResolvedAddress(hostinfo)
+   local hostname = ntop.getResolvedName(hostinfo["host"])
+   return hostVisualization(hostinfo["host"], hostname)
+end
+
+-- #################################
+
+function getIpUrl(ip)
+   if isIPv6(ip) then
+      -- https://www.ietf.org/rfc/rfc2732.txt
+      return "["..ip.."]"
+   end
+   return ip
+end
+
+-- #################################
 
 function getOSIcon(name)
   icon = ""
@@ -1299,7 +1441,7 @@ function host2name(name, vlan)
    name = getHostAltName(name)
 
    if(name == orig_name) then
-      rname = ntop.getResolvedAddress(name)
+      rname = getResolvedAddress({host=name, vlan=vlan})
 
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname
@@ -1802,6 +1944,40 @@ function getInterfaceNameAlias(interface_name)
    end
 end
 
+function getInterfaceSpeed(ifstats)
+   local ifspeed = ntop.getCache('ntopng.prefs.'..ifstats.name..'.speed')
+   if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
+      ifspeed = tonumber(ifspeed)
+   else
+      ifspeed = ifstats.speed
+   end
+
+   return ifspeed
+end
+
+function getInterfaceRefreshRate(ifid)
+   local key = getRedisIfacePrefix(ifid)..".refresh_rate"
+   local refreshrate = ntop.getCache(key)
+
+   if isEmptyString(refreshrate) or tonumber(refreshrate) == nil then
+      refreshrate = 3
+   else
+      refreshrate = tonumber(refreshrate)
+   end
+
+   return refreshrate
+end
+
+function setInterfaceRegreshRate(ifid, refreshrate)
+   local key = getRedisIfacePrefix(ifid)..".refresh_rate"
+
+   if isEmptyString(refreshrate) then
+      ntop.delCache(key)
+   else
+      ntop.setCache(key, tostring(refreshrate))
+   end
+end
+
 function getHumanReadableInterfaceName(interface_name)
    key = 'ntopng.prefs.'..interface_name..'.name'
    custom_name = ntop.getCache(key)
@@ -2027,6 +2203,18 @@ function maxRateToString(max_rate)
 	 end
 end
 
+function getPasswordInputPattern()
+  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{5,}$]]
+end
+
+function getIPv4Pattern()
+  return "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+end
+
+function getURLPattern()
+  return "^https?://.+$"
+end
+
 -- makeTopStatsScriptsArray
 function makeTopStatsScriptsArray()
    path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
@@ -2250,7 +2438,7 @@ end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()
-    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
+    return i18n("purged_error_message",{url=ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=in_memory'})
 end
 
 -- print TCP flags
@@ -2976,16 +3164,56 @@ function isBridgeInterface(ifstats)
   return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 end
 
-function isCaptivePortalActive(ifstats)
+-- Returns true if the captive portal can be started with the current configuration
+function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
+   if not ntop.isEnterprise() then
+      return false
+   end
+
+   local is_bridge_iface
+
+   if not skip_interface_check then
+      local ifstats = ifstats or interface.getStats()
+      is_bridge_iface = isBridgeInterface(ifstats)
+   else
+      is_bridge_iface = true
+   end
+
+   local prefs = prefs or ntop.getPrefs()
+   return is_bridge_iface and (prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)
+end
+
+-- Returns true if the captive portal is active right now
+function isCaptivePortalActive(ifstats, prefs)
   if not ntop.isEnterprise() then
     return false
   end
 
   local ifstats = ifstats or interface.getStats()
+  local prefs = prefs or ntop.getPrefs()
   local is_bridge_iface = isBridgeInterface(ifstats)
-  local is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
 
-  return is_bridge_iface and is_captive_portal_enabled
+  return is_bridge_iface and prefs["is_captive_portal_enabled"] and isCaptivePortalSupported(ifstats, prefs)
+end
+
+function getCaptivePortalUsers()
+  local keys = ntop.getKeysCache("ntopng.user.*.host_pool_id")
+  local users = {}
+
+  for key in pairs(keys or {}) do
+    local host_pool = ntop.getCache(key)
+
+    if not isEmptyString(host_pool) then
+      local username = split(key, "%.")[3]
+      users[username] = host_pool
+    end
+  end
+
+  return users
+end
+
+function getBridgeInitializedKey()
+  return "ntopng.prefs.bridge_initialized"
 end
 
 function hasSnmpDevices(ifid)
@@ -2996,7 +3224,7 @@ function hasSnmpDevices(ifid)
   return has_snmp_devices(ifid)
 end
 
-function getTopFlowPeers(hostname_vlan, max_hits, detailed)
+function getTopFlowPeers(hostname_vlan, max_hits, detailed, other_options)
   local detailed = detailed or false
 
   local paginator_options = {
@@ -3005,6 +3233,10 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed)
     detailedResults = detailed,
     maxHits = max_hits,
   }
+
+  if other_options ~= nil then
+    paginator_options = table.merge(paginator_options, other_options)
+  end
 
   local res = interface.getFlowsInfo(hostname_vlan, paginator_options)
   if ((res ~= nil) and (res.flows ~= nil)) then
@@ -3021,6 +3253,10 @@ function stripVlan(name)
   else
      return(name)
   end
+end
+
+function getSafeChildIcon()
+   return("&nbsp;<font color='#5cb85c'><i class='fa fa-lg fa-child' aria-hidden='true'></i></font>")
 end
 
 -- ###########################################

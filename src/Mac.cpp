@@ -23,14 +23,10 @@
 
 /* *************************************** */
 
-Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
+Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface), GenericTrafficElement() {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
-  if(iface->getTimeLastPktRcvd() > 0)
-    first_seen = last_seen = iface->getTimeLastPktRcvd();
-  else
-    first_seen = last_seen = time(NULL);
 
   if(ntop->getMacManufacturers())
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
@@ -148,6 +144,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 /* *************************************** */
 
 bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
+  if(!_mac)
+    return(false);
   if((vlan_id == _vlanId) && (memcmp(mac, _mac, 6) == 0))
     return(true);
   else

@@ -33,10 +33,16 @@ class Host;
 class HostHash;
 class Mac;
 class MacHash;
+class Vlan;
+class VlanHash;
+class AutonomousSystem;
+class AutonomousSystemHash;
 class DB;
 class Paginator;
 
 #ifdef NTOPNG_PRO
+class AggregatedFlow;
+class AggregatedFlowHash;
 class L7Policer;
 class FlowInterfacesStats;
 #endif
@@ -56,7 +62,7 @@ typedef struct {
  */
 class NetworkInterface {
  protected:
-  char *ifname; /**< Network interface name. */
+  char *ifname, *ifDescription;
   const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   u_int8_t alertLevel, purgeRuns;
@@ -73,6 +79,7 @@ class NetworkInterface {
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
   FlowInterfacesStats *flow_interfaces_stats;
+  AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
 #endif
   EthStats ethStats;
   u_int32_t arp_requests, arp_replies;
@@ -80,7 +87,7 @@ class NetworkInterface {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
-  bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
+  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   u_int32_t ifSpeed, numL2Devices, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -95,14 +102,15 @@ class NetworkInterface {
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
 
   /* Lua */
-  bool reloadLuaInterpreter;
-  lua_State *L_flow_create_delete_ndpi, *L_flow_update;
+  bool user_scripts_reload_inline, user_scripts_reload_periodic;
+  lua_State *L_user_scripts_inline, *L_user_scripts_periodic;
 
   /* Second update */
   u_int64_t lastSecTraffic,
     lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
   time_t lastSecUpdate;
+  u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
 
@@ -110,6 +118,12 @@ class NetworkInterface {
 
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
+
+  /* Autonomous Systems */
+  AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
+
+  /* Vlans */
+  VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
@@ -130,7 +144,7 @@ class NetworkInterface {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
 
-  lua_State* initLuaInterpreter(const char *lua_file);
+  lua_State* initUserScriptsInterpreter(const char *lua_file, const char *context);
   void termLuaInterpreter();
   void init();
   void deleteDataStructures();
@@ -144,6 +158,7 @@ class NetworkInterface {
 		time_t first_seen, time_t last_seen,
 		bool *new_flow);
   int sortHosts(struct flowHostRetriever *retriever,
+		u_int8_t bridge_iface_idx,
 		AddressTree *allowed_hosts,
 		bool host_details,
 		LocationPolicy location,
@@ -152,7 +167,12 @@ class NetworkInterface {
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, u_int8_t ipver_filter, int proto_filter,
 		bool hostMacsOnly, char *sortColumn);
+  int sortASes(struct flowHostRetriever *retriever,
+	       char *sortColumn);
+  int sortVLANs(struct flowHostRetriever *retriever,
+		char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
+	       u_int8_t bridge_iface_idx,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
 	       bool hostMacsOnly, const char *manufacturer,
 	       char *sortColumn);
@@ -163,8 +183,6 @@ class NetworkInterface {
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
-  void triggerTooManyHostsAlert();
-  void triggerTooManyFlowsAlert();
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   bool walker(WalkerType wtype,
 	      bool (*walker)(GenericHashEntry *h, void *user_data),
@@ -173,11 +191,16 @@ class NetworkInterface {
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
   u_int32_t getHostsHashSize();
+  u_int32_t getASesHashSize();
+  u_int32_t getVLANsHashSize();
   u_int32_t getFlowsHashSize();
   u_int32_t getMacsHashSize();
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
+
+  Host* findHostsByIP(AddressTree *allowed_hosts,
+		      char *host_ip, u_int16_t vlan_id);
 
  public:
   /**
@@ -223,6 +246,7 @@ class NetworkInterface {
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
+  inline char* get_description()               { return(ifDescription);                                };
   inline int  get_id()                         { return(id);                                           };
   inline bool get_sprobe_interface()           { return sprobe_interface;  }
   inline bool get_inline_interface()           { return inline_interface;  }
@@ -234,8 +258,11 @@ class NetworkInterface {
   inline bool is_sprobe_interface()            { return(sprobe_interface);                     };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   inline void enable_sprobe()                  { sprobe_interface = true; };
-  int dumpFlow(time_t when, bool idle_flow, Flow *f);
-  int dumpDBFlow(time_t when, bool idle_flow, Flow *f);
+  int dumpFlow(time_t when, Flow *f);
+#ifdef NTOPNG_PRO
+  int dumpAggregatedFlow(AggregatedFlow *f);
+#endif
+  int dumpDBFlow(time_t when, Flow *f);
   int dumpEsFlow(time_t when, Flow *f);
   int dumpLsFlow(time_t when, Flow *f);
   int dumpLocalHosts2redis(bool disable_purge);
@@ -275,9 +302,12 @@ class NetworkInterface {
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
-  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol,
+  bool dissectPacket(u_int8_t bridge_iface_idx,
+		     const struct pcap_pkthdr *h, const u_char *packet,
+		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  bool processPacket(const struct bpf_timeval *when,
+  bool processPacket(u_int8_t bridge_iface_idx,
+		     const struct bpf_timeval *when,
 		     const u_int64_t time,
 		     struct ndpi_ethhdr *eth,
 		     u_int16_t vlan_id,
@@ -314,6 +344,7 @@ class NetworkInterface {
   int getLatestActivityHostsList(lua_State* vm,
 				 AddressTree *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
+			 u_int8_t bridge_iface_idx,
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
 			 char *countryFilter, char *mac_filter,
@@ -330,14 +361,26 @@ class NetworkInterface {
 			  u_int32_t asnFilter, int16_t networkFilter,
 			  u_int16_t pool_filter, u_int8_t ipver_filter,
 			  bool hostsOnly, char *groupColumn);
-  int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
+  int getActiveASList(lua_State* vm,
+		      char *sortColumn, u_int32_t maxHits,
+		      u_int32_t toSkip, bool a2zSortOrder,
+		      DetailsLevel details_level);
+  int getActiveVLANList(lua_State* vm,
+			char *sortColumn, u_int32_t maxHits,
+			u_int32_t toSkip, bool a2zSortOrder,
+			DetailsLevel details_level);
+  int getActiveMacList(lua_State* vm,
+		       u_int8_t bridge_iface_idx,
+		       u_int16_t vlan_id,
 		       bool skipSpecialMacs,
 		       bool hostMacsOnly, const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder);
-  int getActiveMacManufacturers(lua_State* vm, u_int16_t vlan_id,
-		       bool skipSpecialMacs,
-		       bool hostMacsOnly, u_int32_t maxHits);
+  int getActiveMacManufacturers(lua_State* vm,
+				u_int8_t bridge_iface_idx,
+				u_int16_t vlan_id,
+				bool skipSpecialMacs,
+				bool hostMacsOnly, u_int32_t maxHits);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
 #ifdef NOTUSED
@@ -349,11 +392,10 @@ class NetworkInterface {
   int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
 		Host *host,
 		Paginator *p);
-  void getLocalHostActivity(lua_State* vm, const char * host);
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
-  u_int purgeIdleHostsMacs();
+  u_int purgeIdleHostsMacsASesVlans();
 
   u_int64_t getNumPackets();
   u_int64_t getNumBytes();
@@ -365,9 +407,10 @@ class NetworkInterface {
 
   void runHousekeepingTasks();
   Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
+  Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
+  AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  bool loadHostAlertPrefs(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool correlateHostActivity(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool similarHostActivity(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
@@ -420,11 +463,10 @@ class NetworkInterface {
   void loadScalingFactorPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
-  Host* findHostsByIP(AddressTree *allowed_hosts,
-		      char *host_ip, u_int16_t vlan_id);
-
-  inline HostHash* get_hosts_hash()  { return(hosts_hash);       }
-  inline MacHash*  get_macs_hash()   { return(macs_hash);        }
+  inline HostHash* get_hosts_hash()            { return(hosts_hash); }
+  inline MacHash*  get_macs_hash()             { return(macs_hash);  }
+  inline VlanHash*  get_vlans_hash()           { return(vlans_hash); }
+  inline AutonomousSystemHash* get_ases_hash() { return(ases_hash);  }
   inline bool is_bridge_interface()  { return(bridge_interface); }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
@@ -464,10 +506,22 @@ class NetworkInterface {
   inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
   };
+
+  void refreshHostsAlertPrefs(bool full_refresh);
+  int resetPeriodicHostStats(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
+  int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
+  int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
+  int getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip, u_int16_t host_vlan, u_int32_t peer_key);
+  int engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
+			     AlertEngine alert_engine,
+			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
   int luaEvalFlow(Flow *f, const LuaCallback cb);
-  inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
+  inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
+  bool getASInfo(lua_State* vm, u_int32_t asn);
+  bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   inline void incNumL2Devices()      { numL2Devices++; }
   inline void decNumL2Devices()      { numL2Devices--; }
   inline u_int32_t getNumL2Devices() { return(numL2Devices); }
@@ -480,7 +534,9 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };
+  void aggregatePartialFlow(Flow *flow);
 #endif
+
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

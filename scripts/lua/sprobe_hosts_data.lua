@@ -47,7 +47,7 @@ n = 0
 if(false) then
 for key, _ in pairs(hosts) do
    if(n > 0) then print(",") end
-   print('\n{"source": "root", "source_num": 0, "source_type": "host", "source_pid": -1, "source_name": "root", "target": "'..key..'", "target_num": 0, "target_type": "host", "target_pid": -1, "target_name": "'.. ntop.getResolvedAddress(key)..'", "type": "host2host"}')
+   print('\n{"source": "root", "source_num": 0, "source_type": "host", "source_pid": -1, "source_name": "root", "target": "'..key..'", "target_num": 0, "target_type": "host", "target_pid": -1, "target_name": "'.. getResolvedAddress(hostkey2hostinfo(key))..'", "type": "host2host"}')
    n = n + 1
 end
 end
@@ -55,7 +55,7 @@ end
 
 for key, value in pairs(links) do
    if(n > 0) then print(",") end
-   print('\n{"source": "'..key..'", "source_num": '.. links[key]["num"]..', "source_type": "host", "source_pid": -1, "source_name": "'..ntop.getResolvedAddress(key)..'", "target": "'..value["peer"]..'", "target_num": '.. value["num"]..', "target_type": "host", "target_pid": -1, "target_name": "'.. ntop.getResolvedAddress(value["peer"])..'", "type": "host2host"}')
+   print('\n{"source": "'..key..'", "source_num": '.. links[key]["num"]..', "source_type": "host", "source_pid": -1, "source_name": "'..getResolvedAddress(hostkey2hostinfo(key))..'", "target": "'..value["peer"]..'", "target_num": '.. value["num"]..', "target_type": "host", "target_pid": -1, "target_name": "'.. getResolvedAddress(hostkey2hostinfo(value["peer"]))..'", "type": "host2host"}')
    n = n + 1
 end
 

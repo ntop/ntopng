@@ -187,6 +187,7 @@ end
 -- If network, must be prefixed with 'net:'
 -- If profile, must be prefixed with 'profile:'
 -- If host pool, must be prefixed with 'pool:'
+-- If vlan, must be prefixed with 'vlan:'
 -- If asn, must be prefixed with 'asn:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
@@ -212,6 +213,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'sflow:') then
       host_or_network = string.gsub(host_or_network, 'sflow:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
+      host_or_network = string.gsub(host_or_network, 'vlan:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
@@ -548,6 +552,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    -- hide historical tabs for networks and pools
    and not string.starts(host, 'net:')
    and not string.starts(host, 'pool:')
+   and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
 then
    print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
@@ -603,6 +608,7 @@ for k,v in ipairs(zoom_vals) do
    if host and (string.starts(host, 'net:')
       or string.starts(host, 'profile:')
       or string.starts(host, 'pool:')
+      or string.starts(host, 'vlan:')
       or string.starts(host, 'asn:')) then
        net_or_profile = true
    end
@@ -656,14 +662,14 @@ else
    formatter_fctn = "fpackets"
 end
 
+rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
+
 if (topArray ~= nil) then
 print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
-
-rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
@@ -698,6 +704,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    -- hide historical tabs for networks and profiles and pools
    and not string.starts(host, 'net:')
    and not string.starts(host, 'pool:')
+   and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
 then
    print('<div class="tab-pane fade" id="historical-flows">')
@@ -1024,27 +1031,6 @@ end
 
 -- ########################################################
 
-function createActivityRRDCounter(path, verbose)
-   if(not(ntop.exists(path))) then
-      if(verbose) then io.write('Creating RRD '..path..'\n') end
-      local prefs = ntop.getPrefs()
-      local step = 300
-      local hb = step * 2
-      ntop.rrd_create(
-	 path,
-	 step,
-	 'DS:in:DERIVE:'..hb..':U:U',
-	 'DS:out:DERIVE:'..hb..':U:U',
-	 'DS:bg:DERIVE:'..hb..':U:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.host_activity_rrd_raw_hours*12),
-	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.host_activity_rrd_1h_days*24),
-	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.host_activity_rrd_1d_days)
-      )
-   end
-end
-
--- ########################################################
-
 function dumpSingleTreeCounters(basedir, label, host, verbose)
    what = host[label]
 
@@ -1141,8 +1127,10 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    --io.write(prefixLabel.."\n")
 
-   if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then
+   if(prefixLabel == "Bytes") then
       prefixLabel = "Traffic"
+   elseif string.starts(rrdFile, "categories/") then
+      prefixLabel = prefixLabel.." Traffic"
    end
 
    if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
@@ -1619,7 +1607,19 @@ end
 
 -- #################################################
 
-function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, show_td)
+--
+-- proto table should contain the following information:
+--    string   traffic_quota
+--    string   time_quota
+--    string   protoName
+--
+-- ndpi_stats or category_stats can be nil if they are not relevant for the proto
+--
+-- quotas_to_show can contain:
+--    bool  traffic
+--    bool  time
+--
+function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, show_td, hide_limit)
     local total_bytes = 0
     local total_duration = 0
     local output = {}
@@ -1649,12 +1649,12 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken+traffic_remaining), 0)
 
       if show_td then
-        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '')..">"..lb_bytes.." / "..lb_bytes_quota
+        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes..ternary(hide_limit, "", " / "..lb_bytes_quota).."</span>"
       end
       output[#output + 1] = [[
           <div class='progress' style=']]..(quotas_to_show.traffic_style or "")..[['>
             <div class='progress-bar progress-bar-warning' aria-valuenow=']]..traffic_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..traffic_quota_ratio..'%;\'>'..
-              ternary(proto.traffic_quota ~= "0", bytesToSize(traffic_taken), "")..[[
+              ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]], traffic_quota_ratio, 0)..[[%
             </div>
           </div>]]
       if show_td then output[#output + 1] = ("</td>") end
@@ -1669,13 +1669,13 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local duration_quota_ratio = round(duration_taken * 100 / (duration_taken+duration_remaining), 0)
 
       if show_td then
-        output[#output + 1] = ([[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '')..">"..lb_duration.." / "..lb_duration_quota)
+        output[#output + 1] = [[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_duration..ternary(hide_limit, "", " / "..lb_duration_quota).."</span>"
       end
 
       output[#output + 1] = ([[
           <div class='progress' style=']]..(quotas_to_show.time_style or "")..[['>
             <div class='progress-bar progress-bar-warning' aria-valuenow=']]..duration_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..duration_quota_ratio..'%;\'>'..
-              ternary(proto.time_quota ~= "0", secondsToTime(duration_taken), "")..[[
+              ternary(duration_quota_ratio == duration_quota_ratio --[[nan check]], duration_quota_ratio, 0)..[[%
             </div>
           </div>]])
       if show_td then output[#output + 1] = ("</td>") end

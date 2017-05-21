@@ -19,7 +19,7 @@
 			     {
 			     title: "Alerts",
 				 field: "column_alerts",
-				 sortable: true,
+				 sortable: false,
                              css: {
 			        textAlign: 'center'
 			     }				 

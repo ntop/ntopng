@@ -5,7 +5,12 @@
 
 function aysHandleForm(form_selector, options) {
   if (! form_selector) form_selector = "form";      /* Form selector to attach are-you-sure to. Default is to apply it to every form in the page. */
-  
+
+  if (form_selector === "form") {
+    /* Exclude data-ays-ignore forms by default */
+    form_selector = 'form:not([data-ays-ignore="true"])';
+  }
+
   var default_options = {
     submit_selector:   'button[type="submit"]:not([data-ays-ignore="true"])',
     on_dirty_callback: $.noop,      /* The callback to invoke when ays detects changes */

@@ -8,13 +8,14 @@ require "lua_utils"
 require "top_talkers"
 json = require("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ifid = getInterfaceId(ifname)
 
 epoch = _GET["epoch"]
 module = _GET["module"]
 add_vlan = _GET["addvlan"]
+mode = _GET["senders_receivers"]
 
 if (module == nil) then
   print("[ ]\n")
@@ -24,7 +25,7 @@ else
     print("[ ]\n")
   else
      if(epoch == nil) then
-	top = mod.getTopClean(ifid, ifname, mode --[[ this parameter is nil and not used ]])
+	top = mod.getTopClean(ifid, ifname, mode)
      else
 	epoch = epoch+60 -- we return the minute before the event as epochs are stored in the DB 'past' the time period
 	top = mod.getHistoricalTop(ifid, ifname, epoch, add_vlan)

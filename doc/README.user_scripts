@@ -1,0 +1,45 @@
+User Scripts
+------------
+ntopng can execute custom user defined LUA scripts in reaction to specific events,
+for example when a new flow appers or when a flow protocol is detected.
+
+User scripts support must be manually enabled via the command line option `--enable-user-scripts`.
+
+The scripts are executed within various "contexts". For example, the scripts under
+the "inline" context are executed within the ntopng capture thread. Each context has a
+specific directory under `scripts/callbacks/user_scripts`.
+
+Create your own script
+----------------------
+In this example we will create a custom user script to print flow information each
+time protocol detetion on a flow completes.
+
+1) Create a skeleton:
+```
+cp scripts/callbacks/user_scripts/inline/default.lua scripts/callbacks/user_scripts/inline/my_script.lua
+```
+2) Edit my_script.lua and replace the `flowProtocolDetected` callback with your custom callback:
+```
+function callbacks.flowProtocolDetected()
+   -- Note: see "flow_reg" in NetworkInteface.cpp for more flow methods
+   local f = flow.dump()
+   io.write(f["cli.ip"]..":"..f["cli.port"].." <-> " ..f["srv.ip"]..":"..f["srv.port"].." -> "..f["proto.ndpi"].."\n")
+end
+```
+
+In order to load the newly create script, you can either restart ntopng or send a
+SIGHUP signal with `pkill -SIGHUP ntopng`.
+See `default.lua` scripts in each context folder for more information on the available callbacks.
+
+Performance impact
+------------------
+When user scripts are enabled, there will be a little performance penality, paid for each flow.
+Each user script callback invocation must a enter a LUA virtual machine and the execute the
+custom LUA code, although the virtual machines are only created at the start of ntopng.
+
+The average time to go through the LUA environment and execute an empty callback on a modern
+2GHz dual core CPU is about 7.5 micro seconds per call. The average time has been measured
+on 1000 calls with the [clock_gettime](https://linux.die.net/man/3/clock_gettime) timing function.
+
+The critical part is the "inline" context, whose callbacks are exectuted in the capture thread.
+If any of these callbacks do take too much time to execute, you will experience packets drops.

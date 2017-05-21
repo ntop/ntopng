@@ -29,7 +29,7 @@ HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 /* ************************************ */
 
-Host* HostHash::get(u_int16_t vlanId, IpAddress *key) {
+Host* HostHash::get(u_int16_t vlanId, u_int8_t *macaddr, IpAddress *key) {
   u_int32_t hash = (key->key() % num_hashes);
 
   if(table[hash] == NULL) {
@@ -42,9 +42,13 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key) {
     
     while(head != NULL) {      
       if((!head->idle())
+	 && (!head->is_ready_to_be_purged())
 	 && (head->get_vlan_id() == vlanId)
 	 && (head->get_ip() != NULL)
-	 && (head->get_ip()->compare(key) == 0))
+	 && (head->get_ip()->compare(key) == 0)
+	 && (!macaddr /* Possibly ignore the mac address in the search */
+	     || (head->getMac() && head->getMac()->equal(vlanId, macaddr)))
+	 )
 	break;
       else
 	head = (Host*)head->next();

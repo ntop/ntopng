@@ -105,19 +105,25 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
   if(rsp != NULL) {
     char *space = strchr(rsp, ' ');
 
-    *asn = atoi(&rsp[2]);
+    if(asn)
+      *asn = atoi(&rsp[2]);
 
-    if(space)
-      *asname = strdup(&space[1]);
-    else
-      *asname = strdup(rsp);
+    if(asname) {
+      if(space)
+	*asname = strdup(&space[1]);
+      else
+	*asname = strdup(rsp);
+    }
 
     free(rsp);
     return;
   }
 #endif
 
-  *asn = 0, *asname = NULL;
+  if(asn)
+    *asn = 0;
+  if(asname)
+    *asname = NULL;
 }
 
 /* *************************************** */
@@ -143,8 +149,14 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
   }
 
   if(geo != NULL) {
-    *continent_code = geo->continent_code ? strdup(geo->continent_code) : NULL;
-    *country_code = geo->country_code ? strdup(geo->country_code) : NULL;
+    *continent_code = 
+#ifdef WIN32
+		""
+#else
+		geo->continent_code
+#endif
+		;
+    *country_code = geo->country_code;
     *city = geo->city ? strdup(geo->city) : NULL;
     *latitude = geo->latitude, *longitude = geo->longitude;
     GeoIPRecord_delete(geo);

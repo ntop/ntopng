@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 json = require("dkjson")
 
---sendHTTPHeader('text/html; charset=iso-8859-1')
+--sendHTTPContentTypeHeader('text/html')
 sendHTTPHeader('application/json')
 
 function dumpInterfaceStats(interface_name)
@@ -27,7 +27,7 @@ function dumpInterfaceStats(interface_name)
       flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
 
       res["ifname"]  = interface_name
-      res["speed"]  = ifstats.speed
+      res["speed"]  = getInterfaceSpeed(ifstats)
       -- network load is used by web pages that are shown to the user
       -- so we must return statistics since the latest (possible) reset
       res["packets"] = ifstats.stats_since_reset.packets
@@ -56,6 +56,7 @@ function dumpInterfaceStats(interface_name)
       -- res["localtime"]  = format_time(res["epoch"], "!%H:%M:%S %z", res["tz_offset"])
       res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
       res["uptime"]     = secondsToTime(uptime)
+      res["system_host_stats"] = ntop.systemHostStat()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
       res["remote_pps"] = ifstats.remote_pps

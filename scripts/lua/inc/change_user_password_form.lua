@@ -31,21 +31,21 @@ print [[
 <div class="input-group">
 <label for="" class="control-label">Old Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>  
-  <input id="old_password_input" type="password" name="old_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+  <input id="old_password_input" type="password" name="old_password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 </div>
 
 <div class="input-group">
   <label for="" class="control-label">New Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>  
-  <input id="new_password_input" type="password" name="new_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+  <input id="new_password_input" type="password" name="new_password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 </div>
 
 <div class="input-group">
   <label for="" class="control-label">Confirm New Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>  
-  <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+  <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 </div>
 
@@ -64,7 +64,10 @@ print [[<script>
   var frmpassreset = $('#form_password_reset');
   frmpassreset.submit(function () {
     if(!isValidPassword($("#new_password_input").val())) {
-      password_alert.error("Password contains invalid chars. Please use valid ISO8895-1 (latin1) letters and numbers"); return(false);
+      password_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers"); return(false);
+    }
+    if(isDefaultPassword($("#new_password_input").val())) {
+      password_alert.error("Password is weak. Please choose a stronger password."); return(false);
     }
     if($("#new_password_input").val().length < 5) {
       password_alert.error("Password too short (< 5 characters)"); return(false);

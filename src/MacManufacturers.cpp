@@ -1,4 +1,4 @@
-/*
+ /*
  *
  * (C) 2013-17 - ntop.org
  *
@@ -43,9 +43,8 @@ MacManufacturers::MacManufacturers(const char * const home) {
 void MacManufacturers::init() {
   struct stat buf;
   FILE *fd;
-  char * line = NULL, *manuf = NULL, *cr;
-  size_t len = 0;
-  ssize_t read;
+  char line[256], *manuf = NULL, *cr;
+  int _mac[3];
   u_int8_t mac[3];
   char short_name[9];
   mac_manufacturers_t *s;
@@ -57,12 +56,11 @@ void MacManufacturers::init() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read %s", manufacturers_file);
 
   if(fd) {
-    while ((read = getline(&line, &len, fd)) != -1) {
+    while(fgets(line, sizeof(line), fd)) {
       char *tab = strchr(line, '\t');
 
-      if((sscanf(line, "%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2]) == 3) &&
-         (tab != NULL)) {
-
+      if((sscanf(line, "%02x:%02x:%02x", &_mac[0], &_mac[1], &_mac[2]) == 3)
+	 && (tab != NULL)) {
 	// printf("Retrieved line of length %zu :\n", read);
 	// printf("%s", line);
 
@@ -77,6 +75,7 @@ void MacManufacturers::init() {
 	if((cr = strchr(manuf, '\n')))
 	   *cr = '\0';
 
+	mac[0] = (u_int8_t)_mac[0], mac[1] = (u_int8_t)_mac[1], mac[2] = (u_int8_t)_mac[2];
 	HASH_FIND(hh, mac_manufacturers, mac, 3, s);
 	if(!s) {
 	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
@@ -121,6 +120,7 @@ void MacManufacturers::init() {
 	}
       }
     }
+
     fclose(fd);
   }
 }
@@ -133,6 +133,7 @@ MacManufacturers::~MacManufacturers() {
   HASH_ITER(hh, mac_manufacturers, current, tmp) {
     HASH_DEL(mac_manufacturers, current);
     free(current->manufacturer_name);
+    free(current->short_name);
     free(current);
   }
 }

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -31,7 +31,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Hosts by Operating System",\n')
+print('title: "' .. i18n("os_stats.hosts_by_operating_system") .. '",\n')
 print ('rowCallback: function ( row ) { return os_table_setID(row); },')
 
 -- Set the preference table
@@ -54,7 +54,7 @@ print [[
                                 }
            },
 	     {
-			     title: "Name",
+			     title: "]] print(i18n("name")) print[[",
 				 field: "column_id",
 				 sortable: true,
                              css: {

@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -55,16 +55,16 @@ if(asn ~= nil) then
 print [[
 <div class="container-fluid">
   <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#home">Hosts</a></li>
+    <li class="active"><a data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
 
 if(asn ~= "0") then
 print [[
-    <li><a data-toggle="tab" href="#asinfo">AS Info</a></li>
-    <li><a data-toggle="tab" href="#aspath">AS Path</a></li>
-    <li><a data-toggle="tab" href="#geoloc">AS Geolocation</a></li>
-    <li><a data-toggle="tab" href="#prefix">AS Prefixes</a></li>
-    <li><a data-toggle="tab" href="#bgp">BGP Updates</a></li>
+    <li><a data-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
+    <li><a data-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
+    <li><a data-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
+    <li><a data-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
+    <li><a data-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
 ]]
 end
 end
@@ -108,7 +108,7 @@ end
 local ipver_title
 if not isEmptyString(ipversion) then
    page_params["version"] = ipversion
-   ipver_title = "IPv"..ipversion.." "
+   ipver_title = i18n("hosts_stats.ipver_title",{version_num=ipversion})
 else
    ipver_title = ""
 end
@@ -137,15 +137,15 @@ print [[
 if(protocol == nil) then protocol = "" end
 
 if(asn ~= nil) then 
-	asninfo = " for AS "..asn 
+	asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn})
 end
 
 if(_GET["country"] ~= nil) then 
-   country = " for Country ".._GET["country"] 
+   country = " " .. i18n("hosts_stats.country_title",{country=_GET["country"]})
 end
 
 if(_GET["mac"] ~= nil) then 
-   mac = " with Mac ".._GET["mac"] 
+   mac = " " .. i18n("hosts_stats.mac_title",{mac=_GET["mac"]})
 end
 
 if(_GET["os"] ~= nil) then 
@@ -153,11 +153,11 @@ if(_GET["os"] ~= nil) then
 end
 
 if(_GET["pool"] ~= nil) then
-   pool_ = "for Pool "..host_pools_utils.getPoolName(ifstats.id, _GET["pool"])
+   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
 end
 
 if(_GET["vlan"] ~= nil) then
-  vlan_title = " [VLAN ".._GET["vlan"].."]"
+  vlan_title = " ["..i18n("hosts_stats.vlan_title",{vlan=_GET["vlan"]}).."]"
 end
 
 local protocol_name = nil
@@ -177,7 +177,7 @@ function getPageTitle()
    parts[#parts + 1] = network_name
    parts[#parts + 1] = ipver_title
    parts[#parts + 1] = os_
-   parts[#parts + 1] = "Hosts"
+   parts[#parts + 1] = i18n("hosts_stats.hosts")
    parts[#parts + 1] = country or asninfo or mac or pool_
    parts[#parts + 1] = vlan_title
 
@@ -213,26 +213,26 @@ print [[    showPagination: true, ]]
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)
 
-   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts'..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
 
    hosts_filter_params.mode = nil
    hosts_filter_params.pool = nil
    print (getPageUrl(base_url, hosts_filter_params))
-   print ('">All Hosts</a></li>')
+   print ('">'..i18n("hosts_stats.all_hosts")..'</a></li>')
 
    hosts_filter_params.mode = "local"
    print('<li')
    if mode == hosts_filter_params.mode then print(' class="active"') end
    print('><a href="')
    print (getPageUrl(base_url, hosts_filter_params))
-   print ('">Local Hosts Only</a></li>')
+   print ('">'..i18n("hosts_stats.local_hosts_only")..'</a></li>')
 
    hosts_filter_params.mode = "remote"
    print('<li')
    if mode == hosts_filter_params.mode then print(' class="active"') end
    print('><a href="')
    print (getPageUrl(base_url, hosts_filter_params))
-   print ('">Remote Hosts Only</a></li>')
+   print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
 
    -- Host pools
    if not ifstats.isView then
@@ -243,7 +243,7 @@ print [[    showPagination: true, ]]
         hosts_filter_params.pool = _pool.id
         print('<li')
         if pool == _pool.id then print(' class="active"') end
-        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">Host Pool '..(_pool.name)..'</li>')
+        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'..i18n("hosts_stats.host_pool",{pool_name=_pool.name}) ..'</li>')
       end
    end
 
@@ -262,7 +262,7 @@ print [[
            }
          		},
          		{
-			     title: "IP Address",
+			     title: "]] print(i18n("ip_address")) print[[",
 				 field: "column_ip",
 				 sortable: true,
 	 	             css: {
@@ -273,10 +273,10 @@ print [[
 
 if(show_vlan) then
 if(ifstats.sprobe) then
-   print('{ title: "Source Id",\n')
+   print('{ title: "'..i18n("hosts_stats.source_id")..'",\n')
 else
    if(ifstats.vlan) then
-     print('{ title: "VLAN",\n')
+     print('{ title: "'..i18n("vlan")..'",\n')
    end
 end
 
@@ -294,7 +294,7 @@ end
 
 print [[
 			     {
-			     title: "Location",
+			     title: "]] print(i18n("hosts_stats.location")) print[[",
 				 field: "column_location",
 				 sortable: false,
 	 	             css: { 
@@ -303,7 +303,7 @@ print [[
 
 				 },			     
 			     {
-			     title: "Flows",
+			     title: "]] print(i18n("flows")) print[[",
 				 field: "column_num_flows",
 				 sortable: true,
 	 	             css: { 
@@ -318,7 +318,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_top.inc")
 print [[
 
 			     {
-			     title: "ASN",
+			     title: "]] print(i18n("asn")) print[[",
 				 field: "column_asn",
 				 sortable: true,
 	 	             css: { 
@@ -333,7 +333,7 @@ print [[
 if(prefs.is_httpbl_enabled) then
 print [[
 			     {
-			     title: "HTTP:BL",
+			     title: "]] print(i18n("hosts_stats.httpbl")) print[[",
 				 field: "column_httpbl",
 				 sortable: true,
 	 	             css: {
@@ -380,7 +380,7 @@ if(asn ~= nil and asn ~= "0") then
    print[[
 <script type="text/javascript">
 
-          $('h2:contains("for AS")').append("<small>&nbsp;<i class=\"fa fa-info-circle fa-sm\" aria-hidden=\"true\"></i> <A HREF=\"https://stat.ripe.net/AS]] print(asn) print[[\"><i class=\"fa fa-external-link fa-sm\" title=\"More Information about AS ]] print(asn) print[[\"></i></A></small>");
+          $('h2:contains("for AS")').append("<small>&nbsp;<i class=\"fa fa-info-circle fa-sm\" aria-hidden=\"true\"></i> <A HREF=\"https://stat.ripe.net/AS]] print(asn) print[[\"><i class=\"fa fa-external-link fa-sm\" title=\"]] print(i18n("hosts_stats.more_info_about_as_popup_msg")) print(asn) print[[\"></i></A></small>");
 
 </script>
 ]]
@@ -390,12 +390,19 @@ else
    -- historical page
    require "graph_utils"
 
+   local title = ""
+   if asn ~= nil then
+      title = i18n("asn")..": "..asn
+   elseif vlan ~= nil then
+      title = i18n("vlan")..": "..vlan
+   end
+
    print[[
    <div class="bs-docs-example">
       <nav class="navbar navbar-default" role="navigation">
       <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li><a href="#">ASN: ]] print(asn) print[[</a> </li>]]
+        <li><a href="#">]] print(title) print[[</a> </li>]]
    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    print[[
       <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -411,7 +418,11 @@ else
       rrdfile = _GET["rrd_file"]
    end
 
-   drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
+   if asn ~= nil then
+      drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
+   elseif vlan ~= nil then
+      drawRRD(ifstats.id, 'vlan:'..vlan, rrdfile, _GET["zoom"], base_url.."?vlan="..vlan.."&page=historical", 1, _GET["epoch"])
+   end
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

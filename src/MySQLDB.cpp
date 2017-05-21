@@ -71,7 +71,7 @@ void* MySQLDB::queryLoop() {
 
 /* ******************************************* */
 volatile bool MySQLDB::db_created = false;
-bool MySQLDB::createDBSchema() {
+bool MySQLDB::createDBSchema(bool set_db_created) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if(iface) {
@@ -351,6 +351,33 @@ bool MySQLDB::createDBSchema() {
     }
   }
 
+  // Modify the number of partitions from 32 to 8
+  for (u_int16_t i = 0; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
+    snprintf(sql, sizeof(sql),
+	     "SELECT 1 "
+	     "FROM information_schema.PARTITIONS "
+	     "WHERE TABLE_SCHEMA='%s' "
+	     "AND TABLE_NAME='%sv%hu' "
+	     "GROUP BY TABLE_NAME HAVING COUNT(*) = 32 ",
+	     ntop->getPrefs()->get_mysql_dbname(),
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ipvers[i]);
+    if(exec_sql_query(&mysql, sql, true, true) > 0){
+      // if here, the table has 32 partitions and we want to convert them to 8
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "MySQL schema update. Altering table %sv%hu: "
+				   "changing the number of partitions to 8.",
+				   ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+
+      snprintf(sql, sizeof(sql),
+	       "ALTER TABLE `%sv%hu` PARTITION BY HASH(FIRST_SWITCHED) PARTITIONS 8",
+	       ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
+      exec_sql_query(&mysql, sql, true, true);
+    }
+  }
+
   // make counter fields as unsigned so they can store 2x values
   const char *counter_fields[3] = {"IN_BYTES", "OUT_BYTES", "PACKETS"};
   for (u_int16_t i = 0; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
@@ -382,7 +409,8 @@ bool MySQLDB::createDBSchema() {
     }
   }
 
-  db_created = true;
+  if(set_db_created)
+    db_created = true;
   return true;
 }
 
@@ -530,7 +558,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
 
 /* ******************************************* */
 
-bool MySQLDB::dumpFlow(time_t when, bool idle_flow, Flow *f, char *json) {
+bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL) || !MySQLDB::db_created)

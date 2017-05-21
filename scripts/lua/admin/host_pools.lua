@@ -18,23 +18,36 @@ if not isAdministrator() then
   return
 end
 
+local pool_add_warnings = {}
+
 if _POST["edit_pools"] ~= nil then
   local config = paramsPairsDecode(_POST, true)
 
   for pool_id, pool_name in pairs(config) do
-    if tonumber(pool_id) == nil then
-      http_lint.validationError(_POST, "pool_id", pool_id, "Invalid pool id")
-    end
+    -- Filter pool ids only
+    if tonumber(pool_id) ~= nil then
+      local children_safe = nil
+      if config["_csafe_"..pool_id] ~= nil then
+        children_safe = config["_csafe_"..pool_id]
+      end
 
-    -- create or rename
-    host_pools_utils.createPool(ifId, pool_id, pool_name)
+      local enforce_quotas_per_pool_member = nil
+      if config["_qts_per_member_"..pool_id] ~= nil then
+        enforce_quotas_per_pool_member = config["_qts_per_member_"..pool_id]
+      end
 
-    if(interface.isBridgeInterface(ifId) == true) then
-      -- create default shapers
-      shaper_utils.initDefaultShapers(ifid, pool_id)
+      -- create or rename
+      host_pools_utils.createPool(ifId, pool_id, pool_name, children_safe, enforce_quotas_per_pool_member)
+
+      if(interface.isBridgeInterface(ifId) == true) then
+        -- create default shapers
+        shaper_utils.initDefaultShapers(ifid, pool_id)
+      end
     end
   end
-  -- Note: do not call reload here
+
+  -- Reload is required here to load the new metadata
+  interface.reloadHostPools()
 elseif _POST["pool_to_delete"] ~= nil then
   local pool_id = _POST["pool_to_delete"]
   host_pools_utils.deletePool(ifId, pool_id)
@@ -49,14 +62,43 @@ elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
 
-  -- This code handles member address changes. The starting '_' is used for icons and alias
+  -- First of all, normalize new networks (extract their prefix)
+  -- Note: alias/device type mapping will not be preserved for masked networks, and this is ok since networks do not have such information
+  for new_member, old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
+    if not starts(new_member, "_") then
+      if not isValidPoolMember(new_member) then
+        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
+      end
+      if (not isEmptyString(old_member)) and (not isValidPoolMember(old_member)) then
+        http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+      end
 
+      local hostinfo = hostkey2hostinfo(new_member)
+      local network, prefix = splitNetworkPrefix(hostinfo.host)
+
+      if prefix ~= nil then
+        local masked = ntop.networkPrefix(network, prefix)
+        if masked ~= network then
+          local new_key = host2member(masked, hostinfo.vlan, prefix)
+          config[new_member] = nil
+          config[new_key] = old_member
+          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.network_normalized", {
+            network = hostinfo2hostkey(hostkey2hostinfo(new_member)),
+            network_normalized = hostinfo2hostkey(hostkey2hostinfo(new_key))
+          })
+        end
+      end
+    end
+  end
+
+  -- This code handles member address changes. The starting '_' is used for icons and alias
   -- delete old addresses
-  for k,old_member in pairs(config) do
+  for k,old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
     if not starts(k, "_") then
       if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        if not isValidPoolMember(old_member) then
-          http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+        if config[old_member] then
+          -- Do not delete and re-add members which have only changed their list index
+          config[old_member] = old_member
         else
           host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
         end
@@ -67,13 +109,19 @@ elseif (_POST["edit_members"] ~= nil) then
   -- add new addresses
   for new_member,k in pairs(config) do
     if not starts(new_member, "_") then
-      if not isValidPoolMember(new_member) then
-        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
-      end
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
-        host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+        local res, info = host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+
+        if (res == false) and (info.existing_member_pool ~= nil) then
+          -- remove @0
+          local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
+          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {
+            member_name = member_to_print,
+            member_pool = host_pools_utils.getPoolName(ifId, info.existing_member_pool)
+          })
+        end
       end
 
       local host_key, is_network = host_pools_utils.getMemberKey(new_member)
@@ -164,12 +212,8 @@ if selected_pool == nil then
   end
 end
 
-local perPageMembers
-if tonumber(tablePreferences("hostPoolMembers")) == nil then
-  perPageMembers = "10"
-else
-  perPageMembers = tablePreferences("hostPoolMembers")
-end
+-- We are passing too much _POST data, no more than 5 members allowed
+local perPageMembers = "5"
 
 local member_filtering = _GET["member"]
 local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
@@ -204,8 +248,8 @@ print('</select>')
 
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
-if is_bridge_iface then
-  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
+if is_bridge_iface and selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-cog' aria-hidden='true'></i></a>")
 end
 
 print('</td>\n')
@@ -214,7 +258,7 @@ if member_filtering ~= nil then
   print[[
   <td>
     <form action="#manage">
-      <input type="hidden" name="id" value="]] print(ifId.."") print[[" />
+      <input type="hidden" name="ifid" value="]] print(ifId.."") print[[" />
       <input type="hidden" name="page" value="pools" />
       <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
@@ -224,7 +268,7 @@ if member_filtering ~= nil then
   </td>
   ]]
 end
-print('<div style="float:right;">')
+print('<td style="width:100%"></td><td>')
 print(
   template.gen("typeahead_input.html", {
     typeahead={
@@ -243,11 +287,20 @@ print(
     }
   })
 )
-print('</div>')
+print('</td>')
 print('</tr></tbody></table>')
 
 if no_pools then
   print[[<script>$("#pool_selector").attr("disabled", "disabled");</script>]]
+end
+
+for _, msg in ipairs(pool_add_warnings) do
+  print([[
+  <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button><b>]]..i18n("warning")..[[</b>: ]]..msg..[[
+  </div>]])
 end
 
   print[[
@@ -266,18 +319,17 @@ print[[
         <br/><div id="table-create"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
-      <br/><br/>]]
-
-if isCaptivePortalActive() then
-  print[[
+      <br/><br/>
       NOTES:
       <ul>
-        <li>A pool cannot be deleted if there is any Captive Portal user associated. Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>
-      </ul>
-  ]]
+        <li>A pool cannot be deleted if there is any Captive Portal user associated. ]]
+
+if isCaptivePortalActive() then
+  print [[Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>]]
 end
 
 print[[
+      </ul>
     </div>
   </div>
 ]]
@@ -364,7 +416,7 @@ print[[
         return true;
 
       recheckFields(input);
-      return is_mac_address(member) || is_network_mask(member, true);
+      return memberValueValidator(input);
     }
   
     function memberValidator(input) {
@@ -437,6 +489,24 @@ print [[
 
   <script>
     var addedMemberCtr = 0;
+    var curDisplayedMembers = 0;
+
+    var validator_options = {
+      disable: true,
+      custom: {
+         member: memberValidator,
+         address: addressValidator,
+         unique: makeUniqueValidator(function(field) {
+            return $('input[name^="pool_"]', $("#table-create-form"));
+         }),
+      }, errors: {
+         member: "]] print(i18n("host_pools.duplicate_member")) print[[.",
+         address: "]] print(i18n("host_pools.invalid_member")) print[[.",
+         unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
+      }
+    }
+
+    function decPoolMembers() { curDisplayedMembers--; }
 
     function addPoolMember() {
       if (datatableIsEmpty("#table-manage"))
@@ -445,13 +515,15 @@ print [[
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center text-middle]] if not (isCaptivePortalActive()) then print(" hidden") end print[[">Persistent</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center ]] if not (isCaptivePortalActive()) then print(" hidden") end print[[">Persistent</td><td class="text-center"></td></tr>');
+      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
       var icon = $("td:nth-child(4)", tr);
       var icon_input = $("select", icon).first();
+      curDisplayedMembers++;
+      $("#addPoolMemberBtn").attr("disabled", (curDisplayedMembers > ]] print(perPageMembers) print[[));
 
       aysRecheckForm("#table-manage-form");
     }
@@ -483,6 +555,7 @@ print [[
       title: "",
       perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
+      hidePerPage: true,
       
       buttons: [
          '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
@@ -523,7 +596,6 @@ end
 print[[            css : {
                width: '10%',
                textAlign: 'center',
-               verticalAlign: 'middle',
             }
          }, {
             title: "]] print(i18n("actions")) print[[",
@@ -540,6 +612,7 @@ print[[            css : {
          }
       ], tableCallback: function() {
         var no_pools = false;
+        curDisplayedMembers = 0;
 
         if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.no_pools_defined") .. " " .. i18n("host_pools.create_pool_hint")) print[[");
@@ -557,6 +630,7 @@ print[[            css : {
             var editable = $("td:nth-child(8)", $(this)).html() == "true";
 
             var member_id = addedMemberCtr++;
+            curDisplayedMembers++;
 
             /* Make member name editable */
             var value = member_address.html();
@@ -601,15 +675,18 @@ print[[            css : {
             if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
 
-            if (link_value)
-              datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
+            datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
+            if (!link_value) $("td:nth(5) a:nth(0)", this).css("visibility", "hidden");
             datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form")) || (no_pools)) || (]] if member_filtering ~= nil then print("true") else print("false") end print[[));
+        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
+                                              || (no_pools))
+                                              || (]] if member_filtering ~= nil then print("true") else print("false") end print[[)
+                                              || (curDisplayedMembers > ]] print(perPageMembers) print[[));
 
         $("#table-manage-form")
             .validator(validator_options)
@@ -699,6 +776,14 @@ print [[
         nextPoolId = Math.min(nextPoolId, pool_id);
     }
 
+    function makeChildrenSafeInput(value) {
+      return $('<input name="children_safe" type="checkbox"' + ((value == true) ? " checked" : "") + '/>');
+    }
+
+    function makeEnforceQuotasPerPoolMemberInput(value) {
+      return $('<input name="enforce_quotas_per_pool_member" type="checkbox"' + ((value == true) ? " checked" : "") + '/>');
+    }
+
     function addPool() {
       var pool_id = nextPoolId;
 
@@ -716,8 +801,20 @@ print [[
       if (pool_id < maxPoolNum) {
         var newid = "added_pool_" + pool_id;
 
-        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center"></td></tr>');
-        datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
+        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]]
+          printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center]]
+          if not is_bridge_iface then print(" hidden") end
+          print[["></td><td class="text-center]]
+          if not is_bridge_iface or not ntop.isEnterprise() then print(" hidden") end
+          print[["></td><td class="text-center"></td></tr>');
+
+        var children_safe = $("td:nth-child(4)", tr);
+        children_safe.html(makeChildrenSafeInput());
+
+        var enforce_quotas_per_pool_member = $("td:nth-child(5)", tr);
+	enforce_quotas_per_pool_member.html(makeEnforceQuotasPerPoolMemberInput());
+
+        datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
         datatableOrderedInsert("#table-create table", 1, tr, pool_id);
         $("input", tr).focus();
 
@@ -761,6 +858,32 @@ print [[
             field: "column_pool_undeletable",
             hidden: true,
          }, {
+            title: "]] print(i18n("host_pools.children_safe")) print[[",
+            field: "column_children_safe",
+            ]]
+     if not is_bridge_iface then
+        print("hidden: true,")
+     end
+     print[[
+            css : {
+               width: '7%',
+               textAlign: 'center',
+               whiteSpace: 'nowrap',
+            }
+         }, {
+            title: "]] print(i18n("host_pools.enforce_quotas_per_pool_member")) print[[",
+            field: "column_enforce_quotas_per_pool_member",
+            ]]
+     if not is_bridge_iface or not ntop.isEnterprise() then
+        print("hidden: true,")
+     end
+     print[[
+            css : {
+               width: '7%',
+               textAlign: 'center',
+	       whiteSpace: 'nowrap',
+            }
+         }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
                width: '15%',
@@ -778,7 +901,9 @@ print [[
             var pool_id = $("td:nth-child(1)", $(this)).html();
             var pool_name = $("td:nth-child(2)", $(this));
             var pool_undeletable = $("td:nth-child(3)", $(this)).html() === "true";
-            var pool_link = $("td:nth-child(5)", $(this)).html();
+            var children_safe = $("td:nth-child(4)", $(this));
+            var enforce_quotas_per_pool_member = $("td:nth-child(5)", $(this));
+            var pool_link = $("td:nth-child(7)", $(this)).html();
 
             /* Make pool name editable */
             var input = $(']] printPoolNameField('pool_id') print[[');
@@ -786,14 +911,18 @@ print [[
             $("input", input).first().val(value);
             pool_name.html(input);
 
+            /* Make children safe and per-member pool quotas editable */
+            children_safe.html(makeChildrenSafeInput(children_safe.html() === "true"));
+            enforce_quotas_per_pool_member.html(makeEnforceQuotasPerPoolMemberInput(enforce_quotas_per_pool_member.html() === "true"));
+
             if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
               $("input", input).first().attr("disabled", "disabled");
             } else {
-              datatableAddLinkButtonCallback.bind(this)(4, pool_link, "View");
-              datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+              datatableAddLinkButtonCallback.bind(this)(6, pool_link, "View");
+              datatableAddDeleteButtonCallback.bind(this)(6, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
               if (pool_undeletable)
-                $("td:nth-child(4) a", $(this)).last().attr("disabled", "disabled");
+                $("td:nth-child(6) a", $(this)).last().attr("disabled", "disabled");
             }
          });
 
@@ -824,7 +953,13 @@ print [[
       var settings = {};
       $("input[name^='pool_']", form).each(function() {
         var pool_id = $(this).attr("name").split("pool_")[1];
+
+        var children_safe = $("input[name='children_safe']", $(this).closest("tr")).is(':checked');
+	var enforce_quotas_per_pool_member = $("input[name='enforce_quotas_per_pool_member']", $(this).closest("tr")).is(':checked');
+
         settings[pool_id] = $(this).val();
+        settings["_csafe_" + pool_id] = children_safe;
+        settings["_qts_per_member_" + pool_id] = enforce_quotas_per_pool_member;
       });
 
       // reset ays so that we can submit a custom form
@@ -837,21 +972,6 @@ print [[
       paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
 
       return false;
-    }
-
-    var validator_options = {
-      disable: true,
-      custom: {
-         member: memberValidator,
-         address: addressValidator,
-         unique: makeUniqueValidator(function(field) {
-            return $('input[name^="pool_"]', $("#table-create-form"));
-         }),
-      }, errors: {
-         member: "]] print(i18n("host_pools.duplicate_member")) print[[.",
-         address: "]] print(i18n("host_pools.invalid_member")) print[[.",
-         unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
-      }
     }
   </script>
 ]]

@@ -72,8 +72,46 @@ that is equipped with a ethernet interface (eth0) that connect the box
 to the Internet, and a WiFi interface (wlan0) to which network clients
 can attach.
 
-In this setup you need to configure the interfaces as described below. The
-notes are for Debian-based distributions such as Raspbian.
+In this setup you need to configure the interfaces as described below.
+
+
+Using ntopng in routing mode
+----------------------------
+
+Supposing to have this network configuration
+
+	       eth0    +-----------+  eth1
+    Internet  <---->   |   ntopng  | <----> Local network
+                       +-----------+
+
+- eth0 connects to the Internet
+- eth1 connects your clients
+- you want the ntopng box to NAT your clients and assign them an IP
+  address with DHCP. The private network used for NAT
+  will be 172.16.0.0/24 , and your ntopng box will act
+  as gateway at IP 172.16.0.1 (just as example).
+
+PRIOR TO START NTOPNG, you need to do once:
+1. Setup a tap interface on your box
+   # tunctl -t tap0
+   # ifconfig tap0 172.16.0.1 netmask 255.255.255.0
+   # ifconfig tap0 up
+
+2. Setup NAT
+   # iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
+   # iptables --append FORWARD --in-interface tap0 -j ACCEPT
+
+3. Setup your DHCP server serving addresses on tap0 from
+   network 172.16.0.0/24 (of course except 172.16.0.1 that is
+   used by ntopng)
+
+Then you can start ntopng as:
+   # ntopng -i bridge:tap0,eth1 -m "172.16.0.0/24" -w 80,3000 
+
+
+* Debian-based distributions
+----------------------------
+For Debian-based distributions such as Raspbian the configuration is as follows.
 
 $ cat /etc/network/interfaces
 ...
@@ -100,6 +138,55 @@ ntopng as follows:
 
 # ntopng -i bridge:br0,wlan0 -w 80,3000
 
+Note for Raspbian linux: The new dhcp client ignores what the
+interfaces files does and doing its own things. This may cause
+innterfaces configured with 'inet manual' to get an ip address via
+dhcp. To prevent this behavior, /etc/dhcpcd.conf should be edited to
+to tell the DHCP daemon to completely ignore the physical interfaces:
+
+denyinterfaces eth0
+denyinterfaces wlan0
+
+Ref: https://www.raspberrypi.org/forums/viewtopic.php?p=798866#p798866
+
+* Centos 7
+----------
+
+In order to setup the linux bridge on Centos 7, it is required to edit
+files under /etc/sysconfig/network-scripts/
+
+For example, assuming we want to create a linux bridge br0 attached
+to physical NIC eno1, we can configure NIC configuration files as
+follows
+
+[mainardi@develv5 ~]$ cat /etc/sysconfig/network-scripts/ifcfg-br0
+DEVICE=br0
+TYPE=Bridge
+BOOTPROTO=dhcp
+STP=no
+NAME=br0
+ONBOOT=yes
+
+[mainardi@develv5 ~]$ cat /etc/sysconfig/network-scripts/ifcfg-eno1
+DEVICE=eno1
+HWADDR=
+ONBOOT=yes
+NETMASK=
+GATEWAY=
+TYPE=Ethernet
+
+# Bridge
+BRIDGE=br0
+
+Having set up network interfaces as above, and assuming the interface
+that faces clients is enp7s0f1, then ntopng can be started
+as follows:
+
+# ntopng -i bridge:br0,enp7s0f1 -w 80,3000
+
+It may be necessary to manually bring interface enp7s0f1 up with
+
+# ifconfing enp7s0f1 up
 
 Enabling Captive Portal
 -----------------------

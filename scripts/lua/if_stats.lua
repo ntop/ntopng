@@ -27,7 +27,7 @@ if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 page = _GET["page"]
 ifid = _GET["ifid"]
@@ -41,8 +41,8 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
 
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
-      if(value ~= nil) then print(value) end
-      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">Save</button>]]
+      if(value ~= nil) then print(value.."") end
+      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">]] print(i18n("save")) print[[</button>]]
    else
       if(value ~= nil) then print(value) end
    end
@@ -58,14 +58,13 @@ if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
    key = getRedisPrefix("ntopng.prefs") .. ".ifname"
    ntop.setCache(key, ifname)
 
-   msg = "<div class=\"alert alert-success\">The selected interface <b>" .. getHumanReadableInterfaceName(ifid)
-   msg = msg .. "</b> [ifid: ".. ifid .."] is now active</div>"
+   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg", {interface=getHumanReadableInterfaceName(ifid), ifid=ifid}) .. "</div>"
 
    ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
 else
-   msg = "<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Error while switching interfaces</div>"
+   msg = "<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("if_stats_overview.iface_switch_error_msg") .. "</div>"
 if(_SESSION["session"] == nil) then
-   msg = msg .."<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Empty session</div>"
+   msg = msg .."<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("if_stats_overview.iface_switch_empty_session_msg") .. "</div>"
 end
 end
 end
@@ -104,6 +103,19 @@ if (isAdministrator()) then
    if(_POST["custom_name"] ~=nil) then
 	 -- TODO move keys to new schema: replace ifstats.name with ifid
 	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
+   end
+
+   if(_POST["ifSpeed"] ~= nil) then
+      local ifspeed_cache = 'ntopng.prefs.'..ifstats.name..'.speed'
+      if isEmptyString(_POST["ifSpeed"]) then
+         ntop.delCache(ifspeed_cache)
+      else
+         ntop.setCache(ifspeed_cache, _POST["ifSpeed"])
+      end
+   end
+
+   if(_POST["ifRate"] ~= nil) then
+      setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
    end
 
    if(_POST["scaling_factor"] ~= nil) then
@@ -181,7 +193,7 @@ url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
-print('\n<script>var refresh = 3000 /* ms */;</script>\n')
+print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000; /* ms */;</script>\n')
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -191,11 +203,15 @@ print [[
 
 short_name = getHumanReadableInterfaceName(if_name)
 
+if(string.contains(short_name, "{")) then -- Windows
+   short_name = ifstats.description
+end
+
 if(short_name ~= if_name) then
    short_name = short_name .. "..."
 end
 
-print("<li><a href=\"#\">Interface: " .. short_name .."</a></li>\n")
+print("<li><a href=\"#\">" .. i18n("interface") .. ": " .. short_name .."</a></li>\n")
 
 if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
@@ -205,33 +221,31 @@ end
 
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
-   if(ifstats.type ~= "zmq") then
-      if(page == "packets") then
-	 print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
-      else
-	 print("<li><a href=\""..url.."&page=packets\">Packets</a></li>")
-      end
+   if(page == "packets") then
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
    end
 
    if(page == "ndpi") then
-      print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("protocols") .. "</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=ndpi\">Protocols</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("protocols") .. "</a></li>")
    end
 end
 
 if(page == "ICMP") then
-  print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">" .. i18n("icmp") .. "</a></li>\n")
 else
-  print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
+  print("<li><a href=\""..url.."&page=ICMP\">" .. i18n("icmp") .. "</a></li>")
 end
 
 -- only show if the interface has seen mac addresses
 if ifstats["has_macs"] then
    if(page == "ARP") then
-     print("<li class=\"active\"><a href=\"#\">ARP</a></li>\n")
+     print("<li class=\"active\"><a href=\"#\">" .. i18n("arp") .. "</a></li>\n")
    else
-     print("<li><a href=\""..url.."&page=ARP\">ARP</a></li>")
+     print("<li><a href=\""..url.."&page=ARP\">" .. i18n("arp") .. "</a></li>")
    end
 end
 
@@ -301,9 +315,9 @@ end
 
 if(hasSnmpDevices(ifstats.id) and is_packet_interface) then
    if(page == "snmp_bind") then
-      print("\n<li class=\"active\"><a href=\"#\">SNMP</li>")
+      print("\n<li class=\"active\"><a href=\"#\">" .. i18n("if_stats_overview.snmp") .. "</li>")
    else
-      print("\n<li><a href=\""..url.."&page=snmp_bind\">SNMP</a></li>")
+      print("\n<li><a href=\""..url.."&page=snmp_bind\">" .. i18n("if_stats_overview.snmp") .. "</a></li>")
    end
 end
 
@@ -327,12 +341,13 @@ print [[
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%>Id</th><td colspan=6>" .. ifstats.id .. " ")
+   print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
+   if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
    print("</td></tr>\n")
 
    if interface.isPcapDumpInterface() == false then
-      print("<tr><th width=250>State</th><td colspan=6>")
-      state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
+      print("<tr><th width=250>"..i18n("if_stats_overview.state").."</th><td colspan=6>")
+      state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1","primary", i18n("if_stats_overview.paused"), "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
 
       if(state == "0") then
 	 on_state = true
@@ -346,11 +361,11 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-      print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
-      if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
-      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td><td></td>") end
+      print("<tr><th>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
+      if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"].."</td>") end
+      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>"..i18n("if_stats_overview.probe_ip").."</b>: "..ifstats["probe.ip"].."</td><td></td>") end
       if(ifstats["probe.public_ip"] ~= "") then
-         print("<td nowrap><b>Public Probe IP</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
+         print("<td nowrap><b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
       else
          print("<td colspan=2>&nbsp;</td>\n")
       end
@@ -368,15 +383,21 @@ if((page == "overview") or (page == nil)) then
       else
          s = ifstats.name
       end
-      print('<tr><th width="250">Name</th><td colspan="2">' .. s ..'</td>\n')
+
+      if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
+	 s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
+      end
+      
+      print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
    else
-      print("<tr><th>Bridge</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
+      print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
    end
 
-   print("<th>Family</th><td colspan=2>")
+   print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
    print(ifstats.type)
+
    if(ifstats.inline) then
-      print(" In-Path Interface (Bump in the Wire)")
+      print(" "..i18n("if_stats_overview.in_path_interface"))
    end
    print("</tr>")
 
@@ -386,7 +407,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(tokens ~= nil) then
-         print("<tr><th width=250>IP Address</th><td colspan=5>")
+         print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
          local addresses = {}
 
          for _,s in pairs(tokens) do
@@ -408,14 +429,14 @@ if((page == "overview") or (page == nil)) then
 
    if is_physical_iface then
       print("<tr>")
-      print("<th>MTU</th><td colspan=2  nowrap>"..ifstats.mtu.." bytes</td>\n")
+      print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
       if (not is_bridge_iface) then
          local speed_key = 'ntopng.prefs.'..ifname..'.speed'
          local speed = ntop.getCache(speed_key)
          if (tonumber(speed) == nil) then
             speed = ifstats.speed
          end
-         print("<th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
+         print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
       else
          print("<td colspan=3></td></tr>")
       end
@@ -423,14 +444,14 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["pkt_dumper"] ~= nil) then
-      print("<tr><th rowspan=2>Packet Dumper</th><th colspan=2>Dumped Packets</th><th colspan=2>Dumped Files</th></tr>\n")
+      print("<tr><th rowspan=2>"..i18n("if_stats_overview.packet_dumper").."</th><th colspan=2>"..i18n("if_stats_overview.dumped_packets").."</th><th colspan=2>"..i18n("if_stats_overview.dumped_files").."</th></tr>\n")
       print("<tr><td colspan=2><div id=dumped_pkts>".. formatValue(ifstats["pkt_dumper"]["num_dumped_pkts"]) .."</div></td>")
       print("<td colspan=2><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
    end
 
-   label = "Pkts"
+   label = i18n("pkts")
 
-   print[[ <tr><th colspan=1 nowrap>Traffic Breakdown</th> ]]
+   print[[ <tr><th colspan=1 nowrap>]] print(i18n("if_stats_overview.traffic_breakdown")) print[[</th> ]]
 
    if(ifstats.type ~= "zmq") then
       print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=3> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
@@ -456,16 +477,16 @@ print [[ }
 print("</script>\n")
 
    if(ifstats.zmqRecvStats ~= nil) then
-   print("<tr><th colspan=7 nowrap>ZMQ RX Statistics</th></tr>\n")
-   print("<tr><th nowrap>Collected Flows</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
-   print("<th nowrap>Interface RX Updates</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
-   -- print("<th nowrap>sFlow Counter Updates</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
-   print("<th nowrap>ZMQ Message Drops</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></tr>")
+   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
+   print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
+   -- print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
+   print("<th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></tr>")
    end
 
-   print("<tr><th colspan=7 nowrap>Ingress Traffic</th></tr>\n")
-   print("<tr><th nowrap>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
-   print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
+   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+   print("<span id=pkts_trend></span></td><th width=20%>"..i18n("if_stats_overview.dropped_packets").."</th><td width=20%><span id=if_drops>")
 
    if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
    print(formatValue(ifstats.stats.drops).. " " .. label)
@@ -482,9 +503,9 @@ print("</script>\n")
    print("</span>&nbsp;<span id=drops_trend></span>")
    if(ntop.getCache("ntopng.prefs.dynamic_iface_vlan_creation") == "1") then
       if(ifstats.type == "Dynamic VLAN") then
-	 print("<br><small><b>NOTE:</b> The main interface reports drops for all VLAN sub-interfaces</small>")
+	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic_vlan").."</small>")
       else
-	 print("<br><small><b>NOTE:</b> The above drops are the sum of drops for all VLAN sub-interfaces</small>")
+	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_not_dynamic_vlan").."</small>")
       end
    end
    print("</td><td colspan=3>")
@@ -509,16 +530,16 @@ print("</script>\n")
 	 export_drops_pct = export_drops / export_count * 100
       end
 
-      print("<tr><th colspan=7 nowrap>"..dump_to.." Flows Export Statistics</th></tr>\n")
+      print("<tr><th colspan=7 nowrap>"..dump_to.." "..i18n("if_stats_overview.flows_export_statistics").."</th></tr>\n")
 
       print("<tr>")
-      print("<th nowrap>Exported Flows</th>")
+      print("<th nowrap>"..i18n("if_stats_overview.exported_flows").."</th>")
       print("<td><span id=exported_flows>"..formatValue(export_count).."</span>")
       if export_rate == nil then
 	export_rate = 0
       end
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
-      print("<th>Dropped Flows</th>")
+      print("<th>"..i18n("if_stats_overview.dropped_flows").."</th>")
       local span_danger = ""
       if export_drops == nil then 
 
@@ -534,7 +555,7 @@ print("</script>\n")
    end
 
    if (isAdministrator() and ifstats.isView == false) then
-      print("<tr><th width=250>Reset Counters</th>")
+      print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 
       local cls = ""
@@ -546,7 +567,7 @@ print("</script>\n")
       if tot == 0 then
 	 cls = " disabled"
       end
-      print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">All Counters</button>&nbsp;')
+      print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
 
       cls = ""
       if(ifstats.stats.flow_export_count ~= nil) then
@@ -554,16 +575,16 @@ print("</script>\n")
 	 cls = " disabled"
 	end
       end
-      print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">Drops Only</button>')
+      print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
       print("</td>")
 
       print("</tr>\n")
    end
 
    if((ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)) then
-      print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
-      print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped/Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
-      print("<tr><th>".. ifstats["bridge.device_a"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_b"] .."</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
+      print("<tr><th colspan=7>"..i18n("if_stats_overview.bridged_traffic").."</th></tr>\n")
+      print("<tr><th nowrap>"..i18n("interface").."</th><th nowrap>"..i18n("if_stats_overview.ingress_packets").."</th><th nowrap>"..i18n("if_stats_overview.egress_packets").."</th><th nowrap>"..i18n("if_stats_overview.shaped_filtered_packets").."</th><th nowrap>"..i18n("if_stats_overview.send_error").."</th><th nowrap>"..i18n("if_stats_overview.buffer_full").."</th></tr>\n")
+      print("<tr><th>".. ifstats["bridge.device_a"] .. "</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
       print("<td><span id=a_to_b_out_pkts>".. formatPackets(ifstats["bridge.a_to_b.out_pkts"]) .."</span> <span id=a_to_b_out_pps></span></td>")
       print("<td><span id=a_to_b_filtered_pkts>".. formatPackets(ifstats["bridge.a_to_b.filtered_pkts"]) .."</span></td>")
 
@@ -572,8 +593,9 @@ print("</script>\n")
 
       print("</tr>\n")
 
-      print("<tr><th>".. ifstats["bridge.device_b"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_a"] .."</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span> <span id=b_to_a_in_pps></span></td>")
+      print("<tr><th>".. ifstats["bridge.device_b"] .. "</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span> <span id=b_to_a_in_pps></span></td>")
       print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span> <span id=b_to_a_out_pps></span></td>")
+
       print("<td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td>")
 
       print("<td><span id=b_to_a_num_pkts_send_error>".. formatPackets(ifstats["bridge.b_to_a.num_pkts_send_error"]) .."</span></td>")
@@ -583,19 +605,23 @@ print("</script>\n")
    end
 
    print [[
-   <tr><td colspan=7> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=\"https://en.wikipedia.org/wiki/Ethernet_frame\">overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=\"http://en.wikipedia.org/wiki/Interframe_gap\">IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
+   <tr><td colspan=7> <small> <b>]] print(i18n("if_stats_overview.note").."</b>:<p>"..i18n("if_stats_overview.note_packets")) print[[</small> </td></tr>
    ]]
 
    print("</table>\n")
 elseif((page == "packets")) then
    print [[ <table class="table table-bordered table-striped"> ]]
-      print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-      print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-      print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+   print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+   print("<tr></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+   print("<tr></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
-    print [[
-	 <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
-  	 <tr><th class="text-left">TCP Flags Distribution</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
+    if(ifstats.type ~= "zmq") then
+      print [[<tr><th class="text-left">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
+    end
+
+    print[[
+  	 <tr><th class="text-left">]] print(i18n("packets_page.tcp_flags_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
+    <tr><th class="text-left">]] print(i18n("packets_page.ip_version_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
       </table>
 
 	<script type='text/javascript'>
@@ -612,6 +638,12 @@ elseif((page == "packets")) then
    print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifstats.id.."\"")
    print [[
 	   }, "", refresh);
+
+      do_pie("#ipverDistro", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/if_pkt_distro.lua', { distr: "ipver", ifid: "]] print(ifstats.id.."\"")
+   print [[
+	   }, "", refresh);
     }
 
       </script><p>
@@ -626,14 +658,14 @@ elseif(page == "ndpi") then
    print [[
 	    <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
       <table class="table table-bordered table-striped">
-      <tr><th class="text-left">Cumulative Protocol Stats</th>
+      <tr><th class="text-left">]] print(i18n("ndpi_page.cumulative_protocol_stats")) print [[</th>
 	       <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></div></td>
 	       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
 	       </tr>
-      <tr><th class="text-left">Live Flows Count</th>
+      <tr><th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
 	       <td colspan=3><div class="pie-chart" id="topFlowsCount"></div></td>
 	       <td colspan=2><div class="pie-chart" id="topTCPFlowsStats"></div>
-               <br><small><b>NOTE:</b> This chart depicts only TCP connections.
+               <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
                </td>
 	       </tr>
   </div>
@@ -666,7 +698,7 @@ elseif(page == "ndpi") then
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      ]]
 
-   print("<thead><tr><th>Application Protocol</th><th>Total (Since Startup)</th><th>Percentage</th></tr></thead>\n")
+   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
 
    print ('<tbody id="if_stats_ndpi_tbody">\n')
    print ("</tbody>")
@@ -703,7 +735,7 @@ elseif(page == "ICMP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ICMP Message</th><th style='text-align:right;'>Traffic</th></tr></thead>
+     <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th style='text-align:right;'>]] print(i18n("traffic")) print[[</th></tr></thead>
      <tbody id="iface_details_icmp_tbody">
      </tbody>
      </table>
@@ -732,7 +764,7 @@ elseif(page == "ARP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>ARP Type</th><th style='text-align:right;'>Traffic</th></tr></thead>
+     <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("traffic")) print[[</th></tr></thead>
      <tbody id="iface_details_arp_tbody">
      </tbody>
      </table>
@@ -769,7 +801,7 @@ elseif(page == "historical") then
    --drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Chart</th><th>Traffic</th></tr>\n")
+   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
      local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
@@ -811,7 +843,7 @@ print [[
 			  }
 			}
 	  });
-}, 3000);
+}, ]] print(getInterfaceRefreshRate(ifstats.id).."") print[[ * 1000);
 
    </script>
 ]]
@@ -862,22 +894,22 @@ if is_packetdump_enabled then
 
    print("<table class=\"table table-striped table-bordered\">\n")
 
-   print("<tr><th width=30%>Packet Dump</th><td>")
+   print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
+	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">'..' '..i18n("packetdump_page.dump_all_traffic"))
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
 
-   print("<tr><th width=30%>Packet Dump To Disk</th><td>")
+   print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump_to_disk").. "</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
+	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
-		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+	         print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -887,7 +919,7 @@ if is_packetdump_enabled then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
+	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_unknown_traffic_to_disk")..' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
@@ -895,30 +927,30 @@ if is_packetdump_enabled then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
+	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk_on_security_alert")..' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
 
-   print("<tr><th>Packet Dump To Tap</th><td>")
+   print("<tr><th>" .. i18n("packetdump_page.packet_dump_to_tap") .. "</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
+	       print('<input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
-		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+ 		 print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print(' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    else
-      print("Disabled. Please restart ntopng with --enable-taps")
+      print(i18n("packetdump_page.packet_dump_to_tap_disabled_message"))
 end
 
    print("</td></tr>\n")
-   print("<tr><th width=250>Sampling Rate</th>\n")
+   print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
    print [[<td>]]
    if(dump_security_checked ~= "") then
    print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
@@ -927,24 +959,23 @@ end
 	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
 	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
 	 print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-<small>
-    NOTE: Sampling rate is applied only when dumping packets caused by a security alert<br>
-(e.g. a volumetric DDoS attack) and not to those hosts/flows that have been marked explicitly for dump.
-</small>]]
+<small> ]]
+    print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_sampling_rate"))
+print[[</small>]]
   else
-    print('Disabled. Enable packet dump on security alert.')
+    print(i18n("packetdump_page.sampling_rate_disabled_message"))
   end
   print[[
     </td></tr>
        ]]
 
-   print("<tr><th colspan=2>Dump To Disk Parameters</th></tr>")
-   print("<tr><th width=250>Pcap Dump Directory</th><td>")
+   print("<tr><th colspan=2>" .. i18n("packetdump_page.dump_to_disk_parameters") .. "</th></tr>")
+   print("<tr><th width=250>" .. i18n("packetdump_page.pcap_dump_directory") .. "</th><td>")
    pcapdir = dirs.workingdir .."/"..ifstats.id.."/pcap/"
    print(pcapdir.."</td></tr>\n")
-   print("<tr><th width=250>Max Packets per File</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_packets_per_file") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -955,12 +986,12 @@ end
 	 else
 	   print(interface.getInterfaceDumpMaxPkts().."")
 	 end
-	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-    <small>Maximum number of packets to store on a pcap file before creating a new file.</small>
+    <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
     </td></tr>
        ]]
-   print("<tr><th width=250>Max Duration of File</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_duration_file") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -972,12 +1003,12 @@ end
 	   print(interface.getInterfaceDumpMaxSec().."")
 	 end
 	 print [["></input>
-		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-    <small>Maximum pcap file duration before creating a new file.<br>NOTE: a dump file is closed when it reaches first the maximum size or duration specified.</small>
+    <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
     </td></tr>
        ]]
-   print("<tr><th width=250>Max Size of Dump Files</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_size_dump_files") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -989,9 +1020,9 @@ end
 	   print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
 	 end
 	 print [["></input>
-		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
-    <small>Maximum size of created pcap files.<br>NOTE: total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.</small>
+    <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
     </td></tr>
       ]]
    print("</table>")
@@ -999,12 +1030,11 @@ end
 elseif(page == "alerts") then
 
    drawAlertSourceSettings(ifname_clean,
-      i18n("show_alerts.iface_delete_config_btn"), i18n("show_alerts.iface_delete_config_confirm"),
+      i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
       "if_stats.lua", {ifid=ifid},
       if_name)
 
 elseif(page == "config") then
-
    if(not isAdministrator()) then
       return
    end
@@ -1012,18 +1042,44 @@ elseif(page == "config") then
    print[[
    <table class="table table-bordered table-striped">]]
 
-   -- Custom name
    if ((not interface.isPcapDumpInterface()) and
        (ifstats.name ~= nil) and
        (ifstats.name ~= "dummy")) then
+      -- Custom name
       print[[
       <tr>
-         <th>Custom Name</th>
+         <th>]] print(i18n("if_stats_config.custom_name")) print[[</th>
          <td>]]
       local label = getInterfaceNameAlias(ifstats.name)
       inline_input_form("custom_name", "Custom Name",
-         "Specify an alias for the interface",
+         i18n("if_stats_config.custom_name_popup_msg"),
          label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9\\. ]*$"')
+      print[[
+         </td>
+      </tr>]]
+
+      -- Interface speed
+      print[[
+      <tr>
+         <th>]] print(i18n("if_stats_config.interface_speed")) print[[</th>
+         <td>]]
+      local ifspeed = getInterfaceSpeed(ifstats)
+      inline_input_form("ifSpeed", "Interface Speed",
+         i18n("if_stats_config.interface_speed_popup_msg"),
+         ifspeed, isAdministrator(), 'type="number" min="1"')
+      print[[
+         </td>
+      </tr>]]
+
+      -- Interface refresh rate
+      print[[
+      <tr>
+         <th>]] print(i18n("if_stats_config.refresh_rate")) print[[</th>
+         <td>]]
+      local refreshrate = getInterfaceRefreshRate(ifstats.id)
+      inline_input_form("ifRate", "Refresh Rate",
+         i18n("if_stats_config.refresh_rate_popup_msg"),
+         refreshrate, isAdministrator(), 'type="number" min="1"')
       print[[
          </td>
       </tr>]]
@@ -1036,15 +1092,48 @@ elseif(page == "config") then
 
       print[[
       <tr>
-         <th>Scaling Factor</th>
+         <th>]] print(i18n("if_stats_config.scaling_factor")) print[[</th>
          <td>]]
       inline_input_form("scaling_factor", "Scaling Factor",
-         "This should match your capture interface sampling rate",
-         label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
+         i18n("if_stats_config.scaling_factor_popup_msg"),
+         label, isAdministrator(), 'type="number" min="1" step="1"')
       print[[
          </td>
       </tr>]]
    end
+
+   -- Alerts
+   local trigger_alerts = true
+   local trigger_alerts_checked = "checked"
+
+   if (_POST["trigger_alerts"] ~= nil) then
+      if _POST["trigger_alerts"] ~= "true" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
+      end
+
+      ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), ifname_clean, tostring(trigger_alerts))
+   else
+      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), ifname_clean)
+      if trigger_alerts == "false" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
+      end
+   end
+
+      print [[<tr>
+         <th>]] print(i18n("if_stats_config.trigger_interface_alerts")) print[[</th>
+         <td>
+            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
+               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
+               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+                  <i class="fa fa-exclamation-triangle fa-lg"></i>
+                  ]] print(i18n("if_stats_config.trigger_alerts_for_interface", {ifname=short_name})) print[[
+               </input>
+               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+            </form>
+         </td>
+      </tr>]]
 
    print[[
    </table>]]
@@ -1077,7 +1166,7 @@ elseif(page == "snmp_bind") then
 
    print[[
       <tr>
-         <th>SNMP Device</th>
+         <th>]] print(i18n("snmp.snmp_device")) print[[</th>
          <td>
             <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
                <option]] if isEmptyString(snmp_host) then print(" selected") end print[[ value="">Not Bound</option>
@@ -1099,11 +1188,11 @@ elseif(page == "snmp_bind") then
       print(" disabled")
    end
 
-   print[[>View Device</i></a>
+   print[[>]] print(i18n("snmp.view_device"))  print[[</i></a>
          </td>
       </tr>
       <tr>
-         <th>SNMP Interface</th>
+         <th>]] print(i18n("snmp.snmp_interface")) print[[</th>
             <td>
                <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
 
@@ -1123,7 +1212,7 @@ elseif(page == "snmp_bind") then
    <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
 
-<b>NOTE:</b><br>
+<b>]] print(i18n("snmp.note") .. ":") print[[</b><br>
 <small>]] print(i18n("snmp.bound_interface_description")) print[[</small>
 
 <script>
@@ -1422,7 +1511,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 print('</select>')
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
+  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-cog" aria-hidden="true"></i></A>')
 end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
@@ -1433,6 +1522,7 @@ print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();
 local protos = interface.getnDPIProtocols()
 local protos_in_use = shaper_utils.getPoolProtoShapers(ifid, selected_pool.id, true --[[ do not aggregate into categories ]])
 local protocol_categories = shaper_utils.getCategoriesWithProtocols()
+local uses_per_member_quota = selected_pool.enforce_quotas_per_pool_member
 
 -- families of protocols which are currently used by at least one protocol
 local categories_in_use = {}
@@ -1520,11 +1610,16 @@ local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_direc
    print ([[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
 </form>
+]])
 
-]]..i18n("shaping.notes")..[[:
+if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+print([[<b>]]..i18n("shaping.notes")..[[</b>:]])
+
+print([[
 <ul>
 <li>]]..i18n("shaping.note_drop_core")..[[</li>
 <li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
+<li>]]..i18n("shaping.see_quotas_here", {url=ntop.getHttpPrefix().."/lua/pool_details.lua?page=quotas&pool="..selected_pool.id})..[[</li>
 <li>]]..i18n("shaping.note_families")..[[
    <select id="family_info_sel" class="form-control input-sm" style="width:16em; display:inline; margin: 0 1em;">
       <option disabled selected value></option>
@@ -1555,23 +1650,34 @@ $("#family_info_sel").change(function() {
       }
    }
 });
+</script>
 ]]
+end
 
 local rate_buttons = shaper_utils.buttons("rate")
 local traffic_buttons = shaper_utils.buttons("traffic")
 local time_buttons = shaper_utils.buttons("time")
 
+print("<script>")
 print(rate_buttons.init.."\n")
+
+local empty_quota_bar = string.gsub(string.gsub(printProtocolQuota({traffic_quota="0"}, {}, nil, {traffic=true}, false, true), "\n", ""), "'", "\"")
 
 print[[
 var rate_buttons_code = ']] print(rate_buttons.js) print[[';
-var rate_buttons_html = ']] print(rate_buttons.html) print[[';
+var rate_buttons_html = '<table style="width:100%"><tr><td>]] print(rate_buttons.html) print[[</td></tr></table>';
 
 var traffic_buttons_code = ']] print(traffic_buttons.js) print[[';
-var traffic_buttons_html = ']] print(traffic_buttons.html) print[[';
+var traffic_buttons_html = '<table style="width:100%"><tr><td>]] print(traffic_buttons.html)
+print[[</td><td style="width:35%" class="]] if uses_per_member_quota then print("hidden") end print[[">]]
+print(empty_quota_bar)
+print[[</tr></table>';
 
 var time_buttons_code = ']] print(time_buttons.js) print[[';
-var time_buttons_html = ']] print(time_buttons.html) print[[';
+var time_buttons_html = '<table style="width:100%"><tr><td>]] print(time_buttons.html)
+print[[</td><td style="width:35%" class="]] if uses_per_member_quota then print("hidden") end print[[">]]
+print(empty_quota_bar)
+print[[</tr></table>';
 
 /* Note: do not change */
 var rowid_prefix = "proto_policy_row_";
@@ -1592,7 +1698,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
 
    // fix ctrl id
    var buttons = $(replaceCtrlId(template_html, input_name));
-   var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
+   var div = $('<div class="text-center form-group" style="padding:0; margin:0;"></div>');
    td_object.html("");
    div.appendTo(td_object);
    buttons.appendTo(div);
@@ -1602,7 +1708,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
       input.attr("data-max", maxvalue);
 
    input.attr("data-min", (minvalue !== null) ? minvalue : -1);
-   input.appendTo(div);
+   input.appendTo($("td:first", div));
 
    if (disabled) {
       input.attr("disabled", "disabled");
@@ -1627,6 +1733,9 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
    var ingress_shaper_id = ingress_shaper.html();
    var egress_shaper_id = egress_shaper.html();
+]]
+
+print[[
 
    ingress_shaper.html('<select class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
    egress_shaper.html('<select class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
@@ -1723,25 +1832,106 @@ print[[
 
    var new_row_ctr = 0;
    var protocol_categories = ]] print(json.encode(protocol_categories)) print[[;
+   var quota_update = null;
+   var quota_update_xhr = null;
+
+   function quotaUpdateCallback() {
+      if (quota_update_xhr !== null) {
+         quota_update_xhr.abort();
+         quota_update_xhr = null;
+      }
+
+      quota_update_xhr = $.ajax({
+         type: "GET",
+         url: "]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua",
+         data: {pool: ]] print(selected_pool.id) print[[, include_unlimited:true},
+         success: function(response) {
+            var rsp = $("<table>"+response+"</table>");
+
+            $("#table-protos table:first tr").each(function() {
+               var proto_id = $("td:first select", $(this)).val();
+
+               if (typeof(proto_id) !== "undefined") {
+                  var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
+                  var traffic_quota = $("td:nth-child(4) div.progress", $(this)).parent();
+                  var time_quota = $("td:nth-child(5) div.progress", $(this)).parent();
+
+                  if (tr_quota.length === 1) {
+                     var input_traffic_bar = $("div.progress:first", tr_quota);
+                     var traffic_label = input_traffic_bar.closest("td").find("> span");
+                     traffic_quota.html("<small>" + traffic_label.html() + "</small>");
+                     input_traffic_bar
+                        .css("height", "20px")
+                        .css("margin", "2px 0 12px 0")
+                        .appendTo(traffic_quota);
+
+                     var input_time_bar = $("div.progress:last", tr_quota);
+                     var time_label = input_time_bar.closest("td").find("> span");
+                     time_quota.html("<small>" + time_label.html() + "</small>");
+                     input_time_bar
+                        .css("height", "20px")
+                        .css("margin", "2px 0 12px 0")
+                        .appendTo(time_quota);
+                  } else {
+                     traffic_quota.html(']] print(empty_quota_bar) print[[');
+                     time_quota.html(']] print(empty_quota_bar) print[[');
+                  }
+               }
+            });
+         }
+      });
+
+      /* Periodic timeout */
+      quota_update = setTimeout(quotaUpdateCallback, 5000);
+   }
+
+   function refreshQuotas() {]]
+
+   if not ntop.isEnterprise() then
+      -- no need to update quotas as they are not supported
+      print("return;")
+   end
+
+   print[[
+      if (quota_update !== null) {
+         clearTimeout(quota_update);
+         quota_update = null;
+      }
+
+      /* Reduced timeout (only once) */
+      quota_update = setTimeout(quotaUpdateCallback, 10);
+   }
 
    function addNewShapedProto() {
       var newid = newid_prefix + new_row_ctr;
       new_row_ctr += 1;
 
-      var tr = $('<tr id="' + newid + '" ><td></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
+      var tr = $('<tr id="' + newid + '" ><td class="text-center text-middle"></td><td class="text-center text-middle"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center" ]] if not split_shaping_directions then print(" hidden") end
+      </select></td><td class="text-center text-middle" ]] if not split_shaping_directions then print(" hidden") end
    print[[><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
          </optgroup>\
-      </select></td><td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td><td class="text-center text-middle"></td></tr>');
-      $("#table-protos table").append(tr);
+      </select></td>\]]
 
-      makeProtocolNameDropdown(tr);
-      makeTrafficQuotaButtons(tr, newid);
-      makeTimeQuotaButtons(tr, newid);
+      if ntop.isEnterprise() then
+      	 print[[<td class="text-center text-middle">-1</td><td class="text-center text-middle">-1</td>\]]
+      end
 
-      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
+      print[[<td class="text-center text-middle"></td></tr>');
+      $("#table-protos table:first").append(tr);
+
+      makeProtocolNameDropdown(tr);]]
+
+      if ntop.isEnterprise() then
+      	 print[[
+      	 makeTrafficQuotaButtons(tr, newid);
+      	 makeTimeQuotaButtons(tr, newid);
+	 ]]
+      end
+
+
+      print [[datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
       aysRecheckForm('#l7ProtosForm');
    }
 
@@ -1758,7 +1948,8 @@ print[[
 
       var input = $('<select class="form-control"></select>')
          .attr("name", name)
-         .html(']] print_ndpi_families_and_protocols(protocol_categories, protos, {}, {}, "\\") print[[');
+         .html(']] print_ndpi_families_and_protocols(protocol_categories, protos, {}, {}, "\\") print[[')
+         .change(refreshQuotas);
 
       $("td:first", tr_obj).html(input);
 
@@ -1897,12 +2088,20 @@ print[[
                verticalAlign: 'middle'
             }
          }, {]]
+
    -- If directions are linked, hide the *egress* shaper
    if not split_shaping_directions then
       print[[
             hidden: true,
       ]]
    end
+
+   -- quotas are only supported in the enterprise edition
+   local quota_hidden = false
+   if not ntop.isEnterprise() then
+      quota_hidden = true
+   end
+
    print[[
             title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
@@ -1914,6 +2113,7 @@ print[[
          }, {
             title: "]] print(i18n("shaping.daily_traffic_quota")) print[[",
             field: "column_traffic_quota",
+	    hidden: ]] print(quota_hidden) print[[,
             css : {
                width: '20%',
                textAlign: 'center',
@@ -1922,6 +2122,7 @@ print[[
          }, {
             title: "]] print(i18n("shaping.daily_time_quota")) print[[",
             field: "column_time_quota",
+	    hidden: ]] print(quota_hidden) print[[,
             css : {
                width: '20%',
                textAlign: 'center',
@@ -1936,6 +2137,19 @@ print[[
             }
          }
       ], tableCallback: function() {
+]]
+
+if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then
+   print[[
+         datatableForEachRow("#table-protos", function() {
+            $(this).remove();
+         });
+
+         datatableAddEmptyRow("#table-protos", "]] print(i18n("shaping.note_default_pool_config", {url=ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools#create"})) print[[");
+         $("#addNewShapedProtoBtn").attr("disabled", "true");
+   ]]
+else
+   print[[
          var proto_id;
 
          datatableForEachRow("#table-protos", [
@@ -1957,10 +2171,12 @@ print[[
             }
          ]);
 
-         /* Only enable add button if we are in the last page */
          $("#addNewShapedProtoBtn").attr("disabled", ! datatableIsLastPage("#table-protos"));
-
          aysResetForm('#l7ProtosForm');
+   ]]
+end
+
+print[[
       }
    });
 </script>
@@ -2355,7 +2571,7 @@ end
 print [[
 	   }
 	       });
-       }, 3000)
+       }, ]] print(getInterfaceRefreshRate(ifstats.id).."") print[[ * 1000)
 
 </script>
 

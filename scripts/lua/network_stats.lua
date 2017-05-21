@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -23,10 +23,10 @@ if not isEmptyString(_GET["version"]) then
 end
 
 function getPageTitle()
-   local t = "Networks"
+   local t = i18n("network_stats.networks")
 
    if not isEmptyString(_GET["version"]) then
-      t = t .. " with IPv" .. _GET["version"] .. " traffic"
+      t = i18n("network_stats.networks_traffic_with_ipver",{networks=t,ipver=_GET["version"]})
    end
 
    return t
@@ -74,7 +74,7 @@ print [[
                                 }
            },
                          {
-			     title: "Network Name",
+			     title: "]] print(i18n("network_stats.network_name")) print[[",
 				 field: "column_id",
 				 sortable: true,
                              css: {

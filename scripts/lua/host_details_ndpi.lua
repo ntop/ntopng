@@ -9,7 +9,7 @@ require "lua_utils"
 require "graph_utils"
 require "historical_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 
 ifid = _GET["ifid"]
@@ -77,7 +77,7 @@ end
 
 local total = total_sent + total_recv
 
-print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["totalActivity"]) .."</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
+print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_activity_time"]) .."</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
 
 print("<td>")
 breakdownBar(total_sent, "Sent", total_recv, "Rcvd", 0, 100)
@@ -117,7 +117,7 @@ for _k in pairsByKeys(vals , desc) do
   end
 end
 if host_ndpi_rrd_creation ~= "1" then
-print("<tr><td colspan=\"6\"> <small> <b>NOTE</b>:<ul>")
+print("<tr><td colspan=\"7\"> <small> <b>NOTE</b>:<ul>")
 print("<li>Historical per-protocol traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
 print(" When enabled, RRDs with 5-minute samples will be created for each protocol detected and historical data will become accessible by clicking on each protocol. ")
 print("<li>An icon like <i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i> indicates a possible probing (or application server down) alert as the host has received traffic for a specific application protocol without sending back any data. You can use <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&host=".._GET["host"].."&page=historical\">historical reports</A> to drill-down this issue.")

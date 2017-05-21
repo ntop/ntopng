@@ -19,7 +19,7 @@ require "voip_utils"
 
 local json = require ("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 warn_shown = 0
@@ -253,8 +253,8 @@ else
    print("<tr><td colspan=2>")
    cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
 
-   cli_name = shortHostName(ntop.getResolvedAddress(flow["cli.ip"]))
-   srv_name = shortHostName(ntop.getResolvedAddress(flow["srv.ip"]))
+   cli_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["cli.ip"])))
+   srv_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["srv.ip"])))
 
    if(flow["cli.port"] > 0) then
       cli_name = cli_name .. ":" .. flow["cli.port"]
@@ -657,8 +657,8 @@ print [[/lua/flow_stats.lua',
 			$('#s2clost').html(formatPackets(rsp["s2clost"]));
 			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
 			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
-         if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
-         if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["cli2srv_quota"]);
+			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
+			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 
 			/* **************************************** */
 

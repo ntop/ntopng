@@ -26,20 +26,12 @@
 
 class NetworkInterface;
 class Host;
-#ifdef NTOPNG_PRO
-
-typedef struct {
-  char *host_or_mac;
-  time_t lifetime;
-  UT_hash_handle hh;         /* makes this structure hashable */
-} volatile_members_t;
-#endif
-
-#define NO_HOST_POOL_ID 0
+class Mac;
 
 class HostPools {
  private:
 #ifdef NTOPNG_PRO
+  bool enforce_quotas_per_pool_member[MAX_NUM_HOST_POOLS]; /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
   Mutex **volatile_members_lock;
@@ -52,9 +44,8 @@ class HostPools {
   void swap(AddressTree **new_trees, HostPoolStats **new_stats);
 
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
-    if(host_pool_id >= MAX_NUM_HOST_POOLS
-     || !stats)
-     return NULL;
+    if((host_pool_id >= MAX_NUM_HOST_POOLS) || (!stats))
+      return NULL;
     return stats[host_pool_id];
   }
 
@@ -67,6 +58,7 @@ class HostPools {
   volatile time_t latest_swap;
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
+  bool children_safe[MAX_NUM_HOST_POOLS];
 
   void loadFromRedis();
   void dumpToRedis();
@@ -76,6 +68,10 @@ public:
   virtual ~HostPools();
   void reloadPools();
   u_int16_t getPool(Host *h);
+
+  bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
+  bool findMacPool(Mac *mac, u_int16_t *found_pool);
+
 #ifdef NTOPNG_PRO
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
@@ -100,7 +96,12 @@ public:
   }
 
   void resetPoolsStats();
-
+  inline bool isChildrenSafePool(u_int16_t pool_id) {
+    return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? children_safe[pool_id] : false);
+  }
+  inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
+    return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? enforce_quotas_per_pool_member[pool_id] : false);
+  }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
   void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);

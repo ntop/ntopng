@@ -9,6 +9,7 @@ require "lua_utils"
 
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
+host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 16
 
@@ -35,19 +36,20 @@ end
 
 local function get_pool_detail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
-  initInterfacePools(ifid)
 
   return ntop.getHashCache(details_key, detail)
 end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.createPool(ifid, pool_id, pool_name)
+function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, enforce_quotas_per_pool_member)
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
 
   ntop.setMembersCache(ids_key, pool_id)
   ntop.setHashCache(details_key, "name", pool_name)
+  ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
+  ntop.setHashCache(details_key, "enforce_quotas_per_pool_member", tostring(enforce_quotas_per_pool_member or false)) 
 end
 
 function host_pools_utils.deletePool(ifid, pool_id)
@@ -64,17 +66,82 @@ function host_pools_utils.deletePool(ifid, pool_id)
   ntop.rmdir(rrd_base)
 end
 
+function getMembershipInfo(member_and_vlan)
+  -- Check if the member is already in another pool
+  local hostinfo = hostkey2hostinfo(member_and_vlan)
+  local addr, mask = splitNetworkPrefix(hostinfo["host"])
+  local vlan = hostinfo["vlan"]
+  local is_mac = isMacAddress(addr)
+
+  if not is_mac then
+    addr = ntop.networkPrefix(addr, mask)
+  end
+
+  local find_info = interface.findMemberPool(addr, vlan, is_mac)
+
+  -- This is the normalized key, which should always be used to refer to the member
+  local key
+  if not is_mac then
+    key = host2member(addr, vlan, mask)
+  else
+    key = addr
+  end
+
+  local info = {key=key}
+  local exists = false
+
+  if find_info ~= nil then
+    -- The host has been found
+    if is_mac or ((not is_mac)
+                  and (find_info.matched_prefix == addr)
+                  and (find_info.matched_bitmask == mask)) then
+      info["existing_member_pool"] = find_info.pool_id
+      exists = true
+    end
+  end
+
+  return exists, info
+end
+
+function host_pools_utils.changeMemberPool(ifid, member_and_vlan, prev_pool, new_pool)
+  if prev_pool == new_pool then return false end
+
+  local members_key = get_pool_members_key(ifid, new_pool)
+  local member_exists, info = getMembershipInfo(member_and_vlan)
+
+  if member_exists then
+    -- use the normalized key
+    member_and_vlan = info.key
+  elseif prev_pool ~= host_pools_utils.DEFAULT_POOL_ID then
+    -- member not found
+    return false
+  end
+
+  host_pools_utils.deletePoolMember(ifid, prev_pool, info.key)
+  ntop.setMembersCache(members_key, info.key)
+  return true
+end
+
 function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
   local members_key = get_pool_members_key(ifid, pool_id)
+  local member_exists, info = getMembershipInfo(member_and_vlan)
 
-  ntop.setMembersCache(members_key, member_and_vlan)
+  if member_exists then
+    return false, info
+  else
+    ntop.setMembersCache(members_key, info.key)
+    return true, info
+  end
 end
 
 function host_pools_utils.deletePoolMember(ifid, pool_id, member_and_vlan)
   local members_key = get_pool_members_key(ifid, pool_id)
 
   -- Possible delete volatile member
-  interface.removeVolatileMemberFromPool(member_and_vlan, tonumber(pool_id))
+  if ntop.isPro() then
+    interface.removeVolatileMemberFromPool(member_and_vlan, tonumber(pool_id))
+  end
+
   -- Possible delete non-volatile member
   ntop.delMembersCache(members_key, member_and_vlan)
 end
@@ -82,9 +149,11 @@ end
 function host_pools_utils.emptyPool(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
 
-  -- Remove volatile members
-  for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-    interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
+  if ntop.isPro() then
+    -- Remove volatile members
+    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
+      interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
+    end
   end
 
   -- Remove non-volatile members
@@ -104,7 +173,12 @@ function host_pools_utils.getPoolsList(ifid, without_info)
     if without_info then
       pool = {id=pool_id}
     else
-      pool = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+      pool = {
+        id = pool_id,
+        name = host_pools_utils.getPoolName(ifid, pool_id),
+        children_safe = host_pools_utils.getChildrenSafe(ifid, pool_id),
+	enforce_quotas_per_pool_member = host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id),
+      }
     end
 
     pools[#pools + 1] = pool
@@ -120,10 +194,12 @@ function host_pools_utils.getPoolMembers(ifid, pool_id)
   local all_members = ntop.getMembersCache(members_key) or {}
   local volatile = {}
 
-  for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-    if not v.expired then
-      all_members[#all_members + 1] = v["member"]
-      volatile[v["member"]] = v["residual_lifetime"]
+  if ntop.isPro() then
+    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
+      if not v.expired then
+        all_members[#all_members + 1] = v["member"]
+        volatile[v["member"]] = v["residual_lifetime"]
+      end
     end
   end
 
@@ -169,6 +245,14 @@ end
 
 function host_pools_utils.getPoolName(ifid, pool_id)
   return get_pool_detail(ifid, pool_id, "name")
+end
+
+function host_pools_utils.getChildrenSafe(ifid, pool_id)
+  return toboolean(get_pool_detail(ifid, pool_id, "children_safe"))
+end
+
+function host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id)
+  return toboolean(get_pool_detail(ifid, pool_id, "enforce_quotas_per_pool_member"))
 end
 
 function host_pools_utils.initPools()
@@ -243,6 +327,65 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
       end
     end
   end
+end
+
+function host_pools_utils.printQuotas(pool_id, host, page_params)
+  local pools_stats = interface.getHostPoolsStats()
+  local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
+
+  local ndpi_stats = pool_stats.ndpi
+  local category_stats = pool_stats.ndpi_categories
+  local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
+
+  -- Empty check
+  local empty = true
+  for _, proto in pairs(quota_and_protos) do
+    if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
+      -- at least a quota is set
+      empty = false
+      break
+    end
+  end
+
+  if empty then
+    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("shaping.no_quota_data")..
+      ". Create new quotas <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?page=filtering&pool="..pool_id.."\">here</a>.</div>")
+  else
+    print[[
+    <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>]] print(i18n("protocol")) print[[</th>
+        <th class="text-center">]] print(i18n("shaping.daily_traffic")) print[[</th>
+        <th class="text-center">]] print(i18n("shaping.daily_time")) print[[</th>
+      </tr>
+    </thead>
+    <tbody id="pool_quotas_ndpi_tbody">
+    </tbody>
+    </table>
+
+    <script>
+      function update_ndpi_table() {
+        $.ajax({
+          type: 'GET',
+          url: ']]
+    print(getPageUrl(ntop.getHttpPrefix().."/lua/pro/pool_details_ndpi.lua").."', data: ")
+    print(tableToJsObject(page_params))
+    print[[,
+          success: function(content) {
+            if(content)
+              $('#pool_quotas_ndpi_tbody').html(content);
+            else
+              $('#pool_quotas_ndpi_tbody').html('<tr><td colspan="3"><i>]] print(i18n("shaping.no_quota_traffic")) print[[</i></td></tr>');
+          }
+        });
+      }
+
+      setInterval(update_ndpi_table, 5000);
+      update_ndpi_table();
+     </script>]]
+  end
+
 end
 
 return host_pools_utils

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -20,7 +20,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=asn]]
+print [[/lua/get_ases_data.lua]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/as_stats_id.inc")
@@ -31,7 +31,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Autonomous Systems",\n')
+print('title: "' .. i18n("as_stats.autonomous_systems") .. '",\n')
 print ('rowCallback: function ( row ) { return as_table_setID(row); },')
 
 -- Set the preference table
@@ -54,15 +54,15 @@ print [[
                                 }
            },
                          {
-			     title: "AS number",
-				 field: "column_id",
+			     title: "]] print(i18n("as_number")) print[[",
+				 field: "column_asn",
 				 sortable: true,
                              css: {
 			        textAlign: 'left'
 			     }
 				 },
                          {
-			     title: "Chart",
+			     title: "]] print(i18n("chart")) print[[",
 				 field: "column_chart",
 				 sortable: false,
                              css: {

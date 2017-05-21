@@ -36,7 +36,7 @@ callback_utils.foreachInterface(ifnames, enable_second_debug, function(_ifname, 
 	 if(enable_second_debug) then io.write('Creating base directory ', basedir, '\n') end
 	 ntop.mkdir(basedir)
       end
-
+      
       interface.setSecondTraffic()
 
       -- Traffic stats

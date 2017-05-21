@@ -33,11 +33,11 @@ class DB {
   DB(NetworkInterface *_iface = NULL);
   virtual ~DB();
   
-  virtual bool dumpFlow(time_t when, bool idle_flow, Flow *f, char *json);
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
   virtual int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true);
   virtual void startDBLoop();
-  virtual void flush(bool idle) {};
-  virtual bool createDBSchema() {return false; /* override in non-schemaless subclasses */};
+  virtual void flush() {};
+  virtual bool createDBSchema(bool set_db_created = true) {return false; /* override in non-schemaless subclasses */};
   virtual void updateStats(const struct timeval *tv) {};
   virtual void checkPointCounters(bool drops_only) {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const {};

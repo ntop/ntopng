@@ -29,12 +29,17 @@ Prefs::Prefs(Ntop *_ntop) {
   ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
+  safe_search_dns_ip = inet_addr((char*)DEFAULT_SAFE_SEARCH_DNS);
+  redirection_url = strdup(DEFAULT_REDIRECTION_URL);
+  global_primary_dns_ip = global_secondary_dns_ip = 0; /* No DNS */
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   resolve_all_host_ip = false, online_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
+  attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
+  attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;  
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
-  enable_access_log = false;
+  enable_access_log = false, flow_aggregation_enabled = false;
   hostMask = no_host_mask;
   enable_flow_device_port_rrd_creation = false;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -63,6 +68,7 @@ Prefs::Prefs(Ntop *_ntop) {
   logFd = NULL;
   disable_alerts = enable_captive_portal = false;
   enable_top_talkers = false;
+  slack_notifications_enabled = false;
   max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
   max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW;
@@ -73,8 +79,9 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_idle_local_hosts_cache   = true;
   enable_active_local_hosts_cache = false; /* only cache active hosts on exit */
   enable_probing_alerts = CONST_DEFAULT_ALERT_PROBING_ENABLED;
+  enable_ssl_alerts = CONST_DEFAULT_ALERT_SSL_ENABLED;
   enable_syslog_alerts =  CONST_DEFAULT_ALERT_SYSLOG_ENABLED;
-  enable_probing_alerts = enable_syslog_alerts = false; /* set later */
+  enable_probing_alerts = enable_ssl_alerts = enable_syslog_alerts = false; /* set later */
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   enable_taps = false;
@@ -86,7 +93,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-  enable_flow_activity   = CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED;
+  enable_user_scripts   = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
 
   /* Defaults */
   active_local_hosts_cache_interval = CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL /* sec */;
@@ -103,9 +110,6 @@ Prefs::Prefs(Ntop *_ntop) {
   other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
   other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
   other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
-  host_activity_rrd_raw_hours = HOST_ACTIVITY_RRD_RAW_HOURS;
-  host_activity_rrd_1h_days   = HOST_ACTIVITY_RRD_1H_DAYS;
-  host_activity_rrd_1d_days   = HOST_ACTIVITY_RRD_1D_DAYS;
   housekeeping_frequency  = HOUSEKEEPING_FREQUENCY;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
@@ -148,6 +152,7 @@ Prefs::~Prefs() {
   free(http_prefix);
   free(local_networks);
   free(redis_host);
+  if(redirection_url) free(redirection_url);
   if(redis_password)  free(redis_password);
   if(cli)             free(cli);
   if(mysql_host)      free(mysql_host);
@@ -210,34 +215,36 @@ void usage() {
 	 "                                    | Default: %s\n"
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
 	 "                                    | Default: %s\n"
-	 "[--no-promisc|-u]                   | Don't set the interface in promiscuous mode.\n"
+	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
-	 "                                    | httpbl:<api_key>        See README.httpbl\n"
-	 "                                    | flashstart:<options>    See README.flashstart\n"
+	 "                                    | httpbl:<api_key>   See README.httpbl\n"
+	 "                                    | flashstart:<opt>   See README.flashstart\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
-	 "                                    | Addr can be any valid ipv4 (e.g., 192.168.1.1)\n"
-	 "                                    | or ipv6 (e.g., [3ffe:2a00:100:7031::1]) address.\n"
-	 "                                    | Surround ipv6 addresses with square brackets.\n"
-	 "                                    | Prepend a ':' without addr before the port\n"
-	 "                                    | to listen on the loopback address.\n"
+	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
+	 "                                    | or IPv6 ([3ffe:2a00:100:7031::1]) addr.\n"
+	 "                                    | Surround IPv6 addr with square brackets.\n"
+	 "                                    | Prepend a ':' without addr before the\n"
+	 "                                    | listening port on the loopback address.\n"
 	 "                                    | Default port: %u\n"
 	 "                                    | Examples:\n"
 	 "                                    | -w :3000\n"
 	 "                                    | -w 192.168.1.1:3001\n"
 	 "                                    | -w [3ffe:2a00:100:7031::1]:3002\n"
-	 "[--https-port|-W] <[:]https port>   | HTTPS. See usage of -w above. Default: %u\n"
+	 "[--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: %u\n"
 	 "[--local-networks|-m] <local nets>  | Local nets list (default: 192.168.1.0/24)\n"
 	 "                                    | (e.g. -m \"192.168.0.0/24,172.16.0.0/16\")\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
-	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is [h[:port[:pwd]]][@db-id]\n"
-	 "                                    | db-id is the identifier of the redis database (default 0).\n"
-	 "                                    | h is the host that is running the Redis server (default\n"
-	 "                                    | localhost), and is optionally followed by a ':'-separated\n"
-	 "                                    | port (default 6379). A password can be specified after\n"
-	 "                                    | the port when Redis authentication is required.\n"
-	 "                                    | By default password authentication is disabled.\n"
+	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as\n"
+	 "                                    | [h[:port[:pwd]]][@db-id] where db-id\n"
+	 "                                    | identifies the database Id (default 0).\n"
+	 "                                    | h is the host running Redis (default\n"
+	 "                                    | localhost), optionally followed by a\n"
+	 "                                    |  ':'-separated port (default 6379).\n"
+	 "                                    | A password can be specified after\n"
+	 "                                    | the port when Redis auth is required.\n"
+	 "                                    | By default password auth is disabled.\n"
 	 "                                    | Examples:\n"
 	 "                                    | -r @2\n"
 	 "                                    | -r 129.168.1.3\n"
@@ -251,9 +258,9 @@ void usage() {
 	 "[--user|-U] <sys user>              | Run ntopng with the specified user\n"
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
-	 "[--shutdown-when-done]              | Terminate when a pcap has been read (debug only)\n"
-	 "--zmq-encrypt-pwd <pwd>             | Encrypt the ZMQ data using the specified password\n"
-	 "[--disable-autologout|-q]           | Disable web interface logout for inactivity\n"
+	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
+	 "--zmq-encrypt-pwd <pwd>             | Encrypt the ZMQ data using with <pwd>\n"
+	 "[--disable-autologout|-q]           | Disable web logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
 	 "                                    | 1 - Disable login for all hosts\n"
@@ -271,23 +278,24 @@ void usage() {
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    | es       Dump in ElasticSearch database\n"
-	 "                                    |          Format:\n"
-	 "                                    |          es;<idx type>;<idx name>;<es URL>;<http auth>\n"
-	 "                                    |          Example:\n"
-	 "                                    |          es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
-	 "                                    |          Note: the <idx name> accepts the strftime() format.\n"
-	 	 "                                    |\n"
-	 "                                    | logstash Dump in LogStash collection engine\n"
-	 "                                    |          Format:\n"
-	 "                                    |          logstash;<host>;<proto>;<port>\n"
-	 "                                    |          Example:\n"
-	 "                                    |          logstash;localhost;tcp;5510\n"
+	 "                                    |   Format:\n"
+	 "                                    |   es;<idx type>;<idx name>;<es URL>;<http auth>\n"
+	 "                                    |   Example:\n"
+	 "                                    |   es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
+	 "                                    |   Note: the <idx name> accepts the\n"
+	 "                                    |   strftime() format.\n"
+	 "                                    |\n"
+	 "                                    | logstash Dump in LogStash engine\n"
+	 "                                    |   Format:\n"
+	 "                                    |   logstash;<host>;<proto>;<port>\n"
+	 "                                    |   Example:\n"
+	 "                                    |   logstash;localhost;tcp;5510\n"
 	 "                                    |\n"
 	 "                                    | mysql    Dump in MySQL database\n"
-	 "                                    |          Format:\n"
-	 "                                    |          mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
-	 "                                    |          mysql;localhost;ntopng;flows;root;\n"
-	 "[--export-flows|-I] <endpoint>      | Export flows using the specified endpoint.\n"
+	 "                                    |   Format:\n"
+	 "                                    |   mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |   mysql;localhost;ntopng;flows;root;\n"
+	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"
 	 "                                    | all    - Dump all hosts\n"
@@ -302,28 +310,29 @@ void usage() {
 	 "                                    | none   - Flush hosts when idle\n"
 	 "--hw-timestamp-mode <mode>          | Enable hw timestamping/stripping.\n"
 	 "                                    | Supported TS modes are:\n"
-	 "                                    | apcon - Timestamped packets by apcon.com\n"
+	 "                                    | apcon - Timestamped pkts by apcon.com\n"
 	 "                                    |         hardware devices\n"
-	 "                                    | ixia  - Timestamped packets by ixiacom.com\n"
+	 "                                    | ixia  - Timestamped pkts by ixiacom.com\n"
 	 "                                    |         hardware devices\n"
-	 "                                    | vss   - Timestamped packets by vssmonitoring.com\n"
+	 "                                    | vss   - Timestamped pkts by vssmonitoring.com\n"
 	 "                                    |         hardware devices\n"
 	 "--capture-direction                 | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 "--online-license-check              | Check license online\n"
-	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
-	 "[--enable-flow-activity]            | Enable local hosts flow activities\n"
-	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
-	 "                                    | useful when using ntopng behind a proxy.\n"
-	 "[--instance-name|-N] <name>         | Assign an identifier to the ntopng instance.\n"
+	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
+	 "[--enable-user-scripts]             | Enable LUA user scripts\n"
+	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs.\n"
+	 "                                    | Useful when using ntopng behind a proxy.\n"
+	 "[--instance-name|-N] <name>         | Assign a name to this ntopng instance.\n"
 #ifdef NTOPNG_PRO
-	 "[--community]                       | Start ntopng in community edition (debug only).\n"
+	 "[--community]                       | Start ntopng in community edition.\n"
 	 "[--check-license]                   | Check if the license is valid.\n"
-	 "[--check-maintenance]               | Check until maintenance is included in the license.\n"
+	 "[--check-maintenance]               | Check until maintenance is included\n"
+	 "                                    | in the license.\n"
 #endif
-	 "[--verbose|-v] <level>              | Verbose tracing [ 0 (min) .. 2 (normal) .. 6 (debug) ]\n"
+	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
 	 "[--version|-V]                      | Print version and quit\n"
-	 "--print-ndpi-protocols              | Print the nDPI protocols recognized di ntopng\n"
+	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
 	 "[--help|-h]                         | Help\n"
 	 , PACKAGE_MACHINE, PACKAGE_VERSION,
@@ -333,7 +342,7 @@ void usage() {
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR, CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
-	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS/2,
+	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
 	 CONST_DEFAULT_USERS_FILE);
 
   printf("\n");
@@ -403,7 +412,7 @@ void Prefs::setAlertsEnabledFromRedis(){
 void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value) {
   char rsp[MAX_PATH];
 
-  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
+  if((ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     *buffer = strdup(rsp);
   else
     *buffer = strdup(default_value);
@@ -423,6 +432,8 @@ bool Prefs::getDefaultBoolPrefsValue(const char *pref_key, const bool default_va
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
+  char *safe_search_dns, *global_dns, *secondary_dns;
+
   /* Attempt to load preferences set from the web ui and apply default values in not found */
   active_local_hosts_cache_interval = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
 							   CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL);
@@ -443,12 +454,9 @@ void Prefs::reloadPrefsFromRedis() {
   other_rrd_1min_days    = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
-  host_activity_rrd_raw_hours = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_RAW_HOURS, HOST_ACTIVITY_RRD_RAW_HOURS);
-  host_activity_rrd_1h_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1H_DAYS, HOST_ACTIVITY_RRD_1H_DAYS);
-  host_activity_rrd_1d_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1D_DAYS, HOST_ACTIVITY_RRD_1D_DAYS);
   housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 						     HOUSEKEEPING_FREQUENCY);
-  notifications_enabled          = getDefaultPrefsValue(ALERTS_MANAGER_NOTIFICATION_ENABLED, 0 /* Disabled by default */);
+  slack_notifications_enabled          = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false /* Disabled by default */);
   dump_flow_alerts_when_iface_alerted = getDefaultPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, 0 /* Disabled by default */);
   hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, 0 /* Mask disabled by default */);
   
@@ -477,15 +485,32 @@ void Prefs::reloadPrefsFromRedis() {
   // alert preferences
   enable_probing_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING,
 					       CONST_DEFAULT_ALERT_PROBING_ENABLED);
+  enable_ssl_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL,
+					       CONST_DEFAULT_ALERT_SSL_ENABLED);
   enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
 
-  slack_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_NOTIFICATION_WEBHOOK, false);
   enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
+  refreshHostsAlertsPrefs();
+
+  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &safe_search_dns, DEFAULT_SAFE_SEARCH_DNS);
+  safe_search_dns_ip = inet_addr(safe_search_dns);
+  free(safe_search_dns);
+
+  free(redirection_url);
+  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
+
+  getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &global_dns, DEFAULT_GLOBAL_DNS);
+  global_primary_dns_ip = global_dns[0] ? inet_addr(global_dns) : 0;
+  free(global_dns);
+
+  getDefaultStringPrefsValue(CONST_SECONDARY_DNS, &secondary_dns, DEFAULT_GLOBAL_DNS);
+  global_secondary_dns_ip = secondary_dns[0] ? inet_addr(secondary_dns) : 0;
+  free(secondary_dns);
 }
 
 /* ******************************************* */
@@ -554,7 +579,7 @@ static const struct option long_options[] = {
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
-  { "enable-flow-activity",              no_argument,       NULL, 216 },
+  { "enable-user-scripts",               no_argument,       NULL, 216 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -966,13 +991,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 	if((mysql_tablename == NULL)
 	   || (mysql_tablename[0] == '\0')
 	   || 1 /*forcefully defaults the table name*/) mysql_tablename  = strdup("flows");
-	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
+	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
 	dump_flows_on_mysql = true;
       }  else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
-
-
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
       /* logstash;<host[@port]; */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");  
@@ -1068,8 +1091,8 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
     
   case 216:
-    enable_flow_activity = true;
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow activity detection enabled");
+    enable_user_scripts = true;
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "User scripts enabled");
     break;
 
 #ifdef NTOPNG_PRO
@@ -1254,6 +1277,7 @@ void Prefs::lua(lua_State* vm) {
 #ifdef NTOPNG_PRO
   char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
+  char buf[32];
 
   lua_newtable(vm);
 
@@ -1275,6 +1299,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
+  lua_push_bool_table_entry(vm, "is_flow_aggregation_enabled", is_flow_aggregation_enabled());
 
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
@@ -1284,7 +1309,7 @@ void Prefs::lua(lua_State* vm) {
   if(enable_active_local_hosts_cache)
     lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
 
-  lua_push_bool_table_entry(vm, "is_flow_activity_enabled", enable_flow_activity);
+  lua_push_bool_table_entry(vm, "are_user_scripts_enabled", enable_user_scripts);
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
@@ -1300,14 +1325,15 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
-  lua_push_int_table_entry(vm, "host_activity_rrd_raw_hours", host_activity_rrd_raw_hours);
-  lua_push_int_table_entry(vm, "host_activity_rrd_1h_days", host_activity_rrd_1h_days);
-  lua_push_int_table_entry(vm, "host_activity_rrd_1d_days", host_activity_rrd_1d_days);
   lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
-  lua_push_bool_table_entry(vm, "slack_enabled", slack_enabled);
+  lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
+  lua_push_str_table_entry(vm, "safe_search_dns", Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "redirection_url", redirection_url);
+  lua_push_str_table_entry(vm, "global_dns", global_primary_dns_ip ? Utils::intoaV4(ntohl(global_primary_dns_ip), buf, sizeof(buf)) : (char*)"");
+  lua_push_str_table_entry(vm, "secondary_dns", global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
 
   /* Tiny flows preferences */
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
@@ -1329,9 +1355,11 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
   lua_push_bool_table_entry(vm, "has_cmdl_disable_alerts", has_cmdl_disable_alerts);
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(WIN32)
   if(ntop->getNagios()) ntop->getNagios()->lua(vm);
+#endif
 
+#ifdef NTOPNG_PRO
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);
   strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);
   strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
@@ -1402,18 +1430,6 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
     other_rrd_1d_days = atoi(pref_value);
   else if(!strncmp(pref_name,
-		    (char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS,
-		    strlen((char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS)))
-    host_activity_rrd_raw_hours = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS,
-		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS)))
-    host_activity_rrd_1h_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS,
-		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS)))
-    host_activity_rrd_1d_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
     disable_alerts = pref_value[0] == '1' ? true : false;
@@ -1434,6 +1450,23 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    strlen((char*)CONST_MAX_NUM_ALERTS_PER_ENTITY)))
     max_num_alerts_per_entity = atoi(pref_value);
   else if(!strncmp(pref_name,
+		    (char*)CONST_SAFE_SEARCH_DNS,
+		    strlen((char*)CONST_SAFE_SEARCH_DNS))) {
+    safe_search_dns_ip = inet_addr(pref_value);
+  } else if(!strncmp(pref_name,
+		    (char*)CONST_GLOBAL_DNS,
+		    strlen((char*)CONST_GLOBAL_DNS))) {
+    global_primary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
+  } else if(!strncmp(pref_name,
+		    (char*)CONST_SECONDARY_DNS,
+		    strlen((char*)CONST_SECONDARY_DNS))) {
+    global_secondary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
+  } else if(!strncmp(pref_name,
+		    (char*)CONST_PREFS_REDIRECTION_URL,
+		    strlen((char*)CONST_PREFS_REDIRECTION_URL))) {
+    free(redirection_url);
+    redirection_url = strdup(pref_value);
+  } else if(!strncmp(pref_name,
 		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
 		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
     max_num_flow_alerts = atoi(pref_value);
@@ -1458,6 +1491,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))
     enable_probing_alerts = pref_value[0] == '1' ? true : false;
   else if(!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_PREFS_ALERT_SSL,
+		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SSL)))
+    enable_ssl_alerts = pref_value[0] == '1' ? true : false;
+  else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))
     enable_syslog_alerts = pref_value[0] == '1' ? true : false;
@@ -1465,8 +1502,42 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		   (char*)CONST_PREFS_CAPTIVE_PORTAL,
 		   strlen((char*)CONST_PREFS_CAPTIVE_PORTAL)))
     enable_captive_portal = pref_value[0] == '1' ? true : false;
+  else if(!strncmp(pref_name,
+		   (char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED,
+		   strlen((char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED)))
+    slack_notifications_enabled = pref_value[0] == '1' ? true : false;
 
   return 0;
+}
+
+/* *************************************** */
+
+void Prefs::refreshHostsAlertsPrefs() {
+  char rsp[32];
+
+  if (ntop->getRedis()->hashGet((char*)CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY,
+          (char*)CONST_HOST_FLOW_ATTACKER_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
+    attacker_max_num_flows_per_sec = atol(rsp);
+  else
+    attacker_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
+
+  if (ntop->getRedis()->hashGet((char*)CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY,
+          (char*)CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
+    victim_max_num_flows_per_sec = atol(rsp);
+  else
+    victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
+
+  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+          (char*)CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
+    attacker_max_num_syn_per_sec = atol(rsp);
+  else
+    attacker_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
+
+  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+          (char*)CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
+    victim_max_num_syn_per_sec = atol(rsp);
+  else
+    victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
 }
 
 /* *************************************** */

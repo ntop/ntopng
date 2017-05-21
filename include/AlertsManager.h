@@ -32,18 +32,17 @@ class AlertsManager : protected StoreManager {
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
   bool alerts_stored;
-  bool make_room;
   int openStore();
   
   /* methods used for alerts that have a timespan */
-  bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
-  void markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
-  int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows);
-  int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
+  bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
+		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp);
+  void markForMakeRoom(bool on_flows);
+  int engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		  const char *alert_origin, const char *alert_target);
-  int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
+  int releaseAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id);
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
@@ -59,29 +58,34 @@ class AlertsManager : protected StoreManager {
 		    const char *engaged_alert_id,
 		    AlertType alert_type, AlertLevel alert_severity,
 		    const char *alert_json,
-		    const char *alert_origin, const char *alert_target);
+		    const char *alert_origin, const char *alert_target,
+		    bool engage);
   void notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-		   const char *alert_origin, const char *alert_target);
+		   const char *alert_origin, const char *alert_target,
+		   bool engage);
   
-  int engageReleaseHostAlert(Host *h,
+  int engageReleaseHostAlert(const char *host_ip, u_int16_t host_vlan,
+			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			     Host *alert_origin, Host *alert_target,
+			     const char *alert_origin, const char *alert_target,
 			     bool engage);
 
   int engageReleaseNetworkAlert(const char *cidr,
+				AlertEngine alert_engine,
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 				bool engage);
   int engageReleaseInterfaceAlert(NetworkInterface *n,
+				  AlertEngine alert_engine,
 				  const char *engaged_alert_id,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 				  bool engage);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
-  int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name);
+  int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
 
   int getAlerts(lua_State* vm, AddressTree *allowed_hosts,
 		u_int32_t start_offset, u_int32_t end_offset,
@@ -89,7 +93,7 @@ class AlertsManager : protected StoreManager {
   int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
 		    u_int32_t start_offset, u_int32_t end_offset,
 		    const char *sql_where_clause);
-  int getNumAlerts(bool engaged, const char *sql_where_clause);
+  int getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled=false);
   int getNumFlowAlerts(const char *sql_where_clause);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */
@@ -98,36 +102,36 @@ class AlertsManager : protected StoreManager {
   bool isValidNetwork(const char *cidr);
   bool isValidInterface(NetworkInterface *n);
 
+  inline void refreshCachedNumAlerts() {
+    num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL), true);
+    alerts_stored = (getNumAlerts(false,  static_cast<char*>(NULL), true) + getNumFlowAlerts()) > 0;
+  }
+
  public:
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager() {};
 
-#ifdef NOTUSED
-  int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
-  int storeAlert(lua_State *L, int index);
-#endif
-
-  inline bool makeRoomRequested() { return(make_room); };
-  void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
-
   /*
     ========== HOST alerts API =========
    */
-  inline int engageHostAlert(Host *h,
+  inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
+			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
   };
-  inline int engageHostAlert(Host *h,
+  inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
+			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			     Host *alert_origin, Host *alert_target) {
-    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
+			     const char *alert_origin, const char *alert_target) {
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
   };
-  inline int releaseHostAlert(Host *h,
+  inline int releaseHostAlert(const char *host_ip, u_int16_t host_vlan,
+			      AlertEngine alert_engine,
 			      const char *engaged_alert_id,
 			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */);
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */);
   };
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		     Host *alert_origin, Host *alert_target);
@@ -165,14 +169,16 @@ class AlertsManager : protected StoreManager {
     ========== NETWORK alerts API ======
    */
   inline int engageNetworkAlert(const char *cidr,
-			     const char *engaged_alert_id,
-			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseNetworkAlert(cidr, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+				AlertEngine alert_engine,
+				const char *engaged_alert_id,
+				AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
   };
   inline int releaseNetworkAlert(const char *cidr,
-			      const char *engaged_alert_id,
-			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseNetworkAlert(cidr, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+				 AlertEngine alert_engine,
+				 const char *engaged_alert_id,
+				 AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
   };
   int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
@@ -180,14 +186,16 @@ class AlertsManager : protected StoreManager {
     ========== INTERFACE alerts API ======
    */
   inline int engageInterfaceAlert(NetworkInterface *n,
+				  AlertEngine alert_engine,
 				  const char *engaged_alert_id,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseInterfaceAlert(n, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+    return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
   };
   inline int releaseInterfaceAlert(NetworkInterface *n,
+				   AlertEngine alert_engine,
 				   const char *engaged_alert_id,
 				   AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseInterfaceAlert(n, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+    return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
   };
   int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
@@ -202,10 +210,6 @@ class AlertsManager : protected StoreManager {
     ========== counters API ======
   */
   int getCachedNumAlerts(lua_State *vm);
-  inline void refreshCachedNumAlerts() {
-    num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
-    alerts_stored = (getNumAlerts(false,  static_cast<char*>(NULL)) + getNumFlowAlerts()) > 0;
-  }
   inline int getNumAlerts(bool engaged) {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
     return getNumAlerts(engaged, "alert_severity=2" /* errors only */);
@@ -222,12 +226,12 @@ class AlertsManager : protected StoreManager {
   /*
     ========== raw API ======
   */
-  inline int queryAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses) {
+  inline int queryAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses, bool ignore_disabled) {
     return queryAlertsRaw(vm, selection, clauses,
-			  engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
+			  engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME, ignore_disabled);
   };
-  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *clauses) {
-    return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_FLOWS_TABLE_NAME);
+  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
+    return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_FLOWS_TABLE_NAME, ignore_disabled);
   };
 
   /* Following are the legacy methods that were formally global to the whole ntopng */

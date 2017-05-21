@@ -1,7 +1,8 @@
 require "lua_utils"
+require "flow_aggregation_utils"
 
 local json = require ("dkjson")
-		      
+
 local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=status"
 local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
@@ -32,7 +33,7 @@ function hostkey2hostid(host_key) {
 }
 /*
  * Returns a map of querystring parameters
- * 
+ *
  * Keys of type <fieldName>[] will automatically be added to an array
  *
  * @param String url
@@ -44,7 +45,7 @@ function getParams(url) {
     key = parts[1], value = parts[2];
     var isArray = /\[\]$/.test(key);
 
-    if(isArray) { 
+    if(isArray) {
       params[key] = params[key] || [];
         params[key].push(value);
     }
@@ -272,18 +273,24 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
      <div class="row">
 
        <div class='col-md-3'>
-	 Download flows: ]]
+	 ]] print(i18n("db_explorer.download_flows")) print[[: ]]
 
-	  if(ipv4_enabled) then	     
-	     print [[ <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">IPv4</a>&nbsp;]]
+	  if(ipv4_enabled) then
+	     print [[ <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">]] print(i18n("ipv4")) print[[</a>&nbsp;]]
 	  else
-             print [[<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">IPv6</a>]]
+             print [[<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">]] print(i18n("ipv6")) print[[</a>]]
 	end
 
 	print [[</div>]]
-	  if interface.isPacketInterface() then
-       print[[ <div class='col-md-2'>
-	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
+	  if interface.isPacketInterface()
+	    and ntop.getCache("ntopng.prefs.nbox_integration") == "1"
+	    and haveAdminPrivileges() then
+       print[[ <div class='col-md-2'><div style='margin-bottom:0.4em;'>
+	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm]]
+	       print[[" href="#" role="button" id="extract_pcap_]] print(button_id)
+	       print[["><i class="fa fa-download fa-lg"></i></a></div>
+	       <span id="pcap_download_msg_]] print(button_id) print[[">]]
+	       print[[</span>
 	       </div>]]
 	  end
 
@@ -353,18 +360,6 @@ print[[
     });
   });
 ]]
-
-else -- either the nbox integration is disabled or the user doesn't have admin privileges
-
-   print[[
-  $('#extract_pcap_]] print(button_id) print[[').click(function (event)
-  {
-     event.preventDefault();
-     $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html(
-	 "<small>]] print(i18n("db_explorer.nbox_disabled")) print[[. <br>" +
-	 ' ]] print(i18n("db_explorer.enable_it_via", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua", icon="<i class=\"fa fa-flask\"></i>"})) print[[ .</small>');
-     });
-     ]]
   end
 
 
@@ -374,12 +369,23 @@ print[[
   ]]
 end
 
+function printFlowsCountColumn()
+   -- hides the flows count column when aggregated database flows are being used
+   local col = '{title: "'..i18n("flows")
+   local hide_count = ""
+   if useAggregatedFlows() == true then
+      hide_count = " hidden :true, "
+   end
+   col = col..'", field: "column_flows", '..hide_count..' sortable: true, css: {textAlign:\'right\'}}'
+   return col
+end
+
 function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, l4proto, port)
    local breadcrumb_root = "interface"
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
    local isv6 = isIPv6Address(host)
-   
+
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_begin="..epoch_begin
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_end="..epoch_end
 
@@ -437,7 +443,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
 	</select>
       </div>
       <div class='col-md-6'>
-	 <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
+	 <i class="fa fa-heart"></i> &nbsp;]] print(i18n("db_explorer.app_between_talkers_pairs")) print[[ <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
 	<select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
 	</select>
 	</form>
@@ -462,7 +468,7 @@ var emptyBreadCrumb = function(){
 
 var refreshBreadCrumbInterface = function(){
   emptyBreadCrumb();
-  $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
+  $("#bc-talkers").append('<li>]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print [[</li>');
   $('#historical-container').removeAttr("host");
   $('#historical-container').removeAttr("peer");
   addObservationPeriodToBreadCrumb(']] print(interface_talkers_url_params) print[[', '#bc-talkers');
@@ -470,16 +476,16 @@ var refreshBreadCrumbInterface = function(){
 
 var refreshBreadCrumbHost = function(host){
   emptyBreadCrumb();
-  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifid)})) print[[</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
 
   // append a pair of li to the breadcrumb: the first is shown if the host has not been added to the favourites,
   // the second is shown if it has been added...
 
   // first pair: shown if the host has not been favorited
-  $("#bc-talkers").append('<li class="bc-item-add talker">' + host + ' talkers <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-add talker">]] print(i18n("db_explorer.host_talkers", {host="' + host + '"})) print[[ <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a> </li>');
 
   // second pair: shown if the host has been favorited
-  $("#bc-talkers").append('<li class="bc-item-remove talker">' + host + ' talkers <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="]] print(i18n("db_explorer.unsave")) print[["></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-remove talker">]] print(i18n("db_explorer.host_talkers", {host="' + host + '"})) print[[ <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="]] print(i18n("db_explorer.unsave")) print[["></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_talkers_talker > option[value=\'' + host + '\']').length == 0){
@@ -513,13 +519,13 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
     $('#historical-container').removeAttr("l7_proto_id");
   }
 
-  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-  $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">' + peer1 + ' talkers</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">]] print(i18n("db_explorer.host_talkers", {host="' + peer1 + '"})) print[[</a></li>');
 
   // here we append to li: one will be shown if the pair of peers is favorited, the other is shown in the opposite case
 
   // first li: shown if the pair has been favorited
-  var bc_talkers_li_text = 'Applications between ' + peer1 + ' and ' + peer2;
+  var bc_talkers_li_text = ']] print(i18n("db_explorer.applications_between", {peer1="' + peer1 + '", peer2="' + peer2 + '"})) print[[';
   if (typeof l7_proto_id !== "undefined"){
     bc_talkers_li_text = '<a onclick="populateAppsPerHostsPairTable(\'' + peer1 + '\',\'' + peer2 + '\');">' + bc_talkers_li_text + '</a>';
   }
@@ -591,8 +597,9 @@ var populateInterfaceTopTalkersTable = function(){
 	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[", field: "column_bytes_sent",     sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[", field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes",         sortable: true,css: {textAlign:'right'}},
-	  {title: "]] print(i18n("db_explorer.total_packets")) print[[", field: "column_packets",       sortable: true, css: {textAlign:'right'}},
-	  {title: "]] print(i18n("flows")) print[[",         field: "column_flows",         sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.total_packets")) print[[", field: "column_packets",       sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -633,18 +640,19 @@ var populateHostTopTalkersTable = function(host){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
-	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="Applications between ' + host + ' and ' + addr + '"></i></a>');
+	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="]] print(i18n("db_explorer.applications_between", {peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Host Name",       field: "column_label",      sortable: true},
-	  {title: "IP Address",      field: "column_addr",       sortable:true, hidden: false},
-	  {title: "Traffic Sent",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
-	  {title: "Traffic Received",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Traffic",   field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets",   field: "column_packets",    sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows",           field: "column_flows",      sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.host_name")) print[[",       field: "column_label",      sortable: true},
+	  {title: "]] print(i18n("ip_address")) print[[",      field: "column_addr",       sortable:true, hidden: false},
+	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[",   field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.total_packets")) print[[",   field: "column_packets",    sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -696,16 +704,17 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	  var label = label_td.text();
 	  var l7_proto_id = l7_proto_id_td.text();
           var num_flows = parseInt($("td:eq(4)", row[0]).text().replace(/[^0-9]/g, ''));
-	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + label + ' application flows between ' + peer1 + ' and ' + peer2 + '"></i></a>');
+	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="]] print(i18n("db_explorer.app_flows_between", {app="' + label + '", peer1="' + peer1 + '", peer2="' + peer2 + '"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Protocol id", field: "column_application", hidden: true},
-	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Total Traffic", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
-	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.protocol_id")) print[[", field: "column_application", hidden: true},
+	  {title: "]] print(i18n("application")) print[[", field: "column_label", sortable: false},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -746,7 +755,14 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
+
+	if useAggregatedFlows() == false then
+	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
+	   print("+ '&limit=' + num_flows")
+	end
+
+	print(",")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
@@ -758,17 +774,17 @@ totalRows: 100,
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
 	columns:
 	[
-	  {title: "Key",         field: "idx",            hidden: true},
+	  {title: "]] print(i18n("key")) print[[",         field: "idx",            hidden: true},
 	  {title: "",            field: "FLOW_URL",       sortable:false, css:{textAlign:'center'}},
-	  {title: "Application", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
-	  {title: "L4 Proto",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
-	  {title: "Client",      field: "CLIENT",         sortable: false},
-	  {title: "Server",      field: "SERVER",         sortable: false},
-	  {title: "Begin",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
-	  {title: "End",         field: "LAST_SWITCHED",  sortable: true, css:{textAlign:'center'}},
-	  {title: "Traffic",     field: "BYTES",          sortable: true, css:{textAlign:'right'}},
-	  {title: "Info",        field: "INFO",           sortable: true, css:{textAlign:'right'}},
-	  {title: "Avg Thpt",    field: "AVG_THROUGHPUT", sortable: false, css:{textAlign:'right'}}
+	  {title: "]] print(i18n("application")) print[[", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("db_explorer.l4_proto")) print[[",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("client")) print[[",      field: "CLIENT",         sortable: false},
+	  {title: "]] print(i18n("server")) print[[",      field: "SERVER",         sortable: false},
+	  {title: "]] print(i18n("begin")) print[[",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("end")) print[[",         field: "LAST_SWITCHED",  sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("traffic")) print[[",     field: "BYTES",          sortable: true, css:{textAlign:'right'}},
+	  {title: "]] print(i18n("info")) print[[",        field: "INFO",           sortable: true, css:{textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.average_throughput")) print[[",    field: "AVG_THROUGHPUT", sortable: false, css:{textAlign:'right'}}
 	]
     });
   }
@@ -846,12 +862,12 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
     <div class="form-group">
     <div class='col-md-3'>
       <form name="top_apps_faves">
-	<i class="fa fa-heart"></i> &nbsp;protocols <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'app', 'top_applications_app')"><i class="fa fa-trash"></i> all </a></small></span>
+	<i class="fa fa-heart"></i> &nbsp;]] print(i18n("protocols")) print[[ <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'app', 'top_applications_app')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
 	<select name="top_applications_app" id="top_applications_app" class="form-control">
 	</select>
     </div>
     <div class='col-md-6'>
-	 <i class="fa fa-heart"></i> &nbsp; host peers by protocol <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'host_peers_by_app', 'top_applications_host_peers_by_app')"><i class="fa fa-trash"></i> all </a></small></span>
+	 <i class="fa fa-heart"></i> &nbsp; host peers by protocol <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'host_peers_by_app', 'top_applications_host_peers_by_app')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
 	<select name="top_applications_host_peers_by_app" id="top_applications_host_peers_by_app" class="form-control">
 	</select>
       </form>
@@ -889,22 +905,22 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
   }
 
   if (root === "interface"){
-    $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-    $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">' + app + ' talkers</a></li>');
+    $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
+    $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">]] print(i18n("db_explorer.app_talkers", {app="' + app + '"})) print[[</a></li>');
 
     // append two li: one is to be shown when the favourites has not been added;
     // the other is shown when the favourites has been added
 
     // first li: there is no existing favorited peer --> app pair saved
-    var bc_apps_text = app + ' talkers with ' + peer1;
+    var bc_apps_text = ']] print(i18n("db_explorer.app_talkers_with", {app="' + app + '", peer="' + peer1 + '"})) print[[';
     if (typeof peer2 !== "undefined"){
       bc_apps_text = '<a onclick="populatePeersPerHostByApplication(\'' + peer1 + '\',\'' + proto_id + '\');">' + bc_apps_text + '</a>';
     }
 
-    $("#bc-apps").append('<li class="bc-app-item-add host-peers-by-app">' + bc_apps_text + ' <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
+    $("#bc-apps").append('<li class="bc-app-item-add host-peers-by-app">' + bc_apps_text + ' <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a> </li>');
 
     // second li: there is an already existing favorited peer --> app pair saved
-    $("#bc-apps").append('<li class="bc-app-item-remove host-peers-by-app"> ' + bc_apps_text + ' <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+    $("#bc-apps").append('<li class="bc-app-item-remove host-peers-by-app"> ' + bc_apps_text + ' <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart" title="]] print(i18n("db_explorer.unsave")) print[["></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_applications_host_peers_by_app > option[value=\'' + proto_id + ',' + peer1 + '\']').length == 0){
@@ -938,7 +954,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
   }
 
   if (typeof peer2 !== "undefined"){
-    $("#bc-apps").append('<li>' +$("#historical-apps-container").attr("l7_proto") + ' protocol flows between ' + peer1 + ' and ' + peer2 + '</li>');
+    $("#bc-apps").append('<li>]] print(i18n("db_explorer.protocol_flows_between", {proto="' + $(\"#historical-apps-container\").attr(\"l7_proto\") + '", peer1="' + peer1 + '", peer2="' + peer2 + '"})) print[[</li>');
   }
   addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 }
@@ -946,7 +962,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
 var populateInterfaceTopAppsTable = function(){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').removeAttr("host");
-  $("#bc-apps").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
+  $("#bc-apps").append('<li>]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</li>');
   addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 
   hideAll("app-talkers");
@@ -975,16 +991,17 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="Get Talkers using this protocol"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="]] print(i18n("db_explorer.get_proto_talkers")) print[["></i></a>');
 	  return row;
 	},
       columns:
 	[
-	  {title: "Protocol id", field: "column_application", hidden: true},
-	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Total Traffic", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
-	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.protocol_id")) print[[", field: "column_application", hidden: true},
+	  {title: "]] print(i18n("application")) print[[", field: "column_label", sortable: false},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+print(printFlowsCountColumn())
+print[[
 	]
     });
   }
@@ -997,11 +1014,11 @@ var populateAppTopTalkersTable = function(proto_id){
   var app = $('#historical-apps-container').attr("l7_proto");
 
   // UPDATE THE BREADCRUMB
-  $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+  $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">]] print(i18n("interface_ifname", {ifname=getInterfaceName(ifId)})) print[[</a></li>');
 
   // add two li: show the first li when no favourite has been added; show the second li in the other case
-  $("#bc-apps").append('<li class="bc-app-item-add app"> ' + app + ' talkers <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
-  $("#bc-apps").append('<li class="bc-app-item-remove app"> ' + app + ' talkers <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+  $("#bc-apps").append('<li class="bc-app-item-add app"> ]] print(i18n("db_explorer.app_talkers", {app="' + app + '"})) print[[ <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart-o" title="]] print(i18n("save")) print[["></i></a> </li>');
+  $("#bc-apps").append('<li class="bc-app-item-remove app"> ]] print(i18n("db_explorer.app_talkers", {app="' + app + '"})) print[[ <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart" title="]] print(i18n("db_explorer.unsave")) print[["></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_applications_app > option[value=\'' + proto_id + '\']').length == 0){
@@ -1053,18 +1070,19 @@ var populateAppTopTalkersTable = function(proto_id){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
-	  label_td.append('&nbsp;<a onclick="populatePeersPerHostByApplication(\'' + addr +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="' + app + ' talkers with ' + addr + '"></i></a>');
+	  label_td.append('&nbsp;<a onclick="populatePeersPerHostByApplication(\'' + addr +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="]] print(i18n("db_explorer.app_talkers_with", {app="' + app + '", peer="' + addr +'"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Traffic Sent",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
-	  {title: "Traffic Received",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Traffic", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
-	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.host_name")) print[[", field: "column_label", sortable: true},
+	  {title: "]] print(i18n("ip_address")) print[[", field: "column_addr", hidden: false, sortable: true},
+	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -1110,18 +1128,19 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
           var num_flows = parseInt($("td:eq(6)", row[0]).text().replace(/[^0-9]/g, ''));
-          label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + $('#historical-apps-container').attr("l7_proto") + ' protocol flows between ' + host + ' and ' + addr + '"></i></a>');
+          label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="]] print(i18n("db_explorer.protocol_flows_between", {proto="' + $(\"#historical-apps-container\").attr(\"l7_proto\") + '", peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Traffic Sent",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
-	  {title: "Traffic Received",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Traffic", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
-	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.host_name")) print[[", field: "column_label", sortable: true},
+	  {title: "]] print(i18n("ip_address")) print[[", field: "column_addr", hidden: false, sortable: true},
+	  {title: "]] print(i18n("db_explorer.traffic_sent")) print[[",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.traffic_received")) print[[",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+	print(printFlowsCountColumn())
+	print[[
 	]
     });
   }
@@ -1162,8 +1181,16 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
-  if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
+	
+	if useAggregatedFlows() == false then
+	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
+	   print("+ '&limit=' + num_flows")
+	end
+
+	print(",")
+
+	if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
@@ -1174,17 +1201,17 @@ totalRows: 100,
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
 	columns:
 	[
-	  {title: "Key",         field: "idx",            hidden: true},
+	  {title: "]] print(i18n("key")) print[[",         field: "idx",            hidden: true},
 	  {title: "",            field: "FLOW_URL",       sortable:false, css:{textAlign:'center'}},
-	  {title: "Application", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
-	  {title: "L4 Proto",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
-	  {title: "Client",      field: "CLIENT",         sortable: false},
-	  {title: "Server",      field: "SERVER",         sortable: false},
-	  {title: "Begin",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
-	  {title: "End",         field: "LAST_SWITCHED",  sortable: true, css:{textAlign:'center'}},
-	  {title: "Traffic",     field: "BYTES",          sortable: true, css:{textAlign:'right'}},
-	  {title: "Info",        field: "INFO",           sortable: true, css:{textAlign:'right'}},
-	  {title: "Avg Thpt",    field: "AVG_THROUGHPUT", sortable: false, css:{textAlign:'right'}}
+	  {title: "]] print(i18n("application")) print[[", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("db_explorer.l4_proto")) print[[",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("client")) print[[",      field: "CLIENT",         sortable: false},
+	  {title: "]] print(i18n("server")) print[[",      field: "SERVER",         sortable: false},
+	  {title: "]] print(i18n("begin")) print[[",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("end")) print[[",         field: "LAST_SWITCHED",  sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("traffic")) print[[",     field: "BYTES",          sortable: true, css:{textAlign:'right'}},
+	  {title: "]] print(i18n("info")) print[[",        field: "INFO",           sortable: true, css:{textAlign:'right'}},
+	  {title: "]] print(i18n("db_explorer.average_throughput")) print[[",    field: "AVG_THROUGHPUT", sortable: false, css:{textAlign:'right'}}
 	]
     });
   }
@@ -1231,16 +1258,17 @@ print [[
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
         var num_flows = parseInt($("td:eq(4)", row[0]).text().replace(/[^0-9]/g, ''));
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="]] print(i18n("db_explorer.hosts_talking_proto_with", {proto="' + proto_id + '", host="' + host + '"})) print[["></i></a>');
 	  return row;
 	},
       columns:
 	[
-	  {title: "Protocol id", field: "column_application", hidden: true},
-	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Total Traffic", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
-	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "]] print(i18n("db_explorer.protocol_id")) print[[", field: "column_application", hidden: true},
+	  {title: "]] print(i18n("application")) print[[", field: "column_label", sortable: false},
+	  {title: "]] print(i18n("db_explorer.total_traffic")) print[[", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
+	  {title: "]] print(i18n("packets")) print[[", field: "column_packets", sortable: true, css: {textAlign:'right'}},]]
+print(printFlowsCountColumn())
+print[[
 	]
     });
   }
@@ -1343,14 +1371,14 @@ function download_pcap_from_nbox(task_id){
   url = res[0];
   res = url.split(":");
   url = res[0];
-  window.open("https://"+url+"/ntop-bin/sudowrapper.cgi?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"+task_id+".pcap", "_blank");
+  window.open("https://"+url+"/ntop-bin/run.cgi?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"+task_id+".pcap", "_blank");
 }
 
 var populatePcapsTable = function(){
   $("#table-pcaps").datatable({
-    title: "Pcaps",
+    title: "]] print(i18n("db_explorer.pcaps")) print[[",
     url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?nbox_action=status" ,
-    title: "Pcap Requests and Statuses",
+    title: "]] print(i18n("db_explorer.pcap_requests_and_status")) print[[",
 ]]
 
 -- Set the preference table
@@ -1364,7 +1392,7 @@ print [[
 	       showPagination: true,
 		columns: [
 			 {
-			     title: "Task Id",
+			     title: "]] print(i18n("db_explorer.task_id")) print[[",
 				 field: "column_task_id",
 				 sortable: true,
 			     css: {
@@ -1372,7 +1400,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "Filter (BPF)",
+			     title: "]] print(i18n("db_explorer.filter_bpf")) print[[",
 				 field: "column_bpf",
 				 sortable: true,
 			     css: {
@@ -1380,7 +1408,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "Status",
+			     title: "]] print(i18n("status")) print[[",
 				 field: "column_status",
 				 sortable: true,
 			     css: {
@@ -1389,7 +1417,7 @@ print [[
 
 				 },
 			     {
-			     title: "Actions",
+			     title: "]] print(i18n("actions")) print[[",
 				 field: "column_actions",
 				 sortable: true,
 			     css: {
@@ -1423,8 +1451,7 @@ end
 function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
    -- prepare some attributes that will be attached to divs
    local div_data = ""
-   local isv6 = isIPv6Address(host)
-   
+
    if ifId ~= "" and ifId ~= nil then
       _GET["ifid"] = ifId
       div_data = div_data..' ifid="'..tostring(ifId)..'" '
@@ -1468,14 +1495,11 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
 <br>
 <div class="container-fluid" id="historical-flows-container">
   <ul class="nav nav-tabs" role="tablist">
-    <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> Summary </a> </li>
+    <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
 ]]
 
-if(not(isv6)) then 
-    print '<li class="disabled"> <a href="#tab-ipv4" role="tab"> IPv4 </a> </li>'
-else
-    print '<li class="disabled"> <a href="#tab-ipv6" role="tab"> IPv6 </a> </li>'
-end
+   print '<li> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
+   print '<li> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
 
 print [[
   </ul>
@@ -1485,26 +1509,31 @@ print [[
     <div class="tab-pane fade in active" id="historical-flows-summary">
       <br>
       <div class="panel panel-default" id="historical-flows-summary-div">
-        <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[</h3> </div>
+        <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[&nbsp;<span id="results-from-aggregated-flows"></span></h3> </div>
         <div class="panel-body" id="historical-flows-summary-body" style="display:true;">
           <div id="flows-summary-too-slow" style="display:none;" class="alert alert-warning"></div>
           <div id="flows-summary-wait" style="display:true;">
             <img src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\>&nbsp;
-            Database query in progress, waiting to receive results...
-            <button class="btn btn-danger btn-xs" type="button" onclick="abortQuery();">Abort</button>
+            ]] print(i18n("db_explorer.query_in_progress")) print[[
+            <button class="btn btn-danger btn-xs" type="button" onclick="abortQuery();">]] print(i18n("db_explorer.abort")) print[[</button>
           </div>
         </div>
         <table border=0 class="table table-bordered table-striped" id="flows-summary-table" style="display:none;">
            <tr>
-             <th>&nbsp;</th><th>Total Flows</th><th>Traffic Volume</th>
-             <th>Total Packets</th><th>Traffic Rate</th><th>Packet Rate</th>
+             <th>&nbsp;</th>]]
+
+if useAggregatedFlows() == false then -- pointless to show counters for aggregations to the user
+   print[[<th>]] print(i18n("db_explorer.total_flows"))print[[</th>]]
+end
+
+print[[<th>]] print(i18n("db_explorer.traffic_volume")) print[[</th>
+             <th>]] print(i18n("db_explorer.total_packets")) print[[</th><th>]] print(i18n("db_explorer.traffic_rate")) print[[</th><th>]] print(i18n("db_explorer.packet_rate")) print[[</th>
            </tr>
         </table>
       </div>
     </div>
 ]]
 
-if(not(isv6)) then
    print [[
     <div class="tab-pane fade" id="tab-ipv4" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows4"></div>
@@ -1514,7 +1543,6 @@ if(not(isv6)) then
     </div>
 ]]
 
-else
    print [[
     <div class="tab-pane fade" id="tab-ipv6" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows6"></div>
@@ -1524,8 +1552,6 @@ else
 			       ) print[[
     </div>
 ]]
-
-end
 
 print [[
   </div>
@@ -1541,7 +1567,7 @@ var abortQuery = function(){
   }
   // error message is populated in the ajax error callback
 }
-  
+
 $('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-flows"]').attr("loaded") == 1){
     enableAllDropdownsAndTabs();
@@ -1565,17 +1591,17 @@ print[[
     },
     error: function() {
       var err_msg = "."
-  
+
       if(xhr.responseText && xhr.responseText !== "")
         err_msg = ": " + xhr.responseText + err_msg
-  
+
       if(xhr.statusText === "error")
         err_msg = "An error occurred. Check database connections status" + err_msg
       else if(xhr.statusText === "abort")
         err_msg = "Query aborted" + err_msg
       else
         err_msg = "Query failed with an unknown status " + xhr.statusText + err_msg
-  
+
       $("#historical-flows-summary-body").html(err_msg).show()
     },
     success: function(msg){
@@ -1586,10 +1612,10 @@ print[[
         $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;]]print(i18n("error_no_search_results"))print[[</H5>').show()
         return;
       }
-  
+
       // re-enable all tabs
       $("#historical-flows-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
-  
+
       // populate the number of flows
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
       $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows)
@@ -1597,26 +1623,38 @@ print[[
       var tr=""
       $.each(msg.count, function(ipvers, item){
         tr += "<tr><th>" + ipvers + "</th>"
+]]
+
+if useAggregatedFlows() == false then -- only show flow counters when querying from raw flows
+print[[
         tr += "<td align='right'>" + item.tot_flows + " Flows</td>"
+]]
+end
+
+print[[
         tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
         tr += "<td align='right'>" + formatPackets(item.tot_packets) + "</td>"
         tr += "<td align='right'>" + fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
         tr += "<td align='right'>" + fpackets(item.tot_packets / msg.timespan) + "</td>"
         tr += "</tr>"
       });
+
+//      if(msg.aggregated_flows) {
+//        $("#results-from-aggregated-flows").html("]] print(i18n("flow_search_from_aggregated")) print[[");
+//      }
       $("#flows-summary-table").append(tr)
       $("#historical-flows-summary-body").remove()
       $("#flows-summary-table").show();
     }
   });
-  
+
 
   setInterval(function() {
     var too_slow = "The database is taking too long to produce results. Consider narrowing down the scope of the query"
     too_slow += " or tune the database for performance."
     $("#flows-summary-too-slow").html(too_slow).show()
   }, 15000)
-  
+
 });
 
 </script>
@@ -1627,7 +1665,7 @@ end
 
 -- ##########################################
 
-function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
+function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
    local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..ifId.. "&peer1="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
 
    if(l7proto ~= "") then
@@ -1643,9 +1681,12 @@ function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l
 
 	 if(id ~= -1) then
 	    l7proto = id
-	    title = "Top "..l7proto.." Flows"
+	    ipv4_title = i18n("db_explorer.top_proto_ipv4_flows", {proto=l7proto})
+	    ipv6_title = i18n("db_explorer.top_proto_ipv6_flows", {proto=l7proto})
 	 else
 	    l7proto = ""
+	    ipv4_title = ""
+	    ipv6_title = ""
 	 end
       end
 
@@ -1656,18 +1697,12 @@ function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l
 
 
    if((host == "") and (l4proto == "") and (port == "")) then
-      title = "Top Flows ["..formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end).."]"
+      ipv4_title = i18n("db_explorer.top_flows_ipv4", {date_from=formatEpoch(epoch_begin), date_to=formatEpoch(epoch_end)})
+      ipv6_title = i18n("db_explorer.top_flows_ipv6", {date_from=formatEpoch(epoch_begin), date_to=formatEpoch(epoch_end)})
    else
-      title = ""
+      ipv4_title = ""
+      ipv6_title = ""
    end
-
-
-if(host ~= nil) then
-  local chunks = {host:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")}
-  if(#chunks == 4) then
-     limitv6="0"
-  end
-end
 
 print [[
 
@@ -1686,12 +1721,21 @@ print [[
    ]]
 
 print [[
-  var url_update4 = "]] print(url_update) print [[&version=4&limit=" + $("#tab-ipv4").attr("num_flows") ;
+  var url_update4 = "]] print(url_update) print [[&version=4]]
+
+if useAggregatedFlows() == false then
+   print[[&limit=" + $("#tab-ipv4").attr("num_flows")]]
+else
+   -- limit computed dynamically
+   print('"')
+end
+
+print[[ ;
   var graph_options4 = {
   url: url_update4,
 	       perPage: 5, ]]
 
-			      if(title ~= "") then print('title: "IPv4 '..title..'",\n') else print("title: '',\n") end
+			      if(ipv4_title ~= "") then print('title: "'..ipv4_title..'",\n') else print("title: '',\n") end
 
 print [[
 						    showFilter: true,
@@ -1700,7 +1744,7 @@ print [[
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
-							  title: "Key",
+							  title: "]] print(i18n("key")) print[[",
 							  field: "idx",
 							  hidden: true,
 						       },
@@ -1721,7 +1765,7 @@ print [[
 
 print [[
 						       {
-							  title: "Application",
+							  title: "]] print(i18n("application")) print[[",
 							  field: "L7_PROTO",
 							  sortable: true,
 							  css: {
@@ -1729,7 +1773,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "L4 Proto",
+							  title: "]] print(i18n("db_explorer.l4_proto")) print[[",
 							  field: "PROTOCOL",
 							  sortable: true,
 							  css: {
@@ -1737,17 +1781,17 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Client",
+							  title: "]] print(i18n("client")) print[[",
 							  field: "CLIENT",
 							  sortable: false,
 						       },
 						       {
-							  title: "Server",
+							  title: "]] print(i18n("server")) print[[",
 							  field: "SERVER",
 							  sortable: false,
 						       },
 						       {
-							  title: "Begin",
+							  title: "]] print(i18n("begin")) print[[",
 							  field: "FIRST_SWITCHED",
 							  sortable: true,
 							  css: {
@@ -1755,7 +1799,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "End",
+							  title: "]] print(i18n("end")) print[[",
 							  field: "LAST_SWITCHED",
 							  sortable: true,
 							  css: {
@@ -1763,7 +1807,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Traffic Sent",
+							  title: "]] print(i18n("db_explorer.traffic_sent")) print[[",
 							  field: "IN_BYTES",
 							  sortable: true,
 							  css: {
@@ -1771,7 +1815,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Traffic Received",
+							  title: "]] print(i18n("db_explorer.traffic_received")) print[[",
 							  field: "OUT_BYTES",
 							  sortable: true,
 							  css: {
@@ -1779,7 +1823,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Total Traffic",
+							  title: "]] print(i18n("db_explorer.total_traffic")) print[[",
 							  field: "BYTES",
 							  sortable: true,
 							  css: {
@@ -1787,7 +1831,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Info",
+							  title: "]] print(i18n("info")) print[[",
 							  field: "INFO",
 							  sortable: true,
 							  css: {
@@ -1795,7 +1839,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Avg Thpt",
+							  title: "]] print(i18n("db_explorer.average_throughput")) print[[",
 							  field: "AVG_THROUGHPUT",
 							  sortable: false,
 							  css: {
@@ -1828,13 +1872,22 @@ print [[
         $('a[href="#tab-ipv6"]').attr("loaded", 1);
 
 
-	    var url_update6 = "]] print(url_update) print [[&version=6&limit=" + $("#tab-ipv6").attr("num_flows") ;
+	    var url_update6 = "]] print(url_update) print [[&version=6]]
+
+if useAggregatedFlows() == false then
+   print[[&limit=" + $("#tab-ipv6").attr("num_flows")]]
+else
+   -- limit computed dynamically
+   print('"')
+end
+
+print[[ ;
 
 	    var graph_options6 = {
 						    url: url_update6,
 						    perPage: 5, ]]
 
-					      if(title ~= "") then print('title: "IPv6 '..title..'",\n') else print("title: '',\n") end
+					      if(ipv6_title ~= "") then print('title: "'..ipv6_title..'",\n') else print("title: '',\n") end
 
 print [[
 
@@ -1844,7 +1897,7 @@ print [[
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
-							  title: "Key",
+							  title: "]] print(i18n("key")) print[[",
 							  field: "idx",
 							  hidden: true,
 						       },
@@ -1865,7 +1918,7 @@ print [[
 
 print [[
 						       {
-							  title: "Application",
+							  title: "]] print(i18n("application")) print[[",
 							  field: "L7_PROTO",
 							  sortable: true,
 							  css: {
@@ -1873,7 +1926,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "L4 Proto",
+							  title: "]] print(i18n("db_explorer.l4_proto")) print[[",
 							  field: "PROTOCOL",
 							  sortable: true,
 							  css: {
@@ -1881,17 +1934,17 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Client",
+							  title: "]] print(i18n("client")) print[[",
 							  field: "CLIENT",
 							  sortable: false,
 						       },
 						       {
-							  title: "Server",
+							  title: "]] print(i18n("server")) print[[",
 							  field: "SERVER",
 							  sortable: false,
 						       },
 						       {
-							  title: "Begin",
+							  title: "]] print(i18n("begin")) print[[",
 							  field: "FIRST_SWITCHED",
 							  sortable: true,
 							  css: {
@@ -1899,7 +1952,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "End",
+							  title: "]] print(i18n("end")) print[[",
 							  field: "LAST_SWITCHED",
 							  sortable: true,
 							  css: {
@@ -1907,7 +1960,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Traffic Sent",
+							  title: "]] print(i18n("db_explorer.traffic_sent")) print[[",
 							  field: "IN_BYTES",
 							  sortable: true,
 							  css: {
@@ -1915,7 +1968,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Traffic Received",
+							  title: "]] print(i18n("db_explorer.traffic_received")) print[[",
 							  field: "OUT_BYTES",
 							  sortable: true,
 							  css: {
@@ -1923,7 +1976,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Total Traffic",
+							  title: "]] print(i18n("db_explorer.total_traffic")) print[[",
 							  field: "BYTES",
 							  sortable: true,
 							  css: {
@@ -1931,7 +1984,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Avg Thpt",
+							  title: "]] print(i18n("db_explorer.average_throughput")) print[[",
 							  field: "AVG_THROUGHPUT",
 							  sortable: false,
 							  css: {
@@ -1967,7 +2020,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="label label-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fa fa-history fa-lg"></i></a>')
       -- print('</span>')
    end
 end

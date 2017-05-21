@@ -29,6 +29,16 @@ local function hasBridgeInterfaces()
   return found
 end
 
+function hasNagiosSupport()
+   return prefs.nagios_nsca_host ~= nil
+end
+
+function hasAlertsDisabled()
+  return (prefs.has_cmdl_disable_alerts == true) or
+      ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
+      ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
+end
+
 -- This table is used both to control access to the preferences and to filter preferences results
 menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true,   disabled=false, entries={
@@ -101,15 +111,15 @@ menu_subpages = {
     }, toggle_local_ndpi = {
       title       = i18n("prefs.toggle_local_ndpi_title"),
       description = i18n("prefs.toggle_local_ndpi_description"),
-    }, toggle_local_activity = {
-      title       = i18n("prefs.toggle_local_activity_title"),
-      description = i18n("prefs.toggle_local_activity_description"),
     }, toggle_flow_rrds = {
       title       = i18n("prefs.toggle_flow_rrds_title"),
       description = i18n("prefs.toggle_flow_rrds_description"),
     }, toggle_pools_rrds = {
       title       = i18n("prefs.toggle_pools_rrds_title"),
       description = i18n("prefs.toggle_pools_rrds_description"),
+    }, toggle_vlan_rrds = {
+      title       = i18n("prefs.toggle_vlan_rrds_title"),
+      description = i18n("prefs.toggle_vlan_rrds_description"),
     }, toggle_asn_rrds = {
       title       = i18n("prefs.toggle_asn_rrds_title"),
       description = i18n("prefs.toggle_asn_rrds_description"),
@@ -140,6 +150,9 @@ menu_subpages = {
     }, toggle_alert_probing = {
       title       = i18n("prefs.toggle_alert_probing_title"),
       description = i18n("prefs.toggle_alert_probing_description"),
+    }, toggle_ssl_alerts = {
+      title       = i18n("prefs.toggle_ssl_alerts_title"),
+      description = i18n("prefs.toggle_ssl_alerts_description"),
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
       description = i18n("prefs.toggle_malware_probing_description", {url="https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"}),
@@ -155,13 +168,13 @@ menu_subpages = {
       hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
     }
     
-  }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=alerts_disabled, entries={
+  }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=hasAlertsDisabled(), entries={
     toggle_alert_syslog = {
       title       = i18n("prefs.toggle_alert_syslog_title"),
       description = i18n("prefs.toggle_alert_syslog_description"),
     }, toggle_slack_notification = {
       title       = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"}),
-      description = i18n("prefs.toggle_slack_notification_description"),
+      description = i18n("prefs.toggle_slack_notification_description", {url="https://github.com/ntop/ntopng/blob/dev/doc/README.slack"}),
     }, slack_notification_severity_preference = {
       title       = i18n("prefs.slack_notification_severity_preference_title", {url="http://www.slack.com"}),
       description = i18n("prefs.slack_notification_severity_preference_description"),
@@ -171,27 +184,6 @@ menu_subpages = {
     }, slack_webhook = {
       title       = i18n("prefs.slack_webhook_title"),
       description = i18n("prefs.slack_webhook_description"),
-    }, toggle_alert_nagios = {
-      title       = i18n("prefs.toggle_alert_nagios_title"),
-      description = i18n("prefs.toggle_alert_nagios_description"),
-    }, nagios_nsca_host = {
-      title       = i18n("prefs.nagios_nsca_host_title"),
-      description = i18n("prefs.nagios_nsca_host_description"),
-    }, nagios_nsca_port = {
-      title       = i18n("prefs.nagios_nsca_port_title"),
-      description = i18n("prefs.nagios_nsca_port_description"),
-    }, nagios_send_nsca_executable = {
-      title       = i18n("prefs.nagios_send_nsca_executable_title"),
-      description = i18n("prefs.nagios_send_nsca_executable_description"),
-    }, nagios_send_nsca_config = {
-      title       = i18n("prefs.nagios_send_nsca_config_title"),
-      description = i18n("prefs.nagios_send_nsca_config_description"),
-    }, nagios_host_name = {
-      title       = i18n("prefs.nagios_host_name_title"),
-      description = i18n("prefs.nagios_host_name_description"),
-    }, nagios_service_name = {
-      title       = i18n("prefs.nagios_service_name_title"),
-      description = i18n("prefs.nagios_service_name_description"),
     },
   }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  disabled=false, entries={
     toggle_top_sites = {
@@ -242,7 +234,7 @@ menu_subpages = {
       description = i18n("prefs.toggle_autologout_description"),
     }, google_apis_browser_key = {
       title       = i18n("prefs.google_apis_browser_key_title"),
-      description = i18n("prefs.google_apis_browser_key_description", {url="https://googlegeodevelopers.blogspot.it/2016-17/06/building-for-scale-updates-to-google.html"}),
+      description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),
     }, toggle_thpt_content = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),
@@ -251,15 +243,65 @@ menu_subpages = {
       description = i18n("prefs.toggle_host_mask_description"),
     }
   }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
-    toggle_shaping_directions = {
+    safe_search_dns = {
+      title       = i18n("prefs.safe_search_dns_title"),
+      description = i18n("prefs.safe_search_dns_description", {url="https://en.wikipedia.org/wiki/SafeSearch"}),
+    }, global_dns = {
+      title       = i18n("prefs.global_dns_title"),
+      description = i18n("prefs.global_dns_description"),
+    }, secondary_dns = {
+      title       = i18n("prefs.secondary_dns_title"),
+      description = i18n("prefs.secondary_dns_description"),
+    }, featured_dns = {
+      title       = i18n("prefs.featured_dns_title"),
+      description = i18n("prefs.featured_dns_description"),
+    }, toggle_shaping_directions = {
       title       = i18n("prefs.toggle_shaping_directions_title"),
       description = i18n("prefs.toggle_shaping_directions_description"),
     }, toggle_captive_portal = {
       title       = i18n("prefs.toggle_captive_portal_title"),
       description = i18n("prefs.toggle_captive_portal_description"),
-    },
+    }, captive_portal_url = {
+      title       = i18n("prefs.captive_portal_url_title"),
+      description = i18n("prefs.captive_portal_url_description"),
+    }
   }},
 }
+
+-- Add nagios configuration (if available)
+-- Presently, nagios is not available under windows
+if hasNagiosSupport() then
+   for _, i in pairs(menu_subpages) do
+      if i["id"] == "ext_alerts" then
+	 local nagios = {
+	    toggle_alert_nagios = {
+	       title       = i18n("prefs.toggle_alert_nagios_title"),
+	       description = i18n("prefs.toggle_alert_nagios_description"),
+	    }, nagios_nsca_host = {
+	       title       = i18n("prefs.nagios_nsca_host_title"),
+	       description = i18n("prefs.nagios_nsca_host_description"),
+	    }, nagios_nsca_port = {
+	       title       = i18n("prefs.nagios_nsca_port_title"),
+	       description = i18n("prefs.nagios_nsca_port_description"),
+	    }, nagios_send_nsca_executable = {
+	       title       = i18n("prefs.nagios_send_nsca_executable_title"),
+	       description = i18n("prefs.nagios_send_nsca_executable_description"),
+	    }, nagios_send_nsca_config = {
+	       title       = i18n("prefs.nagios_send_nsca_config_title"),
+	       description = i18n("prefs.nagios_send_nsca_config_description"),
+	    }, nagios_host_name = {
+	       title       = i18n("prefs.nagios_host_name_title"),
+	       description = i18n("prefs.nagios_host_name_description"),
+	    }, nagios_service_name = {
+	       title       = i18n("prefs.nagios_service_name_title"),
+	       description = i18n("prefs.nagios_service_name_description"),
+	    },
+	 }
+	 i["entries"] = table.merge(i["entries"], nagios)
+      end
+   end
+end
+
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then
@@ -342,7 +384,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         ntop.setPref(k, tostring(v))
         value = v
       elseif (v_s ~= nil) then
-      	if(allowURLs) then
+      	if(allowURLs or (extra.pattern == getURLPattern())) then
 	        v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
         	v_s = string.gsub(v_s, "ldap:__", "ldap://")
 		v_s = string.gsub(v_s, "http:__", "http://")
@@ -355,12 +397,17 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       notifyNtopng(key)
     end
   else
-    v_s = ntop.getPref(k)
+    local v_s = nil
+    if not isEmptyString(prekey) then
+      v_s = ntop.getPref(k)
+    end
     value = v_s
     if((v_s==nil) or (v_s=="")) then
-      ntop.setPref(k, tostring(default_value))
       value = default_value
-      notifyNtopng(key)
+      if not isEmptyString(prekey) then
+        ntop.setPref(k, tostring(default_value))
+        notifyNtopng(key)
+      end
     end
   end
 
@@ -388,9 +435,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     end
   end
 
-  if extra.disabled == true then
-    attributes["disabled"] = "disabled"
-  end
+  if extra.disabled == true then attributes["disabled"] = "disabled" end
+  if extra.required == true then attributes["required"] = "" end
+  if extra.pattern ~= nil then attributes["pattern"] = extra.pattern end
 
   if (_input_type == "number") then
     attributes["required"] = "required"
@@ -446,6 +493,13 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   </td></tr>
 ]]
 
+end
+
+function prefsInformativeField(label, comment, showEnabled, extra)
+  local extra = extra or {}
+  extra["style"] = extra["style"] or {}
+  extra["style"]["display"] = "none"
+  prefsInputFieldPrefs(label, comment, "", "", "", nil, showEnabled, nil, nil, extra)
 end
 
 function toggleTableButton(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field, redis_key, disabled)

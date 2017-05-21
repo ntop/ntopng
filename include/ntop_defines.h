@@ -85,6 +85,7 @@
 
 #define ZMQ_MSG_VERSION           1
 #define LOGIN_URL                 "/lua/login.lua"
+#define LOGOUT_URL                "/lua/logout.lua"
 #define CAPTIVE_PORTAL_URL        "/lua/captive_portal.lua"
 #define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"
@@ -92,6 +93,7 @@
 #define HOTSPOT_DETECT_URL        "/hotspot-detect.html"       /* iOS    */
 #define KINDLE_WIFISTUB_URL       "/kindle-wifi/wifistub.html" /* Kindle */
 #define HOTSPOT_DETECT_LUA_URL    "/lua/hotspot-detect.lua"
+#define CHANGE_PASSWORD_ULR       "/lua/change_password.lua"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 
@@ -123,10 +125,6 @@
 #define OTHER_RRD_1MIN_DAYS      30
 #define OTHER_RRD_1H_DAYS        100
 #define OTHER_RRD_1D_DAYS        365
-#define HOST_ACTIVITY_RRD_RAW_HOURS  48
-#define HOST_ACTIVITY_RRD_1H_DAYS    15
-#define HOST_ACTIVITY_RRD_1D_DAYS    90
-#define CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED   false /* disabled by default */
 #define CONST_DEFAULT_TOP_TALKERS_ENABLED        false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
@@ -161,6 +159,7 @@
 #define MAX_OPTIONS             24
 #define CONST_ADMINISTRATOR_USER      "administrator"
 #define CONST_UNPRIVILEGED_USER       "unprivileged"
+#define CONST_DEFAULT_PASSWORD_CHANGED "ntopng.prefs.admin_password_changed"
 #define CONST_STR_NTOPNG_LICENSE      "ntopng.license"
 #define CONST_STR_USER_GROUP          "ntopng.user.%s.group"
 #define CONST_STR_USER_FULL_NAME      "ntopng.user.%s.full_name"
@@ -303,12 +302,12 @@
 #define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED               1
 #define CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED   1
 #define CONST_DEFAULT_ALERT_PROBING_ENABLED               0
+#define CONST_DEFAULT_ALERT_SSL_ENABLED                   0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
-#define CONST_FLOWACTIVITY_SCRIPT    "flowactivity.lua"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
@@ -320,18 +319,21 @@
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
-#define CONST_USERACTIVITY_FLOW      "useractivityflow"
-#define CONST_USERACTIVITY_PROFILES  "profile"
-#define CONST_USERACTIVITY_FILTERS   "filter"
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
 #define CONST_MAX_NUM_SYN_PER_SECOND  8192
-#define CONST_MAX_NUM_HOST_ACTIVE_FLOWS 32768
 #define CONST_MAX_NEW_FLOWS_SECOND    25
 #define CONST_ALERT_GRACE_PERIOD      60 /* No more than 1 alert/min */
 #define CONST_CONTACTED_BY            "contacted_by"
 #define CONST_CONTACTS                "contacted_peers" /* Peers contacted by this host */
+
+#define CONST_USER_SCRIPTS_LOADER    "user_scripts/loader.lua"
+#define CONST_USER_SCRIPTS_FLOW      "global_flow"
+#define CONST_USER_SCRIPTS_CONTEXT   "script_context"
+#define CONST_USER_SCRIPTS_CONTEXT_INLINE     "inline"
+#define CONST_USER_SCRIPTS_CONTEXT_PERIODIC   "periodic"
+#define CONST_DEFAULT_USER_SCRIPTS_ENABLED   false
 
 #define CONST_HISTORICAL_OK               1
 #define CONST_HISTORICAL_FILE_ERROR       0
@@ -348,7 +350,7 @@
 #define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
-#define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
+#define CONST_SUPPRESSED_ALERT_PREFS       "ntopng.prefs.alerts.ifid_%d"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
 #define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"
@@ -361,14 +363,10 @@
 #define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
-#define CONST_IFACE_SYN_ALERT         "ntopng.prefs.%s:%d.syn_alert_threshold"
-#define CONST_IFACE_FLOW_RATE         "ntopng.prefs.%s:%d.flow_rate_alert_threshold"
-#define CONST_IFACE_FLOW_THRESHOLD    "ntopng.prefs.%s:%d.flows_alert_threshold"
+#define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
+#define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS  "ntopng.prefs.non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS     "ntopng.prefs.flow_max_idle"
-#define CONST_MAX_NEW_FLOWS_PREFS     "ntopng.prefs.host_max_new_flows_sec_threshold"
-#define CONST_MAX_NUM_SYN_PREFS       "ntopng.prefs.host_max_num_syn_sec_threshold"
-#define CONST_MAX_NUM_FLOWS_PREFS     "ntopng.prefs.host_max_num_active_flows"
 #define CONST_INTF_RRD_RAW_DAYS       "ntopng.prefs.intf_rrd_raw_days"
 #define CONST_INTF_RRD_1MIN_DAYS      "ntopng.prefs.intf_rrd_1min_days"
 #define CONST_INTF_RRD_1H_DAYS        "ntopng.prefs.intf_rrd_1h_days"
@@ -377,20 +375,22 @@
 #define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
 #define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
-#define CONST_HOST_ACTIVITY_RRD_RAW_HOURS  "ntopng.prefs.host_activity_rrd_raw_hours"
-#define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
-#define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
+#define CONST_SAFE_SEARCH_DNS              "ntopng.prefs.safe_search_dns"
+#define CONST_GLOBAL_DNS                   "ntopng.prefs.global_dns"
+#define CONST_SECONDARY_DNS                "ntopng.prefs.secondary_dns"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
 #define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
 #define CONST_PROFILES_PREFS               "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS            "ntopng.profiles_counters.ifid_%i"
 #define CONST_MAC_LAST_SEEN                "ntopng.mac_last_seen.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
+#define CONST_PREFS_REDIRECTION_URL        "ntopng.prefs.redirection_url"
 #define HOST_POOL_IDS_KEY                  "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY              "ntopng.prefs.%u.host_pools.members.%s"
 #define HOST_POOL_DUMP_KEY                 "ntopng.prefs.%u.host_pools.dump"
 #define HOST_POOL_SHAPERS_KEY              "ntopng.prefs.%u.l7_policies.%s"
 #define HOST_POOL_SITE_CATEGORIES_KEY      "ntopng.prefs.%u.blocked_sites_categories.%s"
+#define HOST_POOL_DETAILS_KEY              "ntopng.prefs.%u.host_pools.details.%u"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"
@@ -411,6 +411,12 @@
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               "ntopng.prefs.thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG               "ntopng.prefs.alerts_syslog"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_PROBING              "ntopng.prefs.probing_alerts"   /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"   /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        "ntopng.prefs.alerts_global.min.local_hosts"
+#define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
+#define CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY      "syn_victim_threshold"
+#define CONST_HOST_FLOW_ATTACKER_ALERT_THRESHOLD_KEY   "flow_attacker_threshold"
+#define CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY     "flow_victim_threshold"
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
 #define CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION        "ntopng.prefs.dynamic_iface_vlan_creation"
@@ -561,6 +567,14 @@
 #define MYSQL_MAX_NUM_ROWS    999
 
 #ifdef NTOPNG_PRO
+#define MYSQL_TOP_TALKERS_CONSOLIDATION_FREQ 20
+#define MYSQL_TOP_TALKERS_TRIGGER_NAME "trigger_talkersv4"
+#define MYSQL_TOP_TALKERS_CACHE_TABLE  "cache_talkersv4"
+#define MYSQL_TOP_TALKERS_5MIN_TABLE   "talkersv4"
+#define MYSQL_TOP_TALKERS_HOUR_TABLE   "talkersv4_hour"
+#define MYSQL_TOP_TALKERS_DAY_TABLE    "talkersv4_day"
+
+#define MYSQL_AGGREGATION_TABLES_PREFIX "aggr"
 #define MYSQL_INSERT_PROFILE ",PROFILE"
 #define MYSQL_PROFILE_VALUE ",'%s'"
 #else
@@ -579,23 +593,26 @@
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY              1024
 #define STORE_MANAGER_MAX_KEY                20
+#define DEFAULT_GLOBAL_DNS                   ""
+#define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
+#define DEFAULT_REDIRECTION_URL              "http://www.ntop.org"
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v3.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v5.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
-#define ALERTS_MANAGER_MAKE_ROOM_SET_NAME    "ntopng.alerts.ifid_%i.make_room"
+#define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.prefs.alerts.ifid_%i.make_room_closed_alerts"
+#define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.prefs.alerts.ifid_%i.make_room_flow_alerts"
 #define ALERTS_MANAGER_TYPE_FIELD            "alert_type"
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
 #define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.alerts.sender_username"
-#define ALERTS_MANAGER_NOTIFICATION_ENABLED    "ntopng.alerts.notification_enabled"
+#define ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED "ntopng.alerts.slack_notifications_enabled"
 #define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.alerts.sender_username"
-#define ALERTS_MANAGER_NOTIFICATION_WEBHOOK    "ntopng.alerts.slack_webhook"
 #define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.alerts.slack_alert_severity"
 #define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.alerts.dump_alerts_when_iface_is_alerted"
 
@@ -648,16 +665,14 @@
 /* Macros */
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
+#ifndef _STATIC_ASSERT
 #define _STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(!!(COND))*2-1]
+#endif
 #define _COMPILE_TIME_ASSERT3(X,L) _STATIC_ASSERT(X,static_assertion_at_line_##L)
 #define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
 #define COMPILE_TIME_ASSERT(X)     _COMPILE_TIME_ASSERT2(X,__LINE__)
 
 #define MAX_NUM_HTTP_REPLACEMENTS                    3
-
-#define INTER_FLOW_ACTIVITY_SLOTS                    5
-#define INTER_FLOW_ACTIVITY_MAX_INTERVAL             5
-#define INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL 20
 
 #define CACHE_LINE_LEN          64
 #define QUEUE_ITEMS             2048 /* pow of 2 */
@@ -688,5 +703,10 @@
 #define MARKER_NO_ACTION               0 /* Pass when a verdict is not yet reached */
 #define MARKER_PASS                    1
 #define MARKER_DROP                    2
+
+#define NO_HOST_POOL_ID                0
+/* Flow aggregation duration is expressed in housekeeping periods. If housekeeping frequency
+   is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
+#define FLOW_AGGREGATION_DURATION      12 * 5 /* 1 minute * 5 = 5 minutes */
 
 #endif /* _NTOP_DEFINES_H_ */

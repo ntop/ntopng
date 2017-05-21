@@ -19,7 +19,7 @@ if((nbox_password == nil) or (nbox_password == "")) then nbox_password = "nbox" 
 local base_url = "https://localhost"
 
 local status_url = base_url.."/ntop-bin/check_status_tasks_external.cgi"
-local schedule_url = base_url.."/ntop-bin/sudowrapper_external.cgi?script=npcapextract_external.cgi"
+local schedule_url = base_url.."/ntop-bin/run.cgi?script=npcapextract_external.cgi"
 
 -- Query parameters
 action       = _GET["nbox_action"]
@@ -50,7 +50,7 @@ elseif action == "schedule" then
 	schedule_url = schedule_url.."&ifname="..ifname.."&begin="..epoch_begin.."&end="..epoch_end
 	schedule_url = schedule_url..createBPF()
 	local resp = ntop.httpGet(schedule_url, nbox_user, nbox_password, 10)
-	sendHTTPHeader('text/html; charset=iso-8859-1')
+	sendHTTPContentTypeHeader('text/html')
 	if resp ~= nil and resp["CONTENT"] ~= nil then
 		print(resp["CONTENT"])
 	else
@@ -99,7 +99,7 @@ elseif action == "status" then
 	local to_skip = (current_page - 1) * per_page
 	if to_skip < 0 then to_skip = 0 end
 
-	sendHTTPHeader('text/html; charset=iso-8859-1')
+	sendHTTPContentTypeHeader('text/html')
 	local resp = ntop.httpGet(status_url, nbox_user, nbox_password, 10)
 	if resp ~= nil and resp["CONTENT"] ~= nil then
 		local content = resp["CONTENT"]

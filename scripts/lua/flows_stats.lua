@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 active_page = "flows"
@@ -27,6 +27,7 @@ traffic_type = _GET["traffic_type"]
 traffic_type_filter = ""
 flow_status = _GET["flow_status"]
 flow_status_filter = ""
+port = _GET["port"]
 
 network_id = _GET["network"]
 
@@ -53,9 +54,9 @@ print("</a></li>\n")
 page = _GET["page"]
 
 if(page == "flows") then
-  print("<li class=\"active\"><a href=\"#\">Flows</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">"..i18n("flows").."</a></li>\n")
 else
-  print("<li><a href=\""..url.."&page=flows\">Flows</a></li>")
+  print("<li><a href=\""..url.."&page=flows\">"..i18n("flows").."</a></li>")
 end
 if (page == "historical") then
   print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
@@ -94,6 +95,10 @@ end
 
 if(hosts ~= nil) then
   page_params["hosts"] = hosts
+end
+
+if(port ~= nil) then
+  page_params["port"] = port
 end
 
 if(ipversion ~= nil) then
@@ -137,20 +142,19 @@ print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
--- prepare the page title that slightly changes depending on
--- the kind of interface
-local active_msg = "Active "
+local filter_msg = (application or vhost or "")
+local active_msg
 
 if not interface.isPacketInterface() then
-   active_msg = "Recently "..active_msg
+   active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
 elseif interface.isPcapDumpInterface() then
-   active_msg = ""
+   active_msg = i18n("flows_page.flows", {filter=filter_msg})
+else
+   active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
 end
 
-active_msg = active_msg..(application or vhost or "").." Flows"
-
 if(network_name ~= nil) then
-   active_msg = active_msg.." [ Network "..network_name.." ]"
+   active_msg = active_msg .. i18n("network", {network=network_name})
 end
 
 print(" title: \""..active_msg)
@@ -185,14 +189,14 @@ end
 
 print[['\
    <div class="btn-group">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Hosts]] print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-         <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">All Hosts</a></li>\]]
+         <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
    printDropdownEntries({
-      {"local_only", "Local Only"},
-      {"remote_only", "Remote Only"},
-      {"local_origin_remote_target", "Local Client - Remote Server"},
-      {"remote_origin_local_target", "Local Server - Remote Client"}
+      {"local_only", i18n("flows_page.local_only")},
+      {"remote_only", i18n("flows_page.remote_only")},
+      {"local_origin_remote_target", i18n("flows_page.local_cli_remote_srv")},
+      {"remote_origin_local_target", i18n("flows_page.local_srv_remote_cli")}
    }, flowhosts_type_params, "flowhosts_type", flowhosts_type)
 print[[\
       </ul>\
@@ -205,12 +209,12 @@ flow_status_params["flow_status"] = nil
 
 print[[, '\
    <div class="btn-group">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Status]] print(flow_status_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(flow_status_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
-      <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">All Flows</a></li>\]]
+      <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
    printDropdownEntries({
-      {"normal", "Normal"},
-      {"alerted", "Alerted"},
+      {"normal", i18n("flows_page.normal")},
+      {"alerted", i18n("flows_page.alerted")},
    }, flow_status_params, "flow_status", flow_status)
 print[[\
       </ul>\
@@ -223,12 +227,12 @@ traffic_type_params["traffic_type"] = nil
 
 print[[, '\
    <div class="btn-group">\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(traffic_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
-         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">All Flows</a></li>\]]
+         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
    printDropdownEntries({
-      {"broadcast_multicast", "One-way Multicast/Broadcast Traffic"},
-      {"unicast", "One-way Non-Multicast/Broadcast Traffic"},
+      {"broadcast_multicast", i18n("flows_page.one_way_multicast")},
+      {"unicast", i18n("flows_page.one_way_non_multicast")},
    }, traffic_type_params, "traffic_type", traffic_type)
 print[[\
       </ul>\
@@ -236,12 +240,12 @@ print[[\
 ']]
 
 -- L7 Application
-print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
 print('<li><a href="')
 local application_filter_params = table.clone(page_params)
 application_filter_params["application"] = nil
 print(getPageUrl(base_url, application_filter_params))
-print('">All Proto</a></li>')
+print('">'..i18n("flows_page.all_proto")..'</a></li>')
 
 for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    class_active = ''
@@ -268,25 +272,101 @@ print [[</div>']]
 
 print(" ],\n")
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_top.inc")
+print[[
+   columns: [
+      {
+         title: "]] print(i18n("key")) print[[",
+         field: "key",
+         hidden: true,
+         css: {
+              textAlign: 'center'
+         }
+      }, {
+         title: "",
+         field: "column_key",
+         css: {
+            textAlign: 'center'
+         }
+      }, {
+         title: "]] print(i18n("application")) print[[",
+         field: "column_ndpi",
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      }, {
+         title: "]] print(i18n("db_explorer.l4_proto")) print[[",
+         field: "column_proto_l4",
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      },
+]]
 
 if(ifstats.vlan) then
-print [[
-           {
-           title: "VLAN",
-         field: "column_vlan",
+   print [[
+      {
+        title: "]] print(i18n("vlan")) print[[",
+        field: "column_vlan",
+        sortable: true,
+        css: {
+           textAlign: 'center'
+        }
+      },
+   ]]
+end
+end
+
+print[[
+      {
+         title: "]] print(i18n("client")) print[[",
+         field: "column_client",
          sortable: true,
-                 css: {
-              textAlign: 'center'
-           }
-         },
+      }, {
+         title: "]] print(i18n("server")) print[[",
+         field: "column_server",
+         sortable: true,
+      }, {
+         title: "]] print(i18n("duration")) print[[",
+         field: "column_duration",
+         sortable: true,
+         css: {
+           textAlign: 'center'
+         }
+      }, {
+         title: "]] print(i18n("breakdown")) print[[",
+         field: "column_breakdown",
+         sortable: false,
+            css: {
+               textAlign: 'center'
+            }
+      }, {
+         title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+         field: "column_thpt",
+         sortable: true,
+         css: {
+            textAlign: 'right'
+         }
+      }, {
+         title: "]] print(i18n("flows_page.total_bytes")) print[[",
+         field: "column_bytes",
+         sortable: true,
+            css: {
+               textAlign: 'right'
+            }
+      }, {
+         title: "]] print(i18n("info")) print[[",
+         field: "column_info",
+         sortable: true,
+            css: {
+               textAlign: 'left'
+            }
+         }
+      ]
+   });
+</script>
 ]]
-end
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_middle.inc")
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_bottom.inc")
-end
 
 if (page == "historical" and network_name ~= nil) then
   local netname_format = string.gsub(network_name, "_", "/")

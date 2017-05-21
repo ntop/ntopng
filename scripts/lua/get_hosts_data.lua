@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
 all = _GET["all"]
@@ -35,7 +35,7 @@ mac          = _GET["mac"]
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
-	 h["name"] = ntop.getResolvedAddress(h["ip"])
+	 h["name"] = getResolvedAddress(hostkey2hostinfo(h["ip"]))
       else
 	 h["name"] = h["mac"]
       end
@@ -64,8 +64,6 @@ if(criteria ~= nil) then
    sortPrefs = "localhosts_"..criteria
    mode = "local"
 end
-
-
 
 if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
@@ -225,6 +223,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
 
+   if(value.childSafe == true) then print(getSafeChildIcon()) end
+
    if((value["country"] ~= nil) and (value["country"] ~= "")) then
       print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
    end
@@ -249,7 +249,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    print("\"column_name\" : \"")
 
    if(value["name"] == nil) then
-      value["name"] = ntop.getResolvedAddress(key)
+      value["name"] = getResolvedAddress(hostkey2hostinfo(key))
    end
 
    if(value["name"] == "") then

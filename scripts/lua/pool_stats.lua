@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -30,7 +30,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Host Pool List",\n')
+print('title: "' .. i18n("pool_stats.host_pool_list") .. '",\n')
 print ('rowCallback: function ( row ) { return pool_table_setID(row); },')
 
 -- Set the preference table
@@ -52,14 +52,14 @@ print [[
                  textAlign: 'center'
               }
             },{
-              title: "Pool Name",
+              title: "]] print(i18n("host_pools.pool_name")) print[[",
               field: "column_id",
               sortable: false,
                 css: {
                   textAlign: 'left'
               }
             },{
-              title: "Chart",
+              title: "]] print(i18n("chart")) print[[",
               field: "column_chart",
 ]]
 if not ntop.isPro() then

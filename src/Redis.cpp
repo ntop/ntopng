@@ -144,7 +144,7 @@ int Redis::expire(char *key, u_int expire_secs) {
 
 bool Redis::isCacheable(char *key) {
   if(strstr(key, "ntopng.prefs.")
-     || strstr(key, "ntopng.user.")
+     || (strstr(key, "ntopng.user.") && (!strstr(key, ".password")))
      )
     return(true);
 
@@ -822,6 +822,7 @@ int Redis::popDomainToCategorize(char *domainname, u_int domainname_len) {
 /* **************************************** */
 
 void Redis::setDefaults() {
+  char *admin_md5 = (char*)"21232f297a57a5a743894a0e4a801fc3";
   char value[CONST_MAX_LEN_REDIS_VALUE];
 
   setResolvedAddress((char*)"127.0.0.1", (char*)"localhost");
@@ -830,10 +831,12 @@ void Redis::setDefaults() {
   setResolvedAddress((char*)"0.0.0.0", (char*)"NoIP");
 
   if(get((char*)"ntopng.user.admin.password", value, sizeof(value)) < 0) {
-    set((char*)"ntopng.user.admin.password", (char*)"21232f297a57a5a743894a0e4a801fc3");
+    set((char*)"ntopng.user.admin.password", admin_md5);
     set((char*)"ntopng.user.admin.full_name", (char*)"ntopng Administrator");
     set((char*)"ntopng.user.admin.group", (char*)CONST_USER_GROUP_ADMIN);
     set((char*)"ntopng.user.admin.allowed_nets", (char*)"0.0.0.0/0,::/0");
+  } else if(strncmp(value, admin_md5, strlen(admin_md5))) {
+    set((char*)CONST_DEFAULT_PASSWORD_CHANGED, (char*)"1");
   }
 }
 

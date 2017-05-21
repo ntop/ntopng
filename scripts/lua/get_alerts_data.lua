@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 status          = _GET["status"]
 
@@ -68,7 +68,7 @@ for _key,_value in ipairs(alerts) do
    --   tprint(alert_entity_val)
    local tdiff = os.time()-_value["alert_tstamp"]
 
-   if(tdiff < 3600) then
+   if(tdiff < 60) then
       column_date  = secondsToTime(tdiff).." ago"
    else
       column_date = os.date("%c", _value["alert_tstamp"])
@@ -85,10 +85,9 @@ for _key,_value in ipairs(alerts) do
    column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
    column_msg      = string.gsub(_value["alert_json"], '"', "'")
 
-   column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method='post'>"
-   column_id = column_id.."<input type=hidden name='id_to_delete' value='"..alert_id.."'><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
+   column_id = tostring(alert_id)
 
-   if ntop.isEnterprise() and (status == "historical-flows" or status == "historical") then
+   if ntop.isEnterprise() and (status == "historical-flows") then
       local explore = function()
 	 local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?"
 	 local origin = _value["cli_addr"]
@@ -103,9 +102,9 @@ for _key,_value in ipairs(alerts) do
 	    url = url..'&epoch_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
 	    url = url..'&epoch_end='..(tonumber(_value["alert_tstamp"]) + 1800)
 	 end
-	 return "&nbsp;<a class='btn btn-default btn-xs' href='"..url.."' title='"..i18n("flow_alerts_explorer.label").."'><i class='fa fa-history'></i><sup><i class='fa fa-exclamation-triangle' aria-hidden='true' style='position:absolute; margin-left:-19px; margin-top:4px;'></i></sup></a>&nbsp;"
+	 return url
       end
-      column_id = column_id.." "..explore()
+      column_id = column_id.."|"..explore()
 
    end
    

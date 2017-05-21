@@ -39,15 +39,6 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
-typedef struct {
-  ActivityFilterID filterId;
-  activity_filter_config config;
-  activity_filter_status status;
-  UserActivityID activityId;
-  bool filterSet;
-  bool activitySet;
-} FlowActivityDetection;
-
 typedef enum {
   flow_state_other = 0,
   flow_state_syn,
@@ -153,7 +144,6 @@ class Flow : public GenericHashEntry {
   float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
-  FlowActivityDetection *activityDetection;
 
   /* Counter values at last host update */
   struct {
@@ -206,7 +196,7 @@ class Flow : public GenericHashEntry {
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
-  inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
+  inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
   bool updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shaper_id, u_int8_t *egress_shaper_id);
 #endif
@@ -226,11 +216,11 @@ class Flow : public GenericHashEntry {
   void categorizeFlow();
   void freeDPIMemory();
   bool isTiny();
-  inline bool isSSL()                  { return(isProtoSSL(NDPI_PROTOCOL_SSL));  }
-  inline bool isSSH()                  { return(isProtoSSL(NDPI_PROTOCOL_SSH));  }
-  inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
-  inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
-  inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
+  inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
+  inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
+  inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
   char* serialize(bool es_json = false);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
@@ -308,6 +298,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t get_duration()                 { return((u_int32_t)(get_last_seen()-get_first_seen())); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
+  void fixAggregatedFlowFields();
   inline bool isCategorizationOngoing()           { return(categorization.categorized_requested); };
   inline ndpi_protocol_category_t get_detected_protocol_category() { return ndpi_get_proto_category(iface->get_ndpi_struct(), ndpiDetectedProtocol); };
   inline Host* get_cli_host()                     { return(cli_host);                        };
@@ -332,10 +323,11 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
   void handle_process(ProcessInfo *pinfo, bool client_process);
-  bool idle();
+  inline bool idle() { return(false); } /* Idle flows are checked in Flow::update_hosts_stats */
+  bool isReadyToPurge();
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
-  void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);
+  void update_hosts_stats(struct timeval *tv);
 #ifdef NTOPNG_PRO
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
@@ -410,30 +402,6 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()                  { return state == flow_state_established; }
   inline bool      isFlowAlerted()                  { return(flow_alerted);                   }
   inline void      setFlowAlerted()                 { flow_alerted = true;                    }
-
-  void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
-
-  inline bool getActivityFilterId(ActivityFilterID *out) {
-    if(activityDetection && activityDetection->filterSet) {
-        *out = activityDetection->filterId; return true;
-    }
-    return false;
-  }
-
-  bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
-
-  inline void setActivityId(UserActivityID id) {
-    if(activityDetection == NULL) return;
-    activityDetection->activityId = id; activityDetection->activitySet = true;
-  }
-
-  inline bool getActivityId(UserActivityID *out) {
-    if(activityDetection == NULL) return false;
-    if(activityDetection->activitySet) {
-      *out = activityDetection->activityId; return true;
-    }
-    return false;
-  }
 
 #ifdef NTOPNG_PRO
   void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {

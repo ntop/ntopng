@@ -34,7 +34,7 @@ nDPIStats::nDPIStats(const nDPIStats &stats) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(stats.counters[i] != NULL) {
       counters[i] = (ProtoCounter*) malloc(sizeof(ProtoCounter));
-      *counters[i] = *stats.counters[i];
+      memcpy(counters[i], stats.counters[i], sizeof(ProtoCounter));
     } else {
       counters[i] = NULL;
     }
@@ -183,8 +183,10 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 
 void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes) {
   if(category_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
-    if((when != 0) && (cat_counters[category_id].last_epoch_update != when)) {
-      cat_counters[category_id].bytes += bytes;
+    cat_counters[category_id].bytes += bytes;
+
+    if((when != 0)
+       && (when - cat_counters[category_id].last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())) {
       cat_counters[category_id].duration += ntop->getPrefs()->get_housekeeping_frequency(),
       cat_counters[category_id].last_epoch_update = when;
     }
@@ -221,7 +223,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
       if(json_object_object_get_ex(o, name, &obj)) {
 	json_object *bytes, *packets;
 
-	if((counters[proto_id] = (ProtoCounter*)malloc(sizeof(ProtoCounter))) != NULL) {
+	if((counters[proto_id] = (ProtoCounter*)calloc(1, sizeof(ProtoCounter))) != NULL) {
 	  json_object *duration;
 	  
 	  if(json_object_object_get_ex(obj, "bytes", &bytes)) {
@@ -244,8 +246,8 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	      counters[proto_id]->packets.rcvd = json_object_get_int64(rcvd);
 	  }
 
-	  if(json_object_object_get_ex(bytes, "duration", &duration))
-	    counters[proto_id]->duration = json_object_get_int64(duration);	  
+	  if(json_object_object_get_ex(obj, "duration", &duration))
+	    counters[proto_id]->duration = json_object_get_int(duration);	  
 	}
       }
     }

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "hosts"
@@ -37,7 +37,7 @@ print [[
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <hr>
-<h2>Hosts TreeMap</H2>
+<h2>]] print(i18n("tree_map.hosts_treemap")) print[[</H2>
 <div id='chart'></div>
 
 <span class="row-fluid marketing">
@@ -109,7 +109,7 @@ print [[/lua/host_details.lua?host="+d.name+"\">"+d.name+"</A>");
 
 ]]
 else 
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No results found</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

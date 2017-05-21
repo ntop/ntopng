@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -38,7 +38,7 @@ if(found) then
 print [[
 
 <div class="page-header">
-<h2>Top Hosts (Local)</H2>
+<h2>]] print(i18n("top_hosts.top_hosts_local")) print[[</H2>
 </div>
 
 <script type="text/javascript">
@@ -99,7 +99,7 @@ for k,v in pairs(localhosts) do sortTable[v]=k end
 num = 0
 for _v,k in pairsByKeys(sortTable, rev) do key = k   
    if(num < max_num) then
-      symname = ntop.getResolvedAddress(key)
+      symname = getResolvedAddress(hostkey2hostinfo(key))
       print('var host'..num..' = fetchData("' .. key ..'", "'.. symname .. '");\n');
       num = num+1
    end
@@ -146,7 +146,7 @@ context.on("focus", function(i) {
 
 ]]
 else 
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No results found</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -46,6 +46,7 @@ print [[/lua/about.lua"><i class="fa fa-question-circle"></i> About ntopng</a></
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> Runtime Status</a></li>
+      <li><a href="https://github.com/ntop/ntopng/tree/dev/doc" target="_blank"><i class="fa fa-book"></i> Readme and Manual <i class="fa fa-external-link"></i></a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ntop Blog <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>
 </ul>
@@ -287,16 +288,20 @@ print [[
 
 views = {}
 ifnames = {}
+ifdescr = {}
 
 for v,k in pairs(interface.getIfNames()) do
    interface.select(k)
    _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
+   ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
 end
 
 for k,v in pairsByKeys(ifnames, asc) do
+   local descr
+   
    print("      <li>")
 
    if(v == ifname) then
@@ -310,9 +315,21 @@ for k,v in pairsByKeys(ifnames, asc) do
    end
 
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
-   if (isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+   if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
 
-   print(getHumanReadableInterfaceName(v..""))
+   descr = getHumanReadableInterfaceName(v.."")
+
+   if(string.contains(descr, "{")) then -- Windows
+      descr = ifdescr[k]      
+   else
+      if(v ~= ifdescr[k]) then
+	 descr = descr .. " (".. ifdescr[k] ..")"
+      elseif(v ~= descr) then
+	 descr = descr .. " (".. v ..")"
+      end
+   end
+   
+   print(descr)
    if(views[v] == true) then print(' <i class="fa fa-eye"></i> ') end
    print("</a>")
    print("</li>\n")
@@ -356,13 +373,19 @@ end
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a></li>\n")
 
-   if (ntop.isPro()) then
+   if(ntop.isPro()) then
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")
       if(false) then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
    end
 
+end
+
+local show_bridge_wizard = false
+if(user_group == "administrator") and isBridgeInterface(_ifstats) and ntop.isEnterprise() then
+   print[[<li><a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-magic"></i> Bridge Configuration</a></li>]]
+   show_bridge_wizard = true
 end
 
 print [[
@@ -403,7 +426,7 @@ print(
       query_field = "host",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
       query_title = "Search Host",
-      style       = "width:15em;",
+      style       = "width:16em;",
     }
   })
 )
@@ -429,6 +452,10 @@ end
 addLogoSvg()
 
 print("</A></h3>\n</div>\n")
+
+if show_bridge_wizard then
+   dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
+end
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)

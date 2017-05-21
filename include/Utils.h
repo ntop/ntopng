@@ -90,8 +90,6 @@ class Utils {
   static u_int32_t macHash(u_int8_t *mac);
   static bool isSpecialMac(u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
-  static u_int32_t in_cksum(unsigned char *buf, unsigned nbytes, u_int32_t sum);
-  static u_int32_t wrapsum(u_int32_t sum);
 
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
@@ -99,10 +97,15 @@ class Utils {
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 
   static inline u_int64_t toUs(struct timeval *t) { return(((u_int64_t)t->tv_sec)*1000000+((u_int64_t)t->tv_usec)); };
-  static void replacestr(char *line, const char *search, const char *replace);	  
+  static void replacestr(char *line, const char *search, const char *replace);
   static u_int32_t getHostManagementIPv4Address();
   static bool isInterfaceUp(char *ifname);
   static bool maskHost(bool isLocalIP);
+  static char* getInterfaceDescription(char *ifname, char *buf, int buf_len);
+  
+  /* System Host Montiring and Diagnose Functions */
+  static void luaCpuLoad(lua_State* vm);
+  static void luaMeminfo(lua_State* vm);
 };
 
 #endif /* _UTILS_H_ */

@@ -18,8 +18,8 @@
 window.onload=function() {
    var refresh = 3000 /* ms */;
 
-   do_pie("#topClientPorts", '@HTTP_PREFIX@/lua/iface_ports_list.lua', { mode: "client" }, "", refresh);
-   do_pie("#topServerPorts", '@HTTP_PREFIX@/lua/iface_ports_list.lua', { mode: "server" }, "", refresh);
+   do_pie("#topClientPorts", '@HTTP_PREFIX@/lua/iface_ports_list.lua', { clisrv: "client" }, "", refresh);
+   do_pie("#topServerPorts", '@HTTP_PREFIX@/lua/iface_ports_list.lua', { clisrv: "server" }, "", refresh);
 }
 
 </script>

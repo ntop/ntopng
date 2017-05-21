@@ -16,13 +16,55 @@ local res = {interface=ifname, results={}}
 local results = res.results
 
 local query = _GET["query"] or ""
+query = string.lower(query)
 local pool_id = _GET["pool"] or host_pools_utils.DEFAULT_POOL_ID
 
 interface.select(ifname)
 local members = host_pools_utils.getPoolMembers(getInterfaceId(ifname), pool_id)
 
 for _,member in ipairs(members) do
-  if string.contains(member.address, query) then
+  local is_mac = isMacAddress(member.address)
+  local hostkey, is_network = host_pools_utils.getMemberKey(member.address)
+  local is_host = (not is_network) and (not is_mac)
+  local matching = false
+
+  if is_host then
+    local info = interface.getHostInfo(hostkey)
+
+    if (info ~= nil) then
+      -- by DHCP/DNS name
+      if (info.name ~= nil) and string.contains(string.lower(info.name), query) then
+        results[#results + 1] = {name=info.name, key=member.key}
+        matching = true
+      -- by NBNS name
+      elseif (info.info ~= nil) and string.contains(string.lower(info.info), query) then
+        results[#results + 1] = {name=info.info, key=member.key}
+        matching = true
+      -- by MAC
+      elseif (info.mac ~= nil) and string.contains(string.lower(info.mac), query) then
+        results[#results + 1] = {name=info.mac, key=member.key}
+        matching = true
+      else
+        -- by IP/MAC altName
+        local altname = getHostAltName(info["ip"], info.mac)
+
+        if (altname ~= nil) and  string.contains(string.lower(altname), query) then
+          results[#results + 1] = {name=altname, key=member.key}
+          matching = true
+        end
+      end
+    end
+  elseif is_mac then
+    -- by MAC altName
+    local altname = getHostAltName(member.address)
+
+    if (altname ~= nil) and  string.contains(string.lower(altname), query) then
+      results[#results + 1] = {name=altname, key=member.key}
+      matching = true
+    end
+  end
+
+  if (not matching) and string.contains(string.lower(member.address), query) then
     local name = member.address
 
     if tonumber(member.vlan) > 0 then
@@ -31,10 +73,11 @@ for _,member in ipairs(members) do
 
     -- Note: the 'name' field is used by typeahead
     results[#results + 1] = {name=name, key=member.key}
+    matching = true
+  end
 
-    if #results == max_num_to_find then
-      break
-    end
+  if #results == max_num_to_find then
+    break
   end
 end
 

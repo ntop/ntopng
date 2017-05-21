@@ -14,5 +14,4 @@ require "lua_utils"
 require "alert_utils"
 require "slack_utils"
 
-housekeepingAlertsMakeRoom()
 sendSlackMessages()

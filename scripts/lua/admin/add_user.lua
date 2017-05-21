@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 if(haveAdminPrivileges()) then
    username = _POST["username"]
@@ -31,7 +31,8 @@ if(haveAdminPrivileges()) then
    end
 
    local ret = false
-   if(ntop.addUser(username, full_name, password, host_role, networks, getInterfaceName(allowed_interface), host_pool_id)) then
+
+   if(ntop.addUser(username, full_name, unescapeHTML(password), host_role, networks, getInterfaceName(allowed_interface), host_pool_id)) then
       ret = true
 
       if limited_lifetime and not ntop.addUserLifetime(username, lifetime_secs) then

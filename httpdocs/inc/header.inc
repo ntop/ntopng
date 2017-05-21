@@ -55,6 +55,7 @@
     <script src="@HTTP_PREFIX@/js/ays_utils.js"></script>
     <link href="@HTTP_PREFIX@/css/bootstrap-duallistbox.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/css/bootstrap-slider.css" rel="stylesheet">
+    <link href="@HTTP_PREFIX@/css/bootstrap-nav-wizard.css" rel="stylesheet">
     <script type="text/javascript" src="@HTTP_PREFIX@/js/bootstrap-slider.js"></script>
 
     <!--[if lt IE 9]>

@@ -11,7 +11,7 @@ require "graph_utils"
 host_ip = _GET["host"]
 ifid = _GET["ifid"]
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifid)
 host_info = hostkey2hostinfo(host_ip)

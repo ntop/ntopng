@@ -34,6 +34,7 @@ local flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rr
 local host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
 local snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
 local asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
+local vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
@@ -50,6 +51,7 @@ local prefs = ntop.getPrefs()
 -- Scan "5 minute" alerts
 callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
    scanAlerts("5mins", ifname)
+   housekeepingAlertsMakeRoom(getInterfaceId(ifname))
 end)
 
 -- ########################################################
@@ -86,65 +88,26 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   end
 
   -- Save hosts stats
-  local networks_aggr = {}
-  local vlans_aggr    = {}
-  local asn_aggr      = {}
-
-  local in_time = callback_utils.foreachHost(_ifname, verbose, function (hostname, host, hostbase)
-
+  local networks_aggr  = {}
+  local localHostsOnly = false
+  
+  local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
     local host_asn = host["asn"]
     local host_vlan = host["vlan"]
     local network_name = host["local_network_name"]
+
+    if not isEmptyString(network_name) then
+      networks_aggr[network_name] = networks_aggr[network_name] or {}
+    end
 
     -- Crunch TCP anomalies
     if tcp_retr_ooo_lost_rrd_creation == "1" then
        for _, anom in pairs({"tcp.packets.out_of_order", "tcp.packets.retransmissions", "tcp.packets.lost"}) do
 	  if host[anom] then
-	     if host_asn ~= nil then
-		asn_aggr[host_asn] = asn_aggr[host_asn] or {}
-		asn_aggr[host_asn][anom] = (asn_aggr[host_asn][anom] or 0) + host[anom]
-	     end
-
-	     if host_vlan ~= nil and host_vlan ~= 0 then
-		vlans_aggr[host_vlan] = vlans_aggr[host_vlan] or {}
-		vlans_aggr[host_vlan][anom] = (vlans_aggr[host_vlan][anom] or 0) + host[anom]
-	     end
-
 	     if network_name ~= nil and isEmptyString(network_name) == false then
-		networks_aggr[network_name] = networks_aggr[network_name] or {}
 		networks_aggr[network_name][anom] = (networks_aggr[network_name][anom] or 0) + host[anom]
 	     end
 	  end
-       end
-    end
-
-    -- Aggregate ASN stats
-    if(host_asn ~= nil and asn_rrd_creation == "1") then
-       asn_aggr[host_asn] = asn_aggr[host_asn] or {}
-       asn_aggr[host_asn]["bytes.sent"] = (asn_aggr[host_asn]["bytes.sent"] or 0) + host["bytes.sent"]
-       asn_aggr[host_asn]["bytes.rcvd"] = (asn_aggr[host_asn]["bytes.rcvd"] or 0) + host["bytes.rcvd"]
-
-
-       asn_aggr[host_asn]["ndpi"] = asn_aggr[host_asn]["ndpi"] or {}
-       for k in pairs(host["ndpi"]) do
-          asn_aggr[host_asn]["ndpi"][k] = asn_aggr[host_asn]["ndpi"][k] or {}
-          asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
-          asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] = (asn_aggr[host_asn]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
-       end
-    end
-
-    -- Aggregate VLAN stats
-    if host_vlan ~= nil and host_vlan ~= 0 then
-       if vlans_aggr[host_vlan] == nil then
-          vlans_aggr[host_vlan] = {}
-       end
-
-       if vlans_aggr[host_vlan]["bytes.sent"] == nil then
-          vlans_aggr[host_vlan]["bytes.sent"] = host["bytes.sent"]
-          vlans_aggr[host_vlan]["bytes.rcvd"] = host["bytes.rcvd"]
-       else
-          vlans_aggr[host_vlan]["bytes.sent"] = vlans_aggr[host_vlan]["bytes.sent"] + host["bytes.sent"]
-          vlans_aggr[host_vlan]["bytes.rcvd"] = vlans_aggr[host_vlan]["bytes.rcvd"] + host["bytes.rcvd"]
        end
     end
 
@@ -190,7 +153,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	     ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
 	     -- Aggregate network NDPI stats
-	     networks_aggr[network_name] = (networks_aggr[network_name] or {})
 	     networks_aggr[network_name]["ndpi"] = (networks_aggr[network_name]["ndpi"] or {})
 	     networks_aggr[network_name]["ndpi"][k] = (networks_aggr[network_name]["ndpi"][k] or {})
 	     networks_aggr[network_name]["ndpi"][k]["bytes.sent"] =
@@ -242,8 +204,11 @@ end, time_threshold) -- end foreachHost
   if asn_rrd_creation == "1" then
      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
 
-     for asn_id, asn_stats in pairs(asn_aggr) do
-        local asnpath = fixPath(basedir.. "/" .. asn_id)
+     local asn_info = interface.getASesInfo()
+     for _, asn_stats in ipairs(asn_info["ASes"]) do
+	local asn = asn_stats["asn"]
+
+	local asnpath = fixPath(basedir.. "/" .. asn)
         if not ntop.exists(asnpath) then
 	   ntop.mkdir(asnpath)
         end
@@ -263,35 +228,56 @@ end, time_threshold) -- end foreachHost
         end
 
 	if tcp_retr_ooo_lost_rrd_creation == "1" then
+	   --[[ TODO: implement for ASes
 	   local anoms = (asn_stats["tcp.packets.out_of_order"] or 0)
 	   anoms = anoms + (asn_stats["tcp.packets.retransmissions"] or 0) + (asn_stats["tcp.packets.lost"] or 0)
 	   if(anoms > 0) then
 	      makeRRD(asnpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
 	   end
+	   --]]
 	end
      end
   end
 
   -- Create RRD for vlans
-  local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
-  for vlan_id, vlan_stats in pairs(vlans_aggr) do
-     local vlanpath = getPathFromKey(vlan_id)
-     vlanpath = fixPath(basedir.. "/" .. vlanpath)
-     if not ntop.exists(vlanpath) then
-        ntop.mkdir(vlanpath)
-     end
+  if vlan_rrd_creation == "1" then
+    local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
+    local vlan_info = interface.getVLANsInfo()
 
-     local vlanbytes = fixPath(vlanpath .. "/bytes.rrd")
-     createRRDcounter(vlanbytes, 300, false)
-     ntop.rrd_update(vlanbytes, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
+    if (vlan_info ~= nil) and (vlan_info["VLANs"] ~= nil) then
+      for _, vlan_stats in pairs(vlan_info["VLANs"]) do
+        local vlan_id = vlan_stats["vlan_id"]
 
-     if tcp_retr_ooo_lost_rrd_creation == "1" then
-	local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
-	anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
-	if(anoms > 0) then
-	   makeRRD(vlanpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
-	end
-     end
+        local vlanpath = getPathFromKey(vlan_id)
+        vlanpath = fixPath(basedir.. "/" .. vlanpath)
+        if not ntop.exists(vlanpath) then
+          ntop.mkdir(vlanpath)
+        end
+
+        local vlanbytes = fixPath(vlanpath .. "/bytes.rrd")
+        createRRDcounter(vlanbytes, 300, false)
+        ntop.rrd_update(vlanbytes, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
+
+        -- Save VLAN ndpi stats
+        if vlan_stats["ndpi"] ~= nil then
+          for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
+            local vlan_ndpi_rrd = fixPath(vlanpath.."/"..proto_name..".rrd")
+            createRRDcounter(vlan_ndpi_rrd, 300, verbose)
+            ntop.rrd_update(vlan_ndpi_rrd, "N:"..tolongint(proto_stats["bytes.sent"])..":"..tolongint(proto_stats["bytes.rcvd"]))
+          end
+        end
+
+        if tcp_retr_ooo_lost_rrd_creation == "1" then
+          --[[ TODO: implement for VLANs
+          local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
+          anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
+          if(anoms > 0) then
+             makeRRD(vlanpath, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
+          end
+          --]]
+        end
+      end
+    end
   end
 
   --- Create RRD for networks
@@ -385,18 +371,6 @@ end, time_threshold) -- end foreachHost
      end
 
   end
-
-  -- Save host activity stats only if flow activities are actually enabled
-  -- TODO: it is pointless to call foreachHost one more time. This is too expensive
-  -- and determines an attitional call to getHostInfo for every host
-  if ((prefs.is_flow_activity_enabled == true) and (ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == true)) then
-     local in_time = callback_utils.foreachHost(_ifname, verbose, callback_utils.saveLocalHostsActivity, time_threshold)
-     if not in_time then
-        callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD activity dump in 5 minutes. Please check your RRD configuration.")
-        return false
-     end
-  end
-
 
   -- Save Host Pools stats every 5 minutes
   if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1") and (not ifstats.isView)) then

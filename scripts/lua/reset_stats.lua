@@ -8,7 +8,7 @@ require "lua_utils"
 
 local json = require("dkjson")
 
-sendHTTPHeader('application/json; charset=iso-8859-1')
+sendHTTPContentTypeHeader('application/json')
 
 local action = _POST["resetstats_mode"]
 

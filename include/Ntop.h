@@ -67,7 +67,9 @@ class Ntop {
   int udp_socket;
   NtopPro *pro;
 #ifdef NTOPNG_PRO
+#ifndef WIN32
   NagiosManager *nagios_manager;
+#endif
   FlowChecker *flow_checker;
 #endif
   AddressTree *hostBlacklist, *hostBlacklistShadow;
@@ -370,7 +372,11 @@ class Ntop {
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 
 #ifdef NTOPNG_PRO
+#ifdef WIN32
+  char* getIfName(int if_id, char *name, u_int name_len);
+#else
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };
+#endif
 #endif
 
   void getUsers(lua_State* vm);
@@ -381,6 +387,7 @@ class Ntop {
   bool isInterfaceAllowed(lua_State* vm, int ifid)           const;
   bool checkUserPassword(const char *user, const char *password);
   bool resetUserPassword(char *username, char *old_password, char *new_password);
+  bool mustChangePassword(const char *user);
   bool changeUserRole(char *username, char *user_role) const;
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;

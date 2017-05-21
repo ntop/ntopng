@@ -63,14 +63,14 @@ print [[
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
   </div>
 
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Confirm Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
     </div>
 </div>
@@ -248,10 +248,21 @@ print[[
   resetAddUserForm();
 
   frmadduser.submit(function () {
+    if(!isValidPassword($("#password_input").val())) {
+      add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
+      return(false);
+    }
+
+    if(isDefaultPassword($("#password_input").val())) {
+      add_user_alert.error("Password is weak. Please choose a stronger password.");
+      return(false);
+    }
+
     if(!isValid($("#username_input").val())) {
       add_user_alert.error("Username must contain only letters and numbers");
       return(false);
     }
+
     if($("#username_input").val().length < 5) {
       add_user_alert.error("Username too short (5 or more characters)");
       return(false);

@@ -22,7 +22,7 @@ compared_hosts_size = 0;
 if(debug) then io.write("==== hosts_compared_sankey ====\n") end
 hosts = _GET["hosts"]
 if(debug) then io.write("Host:"..hosts.."\n") end
-tprint(_GET)
+
 if (_GET["hosts"] ~= nil) then
 
   compared_hosts, compared_hosts_size = getHostCommaSeparatedList(_GET["hosts"])
@@ -37,7 +37,7 @@ if (_GET["hosts"] ~= nil) then
     end
 
     -- 1.    Find all flows between compared hosts
-    flows_stats = interface.getFlowsInfo()
+    flows_stats = interface.getFlowsInfo(nil, {detailedResults=true})
     flows_stats = flows_stats["flows"]
 
     links = {}
@@ -167,7 +167,7 @@ if (_GET["hosts"] ~= nil) then
         vlan_id = " "
       end
 
-      print ("\t{\"name\": \"" .. ntop.getResolvedAddress(host_ip) .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
+      print ("\t{\"name\": \"" .. getResolvedAddress(hostkey2hostinfo(host_ip)) .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
       node_size = node_size + 1
     end
 

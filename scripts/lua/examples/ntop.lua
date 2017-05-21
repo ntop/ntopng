@@ -28,7 +28,7 @@ require "lua_utils"
 -- function sendHTTPHeaderIfName(mime, ifname, maxage)
 -- function sendHTTPHeader(mime)
 -- For more information please read the scripts/lua/modules/lua_utils.lua file.
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -157,10 +157,10 @@ print('<br><h2>Address resolution</h2>')
 print('<p>The ntopng lua class provide a few methods to get information about the address resolution.</p>')
 
 print('<h4>ntopng resolve the IP address and get host name</h4>')
-print('<pre><code>ntop.resolveAddress("127.0.0.1")</code></pre>')
+print('<pre><code>ntop.resolveName("127.0.0.1")</code></pre>')
 
 print('<ul>')
-print("<li>127.0.0.1 = "..ntop.resolveAddress("127.0.0.1").."<br>")
+print("<li>127.0.0.1 = "..ntop.resolveName("127.0.0.1").."<br>")
 print('</ul>')
 
 print('<br><h2>Logging</h2>')

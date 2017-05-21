@@ -9,7 +9,7 @@ require "lua_utils"
 require "flow_utils"
 local json = require ("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 
 local debug = false

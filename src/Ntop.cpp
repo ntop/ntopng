@@ -64,11 +64,13 @@ Ntop::Ntop(char *appName) {
     hostBlacklistShadow = hostBlacklist = NULL;
 
 #ifdef WIN32
-  if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
-		     SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
-    strcpy(working_dir, "C:\\Windows\\Temp" /* "\\ntopng" */); // Fallback: it should never happen
-  }
+  if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
+	  strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen                                                                                                   
+  } else {
+	  int l = strlen(working_dir);
 
+	  snprintf(&working_dir[l], sizeof(working_dir), "%s", "\\ntopng");
+  }
   // Get the full path and filename of this program
   if(GetModuleFileName(NULL, startup_dir, sizeof(startup_dir)) == 0) {
     startup_dir[0] = '\0';
@@ -114,7 +116,9 @@ Ntop::Ntop(char *appName) {
 
 #ifdef NTOPNG_PRO
   pro = new NtopPro();
+#ifndef WIN32
   nagios_manager = NULL;
+#endif
   flow_checker = new FlowChecker();
 
   if((pro == NULL)
@@ -183,7 +187,11 @@ Ntop::~Ntop() {
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
+#ifdef WIN32
+#ifndef WIN32
   if(nagios_manager) delete nagios_manager;
+#endif
+#endif
   if(flow_checker) delete flow_checker;
 #endif
 }
@@ -236,7 +244,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if(((ntop->getPrefs()->get_http_port() != 80) && (ntop->getPrefs()->get_alt_http_port() != 80))
      || ((ntop->getPrefs()->get_http_port() == 80) && (ntop->getPrefs()->get_alt_http_port() == 0))) {
     redis->del((char*)CONST_PREFS_CAPTIVE_PORTAL);
-  }    
+  }
 
   pro->init_license();
 #endif
@@ -246,8 +254,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
 #ifdef NTOPNG_PRO
 void Ntop::registerNagios(void) {
+#ifndef WIN32
   if(nagios_manager) { delete nagios_manager; nagios_manager = NULL; }
   nagios_manager = new NagiosManager();
+#endif
 }
 #endif
 
@@ -327,13 +337,23 @@ void Ntop::start() {
   address->startResolveAddressLoop();
 
   while(!globals->isShutdown()) {
-    u_int16_t nap = ntop->getPrefs()->get_housekeeping_frequency();
-    ntop->getTrace()->traceEvent(TRACE_DEBUG,
-				 "Sleeping %i seconds before doing the chores.",
-				 nap);
-    sleep(nap);
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to do the chores.");
+    struct timeval begin, end;
+    u_long usec_diff;
+    u_long nap = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
+
+    gettimeofday(&begin, NULL);
     runHousekeepingTasks();
+    gettimeofday(&end, NULL);
+
+    usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
+
+    if(usec_diff < nap)
+      nap -= usec_diff;
+
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				 "Sleeping %i microsecods before doing the chores.",
+				 nap);
+    _usleep(nap);
   }
 }
 
@@ -374,19 +394,16 @@ IpAddress* Ntop::getLocalNetworkIp(int16_t local_network_id) {
 #include <iphlpapi.h>
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
-#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+#define FREE(x)   HeapFree(GetProcessHeap(), 0, (x))
 
 /* Note: could also use malloc() and free() */
 
-char* getIfName(int if_id, char *name, u_int name_len) {
-
+char* Ntop::getIfName(int if_id, char *name, u_int name_len) {
   // Declare and initialize variables
   PIP_INTERFACE_INFO pInfo = NULL;
   ULONG ulOutBufLen = 0;
-
   DWORD dwRetVal = 0;
   int iReturn = 1;
-
   int i;
 
   name[0] = '\0';
@@ -400,6 +417,7 @@ char* getIfName(int if_id, char *name, u_int name_len) {
       return(name);
     }
   }
+
   // Make a second call to GetInterfaceInfo to get
   // the actual data we need
   dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
@@ -426,15 +444,6 @@ char* getIfName(int if_id, char *name, u_int name_len) {
   return(name);
 }
 
-/* ******************************************* */
-
-int NumberOfSetBits(u_int32_t i) {
-  // Java: use >>> instead of >>
-  // C or C++: use uint32_t
-  i = i - ((i >> 1) & 0x55555555);
-  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-  return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
-}
 #endif
 
 /* ******************************************* */
@@ -489,22 +498,22 @@ void Ntop::loadLocalInterfaceAddress() {
 
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-	u_int32_t bits = NumberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+		u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 
-	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+	    IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+ 	    snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
+	    address->setLocalNetwork(buf);
 
-	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
-	address->setLocalNetwork(buf);
-
-	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
-	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
-	iface[id]->addInterfaceAddress(buf);
+	    IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
+	    snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+		local_interface_addresses.addAddress(buf);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
+	    iface[id]->addInterfaceAddress(buf);
       }
     }
   }
-
+  
   /* TODO: add IPv6 support */
   if(pIPAddrTable) {
     FREE(pIPAddrTable);
@@ -525,6 +534,7 @@ void Ntop::loadLocalInterfaceAddress() {
     struct ifreq ifr;
     u_int32_t netmask;
     int cidr, ifId = -1;
+
     if((ifa->ifa_addr == NULL)
        || ((ifa->ifa_addr->sa_family != AF_INET)
 	   && (ifa->ifa_addr->sa_family != AF_INET6))
@@ -559,19 +569,19 @@ void Ntop::loadLocalInterfaceAddress() {
       }
 
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
-	char buf_orig[32];
+	char buf_orig2[32];
 
-	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
-	local_interface_addresses.addAddress(buf_orig);
-	iface[ifId]->addInterfaceAddress(buf_orig);
+	snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, 32);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig2, iface[ifId]->get_name());
+	local_interface_addresses.addAddress(buf_orig2);
+	iface[ifId]->addInterfaceAddress(buf_orig2);
 
 	/* Set to zero non network bits */
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
 	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
-	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s", buf_orig, iface[ifId]->get_name());
-	address->setLocalNetwork(buf_orig);
+	snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, cidr);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s", buf_orig2, iface[ifId]->get_name());
+	address->setLocalNetwork(buf_orig2);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
@@ -609,9 +619,9 @@ void Ntop::loadLocalInterfaceAddress() {
   closesocket(sock);
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Local Interface Addresses (System Host)");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Local Interface Addresses (System Host)");
   local_interface_addresses.dump();
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Local Networks");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Local Networks");
   address->dump();
 
   if(0) {
@@ -930,6 +940,19 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
 
 /* ******************************************* */
 
+bool Ntop::mustChangePassword(const char *user) {
+  char val[8];
+
+  if ((strcmp(user, "admin") == 0)
+      && (ntop->getRedis()->get((char *)CONST_DEFAULT_PASSWORD_CHANGED, val, sizeof(val)) < 0
+	  || val[0] == '0'))
+    return true;
+
+  return false;
+}
+
+/* ******************************************* */
+
 bool Ntop::resetUserPassword(char *username, char *old_password, char *new_password) {
   char key[64];
   char password_hash[33];
@@ -1183,9 +1206,13 @@ void Ntop::fixPath(char *str, bool replaceDots) {
       Allowed windows path and file characters:
       https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#win32_file_namespaces
     */
-    if(str[i] == '/')
-      str[i] = '\\';
-    else if(str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
+	  if (str[i] == '/')
+		  str[i] = '\\';
+	  else if (str[i] == '\\')
+		  continue;
+	  else if ((i == 1) && (str[i] == ':')) // c:\\...
+		  continue;
+	  else if (str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
       str[i] = '_';
 #endif
 

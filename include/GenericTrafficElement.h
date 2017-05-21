@@ -28,6 +28,7 @@ class GenericTrafficElement {
  protected:
   u_int16_t vlan_id;
   TrafficStats sent, rcvd;
+  nDPIStats *ndpiStats;
 
   float bytes_thpt, pkts_thpt;
   float last_bytes_thpt, last_pkts_thpt;
@@ -39,6 +40,9 @@ class GenericTrafficElement {
 
  public:
   GenericTrafficElement();
+  virtual ~GenericTrafficElement() {
+    if(ndpiStats) delete ndpiStats;
+  };
 
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   bool idle();

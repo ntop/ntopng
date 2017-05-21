@@ -19,18 +19,23 @@
  *
  */
 
-#ifndef _HOST_ACTIVITY_RETRIEVER_H_
-#define _HOST_ACTIVITY_RETRIEVER_H_
+#ifndef _VLAN_HASH_H_
+#define _VLAN_HASH_H_
 
 #include "ntop_includes.h"
+ 
+class VlanHash : public GenericHash {
+ private:
+  Mutex m;
 
-class HostActivityRetriever {
-public:
-  IpAddress search;
-  bool found;
-  UserActivityCounter counters[UserActivitiesN];
+ public:
+  VlanHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  HostActivityRetriever(const char * ip) { search.set((char *)ip), found = false; };
+  Vlan* get(u_int16_t vlan_id);
+
+#ifdef VLAN_DEBUG
+  void printHash();
+#endif
 };
 
-#endif /* _HOST_ACTIVITY_RETRIEVER_H_ */
+#endif /* _VLAN_HASH_H_ */

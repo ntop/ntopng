@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -71,7 +71,7 @@ for key, value in pairs(hosts_stats) do
       -- exclude multicast / NoIP / broadcast
       if(not(isBroadcastMulticast(hosts_stats[key]["ip"]))) then
 	 if(hasLocalTraffic(flows_stats, hosts_stats, key)) then
-	    name_host_1 = ntop.getResolvedAddress(key);
+	    name_host_1 = getResolvedAddress(hostkey2hostinfo(key));
 	    localhosts[key] = hosts_stats[key]
 	    localhosts[key]["name"] = name_host_1
 	    found = true
@@ -81,9 +81,9 @@ for key, value in pairs(hosts_stats) do
 end
 
 if(found == false) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No local hosts can be found</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("local_flow_matrix.error_no_local_hosts") .."</div>")
 else
-   print("<hr><h2>Local Hosts Active Flows Matrix</h2>\n<p>&nbsp;<p>\n<table class=\"table table-striped table-bordered\">\n")
+   print("<hr><h2>" .. i18n("local_flow_matrix.local_hosts_active_flows_matrix") .. "</h2>\n<p>&nbsp;<p>\n<table class=\"table table-striped table-bordered\">\n")
 
    -- Header
    print("<tr><th>&nbsp;</th>")

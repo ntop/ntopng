@@ -82,10 +82,12 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <string.h>
+#include <string.h>
 #include <math.h>
 #include <sys/stat.h>
 #include <zmq.h>
 #include <assert.h>
+#include <fcntl.h>
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
@@ -151,8 +153,8 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "TrafficStats.h"
-#include "GenericTrafficElement.h"
 #include "nDPIStats.h"
+#include "GenericTrafficElement.h"
 #ifdef NTOPNG_PRO
 #include "CountMinSketch.h"
 #include "FlowProfile.h"
@@ -175,7 +177,6 @@ using namespace std;
 #include "Mutex.h"
 #include "Utils.h"
 #include "ActivityStats.h"
-#include "UserActivityStats.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
 #include "ICMPstats.h"
@@ -205,7 +206,6 @@ using namespace std;
 #include "MySQLDB.h"
 #include "TcpFlowStats.h"
 #include "InterfaceStatsHash.h"
-#include "HostActivityRetriever.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"
 #include "ViewInterface.h"
@@ -214,14 +214,18 @@ using namespace std;
 #endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
+#ifndef WIN32
 #include "PacketBridge.h"
+#endif
 #include "TrafficShaper.h"
 #include "L7Policer.h"
 #include "BatchedMySQLDB.h"
 #include "BatchedMySQLDBEntry.h"
 #include "SPSCQueue.h"
 #include "LuaHandler.h"
+#ifndef WIN32
 #include "NagiosManager.h"
+#endif
 #include "FlowChecker.h"
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
@@ -241,13 +245,20 @@ using namespace std;
 #include "Flashstart.h"
 #include "GenericHost.h"
 #include "CategoryStats.h"
+#include "Vlan.h"
+#include "AutonomousSystem.h"
 #include "Mac.h"
 #include "Host.h"
-#include "ActivityFilters.h"
 #include "Flow.h"
 #include "FlowHash.h"
 #include "MacHash.h"
+#include "VlanHash.h"
+#include "AutonomousSystemHash.h"
 #include "HostHash.h"
+#ifdef NTOPNG_PRO
+#include "AggregatedFlow.h"
+#include "AggregatedFlowHash.h"
+#endif
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "MacManufacturers.h"

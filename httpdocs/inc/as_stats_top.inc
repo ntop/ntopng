@@ -10,7 +10,7 @@
 			     {
 			     title: "Alerts",
 				 field: "column_alerts",
-				 sortable: true,
+				 sortable: false,
                              css: {
 			        textAlign: 'center'
 			     }
@@ -18,7 +18,7 @@
 				 },
 			     {
 			     title: "Name",
-				 field: "column_name",
+				 field: "column_asname",
 				 sortable: true,
                              css: {
 			        textAlign: 'left'

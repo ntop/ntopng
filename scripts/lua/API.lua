@@ -442,14 +442,14 @@ function deleteUser(username)
 --! @details For more information please read the @ref ntop_resolve_address documentation.
 --! @tparam string numIP The IP address.
 --! @return The host name of IP address.
-function resolveAddress(numIP)
+function resolveName(numIP)
 
 --! @memberof ntop
 --! @brief Get the resolved address in the redis cache stored at key.
 --! @details For more information please read the @ref ntop_get_resolved_address documentation.
 --! @tparam string key The IP address.
 --! @return The host name of IP address.
-function getResolvedAddress(key)
+function getResolvedName(key)
 
 
 

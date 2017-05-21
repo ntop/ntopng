@@ -92,6 +92,13 @@ typedef enum {
 } AlertEntity;
 
 typedef enum {
+  alert_engine_periodic_1min = 0,
+  alert_engine_periodic_5min,
+  alert_engine_periodic_hour,
+  alert_engine_periodic_day,
+} AlertEngine;
+
+typedef enum {
   alert_on = 1,       /* An issue has been discovered and an alert has been triggered */
   alert_off = 2,      /* A previous alert has been fixed */
   alert_permanent = 3 /* Alert that can't be fixed (e.g. a flow with an anomaly) */
@@ -232,6 +239,7 @@ typedef enum {
   column_name,
   column_since,
   column_asn,
+  column_asname,
   column_local_network_id,
   column_local_network,
   column_country,
@@ -279,35 +287,16 @@ typedef enum {
 } LuaCallback;
 
 typedef enum {
-  user_activity_other = 0,
-  user_activity_web,
-  user_activity_media,
-  user_activity_vpn,
-  user_activity_mail_sync,
-  user_activity_mail_send,
-  user_activity_file_sharing,
-  user_activity_file_transfer,
-  user_activity_chat,
-  user_activity_game,
-  user_activity_remote_control,
-  user_activity_social_network,
-
-  UserActivitiesN /* Unused as value but useful to
-		     getting the number of elements
-		     in this datastructure
-		  */
-} UserActivityID;
-
-typedef enum {
-  ifa_facebook_stats = 0,
-  ifa_twitter_stats,
-  IFA_STATS_PROTOS_N
-} InterFlowActivityProtos;
+  user_script_context_inline,
+  user_script_context_periodic,
+} UserScriptContext;
 
 typedef enum {
   walker_hosts = 0,
   walker_flows,
-  walker_macs
+  walker_macs,
+  walker_ases,
+  walker_vlans,
 } WalkerType;
 
 typedef enum {
@@ -334,5 +323,14 @@ typedef struct {
   void *items[QUEUE_ITEMS];
 } spsc_queue_t;
 
+#ifdef NTOPNG_PRO
+
+typedef struct {
+  char *host_or_mac;
+  time_t lifetime;
+  UT_hash_handle hh; /* makes this structure hashable */
+} volatile_members_t;
+
+#endif
 
 #endif /* _NTOP_TYPEDEFS_H_ */
