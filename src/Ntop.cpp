@@ -64,11 +64,13 @@ Ntop::Ntop(char *appName) {
     hostBlacklistShadow = hostBlacklist = NULL;
 
 #ifdef WIN32
-  if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
-		     SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
-    strcpy(working_dir, "C:\\Windows\\Temp" /* "\\ntopng" */); // Fallback: it should never happen
-  }
+  if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
+	  strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen                                                                                                   
+  } else {
+	  int l = strlen(working_dir);
 
+	  snprintf(&working_dir[l], sizeof(working_dir), "%s", "\\ntopng");
+  }
   // Get the full path and filename of this program
   if(GetModuleFileName(NULL, startup_dir, sizeof(startup_dir)) == 0) {
     startup_dir[0] = '\0';
