@@ -220,6 +220,7 @@ void Logstash::sendLSdata() {
             continue;
           }
 
+        }
         if(sendTCP
            && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0)
 	   && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN
@@ -232,7 +233,6 @@ void Logstash::sendLSdata() {
 	  sleep(4);
           continue;
         }
-        
       }
 
       if(skipDequeue == 1){
