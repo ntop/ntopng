@@ -195,45 +195,50 @@ void Logstash::sendLSdata() {
 
   while(!ntop->getGlobals()->isShutdown()) {
     if(num_queued_elems >= watermark) {
-      if(sockfd<0){
-        if(!sendTCP) { //UDP socket
-          sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
-        } else {  //TCP socket
-          sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        }
-
-        if(sockfd < 0) {
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket. Skipping dequeue");
-          continue;
-        }
+      if(sockfd<0||skipDequeue==1){
+        if(sockfd<0){
+  	  if(!sendTCP) { //UDP socket
+            sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
+          } else {  //TCP socket
+            sockfd = socket(AF_INET, SOCK_STREAM, 0);
+          }
+          //Set nonblocking
+          retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
+          if(retval == -1){
+            ntop->getTrace()->traceEvent(TRACE_WARNING,"[LS] Error  while setting NONBLOCK flag. Skipping dequeue.");
+            close(sockfd);
+	    sockfd = -1;
+            sleep(1);
+            continue;
+          }
         
-        //Set nonblocking
-        retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
-        if(retval == -1){
-          ntop->getTrace()->traceEvent(TRACE_WARNING,"Error  while setting NONBLOCK flag. Skipping dequeue.");
-          close(sockfd);
-	  sockfd = -1;
-          sleep(1);
-          continue;
+          if(sockfd < 0) {
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] Unable to create socket. Skipping dequeue");
+            // Delay data export to give a change for remote party to resurrect
+	    skipDequeue = 1;
+            sleep(1);
+            continue;
+          }
         }
 
         if(sendTCP
            && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0)
-	   && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN 
-              || errno == ENETUNREACH || errno == ETIMEDOUT)
+	   && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN
+           || errno == ENETUNREACH || errno == ETIMEDOUT )
           ) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,"Could not connect to remote. Skipping dequeue..");
-          sleep(1);
-          //close socket and reinitialize for next loop
-          close(sockfd);
-          sockfd = -1;
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,"[LS] Could not connect to remote party. Reinitializing");
+          skipDequeue = 1;
+	  close(sockfd);
+	  sockfd=-1;
+	  sleep(4);
           continue;
         }
-
+        
       }
+
       if(skipDequeue == 1){
 	//Next loop should start dequeuing again if all goes well
-	skipDequeue = 0;
+	skipDequeue = 2;
       } else {
         len = 0, num_flows = 0;
         listMutex.lock(__FILE__, __LINE__);
@@ -267,12 +272,13 @@ void Logstash::sendLSdata() {
 
 
       //try to send data
-      if(skipDequeue == 1){
+      if(skipDequeue == 1 || skipDequeue == 2){
         //Continue with the leftover data
       } else {
         sent = 0;
         sentLength = len;
       }
+
       if(sendTCP){
 	//TCP
         while(sentLength > 0){
@@ -297,16 +303,17 @@ void Logstash::sendLSdata() {
 	  break;
 	}
       }
-
       if(skipDequeue == 1){
 	//Sending most likely failed.
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] Sending failed. Scheduling retry..");
 	sleep(1);
 	continue;
       }
 
       //If all steps succeded, increment exported flows
       elkExportedFlows += num_flows;
-
+      //Reset dequeue flag
+      skipDequeue = 0;
     } else {
       sleep(1);
     }
