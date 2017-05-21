@@ -372,7 +372,9 @@ class Ntop {
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 
 #ifdef NTOPNG_PRO
-#ifndef WIN32
+#ifdef WIN32
+  char* getIfName(int if_id, char *name, u_int name_len);
+#else
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };
 #endif
 #endif

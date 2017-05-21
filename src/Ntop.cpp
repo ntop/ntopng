@@ -396,7 +396,7 @@ IpAddress* Ntop::getLocalNetworkIp(int16_t local_network_id) {
 
 /* Note: could also use malloc() and free() */
 
-char* getIfName(int if_id, char *name, u_int name_len) {
+char* Ntop::getIfName(int if_id, char *name, u_int name_len) {
   // Declare and initialize variables
   PIP_INTERFACE_INFO pInfo = NULL;
   ULONG ulOutBufLen = 0;
@@ -496,25 +496,17 @@ void Ntop::loadLocalInterfaceAddress() {
 
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-	bpf_u_int32 mask;              /* The netmask of our sniffing device */
-	bpf_u_int32 net;               /* The IP of our sniffing device */
-	char errbuf[PCAP_ERRBUF_SIZE]; /* Error string */
+		u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 
-	if (pcap_lookupnet(name, &net, &mask, errbuf) == -1)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read network/mask of %s", name);
-	else {
-	  u_int32_t bits = Utils::numberOfSetBits((u_int32_t)mask);
+	    IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+ 	    snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
+	    address->setLocalNetwork(buf);
 
-	  IPAddr.S_un.S_addr = (u_long)net;
-
-	  snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
-	  address->setLocalNetwork(buf);
-
-	  snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
-	  iface[id]->addInterfaceAddress(buf);
-	}
+	    IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
+	    snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
+	    iface[id]->addInterfaceAddress(buf);
       }
     }
   }
