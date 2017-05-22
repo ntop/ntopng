@@ -29,10 +29,6 @@ local function hasBridgeInterfaces()
   return found
 end
 
-function hasNagiosSupport()
-   return prefs.nagios_nsca_host ~= nil
-end
-
 function hasAlertsDisabled()
   return (prefs.has_cmdl_disable_alerts == true) or
       ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or

@@ -1732,7 +1732,7 @@ local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey,
 
    engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 
-   if ntop.isPro() then
+   if ntop.isPro() and hasNagiosSupport() then
       ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info))
    end
 end
@@ -1742,7 +1742,7 @@ local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey
 
    engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
 
-   if ntop.isPro() then
+   if ntop.isPro() and hasNagiosSupport() then
       ntop.withdrawNagiosAlert(entity_value:gsub("@0", ""), akey, "Service OK.")
    end
 end
