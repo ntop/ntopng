@@ -243,7 +243,7 @@ print [[    showPagination: true, ]]
         hosts_filter_params.pool = _pool.id
         print('<li')
         if pool == _pool.id then print(' class="active"') end
-        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'..i18n("hosts_stats.host_pool",{pool_name=_pool.name}) ..'</li>')
+        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'..i18n("hosts_stats.host_pool",{pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
       end
    end
 
