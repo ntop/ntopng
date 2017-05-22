@@ -128,7 +128,17 @@ elseif (_POST["edit_members"] ~= nil) then
 
       if not is_network then
         local alias = config["_alias_" .. new_member]
-        if((not is_new_member) or (not isEmptyString(alias))) then
+        local skip_alias = false
+
+        if isMacAddress(new_member) then
+          local manuf = ntop.getMacManufacturer(new_member)
+          if (manuf ~= nil) and (manuf.extended == alias) then
+            -- this is not the alias, it is the manufacturer
+            skip_alias = true
+          end
+        end
+
+        if(((not is_new_member) or (not isEmptyString(alias))) and (not skip_alias)) then
           setHostAltName(host_key, alias)
         end
 
