@@ -103,17 +103,43 @@ function getMembershipInfo(member_and_vlan)
   return exists, info
 end
 
-function host_pools_utils.changeMemberPool(ifid, member_and_vlan, prev_pool, new_pool)
-  if prev_pool == new_pool then return false end
+--
+-- Note:
+--
+-- When strict_host_mode is not set, hosts which have a MAC address will have the
+-- MAC address changed instead of the IP address.
+--
+function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info --[[optional]], strict_host_mode --[[optional]])
+  if not strict_host_mode then
+    local hostkey, is_network = host_pools_utils.getMemberKey(member_and_vlan)
+
+    if (not is_network) and (not isMacAddress(member_and_vlan)) then
+      -- this is a single host, try to get the MAC address
+      if info == nil then
+        local hostinfo = hostkey2hostinfo(hostkey)
+        info = interface.getHostInfo(hostinfo["host"], hostinfo["vlan"])
+      end
+
+      if not isEmptyString(info["mac"]) then
+        -- host has a MAC, use it
+        member_and_vlan = info["mac"]
+      end
+    end
+  end
 
   local members_key = get_pool_members_key(ifid, new_pool)
   local member_exists, info = getMembershipInfo(member_and_vlan)
+  local prev_pool
 
   if member_exists then
     -- use the normalized key
     member_and_vlan = info.key
-  elseif prev_pool ~= host_pools_utils.DEFAULT_POOL_ID then
-    -- member not found
+    prev_pool = info.existing_member_pool
+  else
+    prev_pool = host_pools_utils.DEFAULT_POOL_ID
+  end
+
+  if prev_pool == new_pool then
     return false
   end
 
@@ -264,6 +290,15 @@ function host_pools_utils.initPools()
     if not ifstats.isView then
       initInterfacePools(ifid)
     end
+  end
+end
+
+function host_pools_utils.getMacPool(mac_address)
+  local exists, info = getMembershipInfo(mac_address)
+  if exists then
+    return tostring(info.existing_member_pool)
+  else
+    return host_pools_utils.DEFAULT_POOL_ID
   end
 end
 

@@ -215,7 +215,7 @@ end
 -- We are passing too much _POST data, no more than 5 members allowed
 local perPageMembers = "5"
 
-local member_filtering = _GET["member"]
+local members_filtering = _GET["members_filter"]
 local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
 
 --------------------------------------------------------------------------------
@@ -253,8 +253,16 @@ if is_bridge_iface and selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
 end
 
 print('</td>\n')
-if member_filtering ~= nil then
-  local member_name = split(member_filtering, "/")[1]
+
+local function formatMemberFilter()
+  if starts(members_filtering, "manuf:") then
+    return i18n("host_pools.manufacturer_filter", {manufacturer=string.sub(members_filtering, string.len("manuf:")+1)})
+  else
+    return i18n("host_pools.member_filter", {member=split(members_filtering, "/")[1]})
+  end
+end
+
+if members_filtering ~= nil then
   print[[
   <td>
     <form action="#manage">
@@ -262,7 +270,7 @@ if member_filtering ~= nil then
       <input type="hidden" name="page" value="pools" />
       <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
-        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> Filter: ]] print(member_name) print[[
+        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(formatMemberFilter()) print[[
       </button>
     </form>
   </td>
@@ -280,7 +288,7 @@ print(
                       page="pools",
                     },
       json_key    = "key",
-      query_field = "member",
+      query_field = "members_filter",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_member.lua",
       query_title = i18n("host_pools.search_member"),
       style       = "margin-left:1em; width:25em;",
@@ -476,7 +484,7 @@ print[[
       return count == 1;
     }
 ]]
-if member_filtering ~= nil then
+if members_filtering ~= nil then
   print[[$("#pool_selector").attr("disabled", true);]]
 end
 print[[
@@ -551,7 +559,7 @@ print [[
     $("#table-manage").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
-   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[&member=]] print(_GET["member"] or "") print[[",
+   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[&members_filter=]] print(members_filtering or "") print[[",
       title: "",
       perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
@@ -574,11 +582,12 @@ print [[
                textAlign: 'center',
             }
          }, {
-            title: "Alias",
+            title: "]] print(i18n("host_pools.alias_or_manufacturer")) print[[",
             field: "column_alias",
             css: {
               width: '25%',
               textAlign: 'center',
+              whiteSpace: 'nowrap',
             }
          }, {
             title: "Device Type",
@@ -586,6 +595,7 @@ print [[
             css: {
               width: '12%',
               textAlign: 'center',
+              whiteSpace: 'nowrap',
             }
          }, {
             title: "Residual Lifetime",
@@ -685,7 +695,7 @@ print[[            css : {
 
         $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
                                               || (no_pools))
-                                              || (]] if member_filtering ~= nil then print("true") else print("false") end print[[)
+                                              || (]] if members_filtering ~= nil then print("true") else print("false") end print[[)
                                               || (curDisplayedMembers > ]] print(perPageMembers) print[[));
 
         $("#table-manage-form")

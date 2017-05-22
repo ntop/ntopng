@@ -82,7 +82,7 @@ if (host ~= nil) then
 
       if host_pool_id ~= prev_pool then
          local key = host2member(host["ip"], host["vlan"])
-         if not host_pools_utils.changeMemberPool(ifId, key, prev_pool, host_pool_id) then
+         if not host_pools_utils.changeMemberPool(ifId, key, host_pool_id, host) then
             host_pool_id = nil
          else
             interface.reloadHostPools()
@@ -1876,25 +1876,7 @@ elseif (page == "config") then
          </td>
       </tr>]]
    if not ifstats.isView then
-      print[[<tr>
-         <th>]] print(i18n("host_config.host_pool")) print [[</th>
-         <td>
-            <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
-               <select name="pool" class="form-control" style="width:20em; display:inline;">]]
-   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
-      print[[<option value="]] print(pool.id) print[["]]
-      if pool.id == host_pool_id then
-         print[[ selected]]
-      end
-      print[[>]] print(pool.name) print[[</option>]]
-   end
-   print[[
-               </select>&nbsp;
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-            </form>
-         </td>
-      </tr>]]
+      printPoolChangeDropdown(host_pool_id)
    end
 
    if host["localhost"] then

@@ -1359,7 +1359,7 @@ end
    end
 
    if selected_pool == nil then
-      selected_pool = available_pools[1]
+      selected_pool = available_pools[2] or available_pools[1]
    end
 
    local SHAPERS_MAX_RATE_KPBS = 100*1000*1000           -- 100 Gbit/s

@@ -14,6 +14,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+local host_pools_utils = require "host_pools_utils"
 
 local host_info = url2hostinfo(_GET)
 
@@ -105,6 +106,31 @@ print [[</form>
 
 print("</td></tr>")
 
+if isAdministrator() then
+   local pool_id = nil
+
+   if (_POST["pool"] ~= nil) then
+      pool_id = _POST["pool"]
+      local prev_pool = host_pools_utils.getMacPool(mac)
+
+      if pool_id ~= prev_pool then
+         local key = mac
+         if not host_pools_utils.changeMemberPool(ifId, key, pool_id) then
+            pool_id = nil
+         else
+            interface.reloadHostPools()
+         end
+      end
+   end
+
+   if (pool_id == nil) then
+      pool_id = host_pools_utils.getMacPool(mac)
+   end
+
+   if not ifstats.isView then
+      printPoolChangeDropdown(pool_id)
+   end
+end
 
 print("<tr><th>".. i18n("details.first_last_seen") .. "</th><td nowrap><span id=first_seen>" .. formatEpoch(mac_info["seen.first"]) ..  " [" .. secondsToTime(os.time()-mac_info["seen.first"]) .. " " .. i18n("details.ago").."]" .. "</span></td>\n")
 print("<td  width='35%'><span id=last_seen>" .. formatEpoch(mac_info["seen.last"]) .. " [" .. secondsToTime(os.time()-mac_info["seen.last"]) .. " " .. i18n("details.ago").."]" .. "</span></td></tr>\n")

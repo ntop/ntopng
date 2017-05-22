@@ -415,6 +415,15 @@ local function validateMember(m)
    end
 end
 
+local function validateMembersFilter(m)
+   if starts(m, "manuf:") then
+      m = string.sub(m, string.len("manuf:") + 1)
+      return validateUnquoted(m)
+   end
+
+   return validateMember(m)
+end
+
 local function validateIdToDelete(i)
    if ((i == "__all__") or validateNumber(i)) then
       return true
@@ -900,6 +909,7 @@ local known_parameters = {
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
    ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
+   ["members_filter"]          =  validateMembersFilter,         -- host_pools.lua
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

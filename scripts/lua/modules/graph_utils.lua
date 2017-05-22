@@ -1685,3 +1685,28 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
 end
 
 -- #################################################
+
+function printPoolChangeDropdown(pool_id)
+   print[[<tr>
+      <th>]] print(i18n("host_config.host_pool")) print [[</th>
+      <td>
+         <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
+            <select name="pool" class="form-control" style="width:20em; display:inline;">]]
+   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+      print[[<option value="]] print(pool.id) print[["]]
+      if pool.id == pool_id then
+         print[[ selected]]
+      end
+      if pool.id == host_pools_utils.DEFAULT_POOL_ID then
+	 print[[ disabled]]
+      end
+      print[[>]] print(pool.name) print[[</option>]]
+   end
+   print[[
+            </select>&nbsp;
+            <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+            <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
+         </form>
+      </td>
+   </tr>]]
+end

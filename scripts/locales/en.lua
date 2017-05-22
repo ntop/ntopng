@@ -467,6 +467,9 @@ local  en = {
       member_exists = "member \"%{member_name}\" not added. It is already assigned to pool \"%{member_pool}\".",
       children_safe = "Safe Search",
       enforce_quotas_per_pool_member = "Per-Member Quotas",
+      alias_or_manufacturer = "Alias / Manufacturer",
+      manufacturer_filter = "Manufacturer: %{manufacturer}",
+      member_filter = "Member: %{member}",
    },
 
    snmp = {

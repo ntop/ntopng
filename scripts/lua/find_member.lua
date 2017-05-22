@@ -21,6 +21,7 @@ local pool_id = _GET["pool"] or host_pools_utils.DEFAULT_POOL_ID
 
 interface.select(ifname)
 local members = host_pools_utils.getPoolMembers(getInterfaceId(ifname), pool_id)
+local matched_manufacturers = {}
 
 for _,member in ipairs(members) do
   local is_mac = isMacAddress(member.address)
@@ -58,8 +59,24 @@ for _,member in ipairs(members) do
     -- by MAC altName
     local altname = getHostAltName(member.address)
 
-    if (altname ~= nil) and  string.contains(string.lower(altname), query) then
+    if (altname ~= nil) and string.contains(string.lower(altname), query) then
       results[#results + 1] = {name=altname, key=member.key}
+      matching = true
+    end
+
+    -- by Manufacturer: always count the members, even if we matched above
+    local manuf = ntop.getMacManufacturer(member.address)
+    if (manuf ~= nil) and string.contains(string.lower(manuf.extended), query) then
+      local name
+      if matched_manufacturers[manuf.extended] == nil then
+        matched_manufacturers[manuf.extended] = {idx=#results+1, count=1}
+        name = manuf.extended
+      else
+        matched_manufacturers[manuf.extended].count = matched_manufacturers[manuf.extended].count + 1
+        name = manuf.extended .. " (" .. matched_manufacturers[manuf.extended].count .. ")"
+      end
+
+      results[matched_manufacturers[manuf.extended].idx] = {name=name, key="manuf:"..manuf.extended}
       matching = true
     end
   end

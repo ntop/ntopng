@@ -16,11 +16,31 @@ local pool_id = _GET["pool"]
 local res = {data={}, sort={{"column_", "asc"}}, totalRows=0}
 local curpage = tonumber(_GET["currentPage"]) or 1
 local perpage = tonumber(_GET["perPage"]) or 10
-local member_filter = _GET["member"]
+local members_filter = _GET["members_filter"]
 
 local start_i = (curpage-1) * perpage
 local stop_i = start_i + perpage - 1
 local i = 0
+
+local function matches_members_filter(member_key, is_mac)
+  if isEmptyString(members_filter) then
+    return true
+  end
+
+  if starts(members_filter, "manuf:") then
+    local m = string.sub(members_filter, string.len("manuf:") + 1)
+    if is_mac then
+      local manuf = ntop.getMacManufacturer(member_key)
+      if (manuf ~= nil) and (manuf.extended == m) then
+        return true
+      end
+    end
+  else
+    return member_key == members_filter
+  end
+
+  return false
+end
 
 if((ifid ~= nil) and (isAdministrator())) then
   interface.select(getInterfaceName(ifid))
@@ -30,10 +50,11 @@ if((ifid ~= nil) and (isAdministrator())) then
     local network_stats = interface.getNetworksStats()
 
     for _,member in ipairs(host_pools_utils.getPoolMembers(ifid, pool_id)) do
-      if(isEmptyString(member_filter) or (member.key == member_filter)) then
+      local is_mac = isMacAddress(member.address)
+
+      if matches_members_filter(member.key, is_mac) then
         if (i >= start_i) and (i <= stop_i) then
           local host_key, is_network = host_pools_utils.getMemberKey(member.key)
-          local is_mac = isMacAddress(member.address)
           local is_host = (not is_network) and (not is_mac)
           local link
 
@@ -74,6 +95,14 @@ if((ifid ~= nil) and (isAdministrator())) then
               if isEmptyString(icon) then
                 icon = getHostIconName(active_hosts[host_key].mac)
               end
+            end
+          end
+
+          if is_mac and isEmptyString(alias) then
+            -- Show the MAC manufacturer instead
+            local manuf = ntop.getMacManufacturer(member.address)
+            if manuf ~= nil then
+              alias = manuf.extended
             end
           end
 

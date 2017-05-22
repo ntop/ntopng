@@ -34,6 +34,10 @@ print [[
 
       if(res ~= nil) then
 	 for k, v in pairs(res) do
+	    if isIPv6(k) and (not string.contains(v, "%[IPv6%]")) then
+	      v = v.." [IPv6]"
+	    end
+
 	    if(v ~= "") then
 	       if(num > 0) then print(",\n") end
 	       print('\t{"name": "'..v..'", "ip": "'..k..'"}')
