@@ -107,7 +107,7 @@ static void* packetPollLoop(void* ptr) {
 	  Flow *flow = NULL;
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  iface->dissectPacket((const struct pcap_pkthdr *) &hdr, buffer, 
+	  iface->dissectPacket(0, (const struct pcap_pkthdr *) &hdr, buffer,
 			       &p, &srcHost, &dstHost, &flow);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
