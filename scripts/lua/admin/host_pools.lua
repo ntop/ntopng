@@ -13,7 +13,7 @@ if(ntop.isPro()) then
   shaper_utils = require "shaper_utils"
 end
 
-
+-- Administrator check
 if not isAdministrator() then
   return
 end
@@ -159,6 +159,10 @@ elseif _POST["member_to_delete"] ~= nil then
 elseif _POST["empty_pool"] ~= nil then
   host_pools_utils.emptyPool(ifId, _POST["empty_pool"])
   interface.reloadHostPools()
+elseif (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then
+  -- change member pool
+  host_pools_utils.changeMemberPool(ifId, _POST["member"], _POST["pool"], nil, true --[[do not consider host MAC]])
+  interface.reloadHostPools()
 end
 
 function printPoolNameField(pool_id_str)
@@ -243,18 +247,10 @@ print [[
 ]]
 
 print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
-local no_pools = true
-for _,pool in ipairs(available_pools) do
-  if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-    print('<option value="'..tostring(pool.id)..'"')
-    if pool.id == selected_pool.id then
-      print(" selected")
-    end
-    print('>'..(pool.name)..'</option>\n')
-    no_pools = false
-  end
-end
+print(poolDropdown(selected_pool.id))
 print('</select>')
+
+local no_pools = (#available_pools <= 1)
 
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
@@ -360,7 +356,7 @@ print(
       id      = "delete_pool_dialog",
       action  = "deletePool(delete_pool_id)",
       title   = i18n("host_pools.delete_pool"),
-      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>", ' .. i18n("host_pools.and_associated_members"),
+      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>", ' .. i18n("host_pools.and_associated_members").."?",
       confirm = i18n("delete"),
     }
   })
@@ -372,7 +368,7 @@ print(
       id      = "delete_member_dialog",
       action  = "deletePoolMember(delete_member_id)",
       title   = i18n("host_pools.remove_member"),
-      message = i18n("host_pools.confirm_remove_member") .. ' "<span id=\"delete_member_dialog_member\"></span>" ' .. i18n("host_pools.from_pool") .. ' "' .. selected_pool.name .. '" ',
+      message = i18n("host_pools.confirm_remove_member") .. ' "<span id=\"delete_member_dialog_member\"></span>" ' .. i18n("host_pools.from_pool") .. ' "' .. selected_pool.name .. '"?',
       confirm = i18n("remove"),
     }
   })
@@ -384,8 +380,24 @@ print(
       id      = "empty_pool_dialog",
       action  = "emptyCurrentPool()",
       title   = i18n("host_pools.empty_pool"),
-      message = i18n("host_pools.confirm_empty_pool") .. " " .. selected_pool.name,
+      message = i18n("host_pools.confirm_empty_pool") .. " " .. selected_pool.name.."?",
       confirm = i18n("host_pools.empty_pool"),
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "change_member_pool_dialog",
+      action  = "changeMemberPool(change_member_id)",
+      title   = i18n("host_pools.change_member_pool"),
+      message = i18n("host_pools.select_new_pool", {member='<span id="change_member_pool_dialog_member"></span>'}) ..
+        '<br><br><select class="form-control" id="changed_host_pool" style="width:15em;">'..
+        poolDropdown("", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
+        '</select>',
+      custom_alert_class = "",
+      confirm = i18n("host_pools.change_pool"),
     }
   })
 )
@@ -566,6 +578,19 @@ print [[
       paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
     }
 
+    function changeMemberPool(member_id) {
+      var form = $("#table-manage-form");
+      var field = form.find("input[name='member_" + member_id + "']");
+
+      if (field.attr("data-origin-value")) {
+        var params = {};
+        params.pool = $("#changed_host_pool").val();
+        params.member = field.attr("data-origin-value");
+        params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+        paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
+      }
+    }
+
     $("#table-manage").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
@@ -695,8 +720,15 @@ print[[            css : {
             if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
 
-            datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
-            if (!link_value) $("td:nth(5) a:nth(0)", this).css("visibility", "hidden");
+]]
+
+if #available_pools > 2 then
+  print[[   datatableAddActionButtonCallback.bind(this)(6, "change_member_id ='" + member_id + "'; $('#change_member_pool_dialog_member').html('" + value +"'); $('#change_member_pool_dialog').modal('show');", "]] print(i18n("host_pools.change_pool")) print[[");]]
+end
+
+print[[
+            datatableAddLinkButtonCallback.bind(this)(6, link_value, "]] print(i18n("host_pools.view")) print[[");
+            if (!link_value) $("td:nth(5) a:nth(1)", this).css("visibility", "hidden");
             datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 

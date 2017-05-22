@@ -7,7 +7,7 @@
       </div>
 
       <div class="modal-body">
-        <div class="alert alert-warning">{*dialog.message*}?</div>
+        <div class="{{dialog.custom_alert_class or "alert alert-warning"}}">{*dialog.message*}</div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>

@@ -48,16 +48,20 @@ function datatableForEachRow(table, callbacks) {
    });
 }
 
-function datatableAddActionButtonCallback(td_idx, label, bs_class, callback_str, link) {
+function datatableAddButtonCallback(td_idx, label, bs_class, callback_str, link) {
    $("td:nth-child("+td_idx+")", $(this)).append('<a href="' + link + '" class="add-on btn" style="padding:0.2em;" onclick="' + callback_str + '" role="button"><span class="label ' + bs_class + '">' + label + '</span></a>');
 }
 
 function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
-   datatableAddActionButtonCallback.bind(this)(td_idx, label, "label-danger", callback_str, "javascript:void(0)");
+   datatableAddButtonCallback.bind(this)(td_idx, label, "label-danger", callback_str, "javascript:void(0)");
+}
+
+function datatableAddActionButtonCallback(td_idx, callback_str, label) {
+   datatableAddButtonCallback.bind(this)(td_idx, label, "label-info", callback_str, "javascript:void(0)");
 }
 
 function datatableAddLinkButtonCallback(td_idx, link, label) {
-   datatableAddActionButtonCallback.bind(this)(td_idx, label, "label-info", "", link);
+   datatableAddButtonCallback.bind(this)(td_idx, label, "label-info", "", link);
 }
 
 function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {

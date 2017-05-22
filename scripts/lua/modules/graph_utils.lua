@@ -1686,27 +1686,47 @@ end
 
 -- #################################################
 
+function poolDropdown(pool_id, exclude)
+   local output = {}
+   exclude = exclude or {[host_pools_utils.DEFAULT_POOL_ID]=true}
+
+   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+      if (not exclude[pool.id]) or (pool.id == pool_id) then
+         output[#output + 1] = '<option value="' .. pool.id .. '"'
+
+         if pool.id == pool_id then
+            output[#output + 1] = ' selected'
+         end
+
+         if exclude[pool.id] then
+            output[#output + 1] = ' disabled'
+         end
+
+         output[#output + 1] = '>' .. pool.name .. '</option>'
+      end
+   end
+
+   return table.concat(output, '')
+end
+
 function printPoolChangeDropdown(pool_id)
-   print[[<tr>
-      <th>]] print(i18n("host_config.host_pool")) print [[</th>
+   local output = {}
+
+   output[#output + 1] = [[<tr>
+      <th>]] .. i18n("host_config.host_pool") .. [[</th>
       <td>
          <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
             <select name="pool" class="form-control" style="width:20em; display:inline;">]]
-   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
-      print[[<option value="]] print(pool.id) print[["]]
-      if pool.id == pool_id then
-         print[[ selected]]
-      end
-      if pool.id == host_pools_utils.DEFAULT_POOL_ID then
-	 print[[ disabled]]
-      end
-      print[[>]] print(pool.name) print[[</option>]]
-   end
-   print[[
+
+   output[#output + 1] = poolDropdown(pool_id)
+
+   output[#output + 1] = [[
             </select>&nbsp;
-            <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-            <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
+            <input id="csrf" name="csrf" type="hidden" value="]] .. ntop.getRandomCSRFValue() ..[[" />
+            <button type="submit" class="btn btn-default">]] .. i18n("save") ..  [[</button>
          </form>
       </td>
    </tr>]]
+
+   print(table.concat(output, ''))
 end

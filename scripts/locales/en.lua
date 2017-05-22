@@ -470,6 +470,11 @@ local  en = {
       alias_or_manufacturer = "Alias / Manufacturer",
       manufacturer_filter = "Manufacturer: %{manufacturer}",
       member_filter = "Member: %{member}",
+      view = "View",
+      change_pool = "Change Pool",
+      new_pool = "New Pool",
+      change_member_pool = "Change Member Pool",
+      select_new_pool = "Select a new pool from the dropdown below to assign member \"%{member}\" to:",
    },
 
    snmp = {

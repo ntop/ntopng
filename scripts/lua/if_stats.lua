@@ -1470,7 +1470,7 @@ print(
       id      = "delete_policy_dialog",
       action  = "deleteShapedProtocol(delete_protocol_id)",
       title   = i18n("shaping.delete_policy"),
-      message = i18n("shaping.confirm_delete_policy") .. ' <span id=\"delete_policy_dialog_protocol\"></span> ' .. i18n("shaping.policy_from_pool") .. " \"" .. selected_pool.name .. "\"",
+      message = i18n("shaping.confirm_delete_policy") .. ' <span id=\"delete_policy_dialog_protocol\"></span> ' .. i18n("shaping.policy_from_pool") .. " \"" .. selected_pool.name .. "\"?",
       confirm = i18n("delete"),
     }
   })
@@ -1482,7 +1482,7 @@ print(
       id      = "delete_shaper_dialog",
       action  = "deleteShaper(delete_shaper_id)",
       title   = i18n("shaping.delete_shaper"),
-      message = i18n("shaping.confirm_delete_shaper") .. ' <span id=\"delete_shaper_dialog_shaper\"></span>',
+      message = i18n("shaping.confirm_delete_shaper") .. ' <span id=\"delete_shaper_dialog_shaper\"></span>?',
       confirm = i18n("delete"),
     }
   })

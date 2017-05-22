@@ -131,7 +131,7 @@ function printAlerts()
         id      = "flushAlertsData",
         action  = "flushAlertsData()",
         title   = i18n("show_alerts.reset_alert_database"),
-        message = i18n("show_alerts.reset_alert_database_message"),
+        message = i18n("show_alerts.reset_alert_database_message") .. "?",
         confirm = i18n("show_alerts.flush_data"),
         confirm_button = "btn-danger",
       }

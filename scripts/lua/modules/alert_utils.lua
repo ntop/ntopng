@@ -709,7 +709,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
             id      = "deleteAlertSourceSettings",
             action  = "deleteAlertSourceSettings()",
             title   = i18n("show_alerts.delete_alerts_configuration"),
-            message = i18n(delete_confirm_msg, {granularity=granularity_label}) .. " <span style='white-space: nowrap;'>" .. ternary(alt_name ~= nil, alt_name, alert_source).."</span>",
+            message = i18n(delete_confirm_msg, {granularity=granularity_label}) .. " <span style='white-space: nowrap;'>" .. ternary(alt_name ~= nil, alt_name, alert_source).."</span>?",
             confirm = i18n("delete")
           }
         })
@@ -721,7 +721,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
             id      = "deleteGlobalAlertConfig",
             action  = "deleteGlobalAlertConfig()",
             title   = i18n("show_alerts.delete_alerts_configuration"),
-            message = i18n("show_alerts.delete_config_message", {conf = source.source, granularity=granularity_label}),
+            message = i18n("show_alerts.delete_config_message", {conf = source.source, granularity=granularity_label}).."?",
             confirm = i18n("delete")
           }
         })
@@ -1071,7 +1071,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
          id      = "delete_alert_dialog",
          action  = "deleteAlertById(delete_alert_id)",
          title   = i18n("show_alerts.delete_alert"),
-         message = i18n("show_alerts.confirm_delete_alert"),
+         message = i18n("show_alerts.confirm_delete_alert").."?",
          confirm = i18n("delete"),
        }
      })
@@ -1083,7 +1083,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
          id      = "myModal",
          action  = "checkModalDelete()",
          title   = "",
-         message = 'Do you really want to purge all the<span id="modalDeleteContext"></span> alerts<span id="modalDeleteAlertsMsg"></span>',
+         message = 'Do you really want to purge all the<span id="modalDeleteContext"></span> alerts<span id="modalDeleteAlertsMsg"></span>?',
          confirm = i18n("show_alerts.purge_num_alerts", {
             num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
          }),
