@@ -1733,40 +1733,6 @@ char* Flow::serialize(bool es_json) {
 
 /* *************************************** */
 
-#ifdef NOTUSED
-json_object* Flow::flow2es(json_object *flow_object) {
-  char buf[64];
-  struct tm* tm_info;
-  time_t t;
-
-  t = last_seen;
-  tm_info = gmtime(&t);
-
-  strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
-  json_object_object_add(flow_object, "@timestamp", json_object_new_string(buf));
-  json_object_object_add(flow_object, "@version", json_object_new_int(1));
-
-  json_object_object_add(flow_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
-
-#if 0
-  es_object = json_object_new_object();
-  json_object_object_add(es_object, "_type", json_object_new_string("ntopng"));
-
-  snprintf(buf, sizeof(buf), "%u%u%lu", (unsigned int)tv.tv_sec, tv.tv_usec, (unsigned long)this);
-  json_object_object_add(es_object, "_id", json_object_new_string(buf));
-
-  strftime(buf, sizeof(buf), "ntopng-%Y.%m.%d", tm_info);
-  json_object_object_add(es_object, "_index", json_object_new_string(buf));
-  json_object_object_add(es_object, "_score", NULL);
-  json_object_object_add(es_object, "_source", flow_object);
-#endif
-
-  return(flow_object);
-}
-#endif
-
-/* *************************************** */
-
 json_object* Flow::flow2json() {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
@@ -1786,7 +1752,13 @@ json_object* Flow::flow2json() {
     t = last_seen;
     tm_info = gmtime(&t);
 
-    strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
+	/*
+		strftime in the VS2013 library and earlier are not C99-conformant,
+		as they do not accept that format-specifier: MSDN VS2013 strftime page
+
+		https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
+	*/
+    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
 
     if(ntop->getPrefs()->do_dump_flows_on_ls()){
       /*  Add current timestamp differently for Logstash, in case of delay 
