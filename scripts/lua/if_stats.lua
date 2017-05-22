@@ -204,7 +204,7 @@ print [[
 short_name = getHumanReadableInterfaceName(if_name)
 
 if(string.contains(short_name, "{")) then -- Windows
-   short_name = ifstats.description
+   short_name = shortenString(ifstats.description, 16)
 end
 
 if(short_name ~= if_name) then

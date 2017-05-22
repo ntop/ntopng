@@ -14,6 +14,26 @@ i18n.loadFile(dirs.installdir..'/scripts/locales/'..locale..'.lua')
 
 -- ##############################################
 
+function string.contains(String,Start)
+   if type(String) ~= 'string' or type(Start) ~= 'string' then
+      return false
+   end
+   return(string.find(String,Start,1) ~= nil)
+end
+
+-- ##############################################
+
+function shortenString(name, max_len)
+   max_len = max_len or 24
+    if(string.len(name) < max_len) then
+      return(name)
+   else
+      return(string.sub(name, 1, max_len).."...")
+   end
+end
+
+-- ##############################################
+
 function getInterfaceName(interface_id)
    local ifnames = interface.getIfNames()
 
@@ -23,7 +43,12 @@ function getInterfaceName(interface_id)
       interface.select(if_name)
       _ifstats = interface.getStats()
       if(_ifstats.id == interface_id) then
-	 return(_ifstats.name)
+	 local ret = _ifstats.name
+
+	 if(string.contains(ret, "{")) then -- Windows
+	    ret = shortenString(_ifstats.description, 16)
+	 end
+	 return(ret)
       end
    end
 
@@ -181,15 +206,6 @@ end
 
 -- ##############################################
 
-function string.contains(String,Start)
-   if type(String) ~= 'string' or type(Start) ~= 'string' then
-      return false
-   end
-   return(string.find(String,Start,1) ~= nil)
-end
-
--- ##############################################
-
 function string.starts(String,Start)
    if type(String) ~= 'string' or type(Start) ~= 'string' then
       return false
@@ -247,17 +263,6 @@ function printIpVersionDropdown(base_url, page_params)
          <li]] if ipversion == "4" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv4_only")) print[[</a></li>\
          <li]] if ipversion == "6" then print(' class="active"') end print[[><a href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv6_only")) print[[</a></li>\
       </ul>]]
-end
-
--- ##############################################
-
-function shortenString(name, max_len)
-   max_len = max_len or 24
-    if(string.len(name) < max_len) then
-      return(name)
-   else
-      return(string.sub(name, 1, max_len).."...")
-   end
 end
 
 -- ##############################################
