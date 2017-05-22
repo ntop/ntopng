@@ -139,10 +139,11 @@ class Prefs {
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
-  inline bool is_flow_device_port_rrd_creation_enabled()  { return(enable_flow_device_port_rrd_creation); };
-  inline bool is_tiny_flows_export_enabled()            { return(enable_tiny_flows_export);  };
-  inline void enable_flow_aggregation()                 { flow_aggregation_enabled = true;   }
-  inline bool is_flow_aggregation_enabled()             { return(flow_aggregation_enabled);  };
+  inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation); };
+  inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);  };
+  inline void enable_flow_aggregation()                 { flow_aggregation_enabled = true;                                  };
+  inline bool is_flow_aggregation_enabled()             { return(flow_aggregation_enabled);                                 };
+  inline u_int flow_aggregation_frequency()             { return(get_housekeeping_frequency() * FLOW_AGGREGATION_DURATION); };
   inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
   inline bool is_flashstart_enabled()                   { return(flashstart ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
