@@ -44,7 +44,7 @@ print [[
       <label class="form-label">Username</label>
       <div class="input-group">
         <span class="input-group-addon"><i class="fa fa-user-circle-o" aria-hidden="true"></i></span>
-        <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
+        <input id="username_input" type="text" name="username" value="" class="form-control" pattern="]] print(getUserInputPattern()) print[[" required ]] print(userValidationMessage()) print[[>
       </div>
     </div>
 
@@ -63,14 +63,14 @@ print [[
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
+        <input id="password_input" type="password" name="password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
       </div>
   </div>
 
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Confirm Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
       </div>
     </div>
 </div>
@@ -156,7 +156,7 @@ else -- a captive portal user is being added
         <label class="radio-inline"><input type="radio" id="add_lifetime_limited" name="lifetime_limited">Expires after</label>
       </div>
       <!-- optionally allow to specify a certain number of days
-      <input id="add_lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
+      <input id="add_lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required ]] print(numberValidationMessage()) print[[>
       -->
     </div>
 </div>
@@ -177,7 +177,7 @@ else -- a captive portal user is being added
    print[[
           </td>
           <td style="padding-left: 2em;">
-        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="add_lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
+        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="add_lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[["]] print(numberValidationMessage()) print[[>
           </td>
         </tr>
       </table>

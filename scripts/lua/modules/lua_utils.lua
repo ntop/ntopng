@@ -2219,6 +2219,10 @@ function getPasswordInputPattern()
   return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{5,}$]]
 end
 
+function getUserInputPattern()
+  return [[^[\w\.%]{1,}$]]
+end
+
 function getIPv4Pattern()
   return "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 end
@@ -3270,6 +3274,58 @@ end
 function getSafeChildIcon()
    return("&nbsp;<font color='#5cb85c'><i class='fa fa-lg fa-child' aria-hidden='true'></i></font>")
 end
+
+-- ###########################################
+
+--
+-- This function should be used on input elements whenever the tags "pattern", "required" or "type=number" are used.
+-- It ensures no browser localization automatically takes place by overriding the default message.
+-- Use the utility functions below when possible.
+--
+function inputValidationMessage(msg, secondary_quotes, primary_quotes, non_english_only)
+   local primary_quotes = primary_quotes or [["]]
+   local secondary_quotes = secondary_quotes or [[']]
+   return [[ oninvalid=]]..primary_quotes..ternary(non_english_only, "hasEnglishLocale() || ", "")..[[setCustomValidity(]]..secondary_quotes..msg.."."..secondary_quotes..[[);]]..primary_quotes..
+      [[ oninput=]]..primary_quotes..[[setCustomValidity(]]..secondary_quotes..secondary_quotes..[[)]]..primary_quotes..[[ ]]
+end
+
+-- To be used with required fields
+function requiredValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.required_field"), secondary_quotes, primary_quotes)
+end
+
+-- To be used with generic pattern and required field. Avoid this if you can provide a specific message.
+function requiredPatternValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.required_field_with_pattern"), secondary_quotes, primary_quotes)
+end
+
+-- To be used with generic patterns. Avoid this if you can provide a specific message.
+function patternValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.field_with_pattern"), secondary_quotes, primary_quotes)
+end
+
+-- To be used with getPaswordInputPattern
+function passwordValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.password_field"), secondary_quotes, primary_quotes)
+end
+
+-- To be used with getUserInputPattern
+function userValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.user_field"), secondary_quotes, primary_quotes)
+end
+
+-- To be used getIPv4Pattern
+function ipv4ValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.ipv4_field"), secondary_quotes, primary_quotes)
+end
+
+-- To be used with a numeric input
+-- The message is only visualized on non-english locales, because the browser hints are really useful wrt the one we can give
+function numberValidationMessage(secondary_quotes, primary_quotes)
+   return inputValidationMessage(i18n("validation.invalid_number"), secondary_quotes, primary_quotes, true)
+end
+
+-- ###########################################
 
 -- ###########################################
 --

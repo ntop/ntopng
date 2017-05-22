@@ -87,8 +87,8 @@ end
 print[[
   <div class="form-group has-feedback">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-      <input type="password" class="form-control" name="new_password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="password" class="form-control" name="new_password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
+      <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
   </div>
 
   ]]

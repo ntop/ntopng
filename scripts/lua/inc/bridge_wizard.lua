@@ -40,13 +40,13 @@ local steps = {
   <input style="display:none" type="text" name="_" data-ays-ignore="true"/>
   <input style="display:none" type="password" name="_" data-ays-ignore="true"/>
   <div class="form-group has-feedback" style="margin-bottom:0;">
-     <input class="form-control" name="username" placeholder="]]..i18n("bridge_wizard.username_title")..[[" required/>
+     <input class="form-control" name="username" placeholder="]]..i18n("bridge_wizard.username_title")..[[" pattern="]]..getUserInputPattern()..[[" required ]]..userValidationMessage()..[[/>
      <div class="help-block with-errors"></div>
   </div>
   <br>
   <label>]]..i18n("bridge_wizard.password")..[[</label>
   <div class="form-group has-feedback" style="margin-bottom:0;">
-     <input class="form-control" name="password" type="password" pattern="]]..getPasswordInputPattern()..[[" placeholder="]]..i18n("bridge_wizard.password_title")..[[" required/>
+     <input class="form-control" name="password" type="password" pattern="]]..getPasswordInputPattern()..[[" placeholder="]]..i18n("bridge_wizard.password_title")..[[" required ]]..passwordValidationMessage()..[[/>
      <div class="help-block with-errors"></div>
   </div>
      ]],
@@ -59,13 +59,13 @@ local steps = {
   <label>]]..i18n("host_pools.pool")..[[</label>
   
   <div class="form-group has-feedback" style="margin-bottom:0;">
-     <input class="form-control" name="pool_name" required/>
+     <input class="form-control" name="pool_name" required ]]..requiredValidationMessage()..[[/>
      <div class="help-block with-errors"></div>
   </div>]]
      ..ternary(not captive_portal_supported,
         [[<label>]]..i18n("bridge_wizard.pool_member")..[[</label>
         <div class="form-group has-feedback" style="margin-bottom:0;">
-           <input class="form-control" name="member" data-member="member" placeholder="]]..i18n("bridge_wizard.member_placeholder")..[[" required/>
+           <input class="form-control" name="member" data-member="member" placeholder="]]..i18n("bridge_wizard.member_placeholder")..[[" required ]]..requiredValidationMessage()..[[/>
            <div class="help-block with-errors"></div>
         </div>]], ""),
         size = 3,
@@ -102,7 +102,7 @@ local wizard = {
      custom: {
         member: memberValueValidator,
      }, errors: {
-        member: "]]..i18n("host_pools.invalid_member")..[[.",
+        member: "]]..i18n("validation.invalid_member")..[[.",
      }
   }]],
   steps = steps,
