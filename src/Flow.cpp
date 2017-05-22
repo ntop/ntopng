@@ -36,7 +36,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
-    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_UNKNOWN,
+    ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
@@ -66,19 +66,19 @@ Flow::Flow(NetworkInterface *_iface,
 
   switch(protocol) {
   case IPPROTO_ICMP:
-    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMP,
+    ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     setDetectedProtocol(ndpiDetectedProtocol);
     break;
 
   case IPPROTO_ICMPV6:
-    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMPV6,
+    ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMPV6,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     setDetectedProtocol(ndpiDetectedProtocol);
     break;
 
   default:
-    ndpiDetectedProtocol.protocol = ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    ndpiDetectedProtocol.app_protocol = ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     break;
   }
 
@@ -409,7 +409,7 @@ void Flow::processDetectedProtocol() {
 
       if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
 	if(rsp[0] == '\0') /* Cached failed resolution */
-	  ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_TOR;
+	  ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_TOR;
 
 	check_tor = false; /* This is a valid host */
       } else {
@@ -447,7 +447,7 @@ void Flow::processDetectedProtocol() {
   } /* switch */
 
 #ifdef NTOPNG_PRO
-  if((ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_UNKNOWN) && (!l7_protocol_guessed))
+  if((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN) && (!l7_protocol_guessed))
     ntop->getFlowChecker()->flowCheck(this);
 #endif
 
@@ -500,7 +500,7 @@ void Flow::guessProtocol() {
 
 void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
   /* if((ndpiFlow != NULL) || (!iface->is_ndpi_enabled())) */ {
-    if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
+    if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpiDetectedProtocol = proto_id;
       processDetectedProtocol();
       detection_completed = true;
@@ -695,14 +695,14 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
     lua_push_str_table_entry(vm,  "server.city", get_srv_host()->get_city() ? get_srv_host()->get_city() : (char*)"");
 
     if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-       || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+       || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface())
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
     else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
-    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
+    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
 
   }
 
@@ -760,7 +760,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
-	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(),
+	   ndpiDetectedProtocol.app_protocol, get_detected_protocol_name(),
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
@@ -830,12 +830,12 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
+  if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
     
     if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
       if(rsp[0] == '\0') /* Cached failed resolution */
-	ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_TOR;
+	ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_TOR;
 
       check_tor = false; /* This is a valid host */
     } else {
@@ -877,7 +877,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
 	cli_network_stats = cli_host->getNetworkStats(cli_network_id);
 	cli_host->incStats(protocol,
-			   ndpiDetectedProtocol.protocol,
+			   ndpiDetectedProtocol.app_protocol,
 			   &categorization.category,
 			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
@@ -903,7 +903,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	NetworkStats *srv_network_stats;
 
 	srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-	srv_host->incStats(protocol, ndpiDetectedProtocol.protocol,
+	srv_host->incStats(protocol, ndpiDetectedProtocol.app_protocol,
 			   NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
@@ -992,7 +992,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)
 	   && (protocol == IPPROTO_TCP)
 	   && (get_goodput_bytes() > 0)
-	   && (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_SSH)) {
+	   && (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH)) {
 	  if(isLowGoodput()) {
 	    if(!good_low_flow_detected) {
 	      if(cli_host) cli_host->incLowGoodputFlows(true);
@@ -1250,14 +1250,14 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
     if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-       || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+       || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
-    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
+    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
     if(ntop->get_flashstart()) {
@@ -1489,7 +1489,7 @@ struct site_categories* Flow::getFlowCategory(bool force_categorization) {
 /* *************************************** */
 
 void Flow::sumStats(nDPIStats *stats) {
-  stats->incStats(ndpiDetectedProtocol.protocol,
+  stats->incStats(ndpiDetectedProtocol.app_protocol,
 		  cli2srv_packets, cli2srv_bytes,
 		  srv2cli_packets, srv2cli_bytes);
 }
@@ -1622,9 +1622,9 @@ json_object* Flow::flow2json(bool partial_dump) {
 			 json_object_new_int(protocol));
 
   if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-     || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)) {
+     || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_int(ndpiDetectedProtocol.protocol));
+			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(get_detected_protocol_name()));
   }
@@ -2291,7 +2291,7 @@ void Flow::checkFlowCategory() {
 
 char* Flow::get_detected_protocol_name() {
   if((ndpi_proto_name == NULL)
-     || ((ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+     || ((ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
 	 && strcmp(ndpi_proto_name, "Unknown"))) {
     char buf[64], *old = ndpi_proto_name;
 
@@ -2318,7 +2318,7 @@ void Flow::getFlowShapers(bool src2dst_direction,
   } else
     *a_shaper_id = *b_shaper_id = 0;
 
-  *ndpiProtocol = ndpiDetectedProtocol.protocol;
+  *ndpiProtocol = ndpiDetectedProtocol.app_protocol;
 }
 
 /* *************************************** */

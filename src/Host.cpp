@@ -373,7 +373,7 @@ bool Host::doDropProtocol(ndpi_protocol l7_proto) {
 #ifdef NTOPNG_PRO
   if(ntop->getPro()->has_valid_license()) {
     if(l7Policy)
-      return((NDPI_ISSET(l7Policy, l7_proto.protocol)
+      return((NDPI_ISSET(l7Policy, l7_proto.app_protocol)
 	      || NDPI_ISSET(l7Policy, l7_proto.master_protocol)) ? true : false);
     else
       return(false);

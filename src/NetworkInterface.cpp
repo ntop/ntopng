@@ -115,7 +115,9 @@ NetworkInterface::NetworkInterface(const char *name) {
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
-			    (char*)"Operating System", d_port, d_port);
+			    (char*)"Operating System",
+			    NDPI_PROTOCOL_CATEGORY_SYSTEM,
+			    d_port, d_port);
 
     // enable all protocols
     NDPI_BITMASK_SET_ALL(all);
@@ -630,7 +632,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
 		     zflow->last_switched);
-  p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+  p.app_protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
   flow->setDetectedProtocol(p);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
@@ -640,7 +642,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
   
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol().protocol,
+	   flow->get_detected_protocol().app_protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
@@ -996,12 +998,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     
     if(pass_verdict)
       incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	       flow->get_detected_protocol().protocol,
+	       flow->get_detected_protocol().app_protocol,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_traffic
       && (!flow->isDetectionCompleted() ||
-	  flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
+	  flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN);
 
     if(dump_is_unknown
        || dump_all_traffic
@@ -1013,7 +1015,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   } else
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	     flow->get_detected_protocol().protocol,
+	     flow->get_detected_protocol().app_protocol,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
@@ -1908,7 +1910,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     if(retriever->pag
        && retriever->pag->l7protoFilter(&ndpi_proto)
        && ndpi_proto != -1
-       && (f->get_detected_protocol().protocol != ndpi_proto)
+       && (f->get_detected_protocol().app_protocol != ndpi_proto)
        && (f->get_detected_protocol().master_protocol != ndpi_proto))
       return(false); /* false = keep on walking */
 
@@ -1951,7 +1953,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
 	break;
       case column_ndpi:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().protocol;
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
 	break;
       case column_duration:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
@@ -2499,7 +2501,7 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
   stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol().protocol] += (u_int32_t)flow->get_bytes(),
+    stats->ndpi_bytes[flow->get_detected_protocol().app_protocol] += (u_int32_t)flow->get_bytes(),
     stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   return(false); /* false = keep on walking */
@@ -2695,7 +2697,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
   
-  num_flows[flow->get_detected_protocol().protocol]++;
+  num_flows[flow->get_detected_protocol().app_protocol]++;
 
   return(false /* keep walking */);
 }
