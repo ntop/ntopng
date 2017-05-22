@@ -313,7 +313,7 @@ if isAdministrator() and (not ifstats.isView) then
    end
 end
 
-if(hasSnmpDevices(ifstats.id) and is_packet_interface) then
+if(hasSnmpDevices(ifstats.id) and is_packet_interface and false --[[disabled: no functionality provided right now]]) then
    if(page == "snmp_bind") then
       print("\n<li class=\"active\"><a href=\"#\">" .. i18n("if_stats_overview.snmp") .. "</li>")
    else

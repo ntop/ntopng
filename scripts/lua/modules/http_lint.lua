@@ -601,8 +601,9 @@ end
 
 local known_parameters = {
 -- UNCHECKED (Potentially Dangerous)
-   ["custom_name"]             =  validateUnchecked,            -- A custom interface name
-   ["query"]                   =  validateUnchecked,            -- This field should be used to perform partial queries.
+   ["custom_name"]             =  validateUnchecked,            -- A custom interface/host name
+   ["pool_name"]               =  validateUnchecked,
+   ["query"]                   =  validateUnchecked,           -- This field should be used to perform partial queries.
                                                                -- It up to the script to implement proper validation.
                                                                -- In NO case query should be executed directly without validation.
 
@@ -621,7 +622,6 @@ local known_parameters = {
    ["nagios_host_name"]        =  validateUnquoted,
    ["nagios_service_name"]     =  validateUnquoted,
    ["bind_dn"]                 =  validateUnquoted,
-   ["pool_name"]               =  validateUnquoted,
 
 -- HOST SPECIFICATION
    ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -933,7 +933,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
-   ["val_"]                    =  {validateNumber,   validateUnquoted},        -- key: an index, value: the pair value
+   ["val_"]                    =  {validateNumber,   validateUnchecked},       -- key: an index, value: the pair value
 }
 
 -- #################################################################
