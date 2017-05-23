@@ -93,9 +93,9 @@ class GenericHashEntry {
   bool equal(GenericHashEntry *b)    { return((this == b) ? true : false); };  
   inline NetworkInterface* getInterface() { return(iface); };
   virtual bool idle();
-  inline u_int get_duration()         { return((u_int)(1+last_seen-first_seen)); };
-  inline void set_to_purge()          { will_be_purged = true; };
+  virtual void set_to_purge()          { will_be_purged = true; };
   inline bool is_ready_to_be_purged() { return(will_be_purged); };
+  inline u_int get_duration()         { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()             { return(0);         };  
   virtual char* get_string_key(char *buf, u_int buf_len) { buf[0] = '\0'; return(buf); };
   void incUses()      { num_uses++;      }

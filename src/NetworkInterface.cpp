@@ -251,7 +251,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
-    pkt_dumper = NULL, numL2Devices = 0,
+    pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false;
 
@@ -3878,8 +3878,16 @@ u_int NetworkInterface::getNumFlows()        {
 /* **************************************************** */
 
 u_int NetworkInterface::getNumHosts()        {
-  u_int tot = hosts_hash ? hosts_hash->getNumEntries() : 0;
+  u_int tot = numHosts;
   for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHosts();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumLocalHosts()    {
+  u_int tot = numLocalHosts;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumLocalHosts();
   return(tot);
 };
 
@@ -4088,6 +4096,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "bytes",       getNumBytes());
   lua_push_int_table_entry(vm, "flows",       getNumFlows());
   lua_push_int_table_entry(vm, "hosts",       getNumHosts());
+  lua_push_int_table_entry(vm, "local_hosts", getNumLocalHosts());
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_int_table_entry(vm, "devices",     numL2Devices);

@@ -189,7 +189,20 @@ using namespace std;
 #include "PacketDumperGeneric.h"
 #include "PacketDumper.h"
 #include "PacketDumperTuntap.h"
+#include "TcpFlowStats.h"
+#include "StoreManager.h"
+#include "StatsManager.h"
+#include "AlertsManager.h"
+#include "DB.h"
+#include "MySQLDB.h"
+#include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
+#include "NetworkInterface.h"
+#include "PcapInterface.h"
+#include "ViewInterface.h"
+#ifdef HAVE_PF_RING
+#include "PF_RINGInterface.h"
+#endif
 #include "AlertCounter.h"
 #include "GenericHost.h"
 #include "GenericHash.h"
@@ -199,19 +212,6 @@ using namespace std;
 #include "Redis.h"
 #include "ElasticSearch.h"
 #include "Logstash.h"
-#include "StoreManager.h"
-#include "StatsManager.h"
-#include "AlertsManager.h"
-#include "DB.h"
-#include "MySQLDB.h"
-#include "TcpFlowStats.h"
-#include "InterfaceStatsHash.h"
-#include "NetworkInterface.h"
-#include "PcapInterface.h"
-#include "ViewInterface.h"
-#ifdef HAVE_PF_RING
-#include "PF_RINGInterface.h"
-#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #ifndef WIN32

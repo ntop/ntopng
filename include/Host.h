@@ -80,6 +80,7 @@ class Host : public GenericHost {
   void computeHostSerial();
   json_object* getJSONObject();
   bool readDHCPCache();
+  void updateLocal();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category);
@@ -92,7 +93,6 @@ class Host : public GenericHost {
   Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId, IpAddress *_ip);
   ~Host();
 
-  void updateLocal();
   void updateStats(struct timeval *tv);
   void incLowGoodputFlows(bool asClient);
   void decLowGoodputFlows(bool asClient);

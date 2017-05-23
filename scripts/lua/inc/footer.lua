@@ -245,7 +245,7 @@ print[[
                    mem_used_ratio = mem_used_ratio * 100;
                    mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
                    mem_used_ratio = mem_used_ratio + "%";
-                   $('#ram-used').html('used: ' + mem_used_ratio + ' / available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / total: ' + bytesToSize(mem_total * 1024));
+                   $('#ram-used').html('Used: ' + mem_used_ratio + ' / Available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / Total: ' + bytesToSize(mem_total * 1024));
                 }
 
                 if(rsp.system_host_stats.cpu_load !== undefined) {
@@ -289,11 +289,21 @@ print [[/lua/show_alerts.lua\"><i class=\"fa fa-warning\" style=\"color: " + col
 
 		var alarm_threshold_low = 60;  /* 60% */
 		var alarm_threshold_high = 90; /* 90% */
-		var alert = 0;    
-            
-            msg += "<a style=\"margin-left:0.5em;\" href=\"]]
+		var alert = 0;     
+
+		if(rsp.num_local_hosts > 0) {
+		  msg += "<a style=\"margin-left:0.5em;\" href=\"]]
+print (ntop.getHttpPrefix())
+print [[/lua/hosts_stats.lua?mode=local\">";
+
+		  msg += "<span class=\"label label-success\">";
+		  msg += addCommas(rsp.num_local_hosts)+" Local Hosts</span></a> ";
+		}
+
+	    msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua\">";
+
 		if(rsp.hosts_pctg < alarm_threshold_low) {
 		  msg += "<span class=\"label label-default\">";
 		} else if(rsp.hosts_pctg < alarm_threshold_high) {

@@ -88,7 +88,7 @@ class NetworkInterface {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
-  u_int32_t ifSpeed, numL2Devices, scalingFactor;
+  u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
@@ -402,6 +402,7 @@ class NetworkInterface {
   u_int getNumPacketDrops();
   u_int getNumFlows();
   u_int getNumHosts();
+  u_int getNumLocalHosts();
   u_int getNumMacs();
   u_int getNumHTTPHosts();
 
@@ -522,8 +523,10 @@ class NetworkInterface {
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
-  inline void incNumL2Devices()      { numL2Devices++; }
-  inline void decNumL2Devices()      { numL2Devices--; }
+  inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };
+  inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
+  inline void incNumL2Devices()       { numL2Devices++; }
+  inline void decNumL2Devices()       { numL2Devices--; }
   inline u_int32_t getNumL2Devices() { return(numL2Devices); }
   inline u_int32_t getScalingFactor()       { return(scalingFactor); }
   inline void setScalingFactor(u_int32_t f) { scalingFactor = f;     }

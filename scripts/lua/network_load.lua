@@ -48,9 +48,11 @@ function dumpInterfaceStats(interface_name)
 	 res["alerts_stored"]      = alert_cache["alerts_stored"]
       end
 
-      res["num_flows"]  = ifstats.stats.flows
-      res["num_hosts"]  = ifstats.stats.hosts
-      res["num_devices"]  = ifstats.stats.devices
+      res["num_flows"]        = ifstats.stats.flows
+      res["num_hosts"]        = ifstats.stats.hosts
+      res["num_local_hosts"]  = ifstats.stats.local_hosts
+      res["num_devices"]      = ifstats.stats.devices
+
       res["epoch"]      = os.time()
       res["tz_offset"]  = get_timezone_offset()
       -- res["localtime"]  = format_time(res["epoch"], "!%H:%M:%S %z", res["tz_offset"])

@@ -24,6 +24,7 @@
 
 #include "ntop_includes.h"
 
+class NetworkInterface;
 class Flow;
 
 class GenericHost : public GenericHashEntry, public GenericTrafficElement {
@@ -68,6 +69,10 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
   inline u_int8_t getSourceId()       { return(source_id);                 };
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
   virtual bool match(AddressTree *ptree)             { return(true);   };
+  virtual void set_to_purge() {
+    iface->decNumHosts(isLocalHost());
+    GenericHashEntry::set_to_purge();
+  };
 };
 
 #endif /* _GENERIC_HOST_H_ */

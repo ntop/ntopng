@@ -182,7 +182,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     updateLocal();
     updateHostTrafficPolicy(host);
     
-    if(localHost) {
+    if(isLocalHost()) {
       /* initialize this in any case to support runtime 'are_top_talkers_enabled' changes */
       top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
       old_sites = strdup("{}");
@@ -192,7 +192,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
 
-    if(localHost || systemHost) {
+    if(isLocalHost()) {
       dns = new DnsStats();
       http = new HTTPstats(iface->get_hosts_hash());
     }
@@ -249,14 +249,17 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     if(city) free(city);
     ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
-    if(localHost || systemHost) {
+    if(isLocalHost()) {
 #ifdef NTOPNG_PRO
       sent_to_sketch   = new CountMinSketch();
       rcvd_from_sketch = new CountMinSketch();
 #endif
       readStats();
+
     }
   }
+
+  iface->incNumHosts(isLocalHost());
 
   refreshHostAlertPrefs();
   
