@@ -1246,6 +1246,7 @@ local  en = {
       device_name = "Device Name",
       first_seen = "First Seen",
       last_seen = "Last Seen",
+      create_pools_first = "No pools defined. You can create new pools <a href=\"%{url}\">here</a>",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

@@ -719,7 +719,6 @@ print[[            css : {
 
             if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
-
 ]]
 
 if #available_pools > 2 then
@@ -971,6 +970,7 @@ print [[
               $("input", input).first().attr("disabled", "disabled");
             } else {
               datatableAddLinkButtonCallback.bind(this)(6, pool_link, "View");
+              value = value.replace("'", "\\'");
               datatableAddDeleteButtonCallback.bind(this)(6, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
               if (pool_undeletable)

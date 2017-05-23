@@ -189,7 +189,6 @@ end
 function host_pools_utils.getPoolsList(ifid, without_info)
   local ids_key = get_pool_ids_key(ifid)
   local pools = {}
-  local reads = 
 
   initInterfacePools(ifid)
 
