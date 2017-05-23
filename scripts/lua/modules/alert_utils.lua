@@ -909,9 +909,9 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
          print("value=\"lt\">&lt;</option>\n")
          print("</select>\n")
-         print("<input type=number min=1 step=1 class=\"text-right form-control\" style=\"display:inline; width:12em;\" name=\"value_"..k.."\" value=\"")
+         print("<input type=\"number\" min=1 step=1 class=\"text-right form-control\" style=\"display:inline; width:12em;\" name=\"value_"..k.."\" value=\"")
          if(vals[k] ~= nil) then print(vals[k][2]) end
-         print("\">\n")
+         print("\""..numberValidationMessage()..">\n")
         end
          print("</td></tr>\n")
       end
@@ -955,7 +955,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
                print("</td><td>\n")
                print('<input type="number" class=\"text-right form-control\" name="'..key..'" style="display:inline; width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
                print(tostring(vals[key] or ""))
-               print[["></input>]]
+               print[["]] print(numberValidationMessage()) print[[/>]]
             end
 
             print("</td></tr>")

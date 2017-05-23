@@ -439,6 +439,20 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     attributes["required"] = "required"
   end
 
+  -- handle separately
+  local required_attrs = ""
+  if attributes["required"] or attributes["pattern"] or _input_type == "number" then
+    if attributes["required"] and attributes["pattern"] then
+      required_attrs = requiredPatternValidationMessage()
+    elseif _input_type == "number" then
+      required_attrs = numberValidationMessage()
+    elseif attributes["required"] then
+      required_attrs = requiredValidationMessage()
+    else
+      required_attrs = patternValidationMessage()
+    end
+  end
+
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
   print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
@@ -475,7 +489,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       print[[
           </td>
           <td style="vertical-align:top; padding-left: 2em;">
-            <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
+            <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print(required_attrs) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
           </td>

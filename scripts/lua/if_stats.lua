@@ -958,7 +958,7 @@ end
       print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
 	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
 	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
-	 print [["></input>
+	 print [[" ]] print(numberValidationMessage()) print[[/>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
 <small> ]]
@@ -986,7 +986,7 @@ print[[</small>]]
 	 else
 	   print(interface.getInterfaceDumpMaxPkts().."")
 	 end
-	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
+	 print [[" ]] print(numberValidationMessage()) print[[/> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
     <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
     </td></tr>
@@ -1002,7 +1002,7 @@ print[[</small>]]
 	 else
 	   print(interface.getInterfaceDumpMaxSec().."")
 	 end
-	 print [["></input>
+	 print [[" ]] print(numberValidationMessage()) print[[/>
 		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
     <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
@@ -1019,7 +1019,7 @@ print[[</small>]]
 	 else
 	   print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
 	 end
-	 print [["></input>
+	 print [[" ]] print(numberValidationMessage()) print[[/>
 		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
     </form>
     <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
@@ -1053,7 +1053,7 @@ elseif(page == "config") then
       local label = getInterfaceNameAlias(ifstats.name)
       inline_input_form("custom_name", "Custom Name",
          i18n("if_stats_config.custom_name_popup_msg"),
-         label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9\\. ]*$"')
+         label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9\\. ]*$"' .. inputValidationMessage(i18n("validation.interface_alias")))
       print[[
          </td>
       </tr>]]
@@ -1066,7 +1066,7 @@ elseif(page == "config") then
       local ifspeed = getInterfaceSpeed(ifstats)
       inline_input_form("ifSpeed", "Interface Speed",
          i18n("if_stats_config.interface_speed_popup_msg"),
-         ifspeed, isAdministrator(), 'type="number" min="1"')
+         ifspeed, isAdministrator(), 'type="number" min="1"'..numberValidationMessage())
       print[[
          </td>
       </tr>]]
@@ -1079,7 +1079,7 @@ elseif(page == "config") then
       local refreshrate = getInterfaceRefreshRate(ifstats.id)
       inline_input_form("ifRate", "Refresh Rate",
          i18n("if_stats_config.refresh_rate_popup_msg"),
-         refreshrate, isAdministrator(), 'type="number" min="1"')
+         refreshrate, isAdministrator(), 'type="number" min="1"'..numberValidationMessage())
       print[[
          </td>
       </tr>]]
@@ -1096,7 +1096,7 @@ elseif(page == "config") then
          <td>]]
       inline_input_form("scaling_factor", "Scaling Factor",
          i18n("if_stats_config.scaling_factor_popup_msg"),
-         label, isAdministrator(), 'type="number" min="1" step="1"')
+         label, isAdministrator(), 'type="number" min="1" step="1"'..numberValidationMessage())
       print[[
          </td>
       </tr>]]
@@ -1703,7 +1703,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    div.appendTo(td_object);
    buttons.appendTo(div);
 
-   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:6em; text-align:right; margin-left:0.5em; display:inline;" required/>');
+   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:6em; text-align:right; margin-left:0.5em; display:inline;" required ]] print(numberValidationMessage([[\']])) print[[/>');
    if (maxvalue !== null)
       input.attr("data-max", maxvalue);
 

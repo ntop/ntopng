@@ -167,7 +167,7 @@ end
 
 function printPoolNameField(pool_id_str)
   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
-  print[[<input name="pool_' + ]] print(pool_id_str) print[[ + '" class="form-control" spellcheck="false" data-unique="unique" placeholder="]] print(i18n("host_pools.specify_pool_name")) print[[" required/>]]
+  print[[<input name="pool_' + ]] print(pool_id_str) print[[ + '" class="form-control" spellcheck="false" data-unique="unique" placeholder="]] print(i18n("host_pools.specify_pool_name")) print[[" required ]] print(requiredValidationMessage([[\']])) print[[ />]]
   print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
   print[[</div>]]
 end
@@ -178,14 +178,14 @@ function printMemberAddressField(member_str, origin_value_str)
   if not isEmptyString(origin_value_str) then
     print[[ data-origin-value="' + ]] print(origin_value_str) print[[ + '"]]
   end
-  print[[ required/>]]
+  print(" required "..requiredValidationMessage([[\']])) print[[/>]]
   print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
   print[[</div>]]
 end
 
 function printMemberVlanField(member_str)
   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
-  print[[<input name="member_' + ]] print(member_str) print[[ + '_vlan" class="form-control text-right" data-member="member" style="width:5em; padding-right:1em; margin: 0 auto;" type="number" min="0" value="0" required/>]]
+  print[[<input name="member_' + ]] print(member_str) print[[ + '_vlan" class="form-control text-right" data-member="member" style="width:5em; padding-right:1em; margin: 0 auto;" type="number" min="0" value="0" required ]] print(numberValidationMessage([[\']])) print[[/>]]
   print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
   print[[</div>]]
 end
@@ -530,9 +530,9 @@ print [[
             return $('input[name^="pool_"]', $("#table-create-form"));
          }),
       }, errors: {
-         member: "]] print(i18n("host_pools.duplicate_member")) print[[.",
-         address: "]] print(i18n("host_pools.invalid_member")) print[[.",
-         unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
+         member: "]] print(i18n("validation.duplicate_member")) print[[.",
+         address: "]] print(i18n("validation.invalid_member")) print[[.",
+         unique: "]] print(i18n("validation.duplicate_pool")) print[[.",
       }
     }
 

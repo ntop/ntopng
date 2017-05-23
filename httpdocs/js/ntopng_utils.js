@@ -504,3 +504,8 @@ function memberValueValidator(input) {
 
   return is_mac_address(member) || is_network_mask(member, true);
 }
+
+function hasEnglishLocale() {
+  var langage = navigator.language || navigator.browserLanguage || "";
+  return langage.startsWith("en");
+}

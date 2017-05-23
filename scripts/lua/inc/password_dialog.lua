@@ -64,7 +64,7 @@ print [[
   <div class='form-group col-md-]] print(col_md_size) print[[ has-feedback'>
       <label for="" class="control-label">Old Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
+        <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required ]] print(requiredValidationMessage()) print[[>
       </div>
   </div>
    ]]
@@ -74,14 +74,14 @@ print [[
   <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
       <label for="" class="control-label">New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
       </div>
   </div>
 
   <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
       <label for="" class="control-label">Confirm New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
       </div>
   </div>
 </div>
@@ -148,7 +148,7 @@ if not captive_portal_user then
     <div class="form-group col-md-12 has-feedback">
       <label class="control-label">Allowed Networks</label>
       <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-        <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
+        <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required ]] print(requiredValidationMessage()) print[[>
       </div>
       <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
@@ -208,7 +208,7 @@ else -- captive portal user
    print[[
           </td>
           <td style="padding-left: 2em;">
-        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
+        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[["]] print(numberValidationMessage()) print[[>
           </td>
         </tr>
       </table>

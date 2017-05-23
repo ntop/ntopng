@@ -57,9 +57,9 @@ print [[
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
   <div class="form-group has-feedback">
 
-      <input type="text" class="form-control" name="username" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
-      <input type="password" class="form-control" name="password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      <input type="text" class="form-control" name="label" placeholder="Device Label" pattern="^[ \w\.%]{1,}$" required>
+      <input type="text" class="form-control" name="username" placeholder="Username" pattern="]] print(getUserInputPattern()) print[[" required ]] print(userValidationMessage()) print[[>
+      <input type="password" class="form-control" name="password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required ]] print(passwordValidationMessage()) print[[>
+      <input type="text" class="form-control" name="label" placeholder="Device Label" pattern="^[ \w\.%]{1,}$" required ]] print(patternValidationMessage()) print[[>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
 
