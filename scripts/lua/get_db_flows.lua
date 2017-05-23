@@ -164,27 +164,27 @@ else
 		  flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>"
 	       end
 
-	       if useAggregatedFlows() == false then
-		  flow["INFO"] = base.."&l4proto=&port=&host=&info="..flow["INFO"].."'>"..flow["INFO"].."</A>"
-	       end
+	       flow["INFO"] = base.."&l4proto=&port=&host=&info="..flow["INFO"].."'><span title='"..flow["INFO"].."'>"..shortenString(flow["INFO"], 32).."</span></A>"
 
 	       flow["PROTOCOL"] = base.."&protocol=&port=&host=&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	       flow["L7_PROTO"] = base.."&port=&host=&l4proto=&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
 	       flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
 
-               if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
-                   flow["INFO"] = "<span class='label label-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]
-               end
+	       if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
+		  flow["INFO"] = "<span class='label label-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]
+	       end
+
 	    else
 	       flow["CLIENT"] = client..":"..ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname)
 	       flow["SERVER"] = server..":"..ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname)
 	       flow["PROTOCOL"] = pname
 	       flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))
 	       flow["FLOW_URL"] = ""
+	       flow["INFO"] = "<span title='"..flow["INFO"].."'>"..shortenString(flow["INFO"], 32).."</span>"
 	    end
 	 end
 
-	 for _, k in pairs({"CLIENT", "SERVER", "PROTOCOL", "L7_PROTO", "INFO"}) do
+	 for _, k in pairs({"CLIENT", "SERVER", "PROTOCOL", "L7_PROTO"}) do
 	    flow[k] = "<i>"..flow[k].."</i>"
 	 end
 

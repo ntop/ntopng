@@ -57,6 +57,7 @@ class MySQLDB : public DB {
   };
   inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows; };
   inline float exportRate()          const { return mysqlExportRate; };
+  static char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
   virtual void flush() { ; };

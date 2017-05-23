@@ -470,37 +470,50 @@ void MySQLDB::lua(lua_State *vm, bool since_last_checkpoint) const {
 
 /* ******************************************* */
 
+char* MySQLDB::escapeAphostrophes(const char *unescaped) {
+  char *buf;
+  int l, i, j;
+
+  if(!unescaped)
+    return NULL;
+
+  l = strlen(unescaped);
+
+  if((buf = (char*)malloc(2*l + 1)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    return NULL;
+  }
+
+  for(i = 0, j = 0; i<l; i++) {
+    /* http://stackoverflow.com/questions/9596652/how-to-escape-apostrophe-in-mysql */
+    if(unescaped[i] == '\'')
+	buf[j++] = '\'';
+
+      buf[j++] = unescaped[i];
+    }
+
+  buf[j] = '\0';
+
+  return buf;
+}
+
+/* ******************************************* */
+
 int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const {
-  char cli_str[64], srv_str[64], *json_buf;
+  char cli_str[64], srv_str[64], *json_buf, *info_buf;
   u_int32_t packets, first_seen, last_seen;
   u_int32_t bytes_cli2srv, bytes_srv2cli;
   size_t len;
 
-  if(!values_buf || !values_buf_len)
+  if(!values_buf || !values_buf_len || !f)
     return -1;
 
-  if(json == NULL)
-    json_buf = strdup("");
-  else {
-    int l, i, j;
+  json_buf = escapeAphostrophes(json);
+  info_buf = escapeAphostrophes(f->getFlowInfo());
 
-    l = strlen(json);
-
-    if((json_buf = (char*)malloc(2*l + 1)) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-      return -2;
-    }
-
-    for(i = 0, j = 0; i<l; i++) {
-      /* http://stackoverflow.com/questions/9596652/how-to-escape-apostrophe-in-mysql */
-      if(json[i] == '\'')
-	json_buf[j++] = '\'';
-
-      json_buf[j++] = json[i];
-    }
-
-    json_buf[j] = '\0';
-  }
+  /* Prevents ERROR 1406 (22001): Data too long for column 'INFO' at row 1 */
+  if(info_buf && strlen(info_buf) > 255)
+    info_buf[256] = '\0';
 
   /* Use of partial_ functions is safe as they will deal with partial dumps automatically */
   bytes_cli2srv = f->get_partial_bytes_cli2srv();
@@ -521,8 +534,8 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
 		   f->get_protocol(),
 		   bytes_cli2srv, bytes_srv2cli,
 		   packets, first_seen, last_seen,
-		   f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-		   json_buf,
+		   info_buf ? info_buf : "",
+		   json_buf ? json_buf : "",
 		   ntop->getPrefs()->get_instance_name(),
 		   iface->get_id()
 #ifdef NTOPNG_PRO
@@ -541,8 +554,8 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
 		   f->get_protocol(),
 		   bytes_cli2srv, bytes_srv2cli,
 		   packets, first_seen, last_seen,
-		   f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-		   json_buf,
+		   info_buf ? info_buf : "",
+		   json_buf ? json_buf : "",
 		   ntop->getPrefs()->get_instance_name(),
 		   iface->get_id()
 #ifdef NTOPNG_PRO
@@ -550,8 +563,11 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
 #endif
 		   );
   }
-  
-  free(json_buf);
+
+  if(json_buf)
+    free(json_buf);
+  if(info_buf)
+    free(info_buf);
 
   return len;
 }

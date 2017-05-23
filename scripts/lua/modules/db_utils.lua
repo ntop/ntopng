@@ -73,7 +73,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
-   if(info ~= "") then follow = follow .." AND (INFO='"..info.."')" end
+   if(info ~= "") then follow = follow .." AND (INFO LIKE '%"..info.."%')" end
    follow = follow.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    follow = follow.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
@@ -177,7 +177,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
 
    if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
    if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
-   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+   if(info ~= nil) then sql = sql .." AND (INFO LIKE '%"..info.."%')" end
 
    if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
 
@@ -356,7 +356,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
    end
    if(info ~= nil) then
-      sql = sql .." AND (INFO='"..info.."')"
+      sql = sql .." AND (INFO LIKE '%"..info.."%')"
    end
 
    if l7_proto_id and l7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
@@ -549,7 +549,7 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
 
    if l7_proto_id and l7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
    if l4_proto_id and l4_proto_id ~="" then sql = sql.." AND PROTOCOL = "..tonumber(l4_proto_id) end
-   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+   if(info ~= nil) then sql = sql .." AND (INFO LIKE '%"..info.."%')" end
 
    if peer1 and peer1 ~= "" then
       if(version == 4) then

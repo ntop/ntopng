@@ -221,6 +221,10 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
+  inline bool isMaskedFlow() {
+    return(!get_cli_host() || Utils::maskHost(get_cli_host()->isLocalHost())
+	   || !get_srv_host() || Utils::maskHost(get_srv_host()->isLocalHost()));
+  };
   char* serialize(bool es_json = false);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
@@ -239,6 +243,7 @@ class Flow : public GenericHashEntry {
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
+  char* getFlowInfo();
   inline char* getFlowServerInfo() {
     return (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : host_server_name;
   }

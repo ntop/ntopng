@@ -68,7 +68,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&protos, 0, sizeof(protos));
 
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
-  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
+  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true, quota_exceeded = false, categorization.categorized_requested = false;
   cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
@@ -1395,7 +1395,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   }
   lua_push_int_table_entry(vm, "srv.port", get_srv_port());
 
-  mask_flow = mask_cli_host || mask_dst_host;
+  mask_flow = isMaskedFlow(); // mask_cli_host || mask_dst_host;
   
   lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
   lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
@@ -1523,6 +1523,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!mask_flow) {
       if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
       if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
+      lua_push_str_table_entry(vm, "info", getFlowInfo() ? getFlowInfo() : (char*)"");
     }
     
     if(isHTTP() && protos.http.last_method && protos.http.last_url) {
@@ -2193,6 +2194,37 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
     }
   } else
     result->tv_sec = 0, result->tv_usec = 0;
+}
+
+/* *************************************** */
+
+char* Flow::getFlowInfo() {
+  if(!isMaskedFlow()) {
+
+    if(isDNS() && protos.dns.last_query)
+      return protos.dns.last_query;
+
+    else if(isHTTP() && protos.http.last_method && protos.http.last_url)
+      return protos.http.last_url;
+
+    else if(isSSL() && protos.ssl.certificate)
+      return protos.ssl.certificate;
+
+    else if(bt_hash)
+      return bt_hash;
+
+    else if(host_server_name)
+      return host_server_name;
+
+    else if(isSSH()) {
+      if(protos.ssh.server_signature)
+	return protos.ssh.server_signature;
+      else if(protos.ssh.client_signature)
+	return protos.ssh.client_signature;
+
+    }
+  }
+  return (char*)"";
 }
 
 /* *************************************** */
