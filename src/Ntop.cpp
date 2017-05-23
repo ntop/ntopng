@@ -151,8 +151,9 @@ Ntop::Ntop(char *appName) {
 */
 
 void Ntop::initTimezone() {
-  time_t now = time(NULL);
-  time_offset =(long)(mktime(localtime(&now)) - mktime(gmtime(&now)));
+  time_t t = time(NULL);
+
+  time_offset = localtime(&t)->tm_gmtoff;
 }
 
 /* ******************************************* */
