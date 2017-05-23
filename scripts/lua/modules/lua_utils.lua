@@ -1424,6 +1424,47 @@ end
 
 -- Mac Addresses --
 
+-- A function to give a useful device name
+function getDeviceName(device_mac, vlan)
+   local name = getHostAltName(device_mac)
+
+   if name == device_mac then
+      -- Not found, try with first host
+      local info = interface.getHostsInfo(false, nil, 1, 0, nil, nil, nil, tonumber(vlan), nil,
+               nil, device_mac)
+
+      if (info ~= nil) then
+         for x, host in pairs(info.hosts) do
+            if not isEmptyString(host.name) and host.name ~= host.ip then
+               name = host.name
+            else
+               name = getHostAltName(host.ip)
+
+               if name == host.ip then
+                  name = nil
+               end
+            end
+            break
+         end
+      else
+         name = nil
+      end
+   end
+
+   if isEmptyString(name) then
+      local manufacturer = ntop.getMacManufacturer(device_mac)
+
+      if manufacturer ~= nil then
+         name = manufacturer.extended
+      else
+         -- last resort
+         name = device_mac
+      end
+   end
+
+   return name
+end
+
 local specialMACs = {
   "01:00:0C",
   "01:80:C2",

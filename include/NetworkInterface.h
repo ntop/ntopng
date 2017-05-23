@@ -175,7 +175,7 @@ class NetworkInterface {
 	       u_int8_t bridge_iface_idx,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
 	       bool hostMacsOnly, const char *manufacturer,
-	       char *sortColumn);
+	       char *sortColumn, u_int16_t pool_filter, bool effectiveMacsOnly);
 
   bool isNumber(const char *str);
   bool validInterface(char *name);
@@ -375,7 +375,8 @@ class NetworkInterface {
 		       bool skipSpecialMacs,
 		       bool hostMacsOnly, const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
-		       u_int32_t toSkip, bool a2zSortOrder);
+		       u_int32_t toSkip, bool a2zSortOrder,
+		       u_int16_t pool_filter, bool effectiveMacsOnly);
   int getActiveMacManufacturers(lua_State* vm,
 				u_int8_t bridge_iface_idx,
 				u_int16_t vlan_id,

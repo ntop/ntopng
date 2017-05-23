@@ -1239,6 +1239,15 @@ local  en = {
       more_info_about_as_popup_msg = "More Information about AS",
    },
 
+   unknown_devices = {
+      assign_device_pool = "Assign Device Pool",
+      select_pool = "Please select an host pool from the dropdown below to assign '%{mac}' to:",
+      assign_pool = "Assign Pool",
+      device_name = "Device Name",
+      first_seen = "First Seen",
+      last_seen = "Last Seen",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

@@ -60,6 +60,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
   inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; }
   inline bool isSeenIface(u_int8_t idx)   { return(bridge_seen_iface[idx & 0x01]); }
+  inline bool isEffectiveMac()       { return (bridge_seen_iface[0] || bridge_seen_iface[1]); }
   inline u_int64_t getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
   inline u_int64_t getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
 
@@ -67,6 +68,10 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
   inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };
+
+  char* serialize();
+  void deserialize(char *key, char *json_str);
+  json_object* getJSONObject();
 };
 
 #endif /* _MAC_H_ */

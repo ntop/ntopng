@@ -70,6 +70,7 @@ public:
   u_int16_t getPool(Host *h);
 
   bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
+  bool findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
 
 #ifdef NTOPNG_PRO

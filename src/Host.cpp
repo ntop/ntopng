@@ -199,7 +199,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
     if((localHost || systemHost)
        && ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
-      char *json;
+      char *json = NULL;
 
       if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	ntop->getTrace()->traceEvent(TRACE_ERROR,

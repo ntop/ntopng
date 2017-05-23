@@ -49,22 +49,44 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 			       special_mac ? "Special" : "Host");
 #endif
 
-  if(!special_mac) iface->incNumL2Devices();
+  if(!special_mac) {
+    iface->incNumL2Devices();
+
+    if (isEffectiveMac()) {
+      char redis_key[64], buf1[64];
+      char *json = NULL;
+      snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
+
+      if ((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR,
+                 "Unable to allocate memory to deserialize %s", redis_key);
+      } else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)) {
+        /* Found saved copy of the host so let's start from the previous state */
+        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+
+        deserialize(redis_key, json);
+      }
+
+      if(json) free(json);
+    }
+  }
 }
 
 /* *************************************** */
 
 Mac::~Mac() {
-  /* TODO: decide if it is useful to dump mac stats to redis */
   if(!special_mac) {
-    char buf[64], buf1[64], buf2[64], when[16];
-    
     iface->decNumL2Devices();
 
-    snprintf(buf, sizeof(buf), CONST_MAC_LAST_SEEN, iface->get_id());
-    snprintf(when, sizeof(when), "%lu", time(NULL));
-    snprintf(buf2, sizeof(buf2), "%s@%d", Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
-    ntop->getRedis()->hashSet(buf, buf2, when);
+    if (isEffectiveMac()) {
+      char key[64], buf1[64];
+      char *json = serialize();
+
+      snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
+      ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
+      free(json);
+    }
   }
 
 #ifdef DEBUG
@@ -106,6 +128,7 @@ bool Mac::idle() {
 
 void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   char buf[32], *m;
+  u_int16_t host_pool = 0;
 
   lua_newtable(vm);
 
@@ -132,7 +155,10 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
 
-  lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
+  lua_push_int_table_entry(vm, "num_hosts", getNumHosts());
+
+  getInterface()->getHostPools()->findMacPool(this, &host_pool);
+  lua_push_int_table_entry(vm, "pool", host_pool);
 
   if(asListElement) {
     lua_pushstring(vm, m);
@@ -150,4 +176,52 @@ bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
     return(true);
   else
     return(false);
+}
+
+/* *************************************** */
+
+char* Mac::serialize() {
+  json_object *my_object = getJSONObject();
+  char *rsp = strdup(json_object_to_json_string(my_object));
+
+  /* Free memory */
+  json_object_put(my_object);
+
+  return(rsp);
+}
+
+/* *************************************** */
+
+void Mac::deserialize(char *key, char *json_str) {
+  json_object *o, *obj;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  if((o = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
+				 json_tokener_error_desc(jerr),
+				 key,
+				 json_str);
+    return;
+  }
+
+  if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "seen.last", &obj)) last_seen = json_object_get_int64(obj);
+}
+
+/* *************************************** */
+
+json_object* Mac::getJSONObject() {
+  json_object *my_object;
+  char buf[32];
+  u_int16_t host_pool = 0;
+
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
+
+  json_object_object_add(my_object, "mac", json_object_new_string(Utils::formatMac(get_mac(), buf, sizeof(buf))));
+  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
+  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+
+  if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
+
+  return my_object;
 }

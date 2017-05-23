@@ -613,32 +613,29 @@ void HostPools::reloadPools() {
 
 /* *************************************** */
 
-bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
+bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool) {
   AddressTree *cur_tree; /* must use this as tree can be swapped */
-#ifdef HOST_POOLS_DEBUG
-  char buf[128];
-  char *k;
-#endif
 
-  if(!tree || !(cur_tree = tree[mac->get_vlan_id()]))
+  if(!tree || !(cur_tree = tree[vlan_id]))
     return false;
 
-  if(!mac->isSpecialMac()) {
-    int16_t ret = mac->findAddress(cur_tree);
+  int16_t ret = cur_tree->findMac(mac);
 
-    if(ret != -1) {
-#ifdef HOST_POOLS_DEBUG
-      k = mac->get_string_key(buf, sizeof(buf));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Found pool for %s [pool id: %i]",
-				   k, ret);
-#endif
-      *found_pool = (u_int16_t)ret;
-      return true;
-    }
+  if(ret != -1) {
+    *found_pool = (u_int16_t)ret;
+    return true;
   }
 
   return false;
+}
+
+/* *************************************** */
+
+bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
+  if (mac->isSpecialMac())
+    return false;
+
+  return findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
 }
 
 /* *************************************** */

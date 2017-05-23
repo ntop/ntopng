@@ -692,41 +692,20 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   char *sortColumn = (char*)"column_mac";
   const char* manufacturer = NULL;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
-  u_int16_t vlan_id = 0;
+  u_int16_t vlan_id = 0, pool_filter = (u_int16_t)-1;
   bool a2zSortOrder = true,
-    skipSpecialMacs = false, hostMacsOnly = false;
+    skipSpecialMacs = false, hostMacsOnly = false, effectiveMacsOnly = false;
 
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    sortColumn = (char*)lua_tostring(vm, 1);
-
-    if(lua_type(vm, 2) == LUA_TNUMBER) {
-      maxHits = (u_int16_t)lua_tonumber(vm, 2);
-
-      if(lua_type(vm, 3) == LUA_TNUMBER) {
-	toSkip = (u_int16_t)lua_tonumber(vm, 3);
-
-	if(lua_type(vm, 4) == LUA_TBOOLEAN) {
-	  a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
-
-	  if(lua_type(vm, 5) == LUA_TNUMBER) {
-	    vlan_id = (u_int16_t)lua_tonumber(vm, 5);
-
-	    if(lua_type(vm, 6) == LUA_TBOOLEAN) {
-	      skipSpecialMacs = lua_toboolean(vm, 6) ? true : false;
-	    }
-	    
-	    if(lua_type(vm, 7) == LUA_TBOOLEAN) {
-	      hostMacsOnly = lua_toboolean(vm, 7) ? true : false;
-	      
-	      if(lua_type(vm, 8) == LUA_TSTRING) {
-		manufacturer = lua_tostring(vm, 8);
-	      }
-	    }
-	  }
-	}
-      }
-    }
-  }
+  if(lua_type(vm, 1) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 1);
+  if(lua_type(vm, 2) == LUA_TNUMBER) maxHits = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 3) == LUA_TNUMBER) toSkip = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN) a2zSortOrder = lua_toboolean(vm, 4);
+  if(lua_type(vm, 5) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 5);
+  if(lua_type(vm, 6) == LUA_TBOOLEAN) skipSpecialMacs = lua_toboolean(vm, 6);
+  if(lua_type(vm, 7) == LUA_TBOOLEAN) hostMacsOnly = lua_toboolean(vm, 7);
+  if(lua_type(vm, 8) == LUA_TSTRING) manufacturer = lua_tostring(vm, 8);
+  if(lua_type(vm, 9) == LUA_TNUMBER) pool_filter = (u_int16_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 10) == LUA_TBOOLEAN) effectiveMacsOnly = lua_toboolean(vm, 10);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
@@ -734,7 +713,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 				      vlan_id, skipSpecialMacs,
 				      hostMacsOnly, manufacturer,
 				      sortColumn, maxHits,
-				      toSkip, a2zSortOrder) < 0)
+				      toSkip, a2zSortOrder, pool_filter, effectiveMacsOnly) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -3659,6 +3638,34 @@ static int ntop_find_member_pool(lua_State *vm) {
 
 /* *******************************************/
 
+static int ntop_find_mac_pool(lua_State *vm) {
+  const char *mac;
+  u_int8_t mac_parsed[6];
+  u_int16_t vlan_id;
+  u_int16_t pool_id;
+
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  mac = lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  Utils::parseMac(mac_parsed, mac);
+
+  if (ntop_interface && ntop_interface->getHostPools()) {
+    if (ntop_interface->getHostPools()->findMacPool(mac_parsed, vlan_id, &pool_id))
+      lua_pushnumber(vm, pool_id);
+    else
+      lua_pushnil(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* *******************************************/
+
 static int ntop_reload_l7_rules(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5735,6 +5742,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Host pools */
   { "reloadHostPools",                ntop_reload_host_pools                },
   { "findMemberPool",                 ntop_find_member_pool                 },
+  { "findMacPool",                    ntop_find_mac_pool                    },
 
   #ifdef NTOPNG_PRO
   { "resetPoolsStats",                ntop_reset_pools_stats                },
