@@ -27,6 +27,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
+  bridge_seen_iface[0] = bridge_seen_iface[1] = 0;
 
   if(ntop->getMacManufacturers())
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
@@ -213,7 +214,6 @@ void Mac::deserialize(char *key, char *json_str) {
 json_object* Mac::getJSONObject() {
   json_object *my_object;
   char buf[32];
-  u_int16_t host_pool = 0;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 

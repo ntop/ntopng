@@ -5140,7 +5140,7 @@ void NetworkInterface::termLuaInterpreter() {
 
 int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   int rc;
-  lua_State *L;
+  lua_State *L = NULL;
   const char *luaFunction;
   UserScriptContext context;
 
