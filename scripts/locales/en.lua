@@ -1159,6 +1159,11 @@ local  en = {
       no_available_stats_for_network = "No available stats for network %{network}",
    },
 
+   vlan_details = {
+      vlan_id_parameter_missing_or_invalid_message = "Vlan_Id parameter is missing or is not valid",
+      no_available_stats_for_vlan_message = "No available stats for VLAN  %{vlan_id}. Please wait a few minutes to allow ntopng to harvest new statistics.",
+   },
+
    network_alert_config = {
       trigger_network_alerts = "Trigger Network Alerts",
       trigger_alerts_for_network = "Trigger alerts for Network %{network}",
@@ -1247,6 +1252,11 @@ local  en = {
       first_seen = "First Seen",
       last_seen = "Last Seen",
       create_pools_first = "No pools defined. You can create new pools <a href=\"%{url}\">here</a>",
+   },
+
+   vlan_stats = {
+      vlans = "VLANs",
+      vlan_id = "VLAN ID",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

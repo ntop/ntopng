@@ -28,14 +28,14 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Vlan_Id parameter is missing or is not valid</div>")
+    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.vlan_id_parameter_missing_or_invalid_message") .. "</div>")
     return
 end
 
 local rrdname = getRRDName(ifId, "vlan:"..vlan_id, rrdfile)
 
 if(not ntop.exists(rrdname) and rrdfile ~= "all") then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for VLAN  "..vlan_id..". Please wait a few minutes to allow ntopng to harvest new statistics.</div>")
+   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id}).."</div>")
 
 else
 
@@ -50,7 +50,7 @@ else
 <ul class="nav navbar-nav">
 ]]
 
-   print("<li><a href=\"#\">VLAN: "..vlan_id.."</A> </li>")
+   print("<li><a href=\"#\">"..i18n("vlan")..": "..vlan_id.."</A> </li>")
 
    if(page == "historical") then
       print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
