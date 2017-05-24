@@ -199,9 +199,6 @@ class NetworkInterface {
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
 
-  Host* findHostsByIP(AddressTree *allowed_hosts,
-		      char *host_ip, u_int16_t vlan_id);
-
  public:
   /**
   * @brief A Constructor
@@ -285,6 +282,9 @@ class NetworkInterface {
     pktStats.incStats(pkt_len);
     if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
+
+  Host* findHostsByIP(AddressTree *allowed_hosts,
+		      char *host_ip, u_int16_t vlan_id);
 
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
 
@@ -440,6 +440,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();
+  void resetPoolStats(u_int16_t host_pool_id);
   void resetPoolsStats();
   inline void luaHostPoolsStats(lua_State *vm)           { if (host_pools) host_pools->luaStats(vm);           };
   inline void luaHostPoolsVolatileMembers(lua_State *vm) { if (host_pools) host_pools->luaVolatileMembers(vm); };

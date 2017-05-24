@@ -79,8 +79,8 @@ class nDPIStats {
 
   void print(NetworkInterface *iface);
   void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false);
-  char* serialize(NetworkInterface *iface);
-  json_object* getJSONObject(NetworkInterface *iface);
+  char* serialize(NetworkInterface *iface, bool with_categories = false);
+  json_object* getJSONObject(NetworkInterface *iface, bool with_categories = false);
   void deserialize(NetworkInterface *iface, json_object *o);
   void sum(nDPIStats *s);
 
@@ -112,6 +112,18 @@ class nDPIStats {
       return(cat_counters[category_id].duration);
     else
       return(0);
+  }
+
+  inline void resetProtocolStats(u_int16_t proto_id) {
+    if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id]) {
+      free(counters[proto_id]);
+      counters[proto_id] = NULL;
+    }
+  }
+
+  inline void resetCategoryStats(ndpi_protocol_category_t category_id) {
+    if (category_id < NDPI_PROTOCOL_NUM_CATEGORIES)
+      memset(&cat_counters[category_id], 0, sizeof(CategoryCounter));
   }
 
   void resetStats();

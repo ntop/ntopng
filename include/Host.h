@@ -33,7 +33,6 @@ class Host : public GenericHost {
   FrequentStringItems *top_sites;
   char *old_sites;
   bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
-  u_int32_t host_quota_mb;
   int16_t local_network_id;
   u_int32_t num_alerts_detected;
   float latitude, longitude;
@@ -67,7 +66,7 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
-  HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
+  HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow, *cached_quota;
 #endif
   u_int16_t host_pool_id;
 
@@ -136,6 +135,7 @@ class Host : public GenericHost {
   };
   inline void resetBlockedTrafficStatus(){ has_blocking_quota = has_blocking_shaper = false; };
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); }
+  inline void resetProtocolQuotaStats(const char *proto_id) { if(quota_enforcement_stats) quota_enforcement_stats->resetProtocolQuotaStats(proto_id); }
   void luaUsedQuotas(lua_State* vm);
 #endif
   inline u_int16_t get_host_pool()             { return(host_pool_id);     }
@@ -202,7 +202,7 @@ class Host : public GenericHost {
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostL7Policy();
-  void updateHostPool();
+  void updateHostPool(bool restore_quota=false);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);

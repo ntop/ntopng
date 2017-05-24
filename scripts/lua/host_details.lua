@@ -20,6 +20,7 @@ require "historical_utils"
 
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
+local template = require "template_utils"
 
 debug_hosts = false
 page        = _GET["page"]
@@ -386,6 +387,10 @@ if ((isAdministrator()) and (host["ip"] ~= nil)) then
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
+end
+
+if isAdministrator() and (not isEmptyString(_POST["protocol_to_reset"])) then
+  interface.resetProtocolQuotaStats(hostkey, _POST["protocol_to_reset"])
 end
 
 print [[
@@ -1801,9 +1806,33 @@ elseif(page == "alerts") then
       host_name, "host")
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
-   local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
-   host_pools_utils.printQuotas(host_pool_id, host, page_params)
+   local host_quotas = host_pools_utils.getEnforceQuotasPerPoolMember(ifstats.id, host_pool_id)
+   local page_params = {ifid=ifId, pool=host_pool_id, host=ternary(host_quotas, hostkey, nil), page=page}
+   host_pools_utils.printQuotas(host_pool_id, ternary(host_quotas, host, nil), page_params)
 
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "resetProtocolStats",
+         action  = "resetProtocolStats(proto_to_reset)",
+         title   = i18n("shaping.reset_stats"),
+         message = i18n("shaping.confirm_reset_stats", {proto="<span id=\"proto_to_reset_name\"></span>", host=host["name"]}),
+         confirm = i18n("reset"),
+       }
+     })
+   )
+
+   print[[<script>
+      function resetProtocolStats(to_reset) {
+        var params = {};
+
+        params.protocol_to_reset = to_reset;
+        params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+        var form = paramsToForm('<form method="post"></form>', params);
+        form.appendTo('body').submit();
+      }
+   </script>]]
 elseif (page == "config") then
 
    if(not isAdministrator()) then

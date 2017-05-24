@@ -195,8 +195,8 @@ void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t catego
 
 /* *************************************** */
 
-char* nDPIStats::serialize(NetworkInterface *iface) {
-  json_object *my_object = getJSONObject(iface);  
+char* nDPIStats::serialize(NetworkInterface *iface, bool with_categories) {
+  json_object *my_object = getJSONObject(iface, with_categories);  
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
@@ -252,11 +252,31 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
       }
     }
   }
+
+  json_object *categories;
+
+  if(json_object_object_get_ex(o, "category_stats", &categories)) {
+    for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+      const char *name = ndpi_category_str((ndpi_protocol_category_t)i);
+
+      if(name != NULL) {
+        json_object *category_stats, *value;
+
+        if(json_object_object_get_ex(categories, name, &category_stats)) {
+          if(json_object_object_get_ex(category_stats, "bytes", &value))
+            cat_counters[i].bytes = json_object_get_int64(value);
+
+          if(json_object_object_get_ex(category_stats, "duration", &value))
+            cat_counters[i].duration = json_object_get_int(value);
+        }
+      }
+    }
+  }
 }
 
 /* *************************************** */
 
-json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
+json_object* nDPIStats::getJSONObject(NetworkInterface *iface, bool with_categories) {
   char *unknown = iface->get_ndpi_proto_name(NDPI_PROTOCOL_UNKNOWN);
   json_object *my_object;
   
@@ -287,6 +307,23 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
 	json_object_object_add(my_object, name, inner);
       }
     }
+  }
+
+  if (with_categories) {
+    json_object *categories_stats = json_object_new_object();
+
+    for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+      if(cat_counters[i].bytes > 0) {
+        json_object *category = json_object_new_object();
+
+        json_object_object_add(category, "bytes", json_object_new_int64(cat_counters[i].bytes));
+        json_object_object_add(category, "duration", json_object_new_int(cat_counters[i].duration));
+
+        json_object_object_add(categories_stats, ndpi_category_str((ndpi_protocol_category_t)i), category);
+      }
+    }
+
+    json_object_object_add(my_object, "category_stats", categories_stats);
   }
 
   return(my_object);

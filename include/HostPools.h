@@ -31,6 +31,7 @@ class Mac;
 class HostPools {
  private:
 #ifdef NTOPNG_PRO
+  time_t last_quota_reset[MAX_NUM_HOST_POOLS];
   bool enforce_quotas_per_pool_member[MAX_NUM_HOST_POOLS]; /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
@@ -97,11 +98,16 @@ public:
   }
 
   void resetPoolsStats();
+  bool resetPoolStats(u_int16_t host_pool_id);
+
   inline bool isChildrenSafePool(u_int16_t pool_id) {
     return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? children_safe[pool_id] : false);
   }
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
     return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? enforce_quotas_per_pool_member[pool_id] : false);
+  }
+  inline time_t getLastQuotaResetTime(u_int16_t pool_id) {
+    return((pool_id != NO_HOST_POOL_ID && pool_id < MAX_NUM_HOST_POOLS) ? last_quota_reset[pool_id] : 0);
   }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);

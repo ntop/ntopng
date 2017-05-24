@@ -2379,11 +2379,14 @@ static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data) {
   return(false); /* false = keep on walking */
 }
 
-static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
+static bool host_reset_quotas(GenericHashEntry *host, void *pool_filter) {
   Host *h = (Host*)host;
 
-  h->resetQuotaStats();
-  h->resetBlockedTrafficStatus();
+  if ((pool_filter == NULL) || (h->get_host_pool() == *((u_int16_t*)pool_filter))) {
+    h->resetQuotaStats();
+    h->resetBlockedTrafficStatus();
+  }
+
   return(false); /* false = keep on walking */
 }
 
@@ -2393,6 +2396,18 @@ void NetworkInterface::resetPoolsStats() {
 
     host_pools->resetPoolsStats();
     walker(walker_hosts, host_reset_quotas, NULL);
+    walker(walker_flows, flow_recheck_quota_walker, NULL);
+
+    enablePurge(true);
+  }
+}
+
+void NetworkInterface::resetPoolStats(u_int16_t host_pool_id) {
+  if(host_pools) {
+    disablePurge(true);
+
+    host_pools->resetPoolStats(host_pool_id);
+    walker(walker_hosts, host_reset_quotas, &host_pool_id);
     walker(walker_flows, flow_recheck_quota_walker, NULL);
 
     enablePurge(true);
