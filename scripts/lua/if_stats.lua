@@ -27,6 +27,8 @@ if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
 
+local show_bridge_wizard = false
+
 sendHTTPContentTypeHeader('text/html')
 
 page = _GET["page"]
@@ -386,7 +388,14 @@ if((page == "overview") or (page == nil)) then
       
       print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
    else
-      print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
+      print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
+
+      if(user_group == "administrator") and isBridgeInterface(_ifstats) and ntop.isEnterprise() then
+         print[[ <a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-sm fa-magic" aria-hidden="true" title=]] print('\"'..i18n("bridge_wizard.bridge_wizard")..'\"') print[[></i></a>]]
+         show_bridge_wizard = true
+      end
+
+      print("</td>")
    end
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
@@ -605,6 +614,10 @@ print("</script>\n")
    ]]
 
    print("</table>\n")
+
+   if show_bridge_wizard then
+      dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
+   end
 elseif((page == "packets")) then
    print [[ <table class="table table-bordered table-striped"> ]]
    print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")

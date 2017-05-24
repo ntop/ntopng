@@ -1012,6 +1012,7 @@ local  en = {
    },
 
    bridge_wizard = {
+      bridge_wizard = "Bridge Wizard",
       intro_1 = "This wizard will help you to setup some basic configuration to enable bridge specific features of ntopng.",
       start = "Start",
       captive_portal_available = "The captive portal is <b>not running</b>.",
