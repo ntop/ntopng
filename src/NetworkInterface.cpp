@@ -5153,7 +5153,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
     break;
 
   case callback_flow_delete:
-    context = user_script_context_inline, luaFunction = CONST_LUA_FLOW_DELETE;
+    context = user_script_context_periodic, luaFunction = CONST_LUA_FLOW_DELETE;
     break;
 
   case callback_flow_update:

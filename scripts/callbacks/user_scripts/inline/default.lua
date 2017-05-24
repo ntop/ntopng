@@ -35,14 +35,6 @@ function callbacks.flowCreate()
 end
 
 --
--- This callback is called once, when a new flow is deleted
--- Flow callbacks can be accesed via "flow" register.
---
-function callbacks.flowDelete()
-   if(trace_enabled) then print("flowDelete()\n") end
-end
-
---
 -- This callback is called whenever the detection of the protocol on the flow is completed
 -- Flow callbacks can be accesed via "flow" register.
 --
