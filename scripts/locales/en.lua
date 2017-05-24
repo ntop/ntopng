@@ -1159,6 +1159,13 @@ local  en = {
       no_available_stats_for_network = "No available stats for network %{network}",
    },
 
+   port_details = {
+      l4_port = "L4 Port",
+      active_flows_for_host_and_port = "Active Flows for %{host}:%{port}",
+      active_flows_on_port_symbolic = "Active Flows on Port %{port} [%{symbolic_port}]",
+      active_flows_on_port = "Active Flows on Port %{port}",
+   },
+
    vlan_details = {
       vlan_id_parameter_missing_or_invalid_message = "Vlan_Id parameter is missing or is not valid",
       no_available_stats_for_vlan_message = "No available stats for VLAN  %{vlan_id}. Please wait a few minutes to allow ntopng to harvest new statistics.",
