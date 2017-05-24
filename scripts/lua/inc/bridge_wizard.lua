@@ -1,14 +1,16 @@
 local template = require "template_utils"
 local host_pools_utils = require "host_pools_utils"
 
+local ifstats = interface.getStats()
+
 local function hasBridgeConfiguration(captive_portal_active)
   return captive_portal_active
-    or (#host_pools_utils.getPoolsList(_ifstats.id, true) > 1)
+    or (#host_pools_utils.getPoolsList(ifstats.id, true) > 1)
     or (not table.empty(getCaptivePortalUsers()))
 end
 
-local captive_portal_supported = isCaptivePortalSupported(_ifstats, prefs)
-local captive_portal_active = isCaptivePortalActive(_ifstats, prefs)
+local captive_portal_supported = isCaptivePortalSupported(ifstats, prefs)
+local captive_portal_active = isCaptivePortalActive(ifstats, prefs)
 local bridge_anomaly = "" --i18n("bridge_wizard.bridge_missing_ip", {iface="br0"})
 local configuration_found = hasBridgeConfiguration(captive_portal_active)
 
@@ -23,7 +25,7 @@ else
   captive_portal_status = i18n("bridge_wizard.captive_portal_unavailable")
 end
 
-local step_1_ok = i18n("bridge_wizard.intro_1").."<br><br>"..captive_portal_status..[[
+local step_1_ok = i18n("bridge_wizard.intro_1", {iface=ifstats.name}).."<br><br>"..captive_portal_status..[[
      <br>]]..ternary(configuration_found, "<br><br>"..config_overwrite_warning.."<br><br>", "<br>")..i18n("bridge_wizard.click_on_next")
 
 local step_1_with_errors = [[<div class="alert alert-danger">]]..bridge_anomaly..[[</div><br><br>]]..i18n("bridge_wizard.check_doc", {url="https://github.com/ntop/ntopng/blob/dev/doc/README.inline"})
@@ -81,7 +83,7 @@ local steps = {
      size = 2,
   }, { -- Step 5
      title = i18n("bridge_wizard.done"),
-     content = i18n("bridge_wizard.configuration_complete")..[[
+     content = i18n("bridge_wizard.configuration_complete", {iface=ifstats.name})..[[
   <ul>
      <li><a href="]]..ntop.getHttpPrefix()..[[/lua/if_stats.lua?page=pools">]]..i18n("bridge_wizard.host_pools_config")..[[</a></li>
      <li><a href="]]..ntop.getHttpPrefix()..[[/lua/if_stats.lua?page=filtering">]]..i18n("bridge_wizard.policies_config")..[[</a></li>
@@ -107,7 +109,7 @@ local wizard = {
   }]],
   steps = steps,
   cannot_proceed = (not isEmptyString(bridge_anomaly)),
-  form_action = ntop.getHttpPrefix().."/lua/pro/init_bridge.lua?ifid=".._ifstats.id,
+  form_action = ntop.getHttpPrefix().."/lua/pro/init_bridge.lua?ifid="..ifstats.id,
   form_onsubmit = "checkBridgeWizardForm",
 }
 

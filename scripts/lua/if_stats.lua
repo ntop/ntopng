@@ -390,7 +390,7 @@ if((page == "overview") or (page == nil)) then
    else
       print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
 
-      if(user_group == "administrator") and isBridgeInterface(_ifstats) and ntop.isEnterprise() then
+      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() then
          print[[ <a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-sm fa-magic" aria-hidden="true" title=]] print('\"'..i18n("bridge_wizard.bridge_wizard")..'\"') print[[></i></a>]]
          show_bridge_wizard = true
       end

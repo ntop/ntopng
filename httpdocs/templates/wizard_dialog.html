@@ -96,7 +96,7 @@
   /* On Previous button click */
   $('#{{wizard.id}} a.wizard-prev').click(function(){
     var prevId = $(this).parents('.tab-pane').prev().attr("id");
-    $('[href=#'+prevId+']').tab('show');
+    $('[href="#'+prevId+'"]').tab('show');
     return false;
   });
 

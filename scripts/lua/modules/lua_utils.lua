@@ -3280,8 +3280,8 @@ function getCaptivePortalUsers()
   return users
 end
 
-function getBridgeInitializedKey()
-  return "ntopng.prefs.bridge_initialized"
+function getBridgeInitializedKey(ifid)
+  return "ntopng.prefs.iface_"..ifid..".bridge_initialized"
 end
 
 function hasSnmpDevices(ifid)

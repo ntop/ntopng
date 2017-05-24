@@ -1013,7 +1013,8 @@ local  en = {
 
    bridge_wizard = {
       bridge_wizard = "Bridge Wizard",
-      intro_1 = "This wizard will help you to setup some basic configuration to enable bridge specific features of ntopng.",
+      intro_1 = "This wizard will help you to setup some basic configuration to enable bridge specific features of ntopng."..
+            "You are going to configure the bridge interface <b>%{iface}</b>.",
       start = "Start",
       captive_portal_available = "The captive portal is <b>not running</b>.",
       captive_portal_running = "Note: the captive portal is <b>up and running</b>.",
@@ -1036,7 +1037,7 @@ local  en = {
             "You can define an initial set of policies to be applied on the bridge from one of the presets below:",
       fine_tune = "You can fine tune the specific policies at any time through the <a href='%{url}'>Traffic Policy</a> page.",
       done = "Apply",
-      configuration_complete = "You are going to apply the specified settings on the bridge.<br><br>"..
+      configuration_complete = "You are going to apply the specified settings on the bridge interface <b>%{iface}</b>.<br><br>"..
             "Click on the save button below to apply the configured settings.<br><br><br>"..
             "You can access more advanced settings from the following pages:",
       host_pools_config = "Host Pools",
