@@ -1371,7 +1371,7 @@ function getCurrentStatus() {
 	    print[[
          // must wait for modalDeleteAlertsStatus to be created
          $(function() {
-            var status_reset = ]] print(status_reset) --[[ this is necessary because of status parameter inconsistency after tab switch ]] print[[;
+            var status_reset = ]] print(tostring(status_reset)) --[[ this is necessary because of status parameter inconsistency after tab switch ]] print[[;
             var tabid;
 
             if ((status_reset) || (getCurrentStatus() == "")) {
