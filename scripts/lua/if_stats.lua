@@ -79,7 +79,7 @@ else
    ifid = interface.name2id(ifname)
 end
 
-interface.select(if_name)
+interface.select(ifname)
 
 -- local pcap dump is disabled if the nbox integration is enabled or
 -- if the user is not an administrator or if the interface:
