@@ -1502,6 +1502,9 @@ int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity,
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
 
+    if (rc == 0)
+      refreshCachedNumAlerts();
+
     return rc;
   } else
     return(0);
@@ -1519,7 +1522,7 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
 
     snprintf(query, sizeof(query),
 	     "%s FROM %s %s ",
-	     selection ? selection : "*",
+	     selection,
 	     table_name ? table_name : (char*)"",
 	     clauses ? clauses : (char*)"");
 
@@ -1542,6 +1545,9 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
     rc = 0;
   out:
     m.unlock(__FILE__, __LINE__);
+
+    if ((rc == 0) && (strcasecmp(selection, "delete") == 0))
+      refreshCachedNumAlerts();
 
     return rc;
   } else {

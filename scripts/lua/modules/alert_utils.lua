@@ -460,6 +460,8 @@ end
 -- #################################
 
 function checkDeleteStoredAlerts()
+   _GET["status"] = _GET["status"] or _POST["status"]
+
    if((_POST["id_to_delete"] ~= nil) and (_GET["status"] ~= nil)) then
       if(_POST["id_to_delete"] ~= "__all__") then
          _GET["row_id"] = tonumber(_POST["id_to_delete"])
@@ -1178,7 +1180,7 @@ function getCurrentStatus() {
       if not alt_nav_tabs then print [[<div class="tab-content">]] end
 
       local status = _GET["status"]
-      local status_reset = 0
+      local status_reset = (status == nil)
 
       if num_engaged_alerts > 0 then
 	 alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
@@ -1215,6 +1217,7 @@ function getCurrentStatus() {
          function deleteAlertById(alert_id) {
             var params = {};
             params.id_to_delete = alert_id;
+            params.status = getCurrentStatus();
             params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
             var form = paramsToForm('<form method="post"></form>', params);
