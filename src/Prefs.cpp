@@ -1135,6 +1135,7 @@ int Prefs::checkOptions() {
       char path[MAX_PATH];
 
       ntop_mkdir(data_dir, 0777);
+	  ntop_mkdir(ntop->get_working_dir(), 0777);
       snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
       ntop->fixPath(path);
       logFd = fopen(path, "w");

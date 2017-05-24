@@ -151,9 +151,13 @@ Ntop::Ntop(char *appName) {
 */
 
 void Ntop::initTimezone() {
+#ifdef WIN32
+	time_offset = -timezone;
+#else
   time_t t = time(NULL);
 
   time_offset = localtime(&t)->tm_gmtoff;
+#endif
 }
 
 /* ******************************************* */

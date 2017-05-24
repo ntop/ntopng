@@ -269,7 +269,6 @@ using namespace std;
 #include "Paginator.h"
 #include "Ntop.h"
 
-
 #ifdef WIN32
 extern "C" {
   const char *strcasestr(const char *haystack, const char *needle);

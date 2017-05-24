@@ -545,31 +545,33 @@ double Utils::JaccardSimilarity(activity_bitmap *x, activity_bitmap *y) {
 /* *************************************** */
 
 #ifdef WIN32
-const char *strcasestr(const char *haystack, const char *needle) {
-  int i=-1;
+extern "C" {
+	const char *strcasestr(const char *haystack, const char *needle) {
+		int i = -1;
 
-  while (haystack[++i] != '\0') {
-    if(tolower(haystack[i]) == tolower(needle[0])) {
-      int j=i, k=0, match=0;
-      while (tolower(haystack[++j]) == tolower(needle[++k])) {
-	match=1;
-	// Catch case when they match at the end
-	//printf("j:%d, k:%d\n",j,k);
-	if(haystack[j] == '\0' && needle[k] == '\0') {
-	  //printf("Mj:%d, k:%d\n",j,k);
-	  return &haystack[i];
+		while (haystack[++i] != '\0') {
+			if (tolower(haystack[i]) == tolower(needle[0])) {
+				int j = i, k = 0, match = 0;
+				while (tolower(haystack[++j]) == tolower(needle[++k])) {
+					match = 1;
+					// Catch case when they match at the end
+					//printf("j:%d, k:%d\n",j,k);
+					if (haystack[j] == '\0' && needle[k] == '\0') {
+						//printf("Mj:%d, k:%d\n",j,k);
+						return &haystack[i];
+					}
+				}
+				// Catch normal case
+				if (match && needle[k] == '\0'){
+					// printf("Norm j:%d, k:%d\n",j,k);
+					return &haystack[i];
+				}
+			}
+		}
+
+		return NULL;
 	}
-      }
-      // Catch normal case
-      if(match && needle[k] == '\0'){
-	// printf("Norm j:%d, k:%d\n",j,k);
-	return &haystack[i];
-      }
-    }
-  }
-
-  return NULL;
-}
+};
 #endif
 
 /* **************************************************** */

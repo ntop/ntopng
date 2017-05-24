@@ -1546,7 +1546,7 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
   out:
     m.unlock(__FILE__, __LINE__);
 
-    if ((rc == 0) && (strcasecmp(selection, "delete") == 0))
+	if ((rc == 0) && (strcasestr(selection, "delete") == 0))
       refreshCachedNumAlerts();
 
     return rc;
