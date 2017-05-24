@@ -312,12 +312,12 @@ print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
 		  msg += "<span class=\"label label-success\">";
-		  msg += addCommas(rsp.num_local_hosts)+" Local Hosts</span></a> ";
+		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 		}
 
 	    msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua\">";
+print [[/lua/hosts_stats.lua?mode=remote\">";
 
 		if(rsp.hosts_pctg < alarm_threshold_low) {
 		  msg += "<span class=\"label label-default\">";
@@ -329,7 +329,7 @@ print [[/lua/hosts_stats.lua\">";
 		  msg += "<span class=\"label label-danger\">";
 		}
 
-		msg += addCommas(rsp.num_hosts)+" Hosts</span></a> ";
+		msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
             msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
