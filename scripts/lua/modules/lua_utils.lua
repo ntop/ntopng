@@ -33,8 +33,7 @@ function shortenString(name, max_len)
 end
 
 -- ##############################################
-
-function getInterfaceName(interface_id)
+function getInterfaceName(interface_id, windows_skip_description)
    local ifnames = interface.getIfNames()
 
    interface_id = tonumber(interface_id)
@@ -45,8 +44,8 @@ function getInterfaceName(interface_id)
       if(_ifstats.id == interface_id) then
 	 local ret = _ifstats.name
 
-	 if(string.contains(ret, "{")) then -- Windows
-	    ret = shortenString(_ifstats.description, 16)
+	 if(windows_skip_description ~= true and string.contains(ret, "{")) then -- Windows
+	    ret = _ifstats.description
 	 end
 	 return(ret)
       end
@@ -55,33 +54,27 @@ function getInterfaceName(interface_id)
    return("")
 end
 
--- ##############################################
-
-function getInterfaceId(interface_name)
-   return(interface.name2id(interface_name))
-end
-
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
-  ifname = _GET["ifid"]
+   ifname = _GET["ifid"]
 
-  if(ifname ~= nil) then
-     if(ifname.."" == tostring(tonumber(ifname)).."") then
-	-- ifname does not contain the interface name but rather the interface id
-	ifname = getInterfaceName(ifname)
-	if(ifname == "") then ifname = nil end
-     end
-  end
+   if(ifname ~= nil) then
+      if(ifname.."" == tostring(tonumber(ifname)).."") then
+	 -- ifname does not contain the interface name but rather the interface id
+	 ifname = getInterfaceName(ifname, true)
+	 if(ifname == "") then ifname = nil end
+      end
+   end
 
-  if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => Session:".._SESSION["session"]) end
+   if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => Session:".._SESSION["session"]) end
 
-  if((ifname == nil) and (_SESSION ~= nil)) then
-    if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _SESSION value") end
-    ifname = _SESSION["ifname"]
-    if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => ifname:"..ifname) end
-  else
-    if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _GET value") end
-  end
+   if((ifname == nil) and (_SESSION ~= nil)) then
+      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _SESSION value") end
+      ifname = _SESSION["ifname"]
+      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => ifname:"..ifname) end
+   else
+      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _GET value") end
+   end
 end
 
 --print("(((("..ifname.."))))")
