@@ -1498,8 +1498,8 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
     <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
 ]]
 
-   print '<li> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
-   print '<li> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
+   print '<li id="tab-ipv4-li" style="display: none;"> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
+   print '<li id="tab-ipv6-li" style="display: none;"> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
 
 print [[
   </ul>
@@ -1620,8 +1620,20 @@ print[[
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
       $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows)
 
+      // show tabs only if they have results
+      if(msg.count.IPv4.tot_bytes > 0) {
+        $("#tab-ipv4-li").show();
+      }
+      if(msg.count.IPv6.tot_bytes > 0) {
+        $("#tab-ipv6-li").show();
+      }
+
       var tr=""
       $.each(msg.count, function(ipvers, item){
+        if(item.tot_bytes <= 0) {
+          return true; // continue
+        }
+
         tr += "<tr><th>" + ipvers + "</th>"
 ]]
 
