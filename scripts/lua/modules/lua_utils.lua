@@ -1986,7 +1986,7 @@ function tablePreferences(key, value)
 end
 
 
-function getInterfaceNameAlias(interface_name)
+function getInterfaceNameAlias(interface_name, max_len)
    if(interface_name == nil) then return("") end
    -- io.write(debug.traceback().."\n")
    local label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
@@ -1994,7 +1994,10 @@ function getInterfaceNameAlias(interface_name)
       if(string.contains(interface_name, "{")) then -- Windows
 	 -- attempt to print the description
 	 local _ifstats = interface.getStats()
-	 local nm = shortenString(_ifstats.description, 16)
+	 local nm = _ifstats.description
+	 if tonumber(max_len) ~= nil and tonumber(max_len) > 0 then
+	    nm = shortenString(_ifstats.description, tonumber(max_len))
+	 end
 	 return(nm)
       else
 	 return(interface_name)
@@ -2050,7 +2053,7 @@ function getHumanReadableInterfaceName(interface_name)
 
       local nm = _ifstats.name
       if(string.contains(nm, "{")) then -- Windows
-	 nm = shortenString(_ifstats.description, 16)
+	 nm = _ifstats.description
       end
 
       -- print(interface_name.."=".._ifstats.name)
