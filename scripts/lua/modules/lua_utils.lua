@@ -1989,9 +1989,16 @@ end
 function getInterfaceNameAlias(interface_name)
    if(interface_name == nil) then return("") end
    -- io.write(debug.traceback().."\n")
-   label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
+   local label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
    if((label == nil) or (label == "")) then
-      return(interface_name)
+      if(string.contains(interface_name, "{")) then -- Windows
+	 -- attempt to print the description
+	 local _ifstats = interface.getStats()
+	 local nm = shortenString(_ifstats.description, 16)
+	 return(nm)
+      else
+	 return(interface_name)
+      end
    else
       return(label)
    end
@@ -2032,17 +2039,22 @@ function setInterfaceRegreshRate(ifid, refreshrate)
 end
 
 function getHumanReadableInterfaceName(interface_name)
-   key = 'ntopng.prefs.'..interface_name..'.name'
-   custom_name = ntop.getCache(key)
+   local key = 'ntopng.prefs.'..interface_name..'.name'
+   local custom_name = ntop.getCache(key)
 
    if((custom_name ~= nil) and (custom_name ~= "")) then
       return(custom_name)
    else
       interface.select(interface_name)
-      _ifstats = interface.getStats()
+      local _ifstats = interface.getStats()
+
+      local nm = _ifstats.name
+      if(string.contains(nm, "{")) then -- Windows
+	 nm = shortenString(_ifstats.description, 16)
+      end
 
       -- print(interface_name.."=".._ifstats.name)
-      return(_ifstats.name)
+      return(nm)
    end
 end
 

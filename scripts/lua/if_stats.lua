@@ -203,10 +203,6 @@ print [[
 
 short_name = getHumanReadableInterfaceName(if_name)
 
-if(string.contains(short_name, "{")) then -- Windows
-   short_name = shortenString(ifstats.description, 16)
-end
-
 if(short_name ~= if_name) then
    short_name = short_name .. "..."
 end
@@ -2447,9 +2443,9 @@ print(" Pkts\");")
 print [[
 	var pctg = 0;
 	var drops = "";
-	var last_pkt_retransmissions = ]] print(ifstats.tcpPacketStats.retransmissions) print [[;
-	var last_pkt_ooo =  ]] print(ifstats.tcpPacketStats.out_of_order) print [[;
-	var last_pkt_lost = ]] print(ifstats.tcpPacketStats.lost) print [[;
+	var last_pkt_retransmissions = ]] print(tostring(ifstats.tcpPacketStats.retransmissions)) print [[;
+	var last_pkt_ooo =  ]] print(tostring(ifstats.tcpPacketStats.out_of_order)) print [[;
+	var last_pkt_lost = ]] print(tostring(ifstats.tcpPacketStats.lost)) print [[;
 
 	$('#pkt_retransmissions').html(fint(rsp.tcpPacketStats.retransmissions)+" Pkts"); $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
 	$('#pkt_ooo').html(fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
