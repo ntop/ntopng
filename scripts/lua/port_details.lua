@@ -39,14 +39,14 @@ print [[
 	       showPagination: true,
 	       title: "]]
 	       if(_GET["host"] ~= nil) then 
-                 print(i18n("port_details.active_flows_for_host_and_port",{host=_GET["host"],port=_GET["port"]}))
-	      else
-		 symbolic_port = getservbyport(_GET["port"])
+	          print(i18n("port_details.active_flows_for_host_and_port",{host=_GET["host"],port=_GET["port"]}))
+	       else
+		  symbolic_port = getservbyport(_GET["port"])
 		  if(symbolic_port ~= _GET["port"]) then
-                    print(i18n("port_details.active_flows_on_port_symbolic",{port=_GET["port"],symbolic_port=symbolic_port}))
-                  else
-                    print(i18n("port_details.active_flows_on_port",{port=_GET["port"]}))
-                  end
+		     print(i18n("port_details.active_flows_on_port_symbolic",{port=_GET["port"],symbolic_port=symbolic_port}))
+		  else
+		     print(i18n("port_details.active_flows_on_port",{port=_GET["port"]}))
+  		  end
 	       end
 		print [[",
 	        columns: [
