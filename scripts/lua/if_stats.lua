@@ -58,7 +58,7 @@ if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
    key = getRedisPrefix("ntopng.prefs") .. ".ifname"
    ntop.setCache(key, ifname)
 
-   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg", {interface=getHumanReadableInterfaceName(ifid), ifid=ifid}) .. "</div>"
+   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg", {interface=getHumanReadableInterfaceName(ifname), ifid=ifid}) .. "</div>"
 
    ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
 else
@@ -201,7 +201,7 @@ print [[
     <ul class="nav navbar-nav">
 ]]
 
-short_name = getHumanReadableInterfaceName(if_name)
+short_name = getHumanReadableInterfaceName(ifname)
 
 if(short_name ~= if_name) then
    short_name = short_name .. "..."
