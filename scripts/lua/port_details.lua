@@ -19,11 +19,11 @@ print [[
 <ul class="breadcrumb">
   <li><A HREF="]]
 print (ntop.getHttpPrefix())
-print [[/lua/flows_stats.lua">Flows</A> </li>
+print [[/lua/flows_stats.lua">]] print(i18n("flows")) print [[</A> </li>
 ]]
 
 
-print("<li>L4 Port: ".._GET["port"].."</li></ul>")
+print("<li>"..i18n("port_details.l4_port")..": ".._GET["port"].."</li></ul>")
 
 print [[
       <div id="table-hosts"></div>
@@ -37,27 +37,28 @@ print [[
 
 print [[
 	       showPagination: true,
-	       title: "Active Flows ]]
+	       title: "]]
 	       if(_GET["host"] ~= nil) then 
-	         print("for ".._GET["host"]..":".._GET["port"])
-	      else
-		 symbolic_port = getservbyport(_GET["port"])
-		  print("on Port ".._GET["port"])
+	          print(i18n("port_details.active_flows_for_host_and_port",{host=_GET["host"],port=_GET["port"]}))
+	       else
+		  symbolic_port = getservbyport(_GET["port"])
 		  if(symbolic_port ~= _GET["port"]) then
-		     print(" [".. symbolic_port .."]")
-		  end
+		     print(i18n("port_details.active_flows_on_port_symbolic",{port=_GET["port"],symbolic_port=symbolic_port}))
+		  else
+		     print(i18n("port_details.active_flows_on_port",{port=_GET["port"]}))
+  		  end
 	       end
 		print [[",
 	        columns: [
 			     {
-			     title: "Info",
+			     title: "]] print(i18n("info")) print [[",
 				 field: "column_key",
 	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
 			     {
-			     title: "Application",
+			     title: "]] print(i18n("application")) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
 	 	             css: {
@@ -65,7 +66,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "L4 Proto",
+			     title: "]] print(i18n("details.l4_proto")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: {
@@ -76,9 +77,9 @@ print [[
 			       ifstats = interface.getStats()
 
 if(ifstats.sprobe) then
-   print('title: "Source Id",\n')
+   print('title: "'..i18n("details.source_id")..'",\n')
 else
-   print('title: "VLAN",\n')
+   print('title: "'..i18n("vlan")..'",\n')
 end
 
 print [[
@@ -93,17 +94,17 @@ print [[
 
 print [[
 			     {
-			     title: "Client",
+			     title: "]] print(i18n("client")) print[[",
 				 field: "column_client",
 				 sortable: true,
 				 },
 			     {
-			     title: "Server",
+			     title: "]] print(i18n("server")) print[[",
 				 field: "column_server",
 				 sortable: true,
 				 },
 			     {
-			     title: "Duration",
+			     title: "]] print(i18n("duration")) print[[",
 				 field: "column_duration",
 				 sortable: true,
 	 	             css: {
@@ -111,7 +112,7 @@ print [[
 			       }
 			       },
 			     {
-			     title: "Bytes",
+			     title: "]] print(i18n("bytes")) print[[",
 				 field: "column_bytes",
 				 sortable: true,
 	 	             css: {

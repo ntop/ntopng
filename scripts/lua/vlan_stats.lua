@@ -36,7 +36,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "VLANs",\n')
+print('title: "'..i18n("vlan_stats.vlans")..'",\n')
 print ('rowCallback: function ( row ) { return vlan_table_setID(row); },')
 
 -- Set the preference table
@@ -59,7 +59,7 @@ print [[
                                 }
            },
                          {
-			     title: "VLAN ID",
+			     title: "]] print(i18n("vlan_stats.vlan_id")) print[[",
 				 field: "column_vlan",
 				 sortable: true,
                              css: {
