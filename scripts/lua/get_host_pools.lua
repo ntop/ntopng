@@ -71,7 +71,7 @@ if((ifid ~= nil) and (isAdministrator())) then
           local alias = ""
           local icon = ""
           if is_mac then
-            alias = getHostAltName(member.address)
+            alias = getDeviceName(member.address, 0)
             icon = getHostIconName(member.address)
 
             if alias == host_key then

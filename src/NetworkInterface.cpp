@@ -2829,7 +2829,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->hostMacsOnly  && h->getMac() && h->getMac()->isSeenIface(r->bridge_iface_idx))   ||
+     (r->hostMacsOnly  && h->getMac() && h->getMac()->isSpecialMac())                     ||
+     /*(r->hostMacsOnly  && h->getMac() && h->getMac()->isSeenIface(r->bridge_iface_idx))   ||*/
      (r->mac           && (! h->getMac()->equal(r->vlan_id, r->mac)))                     ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
