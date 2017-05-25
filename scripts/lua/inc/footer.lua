@@ -289,13 +289,9 @@ print[[
 
 		   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/show_alerts.lua\"><i class=\"fa fa-warning\" style=\"color: " + color + ";\"></i>"
+print [[/lua/show_alerts.lua\">"
 
-                   msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
-                   if(rsp.engaged_alerts > 1) msg += "s";
-                   msg += "</span>";
-
-                   msg += "</A>&nbsp;"
+                   msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>"
                 }
 
 		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
