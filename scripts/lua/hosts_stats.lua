@@ -137,7 +137,10 @@ print [[
 if(protocol == nil) then protocol = "" end
 
 if(asn ~= nil) then 
-	asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn})
+	asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
+      "<small>&nbsp;<i class='fa fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
+      asn .. "'><i class='fa fa-external-link fa-sm' title='".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
+      "'></i></A></small>"
 end
 
 if(_GET["country"] ~= nil) then 
@@ -153,7 +156,13 @@ if(_GET["os"] ~= nil) then
 end
 
 if(_GET["pool"] ~= nil) then
-   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
+   local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
+   local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+
+   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>"..
+      "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools&pool=".._GET["pool"].."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"..
+      ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
+      "</small>"
 end
 
 if(_GET["vlan"] ~= nil) then
@@ -374,17 +383,6 @@ print [[
 </div>
 ]]
 
-if(asn ~= nil and asn ~= "0") then
-   -- direct html is not allowed in the title so we must place the link using javascript
-   -- using datatable method tableCallback gives strange effects such as a quick blink of the link
-   print[[
-<script type="text/javascript">
-
-          $('h2:contains("for AS")').append("<small>&nbsp;<i class=\"fa fa-info-circle fa-sm\" aria-hidden=\"true\"></i> <A HREF=\"https://stat.ripe.net/AS]] print(asn) print[[\"><i class=\"fa fa-external-link fa-sm\" title=\"]] print(i18n("hosts_stats.more_info_about_as_popup_msg")) print(asn) print[[\"></i></A></small>");
-
-</script>
-]]
-end
 end -- if(asn ~= nil)
 else
    -- historical page

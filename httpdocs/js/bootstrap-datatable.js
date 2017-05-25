@@ -252,7 +252,7 @@
         }
         else if(o.title !== '' && !this.$section_header) {
           this.$section_header = $("<h2></h2>")
-            .text(o.title)
+            .html(o.title)
             .append(this.$toolbar);
           $e.before(this.$section_header);
         }
