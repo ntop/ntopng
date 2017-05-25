@@ -62,90 +62,121 @@ elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
 
-  -- First of all, normalize new networks (extract their prefix)
-  -- Note: alias/device type mapping will not be preserved for masked networks, and this is ok since networks do not have such information
-  for new_member, old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
-    if not starts(new_member, "_") then
-      if not isValidPoolMember(new_member) then
-        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
-      end
-      if (not isEmptyString(old_member)) and (not isValidPoolMember(old_member)) then
-        http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
-      end
+  local sanitized = {}
 
-      local hostinfo = hostkey2hostinfo(new_member)
-      local network, prefix = splitNetworkPrefix(hostinfo.host)
+  -- Sanitize parameters
+  for new_member, value in pairs(config) do
+    if not isValidPoolMember(new_member) then
+      http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
+    end
 
-      if prefix ~= nil then
-        local masked = ntop.networkPrefix(network, prefix)
-        if masked ~= network then
-          local new_key = host2member(masked, hostinfo.vlan, prefix)
-          config[new_member] = nil
-          config[new_key] = old_member
-          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.network_normalized", {
-            network = hostinfo2hostkey(hostkey2hostinfo(new_member)),
-            network_normalized = hostinfo2hostkey(hostkey2hostinfo(new_key))
-          })
-        end
+    local parts = split(value, "|")
+
+    if #parts ~= 3 then
+      http_lint.validationError(_POST, "member_values", parts, "Invalid member values")
+    end
+
+    local assembled = {
+      old_member = parts[1],
+      alias = parts[2],
+      icon = parts[3],
+    }
+
+    if (not isEmptyString(old_member)) and (not isValidPoolMember(assembled.old_member)) then
+      http_lint.validationError(_POST, "old_member", new_member, "Invalid pool member")
+    end
+
+    if not http_lint.validateUnchecked(assembled.alias) then
+      http_lint.validationError(_POST, "alias", assembled.alias, "Invalid member alias")
+    end
+
+    if not http_lint.validateSingleWord(assembled.icon) then
+      http_lint.validationError(_POST, "icon", assembled.icon, "Invalid member icon")
+    end
+
+    local hostinfo = hostkey2hostinfo(new_member)
+    local network, prefix = splitNetworkPrefix(hostinfo.host)
+    local already_added = false
+
+    if prefix ~= nil then
+      local masked = ntop.networkPrefix(network, prefix)
+      if masked ~= network then
+        -- Normalize new networks (extract their prefix)
+        local new_key = host2member(masked, hostinfo.vlan, prefix)
+
+        pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.network_normalized", {
+          network = hostinfo2hostkey(hostkey2hostinfo(new_member)),
+          network_normalized = hostinfo2hostkey(hostkey2hostinfo(new_key))
+        })
+
+        sanitized[new_key] = assembled
+        already_added = true
       end
+    end
+
+    if not already_added then
+      sanitized[new_member] = assembled
     end
   end
 
-  -- This code handles member address changes. The starting '_' is used for icons and alias
+  config = sanitized
+
+  -- This code handles member address changes
+
   -- delete old addresses
-  for k,old_member in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
-    if not starts(k, "_") then
-      if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        if config[old_member] then
-          -- Do not delete and re-add members which have only changed their list index
-          config[old_member] = old_member
-        else
-          host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
-        end
+  for k,value in pairs(table.clone(config) --[[ Work on a copy to modify the original while iterating ]]) do
+    local old_member = value.old_member
+
+    if((not isEmptyString(old_member)) and (k ~= old_member)) then
+      if config[old_member] then
+        -- Do not delete and re-add members which have only changed their list key
+        config[old_member].old_member = old_member
+      else
+        host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
       end
     end
   end
 
   -- add new addresses
-  for new_member,k in pairs(config) do
-    if not starts(new_member, "_") then
-      local is_new_member = (k ~= new_member)
+  for new_member,value in pairs(config) do
+    local k = value.old_member
 
-      if is_new_member then
-        local res, info = host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+    local is_new_member = (k ~= new_member)
 
-        if (res == false) and (info.existing_member_pool ~= nil) then
-          -- remove @0
-          local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
-          pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {
-            member_name = member_to_print,
-            member_pool = host_pools_utils.getPoolName(ifId, info.existing_member_pool)
-          })
+    if is_new_member then
+      local res, info = host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+
+      if (res == false) and (info.existing_member_pool ~= nil) then
+        -- remove @0
+        local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
+        pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {
+          member_name = member_to_print,
+          member_pool = host_pools_utils.getPoolName(ifId, info.existing_member_pool)
+        })
+      end
+    end
+
+    local host_key, is_network = host_pools_utils.getMemberKey(new_member)
+
+    if not is_network then
+      local alias = value.alias
+      local skip_alias = false
+
+      if isMacAddress(new_member) then
+        local manuf = ntop.getMacManufacturer(new_member)
+        if (manuf ~= nil) and (manuf.extended == alias) then
+          -- this is not the alias, it is the manufacturer
+          skip_alias = true
         end
       end
 
-      local host_key, is_network = host_pools_utils.getMemberKey(new_member)
+      if(((not is_new_member) or (not isEmptyString(alias))) and (not skip_alias)) then
+        setHostAltName(host_key, alias)
+      end
 
-      if not is_network then
-        local alias = config["_alias_" .. new_member]
-        local skip_alias = false
-
-        if isMacAddress(new_member) then
-          local manuf = ntop.getMacManufacturer(new_member)
-          if (manuf ~= nil) and (manuf.extended == alias) then
-            -- this is not the alias, it is the manufacturer
-            skip_alias = true
-          end
-        end
-
-        if(((not is_new_member) or (not isEmptyString(alias))) and (not skip_alias)) then
-          setHostAltName(host_key, alias)
-        end
-
-        local icon = config["_icon_" .. new_member]
-        if((not is_new_member) or (not isEmptyString(icon))) then
-          setHostIcon(host_key, icon)
-        end
+      local icon = value.icon
+      if((not is_new_member) or (not isEmptyString(icon))) then
+        setHostIcon(host_key, icon)
       end
     end
   end
@@ -782,9 +813,7 @@ print[[
           var icon_field = $("select[name=" + icon_name + "]", form);
           var icon = icon_field.val();
 
-          settings[address] = original;
-          settings["_alias_" + address] = alias;
-          settings["_icon_" + address] = icon;
+          settings[address] = [original, alias, icon].join("|");
         }
       });
 

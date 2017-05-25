@@ -125,6 +125,7 @@ local function validateUnquoted(p)
       return true
    end
 end
+http_lint.validateUnquoted = validateUnquoted
 
 local function validateUnchecked(p)
    -- This function does not perform any validation, so only the C side validation takes place.
@@ -132,6 +133,7 @@ local function validateUnchecked(p)
    -- order to avoid injection.
    return true
 end
+http_lint.validateUnchecked = validateUnchecked
 
 local function validateSingleWord(w)
 if (string.find(w, "% ") ~= nil) then
@@ -140,6 +142,7 @@ if (string.find(w, "% ") ~= nil) then
       return validateUnquoted(w)
    end
 end
+http_lint.validateSingleWord = validateSingleWord
 
 local function validateAbsolutePath(p)
    -- An absolute path. Let it pass for now

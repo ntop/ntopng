@@ -79,7 +79,7 @@ if((ifid ~= nil) and (isAdministrator())) then
             end
           elseif is_host then
             alias = getHostAltName(host_key)
-            icon = getHostIconName(hostinfo2hostkey(hostkey2hostinfo(host_key), nil, true)) -- with vlan
+            icon = getHostIconName(host_key)
 
             if alias == host_key then
               alias = ""
