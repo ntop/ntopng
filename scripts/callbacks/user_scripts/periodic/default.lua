@@ -37,6 +37,14 @@ function callbacks.flowUpdate()
    if(trace_enabled) then print("flowUpdate()\n") end
 end
 
+--
+-- This callback is called once, when a new flow is deleted
+-- Flow callbacks can be accesed via "flow" register.
+--
+function callbacks.flowDelete()
+   if(trace_enabled) then print("flowDelete()\n") end
+end
+
 -- ########################################################
 
 return callbacks 
