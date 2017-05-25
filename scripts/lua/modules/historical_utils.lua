@@ -133,6 +133,47 @@ function removeFromFavourites(source_div_id, stats_type, favourite_type, select_
   });
 }
 
+var zoom_vals = {
+]]
+
+for _, zv in pairs(zoom_vals) do
+   print('"'..zv[1]..'": '..zv[3]..', ')
+end
+print[[
+};
+console.log(zoom_vals);
+
+function populateHistoricalDbExplorerLink(the_td, host, l7_proto) {
+  var url_params = getParams(window.location.href);
+  var mandatory_params = ["host", "l4proto", "port", "info", "protocol", "search"];
+  $.each(mandatory_params, function(_, p) {
+    if(url_params[p] === undefined) {
+      url_params[p] = "";
+    }
+  });
+
+  if(host != '' && host !== undefined) {
+    url_params["host"] = host;
+  }
+  if(l7_proto != '' && l7_proto !== undefined) {
+    url_params["protocol"] = l7_proto;
+  }
+
+  if(url_params["zoom"]) { /* This is a chart url */
+    var zoom = url_params["zoom"];
+    var epoch = url_params["epoch"];
+    if(epoch === undefined) {
+      url_params["epoch_end"] = Math.round(new Date() / 1000); /* now */
+      url_params["epoch_begin"] = url_params["epoch_end"] - zoom_vals[zoom];
+    } else {
+      epoch = parseInt(epoch);
+      url_params["epoch_end"] = epoch + zoom_vals[zoom] / 2;
+      url_params["epoch_begin"] = epoch - zoom_vals[zoom] / 2;
+    }
+  }
+
+  the_td.html('<a href="]]print(ntop.getHttpPrefix())print[[/lua/pro/db_explorer.lua?' + decodeURIComponent($.param(url_params)) + '"><i>' + the_td.text() + '</i></a>');
+}
 
 function populateFavourites(source_div_id, stats_type, favourite_type, select_id){
   var multival_separator = " <---> ";
@@ -587,7 +628,11 @@ var populateInterfaceTopTalkersTable = function(){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
+
+          populateHistoricalDbExplorerLink(label_td, addr);
+
 	  label_td.append('&nbsp;<a onclick="populateHostTopTalkersTable(\'' + addr +'\');"><i class="fa fa-pie-chart" title="]] print(i18n("db_explorer.talkers_with_this_host")) print[["></i></a>');
+
 	  return row;
 	},
 	columns:
@@ -640,6 +685,9 @@ var populateHostTopTalkersTable = function(host){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
+
+          populateHistoricalDbExplorerLink(label_td, addr);
+
 	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="]] print(i18n("db_explorer.applications_between", {peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
 	  return row;
 	},
@@ -704,6 +752,9 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	  var label = label_td.text();
 	  var l7_proto_id = l7_proto_id_td.text();
           var num_flows = parseInt($("td:eq(4)", row[0]).text().replace(/[^0-9]/g, ''));
+
+          populateHistoricalDbExplorerLink(label_td, '', l7_proto_id);
+
 	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="]] print(i18n("db_explorer.app_flows_between", {app="' + label + '", peer1="' + peer1 + '", peer2="' + peer2 + '"})) print[["></i></a>');
 	  return row;
 	},
@@ -991,6 +1042,9 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
+
+        populateHistoricalDbExplorerLink(proto_label_td, '', proto_id);
+
 	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="]] print(i18n("db_explorer.get_proto_talkers")) print[["></i></a>');
 	  return row;
 	},
@@ -1070,6 +1124,9 @@ var populateAppTopTalkersTable = function(proto_id){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
+
+          populateHistoricalDbExplorerLink(label_td, addr, proto_id);
+
 	  label_td.append('&nbsp;<a onclick="populatePeersPerHostByApplication(\'' + addr +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="]] print(i18n("db_explorer.app_talkers_with", {app="' + app + '", peer="' + addr +'"})) print[["></i></a>');
 	  return row;
 	},
@@ -1127,6 +1184,9 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
+
+          populateHistoricalDbExplorerLink(label_td, addr);
+
           var num_flows = parseInt($("td:eq(6)", row[0]).text().replace(/[^0-9]/g, ''));
           label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="]] print(i18n("db_explorer.protocol_flows_between", {proto="' + $(\"#historical-apps-container\").attr(\"l7_proto\") + '", peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
 	  return row;
@@ -1258,6 +1318,9 @@ print [[
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
         var num_flows = parseInt($("td:eq(4)", row[0]).text().replace(/[^0-9]/g, ''));
+
+        populateHistoricalDbExplorerLink(proto_label_td, '', proto_id);
+
 	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="]] print(i18n("db_explorer.hosts_talking_proto_with", {proto="' + proto_id + '", host="' + host + '"})) print[["></i></a>');
 	  return row;
 	},
