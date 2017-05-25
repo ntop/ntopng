@@ -1721,9 +1721,12 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
 /* ****************************************************** */
 
 void Utils::parseMac(u_int8_t *mac, const char *symMac) {
-  sscanf(symMac, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
-	 &mac[0], &mac[1], &mac[2],
-	 &mac[3], &mac[4], &mac[5]);
+	int _mac[6];
+  sscanf(symMac, "%x:%x:%x:%x:%x:%x",
+	 &_mac[0], &_mac[1], &_mac[2],
+	 &_mac[3], &_mac[4], &_mac[5]);
+
+  for (int i = 0; i < 6; i++) mac[i] = (u_int8_t)_mac[i];
 }
 
 /* *********************************************** */
