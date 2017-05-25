@@ -97,6 +97,7 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("FLOW_END_SEC", 151);
   addMapping("FLOW_START_MILLISECONDS", 152);
   addMapping("FLOW_END_MILLISECONDS", 153);
+  addMapping("INGRESS_VRFID", 234);
   addMapping("BIFLOW_DIRECTION", 239);
   addMapping("DOT1Q_SRC_VLAN", 243);
   addMapping("DOT1Q_DST_VLAN", 254);
@@ -769,6 +770,10 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  if(strcmp(value, "0")) add_to_additional_fields = true;
 	  break;
 
+	case INGRESS_VRFID:
+	  flow.VRFID = atoi(value);
+	  break;
+	  
         default:
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
 	  add_to_additional_fields = true;
@@ -807,6 +812,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 				   payload_size,
 				   payload);
     }
+    
     once = true;
     return -1;
   }
