@@ -5,18 +5,27 @@ local throughput_type = getThroughputType()
 
 local now = os.time()
 
+function macAddIcon(mac, pre)
+   if not isSpecialMac(mac) then
+      local icon = getHostIcon(mac)
+      if not isEmptyString(icon) then
+         return pre.."&nbsp;"..icon
+      end
+   end
+
+   return pre
+end
+
+function mac2link(mac)
+   local link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..mac.."'>"..mac..'</A>'
+   return macAddIcon(mac, link)
+end
+
 function mac2record(mac)
    local record = {}
    record["key"] = hostinfo2jqueryid(mac)
 
-   local link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..mac["mac"].."'>"..mac["mac"]..'</A>'
-   if not isSpecialMac(mac["mac"]) then
-      local icon = getHostIcon(mac["mac"])
-      if(icon ~= "") then
-	 link = link.."&nbsp;"..icon
-      end
-   end
-   record["column_mac"] = link
+   record["column_mac"] = mac2link(mac["mac"])
 
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end

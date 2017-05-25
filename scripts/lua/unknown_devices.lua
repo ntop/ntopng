@@ -13,6 +13,7 @@ local host_pools_utils = require("host_pools_utils")
 interface.select(ifname)
 local ifstats = interface.getStats()
 
+--[[
 sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -21,6 +22,7 @@ active_page = "devices_stats"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local base_url = ntop.getHttpPrefix() .. "/lua/unknown_devices.lua"
+]]
 local page_params = {}
 local macs_filter = ""
 
@@ -85,7 +87,7 @@ print [[
 			url: url_update , 
 ]]
 
-local title = "Unknown Devices"
+local title = i18n("unknown_devices.unassigned_devices")
 
 print('title: "'..title..'",\n')
 
@@ -111,7 +113,7 @@ print [[
       }, {
          title: "]] print(i18n("mac_address")) print[[",
          field: "column_mac",
-         sortable: false,
+         sortable: true,
          css: {
             textAlign: 'left'
          }
@@ -169,4 +171,4 @@ print[[
 ]]
 
 
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+--~ dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

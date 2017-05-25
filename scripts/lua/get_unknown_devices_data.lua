@@ -147,14 +147,9 @@ for mac, _ in pairsByValues(mac_to_sort, sort_function) do
       local in_memory = (device["manufacturer"] ~= nil)
       
       if in_memory then
-         record["column_mac"] = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(device["mac"]).."' title='"..device["mac"].."'>"..device["mac"]..'</A>'
+         record["column_mac"] = mac2link(device["mac"])
       else
-         record["column_mac"] = device["mac"]
-      end
-
-      local icon = getHostIcon(device["mac"])
-      if(icon ~= "") then
-         record["column_mac"] = record["column_mac"].."&nbsp;"..icon
+         record["column_mac"] = macAddIcon(device["mac"])
       end
 
       record["key"] = device["mac"]

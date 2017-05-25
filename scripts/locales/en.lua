@@ -1305,6 +1305,7 @@ local  en = {
    },
 
    unknown_devices = {
+      unassigned_devices = "Unassigned Devices",
       assign_device_pool = "Assign Device Pool",
       select_pool = "Please select an host pool from the dropdown below to assign '%{mac}' to:",
       assign_pool = "Assign Pool",
