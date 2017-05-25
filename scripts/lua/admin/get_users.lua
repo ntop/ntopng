@@ -51,7 +51,7 @@ local to_skip = (currentPage-1) * perPage
 
 local vals = {}
 for key, value in pairs(users_list) do
-   if captivePortal and value["group"] ~= "captive_portal" then
+   if captivePortal and ((value["group"] ~= "captive_portal") or (value["allowed_ifname"] ~= ifname)) then
       goto continue
    elseif not captivePortal and value["group"] == "captive_portal" then
       goto continue

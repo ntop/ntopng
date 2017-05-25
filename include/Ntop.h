@@ -399,6 +399,7 @@ class Ntop {
   bool isCaptivePortalUser(const char * const username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
+  bool getUserAllowedIfname(char *username, char *buf, size_t buflen);
   bool hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);
@@ -436,8 +437,8 @@ class Ntop {
   bool isBlacklistedIP(IpAddress *ip);
 
 #ifdef NTOPNG_PRO
-  void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
-			 char *label, int32_t lifetime_secs);
+  bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
+			 char *label, int32_t lifetime_secs, char *ifname);
 #endif
 };
 

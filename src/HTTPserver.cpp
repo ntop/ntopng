@@ -177,11 +177,19 @@ static int checkCaptive(const struct mg_connection *conn,
 				 (char*)mg_get_header(conn, "Host"), request_info->uri);
 #endif
 
+    char bridge_interface[32];
+
+    if(!ntop->getUserAllowedIfname(username, bridge_interface, sizeof(bridge_interface)))
+      return(0);
+
     ntop->getUserHostPool(username, &host_pool_id);
     ntop->hasUserLimitedLifetime(username, &limited_lifetime);
 
-    ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
-			    host_pool_id, label, limited_lifetime);
+    if(!ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
+			    host_pool_id, label, limited_lifetime, bridge_interface))
+      return(0);
+
+    /* Success */
     return(1);
   }
 #endif

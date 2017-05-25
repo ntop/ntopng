@@ -1204,6 +1204,19 @@ bool Ntop::getUserHostPool(char *username, u_int16_t *host_pool_id) {
 
 /* ******************************************* */
 
+bool Ntop::getUserAllowedIfname(char *username, char *buf, size_t buflen) {
+  char key[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username ? username : "");
+
+  if(ntop->getRedis()->get(key, buf, buflen) >= 0)
+    return true;
+
+  return false;
+}
+
+/* ******************************************* */
+
 void Ntop::fixPath(char *str, bool replaceDots) {
   for(int i=0; str[i] != '\0'; i++) {
 #ifdef WIN32
@@ -1533,14 +1546,18 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
 
 #ifdef NTOPNG_PRO
 
-void Ntop::addIPToLRUMatches(u_int32_t client_ip,
+bool Ntop::addIPToLRUMatches(u_int32_t client_ip,
 			     u_int16_t user_pool_id,
 			     char *label,
-			     int32_t lifetime_secs) {
+			     int32_t lifetime_secs, char *ifname) {
   for(int i=0; i<num_defined_interfaces; i++) {
-    if(iface[i]->is_bridge_interface())
+    if(iface[i]->is_bridge_interface() && (strcmp(iface[i]->get_name(), ifname) == 0)) {
       iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label, lifetime_secs);
+      return true;
+    }
   }
+
+  return false;
 }
 
 #endif
