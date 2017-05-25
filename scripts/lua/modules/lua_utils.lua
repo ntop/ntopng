@@ -552,6 +552,14 @@ function rev(a,b)
   return (a > b)
 end
 
+function asc_insensitive(a,b)
+  return (string.lower(a) < string.lower(b))
+end
+
+function rev_insensitive(a,b)
+  return (string.lower(a) > string.lower(b))
+end
+
 --for _key, _value in pairsByKeys(vals, rev) do
 --   print(_key .. "=" .. _value .. "\n")
 --end

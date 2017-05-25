@@ -1554,7 +1554,7 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
    local show_groups = (not table.empty(categories)) and (not table.empty(protos))
 
    if show_groups then print('<optgroup label="'..i18n("shaping.protocol_families")..'">') end
-   for k,category in pairsByKeys(categories, asc) do
+   for k,category in pairsByKeys(categories, asc_insensitive) do
       print('<option value="cat_'..category.id..'"')
       if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
       print('>' .. shaper_utils.formatCategory(k, category.count) ..'</option>'..terminator)
@@ -1562,7 +1562,7 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
    if show_groups then print('</optgroup>') end
 
    if show_groups then print('<optgroup label="'..i18n("shaping.protocols")..'">') end
-   for protoName,protoId in pairsByKeys(protos, asc) do
+   for protoName,protoId in pairsByKeys(protos, asc_insensitive) do
       if not protos_excluded[protoName] then
          -- find protocol category
          for _,category in pairs(categories) do
