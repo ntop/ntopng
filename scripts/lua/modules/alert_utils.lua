@@ -616,6 +616,8 @@ function getAlertSource(entity, entity_value, alt_name)
             value = ifid,
             friendly_value = interface_name,
          }
+      elseif entity_value ~= "*" --[[ used in redis key stuff ]] then
+         io.write("WARNING: Unknown alert source for entity "..tostring(entity_value).."\n")
       end
    end
 end
@@ -1790,7 +1792,7 @@ end
 
 -- #################################
 
-local function check_entity_alerts(ifid, entity, working_status, old_entity_info, entity_info)
+local function check_entity_alerts(ifid, entity, working_status, old_entity_info, entity_info, entity_type)
   if are_alerts_suppressed(entity, ifid) then return end
 
   local engine = working_status.engine
@@ -1805,7 +1807,7 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     info_arr[atype][akey] = alert_info or {}
   end
 
-  local alert_source = getAlertSource("", entity, "")
+  local alert_source = getAlertSource(entity_type, entity, "")
   local entity_type = alert_source.source
   local entity_value = alert_source.value
 
@@ -1953,7 +1955,7 @@ local function check_interface_alerts(ifid, working_status)
       old_entity_info = {}
    end
 
-   check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
+   check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info, "interface")
 
    interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
 end
@@ -1979,7 +1981,7 @@ local function check_networks_alerts(ifid, working_status)
          old_entity_info = {}
       end
 
-      check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info)
+      check_entity_alerts(ifid, subnet, working_status, old_entity_info, new_entity_info, "network")
 
       network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
    end
@@ -2013,7 +2015,7 @@ local function check_hosts_alerts(ifid, working_status)
                old_entity_info = {}
             end
 
-            check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info)
+            check_entity_alerts(ifid, entity_value, working_status, old_entity_info, new_entity_info, "host")
 
             host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
          end
