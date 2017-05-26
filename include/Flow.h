@@ -66,6 +66,7 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
   FlowState state;
+  u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
@@ -407,7 +408,7 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()                  { return state == flow_state_established; }
   inline bool      isFlowAlerted()                  { return(flow_alerted);                   }
   inline void      setFlowAlerted()                 { flow_alerted = true;                    }
-
+  inline void      setVRFid(u_int32_t v)            { vrfId = v;                              }    
 #ifdef NTOPNG_PRO
   void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {
     if(src2dst_direction)

@@ -171,7 +171,7 @@ else
    print("</td></tr>\n")
 
    print("<tr><th width=30%>"..i18n("protocol").."</th>")
-   if(ifstats.inline and flow["verdict.pass"]) then
+   if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
       print("<td>")
    else
       print("<td colspan=2>")
@@ -194,11 +194,14 @@ else
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('</form>')
       end
-
    end
    print('</td>')
-   print("</tr>\n")
 
+   if(flow.vrfId ~= nil) then
+      print("<td><b> <A HREF=https://en.wikipedia.org/wiki/Virtual_routing_and_forwarding>VRF</A> Id</b> "..flow.vrfId.."</td>")
+   end
+   print("</tr>\n")
+   
    if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_shapers").."</th>")
       c = flowinfo2hostname(flow,"cli",ifstats.vlan)

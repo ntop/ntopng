@@ -35,7 +35,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
-    flow_alerted = false;
+    flow_alerted = false, vrfId = 0;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false,
@@ -1426,6 +1426,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_nil_table_entry(vm, "srv.host");
     }
 
+    if(vrfId) lua_push_int_table_entry(vm, "vrfId", vrfId);
     lua_push_int_table_entry(vm, "vlan", get_vlan_id());
     lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 

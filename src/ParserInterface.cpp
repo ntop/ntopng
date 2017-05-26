@@ -771,7 +771,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  break;
 
 	case INGRESS_VRFID:
-	  flow.VRFID = atoi(value);
+	  flow.vrfId = atoi(value);
 	  break;
 	  
         default:

@@ -161,7 +161,7 @@ typedef struct zmq_flow {
   u_int16_t src_port, dst_port, l7_proto, inIndex, outIndex;
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int8_t l4_proto, tcp_flags;
-  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, VRFID;
+  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
   struct {
     u_int32_t ooo_in_pkts, ooo_out_pkts;
     u_int32_t retr_in_pkts, retr_out_pkts;
@@ -303,7 +303,8 @@ typedef enum {
   flowhashing_none = 0,
   flowhashing_probe_ip,
   flowhashing_ingress_iface_idx,
-  flowhashing_vlan
+  flowhashing_vlan,
+  flowhashing_vrfid /* VRF Id */
 } FlowHashingEnum;
 
 struct keyval {

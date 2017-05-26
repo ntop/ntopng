@@ -103,8 +103,8 @@ function printInterfaces()
 			    "</ul>",
 			    "On", "1", "success", "Off", "0", "danger", "dynamic_iface_vlan_creation", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
   
-  local labels = {i18n("prefs.none"), i18n("prefs.probe_ip_address"), i18n("prefs.ingress_flow_interface")}
-  local values = {"none","probe_ip","ingress_iface_idx"}
+  local labels = {i18n("prefs.none"), i18n("prefs.probe_ip_address"), i18n("prefs.ingress_flow_interface"), i18n("prefs.ingress_vrf_id")}
+  local values = {"none","probe_ip","ingress_iface_idx", "ingress_vrf_id"}
   local elementToSwitch = {}
   local showElementArray = { true, false, false }
   local javascriptAfterSwitch = "";

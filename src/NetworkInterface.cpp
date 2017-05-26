@@ -364,6 +364,8 @@ void NetworkInterface::checkAggregationMode() {
 
 	if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
 	else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
+	else if(!strcmp(rsp, "ingress_vrf_id")) flowHashingMode = flowhashing_vrfid;
+	else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown agrgegation value %s", rsp);
       }
     } else {
       if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) == 0)
@@ -956,6 +958,11 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
 	  snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
 	  break;
 
+	case flowhashing_vrfid:
+	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
+	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, criteria);
+	  break;
+
 	default:
 	  free(h);
 	  return(NULL);
@@ -1027,6 +1034,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
     case flowhashing_ingress_iface_idx:
       vIface = getSubInterface((u_int32_t)zflow->inIndex);
+      break;
+
+    case flowhashing_vrfid:
+      vIface = getSubInterface((u_int32_t)zflow->vrfId);
       break;
 
     default:
@@ -1109,7 +1120,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->http_site) flow->setServerName(zflow->http_site);
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
-
+  if(zflow->vrfId)           flow->setVRFid(zflow->vrfId);
   /* Do not put incStats before guessing the flow protocol */
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,

@@ -717,6 +717,7 @@ local  en = {
       slack_notification_severity_preference_title = "Notification Preference Based On Severity",
       slack_notification_severity_preference_description = "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (every kind of alerts will be notified).",
       ingress_flow_interface = "Ingress Flow Interface",
+      ingress_vrf_id = "Ingress VRF Id",
       probe_ip_address = "Probe IP Address",
       none = "None",
       errors = "Errors",
