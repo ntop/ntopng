@@ -3544,6 +3544,46 @@ static int ntop_reset_pools_stats(lua_State *vm) {
     return(CONST_LUA_ERROR);
 }
 
+static int ntop_reset_protocol_quota_stats(lua_State *vm) {
+  char *host_ip;
+  char buf[64];
+  u_int16_t vlan_id;
+  char *proto_or_category_id;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  proto_or_category_id = (char *)lua_tostring(vm, 2);
+
+  if(ntop_interface) {
+    Host *h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id);
+    if (! h)
+      return(CONST_LUA_ERROR);
+
+    h->resetProtocolQuotaStats(proto_or_category_id);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+static int ntop_reset_pool_quota_stats(lua_State *vm) {
+  u_int16_t pool_id;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  pool_id = (u_int16_t)lua_tonumber(vm, 1);
+
+  if(ntop_interface) {
+    ntop_interface->resetPoolStats(pool_id);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
 static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5746,6 +5786,8 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   #ifdef NTOPNG_PRO
   { "resetPoolsStats",                ntop_reset_pools_stats                },
+  { "resetProtocolQuotaStats",        ntop_reset_protocol_quota_stats       },
+  { "resetPoolQuotaStats",            ntop_reset_pool_quota_stats           },
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },

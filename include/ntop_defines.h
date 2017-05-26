@@ -391,6 +391,7 @@
 #define HOST_POOL_SHAPERS_KEY              "ntopng.prefs.%u.l7_policies.%s"
 #define HOST_POOL_SITE_CATEGORIES_KEY      "ntopng.prefs.%u.blocked_sites_categories.%s"
 #define HOST_POOL_DETAILS_KEY              "ntopng.prefs.%u.host_pools.details.%u"
+#define HOST_POOL_DETAIL_LAST_RESET        "last_quota_reset"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"

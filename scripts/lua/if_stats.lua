@@ -1405,6 +1405,10 @@ end
       shaper_utils.deleteShaper(ifid, shaper_id)
    end
 
+   if((_POST["reset_quotas"] ~= nil) and (tonumber(_POST["pool"]) ~= nil)) then
+      interface.resetPoolQuotaStats(tonumber(_POST["pool"]))
+   end
+
    if(_POST["target_pool"] ~= nil) then
       local target_pool = _POST["target_pool"]
 
@@ -1493,6 +1497,18 @@ print(
       title   = i18n("shaping.delete_shaper"),
       message = i18n("shaping.confirm_delete_shaper") .. ' <span id=\"delete_shaper_dialog_shaper\"></span>?',
       confirm = i18n("delete"),
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "resetQuotaStats",
+      action  = "resetQuotaStats()",
+      title   = i18n("shaping.reset_stats"),
+      message = i18n(ternary(uses_per_member_quota, "shaping.confirm_reset_pool_stats", "shaping.confirm_reset_hosts_stats"), {pool_name=selected_pool.name}),
+      confirm = i18n("reset"),
     }
   })
 )
@@ -1618,6 +1634,10 @@ local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_direc
 
    print ([[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
+<button class="btn btn-default" style="float:right; margin-right:1em;" ]])
+   if selected_pool.id == host_pools_utils.DEFAULT_POOL_ID then print[[disabled="disabled"]] end
+   print([[ type="button" onclick="$('#resetQuotaStats').modal('show');" >]]..i18n("shaping.reset_stats")..[[</button>
+<br><br>
 </form>
 ]])
 
@@ -1627,9 +1647,11 @@ print([[<b>]]..i18n("shaping.notes")..[[</b>:]])
 print([[
 <ul>
 <li>]]..i18n("shaping.note_drop_core")..[[</li>
-<li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
-<li>]]..i18n("shaping.see_quotas_here", {url=ntop.getHttpPrefix().."/lua/pool_details.lua?page=quotas&pool="..selected_pool.id})..[[</li>
-<li>]]..i18n("shaping.note_families")..[[
+<li>]]..i18n("shaping.note_quota_unlimited")..[[</li>]])
+if not uses_per_member_quota then
+   print([[<li>]]..i18n("shaping.see_quotas_here", {url=ntop.getHttpPrefix().."/lua/pool_details.lua?page=quotas&pool="..selected_pool.id})..[[</li>]])
+end
+print([[<li>]]..i18n("shaping.note_families")..[[
    <select id="family_info_sel" class="form-control input-sm" style="width:16em; display:inline; margin: 0 1em;">
       <option disabled selected value></option>
    ]])
@@ -2255,6 +2277,14 @@ print[[
 
       todel.val(shaper_id);
       form.submit();
+   }
+
+   function resetQuotaStats() {
+      var params = {};
+      params.reset_quotas = "";
+      params.pool = ]] print(selected_pool.id) print[[;
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
    }
 
    function addShaperActionsToRow(tr_obj, shaper_id) {

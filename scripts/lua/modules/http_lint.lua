@@ -913,6 +913,8 @@ local known_parameters = {
    ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          =  validateMembersFilter,         -- host_pools.lua
+   ["protocol_to_reset"]       =  validateShapedElement,         -- host_details.lua
+   ["reset_quotas"]            =  validateEmpty,                 -- ifstats.lua, pool quota reset
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

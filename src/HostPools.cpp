@@ -31,6 +31,8 @@ HostPools::HostPools(NetworkInterface *_iface) {
   memset(children_safe, 0, sizeof(children_safe));
 
 #ifdef NTOPNG_PRO
+  memset(last_quota_reset, 0, sizeof(last_quota_reset));
+  memset(enforce_quotas_per_pool_member, 0, sizeof(enforce_quotas_per_pool_member));
   stats = stats_shadow = NULL;
 
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
@@ -270,7 +272,12 @@ void HostPools::loadFromRedis() {
 				       key, value);
 	} else {
 	  stats[i]->deserialize(iface, obj);
-	  json_object_put(obj);
+	  printf("(ifid=%d) pool=%d last=%lu reset=%lu\n", iface->get_id(), i, stats[i]->getLastUpdateTime(), last_quota_reset[i]);
+	  if (stats[i]->getLastUpdateTime() <= last_quota_reset[i]) {
+	    /* Old stats, must be reset. The faster way is to delete and create new empty object */
+	    delete stats[i];
+	    stats[i] = new HostPoolStats();
+	  }
 	}
       }
     }
@@ -329,17 +336,30 @@ void HostPools::luaStats(lua_State *vm) {
 /* *************************************** */
 
 void HostPools::resetPoolsStats() {
-    HostPoolStats *hps;
-
   if(stats) {
-    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-      if((hps = stats[i])) {
-        /* Must use the assigned hps as stats can be swapped
-           and accesses such as stats[i] could yield a NULL value */
-        hps->resetStats();
-      }
-    }
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
+      resetPoolStats(i);
   }
+}
+
+/* *************************************** */
+
+bool HostPools::resetPoolStats(u_int16_t host_pool_id) {
+  char pool_details[64], last_reset_time[16];
+  HostPoolStats *hps;
+  time_t reset_time;
+
+  if (!(hps = getPoolStats(host_pool_id))) return false;
+
+  hps->resetStats();
+
+  /* Write the new reset time to amend old stats */
+  reset_time = time(NULL);
+  snprintf(pool_details, sizeof(pool_details), HOST_POOL_DETAILS_KEY, iface->get_id(), host_pool_id);
+  snprintf(last_reset_time, sizeof(last_reset_time), "%lu", reset_time);
+  ntop->getRedis()->hashSet(pool_details, (char*)HOST_POOL_DETAIL_LAST_RESET, last_reset_time);
+  last_quota_reset[host_pool_id] = reset_time;
+  return true;
 }
 
 /* *************************************** */
@@ -523,7 +543,7 @@ void HostPools::reloadPools() {
   num_pools = redis->smembers(kname, &pools);
 
   for(int i = 0; i < num_pools; i++) {
-    char rsp[8];
+    char rsp[32];
 
     if(!pools[i])
       continue;
@@ -547,6 +567,8 @@ void HostPools::reloadPools() {
 
 #ifdef NTOPNG_PRO
     enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)"enforce_quotas_per_pool_member", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));;
+    if(redis->hashGet(kname, (char*)HOST_POOL_DETAIL_LAST_RESET, rsp, sizeof(rsp)) != -1)
+      last_quota_reset[i] = atol(rsp);
 
 #ifdef HOST_POOLS_DEBUG
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));

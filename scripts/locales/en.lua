@@ -89,6 +89,7 @@ local  en = {
    activity = "Activity",
    ["os"] = "OS",
    download = "Download",
+   reset = "Reset",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -235,6 +236,10 @@ local  en = {
       note_families = "Protocol Families can be used to set the same policy on multiple protocols at once.<br>Use the dropdown below to obtain the list of protocols contained into a Protocol Family:",
       see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas.",
       no_quota_traffic = "No quota related traffic so far",
+      reset_stats = "Reset Stats",
+      confirm_reset_stats = "Do you really want to reset '%{proto}' quotas stats for host '%{host}'?",
+      confirm_reset_hosts_stats = "Do you really want to reset all quotas stats of any member of the host pool '%{pool_name}'?",
+      confirm_reset_pool_stats = "Do you really want to reset all quotas stats for host pool '%{pool_name}'?",
    },
 
    alert_messages = {

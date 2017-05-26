@@ -40,6 +40,12 @@ local function get_pool_detail(ifid, pool_id, detail)
   return ntop.getHashCache(details_key, detail)
 end
 
+local function set_pool_detail(ifid, pool_id, detail, value)
+  local details_key = get_pool_details_key(ifid, pool_id)
+
+  ntop.setHashCache(details_key, detail, value)
+end
+
 --------------------------------------------------------------------------------
 
 function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, enforce_quotas_per_pool_member)
@@ -391,7 +397,11 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
       <tr>
         <th>]] print(i18n("protocol")) print[[</th>
         <th class="text-center">]] print(i18n("shaping.daily_traffic")) print[[</th>
-        <th class="text-center">]] print(i18n("shaping.daily_time")) print[[</th>
+        <th class="text-center">]] print(i18n("shaping.daily_time")) print[[</th>]]
+    if (host ~= nil) then
+      print('<th class="text-center">'..i18n("actions")..'</th>')
+    end
+    print[[
       </tr>
     </thead>
     <tbody id="pool_quotas_ndpi_tbody">
@@ -410,7 +420,7 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
             if(content)
               $('#pool_quotas_ndpi_tbody').html(content);
             else
-              $('#pool_quotas_ndpi_tbody').html('<tr><td colspan="3"><i>]] print(i18n("shaping.no_quota_traffic")) print[[</i></td></tr>');
+              $('#pool_quotas_ndpi_tbody').html('<tr><td colspan="4"><i>]] print(i18n("shaping.no_quota_traffic")) print[[</i></td></tr>');
           }
         });
       }

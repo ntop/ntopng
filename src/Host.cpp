@@ -68,6 +68,7 @@ Host::~Host() {
   if(rcvd_from_sketch)               delete rcvd_from_sketch;
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
   if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
+  if(cached_quota)                   delete cached_quota;
 
   if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
   if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
@@ -128,7 +129,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   sent_to_sketch = rcvd_from_sketch = NULL;
   l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
-  quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
+  quota_enforcement_stats = quota_enforcement_stats_shadow = cached_quota = NULL;
 #endif
   host_pool_id = NO_HOST_POOL_ID;
 
@@ -264,7 +265,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   refreshHostAlertPrefs();
   
   if(!host_serial) computeHostSerial();
-  updateHostPool();
+  updateHostPool(true /* restore quota */);
   updateHostL7Policy();
 }
 
@@ -369,7 +370,7 @@ void Host::updateHostL7Policy() {
 
 /* *************************************** */
 
-void Host::updateHostPool() {
+void Host::updateHostPool(bool restore_quota) {
   if(!iface)
     return;
 
@@ -377,6 +378,18 @@ void Host::updateHostPool() {
 
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();
+
+  if(hp && restore_quota && (cached_quota != NULL) && (quota_enforcement_stats == NULL)) {
+    /* Note: this only happens at host initialization, so it is safe to do this */
+    if (cached_quota->getLastUpdateTime() <= hp->getLastQuotaResetTime(host_pool_id)) {
+      /* Discard existing quotas */
+      delete cached_quota;
+      cached_quota = NULL;
+    } else {
+      quota_enforcement_stats = cached_quota;
+      cached_quota = NULL;
+    }
+  }
 
   if(hp && hp->enforceQuotasPerPoolMember(host_pool_id)) {
     /* must allocate a structure to keep track of used quotas */
@@ -961,6 +974,13 @@ json_object* Host::getJSONObject() {
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
 
+#ifdef NTOPNG_PRO
+  HostPoolStats *quota_stats = quota_enforcement_stats;
+
+  if ((quota_stats != NULL) && (quota_stats->getNumBytes() > 0))
+    json_object_object_add(my_object, "quota_stats", quota_stats->getJSONObject(getInterface()));
+#endif
+
   return(my_object);
 }
 
@@ -1104,6 +1124,14 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "pktStats.sent", &obj)) sent_stats.deserialize(obj);
   if(json_object_object_get_ex(o, "pktStats.recv", &obj)) recv_stats.deserialize(obj);
 
+#ifdef NTOPNG_PRO
+  if (json_object_object_get_ex(o, "quota_stats", &obj)) {
+    cached_quota = new HostPoolStats();
+    if(cached_quota) cached_quota->deserialize(getInterface(), obj);
+  }
+#endif
+
+  /* NOTE: free json memory */
   json_object_put(o);
 
   /* We need to update too the stats for traffic */

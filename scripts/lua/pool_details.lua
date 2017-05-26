@@ -72,7 +72,7 @@ end
 if ntop.isEnterprise() and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
     print("<li class=\"active\"><a href=\"#\">Quotas</i>\n")
-  else
+  elseif not host_pools_utils.getEnforceQuotasPerPoolMember(ifId, pool_id) then
     go_page_params["page"] = "quotas"
     print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\">Quotas\n")
   end
