@@ -2490,18 +2490,18 @@ end
 
 -- Update Utils::flowstatus2str
 function getFlowStatus(status)
-  if(status == 0) then return("<font color=green>Normal</font>")
-  elseif(status == 1)  then return("<font color=orange>Slow TCP Connection</font>")
-  elseif(status == 2)  then return("<font color=orange>Slow Application Header</font>")
-  elseif(status == 3)  then return("<font color=orange>Slow Data Exchange (Slowloris?)</font>")
-  elseif(status == 4)  then return("<font color=orange>Low Goodput</font>")
-  elseif(status == 5)  then return("<font color=orange>Suspicious TCP SYN Probing (or server port down)</font>")
-  elseif(status == 6)  then return("<font color=orange>TCP Connection Issues (Retransmission, OOO, Lost)</font>")
-  elseif(status == 7)  then return("<font color=orange>Suspicious TCP Probing</font>")
-  elseif(status == 8)  then return("<font color=orange>Flow emitted when network interface was alerted</font>")
-  elseif(status == 9)  then return("<font color=orange>TCP connection refused</font>")
-  elseif(status == 10) then return("<font color=orange>SSL Certificate Mismatch</font>")
-  else return("<font color=orange>Unknown status ("..status..")</font>")
+  if(status == 0) then return("<font color=green>"..i18n("flow_details.normal").."</font>")
+  elseif(status == 1)  then return("<font color=orange>"..i18n("flow_details.slow_tcp_connection").."</font>")
+  elseif(status == 2)  then return("<font color=orange>"..i18n("flow_details.slow_application_header").."</font>")
+  elseif(status == 3)  then return("<font color=orange>"..i18n("flow_details.slow_data_exchange").."</font>")
+  elseif(status == 4)  then return("<font color=orange>"..i18n("flow_details.low_goodput").."</font>")
+  elseif(status == 5)  then return("<font color=orange>"..i18n("flow_details.suspicious_tcp_syn_probing").."</font>")
+  elseif(status == 6)  then return("<font color=orange>"..i18n("flow_details.tcp_connection_issues").."</font>")
+  elseif(status == 7)  then return("<font color=orange>"..i18n("flow_details.suspicious_tcp_probing").."</font>")
+  elseif(status == 8)  then return("<font color=orange>"..i18n("flow_details.flow_emitted").."</font>")
+  elseif(status == 9)  then return("<font color=orange>"..i18n("flow_details.tcp_connection_refused").."</font>")
+  elseif(status == 10) then return("<font color=orange>"..i18n("flow_details.ssl_certificate_mismatch").."</font>")
+  else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end
 
@@ -2557,90 +2557,90 @@ end
 -- ##########################################
 
 _icmp_types = {
-	 { 0, 0, "Echo Reply" },
-	 { 3, 0, "Network Unreachable" },
-	 { 3, 1, "Host Unreachable" },
-	 { 3, 2, "Protocol Unreachable" },
-	 { 3, 3, "Port Unreachable" },
-	 { 3, 4, "Fragmentation needed but no fragment bit set" },
-	 { 3, 5, "Source routing failed" },
-	 { 3, 6, "Destination network unknown" },
-	 { 3, 7, "Destination host unknown" },
-	 { 3, 8, "Source host isolated (obsolete)" },
-	 { 3, 9, "Destination network administratively prohibited" },
-	 { 3, 10, "Destination host administratively prohibited" },
-	 { 3, 11, "Network unreachable for TOS" },
-	 { 3, 12, "Host unreachable for TOS" },
-	 { 3, 13, "Communication administratively prohibited by filtering" },
-	 { 3, 14, "Host precedence violation" },
-	 { 3, 15, "Precedence cutoff in effect" },
-	 { 4, 0, "Source quench" },
-	 { 5, 0, "Redirect for network" },
-	 { 5, 1, "Redirect for host" },
-	 { 5, 2, "Redirect for TOS and network" },
-	 { 5, 3, "Redirect for TOS and host" },
-	 { 8, 0, "Echo request x" },
-	 { 9, 0, "Router advertisement" },
-	 { 10, 0, "Route solicitation" },
-	 { 11, 0, "TTL equals 0 during transit" },
-	 { 11, 1, "TTL equals 0 during reassembly" },
-	 { 12, 0, "IP header bad (catchall error)" },
-	 { 12, 1, "Required options missing" },
-	 { 13, 0, "Timestamp request (obsolete)" },
-	 { 14, 0, "Timestamp reply (obsolete)" },
-	 { 15, 0, "Information request (obsolete)" },
-	 { 16, 0, "Information reply (obsolete)" },
-	 { 17, 0, "Address mask request" },
-	 { 18, 0, "Address mask reply" }
+	 { 0, 0, i18n("icmp_v4_types.type_0_0_echo_reply") },
+	 { 3, 0, i18n("icmp_v4_types.type_3_0_network_unreachable") },
+	 { 3, 1, i18n("icmp_v4_types.type_3_1_host_unreachable") },
+	 { 3, 2, i18n("icmp_v4_types.type_3_2_protocol_unreachable") },
+	 { 3, 3, i18n("icmp_v4_types.type_3_3_port_unreachable") },
+	 { 3, 4, i18n("icmp_v4_types.type_3_4_fragmentation_needed_but_no_fragment_bit_set") },
+	 { 3, 5, i18n("icmp_v4_types.type_3_5_source_routing_failed") },
+	 { 3, 6, i18n("icmp_v4_types.type_3_6_destination_network_unknown") },
+	 { 3, 7, i18n("icmp_v4_types.type_3_7_destination_host_unknown") },
+	 { 3, 8, i18n("icmp_v4_types.type_3_8_source_host_isolated") },
+	 { 3, 9, i18n("icmp_v4_types.type_3_9_destination_network_administratively_prohibited") },
+	 { 3, 10, i18n("icmp_v4_types.type_3_10_destination_host_administratively_prohibited") },
+	 { 3, 11, i18n("icmp_v4_types.type_3_11_network_unreachable_for_tos") },
+	 { 3, 12, i18n("icmp_v4_types.type_3_12_host_unreachable_for_tos") },
+	 { 3, 13, i18n("icmp_v4_types.type_3_13_communication_administratively_prohibited_by_filtering") },
+	 { 3, 14, i18n("icmp_v4_types.type_3_14_host_precedence_violation") },
+	 { 3, 15, i18n("icmp_v4_types.type_3_15_precedence_cutoff_in_effect") },
+	 { 4, 0, i18n("icmp_v4_types.type_4_0_source_quench") },
+	 { 5, 0, i18n("icmp_v4_types.type_5_0_redirect_for_network") },
+	 { 5, 1, i18n("icmp_v4_types.type_5_1_redirect_for_host") },
+	 { 5, 2, i18n("icmp_v4_types.type_5_2_redirect_for_tos_and_network") },
+	 { 5, 3, i18n("icmp_v4_types.type_5_3_redirect_for_tos_and_host") },
+	 { 8, 0, i18n("icmp_v4_types.type_8_0_echo_request_x") },
+	 { 9, 0, i18n("icmp_v4_types.type_9_0_router_advertisement") },
+	 { 10, 0, i18n("icmp_v4_types.type_10_0_route_solicitation") },
+	 { 11, 0, i18n("icmp_v4_types.type_11_0_ttl_equals_0_during_transit") },
+	 { 11, 1, i18n("icmp_v4_types.type_11_1_ttl_equals_0_during_reassembly") },
+	 { 12, 0, i18n("icmp_v4_types.type_12_0_ip_header_bad") },
+	 { 12, 1, i18n("icmp_v4_types.type_12_1_required_options_missing") },
+	 { 13, 0, i18n("icmp_v4_types.type_13_0_timestamp_request") },
+	 { 14, 0, i18n("icmp_v4_types.type_14_0_timestamp_reply") },
+	 { 15, 0, i18n("icmp_v4_types.type_15_0_information_request") },
+	 { 16, 0, i18n("icmp_v4_types.type_16_0_information_reply") },
+	 { 17, 0, i18n("icmp_v4_types.type_17_0_address_mask_request") },
+	 { 18, 0, i18n("icmp_v4_types.type_18_0_address_mask_reply") }
 }
 
 -- Code is currently ignored on IVMPv6
 _icmpv6_types = {
-        { 0, "Reserved" },
-	{ 1, "Destination Unreachable" },
-	{ 2, "Packet Too Big" },
-	{ 3, "Time Exceeded" },
-	{ 4, "Parameter Problem" },
-	{ 100, "Private experimentation" },
-	{ 101, "Private experimentation" },
-	-- { 102-126, "Unassigned" },
-	{ 127, "Reserved for expansion of ICMPv6 error messages" },
-	{ 128, "Echo Request" },
-	{ 129, "Echo Reply" },
-	{ 130, "Multicast Listener Query" },
-	{ 131, "Multicast Listener Report" },
-	{ 132, "Multicast Listener Done" },
-	{ 133, "Router Solicitation" },
-	{ 134, "Router Advertisement" },
-	{ 135, "Neighbor Solicitation" },
-	{ 136, "Neighbor Advertisement" },
-	{ 137, "Redirect Message" },
-	{ 138, "Router Renumbering" },
-	{ 139, "ICMP Node Information Query" },
-	{ 140, "ICMP Node Information Response" },
-	{ 141, "Inverse Neighbor Discovery Solicitation Message" },
-	{ 142, "Inverse Neighbor Discovery Advertisement Message" },
-	{ 143, "Version 2 Multicast Listener Report" },
-	{ 144, "Home Agent Address Discovery Request Message" },
-	{ 145, "Home Agent Address Discovery Reply Message" },
-	{ 146, "Mobile Prefix Solicitation" },
-	{ 147, "Mobile Prefix Advertisement" },
-	{ 148, "Certification Path Solicitation Message" },
-	{ 149, "Certification Path Advertisement Message" },
-	{ 150, "ICMP messages utilized by experimental mobility protocols" },
-	{ 151, "Multicast Router Advertisement" },
-	{ 152, "Multicast Router Solicitation" },
-	{ 153, "Multicast Router Termination" },
-	{ 154, "FMIPv6 Messages" },
-	{ 155, "RPL Control Message" },
-	{ 156, "ILNPv6 Locator Update Message" },
-	{ 157, "Duplicate Address Request" },
-	{ 158, "Duplicate Address Confirmation" },
-	{ 159, "MPL Control Message" },
-	-- { 160-199, "Unassigned" },
-	{ 200, "Private experimentation" },
-	{ 201, "Private experimentation" },
-	{ 255, "Reserved for expansion of ICMPv6 informational messages" }
+        { 0, i18n("icmp_v6_types.type_0_reserved") },
+	{ 1, i18n("icmp_v6_types.type_1_destination_unreachable") },
+	{ 2, i18n("icmp_v6_types.type_2_packet_too_big") },
+	{ 3, i18n("icmp_v6_types.type_3_time_exceeded") },
+	{ 4, i18n("icmp_v6_types.type_4_parameter_problem") },
+	{ 100, i18n("icmp_v6_types.type_100_private_experimentation") },
+	{ 101, i18n("icmp_v6_types.type_101_private_experimentation") },
+	--{ 102-126, i18n("icmp_v6_types.type_102-126_unassigned") },
+	{ 127, i18n("icmp_v6_types.type_127_reserved_for_expansion_of_icmpv6_error_messages") },
+	{ 128, i18n("icmp_v6_types.type_128_echo_request") },
+	{ 129, i18n("icmp_v6_types.type_129_echo_reply") },
+	{ 130, i18n("icmp_v6_types.type_130_multicast_listener_query") },
+	{ 131, i18n("icmp_v6_types.type_131_multicast_listener_report") },
+	{ 132, i18n("icmp_v6_types.type_132_multicast_listener_done") },
+	{ 133, i18n("icmp_v6_types.type_133_router_solicitation") },
+	{ 134, i18n("icmp_v6_types.type_134_router_advertisement") },
+	{ 135, i18n("icmp_v6_types.type_135_neighbor_solicitation") },
+	{ 136, i18n("icmp_v6_types.type_136_neighbor_advertisement") },
+	{ 137, i18n("icmp_v6_types.type_137_redirect_message") },
+	{ 138, i18n("icmp_v6_types.type_138_router_renumbering") },
+	{ 139, i18n("icmp_v6_types.type_139_icmp_node_information_query") },
+	{ 140, i18n("icmp_v6_types.type_140_icmp_node_information_response") },
+	{ 141, i18n("icmp_v6_types.type_141_inverse_neighbor_discovery_solicitation_message") },
+	{ 142, i18n("icmp_v6_types.type_142_inverse_neighbor_discovery_advertisement_message") },
+	{ 143, i18n("icmp_v6_types.type_143_version_2_multicast_listener_report") },
+	{ 144, i18n("icmp_v6_types.type_144_home_agent_address_discovery_request_message") },
+	{ 145, i18n("icmp_v6_types.type_145_home_agent_address_discovery_reply_message") },
+	{ 146, i18n("icmp_v6_types.type_146_mobile_prefix_solicitation") },
+	{ 147, i18n("icmp_v6_types.type_147_mobile_prefix_advertisement") },
+	{ 148, i18n("icmp_v6_types.type_148_certification_path_solicitation_message") },
+	{ 149, i18n("icmp_v6_types.type_149_certification_path_advertisement_message") },
+	{ 150, i18n("icmp_v6_types.type_150_icmp_messages_utilized_by_experimental_mobility_protocols") },
+	{ 151, i18n("icmp_v6_types.type_151_multicast_router_advertisement") },
+	{ 152, i18n("icmp_v6_types.type_152_multicast_router_solicitation") },
+	{ 153, i18n("icmp_v6_types.type_153_multicast_router_termination") },
+	{ 154, i18n("icmp_v6_types.type_154_fmipv6_messages") },
+	{ 155, i18n("icmp_v6_types.type_155_rpl_control_message") },
+	{ 156, i18n("icmp_v6_types.type_156_ilnpv6_locator_update_message") },
+	{ 157, i18n("icmp_v6_types.type_157_duplicate_address_request") },
+	{ 158, i18n("icmp_v6_types.type_158_duplicate_address_confirmation") },
+	{ 159, i18n("icmp_v6_types.type_159_mpl_control_message") },
+	--{ 160-199, i18n("icmp_v6_types.type_160-199_unassigned") },
+	{ 200, i18n("icmp_v6_types.type_200_private_experimentation") },
+	{ 201, i18n("icmp_v6_types.type_201_private_experimentation") },
+	{ 255, i18n("icmp_v6_types.type_255_reserved_for_expansion_of_icmpv6_informational_messages") }
 }
 
 -- #############################################
