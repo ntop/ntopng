@@ -81,8 +81,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 
 Mac::~Mac() {
   if (source_mac) {
-    iface->decNumL2Devices();
-
     /* Only dump source-mac devices */
     char key[64], buf1[64];
     char *json = serialize();

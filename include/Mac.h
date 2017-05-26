@@ -34,8 +34,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
 
   inline void setSourceMac() {
     if (!source_mac && !special_mac) {
-      iface->incNumL2Devices();
       source_mac = true;
+      if(getUses() > 0) iface->incNumL2Devices();
     }
   }
 
@@ -44,6 +44,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   ~Mac();
 
   inline u_int16_t getNumHosts()               { return getUses();            }
+  inline void incUses()                        { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
+  inline void decUses()                        { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
   inline bool isSpecialMac()                   { return(special_mac);         }
   inline bool isSourceMac()                    { return(source_mac);          }
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
