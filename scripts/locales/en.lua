@@ -1217,6 +1217,19 @@ local  en = {
       profile_name = "Profile Name",
       dump_flow_traffic = "Dump Flow Traffic",
       additional_flow_elements = "Additional Flow Elements",
+
+      normal = "Normal",
+      slow_tcp_connection = "Slow TCP Connection",
+      slow_application_header = "Slow Application Header",
+      slow_data_exchange = "Slow Data Exchange (Slowloris?)",
+      low_goodput = "Low Goodput",
+      suspicious_tcp_syn_probing = "Suspicious TCP SYN Probing (or server port down)",
+      tcp_connection_issues = "TCP Connection Issues (Retransmission, OOO, Lost)",
+      suspicious_tcp_probing = "Suspicious TCP Probing",
+      flow_emitted = "Flow emitted when network interface was alerted",
+      tcp_connection_refused = "TCP connection refused",
+      ssl_certificate_mismatch = "SSL Certificate Mismatch",
+      unknown_status = "Unknown status (%{status})",
    },
 
    vlan_details = {

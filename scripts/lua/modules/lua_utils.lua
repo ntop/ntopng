@@ -2490,18 +2490,18 @@ end
 
 -- Update Utils::flowstatus2str
 function getFlowStatus(status)
-  if(status == 0) then return("<font color=green>Normal</font>")
-  elseif(status == 1)  then return("<font color=orange>Slow TCP Connection</font>")
-  elseif(status == 2)  then return("<font color=orange>Slow Application Header</font>")
-  elseif(status == 3)  then return("<font color=orange>Slow Data Exchange (Slowloris?)</font>")
-  elseif(status == 4)  then return("<font color=orange>Low Goodput</font>")
-  elseif(status == 5)  then return("<font color=orange>Suspicious TCP SYN Probing (or server port down)</font>")
-  elseif(status == 6)  then return("<font color=orange>TCP Connection Issues (Retransmission, OOO, Lost)</font>")
-  elseif(status == 7)  then return("<font color=orange>Suspicious TCP Probing</font>")
-  elseif(status == 8)  then return("<font color=orange>Flow emitted when network interface was alerted</font>")
-  elseif(status == 9)  then return("<font color=orange>TCP connection refused</font>")
-  elseif(status == 10) then return("<font color=orange>SSL Certificate Mismatch</font>")
-  else return("<font color=orange>Unknown status ("..status..")</font>")
+  if(status == 0) then return("<font color=green>"..i18n("flow_details.normal").."</font>")
+  elseif(status == 1)  then return("<font color=orange>"..i18n("flow_details.slow_tcp_connection").."</font>")
+  elseif(status == 2)  then return("<font color=orange>"..i18n("flow_details.slow_application_header").."</font>")
+  elseif(status == 3)  then return("<font color=orange>"..i18n("flow_details.slow_data_exchange").."</font>")
+  elseif(status == 4)  then return("<font color=orange>"..i18n("flow_details.low_goodput").."</font>")
+  elseif(status == 5)  then return("<font color=orange>"..i18n("flow_details.suspicious_tcp_syn_probing").."</font>")
+  elseif(status == 6)  then return("<font color=orange>"..i18n("flow_details.tcp_connection_issues").."</font>")
+  elseif(status == 7)  then return("<font color=orange>"..i18n("flow_details.suspicious_tcp_probing").."</font>")
+  elseif(status == 8)  then return("<font color=orange>"..i18n("flow_details.flow_emitted").."</font>")
+  elseif(status == 9)  then return("<font color=orange>"..i18n("flow_details.tcp_connection_refused").."</font>")
+  elseif(status == 10) then return("<font color=orange>"..i18n("flow_details.ssl_certificate_mismatch").."</font>")
+  else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end
 
