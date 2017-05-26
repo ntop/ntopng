@@ -6,6 +6,7 @@ local throughput_type = getThroughputType()
 local now = os.time()
 
 function macAddIcon(mac, pre)
+   local pre = pre or mac
    if not isSpecialMac(mac) then
       local icon = getHostIcon(mac)
       if not isEmptyString(icon) then

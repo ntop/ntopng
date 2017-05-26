@@ -347,6 +347,12 @@ local function validateDevicesMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateUnassignedDevicesMode(mode)
+   local modes = {"active_only", "inactive_only"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateSnmpAction(mode)
    local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling"}
 
@@ -918,6 +924,7 @@ local known_parameters = {
    ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          =  validateMembersFilter,         -- host_pools.lua
    ["devices_mode"]            =  validateDevicesMode,           -- mac_stats.lua
+   ["unassigned_devices"]      =  validateUnassignedDevicesMode, -- unknown_device.lua
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

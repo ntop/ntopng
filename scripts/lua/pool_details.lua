@@ -62,13 +62,6 @@ else
   print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\"><i class='fa fa-area-chart fa-lg'></i>\n")
 end
 
-if page == "devices" then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("unknown_devices.unassigned_devices").."</i>\n")
-elseif ifstats["has_macs"] and (pool_id == host_pools_utils.DEFAULT_POOL_ID) then
-  go_page_params["page"] = "devices"
-  print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\">"..i18n("unknown_devices.unassigned_devices").."\n")
-end
-
 if ntop.isEnterprise() and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
     print("<li class=\"active\"><a href=\"#\">Quotas</i>\n")
@@ -108,8 +101,6 @@ elseif page == "historical" then
     local host_url = getPageUrl(base_url, page_params)
     drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
   end
-elseif page == "devices" then
-  dofile(dirs.installdir .. "/scripts/lua/unknown_devices.lua")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

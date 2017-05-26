@@ -271,6 +271,7 @@ print [[
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
     <li><a data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
+    <li><a data-toggle="tab" role="tab" href="#unassigned">]] print(i18n("unknown_devices.unassigned_devices")) print[[</a></li>
   </ul>
   <div class="tab-content">
     <div id="manage" class="tab-pane">
@@ -375,6 +376,13 @@ end
 
 print[[
       </ul>
+    </div>
+    <div id="unassigned" class="tab-pane">
+]]
+
+dofile(dirs.installdir .. "/scripts/lua/unknown_devices.lua")
+
+print [[
     </div>
   </div>
 ]]

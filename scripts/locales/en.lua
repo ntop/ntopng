@@ -89,6 +89,7 @@ local  en = {
    activity = "Activity",
    ["os"] = "OS",
    download = "Download",
+   notes = "NOTES:",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -1320,13 +1321,17 @@ local  en = {
 
    unknown_devices = {
       unassigned_devices = "Unassigned Devices",
-      assign_device_pool = "Assign Device Pool",
+      assign_device_pool = "Assign Device to a Pool",
       select_pool = "Please select an host pool from the dropdown below to assign '%{mac}' to:",
-      assign_pool = "Assign Pool",
+      assign_pool = "Assign To Pool",
       device_name = "Device Name",
       first_seen = "First Seen",
       last_seen = "Last Seen",
-      create_pools_first = "No pools defined. You can create new pools <a href=\"%{url}\">here</a>",
+      filter_devices = "Filter Devices",
+      all_devices = "All Devices",
+      active_only = "Active Only",
+      inactive_only = "Inactive Only",
+      no_pools = "An host pool must be created in order to assign unknown devices to.",
    },
 
    vlan_stats = {
