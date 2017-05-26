@@ -20,7 +20,6 @@ local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
 
 local vlan         = _GET["vlan"]
-local host_macs_only        = _GET["host_macs_only"]
 local manufacturer          = _GET["manufacturer"]
 
 local sortPrefs = "unknown_devices"
@@ -56,12 +55,6 @@ else
    tablePreferences("rows_number", perPage)
 end
 
-if isEmptyString(host_macs_only) == false then
-   if(host_macs_only == "true") then host_macs_only = true else host_macs_only = false end
-else
-   host_macs_only = false
-end
-
 interface.select(ifname)
 
 to_skip = (currentPage-1) * perPage
@@ -89,8 +82,8 @@ end
 -- First data source: memory
 local macs_stats = interface.getMacsInfo(nil, nil, nil, nil,
          tonumber(vlan),
-         true --[[ skip special macs ]],
-         true, nil--[[manufacturer]], tonumber(host_pools_utils.DEFAULT_POOL_ID), true--[[effectiveMacsOnly]])
+         true --[[ sourceMacsOnly ]],
+         true --[[ hostMacsOnly ]], nil--[[manufacturer]], tonumber(host_pools_utils.DEFAULT_POOL_ID))
 
 if (macs_stats ~= nil) then
    macs_stats = macs_stats.macs

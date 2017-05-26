@@ -2671,8 +2671,7 @@ struct flowHostRetriever {
   Host *host;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
-  bool skipSpecialMacs, hostMacsOnly;
-  bool effectiveMacsOnly;
+  bool sourceMacsOnly, hostMacsOnly;
   char *country;
   int ndpi_proto;             /* Not used in flow_search_walker */
   sortField sorter;
@@ -2840,8 +2839,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->hostMacsOnly  && h->getMac() && h->getMac()->isSpecialMac())                     ||
-     /*(r->hostMacsOnly  && h->getMac() && h->getMac()->isSeenIface(r->bridge_iface_idx))   ||*/
+     (r->hostMacsOnly  && h->getMac() && !h->getMac()->isSourceMac())                     ||
      (r->mac           && (! h->getMac()->equal(r->vlan_id, r->mac)))                     ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
@@ -2942,9 +2940,8 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
   if(!m
      || m->idle()
      || ((r->vlan_id && (r->vlan_id != m->get_vlan_id())))
-     || (r->skipSpecialMacs && m->isSpecialMac())
+     || (r->sourceMacsOnly && !m->isSourceMac())
      || (r->hostMacsOnly && m->getNumHosts() == 0)
-     || (r->effectiveMacsOnly && !m->isEffectiveMac())
      || ((r->poolFilter != (u_int16_t)-1) && (
         (((pool_found = m->getInterface()->getHostPools()->findMacPool(m, &pool_value)) == false /* unassigned */) && r->poolFilter != 0)
         || ((pool_found == true) && (pool_value != r->poolFilter))))
@@ -3497,9 +3494,9 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
 int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 			       u_int8_t bridge_iface_idx,
-			       u_int16_t vlan_id, bool skipSpecialMacs,
+			       u_int16_t vlan_id, bool sourceMacsOnly,
 			       bool hostMacsOnly, const char *manufacturer,
-			       char *sortColumn, u_int16_t pool_filter, bool effectiveMacsOnly) {
+			       char *sortColumn, u_int16_t pool_filter) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
 
@@ -3510,9 +3507,9 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
 
-  retriever->vlan_id = vlan_id, retriever->skipSpecialMacs = skipSpecialMacs,
+  retriever->vlan_id = vlan_id, retriever->sourceMacsOnly = sourceMacsOnly,
     retriever->hostMacsOnly = hostMacsOnly, retriever->actNumEntries = 0,
-    retriever->effectiveMacsOnly = effectiveMacsOnly, retriever->poolFilter = pool_filter,
+    retriever->poolFilter = pool_filter,
     retriever->manufacturer = (char *)manufacturer,
     retriever->maxNumEntries = maxHits,
     retriever->ndpi_proto = -1,
@@ -5222,18 +5219,18 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 int NetworkInterface::getActiveMacList(lua_State* vm,
 				       u_int8_t bridge_iface_idx,
 				       u_int16_t vlan_id,
-				       bool skipSpecialMacs,
+				       bool sourceMacsOnly,
 				       bool hostMacsOnly, const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder,
-				       u_int16_t pool_filter, bool effectiveMacsOnly) {
+				       u_int16_t pool_filter) {
   struct flowHostRetriever retriever;
   bool show_details = true;
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, skipSpecialMacs,
-	      hostMacsOnly, manufacturer, sortColumn, pool_filter, effectiveMacsOnly) < 0) {
+  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      hostMacsOnly, manufacturer, sortColumn, pool_filter) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -5379,14 +5376,14 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 						u_int8_t bridge_iface_idx,
 						u_int16_t vlan_id,
-						bool skipSpecialMacs,
+						bool sourceMacsOnly,
 						bool hostMacsOnly, u_int32_t maxHits) {
   struct flowHostRetriever retriever;
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, skipSpecialMacs,
-	      hostMacsOnly, NULL, (char*)"column_manufacturer", (u_int16_t)-1, false) < 0) {
+  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      hostMacsOnly, NULL, (char*)"column_manufacturer", (u_int16_t)-1) < 0) {
     enablePurge(false);
     return -1;
   }

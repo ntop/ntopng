@@ -29,8 +29,15 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   u_int8_t mac[6];
   const char * manuf;
   u_int16_t vlan_id;
-  bool special_mac:1, bridge_seen_iface[2] /* , notused:5 */;
+  bool source_mac:1, special_mac:1, bridge_seen_iface[2] /* , notused:4 */;
   ArpStats arp_stats;
+
+  inline void setSourceMac() {
+    if (!source_mac && !special_mac) {
+      iface->incNumL2Devices();
+      source_mac = true;
+    }
+  }
 
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
@@ -38,6 +45,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
 
   inline u_int16_t getNumHosts()               { return getUses();            }
   inline bool isSpecialMac()                   { return(special_mac);         }
+  inline bool isSourceMac()                    { return(source_mac);          }
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()                   { return(mac);                 }
   inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }
@@ -58,9 +66,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
   inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
-  inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; }
+  inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; setSourceMac(); }
   inline bool isSeenIface(u_int8_t idx)   { return(bridge_seen_iface[idx & 0x01]); }
-  inline bool isEffectiveMac()       { return (bridge_seen_iface[0] || bridge_seen_iface[1]); }
   inline u_int64_t getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
   inline u_int64_t getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
 

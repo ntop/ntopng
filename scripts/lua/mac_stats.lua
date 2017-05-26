@@ -21,13 +21,13 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local base_url = ntop.getHttpPrefix() .. "/lua/mac_stats.lua"
 local page_params = {}
 
-local host_macs_only = false
-local host_macs_only_filter = ""
+local devices_mode = ""
+local devices_mode_filter = ""
 
-if(not isEmptyString(_GET["host_macs_only"])) then
-   if(_GET["host_macs_only"]) == "true" then host_macs_only = true else host_macs_only = false end
-   page_params["host_macs_only"] = _GET["host_macs_only"]
-   host_macs_only_filter = '<span class="glyphicon glyphicon-filter"></span>'
+if(not isEmptyString(_GET["devices_mode"])) then
+   devices_mode = _GET["devices_mode"]
+   page_params["devices_mode"] = _GET["devices_mode"]
+   devices_mode_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
 
@@ -57,7 +57,8 @@ print [[
 ]]
 
 local title
-if host_macs_only == true then
+
+if devices_mode == "host_macs_only" then
    title = i18n("mac_stats.layer_2_host_devices")
 else
    title = i18n("mac_stats.all_layer_2_devices")
@@ -82,15 +83,16 @@ print('buttons: [')
 
    -- Filter MACS
    local hosts_macs_params = table.clone(page_params)
-   hosts_macs_params.host_macs_only = nil
-   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..host_macs_only_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
-   hosts_macs_params.host_macs_only = "false"
+   hosts_macs_params.devices_mode = nil
+   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
    print(getPageUrl(base_url, hosts_macs_params))
    print('">'..i18n("mac_stats.all_devices")..'</a></li>')
+
+   -- Host MACs only
    print('<li')
-   if host_macs_only == true then print(' class="active"') end
+   if devices_mode == "host_macs_only" then print(' class="active"') end
    print('><a href="')
-   hosts_macs_params.host_macs_only = "true"
+   hosts_macs_params.devices_mode = "host_macs_only"
    print(getPageUrl(base_url, hosts_macs_params))
    print('">'..i18n("mac_stats.hosts_only")..'</a></li>')
    print("</div>'")

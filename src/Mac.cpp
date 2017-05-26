@@ -27,6 +27,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
+  source_mac = false;
   bridge_seen_iface[0] = bridge_seen_iface[1] = 0;
 
   if(ntop->getMacManufacturers())
@@ -44,50 +45,51 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 #ifdef DEBUG
   char buf[32];
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u [total %u][%s]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u [total %u]",
 			       Utils::formatMac(mac, buf, sizeof(buf)),
-			       vlan_id, iface->getNumL2Devices(),
-			       special_mac ? "Special" : "Host");
+			       vlan_id, iface->getNumL2Devices());
 #endif
 
-  if(!special_mac) {
-    iface->incNumL2Devices();
+  /*
+   * Note: We do not load MAC data from redis right now.
+   * We only need redis MAC data to show Unassigned Devices in host pools view.
+   */
+#if 0
+  /* NOTE: source_mac is always false here. */
+  if(source_mac) {
+    char redis_key[64], buf1[64];
+    char *json = NULL;
+    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
 
-    if (isEffectiveMac()) {
-      char redis_key[64], buf1[64];
-      char *json = NULL;
-      snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
-
-      if ((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR,
-                 "Unable to allocate memory to deserialize %s", redis_key);
-      } else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)) {
-        /* Found saved copy of the host so let's start from the previous state */
-        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-
-        deserialize(redis_key, json);
-      }
-
-      if(json) free(json);
+    if ((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+               "Unable to allocate memory to deserialize %s", redis_key);
+    } else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)) {
+      /* Found saved copy of the host so let's start from the previous state */
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+      deserialize(redis_key, json);
     }
+
+    if(json) free(json);
   }
+#endif
+
 }
 
 /* *************************************** */
 
 Mac::~Mac() {
-  if(!special_mac) {
+  if (source_mac) {
     iface->decNumL2Devices();
 
-    if (isEffectiveMac()) {
-      char key[64], buf1[64];
-      char *json = serialize();
+    /* Only dump source-mac devices */
+    char key[64], buf1[64];
+    char *json = serialize();
 
-      snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
-      ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
-      free(json);
-    }
+    snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
+    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
+    free(json);
   }
 
 #ifdef DEBUG
@@ -96,7 +98,7 @@ Mac::~Mac() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s/%u [total %u][%s]",
 			       Utils::formatMac(mac, buf, sizeof(buf)),
 			       vlan_id, iface->getNumL2Devices(),
-			       special_mac ? "Special" : "Host");
+			       source_mac ? "Host" : "Special");
 #endif
 }
 
@@ -148,6 +150,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_int_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
     lua_push_int_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
 
+    lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     ((GenericTrafficElement*)this)->lua(vm, show_details);
   }

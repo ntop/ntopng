@@ -341,6 +341,12 @@ local function validateResetStatsMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateDevicesMode(mode)
+   local modes = {"host_macs_only"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateSnmpAction(mode)
    local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling"}
 
@@ -861,8 +867,6 @@ local known_parameters = {
    ["extended"]                =  validateBool,                  -- Flag for extended report
    ["tracked"]                 =  validateNumber,                --
    ["ajax_format"]             =  validateAjaxFormat,            -- iface_hosts_list
-   ["include_special_macs"]    =  validateBool,                  --
-   ["host_macs_only"]          =  validateBool,                  --
    ["host_stats_flows"]        =  validateBool,                  -- True if host_get_json should return statistics regarding host flows
    ["showall"]                 =  validateBool,                  -- report.lua
    ["addvlan"]                 =  validateBool,                  -- True if VLAN must be added to the result
@@ -913,6 +917,7 @@ local known_parameters = {
    ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          =  validateMembersFilter,         -- host_pools.lua
+   ["devices_mode"]            =  validateDevicesMode,           -- mac_stats.lua
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
