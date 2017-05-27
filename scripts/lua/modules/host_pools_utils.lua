@@ -107,7 +107,8 @@ end
 -- Note:
 --
 -- When strict_host_mode is not set, hosts which have a MAC address will have the
--- MAC address changed instead of the IP address.
+-- MAC address changed instead of the IP address when their MAC address is already bound to
+-- a pool.
 --
 function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info --[[optional]], strict_host_mode --[[optional]])
   if not strict_host_mode then
@@ -121,8 +122,12 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
       end
 
       if not isEmptyString(info["mac"]) then
-        -- host has a MAC, use it
-        member_and_vlan = info["mac"]
+        local mac_has_pool, mac_pool_info = getMembershipInfo(info["mac"])
+
+        if mac_has_pool and mac_pool_info.existing_member_pool ~= host_pools_utils.DEFAULT_POOL_ID then
+          -- we must change the MAC address in order to change the host pool
+          member_and_vlan = info["mac"]
+        end
       end
     end
   end
