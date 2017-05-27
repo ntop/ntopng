@@ -1116,7 +1116,7 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 ]]
 end
 
-	print('<tr><th rowspan=2>'..i18n("dns_page.request_vs_reply")..'</th><th colspan=2>'..i18n("dns_page.ratio")..'<th><th>'..i18n("breakdown")..'</th></tr>')
+	print('<tr><th rowspan=2>'..i18n("dns_page.request_vs_reply")..'</th><th colspan=2>'..i18n("dns_page.ratio")..'<th colspan=2>'..i18n("breakdown")..'</th></tr>')
         local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
         local dns_ratio_str = string.format("%.2f", dns_ratio)
 
@@ -1124,7 +1124,7 @@ end
           dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>" 
         end
 
-	print('<tr><td align=right>'..  dns_ratio_str ..'</td><td colspan=3>')
+	print('<tr><td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
 	breakdownBar(host["dns"]["sent"]["num_queries"], i18n("dns_page.queries"), host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], i18n("dns_page.replies"), 30, 70)
 
 print [[
@@ -1267,7 +1267,7 @@ if(application ~= nil) then
    application_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
-dt_buttons = dt_buttons..'<li><a href="'..ntop.getHttpPrefix()..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
+dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
 
 local ndpi_stats = interface.getnDPIStats(host_info["host"], host_vlan)
 
@@ -1276,7 +1276,7 @@ for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
    if(key == application) then
       class_active = ' class="active"'
    end
-   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..ntop.getHttpPrefix()..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&application='..key..'">'..key..'</a></li>'
 end
 
 dt_buttons = dt_buttons .. "</ul></div>']"

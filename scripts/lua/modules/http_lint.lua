@@ -204,7 +204,7 @@ local function validateSflowDistroType(mode)
 end
 
 local function validateSflowFilter(mode)
-   local modes = {"All", "Client", "Server"}
+   local modes = {"All", "Client", "Server", "recv", "sent"}
 
    return validateChoice(modes, mode)
 end
