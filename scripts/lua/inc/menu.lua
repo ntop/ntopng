@@ -271,6 +271,7 @@ end
 print("</ul> </li>")
 end
 
+local is_bridge_interface = isBridgeInterface(_ifstats)
 
 -- Interfaces
 if(num_ifaces > 0) then
@@ -372,6 +373,14 @@ end
 
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a></li>\n")
+
+   if is_bridge_interface and ntop.isEnterprise() then
+      print[[<form id="go_show_bridge_wizard" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua">]]
+      print[[<input name="show_wizard" type="hidden" value="" />]]
+      print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+      print[[</form>]]
+      print("<li><a href=\"javascript:void(0)\" onclick=\"$('#go_show_bridge_wizard').submit();\"><i class=\"fa fa-magic\"></i> "..i18n("bridge_wizard.bridge_wizard").."</a></li>\n")
+   end
 
    if(ntop.isPro()) then
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")

@@ -100,6 +100,16 @@
     return false;
   });
 
+  {{wizard.id}}OnShow = [];
+
+  {% for step_idx, step in ipairs(wizard.actual_steps) do %}
+    {% if step.on_show then %}
+      {{wizard.id}}OnShow.push(function(){ {*step.on_show*} });
+    {% else %}
+      {{wizard.id}}OnShow.push($.noop);
+    {% end %}
+  {% end %}
+
   $('#{{wizard.id}} a[data-toggle="tab"]')
     /* On Tab click */
     .on("click", function(e) {
@@ -128,6 +138,8 @@
       /* Enable previous tabs, disable next tabs */
       $(this).parent().prevAll().find("a").removeClass("disabled");
       $(this).parent().nextAll().find("a").addClass("disabled");
+
+      {{wizard.id}}OnShow[cur_step-1]();
     });
 
   $("#{{wizard.id}}Form")

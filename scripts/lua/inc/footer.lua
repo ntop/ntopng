@@ -139,7 +139,7 @@ local show_bridge_dialog = false
 if isAdministrator()
  and isBridgeInterface(_ifstats)
  and ntop.isEnterprise()
- and (ntop.getCache(getBridgeInitializedKey(_ifstats.id)) ~= "1") then
+ and ((ntop.getCache(getBridgeInitializedKey(_ifstats.id)) ~= "1") or (_POST["show_wizard"] ~= nil)) then
   show_bridge_dialog = true
   dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
 end

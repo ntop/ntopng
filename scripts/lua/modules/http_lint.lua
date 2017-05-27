@@ -925,6 +925,8 @@ local known_parameters = {
    ["members_filter"]          =  validateMembersFilter,         -- host_pools.lua
    ["devices_mode"]            =  validateDevicesMode,           -- mac_stats.lua
    ["unassigned_devices"]      =  validateUnassignedDevicesMode, -- unknown_device.lua
+   ["use_default_pools"]       =  validateOnOff,                 -- bridge wizard
+   ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

@@ -1015,29 +1015,30 @@ local  en = {
 
    bridge_wizard = {
       bridge_wizard = "Bridge Wizard",
-      intro_1 = "This wizard will help you to setup some basic configuration to enable bridge specific features of ntopng."..
+      intro_1 = "This wizard will help you to setup some basic configuration to enable bridge specific features of ntopng. "..
             "You are going to configure the bridge interface <b>%{iface}</b>.",
       start = "Start",
+      guests = "Guests",
+      safe_search_guest = "Children",
       captive_portal_available = "The captive portal is <b>not running</b>.",
       captive_portal_running = "Note: the captive portal is <b>up and running</b>.",
       captive_portal_unavailable = "Note: the captive portal is <b>disabled</b>.<br>Add the -w command line parameter (e.g. -w 80,3000) to enable it.",
       warning_configuration_exist = "A bridge configuration already exists. It will be discarder after clicking the save button.",
       click_on_next = "Click on the Next button to proceed.",
-      check_doc = "Instructions on properly configuring the bridge can be found <a href='%{url}'>on our github docs</a>.",
-      configure_host_pools = "Host Pool",
+      configure_host_pools = "Host Pools",
       host_pool_info = "An host pool represents an aggregation of network hosts.<br>You need to create an host pool to start applying traffic policies to it.",
-      pool_member = "New Pool Member",
+      create_guest_pool = "Create these pools<ul><li>The \"%{guests}\" pool with a policy of your choice</li><li>The \"%{safe_search}\" pool, with <a target='_blank' href='%{url}'>Safe Search</a> enabled for adult content filtering</li></ul>",
+      create_custom_pool = "Create a custom pool with this name:",
       configure_user = "Captive Portal",
-      configure_user_message = "A new ntopng user must be created to be associated to the captive portal.",
+      configure_user_message = "Please specifify the credentials your clients will use to access your network.",
       username = "Username",
       username_title = "The username your clients will use to login",
       password = "Password",
       password_title = "The password your clients will use to login",
-      member_placeholder = "IP address, network (e.g. 192.168.1.0/24), or MAC address",
       policy = "Policy",
       define_policy = "When running in bridge mode, it is possible to limit the traffic flowing through the bridge by the mean of traffic policies.<br><br>"..
-            "You can define an initial set of policies to be applied on the bridge from one of the presets below:",
-      fine_tune = "You can fine tune the specific policies at any time through the <a href='%{url}'>Traffic Policy</a> page.",
+            "You can define an initial set of policies to be applied to the %{pool} pool members from one of the presets below:",
+      fine_tune = "You can fine tune the specific policies at any time through the <a target='_blank' href='%{url}'>Traffic Policy</a> page.",
       done = "Apply",
       configuration_complete = "You are going to apply the specified settings on the bridge interface <b>%{iface}</b>.<br><br>"..
             "Click on the save button below to apply the configured settings.<br><br><br>"..
@@ -1050,6 +1051,13 @@ local  en = {
       no_obfuscation_preset = "No Obfuscation: no obfuscation software (e.g. VPNs)",
       walled_garden_preset = "Walled Garden: no obfuscation software, no social networks",
       no_preset = "Do not use a preset",
+      credentials_message = "Your clients will be required to authenticate through the captive portal before getting access to your network.",
+      predefined_users_message = "The access credentials will be the followings:<ul>"..[[
+        <li>Username <b>%{guests_username}</b> and password <b>%{guests_password}</b> to grant access as a %{guests} pool member</li>
+        <li>Username <b>%{children_username}</b> and password <b>%{children_password}</b> to grant access as a %{children} pool member</li>
+      </ul>]],
+      change_later = "You can change these credentials later from the <a target=\"_blank\" href=\"%{url}\">Captive Portal Users page</a>.",
+      no_local_networks = "No local networks found.<br>Please add the -m option to your ntopng configuration (e.g. -m \"192.168.1.0/24\") and restart ntopng",
    },
 
    alerts_thresholds_config = {
