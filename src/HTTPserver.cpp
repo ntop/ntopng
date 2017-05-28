@@ -720,7 +720,10 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     char tmp[16];
 
     if(ntop->getPrefs()->get_alt_http_port() != 0)
-      snprintf(tmp, sizeof(tmp), ",%d", ntop->getPrefs()->get_alt_http_port());
+      snprintf(tmp, sizeof(tmp), ",%s%s%d",
+	       http_binding_addr,
+               (http_binding_addr[0] == '\0') ? "" : ":",
+	       ntop->getPrefs()->get_alt_http_port());
     else
       tmp[0] = '\0';
 

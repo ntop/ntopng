@@ -338,6 +338,7 @@ void Ntop::start() {
     iface[i]->startPacketPolling();
   }
 
+  registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
   sleep(2);
   address->startResolveAddressLoop();
 

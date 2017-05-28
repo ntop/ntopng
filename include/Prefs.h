@@ -106,8 +106,9 @@ class Prefs {
   void setTraceLevelFromRedis();
   void setAlertsEnabledFromRedis();
   void parseHTTPPort(char *arg);
-  void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
-  void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
+  void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS);  };
+  void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS); };
+
   bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
 
  public:
@@ -117,6 +118,9 @@ class Prefs {
   bool is_pro_edition();
   bool is_enterprise_edition();
 
+  void bind_http_to_address(char *addr)  { if(http_binding_address)  free(http_binding_address);  http_binding_address  = strdup(addr); };
+  void bind_https_to_address(char *addr) { if(https_binding_address) free(https_binding_address); https_binding_address = strdup(addr); };
+  
   inline bool is_embedded_edition() {
 #ifdef NTOPNG_EMBEDDED_EDITION
     return(true);
