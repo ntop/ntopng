@@ -5024,6 +5024,12 @@ static void process_new_connection(struct mg_connection *conn) {
 	       strcmp(ri->http_version, "1.1")) {
       snprintf(ebuf, sizeof(ebuf), "Bad HTTP version: [%s]", ri->http_version);
       send_http_error(conn, 505, "Bad HTTP version", "%s", ebuf);
+    } else if (!strcmp(ri->http_version, "1.1") &&
+	       !mg_get_header(conn, "Host")) {
+      snprintf(ebuf, sizeof(ebuf), "Missing mandatory Host header");
+      /* RFC 7230: "A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1
+	 request message that lacks a Host header field. */
+      send_http_error(conn, 400, "Bad Request", "%s", ebuf);
     }
 
     if (ebuf[0] == '\0') {

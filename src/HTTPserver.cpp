@@ -174,7 +174,8 @@ static int checkCaptive(const struct mg_connection *conn,
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]",
 				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
 				 (unsigned int)conn->request_info.remote_ip,
-				 (char*)mg_get_header(conn, "Host"), request_info->uri);
+				 mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+				 request_info->uri);
 #endif
 
     char bridge_interface[32];
@@ -326,6 +327,7 @@ static int is_authorized(const struct mg_connection *conn,
 static int isCaptiveConnection(struct mg_connection *conn) {
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == 80)
+	 && (mg_get_header(conn, "Host"))
 	 && (strcasestr((char*)mg_get_header(conn, "Host"), CONST_HELLO_HOST) == NULL)
 	 && (ntop->getPrefs()->get_alt_http_port() != 0));
 }
@@ -370,7 +372,9 @@ static void redirect_to_login(struct mg_connection *conn,
 		ntop->getPrefs()->get_http_prefix(), CAPTIVE_PORTAL_URL);
   } else {
 #ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]",
+				 mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+				 request_info->uri);
 #endif
 
     mg_get_cookie(conn, "session", session_id, sizeof(session_id));
@@ -383,7 +387,7 @@ static void redirect_to_login(struct mg_connection *conn,
 	      session_id,
 	      ntop->getPrefs()->get_http_prefix(),
 	      Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
-	      (char*)mg_get_header(conn, "Host"),
+	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      conn->request_info.uri,
 	      conn->request_info.query_string ? "%3F" /* ? */: "",
 	      conn->request_info.query_string ? conn->request_info.query_string : "");
@@ -433,7 +437,7 @@ static void redirect_to_password_change(struct mg_connection *conn,
 	      session_id,
 	      ntop->getPrefs()->get_http_prefix(),
 	      Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
-	      (char*)mg_get_header(conn, "Host"),
+	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      conn->request_info.uri,
 	      conn->request_info.query_string ? "%3F" /* ? */: "",
 	      conn->request_info.query_string ? conn->request_info.query_string : "");
@@ -529,7 +533,8 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s][%s][Referer: %s]",
-			       (char*)mg_get_header(conn, "Host"), request_info->uri,
+			       mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+			       request_info->uri,
 			       request_info->query_string ? request_info->query_string : "",
 			       (char*)mg_get_header(conn, "Referer"));
 #endif
@@ -565,7 +570,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
 	      "Location: http://%s%s%s%s\r\n\r\n",
-	      (char*)mg_get_header(conn, "Host"),
+	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      HOTSPOT_DETECT_LUA_URL,
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
@@ -580,7 +585,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      "Referer: %s\r\n"
 	      "Location: http://%s%s%s%s\r\n\r\n",
 	      request_info->uri,
-	      (char*)mg_get_header(conn, "Host"),
+	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      CAPTIVE_PORTAL_URL,
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
@@ -595,7 +600,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!is_authorized(conn, request_info, username, sizeof(username)))) {
-    redirect_to_login(conn, request_info, (char*)mg_get_header(conn, "Host"));
+    redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? mg_get_header(conn, "Host"): (char*)"");
     return(1);
   } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
       && (strcmp(request_info->uri, LOGOUT_URL) != 0)
