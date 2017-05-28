@@ -11,7 +11,7 @@ enum {
 
 typedef union {
   char *str_value;
-  int int_value;
+  int64_t int_value;
   void *value;
 } Value;
 
@@ -53,8 +53,9 @@ ASN1Parser *asn1_create_parser(void *buffer, int len);
 int asn1_parse_peek(ASN1Parser *parser, int *type, int *len);
 int asn1_parse_sequence(ASN1Parser *parser);
 int asn1_parse_structure(ASN1Parser *parser, int *type);
-int asn1_parse_integer_type(ASN1Parser *parser, int *type, int *dest);
+int asn1_parse_integer_type(ASN1Parser *parser, int *type, int64_t *dest);
 int asn1_parse_integer(ASN1Parser *parser, int *dest);
+int asn1_parse_integer64(ASN1Parser *parser, int64_t *dest);
 int asn1_parse_string_type(ASN1Parser *parser, int *type, char **dest);
 int asn1_parse_string(ASN1Parser *parser, char **dest);
 int asn1_parse_oid(ASN1Parser *parser, char **dest);

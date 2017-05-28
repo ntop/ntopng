@@ -3927,7 +3927,7 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   if(sock < 0) return(CONST_LUA_ERROR);
 
   message = snmp_create_message();
-  snmp_set_version(message, 0);
+  snmp_set_version(message, 1 /* SNMPv2c */);
   snmp_set_community(message, community);
   snmp_set_pdu_type(message, operation);
   snmp_set_request_id(message, request_id);

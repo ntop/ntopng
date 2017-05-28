@@ -495,12 +495,12 @@ int asn1_parse_structure(ASN1Parser *parser, int *type)
   return 1;
 }
 
-int asn1_parse_integer_type(ASN1Parser *parser, int *type, int *dest)
+int asn1_parse_integer_type(ASN1Parser *parser, int *type, int64_t *dest)
 {
   int size;
   void *payload;
   int i;
-  int val;
+  int64_t val = 0LL;
     
   if (type)
     *type = next_type(parser);
@@ -508,7 +508,6 @@ int asn1_parse_integer_type(ASN1Parser *parser, int *type, int *dest)
   size = next_len(parser);
   payload = next_payload(parser);
     
-  val = 0;
   for (i = 0; i < size; i++)
     {
       int v;
@@ -522,6 +521,19 @@ int asn1_parse_integer_type(ASN1Parser *parser, int *type, int *dest)
 }
 
 int asn1_parse_integer(ASN1Parser *parser, int *dest)
+{
+  int64_t dest64;
+
+  if (next_type(parser) != ASN1_INTEGER_TYPE)
+    return 0;
+
+  asn1_parse_integer_type(parser, NULL, &dest64);
+  *dest = (int)dest64;
+
+  return 1;
+}
+
+int asn1_parse_integer64(ASN1Parser *parser, int64_t *dest)
 {
   if (next_type(parser) != ASN1_INTEGER_TYPE)
     return 0;
@@ -616,7 +628,7 @@ int asn1_parse_primitive_value(ASN1Parser *parser, int *type, Value *value)
       return 1;
         
     case ASN1_INTEGER_TYPE:
-      return asn1_parse_integer(parser, &value->int_value);
+      return asn1_parse_integer64(parser, &value->int_value);
         
     case ASN1_STRING_TYPE:
       return asn1_parse_string(parser, &value->str_value);

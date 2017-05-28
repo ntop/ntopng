@@ -5,8 +5,11 @@
 
 enum {
   SNMP_COUNTER_TYPE = 0x41,
+  SNMP_COUNTER64_TYPE = 0x46, /* SMIv2 only */
   SNMP_GAUGE_TYPE = 0x42,
   SNMP_TIMETICKS_TYPE = 0x43,
+  SNMP_NOSUCHOBJECT = 0x80, /*   SMIv2 IMPLICIT NULL TYPE */
+  SNMP_NOSUCHINSTANCE = 0x81, /* SMIv2 IMPLICIT NULL TYPE */
   SNMP_GET_REQUEST_TYPE = 0xA0,
   SNMP_GETNEXT_REQUEST_TYPE = 0xA1,
   SNMP_GET_RESPONSE_TYPE = 0xA2,
@@ -24,7 +27,7 @@ void snmp_set_request_id(SNMPMessage *message, int request_id);
 void snmp_set_error(SNMPMessage *message, int error);
 void snmp_set_error_index(SNMPMessage *message, int error_index);
 void snmp_add_varbind_null(SNMPMessage *message, char *oid);
-void snmp_add_varbind_integer_type(SNMPMessage *message, char *oid, int type, int value);
+void snmp_add_varbind_integer_type(SNMPMessage *message, char *oid, int type, int64_t value);
 void snmp_add_varbind_integer(SNMPMessage *message, char *oid, int value);
 void snmp_add_varbind_string(SNMPMessage *message, char *oid, char *value);
 int snmp_message_length(SNMPMessage *message);

@@ -120,7 +120,7 @@ void snmp_add_varbind_null(SNMPMessage *message, char *oid)
   snmp_add_varbind(message, vb);
 }
 
-void snmp_add_varbind_integer_type(SNMPMessage *message, char *oid, int type, int value)
+void snmp_add_varbind_integer_type(SNMPMessage *message, char *oid, int type, int64_t value)
 {
   VarbindList *vb = (VarbindList*)malloc(sizeof (VarbindList));
   vb->oid = strdup(oid);
@@ -236,6 +236,8 @@ SNMPMessage *snmp_parse_message(void *buffer, int len)
         
       switch (type)
         {
+	case SNMP_NOSUCHINSTANCE:
+	case SNMP_NOSUCHOBJECT:
 	case ASN1_NULL_TYPE:
 	  asn1_parse_primitive_value(parser, NULL, &value);
 	  snmp_add_varbind_null(message, oid);
@@ -249,6 +251,7 @@ SNMPMessage *snmp_parse_message(void *buffer, int len)
 
 	case SNMP_GAUGE_TYPE:
 	case SNMP_COUNTER_TYPE:
+	case SNMP_COUNTER64_TYPE:
 	case SNMP_TIMETICKS_TYPE:
 	case ASN1_INTEGER_TYPE:
 	  asn1_parse_integer_type(parser, NULL, &value.int_value);
@@ -298,7 +301,7 @@ void snmp_print_message(SNMPMessage *message, FILE *stream)
 	  fprintf(stream, "            Null%s\n", type_str);
 	  break;
 	case ASN1_INTEGER_TYPE:
-	  fprintf(stream, "            Integer%s: %d\n", type_str, vb->value.int_value);
+	  fprintf(stream, "            Integer%s: %" PRId64 "\n", type_str, vb->value.int_value);
 	  break;
 	case ASN1_STRING_TYPE:
 	  fprintf(stream, "            String%s: %s\n", type_str, vb->value.str_value);
@@ -367,7 +370,7 @@ int snmp_get_varbind_integer(SNMPMessage *message, int num, char **oid, int *typ
     return 0;
 
   if (int_value)
-    *int_value = value.int_value;
+    *int_value = (int)value.int_value;
     
   return 1;
 }
@@ -402,7 +405,7 @@ int snmp_get_varbind_as_string(SNMPMessage *message, int num, char **oid, int *t
 
   if (!value_str)
     return 1;
-    
+
   switch (render_as_type)
     {
     case ASN1_NULL_TYPE:
@@ -410,7 +413,8 @@ int snmp_get_varbind_as_string(SNMPMessage *message, int num, char **oid, int *t
       break;
     case ASN1_INTEGER_TYPE:
       // snprintf(buf, sizeof(buf), "%d", value.int_value);
-      snprintf(buf, sizeof(buf), "%u", (unsigned int)value.int_value);
+      // FIX: integer types always assumed unsigned
+      snprintf(buf, sizeof(buf), "%" PRIu64, value.int_value);
       *value_str = strdup(buf);
       break;
     case ASN1_STRING_TYPE:
