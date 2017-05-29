@@ -717,7 +717,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   if(ntop->getPrefs()->get_http_port() == 0) use_http = false;
 
   if(use_http) {
-    char tmp[16];
+    char tmp[64];
 
     if(ntop->getPrefs()->get_alt_http_port() != 0)
       snprintf(tmp, sizeof(tmp), ",%s%s%d",
