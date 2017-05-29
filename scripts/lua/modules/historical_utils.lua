@@ -136,8 +136,10 @@ function removeFromFavourites(source_div_id, stats_type, favourite_type, select_
 var zoom_vals = {
 ]]
 
-for _, zv in pairs(zoom_vals) do
-   print('"'..zv[1]..'": '..zv[3]..', ')
+if zoom_vals ~= nil then
+  for _, zv in pairs(zoom_vals) do
+     print('"'..zv[1]..'": '..zv[3]..', ')
+  end
 end
 print[[
 };
