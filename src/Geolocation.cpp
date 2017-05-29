@@ -128,7 +128,7 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
 
 /* *************************************** */
 
-void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude) {
+void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude, uint8_t *country_id) {
 #ifdef HAVE_GEOIP
   GeoIPRecord *geo = NULL;
   struct ipAddress *ip = addr->getIP();
@@ -159,6 +159,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
     *country_code = geo->country_code;
     *city = geo->city ? strdup(geo->city) : NULL;
     *latitude = geo->latitude, *longitude = geo->longitude;
+    *country_id = GeoIP_id_by_code(*country_code);
     GeoIPRecord_delete(geo);
   } else
     *country_code = NULL, *city = NULL, *latitude = *longitude = 0;

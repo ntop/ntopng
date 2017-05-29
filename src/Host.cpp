@@ -139,7 +139,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   if((vlan = iface->getVlan(_vlanId, true)) != NULL)
     vlan->incUses();
-
+  
   num_alerts_detected = 0;
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0;
@@ -169,6 +169,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   asn = 0, asname = NULL;
   as = NULL;
   longitude = 0, latitude = 0;
+  country_id = 0;
   k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
@@ -247,7 +248,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     }
 
     if(city) free(city);
-    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude, &country_id);
+    country_bitmap.setActiveCountry(country_id);
 
     if(isLocalHost()) {
 #ifdef NTOPNG_PRO
@@ -911,7 +913,8 @@ json_object* Host::getJSONObject() {
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
   if(city) free(city);
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude, &country_id);
+  country_bitmap.setActiveCountry(country_id);
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
@@ -1034,7 +1037,8 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
   if(city) free(city);
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude, &country_id);
+  country_bitmap.setActiveCountry(country_id);
   if(json_object_object_get_ex(o, "localHost", &obj)) localHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "systemHost", &obj)) systemHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);

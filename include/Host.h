@@ -37,9 +37,11 @@ class Host : public GenericHost {
   int16_t local_network_id;
   u_int32_t num_alerts_detected;
   float latitude, longitude;
+  u_int8_t country_id;
   IpAddress ip;
   Mutex *m;
   Mac *mac;
+  CountryBitmap country_bitmap;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt, nextSitesUpdate;
 #ifdef NTOPNG_PRO

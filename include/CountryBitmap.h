@@ -19,33 +19,24 @@
  *
  */
 
-#ifndef _GEOLOCATION_H_
-#define _GEOLOCATION_H_
+#ifndef _COUNTRYBITMAP_H_
+#define _COUNTRYBITMAP_H_
 
 #include "ntop_includes.h"
 
-extern "C" {
-#ifdef HAVE_GEOIP
-#include "GeoIP.h"
-#include "GeoIPCity.h"
-#endif
+class CountryBitmap {
+	private :
+		uint64_t * bitmap;
+		uint8_t activeCountry;
+
+	public :		
+		CountryBitmap();
+		~CountryBitmap();
+		const char ** getActiveCountry();
+		uint8_t numActiveCountry();
+		void setActiveCountry(uint8_t countryID);
+		bool isActiveCountry(uint8_t countryID);
+		const char * getCountry(uint8_t countryID);
 };
 
-class Geolocation {
- private:
-#ifdef HAVE_GEOIP
-  GeoIP *geo_ip_asn_db, *geo_ip_asn_db_v6;
-  GeoIP *geo_ip_city_db, *geo_ip_city_db_v6;
-
-  GeoIP* loadGeoDB(char *base_path, const char *db_name);
 #endif
-
- public:
-  Geolocation(char *db_home);
-  ~Geolocation();
-
-  void getAS(IpAddress *addr, u_int32_t *asn, char **asname);
-  void getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude, uint8_t *country_id);  
-};
-
-#endif /* _GEOLOCATION_H_ */

@@ -101,6 +101,7 @@
 #endif
 
 extern "C" {
+#include "CountryBitmap.h"
 #include "pcap.h"
 #include "ndpi_main.h"
 #include "luajit.h"
