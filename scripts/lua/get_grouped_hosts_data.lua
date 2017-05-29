@@ -151,10 +151,18 @@ function print_single_group(value)
       if(manufacturer == nil) then manufacturer = "" end
       print(manufacturer..'</A>", ')
    elseif(group_col == "pool_id") then
+      local poolstats_rrd = host_pools_utils.getRRDBase(ifstats.id, value["id"])
       local pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
+
       print(pool_name..'</A> " , ')
       print('"column_chart": "')
-      print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+
+      if ntop.exists(poolstats_rrd) or isBridgeInterface(ifstats) --[[ Need to show the icon to go into the quotas page ]] then
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      else
+         print('')
+      end
+
       print('", ')
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
