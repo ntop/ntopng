@@ -1943,7 +1943,7 @@ local function check_interface_alerts(ifid, working_status)
    local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
    local new_entity_info = ifstats
 
-   if old_entity_info ~= nil then
+   if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil) and (old_entity_info.stats.bytes ~= nil) then
       -- wrap check
       if old_entity_info.stats.bytes > ifstats.stats.bytes then
          -- reset
@@ -1967,7 +1967,7 @@ local function check_networks_alerts(ifid, working_status)
       local old_entity_info = network_threshold_status_rw(working_status.granularity, ifid, subnet) -- read old json
       local new_entity_info = sstats
 
-      if old_entity_info ~= nil then
+      if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil) then
          -- wrap check
          if (old_entity_info["egress"] > new_entity_info["egress"])
           or (old_entity_info["ingress"] > new_entity_info["ingress"])
@@ -2002,7 +2002,7 @@ local function check_hosts_alerts(ifid, working_status)
             -- TODO this is little hack to make anomalies apper into the json
             new_entity_info["anomalies"] = hostinfo.anomalies
 
-            if old_entity_info ~= nil then
+            if (old_entity_info ~= nil) and (old_entity_info.sent ~= nil) then
                -- wrap check
                if (old_entity_info["sent"]["packets"] > new_entity_info["sent"]["packets"])
                 or (old_entity_info["rcvd"]["packets"] > new_entity_info["rcvd"]["packets"]) then
