@@ -118,21 +118,24 @@ start_ntopng() {
     fi
 
     if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
-	echo "Generating configuration file /etc/ntopng/ntopng.conf"
-	echo "-G=/var/run/ntopng.pid" > /etc/ntopng/ntopng.conf
+      IS_NBOX_INSTALLED=`dpkg -s nbox | grep 'Status: install ok installed' | wc -l`
+      if [ $IS_NBOX_INSTALLED -eq 0 ]; then
+        echo "Generating configuration file /etc/ntopng/ntopng.conf"
+	    echo "-G=/var/run/ntopng.pid" > /etc/ntopng/ntopng.conf
         if [ -d /storage ]; then
-            if [ ! -d /storage/ntopng ]; then
-                mkdir /storage/ntopng
-                chmod gou+rxw /storage/ntopng
-            fi
+          if [ ! -d /storage/ntopng ]; then
+              mkdir /storage/ntopng
+              chmod gou+rxw /storage/ntopng
+          fi
 
-            echo "-d=/storage/ntopng" >> /etc/ntopng/ntopng.conf
+          echo "-d=/storage/ntopng" >> /etc/ntopng/ntopng.conf
         fi
-	CHECK_P4P1=`grep p4p1 /proc/net/dev|wc -l`
+	    CHECK_P4P1=`grep p4p1 /proc/net/dev|wc -l`
         if [ $CHECK_P4P1 -eq 1 ]; then
-            echo "-i=p4p1" >> /etc/ntopng/ntopng.conf
+          echo "-i=p4p1" >> /etc/ntopng/ntopng.conf
         fi
-	touch /etc/ntopng/ntopng.start
+	    touch /etc/ntopng/ntopng.start
+      fi
     fi
 
     if [ -f /etc/ntopng/ntopng.start ] || [ $FORCE -eq 1 ]; then
