@@ -31,6 +31,7 @@ if(haveAdminPrivileges()) then
    end
 
    local ret = false
+   username = string.lower(username)
 
    if(ntop.addUser(username, full_name, unescapeHTML(password), host_role, networks, getInterfaceName(allowed_interface), host_pool_id)) then
       ret = true

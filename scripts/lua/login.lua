@@ -54,11 +54,11 @@ print [[
 
 <div class="container">
 
-	 <form role="form" data-toggle="validator" class="form-signin" action="]] print(ntop.getHttpPrefix()) print[[/authorize.html" method="POST">
+	 <form id="form_add_user" role="form" data-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/authorize.html" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">Welcome to ]] print(info["product"]) print [[</h2>
   <div class="form-group has-feedback">
-
-      <input type="text" class="form-control" name="user" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
+      <input type="hidden" class="form-control" name="user">
+      <input type="text" class="form-control" name="_username" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
       <input type="password" class="form-control" name="password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
@@ -100,7 +100,15 @@ print [[">
 
 <script>
   $("input:text:visible:first").focus();
-  $('#form_add_user').validator()
+  //$('#form_add_user').validator();
+
+  function makeUsernameLowercase() {
+    var target = $('#form_add_user input[name="user"]');
+    var origin = $('#form_add_user input[name="_username"]');
+    target.val(origin.val().toLowerCase());
+    origin.removeAttr("name");
+    return true;
+  }
 </script>
 
 </div> <!-- /container -->

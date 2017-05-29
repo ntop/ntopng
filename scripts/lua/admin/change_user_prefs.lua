@@ -25,6 +25,8 @@ if(username == nil) then
     return
 end
 
+username = string.lower(username)
+
 if(host_role ~= nil) then
   if(not ntop.changeUserRole(username, host_role)) then
     print ("{ \"result\" : -1, \"message\" : \"Error in changing host type\" }")

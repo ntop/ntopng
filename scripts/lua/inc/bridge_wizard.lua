@@ -85,7 +85,7 @@ local steps = {
     <br>
     <label>]]..i18n("bridge_wizard.password")..[[</label>
     <div class="form-group has-feedback" style="margin-bottom:0;">
-       <input class="form-control" name="password" type="text" pattern="]]..getPasswordInputPattern()..[[" placeholder="]]..i18n("bridge_wizard.password_title")..[[" value="guest" required/>
+       <input class="form-control" name="password" type="password" pattern="]]..getPasswordInputPattern()..[[" placeholder="]]..i18n("bridge_wizard.password_title")..[[" required/>
        <div class="help-block with-errors"></div>
     </div>
   </span>

@@ -26,6 +26,8 @@ if((username == nil) or (old_password == nil) or (new_password == nil) or (confi
    return
 end
 
+username = string.lower(username)
+
 if(new_password ~= confirm_new_password) then
    print ("{ \"result\" : -1, \"message\" : \"Password don't match\" }")
    return
