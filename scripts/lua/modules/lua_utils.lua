@@ -815,7 +815,7 @@ function secondsToTime(seconds)
   end
 
   if(sec > 0) then
-    if((string.len(msg) > 0) and (minutes > 0)) then msg = msg .. ", " end
+    if(string.len(msg) > 0) then msg = msg .. ", " end
     msg = msg .. string.format("%d sec", sec);
   end
 
