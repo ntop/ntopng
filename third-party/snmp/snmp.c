@@ -301,7 +301,7 @@ void snmp_print_message(SNMPMessage *message, FILE *stream)
 	  fprintf(stream, "            Null%s\n", type_str);
 	  break;
 	case ASN1_INTEGER_TYPE:
-	  fprintf(stream, "            Integer%s: %" PRId64 "\n", type_str, vb->value.int_value);
+	  fprintf(stream, "            Integer%s: %lu PRId64\n", type_str, vb->value.int_value);
 	  break;
 	case ASN1_STRING_TYPE:
 	  fprintf(stream, "            String%s: %s\n", type_str, vb->value.str_value);
@@ -414,7 +414,7 @@ int snmp_get_varbind_as_string(SNMPMessage *message, int num, char **oid, int *t
     case ASN1_INTEGER_TYPE:
       // snprintf(buf, sizeof(buf), "%d", value.int_value);
       // FIX: integer types always assumed unsigned
-      snprintf(buf, sizeof(buf), "%" PRIu64, value.int_value);
+      snprintf(buf, sizeof(buf), "%lu", value.int_value);
       *value_str = strdup(buf);
       break;
     case ASN1_STRING_TYPE:
