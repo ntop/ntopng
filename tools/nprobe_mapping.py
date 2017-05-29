@@ -41,6 +41,7 @@ else:
 
 start_ok = False
 
+localized = []
 
 for line in fin:
   lstripped = line.strip()
@@ -65,11 +66,27 @@ for line in fin:
       pattern = re.search('^\[([^\]]+)\](\[([^\]]+)\]){0,1}\s+%(\w+)\s+(%(\w+)\s+){0,1}(.*)$', lstripped)
       if pattern:
         (netflow_id, _, ipfix_id, netflow_label, _, ipfix_label, description) = pattern.groups()
+        parts = netflow_id.split(" ")
+        idx = parts[len(parts) - 1]
+
         if not c_output:
-          print('%s["%s"] = "%s",' % (indentation, netflow_label, description))
+          localized.append((idx, description))
+          print('%s["%s"] = i18n("nprobe_mapping.id_%s"),' % (indentation, netflow_label, idx))
         else:
-          parts = netflow_id.split(" ")
-          idx = parts[len(parts) - 1]
           print('%saddMapping("%s", %s);' % (indentation, netflow_label, idx))
 
 fin.close()
+
+if not c_output:
+  # Print localized mappings
+  indentation = "   "
+  indentation_double = indentation * 2
+
+  print("\n------------------------ CUT HERE ------------------------\n")
+
+  print(indentation + "nprobe_mapping = {")
+
+  for (idx, description) in localized:
+    print('%sid_%s = "%s",' % (indentation_double, idx, description.replace("%", "%%")))
+
+  print(indentation + "},")
