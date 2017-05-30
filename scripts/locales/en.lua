@@ -866,6 +866,14 @@ local  en = {
       protocol_overview = "Protocol Overview",
       sent_only = "Sent only",
       received_only = "Received only",
+      note = "NOTE",
+      note_historical_per_protocol_traffic = "Historical per-protocol traffic data can be enabled via ntopng <a href='%{url}'>%{flask_icon} Preferences</a>.",
+      note_rrd_samples = "When enabled, RRDs with 5-minute samples will be created for each protocol detected and historical data will become accessible by clicking on each protocol.",
+      note_possible_probing_alert = "An icon like %{icon} indicates a possible probing (or application server down) alert as the host has received traffic for a specific application protocol without sending back any data. You can use <A HREF='%{url}'>historical reports</A> to drill-down this issue.",
+      note_protocol_usage_time = "Protocol usage time is computed on discrete slot intervals.",
+      unable_to_find_host = "Unable to find %{host_ip} (data expired ?)",
+      sent = "Sent",
+      rcvd = "Rcvd",
    },
 
    icmp_page = {

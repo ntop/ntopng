@@ -27,7 +27,7 @@ local ago1h  = now - 3600
 local protos = interface.getnDPIProtocols()
 
 if(host == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Unable to find "..host_ip.." (data expired ?)</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("ndpi_page.unable_to_find_host",{host_ip=host_ip}).."</div>")
    return
 end
 
@@ -80,7 +80,7 @@ local total = total_sent + total_recv
 print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_activity_time"]) .."</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
 
 print("<td>")
-breakdownBar(total_sent, "Sent", total_recv, "Rcvd", 0, 100)
+breakdownBar(total_sent, i18n("ndpi_page.sent"), total_recv, i18n("ndpi_page.rcvd"), 0, 100)
 print("</td>\n")
 
 print("<td colspan=2 class=\"text-right\">" ..  bytesToSize(total).. "</td></tr>\n")
@@ -110,7 +110,7 @@ for _k in pairsByKeys(vals , desc) do
     print("<td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
 
     print("<td>")
-    breakdownBar(host["ndpi"][k]["bytes.sent"], "Sent", host["ndpi"][k]["bytes.rcvd"], "Rcvd", 0, 100)
+    breakdownBar(host["ndpi"][k]["bytes.sent"], i18n("ndpi_page.sent"), host["ndpi"][k]["bytes.rcvd"], i18n("ndpi_page.rcvd"), 0, 100)
     print("</td>\n")
 
     print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
@@ -118,10 +118,10 @@ for _k in pairsByKeys(vals , desc) do
 end
 if host_ndpi_rrd_creation ~= "1" then
 print("<tr><td colspan=\"7\"> <small> <b>NOTE</b>:<ul>")
-print("<li>Historical per-protocol traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
-print(" When enabled, RRDs with 5-minute samples will be created for each protocol detected and historical data will become accessible by clicking on each protocol. ")
-print("<li>An icon like <i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i> indicates a possible probing (or application server down) alert as the host has received traffic for a specific application protocol without sending back any data. You can use <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&host=".._GET["host"].."&page=historical\">historical reports</A> to drill-down this issue.")
-print("<li>Protocol usage time is computed on discrete slot intervals.")
+print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+print(" "..i18n("ndpi_page.note_rrd_samples"))
+print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&host=".._GET["host"].."&page=historical"}))
+print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
 print("</ul>")
 end
 print("</small> </p></td></tr>")
