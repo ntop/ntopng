@@ -1934,6 +1934,22 @@ local  en = {
       host = "Host",
    },
 
+   index_page = {
+      dashboard = "Dashboard",
+      hosts = "Hosts",
+      applications = "Applications",
+      asns = "ASNs",
+      senders = "Senders",
+      top_flow_talkers = "Top Flow Talkers",
+      refresh_frequency = "Refresh frequency",
+      minute = "Minute",
+      seconds = "Seconds",
+      never = "Never",
+      live_update = "Live update",
+      refresh = "Refresh",
+      no_packet_warning = "No packet has been received yet on interface %{ifname}.<p>Please wait %{countdown} seconds until this page reloads.",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
