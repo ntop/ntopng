@@ -1906,6 +1906,19 @@ local  en = {
       whois_das_domain = "Whois/DAS Domain name",
   },
 
+   please_wait_page = {
+      waiting_for_db_msg = "Waiting for database <b>%{dbname}</b> to become operational. You will be redirected as soon as the database is ready.",
+      operations_on_database_msg = "Operations currently performed on the database are the following: ",
+      database = "Database",
+      state = "State",
+      command = "Command",
+      id = "Id",
+      user = "User",
+      time = "Time",
+      info = "Info",
+      host = "Host",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
