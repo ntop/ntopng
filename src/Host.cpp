@@ -139,7 +139,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   if((vlan = iface->getVlan(_vlanId, true)) != NULL)
     vlan->incUses();
-  
+
   num_alerts_detected = 0;
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0;
