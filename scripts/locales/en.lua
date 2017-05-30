@@ -1303,6 +1303,13 @@ local  en = {
       no_available_stats_for_vlan_message = "No available stats for VLAN %{vlan_id}. Please wait a few minutes to allow ntopng to harvest new statistics.",
    },
 
+   pool_details = {
+      pool_parameter_missing_message = "Pool parameter is missing (internal error ?)",
+      no_available_data_for_host_pool_message = "No available data for Host Pool '%{pool_name}'.",
+      host_pool_timeseries_enable_message = "Host Pool timeseries can be enabled from the <A HREF=\"%{url}\">%{icon_flask} Preferences</A>. Few minutes are necessary to see the first data points.",
+      host_pool = "Host Pool",
+   },
+
    network_alert_config = {
       trigger_network_alerts = "Trigger Network Alerts",
       trigger_alerts_for_network = "Trigger alerts for Network %{network}",
@@ -1912,7 +1919,7 @@ local  en = {
       imap_login = "Mail sender",
 
       whois_das_domain = "Whois/DAS Domain name",
-  },
+   },
 
    please_wait_page = {
       waiting_for_db_msg = "Waiting for database <b>%{dbname}</b> to become operational. You will be redirected as soon as the database is ready.",

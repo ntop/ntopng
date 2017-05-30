@@ -40,7 +40,7 @@ page_params["pool"] = pool_id
 page_params["page"] = page
 
 if(pool_id == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Pool parameter is missing (internal error ?)</div>")
+    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.pool_parameter_missing_message").."</div>")
     return
 end
 
@@ -51,7 +51,7 @@ print [[
       <ul class="nav navbar-nav">
 ]]
 
-print("<li><a href=\"#\">Host Pool: "..pool_name.."</A> </li>")
+print("<li><a href=\"#\">"..i18n("pool_details.host_pool")..": "..pool_name.."</A> </li>")
 
 local go_page_params = table.clone(page_params)
 
@@ -64,10 +64,10 @@ end
 
 if ntop.isEnterprise() and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
-    print("<li class=\"active\"><a href=\"#\">Quotas</i>\n")
+    print("<li class=\"active\"><a href=\"#\">"..i18n("quotas").."</i>\n")
   else
     go_page_params["page"] = "quotas"
-    print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\">Quotas\n")
+    print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\">"..i18n("quotas").."\n")
   end
 end
 
@@ -88,8 +88,8 @@ elseif page == "historical" then
   local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)
 
   if(not ntop.exists(rrdbase.."/bytes.rrd")) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available data for Host Pool '"..pool_name.."'. ")
-    print('Host Pool timeseries can be enabled from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=on_disk_ts"><i class="fa fa-flask"></i> Preferences</A>. Few minutes are necessary to see the first data points.</div>')
+    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
+    print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
   else
     local rrdfile
     if(not isEmptyString(_GET["rrd_file"])) then
