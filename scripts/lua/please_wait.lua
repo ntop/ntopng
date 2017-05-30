@@ -58,11 +58,11 @@ print[[
   <div>
 ]]
 
+print(" "..i18n("please_wait_page.waiting_for_db_msg", {dbname=dbname}))
 print[[
-Waiting for database <b>]] print(dbname) print[[</b> to become operational. You will be redirected as soon as the database is ready.
   </div>
 <br>
-Operations currently performed on the database are the following:
+]] print(i18n("please_wait_page.operations_on_database_msg")) print [[
 <br></br>
   <div><small>]]
 
@@ -73,7 +73,7 @@ if #res >= 1 then
 <table class="table  table-striped" width=100% height=100%>
   <thead>
     <tr>
-      <th>Database</th><th>State</th><th>Command</th><th>Id</th><th>User</th><th>Time</th><th>Info</th><th>Host</th>
+      <th>]] print(i18n("please_wait_page.database")) print[[</th><th>]] print(i18n("please_wait_page.state")) print[[</th><th>]] print(i18n("please_wait_page.command")) print[[</th><th>]] print(i18n("please_wait_page.id")) print[[</th><th>]] print(i18n("please_wait_page.user")) print[[</th><th>]] print(i18n("please_wait_page.time")) print[[</th><th>]] print(i18n("please_wait_page.info")) print[[</th><th>]] print(i18n("please_wait_page.host")) print[[</th>
     </tr>
   </thead>
   <tbody>

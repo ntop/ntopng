@@ -520,13 +520,13 @@ function handleCustomFlowField(key, value)
    	    mcc_name = ""
 	  end
 
-          r = r .. "<th>IMSI (International mobile Subscriber Identity)</th><td>"..elems[1]..mcc_name
+          r = r .. "<th>"..i18n("flow_details.imsi").."</th><td>"..elems[1]..mcc_name
 	  r = r .. " <A HREF='http://www.numberingplans.com/?page=analysis&sub=imsinr'><i class='fa fa-info'></i></A></td></tr>"
-	  r = r .. "<th>NSAPI</th><td>".. elems[2].."</td></tr>"
-	  r = r .. "<th>GSM Cell LAC (Location Area Code)</th><td>".. elems[3].."</td></tr>"
-	  r = r .. "<th>GSM Cell Identifier</th><td>".. elems[4].."</td></tr>"
-	  r = r .. "<th>SAC (Service Area Code)</th><td>".. elems[5].."</td></tr>"
-	  r = r .. "<th>IP Address</th><td>".. ntop.inet_ntoa(elems[6]).."</td></tr>"
+	  r = r .. "<th>"..i18n("flow_details.nsapi").."</th><td>".. elems[2].."</td></tr>"
+	  r = r .. "<th>"..i18n("flow_details.gsm_cell_lac").."</th><td>".. elems[3].."</td></tr>"
+	  r = r .. "<th>"..i18n("flow_details.gsm_cell_identifier").."</th><td>".. elems[4].."</td></tr>"
+	  r = r .. "<th>"..i18n("flow_details.sac_service_area_code").."</th><td>".. elems[5].."</td></tr>"
+	  r = r .. "<th>"..i18n("ip_address").."</th><td>".. ntop.inet_ntoa(elems[6]).."</td></tr>"
 	  r = r .. "</table>"
 	  return(r)
 
@@ -590,401 +590,401 @@ end
 -- IMPORTANT: keep it in sync with ParserInterface::ParserInterface()
 
 local flow_fields_description = {
-    ["IN_BYTES"] = "Incoming flow bytes (src->dst)",
-    ["IN_PKTS"] = "Incoming flow packets (src->dst)",
-    ["FLOWS"] = "Number of flows",
-    ["PROTOCOL"] = "IP protocol byte",
-    ["PROTOCOL_MAP"] = "IP protocol name",
-    ["SRC_TOS"] = "Type of service (TOS)",
-    ["TCP_FLAGS"] = "Cumulative of all flow TCP flags",
-    ["L4_SRC_PORT"] = "IPv4 source port",
-    ["L4_SRC_PORT_MAP"] = "Layer 4 source port symbolic name",
-    ["IPV4_SRC_ADDR"] = "IPv4 source address",
-    ["IPV4_SRC_MASK"] = "IPv4 source subnet mask (/<bits>)",
-    ["INPUT_SNMP"] = "Input interface SNMP index",
-    ["L4_DST_PORT"] = "IPv4 destination port",
-    ["L4_DST_PORT_MAP"] = "Layer 4 destination port symbolic name",
-    ["L4_SRV_PORT"] = "Layer 4 server port",
-    ["L4_SRV_PORT_MAP"] = "Layer 4 server port symbolic name",
-    ["IPV4_DST_ADDR"] = "IPv4 destination address",
-    ["IPV4_DST_MASK"] = "IPv4 dest subnet mask (/<bits>)",
-    ["OUTPUT_SNMP"] = "Output interface SNMP index",
-    ["IPV4_NEXT_HOP"] = "IPv4 Next Hop",
-    ["SRC_AS"] = "Source BGP AS",
-    ["DST_AS"] = "Destination BGP AS",
-    ["LAST_SWITCHED"] = "SysUptime (msec) of the last flow pkt",
-    ["FIRST_SWITCHED"] = "SysUptime (msec) of the first flow pkt",
-    ["OUT_BYTES"] = "Outgoing flow bytes (dst->src)",
-    ["OUT_PKTS"] = "Outgoing flow packets (dst->src)",
-    ["IPV6_SRC_ADDR"] = "IPv6 source address",
-    ["IPV6_DST_ADDR"] = "IPv6 destination address",
-    ["IPV6_SRC_MASK"] = "IPv6 source mask",
-    ["IPV6_DST_MASK"] = "IPv6 destination mask",
-    ["ICMP_TYPE"] = "ICMP Type * 256 + ICMP code",
-    ["SAMPLING_INTERVAL"] = "Sampling rate",
-    ["SAMPLING_ALGORITHM"] = "Sampling type (deterministic/random)",
-    ["FLOW_ACTIVE_TIMEOUT"] = "Activity timeout of flow cache entries",
-    ["FLOW_INACTIVE_TIMEOUT"] = "Inactivity timeout of flow cache entries",
-    ["ENGINE_TYPE"] = "Flow switching engine",
-    ["ENGINE_ID"] = "Id of the flow switching engine",
-    ["TOTAL_BYTES_EXP"] = "Total bytes exported",
-    ["TOTAL_PKTS_EXP"] = "Total flow packets exported",
-    ["TOTAL_FLOWS_EXP"] = "Total number of exported flows",
-    ["MIN_TTL"] = "Min flow TTL",
-    ["MAX_TTL"] = "Max flow TTL",
-    ["DST_TOS"] = "TOS/DSCP (dst->src)",
-    ["IN_SRC_MAC"] = "Source MAC Address",
-    ["SRC_VLAN"] = "Source VLAN",
-    ["DST_VLAN"] = "Destination VLAN",
-    ["DOT1Q_SRC_VLAN"] = "Source VLAN (outer VLAN in QinQ)",
-    ["DOT1Q_DST_VLAN"] = "Destination VLAN (outer VLAN in QinQ)",
-    ["IP_PROTOCOL_VERSION"] = "4=IPv4]6=IPv6]",
-    ["DIRECTION"] = "It indicates where a sample has been taken (always 0)",
-    ["IPV6_NEXT_HOP"] = "IPv6 next hop address",
-    ["MPLS_LABEL_1"] = "MPLS label at position 1",
-    ["MPLS_LABEL_2"] = "MPLS label at position 2",
-    ["MPLS_LABEL_3"] = "MPLS label at position 3",
-    ["MPLS_LABEL_4"] = "MPLS label at position 4",
-    ["MPLS_LABEL_5"] = "MPLS label at position 5",
-    ["MPLS_LABEL_6"] = "MPLS label at position 6",
-    ["MPLS_LABEL_7"] = "MPLS label at position 7",
-    ["MPLS_LABEL_8"] = "MPLS label at position 8",
-    ["MPLS_LABEL_9"] = "MPLS label at position 9",
-    ["MPLS_LABEL_10"] = "MPLS label at position 10",
-    ["OUT_DST_MAC"] = "Destination MAC Address",
-    ["APPLICATION_ID"] = "Cisco NBAR Application Id",
-    ["PACKET_SECTION_OFFSET"] = "Packet section offset",
-    ["SAMPLED_PACKET_SIZE"] = "Sampled packet size",
-    ["SAMPLED_PACKET_ID"] = "Sampled packet id",
-    ["EXPORTER_IPV4_ADDRESS"] = "Exporter IPv4 Address",
-    ["EXPORTER_IPV6_ADDRESS"] = "Exporter IPv6 Address",
-    ["FLOW_ID"] = "Serial Flow Identifier",
-    ["FLOW_START_SEC"] = "Seconds (epoch) of the first flow packet",
-    ["FLOW_END_SEC"] = "Seconds (epoch) of the last flow packet",
-    ["FLOW_START_MILLISECONDS"] = "Msec (epoch) of the first flow packet",
-    ["FLOW_END_MILLISECONDS"] = "Msec (epoch) of the last flow packet",
-    ["INGRESS_VRFID"] = "Ingress VRF ID",
-    ["BIFLOW_DIRECTION"] = "1=initiator,  2=reverseInitiator",    
-    ["OBSERVATION_POINT_TYPE"] = "Observation point type",
-    ["OBSERVATION_POINT_ID"] = "Observation point id",
-    ["SELECTOR_ID"] = "Selector id",
-    ["IPFIX_SAMPLING_ALGORITHM"] = "Sampling algorithm",
-    ["SAMPLING_SIZE"] = "Number of packets to sample",
-    ["SAMPLING_POPULATION"] = "Sampling population",
-    ["FRAME_LENGTH"] = "Original L2 frame length",
-    ["PACKETS_OBSERVED"] = "Tot number of packets seen",
-    ["PACKETS_SELECTED"] = "Number of pkts selected for sampling",
-    ["SELECTOR_NAME"] = "Sampler name",
-    ["APPLICATION_NAME"] = "Palo Alto App-Id",
-    ["USER_NAME"] = "Palo Alto User-Id",
-    ["FRAGMENTS"] = "Number of fragmented flow packets",
-    ["CLIENT_NW_DELAY_SEC"] = "Network latency client <-> nprobe (sec)",
-    ["CLIENT_NW_DELAY_USEC"] = "Network latency client <-> nprobe (residual usec)",
-    ["CLIENT_NW_DELAY_MS"] = "Network latency client <-> nprobe (msec)",
-    ["SERVER_NW_DELAY_SEC"] = "Network latency nprobe <-> server (sec)",
-    ["SERVER_NW_DELAY_USEC"] = "Network latency nprobe <-> server (residual usec)",
-    ["SERVER_NW_DELAY_MS"] = "Network latency nprobe <-> server (residual msec)",
-    ["APPL_LATENCY_SEC"] = "Application latency (sec)",
-    ["APPL_LATENCY_USEC"] = "Application latency (residual usec)",
-    ["APPL_LATENCY_MS"] = "Application latency (msec)",
-    ["NUM_PKTS_UP_TO_128_BYTES"] = "# packets whose size <= 128",
-    ["NUM_PKTS_128_TO_256_BYTES"] = "# packets whose size > 128 and <= 256",
-    ["NUM_PKTS_256_TO_512_BYTES"] = "# packets whose size > 256 and < 512",
-    ["NUM_PKTS_512_TO_1024_BYTES"] = "# packets whose size > 512 and < 1024",
-    ["NUM_PKTS_1024_TO_1514_BYTES"] = "# packets whose size > 1024 and <= 1514",
-    ["NUM_PKTS_OVER_1514_BYTES"] = "# packets whose size > 1514",
-    ["CUMULATIVE_ICMP_TYPE"] = "Cumulative OR of ICMP type packets",
-    ["SRC_IP_COUNTRY"] = "Country where the src IP is located",
-    ["SRC_IP_CITY"] = "City where the src IP is located",
-    ["DST_IP_COUNTRY"] = "Country where the dst IP is located",
-    ["DST_IP_CITY"] = "City where the dst IP is located",
-    ["FLOW_PROTO_PORT"] = "L7 port that identifies the flow protocol or 0 if unknown",
-    ["UPSTREAM_TUNNEL_ID"] = "Upstream tunnel identifier (e.g. GTP TEID) or 0 if unknown",
-    ["LONGEST_FLOW_PKT"] = "Longest packet (bytes) of the flow",
-    ["SHORTEST_FLOW_PKT"] = "Shortest packet (bytes) of the flow",
-    ["RETRANSMITTED_IN_PKTS"] = "Number of retransmitted TCP flow packets (src->dst)",
-    ["RETRANSMITTED_IN_BYTES"] = "Number of retransmitted TCP flow bytes (src->dst)",
-    ["RETRANSMITTED_OUT_PKTS"] = "Number of retransmitted TCP flow packets (dst->src)",
-    ["RETRANSMITTED_OUT_BYTES"] = "Number of retransmitted TCP flow bytes (dst->src)",
-    ["OOORDER_IN_PKTS"] = "Number of out of order TCP flow packets (dst->src)",
-    ["OOORDER_OUT_PKTS"] = "Number of out of order TCP flow packets (dst->src)",
-    ["UNTUNNELED_PROTOCOL"] = "Untunneled IP protocol byte",
-    ["UNTUNNELED_IPV4_SRC_ADDR"] = "Untunneled IPv4 source address",
-    ["UNTUNNELED_L4_SRC_PORT"] = "Untunneled IPv4 source port",
-    ["UNTUNNELED_IPV4_DST_ADDR"] = "Untunneled IPv4 destination address",
-    ["UNTUNNELED_L4_DST_PORT"] = "Untunneled IPv4 destination port",
-    ["L7_PROTO"] = "Layer 7 protocol (numeric)",
-    ["L7_PROTO_NAME"] = "Layer 7 protocol name",
-    ["DOWNSTREAM_TUNNEL_ID"] = "Downstream tunnel identifier (e.g. GTP TEID) or 0 if unknown",
-    ["FLOW_USER_NAME"] = "Flow Username",
-    ["FLOW_SERVER_NAME"] = "Flow server name",
-    ["PLUGIN_NAME"] = "Plugin name used by this flow (if any)",
-    ["UNTUNNELED_IPV6_SRC_ADDR"] = "Untunneled IPv6 source address",
-    ["UNTUNNELED_IPV6_DST_ADDR"] = "Untunneled IPv6 destination address",
-    ["SRC_IP_LONG"] = "Longitude where the src IP is located",
-    ["SRC_IP_LAT"] = "Latitude where the src IP is located",
-    ["DST_IP_LONG"] = "Longitude where the dst IP is located",
-    ["DST_IP_LAT"] = "Latitude where the dst IP is located",
-    ["NUM_PKTS_TTL_EQ_1"] = "# packets with TTL = 1",
-    ["NUM_PKTS_TTL_2_5"] = "# packets with TTL > 1 and TTL <= 5",
-    ["NUM_PKTS_TTL_5_32"] = "# packets with TTL > 5 and TTL <= 32",
-    ["NUM_PKTS_TTL_32_64"] = "# packets with TTL > 32 and <= 64 ",
-    ["NUM_PKTS_TTL_64_96"] = "# packets with TTL > 64 and <= 96",
-    ["NUM_PKTS_TTL_96_128"] = "# packets with TTL > 96 and <= 128",
-    ["NUM_PKTS_TTL_128_160"] = "# packets with TTL > 128 and <= 160",
-    ["NUM_PKTS_TTL_160_192"] = "# packets with TTL > 160 and <= 192",
-    ["NUM_PKTS_TTL_192_224"] = "# packets with TTL > 192 and <= 224",
-    ["NUM_PKTS_TTL_224_255"] = "# packets with TTL > 224 and <= 255",
-    ["IN_SRC_OSI_SAP"] = "OSI Source SAP (OSI Traffic Only)",
-    ["OUT_DST_OSI_SAP"] = "OSI Destination SAP (OSI Traffic Only)",
-    ["DURATION_IN"] = "Client to Server stream duration (msec)",
-    ["DURATION_OUT"] = "Client to Server stream duration (msec)",
-    ["TCP_WIN_MIN_IN"] = "Min TCP Window (src->dst)",
-    ["TCP_WIN_MAX_IN"] = "Max TCP Window (src->dst)",
-    ["TCP_WIN_MSS_IN"] = "TCP Max Segment Size (src->dst)",
-    ["TCP_WIN_SCALE_IN"] = "TCP Window Scale (src->dst)",
-    ["TCP_WIN_MIN_OUT"] = "Min TCP Window (dst->src)",
-    ["TCP_WIN_MAX_OUT"] = "Max TCP Window (dst->src)",
-    ["TCP_WIN_MSS_OUT"] = "TCP Max Segment Size (dst->src)",
-    ["TCP_WIN_SCALE_OUT"] = "TCP Window Scale (dst->src)",
+    ["IN_BYTES"] = i18n("flow_fields_description.in_bytes"),
+    ["IN_PKTS"] = i18n("flow_fields_description.in_pkts"),
+    ["FLOWS"] = i18n("flow_fields_description.flows"),
+    ["PROTOCOL"] = i18n("flow_fields_description.protocol"),
+    ["PROTOCOL_MAP"] = i18n("flow_fields_description.protocol_map"),
+    ["SRC_TOS"] = i18n("flow_fields_description.src_tos"),
+    ["TCP_FLAGS"] = i18n("flow_fields_description.tcp_flags"),
+    ["L4_SRC_PORT"] = i18n("flow_fields_description.l4_src_port"),
+    ["L4_SRC_PORT_MAP"] = i18n("flow_fields_description.l4_src_port_map"),
+    ["IPV4_SRC_ADDR"] = i18n("flow_fields_description.ipv4_src_addr"),
+    ["IPV4_SRC_MASK"] = i18n("flow_fields_description.ipv4_src_mask"),
+    ["INPUT_SNMP"] = i18n("flow_fields_description.input_snmp"),
+    ["L4_DST_PORT"] = i18n("flow_fields_description.l4_dst_port"),
+    ["L4_DST_PORT_MAP"] = i18n("flow_fields_description.l4_dst_port_map"),
+    ["L4_SRV_PORT"] = i18n("flow_fields_description.l4_srv_port"),
+    ["L4_SRV_PORT_MAP"] = i18n("flow_fields_description.l4_srv_port_map"),
+    ["IPV4_DST_ADDR"] = i18n("flow_fields_description.ipv4_dst_addr"),
+    ["IPV4_DST_MASK"] = i18n("flow_fields_description.ipv4_dst_mask"),
+    ["OUTPUT_SNMP"] = i18n("flow_fields_description.output_snmp"),
+    ["IPV4_NEXT_HOP"] = i18n("flow_fields_description.ipv4_next_hop"),
+    ["SRC_AS"] = i18n("flow_fields_description.src_as"),
+    ["DST_AS"] = i18n("flow_fields_description.dst_as"),
+    ["LAST_SWITCHED"] = i18n("flow_fields_description.last_switched"),
+    ["FIRST_SWITCHED"] = i18n("flow_fields_description.first_switched"),
+    ["OUT_BYTES"] = i18n("flow_fields_description.out_bytes"),
+    ["OUT_PKTS"] = i18n("flow_fields_description.out_pkts"),
+    ["IPV6_SRC_ADDR"] = i18n("flow_fields_description.ipv6_src_addr"),
+    ["IPV6_DST_ADDR"] = i18n("flow_fields_description.ipv6_dst_addr"),
+    ["IPV6_SRC_MASK"] = i18n("flow_fields_description.ipv6_src_mask"),
+    ["IPV6_DST_MASK"] = i18n("flow_fields_description.ipv6_dst_mask"),
+    ["ICMP_TYPE"] = i18n("flow_fields_description.icmp_type"),
+    ["SAMPLING_INTERVAL"] = i18n("flow_fields_description.sampling_interval"),
+    ["SAMPLING_ALGORITHM"] = i18n("flow_fields_description.sampling_algorithm"),
+    ["FLOW_ACTIVE_TIMEOUT"] = i18n("flow_fields_description.flow_active_timeout"),
+    ["FLOW_INACTIVE_TIMEOUT"] = i18n("flow_fields_description.flow_inactive_timeout"),
+    ["ENGINE_TYPE"] = i18n("flow_fields_description.engine_type"),
+    ["ENGINE_ID"] = i18n("flow_fields_description.engine_id"),
+    ["TOTAL_BYTES_EXP"] = i18n("flow_fields_description.total_bytes_exp"),
+    ["TOTAL_PKTS_EXP"] = i18n("flow_fields_description.total_pkts_exp"),
+    ["TOTAL_FLOWS_EXP"] = i18n("flow_fields_description.total_flows_exp"),
+    ["MIN_TTL"] = i18n("flow_fields_description.min_ttl"),
+    ["MAX_TTL"] = i18n("flow_fields_description.max_ttl"),
+    ["DST_TOS"] = i18n("flow_fields_description.dst_tos"),
+    ["IN_SRC_MAC"] = i18n("flow_fields_description.in_src_mac"),
+    ["SRC_VLAN"] = i18n("flow_fields_description.src_vlan"),
+    ["DST_VLAN"] = i18n("flow_fields_description.dst_vlan"),
+    ["DOT1Q_SRC_VLAN"] = i18n("flow_fields_description.dot1q_src_vlan"),
+    ["DOT1Q_DST_VLAN"] = i18n("flow_fields_description.dot1q_dst_vlan"),
+    ["IP_PROTOCOL_VERSION"] = i18n("flow_fields_description.ip_protocol_version"),
+    ["DIRECTION"] = i18n("flow_fields_description.direction"),
+    ["IPV6_NEXT_HOP"] = i18n("flow_fields_description.ipv6_next_hop"),
+    ["MPLS_LABEL_1"] = i18n("flow_fields_description.mpls_label_1"),
+    ["MPLS_LABEL_2"] = i18n("flow_fields_description.mpls_label_2"),
+    ["MPLS_LABEL_3"] = i18n("flow_fields_description.mpls_label_3"),
+    ["MPLS_LABEL_4"] = i18n("flow_fields_description.mpls_label_4"),
+    ["MPLS_LABEL_5"] = i18n("flow_fields_description.mpls_label_5"),
+    ["MPLS_LABEL_6"] = i18n("flow_fields_description.mpls_label_6"),
+    ["MPLS_LABEL_7"] = i18n("flow_fields_description.mpls_label_7"),
+    ["MPLS_LABEL_8"] = i18n("flow_fields_description.mpls_label_8"),
+    ["MPLS_LABEL_9"] = i18n("flow_fields_description.mpls_label_9"),
+    ["MPLS_LABEL_10"] = i18n("flow_fields_description.mpls_label_10"),
+    ["OUT_DST_MAC"] = i18n("flow_fields_description.out_dst_mac"),
+    ["APPLICATION_ID"] = i18n("flow_fields_description.application_id"),
+    ["PACKET_SECTION_OFFSET"] = i18n("flow_fields_description.packet_section_offset"),
+    ["SAMPLED_PACKET_SIZE"] = i18n("flow_fields_description.sampled_packet_size"),
+    ["SAMPLED_PACKET_ID"] = i18n("flow_fields_description.sampled_packet_id"),
+    ["EXPORTER_IPV4_ADDRESS"] = i18n("flow_fields_description.exporter_ipv4_address"),
+    ["EXPORTER_IPV6_ADDRESS"] = i18n("flow_fields_description.exporter_ipv6_address"),
+    ["FLOW_ID"] = i18n("flow_fields_description.flow_id"),
+    ["FLOW_START_SEC"] = i18n("flow_fields_description.flow_start_sec"),
+    ["FLOW_END_SEC"] = i18n("flow_fields_description.flow_end_sec"),
+    ["FLOW_START_MILLISECONDS"] = i18n("flow_fields_description.flow_start_milliseconds"),
+    ["FLOW_END_MILLISECONDS"] = i18n("flow_fields_description.flow_end_milliseconds"),
+    ["INGRESS_VRFID"] = i18n("flow_fields_description.ingress_vrfid"),
+    ["BIFLOW_DIRECTION"] = i18n("flow_fields_description.biflow_direction"),
+    ["OBSERVATION_POINT_TYPE"] = i18n("flow_fields_description.observation_point_type"),
+    ["OBSERVATION_POINT_ID"] = i18n("flow_fields_description.observation_point_id"),
+    ["SELECTOR_ID"] = i18n("flow_fields_description.selector_id"),
+    ["IPFIX_SAMPLING_ALGORITHM"] = i18n("flow_fields_description.ipfix_sampling_algorithm"),
+    ["SAMPLING_SIZE"] = i18n("flow_fields_description.sampling_size"),
+    ["SAMPLING_POPULATION"] = i18n("flow_fields_description.sampling_population"),
+    ["FRAME_LENGTH"] = i18n("flow_fields_description.frame_length"),
+    ["PACKETS_OBSERVED"] = i18n("flow_fields_description.packets_observed"),
+    ["PACKETS_SELECTED"] = i18n("flow_fields_description.packets_selected"),
+    ["SELECTOR_NAME"] = i18n("flow_fields_description.selector_name"),
+    ["APPLICATION_NAME"] = i18n("flow_fields_description.application_name"),
+    ["USER_NAME"] = i18n("flow_fields_description.user_name"),
+    ["FRAGMENTS"] = i18n("flow_fields_description.fragments"),
+    ["CLIENT_NW_DELAY_SEC"] = i18n("flow_fields_description.client_nw_delay_sec"),
+    ["CLIENT_NW_DELAY_USEC"] = i18n("flow_fields_description.client_nw_delay_usec"),
+    ["CLIENT_NW_DELAY_MS"] = i18n("flow_fields_description.client_nw_delay_ms"),
+    ["SERVER_NW_DELAY_SEC"] = i18n("flow_fields_description.server_nw_delay_sec"),
+    ["SERVER_NW_DELAY_USEC"] = i18n("flow_fields_description.server_nw_delay_usec"),
+    ["SERVER_NW_DELAY_MS"] = i18n("flow_fields_description.server_nw_delay_ms"),
+    ["APPL_LATENCY_SEC"] = i18n("flow_fields_description.appl_latency_sec"),
+    ["APPL_LATENCY_USEC"] = i18n("flow_fields_description.appl_latency_usec"),
+    ["APPL_LATENCY_MS"] = i18n("flow_fields_description.appl_latency_ms"),
+    ["NUM_PKTS_UP_TO_128_BYTES"] = i18n("flow_fields_description.num_pkts_up_to_128_bytes"),
+    ["NUM_PKTS_128_TO_256_BYTES"] = i18n("flow_fields_description.num_pkts_128_to_256_bytes"),
+    ["NUM_PKTS_256_TO_512_BYTES"] = i18n("flow_fields_description.num_pkts_256_to_512_bytes"),
+    ["NUM_PKTS_512_TO_1024_BYTES"] = i18n("flow_fields_description.num_pkts_512_to_1024_bytes"),
+    ["NUM_PKTS_1024_TO_1514_BYTES"] = i18n("flow_fields_description.num_pkts_1024_to_1514_bytes"),
+    ["NUM_PKTS_OVER_1514_BYTES"] = i18n("flow_fields_description.num_pkts_over_1514_bytes"),
+    ["CUMULATIVE_ICMP_TYPE"] = i18n("flow_fields_description.cumulative_icmp_type"),
+    ["SRC_IP_COUNTRY"] = i18n("flow_fields_description.src_ip_country"),
+    ["SRC_IP_CITY"] = i18n("flow_fields_description.src_ip_city"),
+    ["DST_IP_COUNTRY"] = i18n("flow_fields_description.dst_ip_country"),
+    ["DST_IP_CITY"] = i18n("flow_fields_description.dst_ip_city"),
+    ["FLOW_PROTO_PORT"] = i18n("flow_fields_description.flow_proto_port"),
+    ["UPSTREAM_TUNNEL_ID"] = i18n("flow_fields_description.upstream_tunnel_id"),
+    ["LONGEST_FLOW_PKT"] = i18n("flow_fields_description.longest_flow_pkt"),
+    ["SHORTEST_FLOW_PKT"] = i18n("flow_fields_description.shortest_flow_pkt"),
+    ["RETRANSMITTED_IN_PKTS"] = i18n("flow_fields_description.retransmitted_in_pkts"),
+    ["RETRANSMITTED_IN_BYTES"] = i18n("flow_fields_description.retransmitted_in_bytes"),
+    ["RETRANSMITTED_OUT_PKTS"] = i18n("flow_fields_description.retransmitted_out_pkts"),
+    ["RETRANSMITTED_OUT_BYTES"] = i18n("flow_fields_description.retransmitted_out_bytes"),
+    ["OOORDER_IN_PKTS"] = i18n("flow_fields_description.ooorder_in_pkts"),
+    ["OOORDER_OUT_PKTS"] = i18n("flow_fields_description.ooorder_in_pkts"),
+    ["UNTUNNELED_PROTOCOL"] = i18n("flow_fields_description.untunneled_protocol"),
+    ["UNTUNNELED_IPV4_SRC_ADDR"] = i18n("flow_fields_description.untunneled_ipv4_src_addr"),
+    ["UNTUNNELED_L4_SRC_PORT"] = i18n("flow_fields_description.untunneled_l4_src_port"),
+    ["UNTUNNELED_IPV4_DST_ADDR"] = i18n("flow_fields_description.untunneled_ipv4_dst_addr"),
+    ["UNTUNNELED_L4_DST_PORT"] = i18n("flow_fields_description.untunneled_l4_dst_port"),
+    ["L7_PROTO"] = i18n("flow_fields_description.l7_proto"),
+    ["L7_PROTO_NAME"] = i18n("flow_fields_description.l7_proto_name"),
+    ["DOWNSTREAM_TUNNEL_ID"] = i18n("flow_fields_description.downstream_tunnel_id"),
+    ["FLOW_USER_NAME"] = i18n("flow_fields_description.flow_user_name"),
+    ["FLOW_SERVER_NAME"] = i18n("flow_fields_description.flow_server_name"),
+    ["PLUGIN_NAME"] = i18n("flow_fields_description.plugin_name"),
+    ["UNTUNNELED_IPV6_SRC_ADDR"] = i18n("flow_fields_description.untunneled_ipv6_src_addr"),
+    ["UNTUNNELED_IPV6_DST_ADDR"] = i18n("flow_fields_description.untunneled_ipv6_dst_addr"),
+    ["SRC_IP_LONG"] = i18n("flow_fields_description.src_ip_long"),
+    ["SRC_IP_LAT"] = i18n("flow_fields_description.src_ip_lat"),
+    ["DST_IP_LONG"] = i18n("flow_fields_description.dst_ip_long"),
+    ["DST_IP_LAT"] = i18n("flow_fields_description.dst_ip_lat"),
+    ["NUM_PKTS_TTL_EQ_1"] = i18n("flow_fields_description.num_pkts_ttl_eq_1"),
+    ["NUM_PKTS_TTL_2_5"] = i18n("flow_fields_description.num_pkts_ttl_2_5"),
+    ["NUM_PKTS_TTL_5_32"] = i18n("flow_fields_description.num_pkts_ttl_5_32"),
+    ["NUM_PKTS_TTL_32_64"] = i18n("flow_fields_description.num_pkts_ttl_32_64"),
+    ["NUM_PKTS_TTL_64_96"] = i18n("flow_fields_description.num_pkts_ttl_64_96"),
+    ["NUM_PKTS_TTL_96_128"] = i18n("flow_fields_description.num_pkts_ttl_96_128"),
+    ["NUM_PKTS_TTL_128_160"] = i18n("flow_fields_description.num_pkts_ttl_128_160"),
+    ["NUM_PKTS_TTL_160_192"] = i18n("flow_fields_description.num_pkts_ttl_160_192"),
+    ["NUM_PKTS_TTL_192_224"] = i18n("flow_fields_description.num_pkts_ttl_192_224"),
+    ["NUM_PKTS_TTL_224_255"] = i18n("flow_fields_description.num_pkts_ttl_224_255"),
+    ["IN_SRC_OSI_SAP"] = i18n("flow_fields_description.in_src_osi_sap"),
+    ["OUT_DST_OSI_SAP"] = i18n("flow_fields_description.out_dst_osi_sap"),
+    ["DURATION_IN"] = i18n("flow_fields_description.duration_in"),
+    ["DURATION_OUT"] = i18n("flow_fields_description.duration_in"),
+    ["TCP_WIN_MIN_IN"] = i18n("flow_fields_description.tcp_win_min_in"),
+    ["TCP_WIN_MAX_IN"] = i18n("flow_fields_description.tcp_win_max_in"),
+    ["TCP_WIN_MSS_IN"] = i18n("flow_fields_description.tcp_win_mss_in"),
+    ["TCP_WIN_SCALE_IN"] = i18n("flow_fields_description.tcp_win_scale_in"),
+    ["TCP_WIN_MIN_OUT"] = i18n("flow_fields_description.tcp_win_min_out"),
+    ["TCP_WIN_MAX_OUT"] = i18n("flow_fields_description.tcp_win_max_out"),
+    ["TCP_WIN_MSS_OUT"] = i18n("flow_fields_description.tcp_win_mss_out"),
+    ["TCP_WIN_SCALE_OUT"] = i18n("flow_fields_description.tcp_win_scale_out"),
 
     -- MYSQL
-    ["MYSQL_SERVER_VERSION"] = "MySQL server version",
-    ["MYSQL_USERNAME"] = "MySQL username",
-    ["MYSQL_DB"] = "MySQL database in use",
-    ["MYSQL_QUERY"] = "MySQL Query",
-    ["MYSQL_RESPONSE"] = "MySQL server response",
-    ["MYSQL_APPL_LATENCY_USEC"] = "MySQL request->response latency (usec)",
+    ["MYSQL_SERVER_VERSION"] = i18n("flow_fields_description.mysql_server_version"),
+    ["MYSQL_USERNAME"] = i18n("flow_fields_description.mysql_username"),
+    ["MYSQL_DB"] = i18n("flow_fields_description.mysql_db"),
+    ["MYSQL_QUERY"] = i18n("flow_fields_description.mysql_query"),
+    ["MYSQL_RESPONSE"] = i18n("flow_fields_description.mysql_response"),
+    ["MYSQL_APPL_LATENCY_USEC"] = i18n("flow_fields_description.mysql_appl_latency_usec"),
 
-    ["SRC_AS_PATH_1"] = "Src AS path position 1",
-    ["SRC_AS_PATH_2"] = "Src AS path position 2",
-    ["SRC_AS_PATH_3"] = "Src AS path position 3",
-    ["SRC_AS_PATH_4"] = "Src AS path position 4",
-    ["SRC_AS_PATH_5"] = "Src AS path position 5",
-    ["SRC_AS_PATH_6"] = "Src AS path position 6",
-    ["SRC_AS_PATH_7"] = "Src AS path position 7",
-    ["SRC_AS_PATH_8"] = "Src AS path position 8",
-    ["SRC_AS_PATH_9"] = "Src AS path position 9",
-    ["SRC_AS_PATH_10"] = "Src AS path position 10",
-    ["DST_AS_PATH_1"] = "Dest AS path position 1",
-    ["DST_AS_PATH_2"] = "Dest AS path position 2",
-    ["DST_AS_PATH_3"] = "Dest AS path position 3",
-    ["DST_AS_PATH_4"] = "Dest AS path position 4",
-    ["DST_AS_PATH_5"] = "Dest AS path position 5",
-    ["DST_AS_PATH_6"] = "Dest AS path position 6",
-    ["DST_AS_PATH_7"] = "Dest AS path position 7",
-    ["DST_AS_PATH_8"] = "Dest AS path position 8",
-    ["DST_AS_PATH_9"] = "Dest AS path position 9",
-    ["DST_AS_PATH_10"] = "Dest AS path position 10",
+    ["SRC_AS_PATH_1"] = i18n("flow_fields_description.src_as_path_1"),
+    ["SRC_AS_PATH_2"] = i18n("flow_fields_description.src_as_path_2"),
+    ["SRC_AS_PATH_3"] = i18n("flow_fields_description.src_as_path_3"),
+    ["SRC_AS_PATH_4"] = i18n("flow_fields_description.src_as_path_4"),
+    ["SRC_AS_PATH_5"] = i18n("flow_fields_description.src_as_path_5"),
+    ["SRC_AS_PATH_6"] = i18n("flow_fields_description.src_as_path_6"),
+    ["SRC_AS_PATH_7"] = i18n("flow_fields_description.src_as_path_7"),
+    ["SRC_AS_PATH_8"] = i18n("flow_fields_description.src_as_path_8"),
+    ["SRC_AS_PATH_9"] = i18n("flow_fields_description.src_as_path_9"),
+    ["SRC_AS_PATH_10"] = i18n("flow_fields_description.src_as_path_10"),
+    ["DST_AS_PATH_1"] = i18n("flow_fields_description.dst_as_path_1"),
+    ["DST_AS_PATH_2"] = i18n("flow_fields_description.dst_as_path_2"),
+    ["DST_AS_PATH_3"] = i18n("flow_fields_description.dst_as_path_3"),
+    ["DST_AS_PATH_4"] = i18n("flow_fields_description.dst_as_path_4"),
+    ["DST_AS_PATH_5"] = i18n("flow_fields_description.dst_as_path_5"),
+    ["DST_AS_PATH_6"] = i18n("flow_fields_description.dst_as_path_6"),
+    ["DST_AS_PATH_7"] = i18n("flow_fields_description.dst_as_path_7"),
+    ["DST_AS_PATH_8"] = i18n("flow_fields_description.dst_as_path_8"),
+    ["DST_AS_PATH_9"] = i18n("flow_fields_description.dst_as_path_9"),
+    ["DST_AS_PATH_10"] = i18n("flow_fields_description.dst_as_path_10"),
 
     -- DHCP
-    ["DHCP_CLIENT_MAC"] = "MAC of the DHCP client",
-    ["DHCP_CLIENT_IP"] = "DHCP assigned client IPv4 address",
-    ["DHCP_CLIENT_NAME"] = "DHCP client name",
-    ["DHCP_REMOTE_ID"] = "DHCP agent remote Id",
-    ["DHCP_SUBSCRIBER_ID"] = "DHCP subscribed Id",
-    ["DHCP_MESSAGE_TYPE"] = "DHCP message type",
+    ["DHCP_CLIENT_MAC"] = i18n("flow_fields_description.dhcp_client_mac"),
+    ["DHCP_CLIENT_IP"] = i18n("flow_fields_description.dhcp_client_ip"),
+    ["DHCP_CLIENT_NAME"] = i18n("flow_fields_description.dhcp_client_name"),
+    ["DHCP_REMOTE_ID"] = i18n("flow_fields_description.dhcp_remote_id"),
+    ["DHCP_SUBSCRIBER_ID"] = i18n("flow_fields_description.dhcp_subscriber_id"),
+    ["DHCP_MESSAGE_TYPE"] = i18n("flow_fields_description.dhcp_message_type"),
 
     -- DIAMETER
-    ["DIAMETER_REQ_MSG_TYPE"] = "DIAMETER Request Msg Type",
-    ["DIAMETER_RSP_MSG_TYPE"] = "DIAMETER Response Msg Type",
-    ["DIAMETER_REQ_ORIGIN_HOST"] = "DIAMETER Origin Host Request",
-    ["DIAMETER_RSP_ORIGIN_HOST"] = "DIAMETER Origin Host Response",
-    ["DIAMETER_REQ_USER_NAME"] = "DIAMETER Request User Name",
-    ["DIAMETER_RSP_RESULT_CODE"] = "DIAMETER Response Result Code",
-    ["DIAMETER_EXP_RES_VENDOR_ID"] = "DIAMETER Response Experimental Result Vendor Id",
-    ["DIAMETER_EXP_RES_RESULT_CODE"] = "DIAMETER Response Experimental Result Code",
+    ["DIAMETER_REQ_MSG_TYPE"] = i18n("flow_fields_description.diameter_req_msg_type"),
+    ["DIAMETER_RSP_MSG_TYPE"] = i18n("flow_fields_description.diameter_rsp_msg_type"),
+    ["DIAMETER_REQ_ORIGIN_HOST"] = i18n("flow_fields_description.diameter_req_origin_host"),
+    ["DIAMETER_RSP_ORIGIN_HOST"] = i18n("flow_fields_description.diameter_rsp_origin_host"),
+    ["DIAMETER_REQ_USER_NAME"] = i18n("flow_fields_description.diameter_req_user_name"),
+    ["DIAMETER_RSP_RESULT_CODE"] = i18n("flow_fields_description.diameter_rsp_result_code"),
+    ["DIAMETER_EXP_RES_VENDOR_ID"] = i18n("flow_fields_description.diameter_exp_res_vendor_id"),
+    ["DIAMETER_EXP_RES_RESULT_CODE"] = i18n("flow_fields_description.diameter_exp_res_result_code"),
 
     -- DNS
-    ["DNS_QUERY"] = "DNS query",
-    ["DNS_QUERY_ID"] = "DNS query transaction Id",
-    ["DNS_QUERY_TYPE"] = "DNS query type (e.g. 1=A, 2=NS..)",
-    ["DNS_RET_CODE"] = "DNS return code (e.g. 0=no error)",
-    ["DNS_NUM_ANSWERS"] = "DNS # of returned answers",
-    ["DNS_TTL_ANSWER"] = "TTL of the first A record (if any)",
-    ["DNS_RESPONSE"] = "DNS response(s)",
+    ["DNS_QUERY"] = i18n("flow_fields_description.dns_query"),
+    ["DNS_QUERY_ID"] = i18n("flow_fields_description.dns_query_id"),
+    ["DNS_QUERY_TYPE"] = i18n("flow_fields_description.dns_query_type"),
+    ["DNS_RET_CODE"] = i18n("flow_fields_description.dns_ret_code"),
+    ["DNS_NUM_ANSWERS"] = i18n("flow_fields_description.dns_num_answers"),
+    ["DNS_TTL_ANSWER"] = i18n("flow_fields_description.dns_ttl_answer"),
+    ["DNS_RESPONSE"] = i18n("flow_fields_description.dns_response"),
 
     -- FTP
-    ["FTP_LOGIN"] = "FTP client login",
-    ["FTP_PASSWORD"] = "FTP client password",
-    ["FTP_COMMAND"] = "FTP client command",
-    ["FTP_COMMAND_RET_CODE"] = "FTP client command return code",
+    ["FTP_LOGIN"] = i18n("flow_fields_description.ftp_login"),
+    ["FTP_PASSWORD"] = i18n("flow_fields_description.ftp_password"),
+    ["FTP_COMMAND"] = i18n("flow_fields_description.ftp_command"),
+    ["FTP_COMMAND_RET_CODE"] = i18n("flow_fields_description.ftp_command_ret_code"),
 
     -- GTP
-    ["GTPV0_REQ_MSG_TYPE"] = "GTPv0 Request Msg Type",
-    ["GTPV0_RSP_MSG_TYPE"] = "GTPv0 Response Msg Type",
-    ["GTPV0_TID"] = "GTPv0 Tunnel Identifier",
-    ["GTPV0_APN_NAME"] = "GTPv0 APN Name",
-    ["GTPV0_END_USER_IP"] = "GTPv0 End User IP Address",
-    ["GTPV0_END_USER_MSISDN"] = "GTPv0 End User MSISDN",
-    ["GTPV0_RAI_MCC"] = "GTPv0 Mobile Country Code",
-    ["GTPV0_RAI_MNC"] = "GTPv0 Mobile Network Code",
-    ["GTPV0_RAI_CELL_LAC"] = "GTPv0 Cell Location Area Code",
-    ["GTPV0_RAI_CELL_RAC"] = "GTPv0 Cell Routing Area Code",
-    ["GTPV0_RESPONSE_CAUSE"] = "GTPv0 Cause of Operation",
-    ["GTPV1_REQ_MSG_TYPE"] = "GTPv1 Request Msg Type",
-    ["GTPV1_RSP_MSG_TYPE"] = "GTPv1 Response Msg Type",
-    ["GTPV1_C2S_TEID_DATA"] = "GTPv1 Client->Server TunnelId Data",
-    ["GTPV1_C2S_TEID_CTRL"] = "GTPv1 Client->Server TunnelId Control",
-    ["GTPV1_S2C_TEID_DATA"] = "GTPv1 Server->Client TunnelId Data",
-    ["GTPV1_S2C_TEID_CTRL"] = "GTPv1 Server->Client TunnelId Control",
-    ["GTPV1_END_USER_IP"] = "GTPv1 End User IP Address",
-    ["GTPV1_END_USER_IMSI"] = "GTPv1 End User IMSI",
-    ["GTPV1_END_USER_MSISDN"] = "GTPv1 End User MSISDN",
-    ["GTPV1_END_USER_IMEI"] = "GTPv1 End User IMEI",
-    ["GTPV1_APN_NAME"] = "GTPv1 APN Name",
-    ["GTPV1_RAI_MCC"] = "GTPv1 RAI Mobile Country Code",
-    ["GTPV1_RAI_MNC"] = "GTPv1 RAI Mobile Network Code",
-    ["GTPV1_RAI_LAC"] = "GTPv1 RAI Location Area Code",
-    ["GTPV1_RAI_RAC"] = "GTPv1 RAI Routing Area Code",
-    ["GTPV1_ULI_MCC"] = "GTPv1 ULI Mobile Country Code",
-    ["GTPV1_ULI_MNC"] = "GTPv1 ULI Mobile Network Code",
-    ["GTPV1_ULI_CELL_LAC"] = "GTPv1 ULI Cell Location Area Code",
-    ["GTPV1_ULI_CELL_CI"] = "GTPv1 ULI Cell CI",
-    ["GTPV1_ULI_SAC"] = "GTPv1 ULI SAC",
-    ["GTPV1_RESPONSE_CAUSE"] = "GTPv1 Cause of Operation",
-    ["GTPV2_REQ_MSG_TYPE"] = "GTPv2 Request Msg Type",
-    ["GTPV2_RSP_MSG_TYPE"] = "GTPv2 Response Msg Type",
-    ["GTPV2_C2S_S1U_GTPU_TEID"] = "GTPv2 Client->Svr S1U GTPU TEID",
-    ["GTPV2_C2S_S1U_GTPU_IP"] = "GTPv2 Client->Svr S1U GTPU IP",
-    ["GTPV2_S2C_S1U_GTPU_TEID"] = "GTPv2 Srv->Client S1U GTPU TEID",
-    ["GTPV2_S2C_S1U_GTPU_IP"] = "GTPv2 Srv->Client S1U GTPU IP",
-    ["GTPV2_END_USER_IMSI"] = "GTPv2 End User IMSI",
-    ["GTPV2_END_USER_MSISDN"] = "GTPv2 End User MSISDN",
-    ["GTPV2_APN_NAME"] = "GTPv2 APN Name",
-    ["GTPV2_ULI_MCC"] = "GTPv2 Mobile Country Code",
-    ["GTPV2_ULI_MNC"] = "GTPv2 Mobile Network Code",
-    ["GTPV2_ULI_CELL_TAC"] = "GTPv2 Tracking Area Code",
-    ["GTPV2_ULI_CELL_ID"] = "GTPv2 Cell Identifier",
-    ["GTPV2_RESPONSE_CAUSE"] = "GTPv2 Cause of Operation",
+    ["GTPV0_REQ_MSG_TYPE"] = i18n("flow_fields_description.gtpv0_req_msg_type"),
+    ["GTPV0_RSP_MSG_TYPE"] = i18n("flow_fields_description.gtpv0_rsp_msg_type"),
+    ["GTPV0_TID"] = i18n("flow_fields_description.gtpv0_tid"),
+    ["GTPV0_APN_NAME"] = i18n("flow_fields_description.gtpv0_apn_name"),
+    ["GTPV0_END_USER_IP"] = i18n("flow_fields_description.gtpv0_end_user_ip"),
+    ["GTPV0_END_USER_MSISDN"] = i18n("flow_fields_description.gtpv0_end_user_msisdn"),
+    ["GTPV0_RAI_MCC"] = i18n("flow_fields_description.gtpv0_rai_mcc"),
+    ["GTPV0_RAI_MNC"] = i18n("flow_fields_description.gtpv0_rai_mnc"),
+    ["GTPV0_RAI_CELL_LAC"] = i18n("flow_fields_description.gtpv0_rai_cell_lac"),
+    ["GTPV0_RAI_CELL_RAC"] = i18n("flow_fields_description.gtpv0_rai_cell_rac"),
+    ["GTPV0_RESPONSE_CAUSE"] = i18n("flow_fields_description.gtpv0_response_cause"),
+    ["GTPV1_REQ_MSG_TYPE"] = i18n("flow_fields_description.gtpv1_req_msg_type"),
+    ["GTPV1_RSP_MSG_TYPE"] = i18n("flow_fields_description.gtpv1_rsp_msg_type"),
+    ["GTPV1_C2S_TEID_DATA"] = i18n("flow_fields_description.gtpv1_c2s_teid_data"),
+    ["GTPV1_C2S_TEID_CTRL"] = i18n("flow_fields_description.gtpv1_c2s_teid_ctrl"),
+    ["GTPV1_S2C_TEID_DATA"] = i18n("flow_fields_description.gtpv1_s2c_teid_data"),
+    ["GTPV1_S2C_TEID_CTRL"] = i18n("flow_fields_description.gtpv1_s2c_teid_ctrl"),
+    ["GTPV1_END_USER_IP"] = i18n("flow_fields_description.gtpv1_end_user_ip"),
+    ["GTPV1_END_USER_IMSI"] = i18n("flow_fields_description.gtpv1_end_user_imsi"),
+    ["GTPV1_END_USER_MSISDN"] = i18n("flow_fields_description.gtpv1_end_user_msisdn"),
+    ["GTPV1_END_USER_IMEI"] = i18n("flow_fields_description.gtpv1_end_user_imei"),
+    ["GTPV1_APN_NAME"] = i18n("flow_fields_description.gtpv1_apn_name"),
+    ["GTPV1_RAI_MCC"] = i18n("flow_fields_description.gtpv1_rai_mcc"),
+    ["GTPV1_RAI_MNC"] = i18n("flow_fields_description.gtpv1_rai_mnc"),
+    ["GTPV1_RAI_LAC"] = i18n("flow_fields_description.gtpv1_rai_lac"),
+    ["GTPV1_RAI_RAC"] = i18n("flow_fields_description.gtpv1_rai_rac"),
+    ["GTPV1_ULI_MCC"] = i18n("flow_fields_description.gtpv1_uli_mcc"),
+    ["GTPV1_ULI_MNC"] = i18n("flow_fields_description.gtpv1_uli_mnc"),
+    ["GTPV1_ULI_CELL_LAC"] = i18n("flow_fields_description.gtpv1_uli_cell_lac"),
+    ["GTPV1_ULI_CELL_CI"] = i18n("flow_fields_description.gtpv1_uli_cell_ci"),
+    ["GTPV1_ULI_SAC"] = i18n("flow_fields_description.gtpv1_uli_sac"),
+    ["GTPV1_RESPONSE_CAUSE"] = i18n("flow_fields_description.gtpv1_response_cause"),
+    ["GTPV2_REQ_MSG_TYPE"] = i18n("flow_fields_description.gtpv2_req_msg_type"),
+    ["GTPV2_RSP_MSG_TYPE"] = i18n("flow_fields_description.gtpv2_rsp_msg_type"),
+    ["GTPV2_C2S_S1U_GTPU_TEID"] = i18n("flow_fields_description.gtpv2_c2s_s1u_gtpu_teid"),
+    ["GTPV2_C2S_S1U_GTPU_IP"] = i18n("flow_fields_description.gtpv2_c2s_s1u_gtpu_ip"),
+    ["GTPV2_S2C_S1U_GTPU_TEID"] = i18n("flow_fields_description.gtpv2_s2c_s1u_gtpu_teid"),
+    ["GTPV2_S2C_S1U_GTPU_IP"] = i18n("flow_fields_description.gtpv2_s2c_s1u_gtpu_ip"),
+    ["GTPV2_END_USER_IMSI"] = i18n("flow_fields_description.gtpv2_end_user_imsi"),
+    ["GTPV2_END_USER_MSISDN"] = i18n("flow_fields_description.gtpv2_end_user_msisdn"),
+    ["GTPV2_APN_NAME"] = i18n("flow_fields_description.gtpv2_apn_name"),
+    ["GTPV2_ULI_MCC"] = i18n("flow_fields_description.gtpv2_uli_mcc"),
+    ["GTPV2_ULI_MNC"] = i18n("flow_fields_description.gtpv2_uli_mnc"),
+    ["GTPV2_ULI_CELL_TAC"] = i18n("flow_fields_description.gtpv2_uli_cell_tac"),
+    ["GTPV2_ULI_CELL_ID"] = i18n("flow_fields_description.gtpv2_uli_cell_id"),
+    ["GTPV2_RESPONSE_CAUSE"] = i18n("flow_fields_description.gtpv2_response_cause"),
 
     -- HTTP
-    ["HTTP_URL"] = "HTTP URL",
-    ["HTTP_METHOD"] = "HTTP METHOD",
-    ["HTTP_RET_CODE"] = "HTTP return code (e.g. 200,  304...)",
-    ["HTTP_REFERER"] = "HTTP Referer",
-    ["HTTP_UA"] = "HTTP User Agent",
-    ["HTTP_MIME"] = "HTTP Mime Type",
-    ["HTTP_HOST"] = "HTTP Host Name",
-    ["HTTP_FBOOK_CHAT"] = "HTTP Facebook Chat",
-    ["HTTP_SITE"] = "HTTP server without host name",
+    ["HTTP_URL"] = i18n("flow_fields_description.http_url"),
+    ["HTTP_METHOD"] = i18n("flow_fields_description.http_method"),
+    ["HTTP_RET_CODE"] = i18n("flow_fields_description.http_ret_code"),
+    ["HTTP_REFERER"] = i18n("flow_fields_description.http_referer"),
+    ["HTTP_UA"] = i18n("flow_fields_description.http_ua"),
+    ["HTTP_MIME"] = i18n("flow_fields_description.http_mime"),
+    ["HTTP_HOST"] = i18n("flow_fields_description.http_host"),
+    ["HTTP_FBOOK_CHAT"] = i18n("flow_fields_description.http_fbook_chat"),
+    ["HTTP_SITE"] = i18n("flow_fields_description.http_site"),
 
     -- Oracle
-    ["ORACLE_USERNAME"] = "Oracle Username",
-    ["ORACLE_QUERY"] = "Oracle Query",
-    ["ORACLE_RSP_CODE"] = "Oracle Response Code",
-    ["ORACLE_RSP_STRING"] = "Oracle Response String",
-    ["ORACLE_QUERY_DURATION"] = "Oracle Query Duration (msec)",
+    ["ORACLE_USERNAME"] = i18n("flow_fields_description.oracle_username"),
+    ["ORACLE_QUERY"] = i18n("flow_fields_description.oracle_query"),
+    ["ORACLE_RSP_CODE"] = i18n("flow_fields_description.oracle_rsp_code"),
+    ["ORACLE_RSP_STRING"] = i18n("flow_fields_description.oracle_rsp_string"),
+    ["ORACLE_QUERY_DURATION"] = i18n("flow_fields_description.oracle_query_duration"),
 
     -- Process
-    ['SRC_PROC_PID'] = "Client Process PID",
-    ['SRC_PROC_NAME'] = "Client Process Name",
-    ['SRC_PROC_UID'] = "Client process UID",
-    ['SRC_PROC_USER_NAME'] = "Client process User Name",
-    ['SRC_FATHER_PROC_PID'] = "Client Father Process PID",
-    ['SRC_FATHER_PROC_NAME'] = "Client Father Process Name",
-    ['SRC_PROC_ACTUAL_MEMORY'] = "Client Process Used Memory (KB)",
-    ['SRC_PROC_PEAK_MEMORY'] = "Client Process Peak Memory (KB)",
-    ['SRC_PROC_AVERAGE_CPU_LOAD'] = "Client Process Average Process CPU Load (%)",
-    ['SRC_PROC_NUM_PAGE_FAULTS'] = "Client Process Number of page faults",
-    ['SRC_PROC_PCTG_IOWAIT'] = "Client process iowait time % (% * 100)",
-    ['DST_PROC_PID'] = "Server Process PID",
-    ['DST_PROC_UID'] = "Server process UID",
-    ['DST_PROC_NAME'] = "Server Process Name",
-    ['DST_PROC_USER_NAME'] = "Server process User Name",
-    ['DST_FATHER_PROC_PID'] = "Server Father Process PID",
-    ['DST_FATHER_PROC_NAME'] = "Server Father Process Name",
-    ['DST_PROC_ACTUAL_MEMORY'] = "Server Process Used Memory (KB)",
-    ['DST_PROC_PEAK_MEMORY'] = "Server Process Peak Memory (KB)",
-    ['DST_PROC_AVERAGE_CPU_LOAD'] = "Server Process Average Process CPU Load (%)",
-    ['DST_PROC_NUM_PAGE_FAULTS'] = "Server Process Number of page faults",
-    ['DST_PROC_PCTG_IOWAIT'] = "Server process iowait time % (% * 100)",
+    ['SRC_PROC_PID'] = i18n("flow_fields_description.src_proc_pid"),
+    ['SRC_PROC_NAME'] = i18n("flow_fields_description.src_proc_name"),
+    ['SRC_PROC_UID'] = i18n("flow_fields_description.src_proc_uid"),
+    ['SRC_PROC_USER_NAME'] = i18n("flow_fields_description.src_proc_user_name"),
+    ['SRC_FATHER_PROC_PID'] = i18n("flow_fields_description.src_father_proc_pid"),
+    ['SRC_FATHER_PROC_NAME'] = i18n("flow_fields_description.src_father_proc_name"),
+    ['SRC_PROC_ACTUAL_MEMORY'] = i18n("flow_fields_description.src_proc_actual_memory"),
+    ['SRC_PROC_PEAK_MEMORY'] = i18n("flow_fields_description.src_proc_peak_memory"),
+    ['SRC_PROC_AVERAGE_CPU_LOAD'] = i18n("flow_fields_description.src_proc_average_cpu_load"),
+    ['SRC_PROC_NUM_PAGE_FAULTS'] = i18n("flow_fields_description.src_proc_num_page_faults"),
+    ['SRC_PROC_PCTG_IOWAIT'] = i18n("flow_fields_description.src_proc_pctg_iowait"),
+    ['DST_PROC_PID'] = i18n("flow_fields_description.dst_proc_pid"),
+    ['DST_PROC_UID'] = i18n("flow_fields_description.dst_proc_uid"),
+    ['DST_PROC_NAME'] = i18n("flow_fields_description.dst_proc_name"),
+    ['DST_PROC_USER_NAME'] = i18n("flow_fields_description.dst_proc_user_name"),
+    ['DST_FATHER_PROC_PID'] = i18n("flow_fields_description.dst_father_proc_pid"),
+    ['DST_FATHER_PROC_NAME'] = i18n("flow_fields_description.dst_father_proc_name"),
+    ['DST_PROC_ACTUAL_MEMORY'] = i18n("flow_fields_description.dst_proc_actual_memory"),
+    ['DST_PROC_PEAK_MEMORY'] = i18n("flow_fields_description.dst_proc_peak_memory"),
+    ['DST_PROC_AVERAGE_CPU_LOAD'] = i18n("flow_fields_description.dst_proc_average_cpu_load"),
+    ['DST_PROC_NUM_PAGE_FAULTS'] = i18n("flow_fields_description.dst_proc_num_page_faults"),
+    ['DST_PROC_PCTG_IOWAIT'] = i18n("flow_fields_description.dst_proc_pctg_iowait"),
 
     -- Radius
-    ["RADIUS_REQ_MSG_TYPE"] = "RADIUS Request Msg Type",
-    ["RADIUS_RSP_MSG_TYPE"] = "RADIUS Response Msg Type",
-    ["RADIUS_USER_NAME"] = "RADIUS User Name (Access Only)",
-    ["RADIUS_CALLING_STATION_ID"] = "RADIUS Calling Station Id",
-    ["RADIUS_CALLED_STATION_ID"] = "RADIUS Called Station Id",
-    ["RADIUS_NAS_IP_ADDR"] = "RADIUS NAS IP Address",
-    ["RADIUS_NAS_IDENTIFIER"] = "RADIUS NAS Identifier",
-    ["RADIUS_USER_IMSI"] = "RADIUS User IMSI (Extension)",
-    ["RADIUS_USER_IMEI"] = "RADIUS User MSISDN (Extension)",
-    ["RADIUS_FRAMED_IP_ADDR"] = "RADIUS Framed IP",
-    ["RADIUS_ACCT_SESSION_ID"] = "RADIUS Accounting Session Name",
-    ["RADIUS_ACCT_STATUS_TYPE"] = "RADIUS Accounting Status Type",
-    ["RADIUS_ACCT_IN_OCTETS"] = "RADIUS Accounting Input Octets",
-    ["RADIUS_ACCT_OUT_OCTETS"] = "RADIUS Accounting Output Octets",
-    ["RADIUS_ACCT_IN_PKTS"] = "RADIUS Accounting Input Packets",
-    ["RADIUS_ACCT_OUT_PKTS"] = "RADIUS Accounting Output Packets",
+    ["RADIUS_REQ_MSG_TYPE"] = i18n("flow_fields_description.radius_req_msg_type"),
+    ["RADIUS_RSP_MSG_TYPE"] = i18n("flow_fields_description.radius_rsp_msg_type"),
+    ["RADIUS_USER_NAME"] = i18n("flow_fields_description.radius_user_name"),
+    ["RADIUS_CALLING_STATION_ID"] = i18n("flow_fields_description.radius_calling_station_id"),
+    ["RADIUS_CALLED_STATION_ID"] = i18n("flow_fields_description.radius_called_station_id"),
+    ["RADIUS_NAS_IP_ADDR"] = i18n("flow_fields_description.radius_nas_ip_addr"),
+    ["RADIUS_NAS_IDENTIFIER"] = i18n("flow_fields_description.radius_nas_identifier"),
+    ["RADIUS_USER_IMSI"] = i18n("flow_fields_description.radius_user_imsi"),
+    ["RADIUS_USER_IMEI"] = i18n("flow_fields_description.radius_user_imei"),
+    ["RADIUS_FRAMED_IP_ADDR"] = i18n("flow_fields_description.radius_framed_ip_addr"),
+    ["RADIUS_ACCT_SESSION_ID"] = i18n("flow_fields_description.radius_acct_session_id"),
+    ["RADIUS_ACCT_STATUS_TYPE"] = i18n("flow_fields_description.radius_acct_status_type"),
+    ["RADIUS_ACCT_IN_OCTETS"] = i18n("flow_fields_description.radius_acct_in_octets"),
+    ["RADIUS_ACCT_OUT_OCTETS"] = i18n("flow_fields_description.radius_acct_out_octets"),
+    ["RADIUS_ACCT_IN_PKTS"] = i18n("flow_fields_description.radius_acct_in_pkts"),
+    ["RADIUS_ACCT_OUT_PKTS"] = i18n("flow_fields_description.radius_acct_out_pkts"),
 
     -- VoIP
-    ['RTP_SSRC'] =  "RTP Sync Source ID",
-    ['RTP_MOS'] = "RTP Voice Quality",
-    ['RTP_R_FACTOR'] = "RTP Voice Quality Metric (%)", --http://tools.ietf.org/html/rfc3611#section-4.7.5
-    ['RTP_RTT'] =  "RTP Round Trip Time",
-    ['RTP_IN_TRANSIT'] = "RTP Transit (value * 100) (src->dst)",
-    ['RTP_OUT_TRANSIT'] = "RTP Transit (value * 100) (dst->src)",
-    ['RTP_FIRST_SEQ'] = "First flow RTP Seq Number",
-    ['RTP_FIRST_TS'] = "First flow RTP timestamp",
-    ['RTP_LAST_SEQ'] = "Last flow RTP Seq Number",
-    ['RTP_LAST_TS'] = "Last flow RTP timestamp",
-    ['RTP_IN_JITTER'] = "RTP Incoming Packet Delay Variation",
-    ['RTP_OUT_JITTER'] = "RTP Outgoing Packet Delay Variation",
-    ['RTP_IN_PKT_LOST'] = "RTP Incoming Packets Lost",
-    ['RTP_OUT_PKT_LOST'] = "RTP Outgoing Packets Lost",
-    ['RTP_OUT_PAYLOAD_TYPE'] = "RTP Outgoing Payload Type",
-    ['RTP_IN_MAX_DELTA'] = "Max delta (ms*100) between consecutive pkts (src->dst)",
-    ['RTP_OUT_MAX_DELTA'] = "Max delta (ms*100) between consecutive pkts (dst->src)",
-    ['RTP_IN_PAYLOAD_TYPE'] = "RTP Incoming Payload Type",
-    ['RTP_SIP_CALL_ID'] = "SIP call-id corresponding to this RTP stream",
-    ['RTP_IN_PKT_DROP'] = "Packet discarded by Jitter Buffer (src->dst)",
-    ['RTP_OUT_PKT_DROP'] = "Packet discarded by Jitter Buffer (dst->src)",
-    ['RTP_IN_MOS'] = "RTP pseudo-MOS (value * 100) (src->dst)",
-    ['RTP_OUT_MOS'] = "RTP pseudo-MOS (value * 100) (dst->src)",
-    ['RTP_IN_R_FACTOR'] = "RTP pseudo-R_FACTOR (value * 100) (src->dst)",
-    ['RTP_OUT_R_FACTOR'] = "RTP pseudo-R_FACTOR (value * 100) (dst->src)",
-    ['RTP_DTMF_TONES'] = "DTMF tones sent (if any) during the call",
-    ['SIP_CALL_ID'] = "SIP call-id",
-    ['SIP_CALLING_PARTY'] = "SIP Call initiator",
-    ['SIP_CALLED_PARTY'] = "SIP Called party",
-    ['SIP_RTP_CODECS'] = "SIP RTP codecs",
-    ['SIP_INVITE_TIME'] = "SIP time (epoch) of INVITE",
-    ['SIP_TRYING_TIME'] = "SIP time (epoch) of Trying",
-    ['SIP_RINGING_TIME'] = "SIP time (epoch) of RINGING",
-    ['SIP_INVITE_OK_TIME'] = "SIP time (epoch) of INVITE OK",
-    ['SIP_INVITE_FAILURE_TIME'] = "SIP time (epoch) of INVITE FAILURE",
-    ['SIP_BYE_TIME'] = "SIP time (epoch) of BYE",
-    ['SIP_BYE_OK_TIME'] = "SIP time (epoch) of BYE OK",
-    ['SIP_CANCEL_TIME'] = "SIP time (epoch) of CANCEL",
-    ['SIP_CANCEL_OK_TIME'] = "SIP time (epoch) of CANCEL OK",
-    ['SIP_RTP_IPV4_SRC_ADDR'] = "SIP RTP stream source IP",
-    ['SIP_RTP_L4_SRC_PORT'] = "SIP RTP stream source port",
-    ['SIP_RTP_IPV4_DST_ADDR'] = "SIP RTP stream dest IP",
-    ['SIP_RTP_L4_DST_PORT'] = "SIP RTP stream dest port",
-    ['SIP_RESPONSE_CODE'] = "SIP failure response code",
-    ['SIP_REASON_CAUSE'] = "SIP Cancel/Bye/Failure reason cause",
-    ['SIP_C_IP'] = "SIP C IP addresses",
-    ['SIP_CALL_STATE'] = "Sip Call State",
+    ['RTP_SSRC'] =  i18n("flow_fields_description.rtp_ssrc"),
+    ['RTP_MOS'] = i18n("flow_fields_description.rtp_mos"),
+    ['RTP_R_FACTOR'] = i18n("flow_fields_description.rtp_r_factor"), --http://tools.ietf.org/html/rfc3611#section-4.7.5
+    ['RTP_RTT'] =  i18n("flow_fields_description.rtp_rtt"),
+    ['RTP_IN_TRANSIT'] = i18n("flow_fields_description.rtp_in_transit"),
+    ['RTP_OUT_TRANSIT'] = i18n("flow_fields_description.rtp_out_transit"),
+    ['RTP_FIRST_SEQ'] = i18n("flow_fields_description.rtp_first_seq"),
+    ['RTP_FIRST_TS'] = i18n("flow_fields_description.rtp_first_ts"),
+    ['RTP_LAST_SEQ'] = i18n("flow_fields_description.rtp_last_seq"),
+    ['RTP_LAST_TS'] = i18n("flow_fields_description.rtp_last_ts"),
+    ['RTP_IN_JITTER'] = i18n("flow_fields_description.rtp_in_jitter"),
+    ['RTP_OUT_JITTER'] = i18n("flow_fields_description.rtp_out_jitter"),
+    ['RTP_IN_PKT_LOST'] = i18n("flow_fields_description.rtp_in_pkt_lost"),
+    ['RTP_OUT_PKT_LOST'] = i18n("flow_fields_description.rtp_out_pkt_lost"),
+    ['RTP_OUT_PAYLOAD_TYPE'] = i18n("flow_fields_description.rtp_out_payload_type"),
+    ['RTP_IN_MAX_DELTA'] = i18n("flow_fields_description.rtp_in_max_delta"),
+    ['RTP_OUT_MAX_DELTA'] = i18n("flow_fields_description.rtp_out_max_delta"),
+    ['RTP_IN_PAYLOAD_TYPE'] = i18n("flow_fields_description.rtp_in_payload_type"),
+    ['RTP_SIP_CALL_ID'] = i18n("flow_fields_description.rtp_sip_call_id"),
+    ['RTP_IN_PKT_DROP'] = i18n("flow_fields_description.rtp_in_pkt_drop"),
+    ['RTP_OUT_PKT_DROP'] = i18n("flow_fields_description.rtp_out_pkt_drop"),
+    ['RTP_IN_MOS'] = i18n("flow_fields_description.rtp_in_mos"),
+    ['RTP_OUT_MOS'] = i18n("flow_fields_description.rtp_out_mos"),
+    ['RTP_IN_R_FACTOR'] = i18n("flow_fields_description.rtp_in_r_factor"),
+    ['RTP_OUT_R_FACTOR'] = i18n("flow_fields_description.rtp_out_r_factor"),
+    ['RTP_DTMF_TONES'] = i18n("flow_fields_description.rtp_dtmf_tones"),
+    ['SIP_CALL_ID'] = i18n("flow_fields_description.sip_call_id"),
+    ['SIP_CALLING_PARTY'] = i18n("flow_fields_description.sip_calling_party"),
+    ['SIP_CALLED_PARTY'] = i18n("flow_fields_description.sip_called_party"),
+    ['SIP_RTP_CODECS'] = i18n("flow_fields_description.sip_rtp_codecs"),
+    ['SIP_INVITE_TIME'] = i18n("flow_fields_description.sip_invite_time"),
+    ['SIP_TRYING_TIME'] = i18n("flow_fields_description.sip_trying_time"),
+    ['SIP_RINGING_TIME'] = i18n("flow_fields_description.sip_ringing_time"),
+    ['SIP_INVITE_OK_TIME'] = i18n("flow_fields_description.sip_invite_ok_time"),
+    ['SIP_INVITE_FAILURE_TIME'] = i18n("flow_fields_description.sip_invite_failure_time"),
+    ['SIP_BYE_TIME'] = i18n("flow_fields_description.sip_bye_time"),
+    ['SIP_BYE_OK_TIME'] = i18n("flow_fields_description.sip_bye_ok_time"),
+    ['SIP_CANCEL_TIME'] = i18n("flow_fields_description.sip_cancel_time"),
+    ['SIP_CANCEL_OK_TIME'] = i18n("flow_fields_description.sip_cancel_ok_time"),
+    ['SIP_RTP_IPV4_SRC_ADDR'] = i18n("flow_fields_description.sip_rtp_ipv4_src_addr"),
+    ['SIP_RTP_L4_SRC_PORT'] = i18n("flow_fields_description.sip_rtp_l4_src_port"),
+    ['SIP_RTP_IPV4_DST_ADDR'] = i18n("flow_fields_description.sip_rtp_ipv4_dst_addr"),
+    ['SIP_RTP_L4_DST_PORT'] = i18n("flow_fields_description.sip_rtp_l4_dst_port"),
+    ['SIP_RESPONSE_CODE'] = i18n("flow_fields_description.sip_response_code"),
+    ['SIP_REASON_CAUSE'] = i18n("flow_fields_description.sip_reason_cause"),
+    ['SIP_C_IP'] = i18n("flow_fields_description.sip_c_ip"),
+    ['SIP_CALL_STATE'] = i18n("flow_fields_description.sip_call_state"),
 
     -- S1AP
-    ["S1AP_ENB_UE_S1AP_ID"] = "S1AP ENB Identifier",
-    ["S1AP_MME_UE_S1AP_ID"] = "S1AP MME Identifier",
-    ["S1AP_MSG_EMM_TYPE_MME_TO_ENB"] = "S1AP EMM Message Type from MME to ENB",
-    ["S1AP_MSG_ESM_TYPE_MME_TO_ENB"] = "S1AP ESM Message Type from MME to ENB",
-    ["S1AP_MSG_EMM_TYPE_ENB_TO_MME"] = "S1AP EMM Message Type from ENB to MME",
-    ["S1AP_MSG_ESM_TYPE_ENB_TO_MME"] = "S1AP ESM Message Type from ENB to MME",
-    ["S1AP_CAUSE_ENB_TO_MME"] = "S1AP Cause from ENB to MME",
-    ["S1AP_DETAILED_CAUSE_ENB_TO_MME"] = "S1AP Detailed Cause from ENB to MME",
+    ["S1AP_ENB_UE_S1AP_ID"] = i18n("flow_fields_description.s1ap_enb_ue_s1ap_id"),
+    ["S1AP_MME_UE_S1AP_ID"] = i18n("flow_fields_description.s1ap_mme_ue_s1ap_id"),
+    ["S1AP_MSG_EMM_TYPE_MME_TO_ENB"] = i18n("flow_fields_description.s1ap_msg_emm_type_mme_to_enb"),
+    ["S1AP_MSG_ESM_TYPE_MME_TO_ENB"] = i18n("flow_fields_description.s1ap_msg_esm_type_mme_to_enb"),
+    ["S1AP_MSG_EMM_TYPE_ENB_TO_MME"] = i18n("flow_fields_description.s1ap_msg_emm_type_enb_to_mme"),
+    ["S1AP_MSG_ESM_TYPE_ENB_TO_MME"] = i18n("flow_fields_description.s1ap_msg_esm_type_enb_to_mme"),
+    ["S1AP_CAUSE_ENB_TO_MME"] = i18n("flow_fields_description.s1ap_cause_enb_to_mme"),
+    ["S1AP_DETAILED_CAUSE_ENB_TO_MME"] = i18n("flow_fields_description.s1ap_detailed_cause_enb_to_mme"),
 
     -- Mail
-    ["SMTP_MAIL_FROM"] = "Mail sender",
-    ["SMTP_RCPT_TO"] = "Mail recipient",
-    ["POP_USER"] = "POP3 user login",
-    ["IMAP_LOGIN"] = "Mail sender",
+    ["SMTP_MAIL_FROM"] = i18n("flow_fields_description.smtp_mail_from"),
+    ["SMTP_RCPT_TO"] = i18n("flow_fields_description.smtp_rcpt_to"),
+    ["POP_USER"] = i18n("flow_fields_description.pop_user"),
+    ["IMAP_LOGIN"] = i18n("flow_fields_description.smtp_mail_from"),
 
     -- WHOIS
-    ["WHOIS_DAS_DOMAIN"] = "Whois/DAS Domain name",
+    ["WHOIS_DAS_DOMAIN"] = i18n("flow_fields_description.whois_das_domain"),
  }
 
  -- #######################
@@ -1153,11 +1153,11 @@ end
 
 function mapCallState(call_state)
 --  return call_state
-  if(call_state == "CALL_STARTED") then return("Call Started")
-  elseif(call_state == "CALL_IN_PROGRESS") then return("Ongoing Call")
-  elseif(call_state == "CALL_COMPLETED") then return("<font color=green>Call Completed</font>")
-  elseif(call_state == "CALL_ERROR") then return("<font color=red>Call Error</span>")
-  elseif(call_state == "CALL_CANCELED") then return("<font color=orange>Call Canceled</span>")
+  if(call_state == "CALL_STARTED") then return(i18n("flow_details.call_started"))
+  elseif(call_state == "CALL_IN_PROGRESS") then return(i18n("flow_details.ongoing_call"))
+  elseif(call_state == "CALL_COMPLETED") then return("<font color=green>"..i18n("flow_details.call_completed").."</font>")
+  elseif(call_state == "CALL_ERROR") then return("<font color=red>"..i18n("flow_details.call_error").."</font>")
+  elseif(call_state == "CALL_CANCELED") then return("<font color=orange>"..i18n("flow_details.call_canceled").."</font>")
   else return(call_state)
   end
 end
@@ -1260,12 +1260,12 @@ function getSIPTableRows(info)
      sip_found = isThereSIPCall(info)
    end
    if(sip_found == 1) then
-     string_table = string_table.."<tr><th colspan=3 class=\"info\" >SIP Protocol Information</th></tr>\n"
+     string_table = string_table.."<tr><th colspan=3 class=\"info\" >"..i18n("flow_details.sip_protocol_information").."</th></tr>\n"
      call_id = getFlowValue(info, "SIP_CALL_ID")
      if((call_id == nil) or (call_id == "")) then
-       string_table = string_table.."<tr id=\"call_id_tr\" style=\"display: none;\"><th width=33%> Call-ID "..call_id_ico.."</th><td colspan=2><div id=call_id></div></td></tr>\n"
+       string_table = string_table.."<tr id=\"call_id_tr\" style=\"display: none;\"><th width=33%> "..i18n("flow_details.call_id").." "..call_id_ico.."</th><td colspan=2><div id=call_id></div></td></tr>\n"
      else
-       string_table = string_table.."<tr id=\"call_id_tr\" style=\"display: table-row;\"><th width=33%> Call-ID "..call_id_ico.."</th><td colspan=2><div id=call_id>" .. call_id .. "</div></td></tr>\n"
+       string_table = string_table.."<tr id=\"call_id_tr\" style=\"display: table-row;\"><th width=33%> "..i18n("flow_details.call_id").." "..call_id_ico.."</th><td colspan=2><div id=call_id>" .. call_id .. "</div></td></tr>\n"
      end
 
      called_party = getFlowValue(info, "SIP_CALLED_PARTY")
@@ -1275,16 +1275,16 @@ function getSIPTableRows(info)
      called_party = extractSIPCaller(called_party)
      calling_party = extractSIPCaller(calling_party)
      if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
-       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: none;\"><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
+       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: none;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
      else
-       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: table-row;\"><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
+       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: table-row;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
      end
 
      rtp_codecs = getFlowValue(info, "SIP_RTP_CODECS")
      if((rtp_codecs == nil) or (rtp_codecs == "")) then
-       string_table = string_table.."<tr id=\"rtp_codecs_tr\" style=\"display: none;\"><th width=33%>RTP Codecs</th><td colspan=2> <div id=rtp_codecs></></td></tr>\n"
+       string_table = string_table.."<tr id=\"rtp_codecs_tr\" style=\"display: none;\"><th width=33%>"..i18n("flow_details.rtp_codecs").."</th><td colspan=2> <div id=rtp_codecs></></td></tr>\n"
      else
-       string_table = string_table.."<tr id=\"rtp_codecs_tr\" style=\"display: table-row;\"><th width=33%>RTP Codecs</th><td colspan=2> <div id=rtp_codecs>" .. rtp_codecs .. "</></td></tr>\n"
+       string_table = string_table.."<tr id=\"rtp_codecs_tr\" style=\"display: table-row;\"><th width=33%>"..i18n("flow_details.rtp_codecs").."</th><td colspan=2> <div id=rtp_codecs>" .. rtp_codecs .. "</></td></tr>\n"
      end
 
 
@@ -1351,9 +1351,9 @@ function getSIPTableRows(info)
      end
 
      if (show_rtp_stream == 1) then
-       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: table-row;\"><th width=33%>RTP Stream Peers (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
+       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: table-row;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      else
-       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>RTP Stream Peers (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
+       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      end
      string_table = string_table..string_table_1..string_table_2..string_table_3..string_table_4..string_table_5
 
@@ -1366,26 +1366,26 @@ function getSIPTableRows(info)
 	string_table = string_table.."&label="..sip_rtp_src_address_ip..":"..sip_rtp_src_port
 	string_table = string_table.." <-> "
 	string_table = string_table..sip_rtp_dst_address_ip..":"..sip_rtp_dst_port.."\">"
-	string_table = string_table..'<span class="label label-info">RTP Flow</span></a>'
+	string_table = string_table..'<span class="label label-info">'..i18n("flow_details.rtp_flow")..'</span></a>'
      end
      string_table = string_table.."</div></td></tr>\n"
 
      val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
      if(val_original ~= "0") then
-        string_table = string_table.."<tr id=\"cbf_reason_cause_tr\" style=\"display: table-row;\"><th width=33%> Cancel/Bye/Failure Reason Cause </th><td colspan=2><div id=reason_cause>"
+        string_table = string_table.."<tr id=\"cbf_reason_cause_tr\" style=\"display: table-row;\"><th width=33%> "..i18n("flow_details.cancel_bye_failure_reason_cause").." </th><td colspan=2><div id=reason_cause>"
         string_table = string_table..val
      else
-        string_table = string_table.."<tr id=\"cbf_reason_cause_tr\" style=\"display: none;\"><th width=33%> Cancel/Bye/Failure Reason Cause </th><td colspan=2><div id=reason_cause>"
+        string_table = string_table.."<tr id=\"cbf_reason_cause_tr\" style=\"display: none;\"><th width=33%> "..i18n("flow_details.cancel_bye_failure_reason_cause").." </th><td colspan=2><div id=reason_cause>"
      end
      string_table = string_table.."</div></td></tr>\n"
      if(info["SIP_C_IP"]  ~= nil) then
-       string_table = string_table.."<tr id=\"sip_c_ip_tr\" style=\"display: table-row;\"><th width=33%> C IP Addresses </th><td colspan=2><div id=c_ip>" .. getFlowValue(info, "SIP_C_IP") .. "</div></td></tr>\n"
+       string_table = string_table.."<tr id=\"sip_c_ip_tr\" style=\"display: table-row;\"><th width=33%> "..i18n("flow_details.c_ip_addresses").." </th><td colspan=2><div id=c_ip>" .. getFlowValue(info, "SIP_C_IP") .. "</div></td></tr>\n"
      end
 
      if((getFlowValue(info, "SIP_CALL_STATE") == nil) or (getFlowValue(info, "SIP_CALL_STATE") == "")) then
-       string_table = string_table.."<tr id=\"sip_call_state_tr\" style=\"display: none;\"><th width=33%> Call State </th><td colspan=2><div id=call_state></div></td></tr>\n"
+       string_table = string_table.."<tr id=\"sip_call_state_tr\" style=\"display: none;\"><th width=33%> "..i18n("flow_details.call_state").." </th><td colspan=2><div id=call_state></div></td></tr>\n"
      else
-       string_table = string_table.."<tr id=\"sip_call_state_tr\" style=\"display: table-row;\"><th width=33%> Call State </th><td colspan=2><div id=call_state>" .. mapCallState(getFlowValue(info, "SIP_CALL_STATE")) .. "</div></td></tr>\n"
+       string_table = string_table.."<tr id=\"sip_call_state_tr\" style=\"display: table-row;\"><th width=33%> "..i18n("flow_details.call_state").." </th><td colspan=2><div id=call_state>" .. mapCallState(getFlowValue(info, "SIP_CALL_STATE")) .. "</div></td></tr>\n"
      end
    end
    return string_table
@@ -1400,7 +1400,7 @@ function getRTPTableRows(info)
 
    if(rtp_found == 1) then
       -- SSRC
-      string_table = string_table.."<tr><th colspan=3 class=\"info\" >RTP Protocol Information</th></tr>\n"
+      string_table = string_table.."<tr><th colspan=3 class=\"info\" >"..i18n("flow_details.rtp_protocol_information").."</th></tr>\n"
       if(info["RTP_SSRC"] ~= nil) then
 	 sync_source_var = getFlowValue(info, "RTP_SSRC")
 	 if((sync_source_var == nil) or (sync_source_var == "")) then
@@ -1408,7 +1408,7 @@ function getRTPTableRows(info)
 	 else
 	    sync_source_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table.."<tr id=\"sync_source_id_tr\" "..sync_source_hide.." ><th> Sync Source ID </th><td colspan=2><div id=sync_source_id>" .. sync_source_var .. "</td></tr>\n"
+	 string_table = string_table.."<tr id=\"sync_source_id_tr\" "..sync_source_hide.." ><th> "..i18n("flow_details.sync_source_id").." </th><td colspan=2><div id=sync_source_id>" .. sync_source_var .. "</td></tr>\n"
       end
       
       -- ROUND-TRIP-TIME
@@ -1419,7 +1419,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_rtt_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"rtt_id_tr\" "..rtp_rtt_hide.."><th>Round Trip Time</th><td colspan=2><span id=rtp_rtt>"
+	 string_table = string_table .. "<tr id=\"rtt_id_tr\" "..rtp_rtt_hide.."><th>"..i18n("flow_details.round_trip_time").."</th><td colspan=2><span id=rtp_rtt>"
 	 if((rtp_rtt_var ~= nil) and (rtp_rtt_var ~= "")) then
 	    string_table = string_table .. rtp_rtt_var .. " ms "
 	 end
@@ -1436,7 +1436,7 @@ function getRTPTableRows(info)
 	    rtp_transit_hide = "style=\"display: table-row;\""
 	 end
 	 
-	 string_table = string_table .. "<tr id=\"rtp_transit_id_tr\" "..rtp_transit_hide.."><th>RTP Transit IN / OUT</th><td><div id=rtp_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"rtp_transit_id_tr\" "..rtp_transit_hide.."><th>"..i18n("flow_details.rtp_transit_in_out").."</th><td><div id=rtp_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
       end
       
       -- TONES
@@ -1447,7 +1447,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_dtmf_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"dtmf_id_tr\" ".. rtp_dtmf_hide .."><th>DTMF tones sent during the call</th><td colspan=2><span id=dtmf_tones>"..rtp_dtmf_var.."</span></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"dtmf_id_tr\" ".. rtp_dtmf_hide .."><th>"..i18n("flow_details.dtmf_tones_sent").."</th><td colspan=2><span id=dtmf_tones>"..rtp_dtmf_var.."</span></td></tr>\n"
       end
 	 
       -- FIRST REQUEST
@@ -1459,7 +1459,7 @@ function getRTPTableRows(info)
 	 else
 	    first_last_flow_sequence_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"first_last_flow_sequence_id_tr\" "..first_last_flow_sequence_hide.."><th>First / Last Flow Sequence</th><td><div id=first_flow_sequence>"..first_flow_sequence_var.."</div></td><td><div id=last_flow_sequence>"..last_flow_sequence_var.."</div></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"first_last_flow_sequence_id_tr\" "..first_last_flow_sequence_hide.."><th>"..i18n("flow_details.first_last_flow_sequence").."</th><td><div id=first_flow_sequence>"..first_flow_sequence_var.."</div></td><td><div id=last_flow_sequence>"..last_flow_sequence_var.."</div></td></tr>\n"
       end
       
       -- CALL-ID
@@ -1470,11 +1470,11 @@ function getRTPTableRows(info)
       else
 	 sip_call_id_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"sip_call_id_tr\" "..sip_call_id_hide.."><th> SIP Call-ID <i class='fa fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" .. sip_call_id_var .. "</div></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"sip_call_id_tr\" "..sip_call_id_hide.."><th> "..i18n("flow_details.sip_call_id").." <i class='fa fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" .. sip_call_id_var .. "</div></td></tr>\n"
       end
       
       -- TWO-WAY CALL-QUALITY INDICATORS
-      string_table = string_table.."<tr><th>Call Quality Indicators</th><th>Forward</th><th>Reverse</th></tr>"
+      string_table = string_table.."<tr><th>"..i18n("flow_details.call_quality_indicators").."</th><th>"..i18n("flow_details.forward").."</th><th>"..i18n("flow_details.reverse").."</th></tr>"
       -- JITTER
       if(info["RTP_IN_JITTER"] ~= nil) then	 
 	 rtp_in_jitter = getFlowValue(info, "RTP_IN_JITTER")/100
@@ -1484,7 +1484,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_out_jitter_hide = "style=\"display: table-row;\""
 	 end	 
-	 string_table = string_table .. "<tr id=\"jitter_id_tr\" "..rtp_out_jitter_hide.."><th style=\"text-align:right\">Jitter</th><td><span id=jitter_in>"
+	 string_table = string_table .. "<tr id=\"jitter_id_tr\" "..rtp_out_jitter_hide.."><th style=\"text-align:right\">"..i18n("flow_details.jitter").."</th><td><span id=jitter_in>"
 	 
 	 if((rtp_in_jitter ~= nil) and (rtp_in_jitter ~= "")) then
 	    string_table = string_table .. rtp_in_jitter.." ms "
@@ -1506,7 +1506,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_packet_loss_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"rtp_packet_loss_id_tr\" "..rtp_packet_loss_hide.."><th style=\"text-align:right\">Lost Packets</th><td><span id=packet_lost_in>"
+	 string_table = string_table .. "<tr id=\"rtp_packet_loss_id_tr\" "..rtp_packet_loss_hide.."><th style=\"text-align:right\">"..i18n("flow_details.lost_packets").."</th><td><span id=packet_lost_in>"
 	 
 	 if((rtp_in_pkt_lost ~= nil) and (rtp_in_pkt_lost ~= "")) then
 	    string_table = string_table .. formatPackets(rtp_in_pkt_lost)
@@ -1528,7 +1528,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_pkt_drop_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"packet_drop_id_tr\" "..rtp_pkt_drop_hide.."><th style=\"text-align:right\">Dropped Packets</th><td><span id=packet_drop_in>"
+	 string_table = string_table .. "<tr id=\"packet_drop_id_tr\" "..rtp_pkt_drop_hide.."><th style=\"text-align:right\">"..i18n("flow_details.dropped_packets").."</th><td><span id=packet_drop_in>"
 	 if((rtp_in_pkt_drop ~= nil) and (rtp_in_pkt_drop ~= "")) then
 	    string_table = string_table .. formatPackets(rtp_in_pkt_drop)
 	 end
@@ -1549,7 +1549,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_max_delta_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"delta_time_id_tr\" "..rtp_max_delta_hide.."><th style=\"text-align:right\">Max Packet Interarrival Time</th><td><span id=max_delta_time_in>"
+	 string_table = string_table .. "<tr id=\"delta_time_id_tr\" "..rtp_max_delta_hide.."><th style=\"text-align:right\">"..i18n("flow_details.max_packet_interarrival_time").."</th><td><span id=max_delta_time_in>"
 	 if((rtp_in_max_delta ~= nil) and (rtp_in_max_delta ~= "")) then
 	    string_table = string_table .. rtp_in_max_delta .. " ms "
 	 end
@@ -1581,7 +1581,7 @@ function getRTPTableRows(info)
 	 else
 	    quality_mos_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"quality_mos_id_tr\" ".. quality_mos_hide .."><th style=\"text-align:right\">(Pseudo) MOS</th><td><span id=mos_in_signal></span><span id=mos_in>"
+	 string_table = string_table .. "<tr id=\"quality_mos_id_tr\" ".. quality_mos_hide .."><th style=\"text-align:right\">"..i18n("flow_details.pseudo_mos").."</th><td><span id=mos_in_signal></span><span id=mos_in>"
 	 if((rtp_in_mos ~= nil) and (rtp_in_mos ~= "")) then
 	    string_table = string_table .. MosPercentageBar(rtp_in_mos)
 	 end
@@ -1604,7 +1604,7 @@ function getRTPTableRows(info)
 	 else
 	    quality_r_factor_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"quality_r_factor_id_tr\" ".. quality_r_factor_hide .."><th style=\"text-align:right\">R-Factor</th><td><span id=r_factor_in_signal></span><span id=r_factor_in>"
+	 string_table = string_table .. "<tr id=\"quality_r_factor_id_tr\" ".. quality_r_factor_hide .."><th style=\"text-align:right\">"..i18n("flow_details.r_factor").."</th><td><span id=r_factor_in_signal></span><span id=r_factor_in>"
 	 if((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= "")) then
 	    string_table = string_table .. RFactorPercentageBar(rtp_in_r_factor)
 	 end
