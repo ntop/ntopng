@@ -24,6 +24,7 @@
 
 #include "config.h"
 
+
 #if defined (__FreeBSD) || defined(__FreeBSD__)
 #define _XOPEN_SOURCE
 #define _WITH_GETLINE
@@ -154,6 +155,7 @@ using namespace std;
 #include "TrafficStats.h"
 #include "nDPIStats.h"
 #include "GenericTrafficElement.h"
+
 #ifdef NTOPNG_PRO
 #include "Profile.h"
 #include "Profiles.h"

@@ -28,7 +28,6 @@
  * Main ntopng group.
  */
 
-
 class NtopPro;
 
 /** @class Ntop
@@ -442,6 +441,11 @@ class Ntop {
 #endif
 };
 
+
 extern Ntop *ntop;
+
+#ifdef NTOPNG_PRO
+#include "ntoppro_defines.h"
+#endif
 
 #endif /* _NTOP_CLASS_H_ */
