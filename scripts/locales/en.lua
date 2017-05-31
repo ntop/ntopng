@@ -446,6 +446,7 @@ local  en = {
       duplicate_profile = "Duplicate profile name",
       delete_profile = "Delete Profile",
       confirm_delete_profile = "Do you really want to delete the profile",
+      max_profiles_num = "With this version of ntopng you can only create %{maxnum} profiles. Upgrade to the enterprise version to remove this limit",
    },
 
    host_pools = {
