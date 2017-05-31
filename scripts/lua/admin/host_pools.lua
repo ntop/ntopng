@@ -354,6 +354,18 @@ end
         <br/><div id="table-manage"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
+      ]]
+
+if not ntop.isEnterprise() then
+  print[[<span style="float:left;">]]
+  print(i18n("notes"))
+  print[[<ul>
+      <li>]] print(i18n("host_pools.max_members_message", {maxnum=host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS})) print[[</li>
+    </ul>
+  </span>]]
+end
+
+print[[
       <button id="emptyPoolButton" class="btn btn-default" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
 ]]
 
@@ -372,6 +384,10 @@ print[[
 
 if isCaptivePortalActive() then
   print [[Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>]]
+end
+
+if not ntop.isEnterprise() then
+  print("<li>"..i18n("host_pools.max_pools_message", {maxnum=host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS}).."</li>")
 end
 
 print[[
@@ -559,6 +575,7 @@ print [[
   <script>
     var addedMemberCtr = 0;
     var curDisplayedMembers = 0;
+    var numPoolMembers = 0;
 
     var validator_options = {
       disable: true,
@@ -575,7 +592,7 @@ print [[
       }
     }
 
-    function decPoolMembers() { curDisplayedMembers--; }
+    function decPoolMembers() { curDisplayedMembers--; numPoolMembers--; }
 
     function addPoolMember() {
       if (datatableIsEmpty("#table-manage"))
@@ -583,6 +600,7 @@ print [[
 
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
+      numPoolMembers++;
 
       var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center ]] if not (isCaptivePortalActive()) then print(" hidden") end print[[">Persistent</td><td class="text-center"></td></tr>');
       datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print(i18n('undo')) print[[");
@@ -592,7 +610,8 @@ print [[
       var icon = $("td:nth-child(4)", tr);
       var icon_input = $("select", icon).first();
       curDisplayedMembers++;
-      $("#addPoolMemberBtn").attr("disabled", (curDisplayedMembers > ]] print(perPageMembers) print[[));
+      $("#addPoolMemberBtn").attr("disabled", ((curDisplayedMembers > ]] print(perPageMembers) print[[)
+       || (]] print(not ntop.isEnterprise()) print[[ && numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[)));
 
       aysRecheckForm("#table-manage-form");
     }
@@ -770,13 +789,16 @@ print[[
             datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
+          if(numPoolMembers === 0)
+            numPoolMembers = datatableGetTotalItems('#table-manage-form');
           aysResetForm('#table-manage-form');
         }
 
         $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
                                               || (no_pools))
                                               || (]] if members_filtering ~= nil then print("true") else print("false") end print[[)
-                                              || (curDisplayedMembers > ]] print(perPageMembers) print[[));
+                                              || (curDisplayedMembers > ]] print(perPageMembers) print[[)
+                                              || (]] print(not ntop.isEnterprise()) print[[ && numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
 
         $("#table-manage-form")
             .validator(validator_options)
@@ -844,7 +866,8 @@ print[[
 print [[
   <script>
     var nextPoolId = 1;
-    var maxPoolNum = ]] print(tostring(host_pools_utils.MAX_NUM_POOLS)) print[[;
+    var numPools = 0;
+    var maxPoolNum = ]] print(ternary(ntop.isEnterprise(), tostring(host_pools_utils.MAX_NUM_POOLS), tostring(host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS))) print[[;
 
     function deletePool(pool_id) {
       var params = {};
@@ -862,6 +885,7 @@ print [[
       var pool_id = parseInt(newid.split("added_pool_")[1]);
       if (pool_id)
         nextPoolId = Math.min(nextPoolId, pool_id);
+      numPools--;
     }
 
     function makeChildrenSafeInput(value) {
@@ -887,6 +911,7 @@ print [[
          datatableRemoveEmptyRow("#table-create");
 
       if (pool_id < maxPoolNum) {
+        numPools++;
         var newid = "added_pool_" + pool_id;
 
         var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]]
@@ -913,7 +938,7 @@ print [[
     }
 
     function recheckPoolAddButton() {
-      if(nextPoolId >= maxPoolNum)
+      if(numPools >= maxPoolNum)
         $("#addNewPoolBtn").attr("disabled", "disabled");
     }
 
@@ -922,11 +947,10 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
       title: "",
-      perPage: 5,
       hidePerPage: true,
       hideDetails: true,
       showPagination: false,
-      perPage: maxPoolNum,
+      perPage: ]] print(tostring(host_pools_utils.MAX_NUM_POOLS)) print[[,
       forceTable: true,
 
       buttons: [
@@ -982,6 +1006,8 @@ print [[
            hidden: true,
          }
       ], tableCallback: function() {
+        var pools_ctr = 0;
+
         if(datatableIsEmpty("#table-create")) {
           datatableAddEmptyRow("#table-create", "]] print(i18n("host_pools.no_pools_defined")) print[[");
         } else {
@@ -1013,6 +1039,8 @@ print [[
               if (pool_undeletable)
                 $("td:nth-child(6) a", $(this)).last().attr("disabled", "disabled");
             }
+
+            pools_ctr++;
          });
 
          /* pick the first unused pool ID */
@@ -1021,6 +1049,9 @@ print [[
             if(nextPoolId == this_pool_id)
                nextPoolId += 1;
          });
+
+         if (numPools === 0)
+          numPools = pools_ctr;
 
          aysResetForm('#table-create-form');
         }

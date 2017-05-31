@@ -15,6 +15,13 @@ function datatableIsEmpty(table) {
   return $("tr:not(.emptyRow)", $(table)).length == 1;
 }
 
+function datatableGetTotalItems(table) {
+   if(datatableIsEmpty(table))
+      return 0;
+
+   return $("#dt-bottom-details div.pull-left", $(table)).html().match(/of (\d+) rows/)[1];
+}
+
 function datatableGetByForm(form) {
   return $("table", $("#dt-top-details", $(form)).parent())
 }

@@ -483,6 +483,9 @@ local  en = {
       new_pool = "New Pool",
       change_member_pool = "Change Member Pool",
       select_new_pool = "Select a new pool from the dropdown below to assign member \"%{member}\" to:",
+      max_pools_message = "With this version of ntopng you can only create %{maxnum} host pools. Upgrade to the enterprise version to remove this limit.",
+      max_members_message = "With this version of ntopng you can only assign %{maxnum} members per host pool. Upgrade to the enterprise version to remove this limit.",
+      members_limit_reached = "members limit reached",
    },
 
    snmp = {

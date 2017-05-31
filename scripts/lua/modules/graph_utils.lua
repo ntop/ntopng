@@ -1698,11 +1698,21 @@ function poolDropdown(pool_id, exclude)
             output[#output + 1] = ' selected'
          end
 
-         if exclude[pool.id] then
+         local limit_reached = false
+
+         if not ntop.isEnterprise() then
+            local n_members = table.len(host_pools_utils.getPoolMembers(ifId, pool.id) or {})
+
+            if n_members >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
+               limit_reached = true
+            end
+         end
+
+         if exclude[pool.id] or limit_reached then
             output[#output + 1] = ' disabled'
          end
 
-         output[#output + 1] = '>' .. pool.name .. '</option>'
+         output[#output + 1] = '>' .. pool.name .. ternary(limit_reached, " ("..i18n("host_pools.members_limit_reached")..")", "") .. '</option>'
       end
    end
 
