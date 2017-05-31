@@ -3842,6 +3842,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
 #endif
     lua_push_int_table_entry(vm, "constants.max_num_host_pools", MAX_NUM_HOST_POOLS);
+    lua_push_int_table_entry(vm, "constants.max_num_pool_members",    MAX_NUM_POOL_MEMBERS);
     lua_push_int_table_entry(vm, "constants.max_num_profiles",    MAX_NUM_PROFILES);
 
 #if 0

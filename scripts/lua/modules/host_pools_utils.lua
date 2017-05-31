@@ -7,17 +7,19 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.
 
 require "lua_utils"
 
+local ntop_info = ntop.getInfo()
+
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
 host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
-host_pools_utils.MAX_NUM_POOLS = 16
+host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
-host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = 8
--- this does not take into account the special pools
-host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS = 3
+host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 -- this takes into account the special pools
-host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS + 1
+host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
+-- this does not take into account the special pools
+host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
 
 local function get_pool_members_key(ifid, pool_id)
   return "ntopng.prefs." .. ifid .. ".host_pools.members." .. pool_id
@@ -65,12 +67,10 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, en
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
 
-  if not ntop.isEnterprise() then
-    local n = table.len(ntop.getMembersCache(ids_key) or {})
+  local n = table.len(ntop.getMembersCache(ids_key) or {})
 
-    if n >= host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS then
-      return false
-    end
+  if n >= host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS then
+    return false
   end
 
   ntop.setMembersCache(ids_key, pool_id)
