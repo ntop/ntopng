@@ -49,12 +49,10 @@ local function get_pool_detail(ifid, pool_id, detail)
 end
 
 local function addMemberToRedisPool(members_key, member_key)
-  if not ntop.isEnterprise() then
-    local n = table.len(ntop.getMembersCache(members_key) or {})
+  local n = table.len(ntop.getMembersCache(members_key) or {})
 
-    if n >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
-      return false
-    end
+  if n >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
+    return false
   end
 
   ntop.setMembersCache(members_key, member_key)

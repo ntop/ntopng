@@ -611,7 +611,7 @@ print [[
       var icon_input = $("select", icon).first();
       curDisplayedMembers++;
       $("#addPoolMemberBtn").attr("disabled", ((curDisplayedMembers > ]] print(perPageMembers) print[[)
-       || (]] print(not ntop.isEnterprise()) print[[ && numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[)));
+       || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[)));
 
       aysRecheckForm("#table-manage-form");
     }
@@ -798,7 +798,7 @@ print[[
                                               || (no_pools))
                                               || (]] if members_filtering ~= nil then print("true") else print("false") end print[[)
                                               || (curDisplayedMembers > ]] print(perPageMembers) print[[)
-                                              || (]] print(not ntop.isEnterprise()) print[[ && numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
+                                              || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
 
         $("#table-manage-form")
             .validator(validator_options)
@@ -867,7 +867,7 @@ print [[
   <script>
     var nextPoolId = 1;
     var numPools = 0;
-    var maxPoolNum = ]] print(ternary(ntop.isEnterprise(), tostring(host_pools_utils.MAX_NUM_POOLS), tostring(host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS))) print[[;
+    var maxPoolNum = ]] print(tostring(host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS)) print[[;
 
     function deletePool(pool_id) {
       var params = {};
