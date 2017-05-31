@@ -1788,12 +1788,12 @@ function version2int(v)
 end
 
 function ntop_version_check()
-   _rsp = ntop.getCache("ntopng.version", true)
+   _rsp = ntop.getCache("ntopng.cache.version")
 
    if((_rsp == nil) or (_rsp == "")) then
       _rsp = ntop.httpGet("http://www.ntop.org/ntopng.version", "", "", 10)
       if((_rsp == nil) or (_rsp["CONTENT"] == nil)) then rsp = "0.0.0" else rsp = _rsp["CONTENT"] end
-      ntop.setCache("ntopng.version", rsp, 86400)
+      ntop.setCache("ntopng.cache.version", rsp, 86400)
    else
       rsp = _rsp
    end
