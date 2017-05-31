@@ -1042,10 +1042,12 @@ local  en = {
       click_on_next = "Click on the Next button to proceed.",
       configure_host_pools = "Host Pools",
       host_pool_info = "An host pool represents an aggregation of network hosts.<br>You need to create an host pool to start applying traffic policies to it.",
-      create_guest_pool = "Create these pools<ul><li>The \"%{guests}\" pool with a policy of your choice</li><li>The \"%{safe_search}\" pool, with <a target='_blank' href='%{url}'>Safe Search</a> enabled for adult content filtering</li></ul>",
-      create_custom_pool = "Create a custom pool with this name:",
+      the_guests_pool = "A \"%{guests}\" pool, with p2p traffic blocked",
+      the_children_pool = "The \"%{safe_search}\" pool, with <a target='_blank' href='%{url}'>Safe Search</a> enabled for adult content filtering",
+      also_create_these_pools = "Also create these pools:",
+      create_custom_pool = "Create a pool with this name:",
       configure_user = "Captive Portal",
-      configure_user_message = "Please specifify the credentials your clients will use to access your network.",
+      configure_user_message = "Please specifify the '%{pool}' pool credentials your clients will use to access your network.",
       username = "Username",
       username_title = "The username your clients will use to login",
       password = "Password",
@@ -1062,17 +1064,18 @@ local  en = {
       policies_config = "Traffic Policies, Shaping and Quotas",
       captive_portal_users = "Captive Portal Users",
       business_preset = "Business: no P2P, limited social networks and games time",
-      children_preset = "Children: Safe Search enabled, limited games time",
+      children_preset = "Children: Safe Search enabled, limited games time, no social networks or chat",
       no_obfuscation_preset = "No Obfuscation: no obfuscation software (e.g. VPNs)",
       walled_garden_preset = "Walled Garden: no obfuscation software, no social networks",
       no_preset = "Do not use a preset",
-      credentials_message = "Your clients will be required to authenticate through the captive portal before getting access to your network.",
-      predefined_users_message = "The access credentials will be the followings:<ul>"..[[
+      predefined_users_message = "The access credentials to the additional pools will be the followings:<ul>"..[[
         <li>Username <b>%{guests_username}</b> and password <b>%{guests_password}</b> to grant access as a %{guests} pool member</li>
         <li>Username <b>%{children_username}</b> and password <b>%{children_password}</b> to grant access as a %{children} pool member</li>
       </ul>]],
-      change_later = "You can change these credentials later from the <a target=\"_blank\" href=\"%{url}\">Captive Portal Users page</a>.",
       no_local_networks = "No local networks found.<br>Please add the -m option to your ntopng configuration (e.g. -m \"192.168.1.0/24\") and restart ntopng",
+      pool_name_error = "Please choose a different pool name",
+      username_error = "Please choose a different username",
+      password_format_error = "The password must be at least 5 characters long and must not contain some special characters",
    },
 
    alerts_thresholds_config = {

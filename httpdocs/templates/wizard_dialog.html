@@ -26,6 +26,7 @@
 
         <form id="{{wizard.id}}Form" style="height:95%;"
          data-ays-ignore="true"
+         onkeypress="return event.keyCode != 13;"
          method="{{wizard.form_method or "post"}}"
          {% if wizard.form_action ~= nil then %} action="{{wizard.form_action}} {% end %}"
          {% if wizard.form_onsubmit ~= nil then %} onsubmit="return {{wizard.form_onsubmit}}(this)" {% end %}>

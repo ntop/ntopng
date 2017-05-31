@@ -45,71 +45,58 @@ local steps = {
   {    -- Step 1
      title = i18n("bridge_wizard.start"),
      content = i18n("bridge_wizard.intro_1", {iface=ifstats.name}).."<br><br>"..captive_portal_status..[[
-     <br>]]..ternary(configuration_found, "<br>"..config_overwrite_warning)..[[<br>
+     <br>]]..ternary(configuration_found, "<br>"..config_overwrite_warning, "")..[[<br>
      <br>]]..ternary(no_local_networks, "<br>"..no_local_networks_warning, "<br><br>"..i18n("bridge_wizard.click_on_next")),
      size = 2,
   }, { -- Step 2
         title = i18n("bridge_wizard.configure_host_pools"),
         content = i18n("bridge_wizard.host_pool_info")..[[<br><br>
-    <div class="radio">
-      <label><input type="radio" id="create_guest_pool_radio" name="use_default_pools" checked>]]..i18n("bridge_wizard.create_guest_pool", {
-        guests = i18n("bridge_wizard.guests"),
-        safe_search = i18n("bridge_wizard.safe_search_guest"),
-        url = "https://en.wikipedia.org/wiki/SafeSearch",
-        })..[[</label>
+    <label>]]..i18n("bridge_wizard.create_custom_pool")..[[</label>
+    <div class="form-group has-feedback" style="margin-bottom:0;">
+      <input class="form-control" id="wizard_custom_pool_name" name="pool_name" data-pool_name="pool_name" required/>
+      <div class="help-block with-errors" style="height:1.2em;"></div>
     </div>
-    <div class="radio" style="margin-top:2em;">
-      <label><input type="radio" id="create_custom_pool_radio" name="use_default_pools">]]..i18n("bridge_wizard.create_custom_pool")..[[</label>
-  
-        <div class="form-group has-feedback" style="margin-bottom:0;">
-          <input class="form-control" id="wizard_custom_pool_name" name="pool_name" value="]]..i18n("bridge_wizard.guests")..[[" required disabled/>
-          <div class="help-block with-errors"></div>
-        </div>
-    </div>
-    <script>
-      $("#create_guest_pool_radio").click(function() {$("#wizard_custom_pool_name").prop("disabled", true); $("#wizard_custom_pool_name").siblings().html("").parent().removeClass("has-error"); });
-      $("#create_custom_pool_radio").click(function() {$("#wizard_custom_pool_name").prop("disabled", false);});
-    </script>]],
+    <br>
+    <div class="checkbox">
+      <input type="checkbox" id="wizard_create_guests_pool" name="create_guests_pool">]]..i18n("bridge_wizard.also_create_these_pools")..[[
+      <ul>
+        <li>]]..i18n("bridge_wizard.the_guests_pool", {guests = i18n("bridge_wizard.guests")})..[[</li>
+        <li>]]..i18n("bridge_wizard.the_children_pool", {safe_search = i18n("bridge_wizard.safe_search_guest")})..[[</li>
+      </ul>
+    </div>]],
         size = 3,
   }, { -- Step 3
      title = i18n("bridge_wizard.configure_user"),
-     content = [[
-  <span id="wizard_configure_user">]]..i18n("bridge_wizard.configure_user_message")..[[<br><br>
+     content = i18n("bridge_wizard.configure_user_message", {pool='<span id="wizard_credentials_pool_name"></span>'})..[[<br><br>
     <label>]]..i18n("bridge_wizard.username")..[[</label>
     <input style="display:none" type="text" name="_" data-ays-ignore="true"/>
     <input style="display:none" type="password" name="_" data-ays-ignore="true"/>
     <div class="form-group has-feedback" style="margin-bottom:0;">
-       <input class="form-control" name="username" placeholder="]]..i18n("bridge_wizard.username_title")..[[" value="guest" required/>
-       <div class="help-block with-errors"></div>
+       <input class="form-control" name="username" placeholder="]]..i18n("bridge_wizard.username_title")..[[" data-username="username" required/>
+       <div class="help-block with-errors" style="height:1.2em;"></div>
     </div>
-    <br>
+
     <label>]]..i18n("bridge_wizard.password")..[[</label>
     <div class="form-group has-feedback" style="margin-bottom:0;">
-       <input class="form-control" name="password" type="password" pattern="]]..getPasswordInputPattern()..[[" placeholder="]]..i18n("bridge_wizard.password_title")..[[" required/>
-       <div class="help-block with-errors"></div>
+       <input class="form-control" name="password" type="password" pattern="]]..getPasswordInputPattern()..[[" placeholder="]]..i18n("bridge_wizard.password_title")..[[" oninvalid="setCustomValidity(']]..i18n("bridge_wizard.password_format_error")..[[.');" oninput="setCustomValidity('');" required/>
+       <div class="help-block with-errors" style="height:1.2em;"></div>
     </div>
-  </span>
-  <span id="wizard_use_predifined_users">
-    ]]..i18n("bridge_wizard.credentials_message").."<br><br><br>"..i18n("bridge_wizard.predefined_users_message", {
-      guests = i18n("bridge_wizard.guests"),
-      guests_username = "guest",
-      guests_password = "guest",
-      children = i18n("bridge_wizard.safe_search_guest"),
-      children_username = "children",
-      children_password = "children",
-    })..[[
-    <br><br>]]..i18n("bridge_wizard.change_later", {url=ntop.getHttpPrefix().."/lua/admin/users.lua?captive_portal_users=1"})..[[
-  </span>]],
+
+    <span id="wizard_guests_creds">
+      ]]..i18n("bridge_wizard.predefined_users_message", {
+        guests = i18n("bridge_wizard.guests"),
+        guests_username = "guest",
+        guests_password = "guest",
+        children = i18n("bridge_wizard.safe_search_guest"),
+        children_username = "children",
+        children_password = "children",
+      })..[[
+    </span>]],
      disabled = not captive_portal_supported,
      size = 3,
      on_show = [[
-      if ($("#wizard_custom_pool_name").prop("disabled")) {
-        $("#wizard_configure_user").css("display", "none");
-        $("#wizard_use_predifined_users").css("display", "");
-      } else {
-        $("#wizard_configure_user").css("display", "");
-        $("#wizard_use_predifined_users").css("display", "none");
-      }
+      $("#wizard_credentials_pool_name").html($("#wizard_custom_pool_name").val());
+      $("#wizard_guests_creds").css("display", $("#wizard_create_guests_pool").prop("checked") ? "" : "none");
      ]],
   }, { -- Step 4
      title = i18n("bridge_wizard.policy"),
@@ -122,7 +109,7 @@ local steps = {
         </select><br><br>]]..i18n("bridge_wizard.fine_tune", {url=ntop.getHttpPrefix().."/lua/if_stats.lua?page=filtering"}),
      size = 2,
      on_show = [[
-      $("#wizard_policy_pool_name").html($("#wizard_custom_pool_name").prop("disabled") ? "]]..i18n("bridge_wizard.guests")..[[" : $("#wizard_custom_pool_name").val());
+      $("#wizard_policy_pool_name").html($("#wizard_custom_pool_name").val());
      ]],
   }, { -- Step 5
      title = i18n("bridge_wizard.done"),
@@ -142,12 +129,16 @@ local wizard = {
   id = "bridgeWizardModal",
   title = "Bridge Configuration Wizard",
   style = "width: 50em;",
-  body_style = "height: 30em;",
+  body_style = "height: 36em;",
   validator_options = [[{
      custom: {
         member: memberValueValidator,
+        pool_name: poolNameValidator,
+        username: usernameValidator,
      }, errors: {
         member: "]]..i18n("host_pools.invalid_member")..[[.",
+        pool_name: "]]..i18n("bridge_wizard.pool_name_error")..[[.",
+        username: "]]..i18n("bridge_wizard.username_error")..[[.",
      }
   }]],
   steps = steps,
@@ -158,6 +149,30 @@ local wizard = {
 
 print[[
 <script>
+  function poolNameValidator(input) {
+    var value = $(input).val();
+    if (value === "") return true;
+
+    /* When we are about to create the guests pool, the custom pool name cannot be the same */
+    if($("#wizard_create_guests_pool").prop("checked")
+     && ((value === "]] print(i18n("bridge_wizard.guests")) print[[") || (value === "]] print(i18n("bridge_wizard.safe_search_guest")) print[[")))
+      return false;
+
+    return true;
+  }
+
+  function usernameValidator(input) {
+    var value = $(input).val();
+    if (value === "") return true;
+
+    /* When we are about to create the guests pool, the custom pool credentials cannot be the same */
+    if($("#wizard_create_guests_pool").prop("checked")
+     && ((value === "guest") || (value === "children")))
+      return false;
+
+    return true;
+  }
+
   function checkBridgeWizardForm(form) {
     var member_input = $("input[name='member']", form);
     if (member_input.length == 1) {
@@ -176,4 +191,3 @@ print[[
 </script>
 ]]
 print(template.gen("wizard_dialog.html", {wizard = wizard}))
-
