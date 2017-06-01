@@ -278,7 +278,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
-      print(" <i class='fa fa-ban fa-lg' title='Host traffic is affected by a blocking Traffic Policy'></i>")
+      print(" <i class='fa fa-ban fa-lg' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>")
    end
 
    --   print("</div>")
@@ -348,10 +348,10 @@ for _key, _value in pairsByKeys(vals, funct) do
    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
       print ("\", \"column_location\" : \"")
       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-	 print("<span class='label label-success'>Local Host</span>") else print("<span class='label label-default'>Remote Host</span>")
+	 print("<span class='label label-success'>"..i18n("hosts_stats.label_local_host").."</span>") else print("<span class='label label-default'>"..i18n("hosts_stats.label_remote_host").."</span>")
       end
       if value["is_blacklisted"] == true then
-	 print(" <span class='label label-danger'>Blacklisted Host</span>")
+	 print(" <span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>")
       end
    end
 

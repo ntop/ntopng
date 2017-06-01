@@ -51,7 +51,7 @@ for k,v in pairs(versions) do
 
    if res == nil or res[1] == nil then
       totals["status"] = "error"
-      totals["statusText"] = "Empty query response (database down or query killed/timed out?)"
+      totals["statusText"] = i18n("db_explorer.empty_query_response")
       goto continue
    end
 
