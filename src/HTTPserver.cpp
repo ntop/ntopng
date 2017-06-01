@@ -328,7 +328,8 @@ static int isCaptiveConnection(struct mg_connection *conn) {
   char *host = (char*)mg_get_header(conn, "Host");
   
   return(ntop->getPrefs()->isCaptivePortalEnabled()
-	 && (ntohs(conn->client.lsa.sin.sin_port) == 80)
+	 && (ntohs(conn->client.lsa.sin.sin_port) == 80
+	     || ntohs(conn->client.lsa.sin.sin_port) == 443)
 	 && (ntop->getPrefs()->get_alt_http_port() != 0)
 	 && host
 	 && (strcasestr(host, CONST_HELLO_HOST) == NULL)
@@ -717,20 +718,10 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   if(ntop->getPrefs()->get_http_port() == 0) use_http = false;
 
   if(use_http) {
-    char tmp[64];
-
-    if(ntop->getPrefs()->get_alt_http_port() != 0)
-      snprintf(tmp, sizeof(tmp), ",%s%s%d",
-	       http_binding_addr,
-               (http_binding_addr[0] == '\0') ? "" : ":",
-	       ntop->getPrefs()->get_alt_http_port());
-    else
-      tmp[0] = '\0';
-
-    snprintf(ports, sizeof(ports), "%s%s%d%s",
+    snprintf(ports, sizeof(ports), "%s%s%d",
 	     http_binding_addr,
 	     (http_binding_addr[0] == '\0') ? "" : ":",
-	     ntop->getPrefs()->get_http_port(), tmp);
+	     ntop->getPrefs()->get_http_port());
   }
 
   snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s",
@@ -769,6 +760,14 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable SSL.");
     ssl_enabled = false;
+  }
+
+  /* Alternate HTTP port (required for Captive Portal) */
+  if(use_http && ntop->getPrefs()->get_alt_http_port()) {
+    snprintf(&ports[strlen(ports)], sizeof(ports) - strlen(ports) - 1, ",%s%s%d",
+	     http_binding_addr,
+	     (http_binding_addr[0] == '\0') ? "" : ":",
+	     ntop->getPrefs()->get_alt_http_port());
   }
 
   if((!use_http) && (!use_ssl) & (!ssl_enabled)) {

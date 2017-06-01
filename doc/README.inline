@@ -196,6 +196,7 @@ correct host pool. In order to enable this feature
 - you need the enterprise version of ntopng
 - the captive portal option must be enabled in the ntopng preferences menu
 - ntopng must be active on port 80 (and port a different port) for authenticating users (-w 80,3000)
+- ntopng can be activated also on port 443 (-W 443) for authenticating users over SSL (e.g., when they require a page over HTTPS)
 - you can optionally start ntopng also in SSL (port 443) but you must have port 80 active
 
 When the captive portal is used, port 80 is used only for that purpose (i.e. it cannot be
