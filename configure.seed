@@ -167,13 +167,15 @@ fi
 
 DATE=`date +"%Y-%m-%d"`
 
-if test -d "/usr/include/hiredis"; then
- AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
- HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
- HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
-else
- HIREDIS_INC="-I ${PWD}/third-party/hiredis"
-fi
+
+AC_CHECK_HEADER(hiredis/hiredis.h, [
+  AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
+  HIREDIS_INC="`pkg-config --cflags hiredis`"
+  HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
+],
+[
+  HIREDIS_INC="-I ${PWD}/third-party/hiredis"
+])
 
 PF_RING_HOME=${HOME}/PF_RING
 if test -d ${PF_RING_HOME}; then
