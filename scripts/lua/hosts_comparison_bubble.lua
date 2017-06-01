@@ -79,7 +79,7 @@ else
     end
 
     -- 1.    Find all flows between compared hosts
-    flows_stats = interface.getFlowsInfo()
+    flows_stats = interface.getFlowsInfo(nil,{detailsLevel="higher"})
     flows_stats = flows_stats["flows"]
 
     ndpi = {}
