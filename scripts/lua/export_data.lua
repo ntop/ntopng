@@ -58,7 +58,7 @@ print[[</label>
 <div class="control-group">
 <div class="controls">
   <button type="submit" class="btn btn-primary">]] print(i18n("export_data.export_json_data")) print[[</button>
-  <button class="btn btn-default" type="reset">]] print(i18n("export_data.reset_form")) print[[Reset Form</button>
+  <button class="btn btn-default" type="reset">]] print(i18n("export_data.reset_form")) print[[</button>
 </div>
 </div>
 

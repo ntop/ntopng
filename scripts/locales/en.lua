@@ -90,6 +90,9 @@ local  en = {
    ["os"] = "OS",
    download = "Download",
    notes = "NOTES:",
+   aggregation = "Aggregation",
+   refresh = "Refresh",
+   l4_protocol = "L4 Protocol",
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -419,6 +422,7 @@ local  en = {
       hosts_talking_proto_with = "Hosts talking %{proto} with {host}",
       last_hour_flows = "Flows seen in the last hour",
       download_flows = "Download flows",
+      empty_query_response = "Empty query response (database down or query killed/timed out?)",
    },
 
    traffic_profiles = {
@@ -1395,6 +1399,10 @@ local  en = {
       location = "Location",
       httpbl = "HTTP:BL",
       more_info_about_as_popup_msg = "More Information about AS",
+      blocking_traffic_policy_popup_msg = "Host traffic is affected by a blocking Traffic Policy",
+      label_local_host = "Local Host",
+      label_remote_host = "Remote Host",
+      label_blacklisted_host = "Blacklisted Host",
    },
 
    unknown_devices = {
@@ -1980,7 +1988,12 @@ local  en = {
       never = "Never",
       live_update = "Live update",
       refresh = "Refresh",
+      refresh_graph_popup_msg = "Refresh graph",
       no_packet_warning = "No packet has been received yet on interface %{ifname}.<p>Please wait %{countdown} seconds until this page reloads.",
+   },
+
+   hosts_comparison = {
+      hosts_parameter_missing_message = "Hosts parameter is missing (internal error ?)",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

@@ -137,7 +137,7 @@ else
   print [[
          &nbsp;]] print(i18n("index_page.refresh")) print[[:  <div class="btn-group btn-small">
           <button id="topflow_graph_refresh" class="btn btn-default btn-xs">
-            <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="Refresh graph" class="glyphicon glyphicon-refresh"></i></button>
+            <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="glyphicon glyphicon-refresh"></i></button>
           </div>
   ]]
   end

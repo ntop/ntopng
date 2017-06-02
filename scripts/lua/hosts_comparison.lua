@@ -28,7 +28,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 
 if(hosts_ip == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Hosts parameter is missing (internal error ?)</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("hosts_comparison.hosts_parameter_missing_message").."</div>")
    return
 end
 
@@ -43,7 +43,7 @@ url=ntop.getHttpPrefix().."/lua/hosts_comparison.lua?hosts="..hosts_ip
 
 hosts_ip_tab_name = string.gsub(hosts_ip, ',', " <i class=\"fa fa-exchange fa-lg\"></i> ")
 
-print("<li><a href=\"#\">Hosts: "..hosts_ip_tab_name.." </a></li>\n")
+print("<li><a href=\"#\">"..i18n("flows_page.hosts")..": "..hosts_ip_tab_name.." </a></li>\n")
 
 if((page == "overview") or (page == nil)) then
   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
@@ -52,26 +52,26 @@ else
 end
 
 if(page == "traffic") then
-   print("<li class=\"active\"><a href=\"#\">Traffic</a></li>\n")
+   print("<li class=\"active\"><a href=\"#\">"..i18n("traffic").."</a></li>\n")
 else
    if(active_traffic) then
-      print("<li><a href=\""..url.."&page=traffic\">Traffic</a></li>")
+      print("<li><a href=\""..url.."&page=traffic\">"..i18n("traffic").."</a></li>")
    end
 end
 
 if(page == "packets") then
-   print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
+   print("<li class=\"active\"><a href=\"#\">"..i18n("packets").."</a></li>\n")
 else
    if(active_packets) then
-      print("<li><a href=\""..url.."&page=packets\">Packets</a></li>")
+      print("<li><a href=\""..url.."&page=packets\">"..i18n("packets").."</a></li>")
    end
 end
 
 if(page == "ndpi") then
-  print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">"..i18n("protocols").."</a></li>\n")
 else
    if(active_ndpi) then
-      print("<li><a href=\""..url.."&page=ndpi\">Protocols</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">"..i18n("protocols").."</a></li>")
    end
 end
 
@@ -90,13 +90,13 @@ if (page == "overview") then
 if(show_aggregation) then
    print [[
 <div class="btn-group">
-  <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Aggregation <span class="caret"></span></button>
+  <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 
-print('<li><a  href="'..url .. '&aggregation=ndpi">'.. "Application" ..'</a></li>\n')
-print('<li><a  href="'..url .. '&aggregation=l4proto">'.. "Proto L4" ..'</a></li>\n')
-print('<li><a  href="'..url .. '&aggregation=port">'.. "Port" ..'</a></li>\n')
+print('<li><a  href="'..url .. '&aggregation=ndpi">'.. i18n("application") ..'</a></li>\n')
+print('<li><a  href="'..url .. '&aggregation=l4proto">'.. i18n("flows_page.l4_proto") ..'</a></li>\n')
+print('<li><a  href="'..url .. '&aggregation=port">'.. i18n("port") ..'</a></li>\n')
 print [[
   </ul>
 </div><!-- /btn-group -->
@@ -106,10 +106,10 @@ print [[
 
 
 
-print('&nbsp;Refresh:  <div class="btn-group">\n')
+print('&nbsp;'..i18n("refresh")..':  <div class="btn-group">\n')
  print[[
  <button id="graph_refresh" class="btn btn-default btn-sm">
-    <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="Refresh graph" class="glyphicon glyphicon-refresh"></i></button>
+    <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="glyphicon glyphicon-refresh"></i></button>
 ]]
 print [[
 </div>
@@ -149,21 +149,21 @@ elseif(page == "traffic") then
 if(show_aggregation) then
    print [[
 <div class="btn-group">
-  <button id="aggregation_bubble_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Aggregation <span class="caret"></span></button>
+  <button id="aggregation_bubble_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu" id="aggregation_bubble">
-    <li><a>Application</a></li>
-    <li><a>L4 Protocol</a></li>
-    <li><a>Port</a></li>
+    <li><a>]] print(i18n("application")) print[[</a></li>
+    <li><a>]] print(i18n("l4_protocol")) print[[</a></li>
+    <li><a>]] print(i18n("port")) print[[</a></li>
   </ul>
 </div><!-- /btn-group -->
 
 
 ]]
 
-print('&nbsp;Refresh:  <div class="btn-group">\n')
+print('&nbsp;'..i18n("refresh")..':  <div class="btn-group">\n')
  print[[
  <button id="graph_refresh" class="btn btn-default btn-sm">
-    <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="Refresh graph" class="glyphicon glyphicon-refresh"></i></button>
+    <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="glyphicon glyphicon-refresh"></i></button>
 ]]
 print [[
 </div>
