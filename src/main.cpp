@@ -271,6 +271,8 @@ int main(int argc, char *argv[])
   ntop->loadGeolocation(prefs->get_docs_dir());
   ntop->loadMacManufacturers(prefs->get_docs_dir());
 
+  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
+
   /*
     If mysql flows dump is enabled, then it is necessary to create
     and update the database schema

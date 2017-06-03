@@ -9,14 +9,12 @@ require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-
 local prefs = ntop.getPrefs()
 
 local dbname = (prefs.mysql_dbname or '')
 
 -- read the db activities to notify the user about what is going on in the database
-local res = interface.execSQLQuery("show full processlist", false, false)
+-- local res = interface.execSQLQuery("show full processlist", false, false) -- CAREFUL, this can introudce a deadlock
 
 print [[
   <div class="container-narrow">
@@ -56,20 +54,21 @@ addLogoSvg()
 print[[
   </div>
   <div>
+<br>
 ]]
 
 print(" "..i18n("please_wait_page.waiting_for_db_msg", {dbname=dbname}))
 print[[
   </div>
 <br>
-]] print(i18n("please_wait_page.operations_on_database_msg")) print [[
-<br></br>
-  <div><small>]]
-
+  <div>]]
 
 if res == nil then res = {} end
 if #res >= 1 then
    print[[
+<br>
+]] print(i18n("please_wait_page.operations_on_database_msg")) print [[
+<small>
 <table class="table  table-striped" width=100% height=100%>
   <thead>
     <tr>
@@ -93,10 +92,11 @@ if #res >= 1 then
    print[[
   </tbody>
 </table>
+</small>
 ]]
 end
 
-print[[</small></div>
+print[[</div>
 </div> <!-- /container -->
 
 <script type="text/javascript">

@@ -41,12 +41,7 @@ print("</br>User ")
 print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> Interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
 
 alias = getInterfaceNameAlias(ifname)
-
-if((alias ~= nil) and (alias ~= ifname)) then
-   print(alias)
-else
-   print(_ifstats.description)
-end
+print(alias)
 
 print('</span></a>')
 
