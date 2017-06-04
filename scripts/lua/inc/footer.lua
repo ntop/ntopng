@@ -417,6 +417,8 @@ end
 -- Update check
 local latest_version = ntop.getCache("ntopng.cache.version")
 
+latest_version = trimSpace(string.gsub(latest_version, "\n", ""))
+
 if isEmptyString(latest_version) then
   print[[
   $.ajax({

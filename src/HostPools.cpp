@@ -62,7 +62,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   assert(max_num_pools == MAX_NUM_HOST_POOLS);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host Pools Available: %u", MAX_NUM_HOST_POOLS);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Host Pools Available: %u", MAX_NUM_HOST_POOLS);
 }
 
 /* *************************************** */
