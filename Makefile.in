@@ -230,7 +230,7 @@ install: ntopng
 	cp ntopng $(INSTALL_DIR)/bin
 	cp ./ntopng.8 $(MAN_DIR)/man8
 	cp -r ./httpdocs $(INSTALL_DIR)/share/ntopng
-	cp -Lr ./scripts $(INSTALL_DIR)/share/ntopng # L dereference symlinks
+	cp -LR ./scripts $(INSTALL_DIR)/share/ntopng # L dereference symlinks
 	find $(INSTALL_DIR)/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find $(INSTALL_DIR)/share/ntopng -name ".git" | xargs /bin/rm -rf
 
