@@ -157,7 +157,7 @@ function print_single_group(value)
       print(pool_name..'</A> " , ')
       print('"column_chart": "')
 
-      if ntop.exists(poolstats_rrd) or isBridgeInterface(ifstats) --[[ Need to show the icon to go into the quotas page ]] then
+      if (ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ntop.exists(poolstats_rrd)) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
          print('')

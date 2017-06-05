@@ -1521,6 +1521,11 @@ print('</select>')
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
   print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-cog" aria-hidden="true"></i></A>')
+
+  local poolstats_rrd = host_pools_utils.getRRDBase(ifstats.id, selected_pool.id)
+  if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ntop.exists(poolstats_rrd) then
+    print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-area-chart'></i></a>")
+  end
 end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">

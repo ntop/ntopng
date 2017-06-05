@@ -287,7 +287,14 @@ local no_pools = (#available_pools <= 1)
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 if is_bridge_iface and selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-cog' aria-hidden='true'></i></a>")
+  print("<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-cog' aria-hidden='true'></i></a>")
+end
+
+if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+    local poolstats_rrd = host_pools_utils.getRRDBase(ifstats.id, selected_pool.id)
+    if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ntop.exists(poolstats_rrd) then
+      print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-area-chart'></i></a>")
+    end
 end
 
 print('</td>\n')
