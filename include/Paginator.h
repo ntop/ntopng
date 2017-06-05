@@ -34,7 +34,7 @@ class Paginator {
   u_int16_t port_filter;
   int16_t local_network_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
-  int8_t unicast_traffic, unidirectional_traffic, alerted_flows;
+  int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -97,6 +97,10 @@ class Paginator {
 
   inline bool alertedFlows(bool *f) const {
     if(alerted_flows != -1) { (*f) = (alerted_flows==1) ? true : false; return true; } return false;
+  }
+
+  inline bool filteredFlows(bool *f) const {
+    if(filtered_flows != -1) { (*f) = (filtered_flows==1) ? true : false; return true; } return false;
   }
 };
 

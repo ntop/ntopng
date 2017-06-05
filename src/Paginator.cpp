@@ -45,6 +45,7 @@ Paginator::Paginator() {
   unicast_traffic = -1;
   unidirectional_traffic = -1;
   alerted_flows = -1;
+  filtered_flows = -1;
 
   details_level = details_normal;
   details_level_set = false;
@@ -157,6 +158,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  unidirectional_traffic = lua_toboolean(L, -1) ? 1 : 0;
 	else if (!strcmp(key, "alertedFlows"))
 	  alerted_flows = lua_toboolean(L, -1) ? 1 : 0;
+	else if (!strcmp(key, "filteredFlows"))
+	  filtered_flows = lua_toboolean(L, -1) ? 1 : 0;
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for option %s", key);
 	break;

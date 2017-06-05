@@ -134,6 +134,7 @@ class Host : public GenericHost {
     if(quota_enforcement_stats)
       quota_enforcement_stats->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
   };
+  inline bool hasBlockedTraffic() { return has_blocking_quota || has_blocking_shaper; };
   inline void resetBlockedTrafficStatus(){ has_blocking_quota = has_blocking_shaper = false; };
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); }
   void luaUsedQuotas(lua_State* vm);

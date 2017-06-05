@@ -142,7 +142,7 @@ print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
-local filter_msg = (application or vhost or "")
+local filter_msg = (application or vhost or firstToUpper(flow_status or ""))
 local active_msg
 
 if not interface.isPacketInterface() then
@@ -212,10 +212,17 @@ print[[, '\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(flow_status_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
       <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
-   printDropdownEntries({
+
+   local entries = {
       {"normal", i18n("flows_page.normal")},
       {"alerted", i18n("flows_page.alerted")},
-   }, flow_status_params, "flow_status", flow_status)
+   }
+
+   if isBridgeInterface(ifstats) then
+      entries[#entries + 1] = {"filtered", i18n("flows_page.blocked")}
+   end
+ 
+   printDropdownEntries(entries, flow_status_params, "flow_status", flow_status)
 print[[\
       </ul>\
    </div>\

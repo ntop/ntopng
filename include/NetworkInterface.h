@@ -165,7 +165,7 @@ class NetworkInterface {
 		char *countryFilter, char *mac_filter,
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
-		u_int16_t pool_filter, u_int8_t ipver_filter, int proto_filter,
+		u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter, int proto_filter,
 		bool hostMacsOnly, char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
@@ -350,7 +350,7 @@ class NetworkInterface {
 			 char *countryFilter, char *mac_filter,
 			 u_int16_t vlan_id, char *osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
-			 u_int16_t pool_filter, u_int8_t ipver_filter, int proto_filter,
+			 u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter, int proto_filter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
@@ -359,7 +359,7 @@ class NetworkInterface {
 			  char *countryFilter,
 			  u_int16_t vlan_id, char *osFilter,
 			  u_int32_t asnFilter, int16_t networkFilter,
-			  u_int16_t pool_filter, u_int8_t ipver_filter,
+			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
 			  bool hostsOnly, char *groupColumn);
   int getActiveASList(lua_State* vm,
 		      char *sortColumn, u_int32_t maxHits,

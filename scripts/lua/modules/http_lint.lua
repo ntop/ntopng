@@ -162,7 +162,7 @@ local function validateOnOff(mode)
 end
 
 local function validateMode(mode)
-   local modes = {"all", "local", "remote"}
+   local modes = {"all", "local", "remote", "filtered"}
 
    return validateChoice(modes, mode)
 end
@@ -246,7 +246,7 @@ local function validateBroadcastUnicast(mode)
 end
 
 local function validateFlowStatus(mode)
-   local modes = {"normal", "alerted"}
+   local modes = {"normal", "alerted", "filtered"}
 
    return validateChoice(modes, mode)
 end

@@ -573,7 +573,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 
 static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool show_details = true;
+  bool show_details = true, filtered_hosts = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
   u_int16_t vlan_filter = 0;
@@ -600,6 +600,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,12) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 12);
   if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 13);
   if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
+  if(lua_type(vm,15) == LUA_TBOOLEAN) filtered_hosts = lua_toboolean(vm, 15);
 
   if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm,
@@ -608,7 +609,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
                                        show_details, location,
                                        country, mac_filter,
 				       vlan_filter, os_filter, asn_filter,
-				       network_filter, pool_filter, ipver_filter, proto_filter,
+				       network_filter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
 				       sortColumn, maxHits,
 				       toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -640,6 +641,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   bool show_details = true, hostsOnly = true;
   char *country = NULL, *os_filter = NULL;
   char *groupBy = (char*)"column_ip";
+  bool filtered_hosts = false;
   u_int16_t vlan_filter = 0;
   u_int32_t asn_filter = (u_int32_t)-1;
   u_int16_t pool_filter = (u_int16_t)-1;
@@ -665,7 +667,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
 					    country,
 					    vlan_filter, os_filter,
 					    asn_filter, network_filter,
-					    pool_filter, ipver_filter,
+					    pool_filter, filtered_hosts, ipver_filter,
 					    hostsOnly, groupBy) < 0)
     return(CONST_LUA_ERROR);
 

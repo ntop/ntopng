@@ -1259,19 +1259,20 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   ndpi_protocol_category_t category;
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
+  bool category_quota;
 
   if(!pools || get_host_pool() == NO_HOST_POOL_ID) /* Enforce quotas only for custom pools */
     return false;
 
-  get_quota(protocol, &bytes_quota, &secs_quota, is_category);
+  get_quota(protocol, &bytes_quota, &secs_quota, &category_quota);
 
   if((bytes_quota > 0) || (secs_quota > 0)) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
       if(!pools->enforceQuotasPerPoolMember(get_host_pool())) {
 
-	if((*is_category && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
-	   || (!*is_category && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
+	if((category_quota && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
+	   || (!category_quota && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
 	  if(((bytes_quota > 0) && (bytes >= bytes_quota))
 	     || ((secs_quota > 0) && (secs >= secs_quota)))
 	    is_above = true;
@@ -1279,7 +1280,7 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
 
       } else if(quota_enforcement_stats) { /* Per pool member quota enforcement */
 
-	if(*is_category)
+	if(category_quota)
 	  quota_enforcement_stats->getCategoryStats(category, &bytes, &secs);
 	else
 	  quota_enforcement_stats->getProtoStats(protocol, &bytes, &secs);
@@ -1289,6 +1290,9 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
 	  is_above = true;
 
       }
+
+    /* note: update is_category only if a quota policy has been found */
+    *is_category = category_quota;
 
 #ifdef SHAPER_DEBUG
       char buf[128];

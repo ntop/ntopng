@@ -529,17 +529,26 @@ if(host["num_alerts"] > 0) then
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
-      print("<tr><th><i class=\"fa fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifstats.id.."&page=filtering&pool="..host_pool_id.."\">"..i18n("host_details.blocked_traffic").."</a></th><td colspan=2>")
+
+   local msg = ""
+   local target = ""
+   local quotas_page = "/lua/host_details.lua?"..hostinfo2url(host).."&page=quotas&ifid="..ifId
+   local policies_page = "/lua/if_stats.lua?ifid="..ifId.."&page=filtering&pool="..host_pool_id
+
       if host["has_blocking_quota"] then
          if host["has_blocking_shaper"] then
-            print(i18n("host_details.host_traffic_blocked_quota_and_shaper"))
+            msg = i18n("host_details.host_traffic_blocked_quota_and_shaper")
+            target = quotas_page
          else
-            print(i18n("host_details.host_traffic_blocked_quota"))
+            msg = i18n("host_details.host_traffic_blocked_quota")
+            target = quotas_page
          end
       else
-         print(i18n("host_details.host_traffic_blocked_shaper"))
+         msg = i18n("host_details.host_traffic_blocked_shaper")
+         target = policies_page
       end
 
+       print("<tr><th><i class=\"fa fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix()..target.."\">"..i18n("host_details.blocked_traffic").."</a></th><td colspan=2>"..msg)
       print(".")
       print("</td></tr>")
    end

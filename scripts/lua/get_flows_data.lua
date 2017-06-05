@@ -131,8 +131,11 @@ end
 if not isEmptyString(flow_status) then
    if flow_status == "normal" then
       pageinfo["alertedFlows"] = false
-   else
+      pageinfo["filteredFlows"] = false
+   elseif flow_status == "alerted" then
       pageinfo["alertedFlows"] = true
+   elseif flow_status == "filtered" then
+      pageinfo["filteredFlows"] = true
    end
 end
 
