@@ -112,7 +112,10 @@ static NetworkInterface* handle_null_interface(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface: did you restart ntopng in the meantime?");
 
   if(ntop->getInterfaceAllowed(vm, allowed_ifname)) {
-      return ntop->getNetworkInterface(allowed_ifname);
+	  NetworkInterface *iface = ntop->getNetworkInterface(allowed_ifname);
+
+	  if(iface != NULL)
+		 return(iface);
   }
 
   return(ntop->getInterfaceAtId(0));
@@ -227,11 +230,11 @@ static int ntop_get_interface_names(lua_State* vm) {
     NetworkInterface *iface;
 
     if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
-      char num[8];
+	  char num[8], *name = iface->get_name();
 
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", iface->get_name());
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", name);
       snprintf(num, sizeof(num), "%d", i);
-      lua_push_str_table_entry(vm, num, iface->get_name());
+      lua_push_str_table_entry(vm, num, name);
     }
   }
 
@@ -2668,6 +2671,10 @@ static int ntop_interface_name2id(lua_State* vm) {
 static int ntop_get_ndpi_protocols(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   ndpi_protocol_category_t category_filter;
+
+  if (ntop_interface == NULL) {
+	  ntop_interface = getCurrentInterface(vm);
+  }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6449,10 +6456,19 @@ int Lua::handle_script_request(struct mg_connection *conn,
     snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
     if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
        && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
-      lua_pushlightuserdata(L, ifname);
-      lua_setglobal(L, CONST_ALLOWED_IFNAME);
+
+		if (!ntop->isExistingInterface(ifname)) {
+			NetworkInterface *iface = ntop->getInterfaceById(0);
+
+			ntop->getRedis()->set(key, iface->get_name());
+			lua_pushlightuserdata(L, iface);
+		} else
+			lua_pushlightuserdata(L, ifname);
+
+		lua_setglobal(L, CONST_ALLOWED_IFNAME);
     }
   }
+
 
 #ifndef NTOPNG_PRO
   rc = luaL_dofile(L, script_path);
