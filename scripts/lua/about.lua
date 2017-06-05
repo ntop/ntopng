@@ -58,17 +58,23 @@ print[[</small>
 	 <p>
    ]]
 
-   print('<form class="form-inline" style="margin-bottom: 0px;" method="post">')
+   print('<form class="form-inline" style="margin-bottom: 0px;" method="post" onsubmit="return trimLicenceSpaces();">')
 
    if(isAdministrator()) then
       if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 value="')
+	 print('<input id="ntopng_licence" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 value="')
 	 print(info["ntopng.license"])
 	 
 	 print [["></input>
 		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("about.save_licence")) print[[</button>	       
 		  </form>
+          <script>
+            function trimLicenceSpaces() {
+                $("#ntopng_licence").val($("#ntopng_licence").val().trim());
+                return true;
+            }
+          </script>
 	    ]]
       else
 	 if(info["pro.license"]) then
