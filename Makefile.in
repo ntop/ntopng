@@ -51,8 +51,10 @@ else
 endif
 ######
 ifeq ($(OS), $(filter $(OS), FreeBSD))
-	LIBNBPF_HOME=${PWD}/../PF_RING/userland/nbpf
-	LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
+	ifneq (, $(wildcard "${PWD}/../PF_RING/userland/nbpf/libnbpf.a"))
+		LIBNBPF_HOME=${PWD}/../PF_RING/userland/nbpf
+		LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
+	endif
 endif
 ######
 HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
