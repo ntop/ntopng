@@ -492,6 +492,8 @@ local  en = {
       max_pools_message = "With this version of ntopng you can only create %{maxnum} host pools. Upgrade to the enterprise version to remove this limit.",
       max_members_message = "With this version of ntopng you can only assign %{maxnum} members per host pool. Upgrade to the enterprise version to remove this limit.",
       members_limit_reached = "members limit reached",
+      cannot_delete_cp = "A pool cannot be deleted if there is any Captive Portal user associated",
+      per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
    },
 
    snmp = {

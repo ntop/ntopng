@@ -378,9 +378,13 @@ print[[
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
       <br/><br/>
-      NOTES:
+      ]] print(i18n("notes")) print[[
       <ul>
-        <li>A pool cannot be deleted if there is any Captive Portal user associated. ]]
+        <li>]] print(i18n("host_pools.cannot_delete_cp")) print[[.</li>]]
+
+if is_bridge_iface and ntop.isEnterprise() then
+   print[[<li>]] print(i18n("host_pools.per_member_quotas")) print[[.</li>]]
+end
 
 if isCaptivePortalActive() then
   print [[Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>]]
