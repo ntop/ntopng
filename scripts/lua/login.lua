@@ -58,8 +58,8 @@ print [[
 	 <h2 class="form-signin-heading" style="font-weight: bold;">Welcome to ]] print(info["product"]) print [[</h2>
   <div class="form-group has-feedback">
       <input type="hidden" class="form-control" name="user">
-      <input type="text" class="form-control" name="_username" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
-      <input type="password" class="form-control" name="password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="text" class="form-control" name="_username" placeholder="Username (default admin)" pattern="^[\w\.%]{1,}$" required>
+      <input type="password" class="form-control" name="password" placeholder="Password (default admin)" pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
 
@@ -91,8 +91,6 @@ print [[">
           </p>
 
       <p>]] print(info["copyright"]) print [[<br> ]] print(info["product"]) print [[ is released under <A HREF="http://www.gnu.org/copyleft/gpl.html">GPLv3</A>.</p>
-
-  	      <p class="text-muted">Hint: the default user and password are admin</p>
         </small>
       </div>
     </div>
