@@ -512,8 +512,8 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
   info_buf = escapeAphostrophes(f->getFlowInfo());
 
   /* Prevents ERROR 1406 (22001): Data too long for column 'INFO' at row 1 */
-  if(info_buf && strlen(info_buf) > 255)
-    info_buf[256] = '\0';
+  if(info_buf && strlen(info_buf) > 254)
+    info_buf[255] = '\0';
 
   /* Use of partial_ functions is safe as they will deal with partial dumps automatically */
   bytes_cli2srv = f->get_partial_bytes_cli2srv();
