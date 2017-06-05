@@ -1390,37 +1390,44 @@ bool Ntop::isExistingInterface(char *name) {
 /* ******************************************* */
 
 NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
-  if(name == NULL)
-    return NULL;
+	if (name == NULL)
+		return NULL;
 
-  /* This method accepts both interface names or Ids */
-  int if_id = atoi(name);
-  char str[8];
+	/* This method accepts both interface names or Ids */
+	int if_id = atoi(name);
+	char str[8];
 
-  snprintf(str, sizeof(str), "%d", if_id);
-  if(strcmp(name, str) == 0) {
-    /* name is a number */
-    return(getInterfaceById(if_id));
-  }
+	snprintf(str, sizeof(str), "%d", if_id);
+	if (strcmp(name, str) == 0) {
+		/* name is a number */
+		return(getInterfaceById(if_id));
+	}
 
-  /* if here, name is a string */
-  for(int i=0; i<num_defined_interfaces; i++) {
-    if(!strcmp(name, iface[i]->get_name()))
-      return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
-  }
+	/* if here, name is a string */
+	for (int i = 0; i<num_defined_interfaces; i++) {
+		if (!strcmp(name, iface[i]->get_name())) {
+			NetworkInterface *ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
 
-  /* FIX: remove this for at some point, when endpoint is passed */
-  for(int i=0; i<num_defined_interfaces; i++) {
-    char *script = iface[i]->getScriptName();
-    if(script != NULL && strcmp(script, name) == 0)
-      return(iface[i]);
-  }
+			if (ret_iface != NULL)
+				return(ret_iface);
+			else
+				goto iface_not_found;
+		}
+	}
 
-  /* Not found */
-  if(!strcmp(name, "any"))
-    return(iface[0]); /* FIX: remove at some point */
+	/* FIX: remove this for at some point, when endpoint is passed */
+	for (int i = 0; i<num_defined_interfaces; i++) {
+		char *script = iface[i]->getScriptName();
+		if (script != NULL && strcmp(script, name) == 0)
+			return(iface[i]);
+	}
 
-  return(NULL);
+iface_not_found:
+	/* Not found */
+	//if(!strcmp(name, "any"))
+	return(iface[0]); /* FIX: remove at some point */
+
+	return(NULL);
 };
 
 /* ******************************************* */
