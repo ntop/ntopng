@@ -637,6 +637,10 @@ local known_parameters = {
    ["nagios_host_name"]        =  validateUnquoted,
    ["nagios_service_name"]     =  validateUnquoted,
    ["bind_dn"]                 =  validateUnquoted,
+   ["bind_pwd"]                =  validateUnquoted,
+   ["search_path"]             =  validateUnquoted,
+   ["user_group"]              =  validateUnquoted,
+   ["admin_group"]             =  validateUnquoted,
 
 -- HOST SPECIFICATION
    ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -817,10 +821,6 @@ local known_parameters = {
    ["nbox_password"]                               =  validateSingleWord,
    ["google_apis_browser_key"]                     =  validateSingleWord,
    ["ldap_server_address"]                         =  validateSingleWord,
-   ["bind_pwd"]                                    =  validateSingleWord,
-   ["search_path"]                                 =  validateUnquoted,
-   ["user_group"]                                  =  validateSingleWord,
-   ["admin_group"]                                 =  validateSingleWord,
    ["local_host_max_idle"]                         =  validateNumber,
    ["non_local_host_max_idle"]                     =  validateNumber,
    ["flow_max_idle"]                               =  validateNumber,
