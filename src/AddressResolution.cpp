@@ -52,7 +52,7 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
   u_int numeric_ip_len;
 
   snprintf(query, sizeof(query), "%s", _numeric_ip);
-  if((at = strchr(query, '@')) != '\0') at[0] = '\0';
+  if((at = strchr(query, '@')) != NULL) at[0] = '\0';
   numeric_ip = query;
   numeric_ip_len = strlen(numeric_ip)-1;
 
