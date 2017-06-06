@@ -97,7 +97,7 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
   if(((*host_ip) = strtok_r(buf, "@", &where)) != NULL)
     vlan = strtok_r(NULL, "@", &where);
 
-  if(host_ip == NULL)
+  if(*host_ip == NULL)
     *host_ip = lua_ip;
 
   if(vlan)
