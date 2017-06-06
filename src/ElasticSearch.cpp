@@ -24,8 +24,8 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-    ntop->getElasticSearch()->pushEStemplate();  // sends ES ntopng template
-    ntop->getElasticSearch()->indexESdata();
+  ntop->getElasticSearch()->pushEStemplate();  // sends ES ntopng template
+  ntop->getElasticSearch()->indexESdata();
   return(NULL);
 }
 
@@ -88,13 +88,13 @@ int ElasticSearch::sendToES(char* msg) {
   if(num_queued_elems >= ES_MAX_QUEUE_LEN) {
     if(!reportDrops) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] Export queue too long [%d]: expect drops",
-		 num_queued_elems);
+				   num_queued_elems);
       reportDrops = true;
     }
 
     elkDroppedFlowsQueueTooLong++;
     ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] Message dropped. Total messages dropped: %lu\n",
-		 elkDroppedFlowsQueueTooLong);
+				 elkDroppedFlowsQueueTooLong);
 
     return(-1);
   }
@@ -168,7 +168,7 @@ void ElasticSearch::indexESdata() {
         free(tail->str);
         free(tail);
         tail = prev,
-	num_queued_elems--;
+	  num_queued_elems--;
         if(num_queued_elems == 0)
 	  head = NULL;
 
@@ -229,24 +229,24 @@ void ElasticSearch::pushEStemplate() {
   template_file.read(postbuf, length); // read the whole file into the buffer
   postbuf[length] = '\0';
   if(template_file.is_open())
-    template_file.close();           // close file handle
+    template_file.close();            // close file handle
 
   while(max_attempts > 0) {
     if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				ntop->getPrefs()->get_es_pwd(),
-				es_template_url,
-				postbuf)) {
+				es_template_url, postbuf)) {
       /* Post failure */
       sleep(1);
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "ntopng template successfully sent to ES");
-      if(postbuf) delete[] postbuf;
       break;
     }
+    
     max_attempts--;
   } /* while */
 
+  if(postbuf) delete[] postbuf;
+  
   if(max_attempts == 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ntopng template (%s) to ES", template_path);
-
 }
