@@ -240,7 +240,7 @@ void ElasticSearch::pushEStemplate() {
       sleep(1);
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "ntopng template successfully sent to ES");
-      if(postbuf) free(postbuf);
+      if(postbuf) delete[] postbuf;
       break;
     }
     max_attempts--;
