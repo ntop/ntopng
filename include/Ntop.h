@@ -435,7 +435,8 @@ class Ntop {
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(char *name);
-  
+  inline NetworkInterface* getFirstInterface() { return(iface[0]); }
+
 #ifdef NTOPNG_PRO
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
