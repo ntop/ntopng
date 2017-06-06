@@ -23,6 +23,11 @@ if(haveAdminPrivileges()) then
 	 else
 	    print(' "allowed_nets": "'..value["allowed_nets"]..'",\n')
 	    print(' "allowed_ifname": "'..value["allowed_ifname"]..'",\n')
+
+	    if(value["allowed_ifname"] ~= "") then
+	       local iface_id = interface.name2id(value["allowed_ifname"])
+               print(' "allowed_if_id": "'..iface_id..'",\n')
+	    end
 	 end
 
 	 print(' "username": "'..key..'",\n')
