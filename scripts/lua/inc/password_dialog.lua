@@ -147,6 +147,12 @@ if not captive_portal_user then
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
       <label class="control-label">Allowed Networks</label>
+      <div class="pull-right" style="margin-left:1em;">
+        <label class="control-label"></label>
+        <div>
+          <button type="button" class="btn btn-default" onclick="$('#networks_input').val('0.0.0.0/0,::/0');">Default</button>
+        </div>
+      </div>
       <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
         <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
       </div>
