@@ -6458,7 +6458,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
        && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
 
 		if (!ntop->isExistingInterface(ifname)) {
-			NetworkInterface *iface = ntop->getInterfaceById(0);
+			NetworkInterface *iface = ntop->getFirstInterface();
 
 			ntop->getRedis()->set(key, iface->get_name());
 			lua_pushlightuserdata(L, iface);

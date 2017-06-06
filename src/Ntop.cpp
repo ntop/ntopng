@@ -1372,6 +1372,7 @@ NetworkInterface* Ntop::getInterfaceById(int if_id) {
   return(NULL);
 }
 
+
 /* ******************************************* */
 
 bool Ntop::isExistingInterface(char *name) {
@@ -1423,7 +1424,7 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
 iface_not_found:
 	/* Not found */
 	//if(!strcmp(name, "any"))
-	return(iface[0]); /* FIX: remove at some point */
+	return(getFirstInterface()); /* FIX: remove at some point */
 
 	return(NULL);
 };
@@ -1432,7 +1433,7 @@ iface_not_found:
 
 int Ntop::getInterfaceIdByName(char *name) {
   if(name == NULL) {
-    return(iface[0]->get_id());
+	  return(getFirstInterface()->get_id());
   } else {
     /* This method accepts both interface names or Ids */
     int if_id = atoi(name);
