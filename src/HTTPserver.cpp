@@ -200,6 +200,19 @@ static int checkCaptive(const struct mg_connection *conn,
 
 /* ****************************************** */
 
+static int checkGrafana(const struct mg_connection *conn,
+			const struct mg_request_info *request_info) {
+
+  if(!strcmp(request_info->request_method, "OPTIONS") /* Allow for CORS inflight requests */
+    && !strncmp(request_info->uri, GRAFANA_URL, strlen(GRAFANA_URL)))
+    /* Success */
+    return(1);
+
+  return(0);
+}
+
+/* ****************************************** */
+
 static int isWhitelistedURI(char *uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
@@ -253,6 +266,10 @@ static int is_authorized(const struct mg_connection *conn,
 
     return(ntop->checkUserPassword(username, password)
 	   && checkCaptive(conn, request_info, username, password));
+  }
+
+  if(checkGrafana(conn, request_info) == 1) {
+    return(1);
   }
 
   if(user_login_disabled) {
@@ -650,10 +667,14 @@ static int handle_lua_request(struct mg_connection *conn) {
       redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
       return(0);
     } else {
-      snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
-	       Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri,
-			     uri, sizeof(uri)));
-      
+      snprintf(path, sizeof(path), "%s%s%s",
+	       httpserver->get_scripts_dir(),
+	       Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri, uri, sizeof(uri)),
+	       len > 1 && request_info->uri[len-1] == '/' ? (char*)"index.lua" : (char*)"");
+
+      if(strlen(path) > 4 && strncmp(&path[strlen(path) - 4], ".lua", 4))
+	snprintf(&path[strlen(path)], sizeof(path) - strlen(path) - 1, "%s", (char*)".lua");
+
       ntop->fixPath(path);
       found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
     }

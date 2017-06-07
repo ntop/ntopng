@@ -1155,6 +1155,11 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    io.write('len(fdata): '..table.getn(fdata)..'\n')
    --]]
    local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
+
+   if tonumber(global_max_num_points) ~= nil then
+      max_num_points = global_max_num_points
+   end
+
    local num_points_found = table.getn(fdata)
    local sample_rate = round(num_points_found / max_num_points)
    local port_mode = false

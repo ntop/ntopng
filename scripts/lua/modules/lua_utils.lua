@@ -90,7 +90,7 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 -- ##############################################
 
-function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition)
+function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers)
   info = ntop.getInfo(false)
 
   print('HTTP/1.1 200 OK\r\n')
@@ -103,6 +103,11 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition)
   if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/\r\n') end
   print('Content-Type: '.. mime ..'\r\n')
   if(content_disposition ~= nil) then print('Content-Disposition: '..content_disposition..'\r\n') end
+  if type(extra_headers) == "table" then
+     for hname, hval in pairs(extra_headers) do
+	print(hname..': '..hval..'\r\n')
+     end
+  end
   print('Last-Modified: '..os.date("!%a, %m %B %Y %X %Z").."\r\n")
   print('\r\n')
 end
@@ -115,8 +120,8 @@ end
 
 -- ##############################################
 
-function sendHTTPHeader(mime, content_disposition)
-  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition)
+function sendHTTPHeader(mime, content_disposition, extra_headers)
+  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers)
 end
 
 -- ##############################################

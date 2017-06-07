@@ -6323,8 +6323,12 @@ int Lua::handle_script_request(struct mg_connection *conn,
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
-  int rc;
+  int rc, post_data_len;
   const char * content_type;
+  u_int8_t valid_csrf = 1;
+  char post_data[1024] = { '\0' };
+  char rsp[32];
+  char csrf[64] = { '\0' };
 
   if(!L) return(-1);
 
@@ -6339,13 +6343,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) &&
       ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
-    char post_data[1024] = { '\0' };
-    char rsp[32];
-    char csrf[64] = { '\0' };
-    char user[64] = { '\0' };
-    int post_data_len = mg_read(conn, post_data, sizeof(post_data));
-    u_int8_t valid_csrf = 1;
 
+    post_data_len = mg_read(conn, post_data, sizeof(post_data));
     post_data[sizeof(post_data)-1] = '\0';
 
     /* CSRF is mandatory in POST request */
@@ -6377,6 +6376,17 @@ int Lua::handle_script_request(struct mg_connection *conn,
       setParamsTable(L, "_POST", NULL /* Empty */);
   } else
     setParamsTable(L, "_POST", NULL /* Empty */);
+
+  /* Grafana */
+  if(!strcmp(request_info->request_method, "POST")
+     && ((content_type != NULL) && (strstr(content_type, "application/json") == content_type))
+     && !strncmp(request_info->uri, GRAFANA_URL, strlen(GRAFANA_URL))) {
+    lua_newtable(L);
+    post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    post_data[sizeof(post_data)-1] = '\0';
+    lua_push_str_table_entry(L, "payload", post_data);
+    lua_setglobal(L, "_GRAFANA");
+  }
 
   /* Put the GET params into the environment */
   if(request_info->query_string)
