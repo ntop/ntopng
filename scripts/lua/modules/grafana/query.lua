@@ -35,21 +35,21 @@ else
       target = string.gsub(target, "_(.-)$", "") -- lazy match to remove up to the last underscore
 
       local rrdfile = ""
-      if is_bytes   then rrdfile = "bytes.rrd" end
-      if is_packets then rrdfile = "packets.rrd" end
+      if is_bytes then rrdfile = "bytes.rrd"
+      elseif is_packets then rrdfile = "packets.rrd" end
 
       local datapoints = {}
 
       if is_interface then
-	 local rr = singlerrd2json(getInterfaceId(target), nil, rrdfile, epoch_begin, epoch_end)
+	 local rr = rrd2json(getInterfaceId(target), nil, rrdfile, epoch_begin, epoch_end)
 
 	 if string.ends(t["target"], "total") then
 	    local totalval = rr["totalval"]
 	    datapoints = {{totalval, 0 --[[ it's an integral, an instant is not meaningful here --]]}}
 	 else
 	    rr = json.decode(rr["json"])
-
-	    for _, point in ipairs(rr["values"]) do
+	    -- rr[1] contains the timeseries of the first (and only) rrd
+	    for _, point in ipairs(rr[1]["values"]) do
 	       local instant = point[1]
 	       local val     = point[2]
 	       datapoints[#datapoints + 1] = {val, instant*1000}
@@ -58,7 +58,7 @@ else
       end
 
 
-      res[#res + 1] = {target=target, datapoints = datapoints}
+      res[#res + 1] = {target=t["target"], datapoints = datapoints}
       -- tprint({target=target, is_bytes=is_bytes, is_packets=is_packets, entity_name=entity_name})
    end
 
