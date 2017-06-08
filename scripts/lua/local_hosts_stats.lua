@@ -201,14 +201,33 @@ print [[
 			     css: {
 				textAlign: 'center'
 			     }
-			},
-			  ]]
+			}, {
+			     title: "]] print(i18n("show_alerts.alerts")) print[[",
+				 field: "column_alerts",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'center'
+			     }
 
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_top.inc")
-
-print [[
+				 },
 			     {
+			     title: "]] print(i18n("name")) print[[",
+				 field: "column_name",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'left'
+			     }
+
+				 },
+			     {
+			     title: "]] print(i18n("seen_since")) print[[",
+				 field: "column_since",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },    {
 			     title: "]] print(label) print [[",
 				 field: "column_]] print(criteria) print [[",
 				 sortable: true,

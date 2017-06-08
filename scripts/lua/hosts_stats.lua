@@ -328,11 +328,7 @@ print [[
 			        textAlign: 'center'
 			     }
 
-				 },			     
-]]
-
-print [[
-			     {
+				 },  {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
 				 sortable: true,
@@ -358,12 +354,7 @@ print [[
 			        textAlign: 'center'
 			     }
 
-				 },
-]]
-
-print [[
-
-			     {
+				 },  {
 			     title: "]] print(i18n("asn")) print[[",
 				 field: "column_asn",
 				 sortable: true,
