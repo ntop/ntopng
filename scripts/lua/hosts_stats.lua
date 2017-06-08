@@ -331,7 +331,35 @@ print [[
 				 },			     
 ]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_top.inc")
+print [[
+			     {
+			     title: "]] print(i18n("show_alerts.alerts")) print[[",
+				 field: "column_alerts",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+			     {
+			     title: "]] print(i18n("name")) print[[",
+				 field: "column_name",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'left'
+			     }
+
+				 },
+			     {
+			     title: "]] print(i18n("seen_since")) print[[",
+				 field: "column_since",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },
+]]
 
 print [[
 
@@ -361,8 +389,39 @@ print [[
 		       ]]
 end
 
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: {
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("throughput")) print[[",
+				 field: "column_thpt",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("traffic")) print[[",
+				 field: "column_traffic",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_bottom.inc")
+
+       </script>
+
+]]
+
 
 if(asn ~= nil) then
 print [[
