@@ -37,8 +37,9 @@ else
 	 local tp  = "interface_"..n.."_packets"
 	 local tbt = "interface_"..n.."_bytestotal"
 	 local tpt = "interface_"..n.."_packetstotal"
+	 local tap = "interface_"..n.."_allprotocols"
 
-	 for _, t in pairs({tb, tp, tbt, tpt}) do
+	 for _, t in pairs({tb, tp, tbt, tpt, tap}) do
 	    if isEmptyString(target) or string.starts(t, target) or string.starts(target, t) then
 	       res[#res +1] = t
 	    end
