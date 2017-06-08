@@ -137,6 +137,7 @@ print [[
 if(protocol == nil) then protocol = "" end
 
 if(asn ~= nil) then 
+	asn_label = i18n("hosts_stats.asn_title",{asn=asn})
 	asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
       "<small>&nbsp;<i class='fa fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
       asn .. "'><i class='fa fa-external-link fa-sm' title='".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
@@ -158,6 +159,8 @@ end
 if(_GET["pool"] ~= nil) then
    local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
    local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+
+   pool_label = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
 
    pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>"..
       "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools&pool=".._GET["pool"].."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"..
@@ -187,7 +190,7 @@ function getPageTitle()
    parts[#parts + 1] = ipver_title
    parts[#parts + 1] = os_
    parts[#parts + 1] = i18n("hosts_stats.hosts")
-   parts[#parts + 1] = country or asninfo or mac or pool_
+   parts[#parts + 1] = country or asn_label or mac or pool_label
    parts[#parts + 1] = vlan_title
 
    return table.concat(parts, " ")
