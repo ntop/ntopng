@@ -42,7 +42,7 @@ print[[
       <div id="map-canvas"></div>
 ]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/geolocation_disclaimer.inc")
+dofile(dirs.installdir .. "/scripts/lua/show_geolocation_note.lua")
 
 print [[
 </div>

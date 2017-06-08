@@ -92,7 +92,8 @@ function displayError(error) {
   error_code = errors[error.code];
   locating = 0;
   
-  $('#mylocation').html("Geolocation error ["+ error_code+"]. Using default location.");
+//  $('#mylocation').html("Geolocation error ["+ error_code+"]. Using default location.");
+  displayLocalizedError(error_code);
   createMap();
 }
 
@@ -102,7 +103,8 @@ function displayPosition(position) {
   default_longitude = position.coords.longitude;
     locating = 0;
 
-    $('#mylocation').html("Browser reported home map location <A HREF=\"http://maps.google.com/?q="+ default_latitude + "," + default_longitude+"\">[Latitude: " + default_latitude + ", Longitude: " + default_longitude+"]</A>");
+//    $('#mylocation').html("Browser reported home map location <A HREF=\"http://maps.google.com/?q="+ default_latitude + "," + default_longitude+"\">[Latitude: " + default_latitude + ", Longitude: " + default_longitude+"]</A>");
+    displayLocalizedPosition(position);
 
     createMap();
 }
@@ -128,7 +130,8 @@ function initialize() {
   }
   else {
       //alert("Geolocation is not supported by this browser");
-      $('#mylocation').html("Geolocation not supported by your browser or disabled. Using default location.");
+      //$('#mylocation').html("Geolocation not supported by your browser or disabled. Using default location.");
+      displayLocalizedNoGeolocationMsg();
     // We use the default location
       createMap();
   }
