@@ -93,6 +93,8 @@ local  en = {
    aggregation = "Aggregation",
    refresh = "Refresh",
    l4_protocol = "L4 Protocol",
+   throughput = "Throughput",
+   seen_since = "Seen Since",
 
    graphs = {
       arp_requests = "ARP Requests",
