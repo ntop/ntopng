@@ -118,8 +118,8 @@ start_ntopng() {
     fi
 
     if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
-      IS_NBOX_INSTALLED=`dpkg -s nbox | grep 'Status: install ok installed' | wc -l`
-      if [ $IS_NBOX_INSTALLED -eq 0 ]; then
+      # Verify if nbox is not installed
+      if [ ! -f "/var/ntop/www/index.html" ]; then
         echo "Generating configuration file /etc/ntopng/ntopng.conf"
 	    echo "-G=/var/run/ntopng.pid" > /etc/ntopng/ntopng.conf
         if [ -d /storage ]; then
