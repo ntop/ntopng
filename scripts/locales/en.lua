@@ -1340,6 +1340,20 @@ local  en = {
 
    geo_map = {
       hosts_geomap = "Hosts GeoMap",
+      note = "NOTE",
+      geolocation_error = "Geolocation error",
+      using_default_location = "Using default location.",
+      browser_reported_home_map = "Browser reported home map location",
+      latitude = "Latitude",
+      longitude = "Longitude",
+      unavailable_geolocation = "Geolocation not supported by your browser or disabled.",
+      note_requirements_visualize_maps = "In order to visualize maps you must",
+      note_working_internet_connection = "Have a working Internet connection.",
+      note_compiled_ntopng_with_geolocation = "Have compiled ntopng with geolocation and started with it.",
+      note_active_flows = "Have active flows between peers with public IP addresses.",
+      note_html_browser_geolocation = "HTML <A HREF=%{url}>browser geolocation</A> is used to place on map hosts based on unknown locations.",
+      note_google_maps_browser_api_key = "A Google Maps Browser API Key may be required. Detailed information on key generation <a href='%{url_google}'>can be found here</a>.<br>"..
+            "Once generated, the key can be submitted via ntopng <a href='%{url_prefs}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
    },
 
    top_hosts = {
