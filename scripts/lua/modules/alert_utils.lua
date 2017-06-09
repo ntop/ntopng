@@ -5,7 +5,7 @@
 -- This file contains the description of all functions
 -- used to trigger host alerts
 
-local verbose = false
+local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
 local callback_utils = require "callback_utils"
 local template = require "template_utils"
 
@@ -198,6 +198,7 @@ end
 
 -- Get the hash key used for saving global settings
 function get_global_alerts_hash_key(alert_source)
+   if(verbose) then io.write("alert_utils["..__LINE__().."] get_global_alerts_hash_key:getAlertSource alert_source="..(alert_source or "").."\n") end
    local source = getAlertSource("", alert_source, "")
    source = source and source.source
 
@@ -635,6 +636,7 @@ local global_redis_thresholds_key = "thresholds"
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
+   if(verbose) then io.write("alert_utils["..__LINE__().."] drawAlertSourceSettings:getAlertSource "..page_name.."\n") end
    local source = getAlertSource("", alert_source, "")
 
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
@@ -1257,6 +1259,7 @@ function getCurrentStatus() {
 	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
+          if(verbose) then io.write("alert_utils["..__LINE__().."] drawAlertTables:getAlertSource entityType="..(entity or "").."\n") end
 	       title = title .. " - " .. getAlertSource(entity, _GET["entity_val"]).label
 	    end
 	 end
@@ -1611,6 +1614,7 @@ local function formatNetwork(ifid, network, netstats)
 end
 
 local function formatEntity(ifid, entity_type, entity_value, entity_info)
+  if(verbose) then io.write("alert_utils["..__LINE__().."] formatEntity:getAlertSource entityType="..(entity_type or "").."\n") end
   local entity = getAlertSource(entity_type, entity_value)
 
   if entity.source == "host" then
@@ -1709,6 +1713,7 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
   local alert_msg, alevel = formatAlertMessage(ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
   local alert_type = alertType(atype)
   local alert_level = alertLevel(alevel)
+  if(verbose) then io.write("alert_utils["..__LINE__().."] engageReleaseAlert:getAlertSource entityType="..(entity_type or "").."\n") end
   local entity = getAlertSource(entity_type, entity_value, "")
 
   if entity.source == "interface" then
@@ -1807,6 +1812,7 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
     info_arr[atype][akey] = alert_info or {}
   end
 
+  if(verbose) then io.write("alert_utils["..__LINE__().."] check_entity_alerts:getAlertSource entityType="..(entity_type or "").."\n") end
   local alert_source = getAlertSource(entity_type, entity, "")
   local entity_type = alert_source.source
   local entity_value = alert_source.value
