@@ -1804,7 +1804,7 @@ end
 
 elseif(page == "alerts") then
 
-   drawAlertSourceSettings(hostkey,
+   drawAlertSourceSettings("host", hostkey,
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
       "host_details.lua", {ifid=ifId, host=host_ip},
       host_name, "host")
