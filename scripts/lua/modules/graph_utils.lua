@@ -418,6 +418,16 @@ function isTopRRD(filename)
    return false
 end
 
+function isLayer4RRD(filename)
+   for _, l4 in pairs(l4_keys) do
+      if filename:starts(l4[2]) or filename:starts(l4[1]) then
+	 return true
+      end
+   end
+
+   return false
+end
+
 -- ########################################################
 
 function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
@@ -1510,6 +1520,12 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 
        d = fixPath(p)
        rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time)
+
+       for key, value in pairs(rrds) do
+	  if isLayer4RRD(key) then
+	     rrds[key] = nil
+	  end
+       end
 
        local traffic_array = {}
        for key, value in pairs(rrds) do
