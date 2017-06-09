@@ -9,6 +9,14 @@ GPP=@CXX@
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
 
+# FreeBSD does not include wget by default, but the base system
+# includes fetch, which provides similar functionality.
+ifeq ($(OS), $(filter $(OS), FreeBSD))
+	GET_UTIL = fetch
+else
+	GET_UTIL = wget -nc
+endif
+
 ######
 HAS_NDPI=$(shell pkg-config --exists libndpi; echo $$?)
 ifeq ($(HAS_NDPI), 0)
@@ -180,10 +188,10 @@ geoip:
 	  cp ~/dat_files/* httpdocs/geoip; gunzip -f httpdocs/geoip/*.dat.gz ; \
 	else \
 	  cd httpdocs/geoip; \
-	  wget -nc http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz; \
-	  wget -nc http://geolite.maxmind.com/download/geoip/database/GeoLiteCityv6-beta/GeoLiteCityv6.dat.gz; \
-	  wget -nc http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz; \
-	  wget -nc http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNumv6.dat.gz; \
+	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz; \
+	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLiteCityv6-beta/GeoLiteCityv6.dat.gz; \
+	  $(GET_UTIL) http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz; \
+	  $(GET_UTIL) http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNumv6.dat.gz; \
 	  gunzip -f *.dat.gz ; \
 	fi
 
