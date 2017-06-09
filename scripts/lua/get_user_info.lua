@@ -21,7 +21,7 @@ host_key = _GET["host"]
 application = _GET["application"]
 
 if(user_key == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Missing user name</div>")
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("user_info.missing_user_name_message").."</div>")
 else
   if(host_key ~= nil) then
     name = getResolvedAddress(hostkey2hostinfo(host_key))
@@ -38,13 +38,13 @@ else
 
 
 if(page == "UserApps") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserApps">Applications</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserApps">'..i18n("applications")..'</a></li>\n')
 
 if(page == "UserProtocols") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserProtocols">Protocols</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserProtocols">'..i18n("protocols")..'</a></li>\n')
 
 if(page == "Flows") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">Flow</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flow")..'</a></li>\n')
 
 
 print('</ul>\n\t</div>\n\t\t</nav>\n')
@@ -54,7 +54,7 @@ if(page == "UserApps") then
 print [[
     <table class="table table-bordered table-striped">
       <tr><th class="text-center">
-      <h4>Top Applications</h4>
+      <h4>]] print(i18n("user_info.top_applications")) print[[</h4>
         <td><div class="pie-chart" id="topApps"></div></td>
       
       </th>
@@ -83,8 +83,8 @@ print [[
   <div class="tabbable tabs-left">
     
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#l7" data-toggle="tab">L7 Protocols</a></li>
-      <li><a href="#l4" data-toggle="tab">L4 Protocols</a></li>
+      <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("l7_protocols")) print[[</a></li>
+      <li><a href="#l4" data-toggle="tab">]] print(i18n("l4_protocols")) print[[</a></li>
     </ul>
     
       <!-- Tab content-->
@@ -93,7 +93,7 @@ print [[
         <div class="tab-pane active" id="l7">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center">Top L7 Protocols</th>
+              <th class="text-center">]] print(i18n("user_info.top_l7_protocols")) print[[</th>
               <td><div class="pie-chart" id="topL7"></div></td>
           </tr>
           </table>
@@ -103,7 +103,7 @@ print [[
         <div class="tab-pane" id="l4">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center">Top L4 Protocols</th>
+              <th class="text-center">]] print(i18n("user_info.top_l4_protocols")) print[[</th>
               <td><div class="pie-chart" id="topL4"></div></td>
           </tr>
           </table>
@@ -174,9 +174,9 @@ end
 
 print [[",
          showPagination: true,
-         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
 
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">All Proto</a></li>')
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows_page.all_proto")..'</a></li>')
 for key, value in pairsByKeys(stats["ndpi"], asc) do
    class_active = ''
    if(key == application) then
@@ -189,11 +189,96 @@ end
 print("</ul> </div>' ],\n")
 
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+print [[
+	       title: "]] print(i18n("sflows_stats.active_flows")) print[[",
+	        columns: [
+			     {
+         field: "key",
+         hidden: true
+         	},
+         {
+			     title: "]] print(i18n("info")) print[[",
+				 field: "column_key",
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("application")) print[[",
+				 field: "column_ndpi",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+				 field: "column_proto_l4",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+  			     {
+			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
+				 field: "column_client_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.client_peer")) print[[",
+				 field: "column_client",
+				 sortable: true,
+				 },
+			     {
+                             title: "]] print(i18n("sflows_stats.server_process")) print[[",
+				 field: "column_server_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.server_peer")) print[[",
+				 field: "column_server",
+				 sortable: true,
+				 },
+			     {
+			     title: "]] print(i18n("duration")) print[[",
+				 field: "column_duration",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			       }
+			       },
+
+]]
 
 prefs = ntop.getPrefs()
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
+				 field: "column_bytes",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
+       </script>
+]]
 
 
 

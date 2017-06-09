@@ -237,7 +237,38 @@ print [[
 			 },
 ]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_bottom.inc")
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: {
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("throughput")) print[[",
+				 field: "column_thpt",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'right'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("traffic")) print[[",
+				 field: "column_traffic",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
+
+
+       </script>
+
+]]
 
 
 

@@ -73,8 +73,45 @@ print [[
 				 },
 			  ]]
 
+print [[
+			     {
+			     title: "]] print(i18n("http_servers_stats.bytes_sent")) print[[",
+				 field: "column_bytes_sent",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/http_servers_stats_top.inc")
+				 },
+			     {
+			     title: "]] print(i18n("http_servers_stats.bytes_received")) print[[",
+				 field: "column_bytes_rcvd",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+
+			     {
+			     title: "]] print(i18n("http_servers_stats.total_requests")) print[[",
+				 field: "column_http_requests",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+			     {
+			     title: "]] print(i18n("http_servers_stats.actual_requests")) print[[",
+				 field: "column_act_num_http_requests",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+]]
 
 print [[
 			     ]

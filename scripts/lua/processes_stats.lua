@@ -20,8 +20,8 @@ print [[
   <br>
   
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#Overview" data-toggle="tab">Overview</a></li>
-      <li ><a href="#Timeline" data-toggle="tab">Timeline</a></li>
+      <li class="active"><a href="#Overview" data-toggle="tab">]] print(i18n("overview")) print[[</a></li>
+      <li ><a href="#Timeline" data-toggle="tab">]] print(i18n("processes_stats.timeline")) print[[</a></li>
     </ul>
 
     <!-- Tab content-->
@@ -39,18 +39,37 @@ if(ifstats.vlan) then print ('processes_rows_option["source_id"] = true;\n') end
 
 print [[
    $("#table-processes").datatable({
-          title: "Active Processes: Realtime View",
+          title: "]] print(i18n("processes_stats.active_processes_title")) print[[",
           url: "]]
 print (ntop.getHttpPrefix())
 print [[/lua/get_processes_data.lua",
           ]]
 print ('rowCallback: function ( row ) { return processes_table_setID(row); },')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/processes_stats_top.inc")
+print [[
+	       showPagination: true,
+	        columns: [
+	        {
+         title: "Key",
+         field: "key",
+         hidden: true,
+         css: { 
+              textAlign: 'center'
+           }
+         },
+			     {
+			     title: "]] print(i18n("name")) print[[",
+				 field: "column_name",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'left'
+			     }
+				 },
+]]
 
 if(ifstats.vlan) then
 print [[
            {
-           title: "Source Id",
+           title: "]] print(i18n("flows_page.source_id")) print[[",
          field: "column_vlan",
          sortable: true,
                  css: { 
@@ -60,8 +79,47 @@ print [[
 ]]
 end
 
+print [[
+        {
+           title: "]] print(i18n("processes_stats.flows_count")) print[[",
+         field: "column_count",
+         sortable: true,
+                 css: { 
+              textAlign: 'center'
+           }
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/processes_stats_bottom.inc")
+         },          
+           {
+           title: "]] print(i18n("processes_stats.active_since")) print[[",
+         field: "column_duration",
+         sortable: true,
+                 css: { 
+              textAlign: 'center'
+           }
+
+         },          
+           {
+           title: "]] print(i18n("processes_stats.traffic_sent")) print[[",
+         field: "column_bytes_sent",
+         sortable: true,
+                 css: { 
+              textAlign: 'right'
+           }
+         },
+           {
+           title: "]] print(i18n("processes_stats.traffic_rcvd")) print[[",
+         field: "column_bytes_rcvd",
+         sortable: true,
+                 css: { 
+              textAlign: 'right'
+           }
+         }
+           ]
+         });
+       </script>
+
+]]
+
 print [[
   <script>
   $( window ).load(function() {
@@ -80,24 +138,24 @@ print [[
 <script src="/js/timeline.js"></script>
 
 <div class="tab-pane" id="Timeline">
-  <h2>Processes Timeline</h2><br/> 
+  <h2>]] print(i18n("processes_stats.processes_timeline_title")) print[[</h2><br/> 
   <table class="table table-bordered">
     <tr>
       
       <th class="text-left span3">
-        <legend>Legend</legend>
+        <legend>]] print(i18n("processes_stats.legend")) print[[</legend>
         <div id="legend"></div>
         <br/><br/>
-        <legend>Type</legend>
+        <legend>]] print(i18n("processes_stats.type")) print[[</legend>
         <form id="offset_form" class="toggler">
           <fieldset>
             <label class="radio inline">
               <input type="radio" name="offset" id="stack" value="zero" checked>
-              Stack
+              ]] print(i18n("processes_stats.stack")) print[[
             </label>
             <label class="radio inline">
               <input type="radio" name="offset" id="lines" value="lines">
-              Lines
+              ]] print(i18n("processes_stats.lines")) print[[
             </label>
           </fieldset>
         </form>
@@ -126,3 +184,4 @@ print [[/lua/get_processes_data.lua",{ procstats_mode: "timeline" }, "name" ,2,3
 ]]
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+

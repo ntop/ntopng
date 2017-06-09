@@ -68,9 +68,9 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 print [[
       rowCallback: function ( row ) { return flow_table_setID(row); },
 	       showPagination: true,
-	       buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+	       buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
 
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sflows_stats.lua">All Proto</a></li>')
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sflows_stats.lua">'..i18n("flows_page.all_proto")..'</a></li>')
 for key, value in pairsByKeys(stats["ndpi"], asc) do
    class_active = ''
    if(key == application) then
@@ -82,10 +82,95 @@ end
 
 print("</ul> </div>' ],\n")
 
+print [[
+	       title: "]] print(i18n("sflows_stats.active_flows")) print[[",
+	        columns: [
+			     {
+         field: "key",
+         hidden: true
+         	},
+         {
+			     title: "]] print(i18n("info")) print[[",
+				 field: "column_key",
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("application")) print[[",
+				 field: "column_ndpi",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+				 field: "column_proto_l4",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+  			     {
+			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
+				 field: "column_client_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.client_peer")) print[[",
+				 field: "column_client",
+				 sortable: true,
+				 },
+			     {
+                             title: "]] print(i18n("sflows_stats.server_process")) print[[",
+				 field: "column_server_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.server_peer")) print[[",
+				 field: "column_server",
+				 sortable: true,
+				 },
+			     {
+			     title: "]] print(i18n("duration")) print[[",
+				 field: "column_duration",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			       }
+			       },
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+]]
 
 prefs = ntop.getPrefs()
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
+				 field: "column_bytes",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
+       </script>
+]]
+
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

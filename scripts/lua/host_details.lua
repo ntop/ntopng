@@ -1310,9 +1310,96 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
 
 print('title: "'..active_flows_msg..'",')
 
-  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+print [[
+	       title: "]] print(i18n("sflows_stats.active_flows")) print[[",
+	        columns: [
+			     {
+         field: "key",
+         hidden: true
+         	},
+         {
+			     title: "]] print(i18n("info")) print[[",
+				 field: "column_key",
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("application")) print[[",
+				 field: "column_ndpi",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+				 field: "column_proto_l4",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+  			     {
+			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
+				 field: "column_client_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.client_peer")) print[[",
+				 field: "column_client",
+				 sortable: true,
+				 },
+			     {
+                             title: "]] print(i18n("sflows_stats.server_process")) print[[",
+				 field: "column_server_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.server_peer")) print[[",
+				 field: "column_server",
+				 sortable: true,
+				 },
+			     {
+			     title: "]] print(i18n("duration")) print[[",
+				 field: "column_duration",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			       }
+			       },
+
+]]
+
   prefs = ntop.getPrefs()
-  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
+
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
+				 field: "column_bytes",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
+       </script>
+]]
 else
 
 print [[

@@ -619,6 +619,7 @@ function getAlertSource(entity, entity_value, alt_name)
          }
       elseif entity_value ~= "*" --[[ used in redis key stuff ]] then
          io.write("WARNING: Unknown alert source for entity "..tostring(entity_value).."\n")
+	 io.write(debug.traceback().."\n")
       end
    end
 end
