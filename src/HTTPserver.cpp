@@ -112,6 +112,9 @@ static void set_cookie(const struct mg_connection *conn,
                        char *user, char *referer) {
   char key[256], session_id[64], random[64];
 
+  if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics"))
+    return;
+
   // Authentication success:
   //   1. create new session
   //   2. set session ID token in the cookie
@@ -651,6 +654,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   }
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
+     || (strcmp(request_info->uri, "/metrics") == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
@@ -667,7 +671,11 @@ static int handle_lua_request(struct mg_connection *conn) {
       redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
       return(0);
     } else {
-      snprintf(path, sizeof(path), "%s%s%s",
+      if(strcmp(request_info->uri, "/metrics") == 0)
+	snprintf(path, sizeof(path), "%s/lua/metrics.lua",
+	  httpserver->get_scripts_dir());
+      else
+	snprintf(path, sizeof(path), "%s%s%s",
 	       httpserver->get_scripts_dir(),
 	       Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri, uri, sizeof(uri)),
 	       len > 1 && request_info->uri[len-1] == '/' ? (char*)"index.lua" : (char*)"");
