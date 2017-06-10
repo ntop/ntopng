@@ -554,6 +554,7 @@ int64_t json_object_get_int64(struct json_object *jso)
     return jso->o.c_boolean;
   case json_type_string:
 	if (json_parse_int64(jso->o.c_string.str, &cint) == 0) return cint;
+	return 0;
   default:
     return 0;
   }
@@ -712,6 +713,7 @@ double json_object_get_double(struct json_object *jso)
     return jso->o.c_boolean;
   case json_type_string:
     if(sscanf(jso->o.c_string.str, "%lf", &cdouble) == 1) return cdouble;
+    return 0.0;
   default:
     return 0.0;
   }
