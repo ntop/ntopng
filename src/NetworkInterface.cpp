@@ -361,11 +361,12 @@ void NetworkInterface::checkAggregationMode() {
 
     if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
       if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) == 0) {
-
-	if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
-	else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
-	else if(!strcmp(rsp, "ingress_vrf_id")) flowHashingMode = flowhashing_vrfid;
-	else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown agrgegation value %s", rsp);
+	if(rsp[0] != '\0') {
+	  if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
+	  else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
+	  else if(!strcmp(rsp, "ingress_vrf_id")) flowHashingMode = flowhashing_vrfid;
+	  else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown agrgegation value %s", rsp);
+	}
       }
     } else {
       if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) == 0)
@@ -3982,7 +3983,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
 
   for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
     char buf[8];
-
+    
     snprintf(buf, sizeof(buf), "%d", i);
     lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
   }
