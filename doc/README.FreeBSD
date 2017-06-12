@@ -26,3 +26,20 @@ sysctl net.inet6.ip6.v6only=0
 ntopng
 
 Courtesy of Joe Rizzo <jrizzo@rizzos.net>
+
+## Configuring ntopng
+
+ntopng configuration options go in file /etc/rc.conf. Variable ``ntopng_enable` is used to enable/disable the service while variable `ntopng_flags` can be used to specify custom startup options as well as to indicate the absolute path of an ntopng configuration file.
+
+For example, valid ntopng_flags are:
+$ cat /etc/rc.conf | grep ntopng_flags
+ntopng_flags="-i vtnet0 --dns-mode 1 -w 3001 -W 3002"
+ntopng_flags="/etc/ntopng/ntopng.conf"
+
+To make sure the execution is consistent with what is declared into the Makefile, ntopng is always run with user "ntopng" and this user cannot be overridden.
+
+The pid file is always assumed to be that declared in ntopng_pidfile.
+
+Directories scripts/ httpdocs/ and callbacks/ are assumed to be those installed by the package manager.
+
+Attempts to change the forementioned user, pid file, or directories will not have any effect.
