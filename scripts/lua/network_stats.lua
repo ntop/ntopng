@@ -83,8 +83,78 @@ print [[
 				 },
 			  ]]
 
+print [[
+			     {
+			     title: "]] print(i18n("chart")) print[[",
+				 field: "column_chart",
+				 sortable: false,
+                             css: {
+			        textAlign: 'center'
+			     }
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_top.inc")
+				 },
+			     {
+			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
+				 field: "column_hosts",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_bottom.inc")
+				 },
+			     {
+			     title: "]] print(i18n("show_alerts.alerts")) print[[",
+				 field: "column_alerts",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("seen_since")) print[[",
+				 field: "column_since",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+]]
+
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("throughput")) print[[",
+				 field: "column_thpt",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("traffic")) print[[",
+				 field: "column_traffic",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
+
+
+       </script>
+]]
+
+print(i18n("network_stats.note_overlapping_networks").."<ol>")
+print("<li>"..i18n("network_stats.note_see_both_network_entries"))
+print("<li>"..i18n("network_stats.note_broader_network").."</ol>")
+
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -52,6 +52,7 @@ local  en = {
    ipv4 = "IPv4",
    ipv6 = "IPv6",
    application = "Application",
+   applications = "Applications",
    key = "Key",
    client = "Client",
    server = "Server",
@@ -86,6 +87,7 @@ local  en = {
    similarity = "Similarity",
    quotas = "Quotas",
    l7_protocol = "L7 Protocol",
+   l7_protocols = "L7 Protocols",
    activity = "Activity",
    ["os"] = "OS",
    download = "Download",
@@ -93,6 +95,7 @@ local  en = {
    aggregation = "Aggregation",
    refresh = "Refresh",
    l4_protocol = "L4 Protocol",
+   l4_protocols = "L4 Protocols",
    throughput = "Throughput",
    seen_since = "Seen Since",
 
@@ -1140,6 +1143,8 @@ local  en = {
       all_devices = "All Devices",
       hosts_only = "Hosts Only",
       all_manufacturers = "All Manufacturers",
+      arp_sent = "ARP Sent",
+      arp_received = "ARP Received",
    },
 
    details = {
@@ -1368,6 +1373,10 @@ local  en = {
    },
 
    http_servers_stats = {
+      bytes_sent = "Bytes Sent",
+      bytes_received = "Bytes Received",
+      total_requests = "Total Requests",
+      actual_requests = "Actual Requests",
       local_http_servers = "Local HTTP Servers",
       http_virtual_host = "HTTP Virtual Host",
       http_server_ip = "HTTP Server IP",
@@ -1399,6 +1408,9 @@ local  en = {
       networks_traffic_with_ipver = "%{networks} with IPv%{ipver} traffic",
       network_list = "Network List",
       network_name = "Network Name",
+      note_overlapping_networks = "NOTE: In case you have defined overlapping networks:",
+      note_see_both_network_entries = "You will see both network entries in the above table.",
+      note_broader_network = "The broader network will not include hosts defined in smaller networks.",
    },
 
    hosts_stats = {
@@ -2019,6 +2031,43 @@ local  en = {
 
    hosts_comparison = {
       hosts_parameter_missing_message = "Hosts parameter is missing (internal error ?)",
+   },
+
+   sflows_stats = {
+      total_bytes = "Total Bytes",
+      active_flows = "Active Flows",
+      l4_proto = "L4 Proto",
+      client_process = "Client Process",
+      client_peer = "Client Peer",
+      server_process = "Server Process",
+      server_peer = "Server Peer",
+   },
+
+   processes_stats = {
+      timeline = "Timeline",
+      active_processes_title = "Active Processes: Realtime View",
+      flows_count = "Flows Count",
+      active_since = "Active Since",
+      traffic_sent = "Traffic Sent",
+      traffic_rcvd = "Traffic Rcvd",
+      processes_timeline_title = "Processes Timeline",
+      legend = "Legend",
+      ["type"] = "Type",
+      stack = "Stack",
+      lines = "Lines",
+      top_l7_protocols = "Top L7 Protocols",
+      top_l4_protocols = "Top L4 Protocols",
+      top_hosts = "Top Hosts",
+      top_hosts_traffic = "Top Hosts Traffic",
+      missing_pid_name_message = "Missing pid name",
+      no_traffic_detected = "No traffic detected for this process, flow process expired, or process terminated.",
+   },
+
+   user_info = {
+      top_applications = "Top Applications",
+      top_l7_protocols = "Top L7 Protocols",
+      top_l4_protocols = "Top L4 Protocols",
+      missing_user_name_message = "Missing user name",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

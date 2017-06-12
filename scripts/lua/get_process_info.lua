@@ -26,7 +26,7 @@ general_process = 0
 interface.select(ifname)
 
 if((pid_key == nil) and (name_key == nil))then
-   print("<div class=\"alert alert-danger\"><img src=/img/warning.png> Missing pid name</div>")
+   print("<div class=\"alert alert-danger\"><img src=/img/warning.png> "..i18n("processes_stats.missing_pid_name_message").."</div>")
 else
   if ((name_key ~= nil) and (pid_key == nil) and (host_key == nil)) then
     general_process = 1
@@ -51,7 +51,7 @@ else
   end
 
   if(num == 0) then
-     print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No traffic detected for this process, flow process expired, or process terminated.</div>")
+     print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("processes_stats.no_traffic_detected").."</div>")
   else
     if(host_key ~= nil) then
       name = getResolvedAddress(hostkey2hostinfo(host_key))
@@ -73,25 +73,25 @@ else
    if(page == "Protocols") then active=' class="active"' else active = "" end
 
 if (pid_key ~= nil) then
-   print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..name) end print('&page=Protocols">Protocols</a></li>\n')
+   print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..name) end print('&page=Protocols">'..i18n("protocols")..'</a></li>\n')
 elseif (name_key ~= nil) then
-   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Protocols">Protocols</a></li>\n')
+   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Protocols">'..i18n("protocols")..'</a></li>\n')
 end
 
 if (general_process == 1) then
   if(page == "Hosts") then active=' class="active"' else active = "" end
   if (pid_key ~= nil) then
-    print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">Hosts</a></li>\n')
+    print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">'..i18n("flows_page.hosts")..'</a></li>\n')
   elseif (name_key ~= nil) then
-   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">Hosts</a></li>\n')
+   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">'..i18n("flows_page.hosts")..'</a></li>\n')
   end
 end
 
 if(page == "Flows") then active=' class="active"' else active = "" end
 if (pid_key ~= nil) then
- print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">Flows</a></li>\n')
+ print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows")..'</a></li>\n')
   elseif (name_key ~= nil) then
-   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">Flows</a></li>\n')
+   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows")..'</a></li>\n')
   end
 
 print [[ <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a> ]]
@@ -110,9 +110,9 @@ print [[
    <ul class="nav nav-tabs">
 ]]
 
-print [[<li class="active"><a href="#l7" data-toggle="tab">L7 Protocols</a></li> ]]
+print [[<li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("l7_protocols")) print[[</a></li> ]]
 
-print [[<li><a href="#l4" data-toggle="tab">L4 Protocols</a></li>]]
+print [[<li><a href="#l4" data-toggle="tab">]] print(i18n("l4_protocols")) print[[</a></li>]]
 
 print [[
     </ul>
@@ -125,7 +125,7 @@ print [[
         <div class="tab-pane active" id="l7">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center">Top L7 Protocols</th>
+              <th class="text-center">]] print(i18n("processes_stats.top_l7_protocols")) print[[</th>
               <td><div class="pie-chart" id="topL7"></div></td>
           </tr>
           </table>
@@ -137,7 +137,7 @@ print [[
         <div class="tab-pane" id="l4">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center">Top L4 Protocols</th>
+              <th class="text-center">]] print(i18n("processes_stats.top_l4_protocols")) print[[</th>
               <td><div class="pie-chart" id="topL4"></div></td>
           </tr>
           </table>
@@ -246,13 +246,13 @@ preference = tablePreferences("rows_number", _GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 print [[ showPagination: true,
-         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
 
 if (pid_key ~= nil) then
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">All Proto</a></li>')
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows_page.all_proto")..'</a></li>')
 end
 if (name_key ~= nil) then
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">All Proto</a></li>')
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows_page.all_proto")..'</a></li>')
 end
 
 for key, value in pairsByKeys(stats["ndpi"], asc) do
@@ -277,11 +277,96 @@ end
 print("</ul> </div>' ],\n")
 
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+print [[
+	       title: "]] print(i18n("sflows_stats.active_flows")) print[[",
+	        columns: [
+			     {
+         field: "key",
+         hidden: true
+         	},
+         {
+			     title: "]] print(i18n("info")) print[[",
+				 field: "column_key",
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("application")) print[[",
+				 field: "column_ndpi",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+				 field: "column_proto_l4",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+  			     {
+			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
+				 field: "column_client_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.client_peer")) print[[",
+				 field: "column_client",
+				 sortable: true,
+				 },
+			     {
+                             title: "]] print(i18n("sflows_stats.server_process")) print[[",
+				 field: "column_server_process",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.server_peer")) print[[",
+				 field: "column_server",
+				 sortable: true,
+				 },
+			     {
+			     title: "]] print(i18n("duration")) print[[",
+				 field: "column_duration",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			       }
+			       },
+
+]]
 
 prefs = ntop.getPrefs()
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
+print [[
+			     {
+			     title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: false,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+				 },
+			     {
+			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
+				 field: "column_bytes",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'right'
+			     }
+				 }
+			     ]
+	       });
+       </script>
+]]
 
 
 elseif(page == "Hosts") then
@@ -294,7 +379,7 @@ print [[
     <ul class="nav nav-tabs">
 ]]
 
-print [[<li class="active"><a href="#topHost" data-toggle="tab">Top Hosts</a></li> ]]
+print [[<li class="active"><a href="#topHost" data-toggle="tab">]] print(i18n("processes_stats.top_hosts")) print[[</a></li> ]]
 
 print [[
     </ul>
@@ -307,7 +392,7 @@ print [[
         <div class="tab-pane active" id="topHost">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center span3">Top Hosts Traffic</th>
+              <th class="text-center span3">]] print(i18n("processes_stats.top_hosts_traffic")) print[[</th>
               <td><div class="pie-chart" id="topHosts"></div></td>
           </tr>
           </table>
