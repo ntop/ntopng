@@ -365,7 +365,7 @@ void NetworkInterface::checkAggregationMode() {
 	  if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
 	  else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
 	  else if(!strcmp(rsp, "ingress_vrf_id")) flowHashingMode = flowhashing_vrfid;
-	  else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown agrgegation value %s", rsp);
+	  else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown aggregation value %s", rsp);
 	}
       }
     } else {
