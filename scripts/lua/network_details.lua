@@ -154,7 +154,7 @@ elseif (page == "config") then
 
 elseif(page == "alerts") then
 
-    drawAlertSourceSettings(network_name,
+    drawAlertSourceSettings("network", network_name,
         i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
         "network_details.lua", {network=network})
 

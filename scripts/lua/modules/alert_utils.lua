@@ -197,8 +197,8 @@ function get_alerts_hash_name(timespan, ifname)
 end
 
 -- Get the hash key used for saving global settings
-function get_global_alerts_hash_key(alert_source)
-   local source = getAlertSource("", alert_source, "")
+function get_global_alerts_hash_key(entity_type, alert_source)
+   local source = getAlertSource(entity_type, alert_source, "")
    source = source and source.source
 
    if source == "host" then
@@ -560,7 +560,7 @@ end
 -- This function makes a consistent abstraction on entities
 -- TODO this inconsistency should be removed by dropping "iface_" stuff and migrate to entity_type + entity_value format
 function getAlertSource(entity, entity_value, alt_name)
-   if ((entity == "host") or (string.find(entity_value, "@") ~= nil)) then
+   if (entity == "host") then
       local host_name
 
       if alt_name then
@@ -578,7 +578,7 @@ function getAlertSource(entity, entity_value, alt_name)
          friendly_value = host_name,
       }
    else
-      if ((entity == "network") or (string.find(entity_value, "/") ~= nil)) then
+      if (entity == "network") then
          local network_name
          if alt_name then
             network_name = alt_name
@@ -594,7 +594,7 @@ function getAlertSource(entity, entity_value, alt_name)
             value = entity_value,
             friendly_value = network_name,
          }
-      elseif ((entity == "interface") or (string.find(entity_value, "iface_") == 1)) then
+      elseif (entity == "interface") then
          local interface_name
          local ifid
          if string.find(entity_value, "iface_") == 1 then
@@ -616,26 +616,26 @@ function getAlertSource(entity, entity_value, alt_name)
             value = ifid,
             friendly_value = interface_name,
          }
-      elseif entity_value ~= "*" --[[ used in redis key stuff ]] then
-         io.write("WARNING: Unknown alert source for entity "..tostring(entity_value).."\n")
+      elseif entity ~= "*" --[[ used in redis key stuff ]] then
+         io.write("WARNING: Unknown alert source for entity_type "..tostring(entity).."\n")
       end
    end
 end
 
 -- #################################
 
-function getGlobalAlertsConfigurationHash(granularity, alert_source)
-   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(alert_source)
+function getGlobalAlertsConfigurationHash(granularity, entity_type, alert_source)
+   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, alert_source)
 end
 
 local global_redis_thresholds_key = "thresholds"
 
 -- #################################
 
-function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
+function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
-   local source = getAlertSource("", alert_source, "")
+   local source = getAlertSource(entity_type, alert_source, "")
 
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
@@ -763,7 +763,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       }
    }
 
-   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, alert_source)
+   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source)
 
    print('</ul>')
 
@@ -1542,7 +1542,7 @@ local function getConfiguredAlertsThresholds(ifname, granularity)
   local res = {}
 
   -- Handle the global configuration
-  local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*")) or {}
+  local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*", "*")) or {}
   
   for alert_key in pairs(global_conf_keys) do
     local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
@@ -1573,9 +1573,9 @@ end
 -- #################################
 
 -- Extracts the configured thresholds for the entity, global and local
-local function getEntityThresholds(configured_thresholds, entity)
+local function getEntityThresholds(configured_thresholds, entity_type, entity)
    local res = {}
-   local global_conf_key = get_global_alerts_hash_key(entity)
+   local global_conf_key = get_global_alerts_hash_key(entity_type, entity)
 
    if configured_thresholds[global_conf_key] ~= nil then
       -- Global configuration exists
@@ -1828,7 +1828,7 @@ local function check_entity_alerts(ifid, entity, working_status, old_entity_info
   end
 
   -- Populate current_alerts with threshold crosses
-  for _, threshold in pairs(getEntityThresholds(working_status.configured_thresholds, entity)) do
+  for _, threshold in pairs(getEntityThresholds(working_status.configured_thresholds, entity_type, entity)) do
     local atype = "threshold_cross"
     local akey = threshold.key
     local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
@@ -2102,7 +2102,7 @@ function flushAlertsData()
    deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
    deleteCachePattern(getEngagedAlertsCacheKey("*", "*"))
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*"))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*"))
    ntop.delCache(get_alerts_suppressed_hash_name("*"))
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
