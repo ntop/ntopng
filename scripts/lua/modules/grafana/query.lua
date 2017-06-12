@@ -24,6 +24,9 @@ else
 
    -- override max_num_points in singlerrd2json
    global_max_num_points = _GRAFANA["payload"]["maxDataPoints"]
+   if global_max_num_points > 600 then
+      global_max_num_points = 600 -- ensures 100% match between ntopng and grafana charts
+   end
 
    local res = {}
 
@@ -36,15 +39,15 @@ else
 	 t["target"] = string.gsub(t["target"], "host_(.-)_", "")
       end
 
-      local is_bytes     = string.ends(t["target"], "_bytes") or string.ends(t["target"], "_bytestotal")
-      local is_packets   = string.ends(t["target"], "_packets") or string.ends(t["target"], "_packetstotal")
-      local is_allprotos = string.ends(t["target"], "_allprotocols")
+      local is_traffic     = string.ends(t["target"], "_traffic_bps") or string.ends(t["target"], "_traffic_total_bytes")
+      local is_packets   = string.ends(t["target"], "_traffic_pps") or string.ends(t["target"], "_traffic_total_packets")
+      local is_allprotos = string.ends(t["target"], "_allprotocols_bps")
 
       local ifname = string.gsub(t["target"], "^(.-)_", "") -- lazy match to remove up to the first underscore
       ifname = string.gsub(ifname, "_(.-)$", "") -- lazy match to remove up to the last underscore
 
       local rrdfile = ""
-      if is_bytes then rrdfile = "bytes.rrd"
+      if is_traffic then rrdfile = "bytes.rrd"
       elseif is_packets then rrdfile = "packets.rrd"
       elseif is_allprotos then rrdfile ="all" end
 
@@ -57,7 +60,7 @@ else
 
       if is_allprotos then
 	 res = toSeries(rr)
-      elseif string.ends(t["target"], "total") then
+      elseif string.ends(t["target"], "traffic_total_bytes") or string.ends(t["target"], "traffic_total_packets") then
 	 res[#res + 1] = {target="Total", datapoints={{totalval, 0 --[[ it's an integral, an instant is not meaningful here --]]}}}
       else
 	 res = toSeries(rr)
@@ -65,7 +68,7 @@ else
 
 
 
-      -- tprint({target=target, is_bytes=is_bytes, is_packets=is_packets, entity_name=entity_name})
+      -- tprint({target=target, is_traffic=is_traffic, is_packets=is_packets, entity_name=entity_name})
    end
 
    --tprint(_GRAFANA["payload"])

@@ -80,10 +80,10 @@ else
    end
 
    local rsp_targets = {}
-   local metrics = {"bytes", "bytestotal", "allprotocols"}
+   local metrics = {"traffic_bps", "traffic_total_bytes", "allprotocols_bps"}
    if host_info == nil then -- packets only for interfaces
-      metrics[#metrics + 1] = "packets"
-      metrics[#metrics + 1] = "packetstotal"
+      metrics[#metrics + 1] = "traffic_pps"
+      metrics[#metrics + 1] = "traffic_total_packets"
    end
 
    for _, metric in pairs(metrics) do
