@@ -1518,13 +1518,13 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 void Prefs::refreshHostsAlertsPrefs() {
   char rsp[32];
 
-  if (ntop->getRedis()->hashGet((char*)CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY,
+  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
           (char*)CONST_HOST_FLOW_ATTACKER_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
     attacker_max_num_flows_per_sec = atol(rsp);
   else
     attacker_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
 
-  if (ntop->getRedis()->hashGet((char*)CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY,
+  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
           (char*)CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
     victim_max_num_flows_per_sec = atol(rsp);
   else
