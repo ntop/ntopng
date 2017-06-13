@@ -284,13 +284,8 @@ void Flow::dumpFlowAlert() {
       char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
       char cli_name[64], srv_name[64];
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+      c = cli_host->get_hostkey(c_buf, sizeof(c_buf));
+      s = srv_host->get_hostkey(s_buf, sizeof(s_buf));
 
       snprintf(alert_msg, sizeof(alert_msg),
 	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> &gt; "
@@ -321,13 +316,8 @@ void Flow::checkBlacklistedFlow() {
     char c_buf[64], s_buf[64], *c, *s;
     char c_name[64], s_name[64];
 
-    c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-    if(c && cli_host->get_vlan_id())
-      sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-
-    s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-    if(s && srv_host->get_vlan_id())
-      sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+    c = cli_host->get_hostkey(c_buf, sizeof(c_buf));
+    s = srv_host->get_hostkey(s_buf, sizeof(s_buf));
 
     /* Checks to generate the flow alert */
     if(!blacklist_alarm_emitted) {
