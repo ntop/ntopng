@@ -230,6 +230,14 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 #endif
 
+#if ENABLE_DISCOVERY_TEST
+  NetworkDiscovery *d = new NetworkDiscovery(this);
+
+  if(d) {
+    d->discover();
+    delete d;
+  }
+#endif
 }
 
 /* **************************************************** */

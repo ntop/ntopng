@@ -102,6 +102,7 @@ class Utils {
   static bool isInterfaceUp(char *ifname);
   static bool maskHost(bool isLocalIP);
   static char* getInterfaceDescription(char *ifname, char *buf, int buf_len);
+  static int bindSockToDevice(int sock, int family, const char* devicename);
   
   /* System Host Montiring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);

@@ -181,6 +181,7 @@ using namespace std;
 #include "ActivityStats.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
+#include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"
 #include "PacketStats.h"

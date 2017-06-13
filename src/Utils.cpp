@@ -2143,3 +2143,37 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
     
   return(buf);
 }
+
+/* ****************************************************** */
+
+int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
+  ifaddrs* pList = NULL;
+  ifaddrs* pAdapter = NULL;
+  ifaddrs* pAdapterFound = NULL;
+  int bindresult = -1;
+
+  int result = getifaddrs(&pList);
+
+  if(result < 0)
+    return -1;
+
+  pAdapter = pList;
+  while(pAdapter) {
+    if((pAdapter->ifa_addr != NULL) && (pAdapter->ifa_name != NULL) && (family == pAdapter->ifa_addr->sa_family)) {
+      if(strcmp(pAdapter->ifa_name, devicename) == 0) {
+	pAdapterFound = pAdapter;
+	break;
+      }
+    }
+
+    pAdapter = pAdapter->ifa_next;
+  }
+  
+  if(pAdapterFound != NULL) {
+    int addrsize = (family == AF_INET6)?sizeof(sockaddr_in6):sizeof(sockaddr_in);
+    bindresult = bind(sock, pAdapterFound->ifa_addr, addrsize);
+  }
+  
+  freeifaddrs(pList);
+  return bindresult;
+}
