@@ -2147,9 +2147,9 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 /* ****************************************************** */
 
 int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
-  ifaddrs* pList = NULL;
-  ifaddrs* pAdapter = NULL;
-  ifaddrs* pAdapterFound = NULL;
+  struct ifaddrs* pList = NULL;
+  struct ifaddrs* pAdapter = NULL;
+  struct ifaddrs* pAdapterFound = NULL;
   int bindresult = -1;
 
   int result = getifaddrs(&pList);
