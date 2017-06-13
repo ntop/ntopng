@@ -22,6 +22,46 @@ host_pools_utils = require "host_pools_utils"
 
 local prefs = ntop.getPrefs()
 
+-- move the old serialized hosts format to the new one
+local json = require("dkjson")
+local first_one = true
+for _, ifname in pairs(interface.getIfNames()) do
+   interface.select(ifname)
+   local ifid = getInterfaceId(ifname)
+
+   local dumped_hosts = ntop.getKeysCache("ntopng.serialized_hosts.ifid_"..ifid.."__*")
+   if dumped_hosts ~= nil then
+      for hostkey, _ in pairs(dumped_hosts) do
+         if first_one then
+            io.write("Migrating hosts cache to new key format...\n")
+            first_one = false
+         end
+
+         local json_val = ntop.getCache(hostkey)
+         if json_val ~= nil then
+            local val = json.decode(json_val)
+            if (val ~= nil) and (val.ip ~= nil) and (not isEmptyString(val.ip.ip)) then
+               local mac = ""
+               local vlan_id = 0
+               if isMacAddress(val.mac_address) then
+                  mac = val.mac_address
+               end
+               if tonumber(val.vlan_id) ~= nil then
+                  vlan_id = val.vlan_id
+               end
+
+               ntop.setCache("ntopng.serialized_hosts.ifid_"..ifid.."_"..val.ip.ip.."_"..mac.."@"..vlan_id, json_val)
+               ntop.delCache(hostkey)
+            end
+         end
+      end
+   end
+end
+
+if not first_one then
+   io.write("Hosts cache migration completed successfully\n")
+end
+
 -- restore sticky hosts
 if prefs.sticky_hosts ~= nil then
    -- if the sticky hosts are set, then we try and restore them out of redis
@@ -29,8 +69,8 @@ if prefs.sticky_hosts ~= nil then
       interface.select(ifname)
       local ifid = getInterfaceId(ifname)
       -- an example key is ntopng.serialized_hosts.ifid_6__192.168.2.136@0
-      local keys_pattern = "ntopng.serialized_hosts.ifid_"..ifid.."__*"
-      local dumped_hosts = ntop.getKeysCache("ntopng.serialized_hosts.ifid_"..ifid.."__*")
+      local keys_pattern = "ntopng.serialized_hosts.ifid_"..ifid.."_*"
+      local dumped_hosts = ntop.getKeysCache("ntopng.serialized_hosts.ifid_"..ifid.."_*")
       if dumped_hosts ~= nil then
 	 for hostkey, _ in pairs(dumped_hosts) do
 	    -- let's extract just the host name and vlan from the whole key;

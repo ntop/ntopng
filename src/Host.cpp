@@ -123,6 +123,7 @@ void Host::computeHostSerial() {
 void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
   char buf[64], host[96];
+  char macbuf[24];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
@@ -170,7 +171,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   as = NULL;
   longitude = 0, latitude = 0;
   k = ip.print(key, sizeof(key));
-  snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+
+  snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, (mac ? mac->get_string_key(macbuf, sizeof(macbuf)) : ""), vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
     icmp = NULL;
 
@@ -882,9 +884,10 @@ void Host::serialize2redis() {
      && (!ip.isEmpty())) {
     char *json = serialize();
     char host_key[128], key[128];
+    char macbuf[24];
     char *k = ip.print(host_key, sizeof(host_key));
 
-    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, (mac ? mac->get_string_key(macbuf, sizeof(macbuf)) : ""), vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
@@ -1024,7 +1027,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
 
-  if(json_object_object_get_ex(o, "mac_address", &obj)) set_mac((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "source_id", &obj)) source_id = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }

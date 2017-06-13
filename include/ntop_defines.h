@@ -158,7 +158,7 @@
 #define CONST_ALERT_PROBING_TIME            120  /* 2 mins */
 #define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
-#define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
+#define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u_%s_%s@%d"
 #define MAC_SERIALIED_KEY       "ntopng.serialized_macs.ifid_%u__%s@%d"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)
