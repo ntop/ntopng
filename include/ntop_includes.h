@@ -92,6 +92,7 @@
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
+#include <ifaddrs.h>
 #elif defined(__FreeBSD__)
 #include <net/if_dl.h>
 #include <ifaddrs.h>
