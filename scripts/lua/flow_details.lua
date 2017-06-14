@@ -123,13 +123,15 @@ if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
 else
 
-   if(_POST["drop_flow_policy"] == "true") then
-      interface.dropFlowTraffic(tonumber(flow_key))
-      flow["verdict.pass"] = false
-   end
-   if(_POST["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
-      interface.dumpFlowTraffic(tonumber(flow_key), ternary(_POST["dump_flow_to_disk"] == "true", 1, 0))
-      flow["dump.disk"] = ternary(_POST["dump_flow_to_disk"] == "true", true, false)
+   if isAdministrator() then
+      if(_POST["drop_flow_policy"] == "true") then
+	 interface.dropFlowTraffic(tonumber(flow_key))
+	 flow["verdict.pass"] = false
+      end
+      if(_POST["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
+	 interface.dumpFlowTraffic(tonumber(flow_key), ternary(_POST["dump_flow_to_disk"] == "true", 1, 0))
+	 flow["dump.disk"] = ternary(_POST["dump_flow_to_disk"] == "true", true, false)
+      end
    end
 
    ifstats = interface.getStats()
