@@ -32,6 +32,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *iface) {
 				   iface->get_name(), errno, strerror(errno));    
       close(sock);
       sock = -1;
+      throw("Unable to start network discovery");
     }
   }
 }
@@ -54,13 +55,15 @@ void NetworkDiscovery::discover() {
   sin.sin_addr.s_addr = inet_addr("239.255.255.250"),
     sin.sin_family = AF_INET, sin.sin_port  = htons(1900);
 
-  snprintf(msg, sizeof(msg), "%s",
+  snprintf(msg, sizeof(msg),
 	   "M-SEARCH * HTTP/1.1\r\n"
-	   "HOST:239.255.255.250:1900\r\n"
-	   "MAN:\"ssdp:discover\"\r\n"
-	   "ST:upnp:rootdevice\r\n"
-	   "MX:3\r\n"
-	   "\r\n");
+	   "HOST: 239.255.255.250:1900\r\n"
+	   "MAN: \"ssdp:discover\"\r\n"
+	   "ST: upnp:rootdevice\r\n"
+	   "USER-AGENT: ntop %s v.%s\r\n"
+	   "MX: 3\r\n"
+	   "\r\n",
+	   PACKAGE_MACHINE, PACKAGE_VERSION);
 
   if(sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&sin, sin_len) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));    

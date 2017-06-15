@@ -277,10 +277,13 @@ void Ntop::initRedis() {
 }
 
 /* ******************************************* */
+
 void Ntop::initLogstash(){
   if(logstash) delete(logstash);
   logstash = new Logstash();
 }
+
+/* ******************************************* */
 
 void Ntop::initElasticSearch() {
   if(elastic_search) delete(elastic_search);

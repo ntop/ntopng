@@ -214,6 +214,8 @@ NetworkInterface::NetworkInterface(const char *name,
      && (!strstr(ifname, ".pcap"))
      && strcmp(ifname, "dummy")
      && strcmp(ifname, "any")
+     && strcmp(ifname, "virbr")
+     && strcmp(ifname, "wlan")
      && strncmp(ifname, "lo", 2)
      ) {
     char buf[64], ifaces[128], *tmp, *iface;
@@ -230,12 +232,18 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 #endif
 
-#if ENABLE_DISCOVERY_TEST
-  NetworkDiscovery *d = new NetworkDiscovery(this);
-
-  if(d) {
-    d->discover();
-    delete d;
+#ifdef ENABLE_DISCOVERY_TEST
+  try {
+    NetworkDiscovery *d = new NetworkDiscovery(this);
+    
+    if(d) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting network discovery...");
+      d->discover();
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discovery completed...");
+      delete d;
+    }
+  } catch(...) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network discovery");
   }
 #endif
 }
@@ -4780,13 +4788,16 @@ void NetworkInterface::addAllAvailableInterfaces() {
   } else {
     for(int i = 0; devpointer != 0; i++) {
       if(validInterface(devpointer->description)
-	 && isInterfaceUp(devpointer->name)) {
+	 && (strncmp(devpointer->name, "virbr", 5) != 0) /* Ignore virtual interfaces */
+	 && isInterfaceUp(devpointer->name)
+	 ) {
 	ntop->getPrefs()->add_network_interface(devpointer->name,
 						devpointer->description);
       } else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Interface [%s][%s] not valid or down: discarded",
+	ntop->getTrace()->traceEvent(TRACE_INFO,
+				     "Interface [%s][%s] not valid or down: discarded",
 				     devpointer->name, devpointer->description);
-
+      
       devpointer = devpointer->next;
     } /* for */
     pcap_freealldevs(devpointer);

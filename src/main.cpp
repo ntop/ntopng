@@ -79,6 +79,8 @@ void initWinsock32() {
   }
 }
 
+/* ******************************** */
+
 extern "C" {
 int ntop_main(int argc, char *argv[])
 #else
