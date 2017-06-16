@@ -88,36 +88,11 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
   end
 
   -- Save hosts stats
-  local networks_aggr  = {}
-  local localHostsOnly = false
+  local localHostsOnly = true -- stats only for local hosts
   
   local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
-    local host_asn = host["asn"]
-    local host_vlan = host["vlan"]
-    local network_name = host["local_network_name"]
-
-    if not isEmptyString(network_name) then
-      networks_aggr[network_name] = networks_aggr[network_name] or {}
-    end
-
-    -- Crunch TCP anomalies
-    if tcp_retr_ooo_lost_rrd_creation == "1" then
-       for _, anom in pairs({"tcp.packets.out_of_order", "tcp.packets.retransmissions", "tcp.packets.lost"}) do
-	  if host[anom] then
-	     if network_name ~= nil and isEmptyString(network_name) == false then
-		networks_aggr[network_name][anom] = (networks_aggr[network_name][anom] or 0) + host[anom]
-	     end
-	  end
-       end
-    end
-
     -- Crunch additional stats for local hosts only
     if(host.localhost) then
-       -- Aggregate local network stats
-
-       --io.write("==> Adding "..network_name.."\n")
-       -- network name can't be nil for local hosts
-
        -- Traffic stats
        if(host_rrd_creation == "1") then
 	  local name = fixPath(hostbase .. "/bytes.rrd")
@@ -152,14 +127,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	     createRRDcounter(name, 300, verbose)
 	     ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
-	     -- Aggregate network NDPI stats
-	     networks_aggr[network_name]["ndpi"] = (networks_aggr[network_name]["ndpi"] or {})
-	     networks_aggr[network_name]["ndpi"][k] = (networks_aggr[network_name]["ndpi"][k] or {})
-	     networks_aggr[network_name]["ndpi"][k]["bytes.sent"] =
-		(networks_aggr[network_name]["ndpi"][k]["bytes.sent"] or 0) + host["ndpi"][k]["bytes.sent"]
-	     networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] =
-		(networks_aggr[network_name]["ndpi"][k]["bytes.rcvd"] or 0) + host["ndpi"][k]["bytes.rcvd"]
-
 	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
           end
        end
@@ -170,22 +137,12 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	  end
 
 	  if host["categories"] ~= nil then
-	     if networks_aggr[network_name]["categories"] == nil then
-                networks_aggr[network_name]["categories"] = {}
-	     end
 	     for _cat_name, cat_bytes in pairs(host["categories"]) do
                 cat_name = getCategoryLabel(_cat_name)
                 -- io.write('cat_name: '..cat_name..' cat_bytes:'..tostring(cat_bytes)..'\n')
                 name = fixPath(hostbase.."/categories/"..cat_name..".rrd")
                 createSingleRRDcounter(name, 300, verbose)
                 ntop.rrd_update(name, "N:".. tolongint(cat_bytes))
-
-                if networks_aggr[network_name]["categories"][cat_name] == nil then
-		   networks_aggr[network_name]["categories"][cat_name] = cat_bytes
-                else
-		   networks_aggr[network_name]["categories"][cat_name] =
-		      networks_aggr[network_name]["categories"][cat_name] + cat_bytes
-                end
 	     end
 	  end
        end
@@ -278,44 +235,6 @@ end, time_threshold) -- end foreachHost
         end
       end
     end
-  end
-
-  --- Create RRD for networks
-  if host_rrd_creation == "1" then
-     for n,m in pairs(networks_aggr) do
-	local netname = getPathFromKey(n)
-
-	local base = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats/'..netname)
-	if(not(ntop.exists(base))) then ntop.mkdir(base) end
-
-	if tcp_retr_ooo_lost_rrd_creation == "1" then
-	   local anoms = (m["tcp.packets.out_of_order"] or 0)
-	   anoms = anoms + (m["tcp.packets.retransmissions"] or 0) + (m["tcp.packets.lost"] or 0)
-	   if(anoms > 0) then
-	      makeRRD(base, ifstats.id, "tcp_retr_ooo_lost", 300, anoms)
-	   end
-	end
-
-	if host_ndpi_rrd_creation == "1" and m["ndpi"] then
-	   for k in pairs(m["ndpi"]) do
-	      local ndpiname = fixPath(base.."/"..k..".rrd")
-	      createRRDcounter(ndpiname, 300, verbose)
-	      ntop.rrd_update(ndpiname, "N:"..tolongint(m["ndpi"][k]["bytes.sent"])..":"..tolongint(m["ndpi"][k]["bytes.rcvd"]))
-	   end
-	end
-
-	if host_categories_rrd_creation == "1" then
-	   if (m["categories"]) then -- categories data is nil if host_categories_rrd_creation is disabled
-	      if not ntop.exists(fixPath(base.."/categories")) then ntop.mkdir(fixPath(base.."/categories")) end
-	      for cat_name, cat_bytes in pairs(m["categories"]) do
-		 local catrrdname = fixPath(base.."/categories/"..cat_name..".rrd")
-		 createSingleRRDcounter(catrrdname, 300, verbose)
-		 ntop.rrd_update(catrrdname, "N:"..tolongint(cat_bytes))
-	      end
-	   end
-	end
-
-     end -- for
   end
 
   -- Create RRDs for flow and sFlow devices
