@@ -37,19 +37,9 @@ else
    ntopng_git_url = info["version"]
 end
 
-print("<tr><th nowrap>"..i18n("about.version").."</th><td>"..ntopng_git_url)
+print("<tr><th nowrap>"..i18n("about.version").."</th><td>"..ntopng_git_url.." - ")
 
-if(info["pro.release"] == false) then
-   print(" - Community")
-else
-   print(" - Pro Small Business")
-end
-
-if(info["version.embedded_edition"] == true) then
-   print("/Embedded")
-end
-
-print(" Edition</td></tr>\n")
+printntopngRelease(info)
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>ntopng "..info["command_line"].."</td></tr>\n")

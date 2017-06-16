@@ -3322,6 +3322,25 @@ function getSafeChildIcon()
 end
 
 -- ###########################################
+
+function printntopngRelease(info)
+   if(info["version.enterprise_edition"]) then
+   print(" Enterprise")
+   elseif(info["pro.release"]) then
+      print(" Pro [Small Business Edition]")
+   else
+      print(" Community")
+   end
+
+
+   if(info["version.embedded_edition"] == true) then
+      print("/Embedded")
+   end
+   
+   print(" Edition</td></tr>\n")
+end
+
+-- ###########################################
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
