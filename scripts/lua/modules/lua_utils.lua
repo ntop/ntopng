@@ -3332,7 +3332,6 @@ function printntopngRelease(info)
       print(" Community")
    end
 
-
    if(info["version.embedded_edition"] == true) then
       print("/Embedded")
    end
