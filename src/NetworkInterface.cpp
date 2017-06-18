@@ -231,21 +231,6 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 #endif
-
-#ifdef ENABLE_DISCOVERY_TEST
-  try {
-    NetworkDiscovery *d = new NetworkDiscovery(this);
-    
-    if(d) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting network discovery...");
-      d->discover();
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discovery completed...");
-      delete d;
-    }
-  } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network discovery");
-  }
-#endif
 }
 
 /* **************************************************** */
@@ -1521,6 +1506,11 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
       break;
 
+    case NDPI_PROTOCOL_SSDP:
+      if(payload_len > 0)
+	flow->dissectSSDP(src2dst_direction, (char*)payload, payload_len);
+      break;
+      
     case NDPI_PROTOCOL_DNS:
       ndpi_flow = flow->get_ndpi_flow();
 

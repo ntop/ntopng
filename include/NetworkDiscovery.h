@@ -33,7 +33,8 @@ class NetworkDiscovery {
 public:
   NetworkDiscovery(NetworkInterface *_iface);
   ~NetworkDiscovery();
-  void discover();
+
+  void discover(lua_State* vm);
 };
 
 #endif /* _NETWORK_DISCOVERY_H_ */

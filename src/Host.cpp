@@ -77,6 +77,8 @@ Host::~Host() {
   if(http)            delete http;
   if(symbolic_name)   free(symbolic_name);
   if(categoryStats)   delete categoryStats;
+  if(ssdpLocation_shadow) free(ssdpLocation_shadow);
+  if(ssdpLocation)        free(ssdpLocation);
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
   if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
@@ -143,7 +145,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
   num_alerts_detected = 0;
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
-    num_resolve_attempts = 0;
+    num_resolve_attempts = 0, ssdpLocation = NULL, ssdpLocation_shadow = NULL;
   attacker_max_num_syn_per_sec = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
   victim_max_num_syn_per_sec = ntop->getPrefs()->get_victim_max_num_syn_per_sec();
   attacker_max_num_flows_per_sec = ntop->getPrefs()->get_attacker_max_num_flows_per_sec();
@@ -553,6 +555,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     if(icmp)
       icmp->lua(ip.isIPv4(), vm);
+
+    if(ssdpLocation)
+      lua_push_str_table_entry(vm, "ssdp", ssdpLocation);
   }
 
   /* TCP stats */

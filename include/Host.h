@@ -63,7 +63,7 @@ class Host : public GenericHost {
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   NetworkStats *networkStats;
   CategoryStats *categoryStats;
-
+  char *ssdpLocation, *ssdpLocation_shadow;
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
@@ -227,6 +227,14 @@ class Host : public GenericHost {
 #else
     return(false);
 #endif
+  }
+
+  inline void setSSDPLocation(char *url) {
+     if(url) {
+        if(ssdpLocation_shadow) free(ssdpLocation_shadow);
+        ssdpLocation_shadow = ssdpLocation;
+	ssdpLocation = strdup(url);
+     }
   }
 };
 

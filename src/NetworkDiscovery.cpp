@@ -45,10 +45,12 @@ NetworkDiscovery::~NetworkDiscovery() {
 
 /* ******************************* */
 
-void NetworkDiscovery::discover() {
+void NetworkDiscovery::discover(lua_State* vm) {
   struct sockaddr_in sin;
   socklen_t sin_len = sizeof(struct sockaddr_in);
   char msg[1024];
+
+  lua_newtable(vm);
   
   if(sock == -1) return;
 
@@ -58,10 +60,11 @@ void NetworkDiscovery::discover() {
   snprintf(msg, sizeof(msg),
 	   "M-SEARCH * HTTP/1.1\r\n"
 	   "HOST: 239.255.255.250:1900\r\n"
-	   "MAN: \"ssdp:discover\"\r\n"
-	   "ST: upnp:rootdevice\r\n"
+	   "MAN: \"ssdp:discover\"\r\n" /* Discover all devices */
+	   //"ST: upnp:rootdevice\r\n" /* Search Target */
+	   //"ST: ssdp:all\r\n" /* Search Target */
 	   "USER-AGENT: ntop %s v.%s\r\n"
-	   "MX: 3\r\n"
+	   "MX: 3\r\n" /* Maximum wait time (sec) */
 	   "\r\n",
 	   PACKAGE_MACHINE, PACKAGE_VERSION);
 
@@ -80,8 +83,22 @@ void NetworkDiscovery::discover() {
       int len = recvfrom(sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
       
       if(len > 0) {
+	char src[32], *host = Utils::intoaV4(from.sin_addr.s_addr, src, sizeof(src));
+	char *line, *tmp;
+	  
 	msg[len] = '\0';
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", msg);
+
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %s", host, msg);
+	
+	line = strtok_r(msg, "\n", &tmp); /* HTTP/1.1 200 OK */
+
+	if(line) {
+	  while((line = strtok_r(NULL, "\n", &tmp)) != NULL) {
+	    if(strncasecmp(line, "Location:", 9) == 0) {
+	      lua_push_str_table_entry(vm, host, &line[10]);
+	    }
+	  }	 
+	}
       }
     }            
   }  

@@ -603,7 +603,13 @@ end
       print("</td></tr>\n")
    end
    
-   if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>"..i18n("download").."<A></td></tr>\n") end
+   if(host["json"] ~= nil) then
+      print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>"..i18n("download").."<A></td></tr>\n")
+   end
+
+   if(host["ssdp"] ~= nil) then
+      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link fa-lg\"></i> <A HREF='http://"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
+   end
 
 
    print("</table>\n")

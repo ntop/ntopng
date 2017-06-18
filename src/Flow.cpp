@@ -2535,6 +2535,35 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
+void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
+  if(payload_len < 6 /* NOTIFY */) return;
+  
+  if(strncmp(payload, "NOTIFY", 6) == 0) {
+    char *location = strstr(payload, "Location:");
+
+    if(location) {
+      char url[512];
+      int i = 0;
+      
+      location = &location[9];
+      if(location[0] == ' ') location++;
+
+      while((location[i] != '\r')
+	    && (location[i] != '\n')
+	    && (i < sizeof(url))
+	    ) {
+	url[i] = location[i];
+	i++;
+      }
+      
+      url[i] = '\0';
+      cli_host->setSSDPLocation(url);
+    }
+  }
+}
+
+/* *************************************** */
+
 #ifdef NTOPNG_PRO
 
 bool Flow::isPassVerdict() {
