@@ -182,7 +182,7 @@ void Flow::categorizeFlow() {
 
     return;
   }
- 
+
   what = (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : (isDNS() ? protos.dns.last_query : host_server_name);
 
   if((what == NULL)
@@ -193,10 +193,10 @@ void Flow::categorizeFlow() {
      || (sscanf(what, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4)
      )
     return;
-  
+
   if(!categorization.categorized_requested)
     categorization.categorized_requested = true, toQuery = true;
-  
+
   if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
 					  &categorization.category, toQuery)) {
     checkFlowCategory();
@@ -429,7 +429,7 @@ void Flow::processDetectedProtocol() {
     if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host)
       cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
     break;
-    
+
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
       if(protos.dns.last_query) free(protos.dns.last_query);
@@ -476,7 +476,7 @@ void Flow::processDetectedProtocol() {
     protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
     protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
     break;
-    
+
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_SSL:
 #if 0
@@ -825,7 +825,7 @@ bool Flow::dumpFlow(bool idle_flow) {
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
       return(rc);
-  
+
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->getPrefs()->do_dump_flows_on_ls()
@@ -956,7 +956,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 
       /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
-	 pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp 
+	 pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp
       */
       if(iface && !iface->is_bridge_interface())
 	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
@@ -966,7 +966,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
 	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
-	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least 
+	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
 	   two hosts exists for that vlan and that any purge attempt will be prevented. */
 #ifdef VLAN_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
@@ -1026,7 +1026,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       }
     }
   }
-  
+
   if(last_update_time.tv_sec > 0) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
     //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
@@ -1348,7 +1348,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   Host *src = get_cli_host(), *dst = get_srv_host();
   bool src_match = true, dst_match = true;
   bool mask_cli_host = true, mask_dst_host = true, mask_flow;
-  
+
   if((src == NULL) || (dst == NULL)) return;
 
   if(ptree) {
@@ -1364,7 +1364,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_str_table_entry(vm, "cli.ip",
 			     src->get_ip()->printMask(buf, sizeof(buf),
-						      src->isLocalHost()));    
+						      src->isLocalHost()));
     lua_push_int_table_entry(vm, "cli.key", mask_cli_host ? 0 : src->key());
   } else {
     lua_push_nil_table_entry(vm, "cli.ip");
@@ -1386,7 +1386,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_push_int_table_entry(vm, "srv.port", get_srv_port());
 
   mask_flow = isMaskedFlow(); // mask_cli_host || mask_dst_host;
-  
+
   lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
   lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
 
@@ -1516,7 +1516,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
       lua_push_str_table_entry(vm, "info", getFlowInfo() ? getFlowInfo() : (char*)"");
     }
-    
+
     if(isHTTP() && protos.http.last_method && protos.http.last_url) {
       lua_push_str_table_entry(vm, "protos.http.last_method", protos.http.last_method);
       lua_push_int_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
@@ -1541,27 +1541,27 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!mask_flow) {
       if(isHTTP() && protos.http.last_method && protos.http.last_url)
 	lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
-      
+
       if(host_server_name && (!mask_flow))
 	lua_push_str_table_entry(vm, "protos.http.server_name", host_server_name);
-      
+
       if(isDNS() && protos.dns.last_query)
 	lua_push_str_table_entry(vm, "protos.dns.last_query", protos.dns.last_query);
-      
+
       if(isSSH()) {
 	if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
 	if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
       }
-      
+
       if(isSSL()) {
 	if(protos.ssl.certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
-	
+
 	if(protos.ssl.server_certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
       }
     }
-    
+
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
     if(client_proc) processLua(vm, client_proc, true);
@@ -1753,7 +1753,7 @@ json_object* Flow::flow2json() {
     strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
 
     if(ntop->getPrefs()->do_dump_flows_on_ls()){
-      /*  Add current timestamp differently for Logstash, in case of delay 
+      /*  Add current timestamp differently for Logstash, in case of delay
        *  Note: Logstash generates it's own @timestamp field on input
        */
       json_object_object_add(my_object,"ntop_timestamp",json_object_new_string(buf));
@@ -2107,7 +2107,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   iface->incFlagsStats(flags);
   if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
   if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
-  
+
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
     if(srv_host) srv_host->updateSynFlags(when->tv_sec, flags, this, false);
@@ -2535,16 +2535,118 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
+void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
+  u_int16_t answers, i;
+
+  PACK_ON
+    struct mdns_rsp_entry {
+    u_int16_t rsp_type, rsp_class;
+    u_int32_t ttl;
+    u_int16_t data_len;
+  } PACK_OFF;
+
+  if(((payload[2] & 0x80) != 0x80) || (payload_len < 12))
+    return; /* This is a not MDNS response */
+
+  answers = ntohs(*((u_int16_t*)&payload[6]))
+    + ntohs(*((u_int16_t*)&payload[8]))
+    + ntohs(*((u_int16_t*)&payload[10]));
+  
+  payload = &payload[12], payload_len -= 12;
+
+  i = 0;
+  while((answers > 0) && (i < payload_len)) {
+    char name[256];
+    struct mdns_rsp_entry rsp;
+    int j;
+
+    for(j=0; (i < payload_len) && (j < sizeof(name)); i++) {
+      if(payload[i] == 0x0) {
+	i++;
+	break;
+      } else if(payload[i] < 32) {
+	if(j > 0) name[j++] = '.';
+      } else if(payload[i] == 0x22) {
+	name[j++] = 'a';
+	name[j++] = 'r';
+	name[j++] = 'p';
+	name[j++] = 'a';
+	i++;
+	break;
+      } else if(payload[i] == 0xC0) {
+	u_int8_t offset;
+	u_int16_t i_save = 0;
+	
+      nested_dns_definition:
+	offset = payload[i+1] - 12;
+
+	if(offset > payload_len)
+	  return; /* Invalid packet */
+	else {
+	  /* Pointer back */
+	  
+	  while((payload[offset] != 0) && (offset < payload_len) && (offset < 255)) {
+	    if(payload[offset] == 0)
+	      break;
+	    else if(payload[offset] == 0xC0) {
+	      i_save = i;
+	      i = offset;
+	      goto nested_dns_definition;
+	      break;
+	    } else if(payload[offset] < 32) {
+	      if(j > 0)	name[j++] = '.';
+	      offset++;
+	    } else
+	      name[j++] = payload[offset++];
+	  }
+
+	  if(i_save > 0) i = i_save;
+	  i += 2;
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", offset, &payload[offset-12]);
+	  break;
+	}
+      } else
+	name[j++] = payload[i];
+    }
+
+    name[j++] = '\0';
+    memcpy(&rsp, &payload[i], sizeof(rsp));
+
+    i += sizeof(rsp) + ntohs(rsp.data_len);
+
+    switch(ntohs(rsp.rsp_type)) {
+    case 0x1C: /* AAAA */
+    case 0x01: /* AA */
+      {
+	int len = strlen(name);
+
+	if((len > 6)
+	   && (strcmp(&name[len-6], ".local") == 0))
+	  name[len-6] = 0;
+      }
+
+      if(cli_host) cli_host->setName(name);
+
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, ntohs(rsp.rsp_type), name);      
+      break;
+    }
+
+    answers--;
+  }
+}
+
+/* *************************************** */
+
 void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   if(payload_len < 6 /* NOTIFY */) return;
-  
+
   if(strncmp(payload, "NOTIFY", 6) == 0) {
     char *location = strstr(payload, "Location:");
 
     if(location) {
       char url[512];
       int i = 0;
-      
+
       location = &location[9];
       if(location[0] == ' ') location++;
 
@@ -2555,7 +2657,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 	url[i] = location[i];
 	i++;
       }
-      
+
       url[i] = '\0';
       cli_host->setSSDPLocation(url);
     }
@@ -2608,13 +2710,13 @@ void Flow::checkFlowCategory() {
   if((cli_host && (!cli_host->IsAllowedTrafficCategory(&categorization.category)))
      || (srv_host && (!srv_host->IsAllowedTrafficCategory(&categorization.category)))) {
 #ifdef DEBUG_CATEGORIZATION
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "DROP flow with category %s", 
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "DROP flow with category %s",
 				 ntop->get_flashstart()->getCategoryName(categorization.category.categories[0]));
 #endif
     setDropVerdict();
   } else {
 #ifdef DEBUG_CATEGORIZATION
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "PASS flow with category %s", 
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "PASS flow with category %s",
 				 ntop->get_flashstart()->getCategoryName(categorization.category.categories[0]));
 #endif
   }
@@ -2902,7 +3004,7 @@ FlowStatus Flow::getFlowStatus() {
 	    } else if(strcmp(protos.ssl.certificate, protos.ssl.server_certificate))
 	      return status_ssl_certificate_mismatch;
 	  }
-	  break;	  
+	  break;
 
 	case NDPI_PROTOCOL_HTTP:
 	  if(/* !header_HTTP_completed &&*/isIdle)

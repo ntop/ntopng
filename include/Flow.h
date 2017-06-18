@@ -362,6 +362,7 @@ class Flow : public GenericHashEntry {
   void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
+  void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type, u_int8_t icmp_code) {

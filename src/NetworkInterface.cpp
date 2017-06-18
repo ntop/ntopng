@@ -1572,6 +1572,10 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       }
       break;
 
+    case NDPI_PROTOCOL_MDNS:
+      flow->dissectMDNS(payload, payload_len);
+      break;
+      
     default:
       if(flow->isSSLProto())
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
