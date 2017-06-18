@@ -112,7 +112,8 @@ function printInterfaces()
   retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_flow_collection"].title,
 				    subpage_active.entries["dynamic_flow_collection"].description.."<p><b>NOTE:</b><ul>"..
 				    "<li>"..i18n("prefs.dynamic_flow_collection_note_1").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_2").."</ul>",
+				    "<li>"..i18n("prefs.dynamic_flow_collection_note_2").."</li>"..
+				    "<li>"..i18n("prefs.dynamic_flow_collection_note_3").."</li></ul>",
 				    labels, values, "none", "primary", "multiple_flow_collection", "ntopng.prefs.dynamic_flow_collection_mode", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch)
 

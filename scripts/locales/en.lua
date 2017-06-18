@@ -573,7 +573,8 @@ local  en = {
       dynamic_flow_collection_title = "Dynamic Flow Collection Interfaces",
       dynamic_flow_collection_description = "When ntopng is used in flow collection mode (e.g. -i tcp://127.0.0.1:1234c), flows can be collected on dynamic sub-interfaces based on the specified criteria",
       dynamic_flow_collection_note_1 = "Value changes will not be effective for existing interfaces.",
-      dynamic_flow_collection_note_2 = "This setting is valid only for based-based interfaces (no packet collection).",
+      dynamic_flow_collection_note_2 = "This setting is valid only for flow-based interfaces (no packet collection).",
+      dynamic_flow_collection_note_3 = "When using the Ingress Flow Interface option on non-sflow devices, %%INPUT_SNMP must appear into the nprobe template.",
       idle_timeout_settings = "Idle Timeout Settings",
       local_host_max_idle_title = "Local Host Idle Timeout",
       local_host_max_idle_description = "Inactivity time after which a local host is considered idle (sec). "..
@@ -600,7 +601,7 @@ local  en = {
             "Turn it off to save storage space.",
       toggle_flow_rrds_title = "Flow Devices",
       toggle_flow_rrds_description = "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
-            "For non sFlow devices, the ZMQ fields INPUT_SNMP and OUTPUT_SNMP are required.",
+            "For non sFlow devices, %%INPUT_SNMP and %%OUTPUT_SNMP must appear into the nprobe template.",
       toggle_pools_rrds_title = "Host Pools",
       toggle_pools_rrds_description = "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
       toggle_vlan_rrds_title = "VLANs",
