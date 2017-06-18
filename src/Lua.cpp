@@ -6314,8 +6314,12 @@ int Lua::handle_script_request(struct mg_connection *conn,
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
-  int rc;
+  int rc, post_data_len;
   const char * content_type;
+  u_int8_t valid_csrf = 1;
+  char *post_data = NULL;
+  char rsp[32];
+  char csrf[64] = { '\0' };
 
   if(!L) return(-1);
 
@@ -6329,41 +6333,48 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) &&
-      ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
-    char post_data[1024] = { '\0' };
-    char rsp[32];
-    char csrf[64] = { '\0' };
-    char user[64] = { '\0' };
-    int post_data_len = mg_read(conn, post_data, sizeof(post_data));
-    u_int8_t valid_csrf = 1;
+     ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
 
-    post_data[sizeof(post_data)-1] = '\0';
-
-    /* CSRF is mandatory in POST request */
-    mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
-    mg_get_cookie(conn, "user", user, sizeof(user));
-
-    if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
-       || (strcmp(rsp, user) != 0)) {
-#if 0
-      const char *msg = "The submitted form is expired. Please reload the page and try again. <p>[ <A HREF=/>Home</A> ]";
-
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-          "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
-          csrf, rsp, user, "csrf");
-
-      return(send_error(conn, 500 /* Internal server error */,
-          msg, PAGE_ERROR, script_path, msg));
-#else
+    if((post_data = (char*)malloc(HTTP_MAX_POST_DATA_LEN * sizeof(char))) == NULL
+       || (post_data_len = mg_read(conn, post_data, HTTP_MAX_POST_DATA_LEN)) == 0) {
       valid_csrf = 0;
-#endif
+
+    } else if(post_data_len > HTTP_MAX_POST_DATA_LEN - 1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Too much data submitted with the form. [post_data_len: %u]", post_data_len);
+      valid_csrf = 0;
     } else {
-      /* Invalidate csrf */
-      ntop->getRedis()->del(csrf);
+      post_data[post_data_len + 1] = '\0';
+
+      /* CSRF is mandatory in POST request */
+      mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+      mg_get_cookie(conn, "user", user, sizeof(user));
+
+      if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
+	 || (strcmp(rsp, user) != 0)) {
+#if 0
+	const char *msg = "The submitted form is expired. Please reload the page and try again. <p>[ <A HREF=/>Home</A> ]";
+
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
+				     csrf, rsp, user, "csrf");
+
+	return(send_error(conn, 500 /* Internal server error */,
+			  msg, PAGE_ERROR, script_path, msg));
+#else
+	valid_csrf = 0;
+#endif
+      } else {
+	/* Invalidate csrf */
+	ntop->getRedis()->del(csrf);
+      }
     }
 
-    if(valid_csrf)
+    if(valid_csrf) {
       setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
+      if(post_data) {
+	free(post_data);
+      }
+    }
     else
       setParamsTable(L, "_POST", NULL /* Empty */);
   } else
@@ -6451,6 +6462,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
       lua_setglobal(L, CONST_ALLOWED_IFNAME);
     }
   }
+
 
 #ifndef NTOPNG_PRO
   rc = luaL_dofile(L, script_path);
