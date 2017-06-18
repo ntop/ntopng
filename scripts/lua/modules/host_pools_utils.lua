@@ -219,11 +219,19 @@ end
 
 function host_pools_utils.getPoolsList(ifid, without_info)
   local ids_key = get_pool_ids_key(ifid)
+  local ids = ntop.getMembersCache(ids_key)
+
+  if not ids then ids = {} end
+  for i, id in pairs(ids) do
+     ids[i] = tonumber(id)
+  end
+
   local pools = {}
 
   initInterfacePools(ifid)
 
-  for _, pool_id in pairsByValues(ntop.getMembersCache(ids_key) or {}, asc) do
+  for _, pool_id in pairsByValues(ids, asc) do
+    pool_id = tostring(pool_id)
     local pool
 
     if without_info then
