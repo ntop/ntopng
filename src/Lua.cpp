@@ -6263,7 +6263,7 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
         purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
 
-         ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
 
