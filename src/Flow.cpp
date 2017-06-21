@@ -2558,7 +2558,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
   while((answers > 0) && (i < payload_len)) {
     char name[256];
     struct mdns_rsp_entry rsp;
-    int j;
+    u_int j;
 
     for(j=0; (i < payload_len) && (j < sizeof(name)); i++) {
       if(payload[i] == 0x0) {
@@ -2645,7 +2645,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
     if(location) {
       char url[512];
-      int i = 0;
+      u_int i = 0;
 
       location = &location[9];
       if(location[0] == ' ') location++;
