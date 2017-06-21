@@ -6263,7 +6263,7 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
         purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
 
-        // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
+         ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
 
@@ -6343,7 +6343,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Too much data submitted with the form. [post_data_len: %u]", post_data_len);
       valid_csrf = 0;
     } else {
-      post_data[post_data_len + 1] = '\0';
+      post_data[post_data_len] = '\0';
 
       /* CSRF is mandatory in POST request */
       mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
