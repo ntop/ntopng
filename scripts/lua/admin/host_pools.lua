@@ -259,6 +259,7 @@ end
 
 -- We are passing too much _POST data, no more than 5 members allowed
 local perPageMembers = "5"
+local perPagePools = "10"
 
 local members_filtering = _GET["members_filter"]
 local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
@@ -560,6 +561,28 @@ print[[
 
       return count == 1;
     }
+
+    function poolNameUnique(input) {
+      /* First update the host_pools names */
+      datatableForEachRow("#table-create", function() {
+        var pool_id = $("td:nth-child(1)", $(this)).html();
+        var pool_name = $("td:nth-child(2) input", $(this)).val();
+
+        for (var i=0; i<host_pools.length; i++)
+          if (host_pools[i].id == pool_id)
+            host_pools[i].name = pool_name;
+      });
+
+      var name = input.val();
+      var count = 0;
+
+      for (i=0; i<host_pools.length; i++) {
+        if (host_pools[i].name === name)
+          count++;
+      }
+
+      return count == 1;
+    }
 ]]
 if members_filtering ~= nil then
   print[[$("#pool_selector").attr("disabled", true);]]
@@ -582,9 +605,7 @@ print [[
       custom: {
          member: memberValidator,
          address: addressValidator,
-         unique: makeUniqueValidator(function(field) {
-            return $('input[name^="pool_"]', $("#table-create-form"));
-         }),
+         unique: poolNameUnique,
       }, errors: {
          member: "]] print(i18n("host_pools.duplicate_member")) print[[.",
          address: "]] print(i18n("host_pools.invalid_member")) print[[.",
@@ -865,9 +886,17 @@ print[[
 
 print [[
   <script>
-    var nextPoolId = 1;
-    var numPools = 0;
-    var maxPoolNum = ]] print(tostring(host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS)) print[[;
+    /* Assumption: this is sorted by pool id with possible gaps */
+    var host_pools = ]] print(tableToJsObject(available_pools)) print[[;
+    var maxPoolsNum = ]] print(tostring(host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS)) print[[;
+
+    function nextPoolId() {
+      for (var i=0; i<host_pools.length-1; i++)
+        if (parseInt(host_pools[i].id) + 1 < parseInt(host_pools[i+1].id))
+          return parseInt(host_pools[i].id) + 1;
+
+      return parseInt(host_pools[host_pools.length-1].id) + 1;
+    }
 
     function deletePool(pool_id) {
       var params = {};
@@ -882,10 +911,16 @@ print [[
     }
 
     function onPoolAddUndo(newid) {
-      var pool_id = parseInt(newid.split("added_pool_")[1]);
-      if (pool_id)
-        nextPoolId = Math.min(nextPoolId, pool_id);
-      numPools--;
+      var pool_id = newid.split("added_pool_")[1];
+      if (pool_id) {
+        for (var i=0; i<host_pools.length; i++) {
+          if (parseInt(host_pools[i].id) == pool_id) {
+            /* Remove the element at index i */
+            host_pools.splice(i, 1);
+            break;
+          }
+        }
+      }
     }
 
     function makeChildrenSafeInput(value) {
@@ -897,22 +932,16 @@ print [[
     }
 
     function addPool() {
-      var pool_id = nextPoolId;
+      var pool_id = nextPoolId();
 
-      while (nextPoolId < maxPoolNum) {
-        nextPoolId = nextPoolId+1;
+      if (pool_id < maxPoolsNum) {
+        if (datatableIsEmpty("#table-create"))
+          datatableRemoveEmptyRow("#table-create");
 
-        // find a new gap
-        if ($("#table-create input[name='pool_" + nextPoolId +"']").length == 0)
-          break;
-      }
-
-      if (datatableIsEmpty("#table-create"))
-         datatableRemoveEmptyRow("#table-create");
-
-      if (pool_id < maxPoolNum) {
-        numPools++;
         var newid = "added_pool_" + pool_id;
+
+        /* Add at 'pool_id' position */
+        host_pools.splice(pool_id, 0, {id:pool_id});
 
         var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]]
           printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center]]
@@ -928,7 +957,7 @@ print [[
 	enforce_quotas_per_pool_member.html(makeEnforceQuotasPerPoolMemberInput());
 
         datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
-        datatableOrderedInsert("#table-create table", 1, tr, pool_id);
+        $("#table-create table").append(tr);
         $("input", tr).focus();
 
         aysRecheckForm("#table-create-form");
@@ -938,8 +967,16 @@ print [[
     }
 
     function recheckPoolAddButton() {
-      if(numPools >= maxPoolNum)
+      /* TODO use array size and perPage */
+      var displayed_items = datatableGetNumDisplayedItems("#table-create");
+      var numPools = host_pools.length;
+
+      if ((numPools >= maxPoolsNum)
+          || (displayed_items > ]] print(perPagePools) print[[)
+          || (! datatableIsLastPage("#table-create-form")))
         $("#addNewPoolBtn").attr("disabled", "disabled");
+      else
+        $("#addNewPoolBtn").removeAttr("disabled");
     }
 
     $("#table-create").datatable({
@@ -947,11 +984,10 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
       title: "",
-      hidePerPage: true,
-      hideDetails: true,
-      showPagination: false,
-      perPage: ]] print(tostring(host_pools_utils.MAX_NUM_POOLS)) print[[,
+      showPagination: true,
       forceTable: true,
+      hidePerPage: true,
+      perPage: ]] print(perPagePools) print[[,
 
       buttons: [
          '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
@@ -1042,16 +1078,6 @@ print [[
 
             pools_ctr++;
          });
-
-         /* pick the first unused pool ID */
-         $("#table-create td:nth-child(1)").each(function() {
-            var this_pool_id = parseInt($(this).html());
-            if(nextPoolId == this_pool_id)
-               nextPoolId += 1;
-         });
-
-         if (numPools === 0)
-          numPools = pools_ctr;
 
          aysResetForm('#table-create-form');
         }
