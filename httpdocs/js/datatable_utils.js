@@ -11,8 +11,12 @@ function datatableAddEmptyRow(table, empty_str) {
   $("tbody", $(table)).html('<tr class="emptyRow"><td colspan="' + columns + '"><i>' + empty_str + '</i></td></tr>');
 }
 
+function datatableGetNumDisplayedItems(table) {
+   return $("tr:not(.emptyRow)", $(table)).length - 1;
+}
+
 function datatableIsEmpty(table) {
-  return $("tr:not(.emptyRow)", $(table)).length == 1;
+  return datatableGetNumDisplayedItems(table) == 0;
 }
 
 function datatableGetTotalItems(table) {

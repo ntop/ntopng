@@ -122,21 +122,28 @@ if((ifid ~= nil) and (isAdministrator())) then
 
     tablePreferences("hostPoolMembers", perpage)
   else
-    for _,pool in ipairs(host_pools_utils.getPoolsList(ifid)) do
+    local by_pool_name = {}
+
+    for _,pool in pairs(host_pools_utils.getPoolsList(ifid)) do
+      if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+        by_pool_name[pool.name] = pool
+      end
+    end
+
+    for _,pool in pairsByKeys(by_pool_name, asc_insensitive) do
       if (i >= start_i) and (i <= stop_i) then
         local undeletable_pools = host_pools_utils.getUndeletablePools(ifid)
 
-        if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-          res.data[#res.data + 1] = {
-            column_pool_id = pool.id,
-            column_pool_name = pool.name,
-            column_pool_undeletable = undeletable_pools[pool.id] or false,
-            column_children_safe = pool.children_safe,
-	    column_enforce_quotas_per_pool_member = pool.enforce_quotas_per_pool_member,
-            column_pool_link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool.id
-          }
-        end
+        res.data[#res.data + 1] = {
+          column_pool_id = pool.id,
+          column_pool_name = pool.name,
+          column_pool_undeletable = undeletable_pools[pool.id] or false,
+          column_children_safe = pool.children_safe,
+          column_enforce_quotas_per_pool_member = pool.enforce_quotas_per_pool_member,
+          column_pool_link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool.id
+        }
       end
+
       i = i + 1
     end
   end
