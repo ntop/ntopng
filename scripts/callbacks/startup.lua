@@ -68,16 +68,26 @@ if prefs.sticky_hosts ~= nil then
    for _, ifname in pairs(interface.getIfNames()) do
       interface.select(ifname)
       local ifid = getInterfaceId(ifname)
-      -- an example key is ntopng.serialized_hosts.ifid_6__192.168.2.136@0
+      -- an example key is ntopng.serialized_hosts.ifid_6_192.168.2.136_22:12:13:14:15:34@0
       local keys_pattern = "ntopng.serialized_hosts.ifid_"..ifid.."_*"
       local dumped_hosts = ntop.getKeysCache("ntopng.serialized_hosts.ifid_"..ifid.."_*")
       if dumped_hosts ~= nil then
 	 for hostkey, _ in pairs(dumped_hosts) do
 	    -- let's extract just the host name and vlan from the whole key;
 	    -- restore host will do the rest ...
-	    hostkey = string.split(hostkey, "__")  -- the double-underscore separates host info
-	    hostkey = hostkey[2]
-	    interface.restoreHost(hostkey, true --[[ skip privileges checks: no web access --]])
+	    local key_parts = string.split(hostkey, "_")
+	    if key_parts ~= nil and key_parts[4] ~= nil then
+	       local hostkey = key_parts[4]
+	       if key_parts[5] ~= nil then
+		  local parts = string.split(key_parts[5], "@")
+		  if #parts == 2 then
+		     -- add vlan
+		     hostkey = hostkey .. "@" .. parts[2]
+		  end
+	       end
+
+	       interface.restoreHost(hostkey, true --[[ skip privileges checks: no web access --]])
+	    end
 	 end
       end
    end
