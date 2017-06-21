@@ -87,12 +87,14 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
     if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
   end
 
-  -- Save hosts stats
-  local localHostsOnly = true -- stats only for local hosts
-  
-  local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
-    -- Crunch additional stats for local hosts only
-    if(host.localhost) then
+  -- Save hosts stats (if enabled from the preferences)
+  if host_rrd_creation ~= "0" or host_ndpi_rrd_creation ~= "0" or host_categories_rrd_creation ~= "0" then
+
+   local localHostsOnly = true -- stats only for local hosts
+
+   local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
+     -- Crunch additional stats for local hosts only
+     if(host.localhost) then
        -- Traffic stats
        if(host_rrd_creation == "1") then
 	  local name = fixPath(hostbase .. "/bytes.rrd")
@@ -129,6 +131,9 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 
 	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
           end
+
+	  if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
+	  if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
        end
 
        if(host_categories_rrd_creation ~= "0") then
@@ -146,15 +151,14 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	     end
 	  end
        end
+     end -- ends if host.localhost
+   end, time_threshold) -- end foreeachHost
 
-       if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
-       if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
-    end
-end, time_threshold) -- end foreachHost
+   if not in_time then
+      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
+      return false
+   end
 
-  if not in_time then
-     callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
-     return false
   end
 
   -- create RRD for ASN
