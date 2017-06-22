@@ -584,7 +584,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	    && isCaptiveURL(request_info->uri)
 	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
 	    && (!strstr(referer, CAPTIVE_PORTAL_URL))
-	    && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
+	    // && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
 	    ) {
     redirect_to_ssl(conn, request_info);
     return(1);
