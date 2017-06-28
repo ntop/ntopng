@@ -65,7 +65,7 @@ Ntop::Ntop(char *appName) {
 
 #ifdef WIN32
   if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
-	  strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen                                                                                                   
+	  strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen
   } else {
 	  int l = strlen(working_dir);
 
@@ -521,7 +521,7 @@ void Ntop::loadLocalInterfaceAddress() {
       }
     }
   }
-  
+
   /* TODO: add IPv6 support */
   if(pIPAddrTable) {
     FREE(pIPAddrTable);
@@ -881,29 +881,30 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
     return(false);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
-    if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
+  if(ntop->getPro()->has_valid_license()) {
+    if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
+      if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
 
-    if(strncmp(val, "ldap", 4) == 0) {
-      bool is_admin;
-      char ldapServer[64] = { 0 }, ldapAccountType[64] = { 0 }, ldapAnonymousBind[32] = { 0 },
-           bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 },
-           search_path[128] = { 0 }, admin_group[64] = { 0 };
+      if(strncmp(val, "ldap", 4) == 0) {
+        bool is_admin;
+        char ldapServer[64] = { 0 }, ldapAccountType[64] = { 0 }, ldapAnonymousBind[32] = { 0 },
+             bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 },
+             search_path[128] = { 0 }, admin_group[64] = { 0 };
 
-      if(!password || !password[0])
-        return false;
+        if(!password || !password[0])
+          return false;
 
-      ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
-      ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, sizeof(ldapAccountType));
-      ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, sizeof(ldapAnonymousBind));
-      ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
-      ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, sizeof(bind_pwd));
-      ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, sizeof(search_path));
-      ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, sizeof(group));
-      ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, sizeof(admin_group));
+        ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
+        ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, sizeof(ldapAccountType));
+        ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, sizeof(ldapAnonymousBind));
+        ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
+        ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, sizeof(bind_pwd));
+        ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, sizeof(search_path));
+        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, sizeof(group));
+        ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, sizeof(admin_group));
 
-      if(ldapServer[0]) {
-	bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType,
+        if(ldapServer[0]) {
+	  bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType,
 						     (atoi(ldapAnonymousBind) == 0) ? false : true,
 						     bind_dn[0] != '\0' ? bind_dn : NULL,
 						     bind_pwd[0] != '\0' ? bind_pwd : NULL,
@@ -914,13 +915,14 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
 						     admin_group[0] != '\0' ? admin_group : NULL,
 						     &is_admin);
 
-	if(ret) {
-	  snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
-	  ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
-          snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-	  ntop->getRedis()->set(key, (char*)"ldap", 0);
-	  return(true);
-	}
+	  if(ret) {
+	    snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
+	    ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+            snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
+	    ntop->getRedis()->set(key, (char*)"ldap", 0);
+	    return(true);
+	  }
+        }
       }
     }
   }
@@ -1380,7 +1382,7 @@ NetworkInterface* Ntop::getInterfaceById(int if_id) {
 
 bool Ntop::isExistingInterface(char *name) {
   if(name == NULL) return(false);
-  
+
   for(int i=0; i<num_defined_interfaces; i++) {
     if(!strcmp(iface[i]->get_name(), name))
       return(true);
