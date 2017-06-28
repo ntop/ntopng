@@ -16,7 +16,7 @@ Prerequisites
 - libmysqlclient-dev
 
 On Ubuntu/Debian
-- apt-get install build-essential git bison flex libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev libmysqlclient-dev zlib1g-dev libssl-dev
+- apt-get install build-essential git bison flex libglib2.0 libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev libmysqlclient-dev zlib1g-dev libssl-dev
 
 On Debian 9 you need to do
 - apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev
@@ -26,6 +26,9 @@ elsewhere
 On Ubuntu16 you also need to do "apt-get install libtool-bin"
 
 You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
+
+On Debian/Ubuntu if you plan to build packages you should also install
+- apt-get install debhelper dpkg-sig dkms
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
