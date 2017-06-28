@@ -29,8 +29,13 @@ else
 fi
 
 if [ ! -d /etc/ntopng/ ] ; then
-    echo "Making the /etc/ntopng directory..."
+    echo "Creating /etc/ntopng directory..."
     mkdir -p /etc/ntopng/
+fi
+
+if [ ! -d /usr/local/bin ] ; then
+    echo "Creating /usr/local/bin directory..."
+    mkdir -p /usr/local/bin
 fi
 
 if [ ! -f /usr/local/bin/ntopng ] && [ ! -L /usr/local/bin/ntopng ] ; then
