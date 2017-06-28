@@ -2714,7 +2714,10 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   u_int8_t ip_version;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
-  bool unicast, unidirectional, alerted_flows, filtered_flows;
+  bool unicast, unidirectional, alerted_flows;
+#ifdef NTOPNG_PRO
+  bool filtered_flows;
+#endif
 
   if(retriever->actNumEntries >= retriever->maxNumEntries)
     return(true); /* Limit reached */
@@ -2775,7 +2778,6 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
       return(false); /* false = keep on walking */
 
 #ifdef NTOPNG_PRO
-
     if(retriever->pag
        && retriever->pag->filteredFlows(&filtered_flows)
        && ((filtered_flows && f->isPassVerdict())
