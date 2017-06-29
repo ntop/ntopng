@@ -34,7 +34,7 @@ public:
   NetworkDiscovery(NetworkInterface *_iface);
   ~NetworkDiscovery();
 
-  void discover(lua_State* vm);
+  void discover(lua_State* vm, u_int timeout);
 };
 
 #endif /* _NETWORK_DISCOVERY_H_ */

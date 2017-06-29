@@ -1862,17 +1862,20 @@ static int ntop_get_flow_device_info(lua_State* vm) {
 
 static int ntop_discover_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
+  u_int timeout = 3; /* sec */
+    
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
+  if(lua_type(vm, 1) == LUA_TNUMBER) timeout = (u_int)lua_tonumber(vm, 1);
+  
   try {
     NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
     
     if(d) {
-      d->discover(vm);
+      d->discover(vm, timeout);
       delete d;
     }
   } catch(...) {
