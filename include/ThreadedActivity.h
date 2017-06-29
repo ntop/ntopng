@@ -19,21 +19,33 @@
  *
  */
 
-#ifndef _PERIODIC_ACTIVITIES_H_
-#define _PERIODIC_ACTIVITIES_H_
+#ifndef _THREADED_ACTIVITY_H_
+#define _THREADED_ACTIVITY_H_
 
 #include "ntop_includes.h"
 
-class PeriodicActivities {
+class ThreadedActivity {
  private:
-  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
-  u_int16_t num_activities;
+  pthread_t pthreadLoop;
+  char path[MAX_PATH];
+  NetworkInterface *iface;
+  u_int32_t periodicity;
+  bool align_to_localtime;
+
+  static void runScript(char *path, u_int32_t when);
+  static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
+
+  void periodicActivityBody();
+  void aperiodicActivityBody();
+  void uSecDiffPeriodicActivityBody();
 
  public:
-  PeriodicActivities();
-  ~PeriodicActivities();
+  ThreadedActivity(const char* _path, NetworkInterface *_iface = NULL,
+		   u_int32_t _periodicity_seconds = 0, bool _align_to_localtime = false);
+  ~ThreadedActivity();
+  void activityBody();
 
-  void startPeriodicActivitiesLoop();
+  void run();
 };
 
-#endif /* _PERIODIC_ACTIVITIES_H_ */
+#endif /* _THREADED_ACTIVITY_H_ */

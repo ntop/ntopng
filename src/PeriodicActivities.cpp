@@ -24,7 +24,10 @@
 /* ******************************************* */
 
 PeriodicActivities::PeriodicActivities() {
+  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++)
+    activities[i] = NULL;
 
+  num_activities = 0;
 }
 
 /* ******************************************* */
@@ -32,21 +35,14 @@ PeriodicActivities::PeriodicActivities() {
 PeriodicActivities::~PeriodicActivities() {
   void *res;
 
-  pthread_join(housekeepingLoop, &res);
-  pthread_join(secondLoop, &res);
-  pthread_join(minuteLoop, &res);
-  pthread_join(hourLoop, &res);
-  pthread_join(dayLoop, &res);
+  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
+    if(activities[i]) {
+      delete activities[i];
+      activities[i] = NULL;
+      num_activities--;
+    }
+  }
 }
-
-/* **************************************************** */
-
-static void* housekeepingStartLoop(void* ptr) {  ((PeriodicActivities*)ptr)->housekeepingActivitiesLoop(); return(NULL); }
-static void* secondStartLoop(void* ptr)       {  ((PeriodicActivities*)ptr)->secondActivitiesLoop(); return(NULL); }
-static void* minuteStartLoop(void* ptr)       {  ((PeriodicActivities*)ptr)->minuteActivitiesLoop(); return(NULL); }
-static void* fiveMinutesStartLoop(void* ptr)  {  ((PeriodicActivities*)ptr)->fiveMinutesActivitiesLoop(); return(NULL); }
-static void* hourStartLoop(void* ptr)         {  ((PeriodicActivities*)ptr)->hourActivitiesLoop(); return(NULL);   }
-static void* dayStartLoop(void* ptr)          {  ((PeriodicActivities*)ptr)->dayActivitiesLoop(); return(NULL);    }
 
 /* ******************************************* */
 
@@ -64,200 +60,37 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     exit(0);
   }
 
-  startupActivities();
-  pthread_create(&housekeepingLoop, NULL, housekeepingStartLoop, (void*)this);
-  pthread_create(&secondLoop, NULL, secondStartLoop, (void*)this);
-  pthread_create(&minuteLoop, NULL, minuteStartLoop, (void*)this);
-  pthread_create(&fiveMinutesLoop, NULL, fiveMinutesStartLoop, (void*)this);
-  pthread_create(&hourLoop,   NULL, hourStartLoop,   (void*)this);
-  pthread_create(&dayLoop,    NULL, dayStartLoop,    (void*)this);
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::runScript(char *path, u_int32_t when) {
-  struct stat statbuf;
-
-  if(stat(path, &statbuf) == 0) {
-    Lua *l;
-
-    try {
-      l = new Lua();
-    } catch(std::bad_alloc& ba) {
-      static bool oom_warning_sent = false;
-      
-      if(!oom_warning_sent) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	oom_warning_sent = true;
-      }
-
-      return;
-    }
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Starting script %s", path);
-    l->run_script(path);
-    delete l;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Missing script %s", path);
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::startupActivities() {
-  char script[MAX_PATH];
-
-  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), STARTUP_SCRIPT_PATH);
-  runScript(script, 0);
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::housekeepingActivitiesLoop() {
-  char script[MAX_PATH];
-
-  snprintf(script, sizeof(script), "%s/%s",
-	   ntop->get_callbacks_dir(), HOUSEKEEPING_SCRIPT_PATH);
-
-  while(!ntop->getGlobals()->isShutdown()) {
-    runScript(script, 0);
-    sleep(3); /* Arbitrary low sleep value */
+  ThreadedActivity *startup_activity;
+  if((startup_activity = new ThreadedActivity(STARTUP_SCRIPT_PATH))) {
+    startup_activity->run();
+    delete startup_activity;
+    startup_activity = NULL;
   }
-}
 
-/* ******************************************* */
+  typedef struct _activity_descr {
+    const char *path;
+    u_int32_t periodicity;
+    bool align_to_localtime;
+  } activity_descr;
 
-void PeriodicActivities::secondActivitiesLoop() {
-  char script[MAX_PATH];
+  static activity_descr ad[] = {{SECOND_SCRIPT_PATH,       1,     false},
+				{MINUTE_SCRIPT_PATH,       60,    false},
+				{FIVE_MINUTES_SCRIPT_PATH, 300,   false},
+				{HOURLY_SCRIPT_PATH,       3600,  false},
+				{DAILY_SCRIPT_PATH,        86400, true },
+				{HOUSEKEEPING_SCRIPT_PATH, 3,     false},
+				{NULL, 0, false}};
 
-  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), SECOND_SCRIPT_PATH);
+  activity_descr *d = ad;
+  while(d->path) {
+    ThreadedActivity *ta = new ThreadedActivity(d->path, NULL, d->periodicity, d->align_to_localtime);
 
-  while(!ntop->getGlobals()->isShutdown()) {
-    struct timeval begin, end;
-    u_long usec_diff;
-
-    gettimeofday(&begin, NULL);
-    runScript(script, begin.tv_sec);
-    gettimeofday(&end, NULL);
-
-    usec_diff = (end.tv_sec * 1000000) + end.tv_usec - (begin.tv_sec * 1000000) - begin.tv_usec;
-
-    if(usec_diff < 1000000) {
-      u_int diff = 1000000 - usec_diff;
-
-      _usleep(diff);
+    if(ta) {
+      activities[num_activities++] = ta;
+      ta->run();
     }
+    
+    d++;
   }
+
 }
-
-/* ******************************************* */
-
-u_int32_t PeriodicActivities::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
-  now -= (now % rounder);
-  now += rounder; /* Aligned to midnight UTC */
-
-  if(offset_from_utc > 0)
-    now += 86400 - offset_from_utc;
-  else if(offset_from_utc < 0)
-    now += -offset_from_utc;
-  
-  return(now);
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::minuteActivitiesLoop() {
-  char script[MAX_PATH];
-  u_int32_t next_run = (u_int32_t)time(NULL);
-  
-  next_run = roundTime(next_run, 60);
-  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), MINUTE_SCRIPT_PATH);
-
-  while(!ntop->getGlobals()->isShutdown()) {
-    u_int now = (u_int)time(NULL);
-
-    if(now >= next_run) {
-      /* 
-	 We need to make sure that minute activities 
-	 (e.g. 60 sec interface traffic stats) 
-	 are completed when we call runScript()
-	 that needs to make sure that such data
-	 has been already computed;
-      */
-      sleep(1);
-          
-      runScript(script, next_run);
-      next_run = roundTime(now, 60);
-    }
-
-    sleep(1);
-  }
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::fiveMinutesActivitiesLoop() {
-  char script[MAX_PATH];
-  u_int32_t next_run = (u_int32_t)time(NULL);
-
-  next_run = roundTime(next_run, 300);
-
-  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), FIVE_MINUTES_SCRIPT_PATH);
-
-  while(!ntop->getGlobals()->isShutdown()) {
-    u_int now = (u_int)time(NULL);
-
-    if(now >= next_run) {
-      runScript(script, now);
-      next_run = roundTime(now, 300);
-    }
-
-    sleep(1);
-  }
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::hourActivitiesLoop() {
-  char script[MAX_PATH];
-  u_int32_t next_run = (u_int32_t)time(NULL);
-
-  next_run = roundTime(next_run, 3600);
-
-  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), HOURLY_SCRIPT_PATH);
-
-  while(!ntop->getGlobals()->isShutdown()) {
-    u_int now = (u_int)time(NULL);
-
-    if(now >= next_run) {
-      runScript(script, now);
-      next_run = roundTime(now, 3600);
-    }
-
-    sleep(1);
-  }
-}
-
-/* ******************************************* */
-
-void PeriodicActivities::dayActivitiesLoop() {
-  char script[MAX_PATH];
-  u_int32_t next_run = (u_int32_t)time(NULL);
-
-  next_run = roundTime(next_run, 86400, ntop->get_time_offset());
-  next_run -= 86400;
-
-    snprintf(script, sizeof(script), "%s/%s",
-           ntop->get_callbacks_dir(), DAILY_SCRIPT_PATH);
-
-  while(!ntop->getGlobals()->isShutdown()) {
-    u_int now = (u_int)time(NULL);
-
-    if(now >= next_run) {
-      runScript(script, now);
-      next_run = roundTime(now, 86400, ntop->get_time_offset());
-    }
-
-    sleep(1);
-  }
-}
-

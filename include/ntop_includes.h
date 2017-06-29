@@ -263,6 +263,7 @@ using namespace std;
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
 #endif
+#include "ThreadedActivity.h"
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "MacManufacturers.h"

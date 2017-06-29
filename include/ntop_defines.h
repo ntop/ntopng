@@ -625,6 +625,7 @@
 #define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.alerts.slack_alert_severity"
 #define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.alerts.dump_alerts_when_iface_is_alerted"
 
+#define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
