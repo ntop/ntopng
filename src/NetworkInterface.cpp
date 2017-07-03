@@ -623,6 +623,8 @@ NetworkInterface::~NetworkInterface() {
     }
   }
 
+  ndpi_exit_detection_module(ndpi_struct);
+  
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
