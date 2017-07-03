@@ -207,8 +207,8 @@ class Flow : public GenericHashEntry {
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
-       u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
-       u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port,
+       Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
+       Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
@@ -345,8 +345,7 @@ class Flow : public GenericHashEntry {
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
-  bool equal(u_int8_t *src_eth, u_int8_t *dst_eth,
-	     IpAddress *_cli_ip, IpAddress *_srv_ip,
+  bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
 	     bool *src2srv_direction);

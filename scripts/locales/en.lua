@@ -1159,6 +1159,7 @@ local  en = {
       ago = "ago",
       rcvd = "Rcvd",
       router_access_point_mac_address = "(Router/AccessPoint) MAC Address",
+      additional_mac_address = "Additional MAC Address",
       host_snmp_localization ="Host SNMP Localization",
       note_hosts_located_snmp_device = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
       device_port = "Device Port",

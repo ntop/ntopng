@@ -29,7 +29,7 @@ HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 /* ************************************ */
 
-Host* HostHash::get(u_int16_t vlanId, u_int8_t *macaddr, IpAddress *key) {
+Host* HostHash::get(u_int16_t vlanId, IpAddress *key) {
   u_int32_t hash = (key->key() % num_hashes);
 
   if(table[hash] == NULL) {
@@ -45,10 +45,7 @@ Host* HostHash::get(u_int16_t vlanId, u_int8_t *macaddr, IpAddress *key) {
 	 && (!head->is_ready_to_be_purged())
 	 && (head->get_vlan_id() == vlanId)
 	 && (head->get_ip() != NULL)
-	 && (head->get_ip()->compare(key) == 0)
-	 && (!macaddr /* Possibly ignore the mac address in the search */
-	     || (head->getMac() && head->getMac()->equal(vlanId, macaddr)))
-	 )
+	 && (head->get_ip()->compare(key) == 0))
 	break;
       else
 	head = (Host*)head->next();
@@ -58,41 +55,6 @@ Host* HostHash::get(u_int16_t vlanId, u_int8_t *macaddr, IpAddress *key) {
     return(head);
   }
 }
-
-/* ************************************ */
-
-#if 0
-Host* HostHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
-  u_int32_t hash = 0;
-
-  for(int i=0; i<6; i++) hash += mac[i] << (i+1);
-  hash %= num_hashes;
-
-  if(table[hash] == NULL) {
-    return(NULL);
-  } else {
-    Host *head;
-
-    locks[hash]->lock(__FILE__, __LINE__);
-    head = (Host*)table[hash];
-
-    while(head != NULL) {
-      if((!head->idle())
-	 && (head->get_ip() == NULL /* This is not a L2 host */)
-         // && (vlanId == 0 /* any vlan */ || head->get_vlan_id() == vlanId)
-         && (head->get_vlan_id() == vlanId)
-         && (memcmp(mac, head->get_mac(), 6) == 0))
-	break;
-      else
-        head = (Host*)head->next();
-    }
-    
-    locks[hash]->unlock(__FILE__, __LINE__);
-    
-    return(head);
-  }
-}
-#endif
 
 /* ************************************ */
 

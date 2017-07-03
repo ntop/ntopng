@@ -324,7 +324,6 @@ void Ntop::start() {
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
   snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
 
-  pa->startPeriodicActivitiesLoop();
   if(httpbl) httpbl->startLoop();
   else if(flashstart) flashstart->startLoop();
 
@@ -336,6 +335,7 @@ void Ntop::start() {
   prefs->loadInstanceNameDefaults();
   loadLocalInterfaceAddress();
 
+  pa->startPeriodicActivitiesLoop();
   for(int i=0; i<num_defined_interfaces; i++) {
     iface[i]->allocateNetworkStats();
     iface[i]->startPacketPolling();

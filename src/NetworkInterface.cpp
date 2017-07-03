@@ -872,7 +872,7 @@ bool NetworkInterface::walker(WalkerType wtype,
 
 /* **************************************************** */
 
-Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
+Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				u_int16_t vlan_id,
 				u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
   				IpAddress *src_ip, IpAddress *dst_ip,
@@ -882,14 +882,17 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 				time_t first_seen, time_t last_seen,
 				bool *new_flow) {
   Flow *ret;
+  Mac *primary_mac;
+  Host *srcHost = NULL, *dstHost = NULL;
 
-  if(vlan_id != 0) setSeenVlanTaggedPackets();
-  if((src_eth && Utils::macHash(src_eth) != 0)
-     || (dst_eth && Utils::macHash(dst_eth) != 0))
+  if(vlan_id != 0)
+    setSeenVlanTaggedPackets();
+
+  if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
+     || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
     setSeenMacAddresses();
 
-  ret = flows_hash->find(src_eth, dst_eth,
-			 src_ip, dst_ip, src_port, dst_port,
+  ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, l4_proto, src2dst_direction);
 
   if(ret == NULL) {
@@ -897,8 +900,8 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
     try {
       ret = new Flow(this, vlan_id, l4_proto,
-		     src_eth, src_ip, src_port,
-		     dst_eth, dst_ip, dst_port,
+		     srcMac, src_ip, src_port,
+		     dstMac, dst_ip, dst_port,
 		     first_seen, last_seen);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -914,7 +917,6 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
     if(flows_hash->add(ret)) {
       *src2dst_direction = true;
-      return(ret);
     } else {
       delete ret;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many flows");
@@ -924,8 +926,67 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
   } else {
     *new_flow = false;
     has_too_many_flows = false;
-    return(ret);
   }
+
+  if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
+
+    if((primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
+#ifdef SECONDARY_MAC_DEBUG
+      char buf[32], bufm1[32], bufm2[32];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Detected mac address [%s] [host: %s][primary mac: %s]",
+				   Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+				   srcHost->get_ip()->print(buf, sizeof(buf)),
+				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
+#endif
+
+      /* Mac address is not the primary host mac address, let's see if it is the secondary */
+      if(!srcHost->getSecondaryMac()) {
+#ifdef SECONDARY_MAC_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Adding secondary mac [host: %s][primary mac: %s][secondary mac: %s]",
+				     srcHost->get_ip()->print(buf, sizeof(buf)),
+				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)),
+				     Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)));
+#endif
+
+	srcHost->set_mac(srcMac, false /* Secondary mac */);
+      }
+    }
+
+    srcHost->updateMacSeen(srcMac);
+  }
+
+  if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
+
+    if((primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
+#ifdef SECONDARY_MAC_DEBUG
+      char buf[32], bufm1[32], bufm2[32];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Detected mac address [%s] [host: %s][primary mac: %s]",
+				   Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)),
+				   dstHost->get_ip()->print(buf, sizeof(buf)),
+				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
+#endif
+
+      /* Mac address is not the primary host mac address, let's see if it is the secondary */
+      if(!dstHost->getSecondaryMac()) {
+#ifdef SECONDARY_MAC_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Adding secondary mac [host: %s][primary mac: %s][secondary mac: %s]",
+				     dstHost->get_ip()->print(buf, sizeof(buf)),
+				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)),
+				     Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)));
+#endif
+
+	dstHost->set_mac(dstMac, false /* Secondary mac */);
+      }
+    }
+
+    dstHost->updateMacSeen(dstMac);
+  }
+
+  return(ret);
 }
 
 /* **************************************************** */
@@ -995,6 +1056,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   Flow *flow;
   ndpi_protocol p;
   time_t now = time(NULL);
+  Mac *srcMac, *dstMac;
 
   if(last_pkt_rcvd_remote > 0) {
     int drift = now - last_pkt_rcvd_remote;
@@ -1055,8 +1117,13 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 
+  srcMac = getMac((u_int8_t*)zflow->src_mac, zflow->vlan_id, true);
+  dstMac = getMac((u_int8_t*)zflow->dst_mac, zflow->vlan_id, true);
+
   /* Updating Flow */
-  flow = getFlow((u_int8_t*)zflow->src_mac, (u_int8_t*)zflow->dst_mac, zflow->vlan_id,
+  flow = getFlow(srcMac,
+		 dstMac,
+		 zflow->vlan_id,
 		 zflow->deviceIP, zflow->inIndex, zflow->outIndex,
 		 &zflow->src_ip, &zflow->dst_ip,
 		 zflow->src_port, zflow->dst_port,
@@ -1066,6 +1133,23 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
   if(flow == NULL)
     return;
+
+  /* Update Mac stats */
+  if(srcMac) {
+    srcMac->incSentStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_pkts : zflow->out_pkts),
+			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_bytes : zflow->out_bytes));
+    srcMac->incRcvdStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_pkts : zflow->in_pkts),
+			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_bytes : zflow->in_bytes));
+
+    if(!srcMac->isSourceMac())
+      srcMac->setSourceMac();
+  }
+  if(dstMac) {
+    dstMac->incSentStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_pkts : zflow->in_pkts),
+			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_bytes : zflow->in_bytes));
+    dstMac->incRcvdStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_pkts : zflow->out_pkts),
+			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_bytes : zflow->out_bytes));
+  }
 
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
@@ -1163,7 +1247,7 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 				     const struct bpf_timeval *when,
 				     const u_int64_t time,
-				     struct ndpi_ethhdr *eth,
+				     Mac *srcMac, Mac *dstMac,
 				     u_int16_t vlan_id,
 				     struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6,
@@ -1177,7 +1261,6 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
   bool src2dst_direction, is_sent_packet = false; /* FIX */
   u_int8_t l4_proto;
   Flow *flow;
-  u_int8_t *eth_src = eth->h_source, *eth_dst = eth->h_dest;
   IpAddress src_ip, dst_ip;
   u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
   struct ndpi_tcphdr *tcph = NULL;
@@ -1197,7 +1280,9 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
-				  when, time, eth, vlan_id,
+				  when, time,
+				  srcMac, dstMac,
+				  vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
@@ -1338,7 +1423,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 #endif
 
   /* Updating Flow */
-  flow = getFlow(eth_src, eth_dst, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
+  flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, &new_flow);
 
   if(flow == NULL) {
@@ -1350,8 +1435,6 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;
 
-    if(*srcHost) (*srcHost)->setInterfaceId(bridge_iface_idx);
-    
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -1677,6 +1760,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
+  Mac *srcMac = NULL, *dstMac = NULL;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
@@ -1722,6 +1806,14 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
+
+    if((srcMac = getMac(ethernet->h_source, vlan_id, true))) {
+      srcMac->incSentStats(1, rawsize);
+      srcMac->setSeenIface(bridge_iface_idx);
+    }
+    if((dstMac = getMac(ethernet->h_dest, vlan_id, true)))
+      dstMac->incRcvdStats(1, rawsize);
+
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
@@ -1906,7 +1998,9 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
-				     &h->ts, time, ethernet, vlan_id, iph,
+				     &h->ts, time,
+				     srcMac, dstMac,
+				     vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch(std::bad_alloc& ba) {
@@ -1993,7 +2087,9 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 
 	try {
 	  pass_verdict = processPacket(bridge_iface_idx,
-				       &h->ts, time, ethernet, vlan_id,
+				       &h->ts, time,
+				       srcMac, dstMac,
+				       vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
 	} catch(std::bad_alloc& ba) {
@@ -2009,12 +2105,6 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
     break;
 
   default: /* No IPv4 nor IPv6 */
-    Mac *srcMac = getMac(ethernet->h_source, vlan_id, true);
-    Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
-
-    if(srcMac) srcMac->incSentStats(1, rawsize);
-    if(dstMac) dstMac->incRcvdStats(1, rawsize);
-
     if(srcMac && dstMac) {
       const u_int16_t arp_opcode_offset = ip_offset + 6;
       u_int16_t arp_opcode = 0;
@@ -2089,11 +2179,11 @@ void NetworkInterface::cleanup() {
 /* **************************************************** */
 
 void NetworkInterface::findFlowHosts(u_int16_t vlanId,
-				     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
-				     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst) {
+				     Mac *src_mac, IpAddress *_src_ip, Host **src,
+				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
 
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
-  (*src) = hosts_hash->get(vlanId, src_mac, _src_ip);
+  (*src) = hosts_hash->get(vlanId, _src_ip);
 
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -2113,11 +2203,12 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
     (*src)->postHashAdd();
     has_too_many_hosts = false;
+
   }
 
   /* ***************************** */
 
-  (*dst) = hosts_hash->get(vlanId, dst_mac, _dst_ip);
+  (*dst) = hosts_hash->get(vlanId, _dst_ip);
 
   if((*dst) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -2137,6 +2228,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
     (*dst)->postHashAdd();
     has_too_many_hosts = false;
+
   }
 }
 
@@ -2852,6 +2944,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   char buf[64];
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
+  Mac *sm = NULL;
 
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
@@ -2865,8 +2958,10 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->hostMacsOnly  && h->getMac() && !h->getMac()->isSourceMac())                     ||
-     (r->mac           && (! h->getMac()->equal(r->vlan_id, r->mac)))                     ||
+     (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac()
+			   && (!(sm = h->getSecondaryMac()) || !sm->isSourceMac())))                     ||
+     (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)
+			   && (!(sm = h->getSecondaryMac()) || !sm->equal(r->vlan_id, r->mac))))         ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||

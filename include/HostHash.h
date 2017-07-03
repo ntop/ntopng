@@ -32,10 +32,8 @@ class HostHash : public GenericHash {
  public:
   HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  /* Search for an host by IP, VLAN, and MAC address */
-  Host* get(u_int16_t vlanId, u_int8_t *macaddr, IpAddress *key);
-  /* Search for an host by IP and VLAN without considering the MAC address */
-  inline Host* get(u_int16_t vlanId, IpAddress *key) { return(get(vlanId, NULL, key)); };
+  /* Search for an host by IP and VLAN */
+  Host* get(u_int16_t vlanId, IpAddress *key);
 
   void incNumHTTPEntries();  
   void decNumHTTPEntries();

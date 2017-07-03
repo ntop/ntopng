@@ -212,6 +212,9 @@ u_int GenericHash::purgeIdle() {
 	  delete(head);
 	  head = next;
 	} else {
+	  /* Do the chores */
+	  head->housekeep();
+
 	  /* Purge at the next run */
 	  if(head->idle())
 	    head->set_to_purge();

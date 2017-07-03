@@ -149,7 +149,7 @@ class NetworkInterface {
   void init();
   void deleteDataStructures();
   NetworkInterface* getSubInterface(u_int32_t criteria);
-  Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
+  Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
   		IpAddress *src_ip, IpAddress *dst_ip,
   		u_int16_t src_port, u_int16_t dst_port,
@@ -298,8 +298,8 @@ class NetworkInterface {
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
-		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
-		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
+		     Mac *src_mac, IpAddress *_src_ip, Host **src,
+		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool dissectPacket(u_int8_t bridge_iface_idx,
@@ -309,7 +309,7 @@ class NetworkInterface {
   bool processPacket(u_int8_t bridge_iface_idx,
 		     const struct bpf_timeval *when,
 		     const u_int64_t time,
-		     struct ndpi_ethhdr *eth,
+		     Mac *srcMac, Mac *dstMac,
 		     u_int16_t vlan_id,
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,

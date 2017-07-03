@@ -32,8 +32,7 @@ FlowHash::FlowHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 static u_int16_t max_num_loops = 0;
 
-Flow* FlowHash::find(u_int8_t *src_eth, u_int8_t *dst_eth,
-		     IpAddress *src_ip, IpAddress *dst_ip,
+Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 		     u_int16_t src_port, u_int16_t dst_port, 
 		     u_int16_t vlanId, u_int8_t protocol,
 		     bool *src2dst_direction) {
@@ -44,7 +43,7 @@ Flow* FlowHash::find(u_int8_t *src_eth, u_int8_t *dst_eth,
   
   while(head) {
     if((!head->idle() && !head->is_ready_to_be_purged())
-       && head->equal(src_eth, dst_eth, src_ip, dst_ip, src_port, dst_port, vlanId, protocol, src2dst_direction)) {
+       && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, protocol, src2dst_direction)) {
       if(num_loops > max_num_loops) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
 	max_num_loops = num_loops;

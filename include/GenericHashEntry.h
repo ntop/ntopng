@@ -43,9 +43,8 @@ class GenericHashEntry {
   NetworkInterface *iface; /**< Pointer of network interface.*/
 
   virtual bool isIdle(u_int max_idleness);
-
  public:
-   /**
+  /**
     * @brief A Constructor
     * @details Creating a new GenericHashEntry.
     * 
@@ -94,6 +93,7 @@ class GenericHashEntry {
   inline NetworkInterface* getInterface() { return(iface); };
   virtual bool idle();
   virtual void set_to_purge()          { will_be_purged = true; };
+  virtual void housekeep()             { return;                };
   inline bool is_ready_to_be_purged() { return(will_be_purged); };
   inline u_int get_duration()         { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()             { return(0);         };  

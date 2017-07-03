@@ -28,8 +28,7 @@ class FlowHash : public GenericHash {
  public:
   FlowHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
   
-  Flow* find(u_int8_t *src_eth, u_int8_t *dst_eth,
-	     IpAddress *src_ip, IpAddress *dst_ip,
+  Flow* find(IpAddress *src_ip, IpAddress *dst_ip,
 	     u_int16_t src_port, u_int16_t dst_port, 
 	     u_int16_t vlanId, u_int8_t protocol,
 	     bool *src2dst_direction);

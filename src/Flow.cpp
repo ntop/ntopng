@@ -26,8 +26,8 @@
 
 Flow::Flow(NetworkInterface *_iface,
 	   u_int16_t _vlanId, u_int8_t _protocol,
-	   u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
-	   u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port,
+	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
+	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
@@ -67,9 +67,10 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&protos, 0, sizeof(protos));
 
-  iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
+  iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
+
   passVerdict = true, quota_exceeded = false, categorization.categorized_requested = false;
   cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
@@ -1237,20 +1238,18 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
 /* *************************************** */
 
-bool Flow::equal(u_int8_t *src_eth, u_int8_t *dst_eth,
-		 IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
+bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
 		 bool *src2srv_direction) {
   if((_vlanId != vlanId) || (_protocol != protocol)) return(false);
 
-  if(cli_host && cli_host->equal(src_eth, _cli_ip)
-     && srv_host && srv_host->equal(dst_eth, _srv_ip)
-
+  if(cli_host && cli_host->equal(_cli_ip)
+     && srv_host && srv_host->equal(_srv_ip)
      && (_cli_port == cli_port) && (_srv_port == srv_port)) {
     *src2srv_direction = true;
     return(true);
-  } else if(srv_host && srv_host->equal(src_eth, _cli_ip)
-	    && cli_host && cli_host->equal(dst_eth, _srv_ip)
+  } else if(srv_host && srv_host->equal(_cli_ip)
+	    && cli_host && cli_host->equal(_srv_ip)
 	    && (_srv_port == cli_port) && (_cli_port == srv_port)) {
     *src2srv_direction = false;
     return(true);

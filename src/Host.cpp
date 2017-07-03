@@ -36,7 +36,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, u_int8_t _mac[6],
+Host::Host(NetworkInterface *_iface, Mac *_mac,
 	   u_int16_t _vlanId, IpAddress *_ip) : GenericHost(_iface) {
   ip.set(_ip);
   initialize(_mac, _vlanId, true);
@@ -44,7 +44,7 @@ Host::Host(NetworkInterface *_iface, u_int8_t _mac[6],
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHost(_iface) {
+Host::Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId) : GenericHost(_iface) {
   initialize(_mac, _vlanId, true);
 }
 
@@ -60,9 +60,10 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  if(mac)  mac->decUses();
-  if(as)   as->decUses();
-  if(vlan) vlan->decUses();
+  if(mac)           mac->decUses();
+  if(secondary_mac) secondary_mac->decUses();
+  if(as)            as->decUses();
+  if(vlan)          vlan->decUses();
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)                 delete sent_to_sketch;
   if(rcvd_from_sketch)               delete rcvd_from_sketch;
@@ -122,10 +123,9 @@ void Host::computeHostSerial() {
 
 /* *************************************** */
 
-void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
+void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
   char buf[64], host[96];
-  char macbuf[24];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
@@ -135,15 +135,15 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 #endif
   host_pool_id = NO_HOST_POOL_ID;
 
-  if(_mac == NULL)
-    mac = NULL;
-  else if((mac = iface->getMac(_mac, _vlanId, true)) != NULL)
+  if((mac = _mac))
     mac->incUses();
+  secondary_mac = NULL;
 
   if((vlan = iface->getVlan(_vlanId, true)) != NULL)
     vlan->incUses();
 
   num_alerts_detected = 0;
+  mac_last_seen = secondary_mac_last_seen = 0;
   drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     num_resolve_attempts = 0, ssdpLocation = NULL, ssdpLocation_shadow = NULL;
   attacker_max_num_syn_per_sec = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
@@ -173,8 +173,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   as = NULL;
   longitude = 0, latitude = 0;
   k = ip.print(key, sizeof(key));
-
-  snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, (mac ? mac->get_string_key(macbuf, sizeof(macbuf)) : ""), vlan_id);
+  snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
     icmp = NULL;
 
@@ -275,14 +274,16 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 /* *************************************** */
 
 bool Host::readDHCPCache() {
-  if(localHost && mac && (!dhcpUpdated)) {
+  Mac *m = mac; /* Cache it as it can be replaced with secondary_mac */
+
+  if(localHost && m && (!dhcpUpdated)) {
     /* Check DHCP cache */
     char client_mac[24], buf[64], key[64];
 
     dhcpUpdated = true;
 
-    if(!mac->isNull()) {
-      Utils::formatMac(mac->get_mac(), client_mac, sizeof(client_mac));
+    if(!m->isNull()) {
+      Utils::formatMac(m->get_mac(), client_mac, sizeof(client_mac));
       
       snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
       if(ntop->getRedis()->hashGet(key, client_mac, buf, sizeof(buf)) == 0) {
@@ -454,7 +455,31 @@ void Host::updateLocal() {
 
 /* *************************************** */
 
-void Host::set_mac(char *m) {
+void Host::set_mac(Mac *_mac, bool primary) {
+  if(primary) {
+    if(mac)
+      mac->decUses();
+    mac = _mac;
+  } else {
+    if(secondary_mac)
+      secondary_mac->decUses();
+    secondary_mac = _mac;
+  }
+
+  if(_mac)
+    _mac->incUses();
+}
+
+/* *************************************** */
+
+void Host::set_mac(u_int8_t *_mac, bool primary) {
+  if(iface)
+    set_mac(iface->getMac(_mac, vlan_id, false), primary);
+}
+
+/* *************************************** */
+
+void Host::set_mac(char *m, bool primary) {
   u_int8_t mac_address[6];
   u_int32_t _mac[6] = { 0 };
 
@@ -468,10 +493,8 @@ void Host::set_mac(char *m) {
     mac_address[2] = _mac[2], mac_address[3] = _mac[3],
     mac_address[4] = _mac[4], mac_address[5] = _mac[5];
 
-  if(mac) mac->decUses();
+  set_mac(mac_address, primary);
 
-  if((mac = iface->getMac(mac_address, vlan_id, true)) != NULL)
-    mac->incUses();
 }
 
 /* *************************************** */
@@ -482,6 +505,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool exclude_deserialized_bytes) {
   char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net, *host_id = buf_id;
   bool mask_host = Utils::maskHost(localHost);
+  Mac *m = mac, *ms = secondary_mac; /* Cache macs as they can be swapped/updated */
   
   if((ptree && (!match(ptree))) || mask_host)
     return;
@@ -501,7 +525,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "ip", (ipaddr = ip.printMask(ip_buf, sizeof(ip_buf), localHost)));
   lua_push_int_table_entry(vm, "ipkey", ip.key());
 
-  lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "mac", Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf)));
+  if(ms)
+    lua_push_str_table_entry(vm, "secondary_mac", Utils::formatMac(ms->get_mac(), buf, sizeof(buf)));
+
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
   lua_push_int_table_entry(vm, "bytes.sent",
@@ -810,6 +837,63 @@ bool Host::idle() {
 
 /* *************************************** */
 
+void Host::housekeep() {
+  /* Update mac addresses to make sure an active mac address always stays in mac */
+  if(secondary_mac && mac) {
+
+#ifdef SECONDARY_MAC_DEBUG
+    char buf[64], bufm1[32], bufm2[32];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Detected secondary mac for %s", ip.print(buf, sizeof(buf)));
+#endif
+
+    if(mac_last_seen + ntop->getPrefs()->get_host_max_idle(isLocalHost()) < secondary_mac_last_seen){
+      /* If the primary mac is inactive for more than HOST_MACS_REFRESH seconds with reference to the secondary mac
+	 then we swap the two macs */
+
+#ifdef SECONDARY_MAC_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Secondary mac newer than primary mac swapping [host: %s]"
+				   "[primary mac: %s][primary mac last seen: %i]"
+				   "[secondary mac: %s][secondary mac last seen: %i]",
+				   ip.print(buf, sizeof(buf)),
+				   Utils::formatMac(mac->get_mac(), bufm1, sizeof(bufm1)),
+				   mac_last_seen,
+				   Utils::formatMac(secondary_mac->get_mac(), bufm2, sizeof(bufm2)),
+				   secondary_mac_last_seen);
+#endif
+
+      Mac *tmp = secondary_mac;
+      secondary_mac = mac;
+      mac = tmp;
+      u_int32_t tmp_t = secondary_mac_last_seen;
+      secondary_mac_last_seen = mac_last_seen;
+      mac_last_seen = tmp_t;
+
+      if(iface->getHostPool(this) != get_host_pool()) {
+	/* We are inline here (in the datapath) so it is safe to perfrom the following operations
+	 as there is no risk someone else in the datapath is using the structures that are being updated */
+#ifdef SECONDARY_MAC_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host pool has changed after mac swap, reloading [host: %s]", ip.print(buf, sizeof(buf)));
+#endif
+
+	updateHostPool();
+	updateHostL7Policy();
+	iface->updateFlowsL7Policy();
+      }
+
+    } else if(secondary_mac_last_seen + ntop->getPrefs()->get_host_max_idle(isLocalHost()) < iface->getTimeLastPktRcvd()) {
+#ifdef SECONDARY_MAC_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Secondary mac is idle, decreasing its reference counter [host: %s]", ip.print(buf, sizeof(buf)));
+#endif
+
+      secondary_mac->decUses();
+      secondary_mac_last_seen = 0;
+      secondary_mac = NULL; /* Will be freed later by purgeIdle */
+    }
+  }
+};
+
+/* *************************************** */
+
 void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    struct site_categories *category,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
@@ -845,11 +929,6 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
     if(as) {
       as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-    }
-
-    if(mac) {
-      mac->incSentStats(sent_packets, sent_bytes);
-      mac->incRcvdStats(rcvd_packets, rcvd_bytes);
     }
 
     if(category && localHost && ntop->get_flashstart()) {
@@ -889,10 +968,9 @@ void Host::serialize2redis() {
      && (!ip.isEmpty())) {
     char *json = serialize();
     char host_key[128], key[128];
-    char macbuf[24];
     char *k = ip.print(host_key, sizeof(host_key));
 
-    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, (mac ? mac->get_string_key(macbuf, sizeof(macbuf)) : ""), vlan_id);
+    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
@@ -905,10 +983,14 @@ void Host::serialize2redis() {
 json_object* Host::getJSONObject() {
   json_object *my_object;
   char buf[32];
+  Mac *m = mac, *ms = secondary_mac;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf))));
+  json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf))));
+  if(ms)
+    json_object_object_add(my_object, "mac_address_secondary", json_object_new_string(Utils::formatMac(ms->get_mac(), buf, sizeof(buf))));
+
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
@@ -1001,11 +1083,14 @@ char* Host::get_visual_name(char *buf, u_int buf_len, bool from_info) {
 bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
   char keybuf[64] = { 0 }, *keybuf_ptr;
   char ipbuf[64] = { 0 }, *ipbuf_ptr;
+  Mac *m = mac, *sm = secondary_mac; /* Need to cache them as they can be swapped/updated */
 
   if(!match(ptree)) return(false);
   keybuf_ptr = get_hostkey(keybuf, sizeof(keybuf));
 
-  if(strcasestr((ipbuf_ptr = Utils::formatMac(mac ? mac->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
+  if(strcasestr((ipbuf_ptr = Utils::formatMac(m ? m->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
+     ||
+     strcasestr((ipbuf_ptr = Utils::formatMac(sm ? sm->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
      || strcasestr((ipbuf_ptr = keybuf_ptr), key)                                                  /* Match by hostkey */
      || strcasestr((ipbuf_ptr = get_visual_name(ipbuf, sizeof(ipbuf))), key)) {                    /* Match by name */
     lua_push_str_table_entry(vm, keybuf_ptr, ipbuf_ptr);

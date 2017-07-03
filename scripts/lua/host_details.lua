@@ -399,11 +399,14 @@ print [[
 --tprint(host)
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
-
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
-	    print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
-	    print('</td><td>&nbsp;</td></tr>')
+	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
+	 print('</td><td>&nbsp;</td></tr>')
+      end
+      if(not isEmptyString(host["secondary_mac"]) and host["secondary_mac"]  ~= "00:00:00:00:00:00") then
+	 print("<tr><th width=35%>"..i18n("details.additional_mac_address").."</th><td>" ..get_symbolic_mac(host["secondary_mac"]).. " "..getHostIcon(host["secondary_mac"]))
+	 print('</td><td>&nbsp;</td></tr>')
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
