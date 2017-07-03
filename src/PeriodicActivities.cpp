@@ -33,8 +33,6 @@ PeriodicActivities::PeriodicActivities() {
 /* ******************************************* */
 
 PeriodicActivities::~PeriodicActivities() {
-  void *res;
-
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
     if(activities[i]) {
       delete activities[i];
