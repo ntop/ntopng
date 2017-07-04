@@ -12,6 +12,7 @@ require "graph_utils"
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
+   require "snmp_utils"
 end
 
 local json = require ("dkjson")
@@ -488,16 +489,10 @@ function handleCustomFlowField(key, value)
    elseif((key == 'INPUT_SNMP') or (key == '10')
 	     or (key == 'OUTPUT_SNMP') or (key == '14')) then
       return(formatInterfaceId(value))
-   elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == '130')) then
-      local b1, b2, b3, b4 = value:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
-      b1 = tonumber(b1)
-      b2 = tonumber(b2)
-      b3 = tonumber(b3)
-      b4 = tonumber(b4)
-      local ipaddr = string.format('%d.%d.%d.%d', b4, b3, b2, b1)
-      local res = getResolvedAddress(hostkey2hostinfo(ipaddr))
+   elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == 'NPROBE_IPV4_ADDRESS') or (key == '130') or (key == '57943')) then
+      local res = getResolvedAddress(hostkey2hostinfo(value))
 
-      local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..ipaddr.."\">"
+      local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..value.."\">"
 
       if((res == "") or (res == nil)) then
 	 ret = ret .. ipaddr
@@ -1733,4 +1728,38 @@ function printFlowQuota(ifid, info, as_client)
     print(i18n("shaping.no_quota_applied"))
   end
 end
+
+-- #######################
+
+function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
+   local available_devices = get_snmp_devices()
+   if available_devices == nil then available_devices = {} end
+
+   for dev, _ in pairs(available_devices) do
+      if dev == snmpdevice then
+	 local community = get_snmp_community(dev)
+	 local port_indexes = get_snmp_device_port_indexes(dev, community)
+	 if port_indexes == nil then port_indexes = {} end
+
+	 local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..dev.. "'>"..dev.."</A>"
+
+	 local inputurl = input_idx
+	 local outputurl = output_idx
+	 for _, idx in pairs(port_indexes) do
+	    if input_idx == idx then
+	       inputurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..dev.."&ifIdx="..input_idx.."'>"..input_idx.." <span class=\"label label-default\">"..get_snmp_port_label(dev, community, input_idx).."</span></A>"
+	    end
+	    if output_idx == idx then
+	       outputurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..dev.."&ifIdx="..input_idx.."'>"..output_idx.." <span class=\"label label-default\">"..get_snmp_port_label(dev, community, output_idx).."</span></A>"
+	    end
+	 end
+
+	 print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><th>"..i18n("details.input_device_port").." / "..i18n("details.output_device_port").."</th></tr>")
+	 print("<tr><td>"..snmpurl.."</td><td>"..inputurl.." / "..outputurl.."</td></tr>")
+	 break
+      end
+   end
+
+end
+
 -- #######################

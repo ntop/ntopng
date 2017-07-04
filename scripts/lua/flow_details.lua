@@ -573,11 +573,20 @@ else
 	-- io.write(flow["proto.ndpi"].."\n")
 	isThereRTP = isThereProtocol("RTP", info)
       end
-
       info = removeProtocolFields("RTP",info)
 
-      num = 0
+      local snmpdevice = nil
+      if(ntop.isPro() and not isEmptyString(syminfo["EXPORTER_IPV4_ADDRESS"])) then
+	 snmpdevice = syminfo["EXPORTER_IPV4_ADDRESS"]
+      elseif(ntop.isPro() and not isEmptyString(syminfo["NPROBE_IPV4_ADDRESS"])) then
+	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
+      end
 
+      if not isEmptyString(snmpdevice) then
+	 printFlowSNMPInfo(snmpdevice, syminfo["INPUT_SNMP"], syminfo["OUTPUT_SNMP"])
+      end
+
+      local num = 0
       for key,value in pairs(info) do
 	 if(num == 0) then
 	    print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")

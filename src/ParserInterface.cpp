@@ -709,13 +709,15 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           flow.direction = atoi(value);
           break;
 	case NPROBE_IPV4_ADDRESS:
-	  if(flow.deviceIP == 0) /* Do not override EXPORTER_IPV4_ADDRESS */
-	    flow.deviceIP = ntohl(inet_addr(value));
+	  /* Do not override EXPORTER_IPV4_ADDRESS */
+	  if(flow.deviceIP == 0 && (flow.deviceIP = ntohl(inet_addr(value)))) 
+	    add_to_additional_fields = true;
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
 	  break;
 	case EXPORTER_IPV4_ADDRESS:
 	  /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-	  flow.deviceIP = ntohl(inet_addr(value));
+	  if((flow.deviceIP = ntohl(inet_addr(value))))
+	     add_to_additional_fields = true;
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
 	  break;
 	case INPUT_SNMP:
