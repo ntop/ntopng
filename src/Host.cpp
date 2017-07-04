@@ -877,7 +877,9 @@ void Host::housekeep() {
 
 	updateHostPool();
 	updateHostL7Policy();
+#ifdef NTOPNG_PRO
 	iface->updateFlowsL7Policy();
+#endif
       }
 
     } else if(secondary_mac_last_seen + ntop->getPrefs()->get_host_max_idle(isLocalHost()) < iface->getTimeLastPktRcvd()) {
