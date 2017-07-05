@@ -93,23 +93,9 @@ else
    ntopng_git_url = info["version"]
 end
 
-print("<tr><th>"..i18n("about.version").."</th><td>"..ntopng_git_url)
+print("<tr><th>"..i18n("about.version").."</th><td>"..ntopng_git_url.." - ")
 
-if(info["pro.release"] == false) then
-   print(" - Community")
-else
-   if(info["version.enterprise_edition"] == true) then
-      print(" - Enterprise")
-   else
-      print(" - Pro Small Business")
-   end
-end
-
-if(info["version.embedded_edition"] == true) then
-   print("/Embedded")
-end
-
-print(" Edition</td></tr>\n")
+printntopngRelease(info)
 
 if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
    print("<tr><th>"..i18n("about.built_on").."</th><td>"..info["OS"].."</td></tr>\n") 
