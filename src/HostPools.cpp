@@ -85,7 +85,7 @@ void HostPools::deleteTree(AddressTree ***at) {
 
 void HostPools::deleteStats(HostPoolStats ***hps) {
   if(hps) {
-    if(**hps) {
+    if(*hps) {
       for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
 	if((*hps)[i])
 	  delete (*hps)[i];
