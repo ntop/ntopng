@@ -67,11 +67,45 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
 /* *************************************** */
 
+void HostPools::deleteTree(AddressTree ***at) {
+  if(at) {
+    if(*at) {
+      for(int i = 0; i < MAX_NUM_VLAN; i++)
+	if((*at)[i])
+	  delete (*at)[i];
+      delete [] *at;
+      *at = NULL;
+    }
+  }
+}
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+void HostPools::deleteStats(HostPoolStats ***hps) {
+  if(hps) {
+    if(**hps) {
+      for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
+	if((*hps)[i])
+	  delete (*hps)[i];
+      delete [] *hps;
+      *hps = NULL;
+    }
+  }
+}
+
+#endif
+
+/* *************************************** */
+
 HostPools::~HostPools() {
+  int i;
+
   if(tree_shadow)
-    delete []tree_shadow;
+    deleteTree(&tree_shadow);
   if(tree)
-    delete []tree;
+    deleteTree(&tree);
   if(children_safe)
     free(children_safe);
 
@@ -82,12 +116,17 @@ HostPools::~HostPools() {
     free(enforce_quotas_per_pool_member);
   
   if(stats)
-    delete []stats;
+    deleteStats(&stats);
   if(stats_shadow)
-    delete []stats_shadow;
+    deleteStats(&stats_shadow);
 
-  if(volatile_members_lock)
+  if(volatile_members_lock) {
+    for(i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+      if(volatile_members_lock[i])
+	delete volatile_members_lock[i];
+    }
     delete []volatile_members_lock;
+  }
 
   if(volatile_members) {
     for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
@@ -128,7 +167,7 @@ void HostPools::swap(AddressTree **new_trees) {
   if(new_stats) {
     if(stats) {
       if(stats_shadow)
-	delete []stats_shadow;
+	deleteStats(&stats_shadow);
       stats_shadow = stats;
     }
     stats = new_stats;
@@ -139,7 +178,7 @@ void HostPools::swap(AddressTree **new_trees) {
   if(new_trees) {
     if(tree) {
       if(tree_shadow)
-	delete []tree_shadow; /* Invokes the destructor */
+	deleteTree(&tree_shadow); /* Invokes the destructor */
       tree_shadow = tree;
     }
     tree = new_trees;

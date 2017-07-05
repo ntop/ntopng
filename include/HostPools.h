@@ -48,11 +48,12 @@ class HostPools {
       return NULL;
     return stats[host_pool_id];
   }
-
   void reloadPoolStats();
+  static void deleteStats(HostPoolStats ***hps);
 #else
   void swap(AddressTree **new_trees);
 #endif
+  static void deleteTree(AddressTree ***at);
 
   Mutex *swap_lock;
   volatile time_t latest_swap;
