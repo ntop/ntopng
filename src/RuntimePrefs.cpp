@@ -30,106 +30,97 @@ RuntimePrefs::RuntimePrefs() {
   prefscache = NULL;
   prefscache_refreshed = false;
 
-  housekeeping_frequency = HOUSEKEEPING_FREQUENCY,
-    addToCache(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, u_int32_t_ptr, (void*)&housekeeping_frequency);
+  housekeeping_frequency = HOUSEKEEPING_FREQUENCY;
+  local_host_cache_duration = LOCAL_HOSTS_CACHE_DURATION;
+  local_host_max_idle = MAX_LOCAL_HOST_IDLE;
+  non_local_host_max_idle = MAX_REMOTE_HOST_IDLE;
+  flow_max_idle = MAX_FLOW_IDLE;
+  active_local_hosts_cache_interval = CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL;
 
-  local_host_cache_duration = LOCAL_HOSTS_CACHE_DURATION,
-    addToCache(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, u_int32_t_ptr, (void*)&local_host_cache_duration);
-
-  local_host_max_idle = MAX_LOCAL_HOST_IDLE,
-    addToCache(CONST_LOCAL_HOST_IDLE_PREFS, u_int32_t_ptr, (void*)&local_host_max_idle);
-
-  non_local_host_max_idle = MAX_REMOTE_HOST_IDLE,
-    addToCache(CONST_REMOTE_HOST_IDLE_PREFS, u_int32_t_ptr, (void*)&non_local_host_max_idle);
-
-  flow_max_idle = MAX_FLOW_IDLE,
-    addToCache(CONST_FLOW_MAX_IDLE_PREFS, u_int32_t_ptr, (void*)&flow_max_idle);
-
-  active_local_hosts_cache_interval = CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
-    addToCache(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL, u_int32_t_ptr, (void*)&active_local_hosts_cache_interval);
-
-
-  intf_rrd_raw_days = INTF_RRD_RAW_DAYS, addToCache(CONST_INTF_RRD_RAW_DAYS, u_int32_t_ptr, (void*)&intf_rrd_raw_days);
-  intf_rrd_1min_days = INTF_RRD_1MIN_DAYS, addToCache(CONST_INTF_RRD_1MIN_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1min_days);
-  intf_rrd_1h_days = INTF_RRD_1H_DAYS, addToCache(CONST_INTF_RRD_1H_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1h_days);
-  intf_rrd_1d_days = INTF_RRD_1D_DAYS, addToCache(CONST_INTF_RRD_1D_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1d_days);
-  other_rrd_raw_days = OTHER_RRD_RAW_DAYS, addToCache(CONST_OTHER_RRD_RAW_DAYS, u_int32_t_ptr, (void*)&other_rrd_raw_days);
-  other_rrd_1min_days = OTHER_RRD_1MIN_DAYS, addToCache(CONST_OTHER_RRD_1MIN_DAYS, u_int32_t_ptr, (void*)&other_rrd_1min_days);
-  other_rrd_1h_days = OTHER_RRD_1H_DAYS, addToCache(CONST_OTHER_RRD_1H_DAYS, u_int32_t_ptr, (void*)&other_rrd_1h_days);
-  other_rrd_1d_days = OTHER_RRD_1D_DAYS, addToCache(CONST_OTHER_RRD_1D_DAYS, u_int32_t_ptr, (void*)&other_rrd_1d_days);
+  intf_rrd_raw_days = INTF_RRD_RAW_DAYS;
+  intf_rrd_1min_days = INTF_RRD_1MIN_DAYS;
+  intf_rrd_1h_days = INTF_RRD_1H_DAYS;
+  intf_rrd_1d_days = INTF_RRD_1D_DAYS;
+  other_rrd_raw_days = OTHER_RRD_RAW_DAYS;
+  other_rrd_1min_days = OTHER_RRD_1MIN_DAYS;
+  other_rrd_1h_days = OTHER_RRD_1H_DAYS;
+  other_rrd_1d_days = OTHER_RRD_1D_DAYS;
 
   
-  enable_top_talkers = CONST_DEFAULT_TOP_TALKERS_ENABLED,
-    addToCache(CONST_TOP_TALKERS_ENABLED, bool_ptr, (void*)&enable_top_talkers);
+  enable_top_talkers = CONST_DEFAULT_TOP_TALKERS_ENABLED;
+  enable_idle_local_hosts_cache   = CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED;
+  enable_active_local_hosts_cache = CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED;
+  enable_tiny_flows_export = CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED;
 
-  enable_idle_local_hosts_cache   = CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
-    addToCache(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED, bool_ptr, (void*)&enable_idle_local_hosts_cache);
+  max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
+  max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
 
-  enable_active_local_hosts_cache = CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
-    addToCache(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED, bool_ptr, (void*)&enable_active_local_hosts_cache);
+  enable_flow_device_port_rrd_creation = false;
 
-  enable_tiny_flows_export = CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED,
-    addToCache(CONST_IS_TINY_FLOW_EXPORT_ENABLED, bool_ptr, (void*)&enable_tiny_flows_export);
+  disable_alerts = false;
 
+  enable_probing_alerts = CONST_DEFAULT_ALERT_PROBING_ENABLED;
+  enable_ssl_alerts = CONST_DEFAULT_ALERT_SSL_ENABLED;
+  enable_syslog_alerts = CONST_DEFAULT_ALERT_SYSLOG_ENABLED;
+  slack_notifications_enabled = false;
+  dump_flow_alerts_when_iface_alerted = false;
 
-  max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS,
-    addToCache(CONST_MAX_NUM_ALERTS_PER_ENTITY, int32_t_ptr, (void*)&max_num_alerts_per_entity);
+  max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW;
+  max_num_bytes_per_tiny_flow = CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW;
 
-  max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS,
-    addToCache(CONST_MAX_NUM_FLOW_ALERTS, int32_t_ptr, (void*)&max_num_flow_alerts);
-
-
-  enable_flow_device_port_rrd_creation = false,
-    addToCache(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, bool_ptr, (void*)&enable_flow_device_port_rrd_creation);
-
-
-  disable_alerts = false,
-    addToCache(CONST_ALERT_DISABLED_PREFS, bool_ptr, (void*)&disable_alerts);
-
-  enable_probing_alerts = CONST_DEFAULT_ALERT_PROBING_ENABLED,
-    addToCache(CONST_RUNTIME_PREFS_ALERT_PROBING, bool_ptr, (void*)&enable_probing_alerts);
-
-  enable_ssl_alerts = CONST_DEFAULT_ALERT_SSL_ENABLED,
-    addToCache(CONST_RUNTIME_PREFS_ALERT_SSL, bool_ptr, (void*)&enable_ssl_alerts);
-
-  enable_syslog_alerts = CONST_DEFAULT_ALERT_SYSLOG_ENABLED,
-    addToCache(CONST_RUNTIME_PREFS_ALERT_SYSLOG, bool_ptr, (void*)&enable_syslog_alerts);
-
-  slack_notifications_enabled = false,
-    addToCache(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, bool_ptr, (void*)&slack_notifications_enabled);
-
-
-  dump_flow_alerts_when_iface_alerted = false,
-    addToCache(ALERTS_DUMP_DURING_IFACE_ALERTED, bool_ptr, (void*)&dump_flow_alerts_when_iface_alerted);
-
-
-  max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW,
-    addToCache(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_packets_per_tiny_flow);
-
-  max_num_bytes_per_tiny_flow = CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW,
-    addToCache(CONST_MAX_NUM_BYTES_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_bytes_per_tiny_flow);
-
-
-  safe_search_dns_ip = inet_addr(DEFAULT_SAFE_SEARCH_DNS),
-    addToCache(CONST_SAFE_SEARCH_DNS, u_int32_t_ptr, (void*)&safe_search_dns_ip);
-
-  global_primary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS),
-    addToCache(CONST_GLOBAL_DNS, u_int32_t_ptr, (void*)&global_primary_dns_ip);
-
-  global_secondary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS),
-    addToCache(CONST_SECONDARY_DNS, u_int32_t_ptr, (void*)&global_secondary_dns_ip);
-
-
-  enable_captive_portal = false,
-    addToCache(CONST_PREFS_CAPTIVE_PORTAL, bool_ptr, (void*)&enable_captive_portal);
-
-  redirection_url = strdup(DEFAULT_REDIRECTION_URL),
-    addToCache(CONST_PREFS_REDIRECTION_URL, str_ptr, (void*)&redirection_url);
+  safe_search_dns_ip = inet_addr(DEFAULT_SAFE_SEARCH_DNS);
+  global_primary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS);
+  global_secondary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS);
+  enable_captive_portal = false;
+  redirection_url = strdup(DEFAULT_REDIRECTION_URL);
   redirection_url_shadow = NULL;
 
+  hostMask = no_host_mask;
 
-  hostMask = no_host_mask,
-    addToCache(CONST_RUNTIME_PREFS_HOSTMASK, hostmask_ptr, (void*)&hostMask);
+  addToCache(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, u_int32_t_ptr, (void*)&housekeeping_frequency);
+  addToCache(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, u_int32_t_ptr, (void*)&local_host_cache_duration);
+  addToCache(CONST_LOCAL_HOST_IDLE_PREFS, u_int32_t_ptr, (void*)&local_host_max_idle);
+  addToCache(CONST_REMOTE_HOST_IDLE_PREFS, u_int32_t_ptr, (void*)&non_local_host_max_idle);
+  addToCache(CONST_FLOW_MAX_IDLE_PREFS, u_int32_t_ptr, (void*)&flow_max_idle);
+  addToCache(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL, u_int32_t_ptr, (void*)&active_local_hosts_cache_interval);
+
+  addToCache(CONST_INTF_RRD_RAW_DAYS, u_int32_t_ptr, (void*)&intf_rrd_raw_days);
+  addToCache(CONST_INTF_RRD_1MIN_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1min_days);
+  addToCache(CONST_INTF_RRD_1H_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1h_days);
+  addToCache(CONST_INTF_RRD_1D_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1d_days);
+  addToCache(CONST_OTHER_RRD_RAW_DAYS, u_int32_t_ptr, (void*)&other_rrd_raw_days);
+  addToCache(CONST_OTHER_RRD_1MIN_DAYS, u_int32_t_ptr, (void*)&other_rrd_1min_days);
+  addToCache(CONST_OTHER_RRD_1H_DAYS, u_int32_t_ptr, (void*)&other_rrd_1h_days);
+  addToCache(CONST_OTHER_RRD_1D_DAYS, u_int32_t_ptr, (void*)&other_rrd_1d_days);
+
+  addToCache(CONST_TOP_TALKERS_ENABLED, bool_ptr, (void*)&enable_top_talkers);
+
+  addToCache(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED, bool_ptr, (void*)&enable_idle_local_hosts_cache);
+  addToCache(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED, bool_ptr, (void*)&enable_active_local_hosts_cache);
+  addToCache(CONST_IS_TINY_FLOW_EXPORT_ENABLED, bool_ptr, (void*)&enable_tiny_flows_export);
+
+  addToCache(CONST_MAX_NUM_ALERTS_PER_ENTITY, int32_t_ptr, (void*)&max_num_alerts_per_entity);
+  addToCache(CONST_MAX_NUM_FLOW_ALERTS, int32_t_ptr, (void*)&max_num_flow_alerts);
+
+  addToCache(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, bool_ptr, (void*)&enable_flow_device_port_rrd_creation);
+
+  addToCache(CONST_ALERT_DISABLED_PREFS, bool_ptr, (void*)&disable_alerts);
+  addToCache(CONST_RUNTIME_PREFS_ALERT_PROBING, bool_ptr, (void*)&enable_probing_alerts);
+  addToCache(CONST_RUNTIME_PREFS_ALERT_SSL, bool_ptr, (void*)&enable_ssl_alerts);
+  addToCache(CONST_RUNTIME_PREFS_ALERT_SYSLOG, bool_ptr, (void*)&enable_syslog_alerts);
+  addToCache(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, bool_ptr, (void*)&slack_notifications_enabled);
+  addToCache(ALERTS_DUMP_DURING_IFACE_ALERTED, bool_ptr, (void*)&dump_flow_alerts_when_iface_alerted);
+
+  addToCache(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_packets_per_tiny_flow);
+  addToCache(CONST_MAX_NUM_BYTES_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_bytes_per_tiny_flow);
+
+  addToCache(CONST_SAFE_SEARCH_DNS, u_int32_t_ptr, (void*)&safe_search_dns_ip);
+  addToCache(CONST_GLOBAL_DNS, u_int32_t_ptr, (void*)&global_primary_dns_ip);
+  addToCache(CONST_SECONDARY_DNS, u_int32_t_ptr, (void*)&global_secondary_dns_ip);
+  addToCache(CONST_PREFS_CAPTIVE_PORTAL, bool_ptr, (void*)&enable_captive_portal);
+  addToCache(CONST_PREFS_REDIRECTION_URL, str_ptr, (void*)&redirection_url);
+
+  addToCache(CONST_RUNTIME_PREFS_HOSTMASK, hostmask_ptr, (void*)&hostMask);
 
   readDump();
 }
@@ -211,70 +202,43 @@ RuntimePrefs::~RuntimePrefs() {
 /* ******************************************* */
 
 json_object* RuntimePrefs::getJSONObject() {
-  char *red_url = redirection_url;
+  char *c = NULL;
   json_object *my_object;
+  prefscache_t *m, *tmp;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  json_object_object_add(my_object, "housekeeping_frequency", json_object_new_int(housekeeping_frequency));
-  json_object_object_add(my_object, "local_host_cache_duration", json_object_new_int64(local_host_cache_duration));
-  json_object_object_add(my_object, "local_host_max_idle", json_object_new_int64(local_host_max_idle));
-  json_object_object_add(my_object, "non_local_host_max_idle", json_object_new_int64(non_local_host_max_idle));
-  json_object_object_add(my_object, "flow_max_idle", json_object_new_int64(flow_max_idle));
-  json_object_object_add(my_object, "active_local_hosts_cache_interval", json_object_new_int64(active_local_hosts_cache_interval));
+  HASH_ITER(hh, prefscache, m, tmp) {
+    switch(m->value_ptr) {
+    case str_ptr:
+      c = (char*)m->value;
+      if(c)
+	json_object_object_add(my_object, m->key, json_object_new_string(c));
+      break;
 
-  json_object_object_add(my_object, "intf_rrd_raw_days", json_object_new_int(intf_rrd_raw_days));
-  json_object_object_add(my_object, "intf_rrd_1min_days", json_object_new_int(intf_rrd_1min_days));
-  json_object_object_add(my_object, "intf_rrd_1h_days", json_object_new_int(intf_rrd_1h_days));
-  json_object_object_add(my_object, "intf_rrd_1d_days", json_object_new_int(intf_rrd_1d_days));
-  json_object_object_add(my_object, "other_rrd_raw_days", json_object_new_int(other_rrd_raw_days));
-  json_object_object_add(my_object, "other_rrd_1min_days", json_object_new_int(other_rrd_1min_days));
-  json_object_object_add(my_object, "other_rrd_1h_days", json_object_new_int(other_rrd_1h_days));
+    case u_int32_t_ptr:
+      json_object_object_add(my_object, m->key, json_object_new_int64(*(u_int32_t*)m->value));
+      break;
 
-  json_object_object_add(my_object, "enable_top_talkers", json_object_new_boolean(enable_top_talkers));
-  json_object_object_add(my_object, "enable_idle_local_hosts_cache", json_object_new_boolean(enable_idle_local_hosts_cache));
-  json_object_object_add(my_object, "enable_active_local_hosts_cache", json_object_new_boolean(enable_active_local_hosts_cache));
+    case int32_t_ptr:
+      json_object_object_add(my_object, m->key, json_object_new_int64(*(int32_t*)m->value));
+      break;
 
-  json_object_object_add(my_object, "enable_tiny_flows_export", json_object_new_boolean(enable_tiny_flows_export));
-  json_object_object_add(my_object, "max_num_alerts_per_entity", json_object_new_int(max_num_alerts_per_entity));
-  json_object_object_add(my_object, "max_num_flow_alerts", json_object_new_int(max_num_flow_alerts));
+    case bool_ptr:
+      json_object_object_add(my_object, m->key, json_object_new_boolean(*(bool*)m->value));
+      break;
 
-  json_object_object_add(my_object, "enable_flow_device_port_rrd_creation", json_object_new_boolean(enable_flow_device_port_rrd_creation));
+    case hostmask_ptr:
+      json_object_object_add(my_object, m->key, json_object_new_int(*((HostMask*)m->value)));
+      break;
 
-  json_object_object_add(my_object, "disable_alerts", json_object_new_boolean(disable_alerts));
-  json_object_object_add(my_object, "enable_probing_alerts", json_object_new_boolean(enable_probing_alerts));
-  json_object_object_add(my_object, "enable_ssl_alerts", json_object_new_boolean(enable_ssl_alerts));
-  json_object_object_add(my_object, "enable_syslog_alerts", json_object_new_boolean(enable_syslog_alerts));
-  json_object_object_add(my_object, "slack_notifications_enabled", json_object_new_boolean(slack_notifications_enabled));  
+    default:
+      break;
+    }
 
-  json_object_object_add(my_object, "max_num_packets_per_tiny_flow", json_object_new_int64(max_num_packets_per_tiny_flow));
-  json_object_object_add(my_object, "max_num_bytes_per_tiny_flow", json_object_new_int64(max_num_bytes_per_tiny_flow));
+  }
 
-  json_object_object_add(my_object, "safe_search_dns_ip", json_object_new_int64(safe_search_dns_ip));
-  json_object_object_add(my_object, "global_primary_dns_ip", json_object_new_int64(global_primary_dns_ip));
-  json_object_object_add(my_object, "global_secondary_dns_ip", json_object_new_int64(global_secondary_dns_ip));
-
-  json_object_object_add(my_object, "enable_captive_portal", json_object_new_boolean(enable_captive_portal));
-  json_object_object_add(my_object, "redirection_url", json_object_new_string(red_url));
-
-  json_object_object_add(my_object, "intf_rrd_raw_days", json_object_new_int(intf_rrd_raw_days));
-
-  json_object_object_add(my_object, "host_mask", json_object_new_int(hostMask));
   return my_object;
-}
-
-/* *************************************** */
-
-void RuntimePrefs::int2redis(char *k, u_int32_t val) {
-  char buf[32];
-  snprintf(buf, sizeof(buf), "%u", val);
-  ntop->getRedis()->set(k, buf);
-}
-
-/* *************************************** */
-
-void RuntimePrefs::str2redis(char *k, char *val) {
-  ntop->getRedis()->set(k, val);
 }
 
 /* *************************************** */
@@ -292,8 +256,9 @@ char* RuntimePrefs::serialize() {
 /* *************************************** */
 
 bool RuntimePrefs::deserialize(char *json_str) {
-  json_object *o, *obj;
+  json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
+  prefscache_t *m = NULL;
 
   if((o = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] %s",
@@ -302,54 +267,39 @@ bool RuntimePrefs::deserialize(char *json_str) {
     return false;
   }
 
-  if(json_object_object_get_ex(o, "housekeeping_frequency", &obj)) { housekeeping_frequency = json_object_get_int(obj); }
-  if(json_object_object_get_ex(o, "local_host_cache_duration", &obj)) local_host_cache_duration = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "local_host_max_idle", &obj)) local_host_max_idle = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "non_local_host_max_idle", &obj)) non_local_host_max_idle = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "flow_max_idle", &obj)) flow_max_idle = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "active_local_hosts_cache_interval", &obj)) active_local_hosts_cache_interval = json_object_get_int64(obj);
+  json_object_object_foreach(o, key, val) {
 
-  if(json_object_object_get_ex(o, "intf_rrd_raw_days", &obj)) intf_rrd_raw_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "intf_rrd_1min_days", &obj)) intf_rrd_1min_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "intf_rrd_1h_days", &obj)) intf_rrd_1h_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "intf_rrd_1d_days", &obj)) intf_rrd_1d_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "other_rrd_raw_days", &obj)) other_rrd_raw_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "other_rrd_1min_days", &obj)) other_rrd_1min_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "other_rrd_1h_days", &obj)) other_rrd_1h_days = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "other_rrd_1d_days", &obj)) other_rrd_1d_days = json_object_get_int(obj);
+    HASH_FIND_STR(prefscache, key, m);
 
-  if(json_object_object_get_ex(o, "enable_top_talkers", &obj)) enable_top_talkers = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "enable_idle_local_hosts_cache", &obj)) enable_idle_local_hosts_cache = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "enable_active_local_hosts_cache", &obj)) enable_active_local_hosts_cache = json_object_get_boolean(obj);
+    if(m) {
 
-  if(json_object_object_get_ex(o, "enable_tiny_flows_export", &obj)) enable_tiny_flows_export = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "max_num_alerts_per_entity", &obj)) max_num_alerts_per_entity = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "max_num_flow_alerts", &obj)) max_num_flow_alerts = json_object_get_int(obj);
+      switch(m->value_ptr) {
 
-  if(json_object_object_get_ex(o, "enable_flow_device_port_rrd_creation", &obj)) enable_flow_device_port_rrd_creation = json_object_get_boolean(obj);
+      case u_int32_t_ptr:
+	*((u_int32_t*)m->value) = json_object_get_int64(val);
+	break;
 
-  if(json_object_object_get_ex(o, "disable_alerts", &obj)) disable_alerts = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "enable_probing_alerts", &obj)) enable_probing_alerts = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "enable_ssl_alerts", &obj)) enable_ssl_alerts = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "enable_syslog_alerts", &obj)) enable_syslog_alerts = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "slack_notifications_enabled", &obj)) slack_notifications_enabled = json_object_get_boolean(obj);
+      case int32_t_ptr:
+	*((int32_t*)m->value) = json_object_get_int64(val);
+	break;
 
-  if(json_object_object_get_ex(o, "max_num_packets_per_tiny_flow", &obj)) max_num_packets_per_tiny_flow = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "max_num_bytes_per_tiny_flow", &obj)) max_num_bytes_per_tiny_flow = json_object_get_int64(obj);
+      case bool_ptr:
+	*((bool*)m->value) = json_object_get_boolean(val);
+	break;
 
-  if(json_object_object_get_ex(o, "safe_search_dns_ip", &obj)) safe_search_dns_ip = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "global_primary_dns_ip", &obj)) global_primary_dns_ip = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "global_secondary_dns_ip", &obj)) global_secondary_dns_ip = json_object_get_int64(obj);
+      case hostmask_ptr:
+	*((HostMask*)m->value) = (HostMask)json_object_get_int(val);
+	break;
 
-  if(json_object_object_get_ex(o, "enable_captive_portal", &obj)) enable_captive_portal = json_object_get_boolean(obj);
-  if(json_object_object_get_ex(o, "redirection_url", &obj)) {
-    if(redirection_url_shadow)
-      free(redirection_url_shadow);
-    redirection_url_shadow = redirection_url;
-    redirection_url = strdup(json_object_get_string(obj));
+      case str_ptr:
+	/* TODO */
+	break;
+
+      default:
+	break;
+      }
+    }
   }
-
-  if(json_object_object_get_ex(o, "host_mask", &obj)) hostMask = (HostMask)json_object_get_int64(obj);
 
   return true;
 }

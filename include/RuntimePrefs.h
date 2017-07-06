@@ -76,9 +76,6 @@ class RuntimePrefs {
   bool writeDump();
   bool readDump();
 
-  static void int2redis(char *k, u_int32_t val);
-  static void str2redis(char *k, char *val);
-
   void addToCache(const char *key, prefsptr_t value_ptr, void *value);
  public:
   /**
