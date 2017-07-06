@@ -177,6 +177,7 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "HostPools.h"
+#include "RuntimePrefs.h"
 #include "Prefs.h"
 #include "Utils.h"
 #include "ActivityStats.h"
@@ -270,7 +271,6 @@ using namespace std;
 #include "AddressResolution.h"
 #include "HTTPBL.h"
 #include "HTTPserver.h"
-#include "RuntimePrefs.h"
 #include "Paginator.h"
 #include "Ntop.h"
 

@@ -324,6 +324,12 @@ typedef struct {
   void *items[QUEUE_ITEMS];
 } spsc_queue_t;
 
+typedef struct {
+  char *key, *value;
+  time_t expire;
+  UT_hash_handle hh; /* makes this structure hashable */
+} StringCache_t;
+
 #ifdef NTOPNG_PRO
 
 typedef struct {

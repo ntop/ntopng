@@ -60,7 +60,7 @@ Ntop::Ntop(char *appName) {
   export_interface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
-  httpd = NULL, runtimeprefs = NULL, geo = NULL, mac_manufacturers = NULL,
+  httpd = NULL, geo = NULL, mac_manufacturers = NULL,
     hostBlacklistShadow = hostBlacklist = NULL;
 
 #ifdef WIN32
@@ -188,7 +188,6 @@ Ntop::~Ntop() {
   if(redis) delete redis;
   delete globals;
   delete prefs;
-  delete runtimeprefs;
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
@@ -326,8 +325,6 @@ void Ntop::start() {
 
   if(httpbl) httpbl->startLoop();
   else if(flashstart) flashstart->startLoop();
-
-  runtimeprefs = new RuntimePrefs();
 
 #ifdef NTOPNG_PRO
   pro->printLicenseInfo();
@@ -1514,6 +1511,8 @@ void Ntop::runHousekeepingTasks() {
     gettimeofday(&tv, NULL);
     ntop->getLogstash()->updateStats(&tv);
   }
+
+  ntop->getPrefs()->dumpIfRefreshed();
 }
 
 /* ******************************************* */

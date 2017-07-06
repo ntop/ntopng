@@ -23,15 +23,12 @@
 
 /* ******************************************* */
 
-Prefs::Prefs(Ntop *_ntop) {
+Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
-  safe_search_dns_ip = inet_addr((char*)DEFAULT_SAFE_SEARCH_DNS);
-  redirection_url = strdup(DEFAULT_REDIRECTION_URL);
-  global_primary_dns_ip = global_secondary_dns_ip = 0; /* No DNS */
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   resolve_all_host_ip = false, online_license_check = false;
@@ -40,8 +37,7 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;  
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
-  hostMask = no_host_mask;
-  enable_flow_device_port_rrd_creation = false;
+
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
@@ -66,22 +62,8 @@ Prefs::Prefs(Ntop *_ntop) {
   redis_db_id = 0;
   dns_mode = 0;
   logFd = NULL;
-  disable_alerts = enable_captive_portal = false;
-  enable_top_talkers = false;
-  slack_notifications_enabled = false;
-  max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
-  max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
-  max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW;
-  max_num_bytes_per_tiny_flow = CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW;
-  enable_tiny_flows_export = CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  enable_idle_local_hosts_cache   = true;
-  enable_active_local_hosts_cache = false; /* only cache active hosts on exit */
-  enable_probing_alerts = CONST_DEFAULT_ALERT_PROBING_ENABLED;
-  enable_ssl_alerts = CONST_DEFAULT_ALERT_SSL_ENABLED;
-  enable_syslog_alerts =  CONST_DEFAULT_ALERT_SYSLOG_ENABLED;
-  enable_probing_alerts = enable_ssl_alerts = enable_syslog_alerts = false; /* set later */
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   enable_taps = false;
@@ -94,23 +76,6 @@ Prefs::Prefs(Ntop *_ntop) {
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
   enable_user_scripts   = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
-
-  /* Defaults */
-  active_local_hosts_cache_interval = CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL /* sec */;
-  local_host_cache_duration         = LOCAL_HOSTS_CACHE_DURATION /* sec */;
-  non_local_host_max_idle           = MAX_REMOTE_HOST_IDLE /* sec */;
-  local_host_max_idle               = MAX_LOCAL_HOST_IDLE /* sec */;
-  flow_max_idle                     = MAX_FLOW_IDLE /* sec */;
-
-  intf_rrd_raw_days       = INTF_RRD_RAW_DAYS;
-  intf_rrd_1min_days      = INTF_RRD_1MIN_DAYS;
-  intf_rrd_1h_days        = INTF_RRD_1H_DAYS;
-  intf_rrd_1d_days        = INTF_RRD_1D_DAYS;
-  other_rrd_raw_days      = OTHER_RRD_RAW_DAYS;
-  other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
-  other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
-  other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
-  housekeeping_frequency  = HOUSEKEEPING_FREQUENCY;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
@@ -152,7 +117,6 @@ Prefs::~Prefs() {
   free(http_prefix);
   free(local_networks);
   free(redis_host);
-  if(redirection_url) free(redirection_url);
   if(redis_password)  free(redis_password);
   if(cli)             free(cli);
   if(mysql_host)      free(mysql_host);
@@ -432,85 +396,16 @@ bool Prefs::getDefaultBoolPrefsValue(const char *pref_key, const bool default_va
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
-  char *safe_search_dns, *global_dns, *secondary_dns;
-
-  /* Attempt to load preferences set from the web ui and apply default values in not found */
-  active_local_hosts_cache_interval = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
-							   CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL);
-  local_host_cache_duration         = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS,
-							   LOCAL_HOSTS_CACHE_DURATION);
-  local_host_max_idle               = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS,
-							   MAX_LOCAL_HOST_IDLE);
-  non_local_host_max_idle           = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS,
-							   MAX_REMOTE_HOST_IDLE);
-  flow_max_idle                     = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS,
-							   MAX_FLOW_IDLE);
-
-  intf_rrd_raw_days      = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
-  intf_rrd_1min_days     = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
-  intf_rrd_1h_days       = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS);
-  intf_rrd_1d_days       = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS);
-  other_rrd_raw_days     = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS);
-  other_rrd_1min_days    = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
-  other_rrd_1h_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
-  other_rrd_1d_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
-  housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
-						     HOUSEKEEPING_FREQUENCY);
-  slack_notifications_enabled          = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false /* Disabled by default */);
-  dump_flow_alerts_when_iface_alerted = getDefaultPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, 0 /* Disabled by default */);
-  hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, 0 /* Mask disabled by default */);
-  
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
-  enable_flow_device_port_rrd_creation = getDefaultPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION,
-							    false);
-  enable_top_talkers		  = getDefaultPrefsValue(CONST_TOP_TALKERS_ENABLED,
-							 CONST_DEFAULT_TOP_TALKERS_ENABLED);
-  enable_idle_local_hosts_cache   = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
-							 CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
-  enable_active_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
-							 CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED);
-  max_num_alerts_per_entity       = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY,
-							 ALERTS_MANAGER_MAX_ENTITY_ALERTS);
-  max_num_flow_alerts             = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS,
-							 ALERTS_MANAGER_MAX_FLOW_ALERTS);
-  max_num_packets_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
-							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW);
-  max_num_bytes_per_tiny_flow     = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
-							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW);
-  enable_tiny_flows_export =        getDefaultPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
-				 			 CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED);
-  
   // alert preferences
-  enable_probing_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING,
-					       CONST_DEFAULT_ALERT_PROBING_ENABLED);
-  enable_ssl_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL,
-					       CONST_DEFAULT_ALERT_SSL_ENABLED);
-  enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
-					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
-
-  enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
 
-  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &safe_search_dns, DEFAULT_SAFE_SEARCH_DNS);
-  safe_search_dns_ip = inet_addr(safe_search_dns);
-  free(safe_search_dns);
-
-  free(redirection_url);
-  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
-
-  getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &global_dns, DEFAULT_GLOBAL_DNS);
-  global_primary_dns_ip = global_dns[0] ? inet_addr(global_dns) : 0;
-  free(global_dns);
-
-  getDefaultStringPrefsValue(CONST_SECONDARY_DNS, &secondary_dns, DEFAULT_GLOBAL_DNS);
-  global_secondary_dns_ip = secondary_dns[0] ? inet_addr(secondary_dns) : 0;
-  free(secondary_dns);
 }
 
 /* ******************************************* */
@@ -1021,7 +916,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'H':
     has_cmdl_disable_alerts = true;
-    disable_alerts = true;
+    set_alerts_status(false);
     break;
 
   case 'I':
@@ -1278,24 +1173,16 @@ void Prefs::lua(lua_State* vm) {
 #ifdef NTOPNG_PRO
   char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
-  char buf[32];
 
   lua_newtable(vm);
 
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
-  lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
-  lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
-  lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
   lua_push_int_table_entry(vm, "http_port", http_port);
-  lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
-  lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
 
-  lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
-  lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
@@ -1308,40 +1195,11 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 
-  lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
-  if(enable_active_local_hosts_cache)
-    lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
-
   lua_push_bool_table_entry(vm, "are_user_scripts_enabled", enable_user_scripts);
-  lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   lua_push_int_table_entry(vm, "http.port", get_http_port());
   lua_push_int_table_entry(vm, "http.alt_port", get_alt_http_port());
-
-  /* RRD prefs */
-  lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
-  lua_push_int_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
-  lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
-  lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
-  lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
-  lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
-  lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
-  lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
-
-  lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
-  lua_push_str_table_entry(vm, "safe_search_dns", Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
-  lua_push_str_table_entry(vm, "redirection_url", redirection_url);
-  lua_push_str_table_entry(vm, "global_dns", global_primary_dns_ip ? Utils::intoaV4(ntohl(global_primary_dns_ip), buf, sizeof(buf)) : (char*)"");
-  lua_push_str_table_entry(vm, "secondary_dns", global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
-
-  /* Tiny flows preferences */
-  lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
-  lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
-  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",  enable_tiny_flows_export);
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
@@ -1368,149 +1226,8 @@ void Prefs::lua(lua_State* vm) {
   strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
-}
 
-/* *************************************** */
-
-int Prefs::refresh(const char *pref_name, const char *pref_value) {
-  if(!pref_name || !pref_value)
-    return -1;
-
-  if(!strncmp(pref_name,
-	       (char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
-	       strlen((char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY)))
-    housekeeping_frequency = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS,
-		    strlen((char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS)))
-    local_host_cache_duration = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
-		   strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL)))
-    active_local_hosts_cache_interval = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_LOCAL_HOST_IDLE_PREFS,
-		    strlen((char*)CONST_LOCAL_HOST_IDLE_PREFS)))
-    local_host_max_idle = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_REMOTE_HOST_IDLE_PREFS,
-		    strlen((char*)CONST_REMOTE_HOST_IDLE_PREFS)))
-    non_local_host_max_idle = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_FLOW_MAX_IDLE_PREFS,
-		    strlen((char*)CONST_FLOW_MAX_IDLE_PREFS)))
-    flow_max_idle = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_RAW_DAYS,
-		    strlen((char*)CONST_INTF_RRD_RAW_DAYS)))
-    intf_rrd_raw_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_1MIN_DAYS,
-		    strlen((char*)CONST_INTF_RRD_1MIN_DAYS)))
-    intf_rrd_1min_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_1H_DAYS,
-		    strlen((char*)CONST_INTF_RRD_1H_DAYS)))
-    intf_rrd_1h_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_1D_DAYS,
-		    strlen((char*)CONST_INTF_RRD_1D_DAYS)))
-    intf_rrd_1d_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_RAW_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_RAW_DAYS)))
-    other_rrd_raw_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_1MIN_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_1MIN_DAYS)))
-    other_rrd_1min_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_1H_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_1H_DAYS)))
-    other_rrd_1h_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_1D_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
-    other_rrd_1d_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_ALERT_DISABLED_PREFS,
-		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
-    disable_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_TOP_TALKERS_ENABLED,
-		    strlen((char*)CONST_TOP_TALKERS_ENABLED)))
-    enable_top_talkers = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
-		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
-    enable_idle_local_hosts_cache = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
-		    strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED)))
-    enable_active_local_hosts_cache = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_MAX_NUM_ALERTS_PER_ENTITY,
-		    strlen((char*)CONST_MAX_NUM_ALERTS_PER_ENTITY)))
-    max_num_alerts_per_entity = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_SAFE_SEARCH_DNS,
-		    strlen((char*)CONST_SAFE_SEARCH_DNS))) {
-    safe_search_dns_ip = inet_addr(pref_value);
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_GLOBAL_DNS,
-		    strlen((char*)CONST_GLOBAL_DNS))) {
-    global_primary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_SECONDARY_DNS,
-		    strlen((char*)CONST_SECONDARY_DNS))) {
-    global_secondary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_PREFS_REDIRECTION_URL,
-		    strlen((char*)CONST_PREFS_REDIRECTION_URL))) {
-    free(redirection_url);
-    redirection_url = strdup(pref_value);
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
-		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
-    max_num_flow_alerts = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
-		   strlen((char*)CONST_MAX_NUM_PACKETS_PER_TINY_FLOW)))
-    max_num_packets_per_tiny_flow = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
-		   strlen((char*)CONST_MAX_NUM_BYTES_PER_TINY_FLOW)))
-    max_num_bytes_per_tiny_flow = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_IS_TINY_FLOW_EXPORT_ENABLED,
-		   strlen((char*)CONST_IS_TINY_FLOW_EXPORT_ENABLED)))
-    enable_tiny_flows_export = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION,
-		   strlen((char*)CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION)))
-    enable_flow_device_port_rrd_creation = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
-		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))
-    enable_probing_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_ALERT_SSL,
-		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SSL)))
-    enable_ssl_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
-		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))
-    enable_syslog_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)CONST_PREFS_CAPTIVE_PORTAL,
-		   strlen((char*)CONST_PREFS_CAPTIVE_PORTAL)))
-    enable_captive_portal = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED,
-		   strlen((char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED)))
-    slack_notifications_enabled = pref_value[0] == '1' ? true : false;
-
-  return 0;
+  RuntimePrefs::lua(vm);
 }
 
 /* *************************************** */
