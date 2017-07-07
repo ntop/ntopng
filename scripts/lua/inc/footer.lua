@@ -22,17 +22,7 @@ iface_id = interface.name2id(ifname)
 interface.select(ifname)
 _ifstats = interface.getStats()
 
-if(info["version.enterprise_edition"]) then
-   print(" Enterprise")
-elseif(info["pro.release"]) then
-   print(" Pro [Small Business Edition]")
-else
-   print(" Community")
-end
-
-if(info["version.embedded_edition"] == true) then
-   print("/Embedded")
-end
+printntopngRelease(info)
 
 print(" v."..info["version"])
 
