@@ -408,153 +408,41 @@ void RuntimePrefs::lua(lua_State* vm) {
 /* *************************************** */
 
 int RuntimePrefs::refresh(const char *pref_name, const char *pref_value) {
+  prefscache_t *m = NULL;
+
   if(!pref_name || !pref_value)
     return -1;
 
-  if(!strncmp(pref_name,
-	       (char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
-	       strlen((char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY)))
-    housekeeping_frequency = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS,
-		    strlen((char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS)))
-    local_host_cache_duration = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
-		   strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL)))
-    active_local_hosts_cache_interval = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_LOCAL_HOST_IDLE_PREFS,
-		    strlen((char*)CONST_LOCAL_HOST_IDLE_PREFS)))
-    local_host_max_idle = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_REMOTE_HOST_IDLE_PREFS,
-		    strlen((char*)CONST_REMOTE_HOST_IDLE_PREFS)))
-    non_local_host_max_idle = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_FLOW_MAX_IDLE_PREFS,
-		    strlen((char*)CONST_FLOW_MAX_IDLE_PREFS)))
-    flow_max_idle = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_RAW_DAYS,
-		    strlen((char*)CONST_INTF_RRD_RAW_DAYS)))
-    intf_rrd_raw_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_1MIN_DAYS,
-		    strlen((char*)CONST_INTF_RRD_1MIN_DAYS)))
-    intf_rrd_1min_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_1H_DAYS,
-		    strlen((char*)CONST_INTF_RRD_1H_DAYS)))
-    intf_rrd_1h_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_INTF_RRD_1D_DAYS,
-		    strlen((char*)CONST_INTF_RRD_1D_DAYS)))
-    intf_rrd_1d_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_RAW_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_RAW_DAYS)))
-    other_rrd_raw_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_1MIN_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_1MIN_DAYS)))
-    other_rrd_1min_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_1H_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_1H_DAYS)))
-    other_rrd_1h_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_OTHER_RRD_1D_DAYS,
-		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
-    other_rrd_1d_days = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_ALERT_DISABLED_PREFS,
-		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
-    disable_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_TOP_TALKERS_ENABLED,
-		    strlen((char*)CONST_TOP_TALKERS_ENABLED)))
-    enable_top_talkers = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
-		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
-    enable_idle_local_hosts_cache = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
-		    strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED)))
-    enable_active_local_hosts_cache = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_MAX_NUM_ALERTS_PER_ENTITY,
-		    strlen((char*)CONST_MAX_NUM_ALERTS_PER_ENTITY)))
-    max_num_alerts_per_entity = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		    (char*)CONST_SAFE_SEARCH_DNS,
-		    strlen((char*)CONST_SAFE_SEARCH_DNS))) {
-    safe_search_dns_ip = inet_addr(pref_value);
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_GLOBAL_DNS,
-		    strlen((char*)CONST_GLOBAL_DNS))) {
-    global_primary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_SECONDARY_DNS,
-		    strlen((char*)CONST_SECONDARY_DNS))) {
-    global_secondary_dns_ip = pref_value[0] ? inet_addr(pref_value) : 0;
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_PREFS_REDIRECTION_URL,
-		    strlen((char*)CONST_PREFS_REDIRECTION_URL))) {
-    if(redirection_url_shadow)
-      free(redirection_url_shadow);
-    redirection_url_shadow = redirection_url;
-    redirection_url = strdup(pref_value);
-  } else if(!strncmp(pref_name,
-		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
-		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
-    max_num_flow_alerts = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
-		   strlen((char*)CONST_MAX_NUM_PACKETS_PER_TINY_FLOW)))
-    max_num_packets_per_tiny_flow = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
-		   strlen((char*)CONST_MAX_NUM_BYTES_PER_TINY_FLOW)))
-    max_num_bytes_per_tiny_flow = atoi(pref_value);
-  else if(!strncmp(pref_name,
-		   (char*)CONST_IS_TINY_FLOW_EXPORT_ENABLED,
-		   strlen((char*)CONST_IS_TINY_FLOW_EXPORT_ENABLED)))
-    enable_tiny_flows_export = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION,
-		   strlen((char*)CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION)))
-    enable_flow_device_port_rrd_creation = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
-		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))
-    enable_probing_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_ALERT_SSL,
-		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SSL)))
-    enable_ssl_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
-		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))
-    enable_syslog_alerts = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)CONST_PREFS_CAPTIVE_PORTAL,
-		   strlen((char*)CONST_PREFS_CAPTIVE_PORTAL)))
-    enable_captive_portal = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED,
-		   strlen((char*)ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED)))
-    slack_notifications_enabled = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)ALERTS_DUMP_DURING_IFACE_ALERTED,
-		   strlen((char*)ALERTS_DUMP_DURING_IFACE_ALERTED)))
-    dump_flow_alerts_when_iface_alerted = pref_value[0] == '1' ? true : false;
-  else if(!strncmp(pref_name,
-		   (char*)CONST_RUNTIME_PREFS_HOSTMASK,
-		   strlen((char*)CONST_RUNTIME_PREFS_HOSTMASK)))
-    hostMask = (HostMask)atoi(pref_value);
-  else
+  HASH_FIND_STR(prefscache, pref_name, m);
+
+  if(m) {
+
+    switch(m->value_ptr) {
+
+    case u_int32_t_ptr:
+      *((u_int32_t*)m->value) = atoi(pref_value);
+      break;
+
+    case int32_t_ptr:
+      *((int32_t*)m->value) = atoi(pref_value);
+      break;
+
+    case bool_ptr:
+      *((bool*)m->value) = pref_value[0] == '1' ? true : false;;
+      break;
+
+    case hostmask_ptr:
+      *((HostMask*)m->value) = (HostMask)atoi(pref_value);
+      break;
+
+    case str_ptr:
+      /* TODO */
+      break;
+
+    default:
+      break;
+    }
+  } else
     return -1;
 
   prefscache_refreshed = true;
