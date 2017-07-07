@@ -319,6 +319,7 @@
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
+#define CONST_DEFAULT_PREFS_DIR      CONST_DEFAULT_DATA_DIR
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_PREFS_FILE     "runtimeprefs.json"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"

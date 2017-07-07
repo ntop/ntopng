@@ -24,11 +24,12 @@
 /* ******************************************* */
 
 RuntimePrefs::RuntimePrefs() {
-  snprintf(path, sizeof(path), "%s/%s",
-	   ntop->get_working_dir(), CONST_DEFAULT_PREFS_FILE);
+  path[0] = tmp_path[0] = '\0';
 
   prefscache = NULL;
   prefscache_refreshed = false;
+  if(!(rwlock = new RwLock()))
+    throw 1;
 
   housekeeping_frequency = HOUSEKEEPING_FREQUENCY;
   local_host_cache_duration = LOCAL_HOSTS_CACHE_DURATION;
@@ -46,7 +47,6 @@ RuntimePrefs::RuntimePrefs() {
   other_rrd_1h_days = OTHER_RRD_1H_DAYS;
   other_rrd_1d_days = OTHER_RRD_1D_DAYS;
 
-  
   enable_top_talkers = CONST_DEFAULT_TOP_TALKERS_ENABLED;
   enable_idle_local_hosts_cache   = CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED;
   enable_active_local_hosts_cache = CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED;
@@ -72,8 +72,6 @@ RuntimePrefs::RuntimePrefs() {
   global_primary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS);
   global_secondary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS);
   enable_captive_portal = false;
-  redirection_url = strdup(DEFAULT_REDIRECTION_URL);
-  redirection_url_shadow = NULL;
 
   hostMask = no_host_mask;
 
@@ -118,7 +116,7 @@ RuntimePrefs::RuntimePrefs() {
   addToCache(CONST_GLOBAL_DNS, u_int32_t_ptr, (void*)&global_primary_dns_ip);
   addToCache(CONST_SECONDARY_DNS, u_int32_t_ptr, (void*)&global_secondary_dns_ip);
   addToCache(CONST_PREFS_CAPTIVE_PORTAL, bool_ptr, (void*)&enable_captive_portal);
-  addToCache(CONST_PREFS_REDIRECTION_URL, str_ptr, (void*)&redirection_url);
+  redirection_url = addToCache(CONST_PREFS_REDIRECTION_URL, str, strdup(DEFAULT_REDIRECTION_URL));
 
   addToCache(CONST_RUNTIME_PREFS_HOSTMASK, hostmask_ptr, (void*)&hostMask);
 
@@ -127,13 +125,24 @@ RuntimePrefs::RuntimePrefs() {
 
 /* ******************************************* */
 
-void RuntimePrefs::addToCache(const char *key, prefsptr_t value_ptr, void *value) {
+prefscache_t *RuntimePrefs::addToCache(const char *key, prefsptr_t value_ptr, void *value) {
   prefscache_t *m = (prefscache_t*)calloc(1, sizeof(prefscache_t));
 
   if(m) {
-    m->key = key, m->value_ptr = value_ptr, m->value = value;
+    m->key = strdup(key), m->value_ptr = value_ptr;
+
+    if(value_ptr == str)
+      m->value = strdup((char*)value);
+    else
+      m->value = value;
+
+    if(value_ptr == str || value_ptr == str_ptr)
+      if(!(m->rwlock = new RwLock()))
+	throw 2;
     if(m->key) HASH_ADD_STR(prefscache, key, m); else free(m);
   }
+
+  return m;
 }
 
 /* ******************************************* */
@@ -142,12 +151,26 @@ int RuntimePrefs::hashGet(char *key, char *rsp, u_int rsp_len) {
   int ret = -1;
   prefscache_t *m = NULL;
 
+  rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
   HASH_FIND_STR(prefscache, key, m);
+  rwlock->unlock(__FILE__, __LINE__);
 
   if(m) {
     switch(m->value_ptr) {
-    case str_ptr:
+    case str:
+      m->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
+
       ret = snprintf(rsp, rsp_len, "%s", (char*)m->value);
+
+      m->rwlock->unlock(__FILE__, __LINE__);
+      break;
+
+    case str_ptr:
+      m->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
+
+      ret = snprintf(rsp, rsp_len, "%s", *((char**)m->value));
+
+      m->rwlock->unlock(__FILE__, __LINE__);
       break;
 
     case u_int32_t_ptr:
@@ -189,14 +212,22 @@ RuntimePrefs::~RuntimePrefs() {
   writeDump();
 
   HASH_ITER(hh, prefscache, cur, tmp) {
+    if(cur->value_ptr == str)
+      free(cur->value);
+    else if(cur->value_ptr == str_ptr)
+      free(*((char**)cur->value));
+
+    if(cur->key)
+      free(cur->key);
+
+    if(cur->rwlock)
+      delete cur->rwlock;
+
     HASH_DEL(prefscache, cur);  /* delete; users advances to next */
     free(cur);                  /* optional- if you want to free  */
   }
 
-  if(redirection_url_shadow)
-    free(redirection_url_shadow);
-  if(redirection_url)
-    free(redirection_url);
+  delete rwlock;
 }
 
 /* ******************************************* */
@@ -208,12 +239,28 @@ json_object* RuntimePrefs::getJSONObject() {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
+  rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
+
   HASH_ITER(hh, prefscache, m, tmp) {
     switch(m->value_ptr) {
-    case str_ptr:
+    case str:
+      m->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
+
       c = (char*)m->value;
       if(c)
 	json_object_object_add(my_object, m->key, json_object_new_string(c));
+
+      m->rwlock->unlock(__FILE__, __LINE__);
+      break;
+
+    case str_ptr:
+      m->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
+
+      c = *((char**)m->value);
+      if(c)
+	json_object_object_add(my_object, m->key, json_object_new_string(c));
+
+      m->rwlock->unlock(__FILE__, __LINE__);
       break;
 
     case u_int32_t_ptr:
@@ -237,6 +284,8 @@ json_object* RuntimePrefs::getJSONObject() {
     }
 
   }
+
+  rwlock->unlock(__FILE__, __LINE__);
 
   return my_object;
 }
@@ -275,6 +324,18 @@ bool RuntimePrefs::deserialize(char *json_str) {
 
       switch(m->value_ptr) {
 
+      case str:
+	if(m->value)
+	  free(m->value);
+	m->value = strdup(json_object_get_string(val));
+	break;
+
+      case str_ptr:
+	if(*((char**)m->value))
+	  free(*((char**)m->value));
+	*((char**)m->value) = strdup(json_object_get_string(val));
+	break;
+
       case u_int32_t_ptr:
 	*((u_int32_t*)m->value) = json_object_get_int64(val);
 	break;
@@ -291,13 +352,11 @@ bool RuntimePrefs::deserialize(char *json_str) {
 	*((HostMask*)m->value) = (HostMask)json_object_get_int(val);
 	break;
 
-      case str_ptr:
-	/* TODO */
-	break;
-
       default:
 	break;
       }
+    } else {
+      addToCache(key, str, (void*)json_object_get_string(val));
     }
   }
 
@@ -306,22 +365,25 @@ bool RuntimePrefs::deserialize(char *json_str) {
 
 /* *************************************** */
 
+void RuntimePrefs::setDumpPath(const char *_path) {
+  snprintf(path, sizeof(path), "%s/%s",
+	   _path, CONST_DEFAULT_PREFS_FILE);
+  snprintf(tmp_path, sizeof(tmp_path), "%s/%s.temp",
+	   _path, CONST_DEFAULT_PREFS_FILE);
+}
+
+/* *************************************** */
+
 bool RuntimePrefs::writeDump() {
   bool ret = true;
   char *rsp = serialize();
+  size_t tmp_w = 0, w = 0;
 
   if(rsp) {
-    FILE *fd = fopen(path, "wb");
+    if((tmp_w = Utils::file_write(tmp_path, rsp, strlen(rsp))))
+      if((w = Utils::file_write(path, rsp, strlen(rsp))) == tmp_w)
+	unlink(tmp_path), prefscache_refreshed = false;
 
-    if(fd == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to serialize runtime preferences %s", path);
-      ret = false;
-    } else {
-      fwrite(rsp, strlen(rsp), 1, fd);
-      fclose(fd);
-
-      prefscache_refreshed = false;
-    }
     free(rsp);
   }
 
@@ -331,38 +393,32 @@ bool RuntimePrefs::writeDump() {
 /* *************************************** */
 
 bool RuntimePrefs::readDump() {
-  bool ret = true;
+  size_t tmp_r = 0, r = 0;
   char *buffer = NULL;
-  u_int64_t length;
-  FILE *f = fopen(path, "rb");
 
-  if(!f) {
-    ret = false;
-  } else {
-    fseek (f, 0, SEEK_END);
-    length = ftell(f);
-    fseek (f, 0, SEEK_SET);
-
-    buffer = (char*)malloc(length);
-    if(buffer)
-      fread(buffer, 1, length, f);
-
-    fclose(f);
-  }
-
-  if(buffer) {
-    ret = deserialize(buffer);
+  if((r = Utils::file_read(path, &buffer))
+     && deserialize(buffer)) {
     free(buffer);
+    return true;
+  }
+  
+  if(buffer) free(buffer);
+
+  if((tmp_r = Utils::file_read(tmp_path, &buffer))
+     && deserialize(buffer)) {
+    free(buffer);
+    return true;
   }
 
-  return ret;
+  if(buffer) free(buffer);
+
+  return false;
 }
 
 /* *************************************** */
 
 void RuntimePrefs::lua(lua_State* vm) {
   char buf[32];
-  char *redurl = redirection_url;
 
   lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
@@ -401,7 +457,12 @@ void RuntimePrefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "secondary_dns", global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
 
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
-  lua_push_str_table_entry(vm, "redirection_url", redurl);
+
+  if(redirection_url) {
+    redirection_url->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
+    lua_push_str_table_entry(vm, "redirection_url", (char*)redirection_url->value);
+    redirection_url->rwlock->unlock(__FILE__, __LINE__);
+  }
 
 }
 
@@ -413,11 +474,33 @@ int RuntimePrefs::refresh(const char *pref_name, const char *pref_value) {
   if(!pref_name || !pref_value)
     return -1;
 
+  rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
   HASH_FIND_STR(prefscache, pref_name, m);
+  rwlock->unlock(__FILE__, __LINE__);
 
   if(m) {
 
     switch(m->value_ptr) {
+
+    case str:
+      m->rwlock->lock(__FILE__, __LINE__, false /* wrlock */);
+
+      if(m->value)
+	free(m->value);
+      m->value = strdup(pref_value);
+
+      m->rwlock->unlock(__FILE__, __LINE__);
+      break;
+
+    case str_ptr:
+      m->rwlock->lock(__FILE__, __LINE__, false /* wrlock */);
+
+      if(*((char**)m->value))
+	free(*((char**)m->value));
+      *((char**)m->value) = strdup(pref_value);
+
+      m->rwlock->unlock(__FILE__, __LINE__);
+      break;
 
     case u_int32_t_ptr:
       *((u_int32_t*)m->value) = atoi(pref_value);
@@ -435,13 +518,17 @@ int RuntimePrefs::refresh(const char *pref_name, const char *pref_value) {
       *((HostMask*)m->value) = (HostMask)atoi(pref_value);
       break;
 
-    case str_ptr:
-      /* TODO */
-      break;
-
     default:
       break;
     }
+
+
+  } else if(!strncmp(pref_name, "ntopng.prefs.", strlen("ntopng.prefs"))) {
+    rwlock->lock(__FILE__, __LINE__, false /* wrlock */);
+
+    addToCache(pref_name, str, (void*)pref_value);
+
+    rwlock->unlock(__FILE__, __LINE__);
   } else
     return -1;
 
