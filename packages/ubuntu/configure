@@ -1717,7 +1717,12 @@ fi
 if  test -f /usr/bin/lsb_release  &&  test -d $HOME/PF_RING ; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
-  if test "$UBUNTU_RELEASE" = "16.04"; then
+
+   if test "$UBUNTU_SUB_RELEASE" = "9"; then
+     UBUNTU_RELEASE="debian9"
+   fi
+
+if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "debian9" ; then
     ZMQ_DEP="libzmq5"
   else
     ZMQ_DEP="libzmq3"
