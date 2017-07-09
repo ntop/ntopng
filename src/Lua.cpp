@@ -1137,6 +1137,22 @@ static int ntop_addToHostBlacklist(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_gainWriteCapabilities(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushnil(vm);
+  return(Utils::gainWriteCapabilities() == 0 ? CONST_LUA_OK : CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+static int ntop_dropWriteCapabilities(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushnil(vm);
+  return(Utils::dropWriteCapabilities() == 0 ? CONST_LUA_OK : CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Wrapper for the libc call getservbyport()
  * @details Wrapper for the libc call getservbyport()
@@ -1863,17 +1879,17 @@ static int ntop_get_flow_device_info(lua_State* vm) {
 static int ntop_discover_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int timeout = 3; /* sec */
-    
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TNUMBER) timeout = (u_int)lua_tonumber(vm, 1);
-  
+
   try {
     NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
-    
+
     if(d) {
       d->discover(vm, timeout);
       delete d;
@@ -5800,7 +5816,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* VLANs */
   { "getVLANsInfo",                   ntop_get_interface_vlans_info },
   { "getVLANInfo",                    ntop_get_interface_vlan_info } ,
-  
+
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
   { "reloadShapers",                  ntop_reload_shapers },
@@ -5817,7 +5833,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
   { "removeVolatileMemberFromPool",   ntop_remove_volatile_member_from_pool },
   { "getHostUsedQuotasStats",         ntop_get_host_used_quotas_stats       },
-  
+
   /* SNMP */
   { "getSNMPStats",                   ntop_interface_get_snmp_stats },
 
@@ -5829,7 +5845,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Network Discovery */
   { "discoverHosts",                 ntop_discover_iface_hosts },
-      
+
   /* DB */
   { "execSQLQuery",                  ntop_interface_exec_sql_query },
 
@@ -5847,7 +5863,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseNetworkAlert",  ntop_interface_release_network_alert    },
   { "engageInterfaceAlert", ntop_interface_engage_interface_alert   },
   { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
-  
+
   { NULL,                             NULL }
 };
 
@@ -6007,10 +6023,14 @@ static const luaL_Reg ntop_reg[] = {
   { "swapHostBlacklist",  ntop_swapHostBlacklist  },
   { "addToHostBlacklist", ntop_addToHostBlacklist },
 
+  /* Privileges */
+  { "gainWriteCapabilities", ntop_gainWriteCapabilities },
+  { "dropWriteCapabilities", ntop_dropWriteCapabilities },
+
   /* Misc */
-  { "getservbyport",      ntop_getservbyport      },
+  { "getservbyport",      ntop_getservbyport        },
   { "getMacManufacturer", ntop_get_mac_manufacturer },
-  { "getSiteCategories",  ntop_get_site_categories },
+  { "getSiteCategories",  ntop_get_site_categories  },
 
   { NULL,          NULL}
 };
@@ -6486,11 +6506,11 @@ int Lua::handle_script_request(struct mg_connection *conn,
   if(request_info->remote_user)  lua_push_str_table_entry(L, "REMOTE_USER", (char*)request_info->remote_user);
   if(request_info->query_string) lua_push_str_table_entry(L, "QUERY_STRING", (char*)request_info->query_string);
 
-  for(int i=0; ((request_info->http_headers[i].name != NULL) 
+  for(int i=0; ((request_info->http_headers[i].name != NULL)
 		&& request_info->http_headers[i].name[0] != '\0'); i++)
     lua_push_str_table_entry(L,
 			     request_info->http_headers[i].name,
-			     (char*)request_info->http_headers[i].value);  
+			     (char*)request_info->http_headers[i].value);
   lua_setglobal(L, (char*)"_SERVER");
 
   /* Cookies */

@@ -131,6 +131,10 @@ extern "C" {
 #include "third-party/uthash.h"
 #include <mysql.h>
 #include <errmsg.h>
+#ifdef HAVE_LIBCAP
+#include <sys/capability.h>
+#include <sys/prctl.h>
+#endif
 };
 
 #include <fstream>

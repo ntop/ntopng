@@ -231,6 +231,13 @@ else
   fi
 fi
 
+AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
+if test x$cap != x
+then
+   LDFLAGS="${LDFLAGS} -lcap"
+   AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
+fi
+  
 PFRING_GIT_RELEASE=""
 if test -d $HOME/PF_RING; then
   PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
