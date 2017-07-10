@@ -75,6 +75,7 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if(iface) {
+    disconnectFromDB(&mysql);
     if(connectToDB(&mysql, false) == false){
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect: %s\n", get_last_db_error(&mysql));
       return false;

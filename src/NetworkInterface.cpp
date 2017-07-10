@@ -237,7 +237,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL,
-    hosts_hash = NULL, ifDescription = NULL,
+    hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
@@ -629,6 +629,7 @@ NetworkInterface::~NetworkInterface() {
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
+  if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
 
   termLuaInterpreter();

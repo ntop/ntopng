@@ -26,8 +26,9 @@
 
 class AddressResolution {
   AddressList localNetworks;
+  int num_resolvers;
   u_int32_t num_resolved_addresses, num_resolved_fails;
-  pthread_t resolveThreadLoop;
+  pthread_t *resolveThreadLoop;
   Mutex m;
 
  public:

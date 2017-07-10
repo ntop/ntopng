@@ -473,6 +473,8 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_SSH:
+    if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
+    if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
     protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
     protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
     break;

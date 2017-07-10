@@ -439,8 +439,13 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
 /* **************************************************** */
 
 ParserInterface::~ParserInterface() {
-  for(struct FlowFieldMap *s=map; s != NULL; s=(struct FlowFieldMap*)s->hh.next) free(s->key);
-  HASH_CLEAR(hh, map);
+  struct FlowFieldMap *cur, *tmp;
+
+  HASH_ITER(hh, map, cur, tmp) {
+    HASH_DEL(map, cur);  /* delete; users advances to next */
+    free(cur->key);
+    free(cur);           /* optional- if you want to free  */
+  }
 }
 
 /* **************************************************** */
