@@ -1077,6 +1077,7 @@ int Prefs::checkOptions() {
   ntop->removeTrailingSlash(prefs_dir);
 
   setDumpPath(prefs_dir);
+  readDump();
 
   if(http_binding_address == NULL)
     http_binding_address = strdup((char*)CONST_ANY_ADDRESS);

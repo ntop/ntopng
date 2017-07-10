@@ -78,9 +78,6 @@ class RuntimePrefs {
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   HostMask hostMask;
 
-  bool writeDump();
-  bool readDump();
-
   prefscache_t *addToCache(const char *key, prefsptr_t value_ptr, void *value);
  public:
   /**
@@ -94,7 +91,10 @@ class RuntimePrefs {
 
   int hashGet(char *key, char *rsp, u_int rsp_len);
   int refresh(const char *pref_name, const char *pref_value);
+
   inline void dumpIfRefreshed()                         { if(prefscache_refreshed) writeDump(); };
+  virtual bool writeDump();
+  virtual bool readDump();
 
   virtual void lua(lua_State* vm);
 

@@ -120,7 +120,6 @@ RuntimePrefs::RuntimePrefs() {
 
   addToCache(CONST_RUNTIME_PREFS_HOSTMASK, hostmask_ptr, (void*)&hostMask);
 
-  readDump();
 }
 
 /* ******************************************* */
@@ -356,6 +355,9 @@ bool RuntimePrefs::deserialize(char *json_str) {
 	break;
       }
     } else {
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserializing [key: %s][val: %s]", key, json_object_get_string(val));
+#endif
       addToCache(key, str, (void*)json_object_get_string(val));
     }
   }
