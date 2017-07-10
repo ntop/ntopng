@@ -88,6 +88,7 @@ Host::~Host() {
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
   if(info)            free(info);
+  if(city)            free(city);
 }
 
 /* *************************************** */
