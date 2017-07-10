@@ -151,6 +151,7 @@ using namespace std;
 #include "patricia.h"
 #include "ntop_defines.h"
 #include "Mutex.h"
+#include "RwLock.h"
 #include "AddressTree.h"
 #include "AddressList.h"
 #include "IpAddress.h"

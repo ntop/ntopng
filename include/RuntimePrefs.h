@@ -25,7 +25,10 @@
 #include "ntop_includes.h"
 
 typedef enum {
-  str_ptr = 0,
+  /* Dynamically allocated string */
+  str = 0,
+  /* Pointers to class members */
+  str_ptr,
   u_int32_t_ptr,
   int32_t_ptr,
   bool_ptr,
@@ -33,9 +36,10 @@ typedef enum {
 } prefsptr_t;
 
 typedef struct {
-  const char *key;
+  char *key;
   prefsptr_t value_ptr;
   void* value;
+  RwLock *rwlock;
   
   UT_hash_handle hh; /* makes this structure hashable */
 } prefscache_t;
@@ -53,10 +57,11 @@ typedef struct {
  */
 class RuntimePrefs {
  private:
-  char path[MAX_PATH];
+  char path[MAX_PATH], tmp_path[MAX_PATH];
 
   prefscache_t *prefscache;
   bool prefscache_refreshed;
+  RwLock *rwlock;
 
   u_int32_t non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int32_t active_local_hosts_cache_interval;
@@ -69,14 +74,14 @@ class RuntimePrefs {
   bool dump_flow_alerts_when_iface_alerted;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
-  char *redirection_url, *redirection_url_shadow;
+  prefscache_t *redirection_url;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   HostMask hostMask;
 
   bool writeDump();
   bool readDump();
 
-  void addToCache(const char *key, prefsptr_t value_ptr, void *value);
+  prefscache_t *addToCache(const char *key, prefsptr_t value_ptr, void *value);
  public:
   /**
    * @brief A Constructor.
@@ -93,6 +98,7 @@ class RuntimePrefs {
 
   virtual void lua(lua_State* vm);
 
+  virtual void setDumpPath(const char *_path);
   json_object* getJSONObject();
   char *serialize();
   bool deserialize(char *json_str);
@@ -130,8 +136,6 @@ class RuntimePrefs {
   inline u_int32_t get_global_primary_dns_ip()   { return(global_primary_dns_ip);                       };
   inline u_int32_t get_global_secondary_dns_ip() { return(global_secondary_dns_ip);                     };
   inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
-  inline char* getRedirectionUrl()               { return(redirection_url);                             };
-
   inline HostMask getHostMask()                  { return(hostMask);                                    };
 };
 

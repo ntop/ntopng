@@ -42,6 +42,7 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
+  prefs_dir = strdup(CONST_DEFAULT_PREFS_DIR);
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT, alt_http_port = 0;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
@@ -103,6 +104,7 @@ Prefs::~Prefs() {
   if(docs_dir)         free(docs_dir);
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
+  if(prefs_dir)        free(prefs_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
   if(pid_path)         free(pid_path);
@@ -178,6 +180,10 @@ void usage() {
 	 "[--scripts-dir|-2] <path>           | Scripts directory.\n"
 	 "                                    | Default: %s\n"
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
+	 "                                    | Default: %s\n"
+	 "[--prefs-dir|-4] <path>             | Preferences directory used to serialize\n"
+	 "                                    | and deserialize file %s\n"
+	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
@@ -304,7 +310,9 @@ void usage() {
 	 ntop->get_working_dir(),
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
-         CONST_DEFAULT_CALLBACKS_DIR, CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
+         CONST_DEFAULT_CALLBACKS_DIR,
+	 CONST_DEFAULT_PREFS_FILE, CONST_DEFAULT_PREFS_DIR,
+	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
 	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
 	 CONST_DEFAULT_USERS_FILE);
@@ -468,6 +476,7 @@ static const struct option long_options[] = {
   { "httpdocs-dir",                      required_argument, NULL, '1' },
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
+  { "prefs-dir",                         required_argument, NULL, '4' },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
@@ -795,6 +804,11 @@ int Prefs::setOption(int optkey, char *optarg) {
     callbacks_dir = strdup(optarg);
     break;
 
+  case '4':
+    free(prefs_dir);
+    prefs_dir = strdup(optarg);
+    break;
+
   case 'l':
     switch(atoi(optarg)) {
     case 0:
@@ -1049,15 +1063,20 @@ int Prefs::checkOptions() {
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
+  prefs_dir     = ntop->getValidPath(prefs_dir);
 
   if(!data_dir)         { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate data dir");      return(-1); }
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }
   if(!scripts_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate scripts dir");   return(-1); }
   if(!callbacks_dir[0]) { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate callbacks dir"); return(-1); }
+  if(!prefs_dir[0])     { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate prefs dir");     return(-1); }
 
   ntop->removeTrailingSlash(docs_dir);
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
+  ntop->removeTrailingSlash(prefs_dir);
+
+  setDumpPath(prefs_dir);
 
   if(http_binding_address == NULL)
     http_binding_address = strdup((char*)CONST_ANY_ADDRESS);
@@ -1072,7 +1091,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uv:A:B:CD:E:F:N:G:HI:O:Q:S:TU:X:W:VZ:",
+			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:4:l:uv:A:B:CD:E:F:N:G:HI:O:Q:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);

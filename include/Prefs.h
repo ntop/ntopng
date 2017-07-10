@@ -63,7 +63,7 @@ class Prefs : public RuntimePrefs {
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans;
-  char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
+  char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *prefs_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
   char *zmq_encryption_pwd;
@@ -156,6 +156,7 @@ class Prefs : public RuntimePrefs {
   inline char* get_docs_dir()                           { return(docs_dir);       }; // HTTP docs
   inline char* get_scripts_dir()                        { return(scripts_dir);    };
   inline char* get_callbacks_dir()                      { return(callbacks_dir);  };
+  inline char* get_prefs_dir()                          { return(prefs_dir);      };
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_categorization_key()                 { return(categorization_key); };
   inline char* get_httpbl_key()                         { return(httpbl_key);  };

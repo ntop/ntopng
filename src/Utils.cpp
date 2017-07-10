@@ -234,6 +234,52 @@ bool Utils::file_exists(const char *path) {
 
 /* ****************************************************** */
 
+size_t Utils::file_write(const char *path, const char *content, size_t content_len) {
+  size_t ret = 0;
+  FILE *fd = fopen(path, "wb");
+
+  if(fd == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to write file %s", path);
+  } else {
+    ret = fwrite(content, content_len, 1, fd);
+    fclose(fd);
+  }
+
+  return ret;
+}
+
+/* ****************************************************** */
+
+size_t Utils::file_read(const char *path, char **content) {
+  size_t ret = 0;
+  char *buffer = NULL;
+  u_int64_t length;
+  FILE *f = fopen(path, "rb");
+
+  if(f) {
+    fseek (f, 0, SEEK_END);
+    length = ftell(f);
+    fseek (f, 0, SEEK_SET);
+
+    buffer = (char*)malloc(length);
+    if(buffer)
+      ret = fread(buffer, 1, length, f);
+
+    fclose(f);
+  }
+  
+  if(buffer) {
+    if(content && ret)
+      *content = buffer;
+    else
+      free(buffer);
+  }
+
+  return ret;
+}
+
+/* ****************************************************** */
+
 bool Utils::mkdir_tree(char *path) {
   int rc;
   struct stat s;
