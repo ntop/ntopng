@@ -1063,7 +1063,7 @@ int Prefs::checkOptions() {
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
-  prefs_dir     = ntop->getValidPath(prefs_dir);
+  ntop->fixPath(prefs_dir);
 
   if(!data_dir)         { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate data dir");      return(-1); }
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }
