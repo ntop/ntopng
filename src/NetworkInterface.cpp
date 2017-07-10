@@ -613,7 +613,6 @@ NetworkInterface::~NetworkInterface() {
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
   if(interfaceStats) delete interfaceStats;
-  if(flow_interfaces_stats) delete flow_interfaces_stats;
 
   if(flowHashing) {
     FlowHashing *current, *tmp;
@@ -631,6 +630,7 @@ NetworkInterface::~NetworkInterface() {
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
+  if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
 
   termLuaInterpreter();
