@@ -48,9 +48,9 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   return true
 end
 
-function prefsGetActiveSubpage(show_advanced_prefs, tab)
-  local subpage_active = nil
+local subpage_active = nil
 
+function prefsGetActiveSubpage(show_advanced_prefs, tab)
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
       subpage.disabled = true
@@ -405,6 +405,32 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
   }]]
   print('</script>\n')
   return(value)
+end
+
+local function get_pref_redis_key(options)
+  return "ntopng.prefs." .. ternary(options.pref ~= nil, options.pref, options.field)
+end
+
+function prefsToggleButton(params)
+  defaults = {
+    to_switch = {},             -- a list of elements to be switched on or off
+    on_text = "On",             -- The text when the button is on
+    on_value = "1",             -- The value when the button is on
+    on_class = "success",       -- The css class when the button is on
+    off_text = "Off",           -- The text when the button is off
+    off_value = "0",            -- The value when the button is off
+    off_class = "danger",       -- The css class when the button is off
+    reverse_switch = false      -- If true, elements are hidden when the item is enabled
+  }
+
+  local options = table.merge(defaults, params)
+  local redis_key = get_pref_redis_key(options)
+
+  return toggleTableButtonPrefs(subpage_active.entries[options.field].title, subpage_active.entries[options.field].description .. (subpage_active.entries[options.field].content or ""),
+    options.on_text, options.on_value, options.on_class,
+    options.off_text, options.off_value, options.off_class,
+    options.field, redis_key,
+    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden)
 end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,

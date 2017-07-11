@@ -37,6 +37,10 @@ local menu_subpages = {
     dynamic_iface_vlan_creation = {
       title       = i18n("prefs.dynamic_iface_vlan_creation_title"),
       description = i18n("prefs.dynamic_iface_vlan_creation_description"),
+      content  = "<p><b>"..i18n("shaping.notes")..":</b><ul>"..
+          "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_1").."</li>"..
+          "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_2").."</li>"..
+          "</ul>"
     }, dynamic_flow_collection = {
       title       = i18n("prefs.dynamic_flow_collection_title"),
       description = i18n("prefs.dynamic_flow_collection_description"),

@@ -68,12 +68,10 @@ function printInterfaces()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dynamic_network_interfaces")..'</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["dynamic_iface_vlan_creation"].title,
-			    subpage_active.entries["dynamic_iface_vlan_creation"].description .. "<p><b>"..i18n("shaping.notes")..":</b><ul>"..
-			    "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_1").."</li>"..
-			    "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_2").."</li>"..
-			    "</ul>",
-			    "On", "1", "success", "Off", "0", "danger", "dynamic_iface_vlan_creation", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
+  prefsToggleButton({
+    field = "dynamic_iface_vlan_creation",
+    default = "0",
+  })
   
   local labels = {i18n("prefs.none"), i18n("prefs.probe_ip_address"), i18n("prefs.ingress_flow_interface"), i18n("prefs.ingress_vrf_id")}
   local values = {"none","probe_ip","ingress_iface_idx", "ingress_vrf_id"}
@@ -125,12 +123,13 @@ function printAlerts()
   "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header", "row_toggle_ssl_alerts"}
 
-  toggleTableButtonPrefs(subpage_active.entries["disable_alerts_generation"].title, subpage_active.entries["disable_alerts_generation"].description,
-                    "On", "0", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
-		    "Off", "1", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
-		    "disable_alerts_generation", "ntopng.prefs.disable_alerts_generation", "0",
-                    false,
-                    elementToSwitch)
+  prefsToggleButton({
+    field = "disable_alerts_generation",
+    default = "0",
+    to_switch = elementToSwitch,
+    on_value = "0",     -- On  means alerts enabled and thus disable_alerts_generation == 0
+    off_value = "1",    -- Off for enabled alerts implies 1 for disable_alerts_generation
+  })
 
   if ntop.getPrefs().are_alerts_enabled == true then
      showElements = true
@@ -138,36 +137,43 @@ function printAlerts()
      showElements = false
   end
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_flow_alerts_iface"].title, subpage_active.entries["toggle_flow_alerts_iface"].description,
-                    "On", "1", "success",
-		    "Off","0", "danger",
-		    "toggle_flow_alerts_iface", "ntopng.alerts.dump_alerts_when_iface_is_alerted", "0",
-		    false, nil, nil, showElements)
+  prefsToggleButton({
+    field = "toggle_flow_alerts_iface",
+    default = "0",
+    pref = "alerts.dump_alerts_when_iface_is_alerted",
+    hidden = not showElements,
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_mysql_check_open_files_limit"].title, subpage_active.entries["toggle_mysql_check_open_files_limit"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1", nil, nil, nil, showElements and (not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden))
+  prefsToggleButton({
+    field = "toggle_mysql_check_open_files_limit",
+    default = "1",
+    pref = "alerts.mysql_check_open_files_limit",
+    hidden = not showElements or subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden,
+  })
 
   print('<tr id="row_alerts_security_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.security_alerts")..'</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_alert_probing"].title, subpage_active.entries["toggle_alert_probing"].description,
-                    "On", "1", "success",
-		    "Off","0", "danger",
-		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "0",
-		    false, nil, nil, showElements)
+  prefsToggleButton({
+    field = "toggle_alert_probing",
+    default = "0",
+    hidden = not showElements,
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_ssl_alerts"].title, subpage_active.entries["toggle_ssl_alerts"].description,
-                    "On", "1", "success",
-		    "Off","0", "danger",
-		    "toggle_ssl_alerts", "ntopng.prefs.ssl_alerts", "0",
-		    false, nil, nil, showElements)
+  prefsToggleButton({
+    field = "toggle_ssl_alerts",
+    pref = "ssl_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_malware_probing"].title, subpage_active.entries["toggle_malware_probing"].description,
-                    "On", "1", "success",
-		    "Off", "0", "danger",
-		    "toggle_malware_probing", "ntopng.prefs.host_blacklist", "1",
-		    false, nil, nil, showElements)
+  prefsToggleButton({
+    field = "toggle_malware_probing",
+    pref = "host_blacklist",
+    default = "1",
+    hidden = not showElements,
+  })
 
   print('<tr id="row_alerts_retention_header" ')
   if (showElements == false) then print(' style="display:none;"') end
@@ -212,23 +218,26 @@ function printExternalAlertsReport()
 
   local showElements = true
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_alert_syslog"].title, subpage_active.entries["toggle_alert_syslog"].description,
-                    "On", "1", "success",
-		    "Off", "0", "danger",
-		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "0",
-		    false, nil, nil, showElements)
+  prefsToggleButton({
+    field = "toggle_alert_syslog",
+    pref = "alerts_syslog",
+    default = "0"
+  })
 
    print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 
    local elementToSwitchSlack = {"row_slack_notification_severity_preference", "sender_username", "slack_webhook"}
 
-   toggleTableButtonPrefs(subpage_active.entries["toggle_slack_notification"].title, subpage_active.entries["toggle_slack_notification"].description,
-                    "On", "1", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
-		    "Off", "0", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
-		    "toggle_slack_notification", "ntopng.alerts.slack_notifications_enabled", "0", showElements==false, elementToSwitchSlack)
+  prefsToggleButton({
+    field = "toggle_slack_notification",
+    pref = "alerts.slack_notifications_enabled",
+    default = "0",
+    disabled = showElements==false,
+    to_switch = elementToSwitchSlack,
+  })
 
   local showSlackNotificationPrefs = false
-  if ntop.getPref("ntopng.alerts.slack_notifications_enabled") == "1" then
+  if ntop.getPref("ntopng.prefs.alerts.slack_notifications_enabled") == "1" then
      showSlackNotificationPrefs = true
   else
      showSlackNotificationPrefs = false
@@ -256,12 +265,13 @@ function printExternalAlertsReport()
 
     local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable","nagios_send_nsca_config","nagios_host_name","nagios_service_name"}
 
-    toggleTableButtonPrefs(subpage_active.entries["toggle_alert_nagios"].title, subpage_active.entries["toggle_alert_nagios"].description,
-                    "On", "1", "success",
-		    "Off", "0", "danger",
-		    "toggle_alert_nagios", "ntopng.prefs.alerts_nagios", "0",
-                    alertsEnabled==false,
-		    elementToSwitch)
+    prefsToggleButton({
+      field = "toggle_alert_nagios",
+      pref = "alerts_nagios",
+      default = "0",
+      disabled = alertsEnabled==false,
+      to_switch = elementToSwitch,
+    })
 
     if ntop.getPref("ntopng.prefs.alerts_nagios") == "0" then
       showElements = false
@@ -291,10 +301,11 @@ function printProtocolPrefs()
 
   print('<tr><th colspan=2 class="info">HTTP</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_top_sites"].title, subpage_active.entries["toggle_top_sites"].description,
-        "On", "1", "success",
-        "Off", "0", "danger",
-        "toggle_top_sites", "ntopng.prefs.host_top_sites_creation", "0")
+  prefsToggleButton({
+    field = "toggle_top_sites",
+    pref = "host_top_sites_creation",
+    default = "0",
+  })
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
 
@@ -327,10 +338,12 @@ function printBridgingPrefs()
 
   if show_advanced_prefs then
     print('<tr><th colspan=2 class="info">'..i18n("prefs.traffic_shaping")..'</th></tr>')
-    toggleTableButtonPrefs(subpage_active.entries["toggle_shaping_directions"].title, subpage_active.entries["toggle_shaping_directions"].description,
-       "On", "1", "success",
-       "Off", "0", "danger",
-       "toggle_shaping_directions", "ntopng.prefs.split_shaping_directions", "0")
+
+    prefsToggleButton({
+      field = "toggle_shaping_directions",
+      pref = "split_shaping_directions",
+      default = "0",
+    })
   end
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
@@ -360,11 +373,13 @@ function printBridgingPrefs()
   print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
 
   local captivePortalElementsToSwitch = {"redirection_url"}
-  toggleTableButtonPrefs(subpage_active.entries["toggle_captive_portal"].title, subpage_active.entries["toggle_captive_portal"].description .. label,
-			 "On", "1", "success",
-			 "Off", "0", "danger",
-			 "toggle_captive_portal", "ntopng.prefs.enable_captive_portal", "0",
-			 not(show), captivePortalElementsToSwitch)
+  prefsToggleButton({
+    field = "toggle_captive_portal",
+    pref = "enable_captive_portal",
+    default = "0",
+    disabled = not(show),
+    to_switch = captivePortalElementsToSwitch,
+  })
 
   local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
   prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
@@ -387,8 +402,12 @@ function printNbox()
 
   local elementToSwitch = {"nbox_user","nbox_password"}
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_nbox_integration"].title, subpage_active.entries["toggle_nbox_integration"].description,
-        "On", "1", "success", "Off", "0", "danger", "toggle_nbox_integration", "ntopng.prefs.nbox_integration", "0", nil, elementToSwitch)
+  prefsToggleButton({
+    field = "toggle_nbox_integration",
+    default = "0",
+    pref = "nbox_integration",
+    to_switch = elementToSwitch,
+  })
 
   if ntop.getPref("ntopng.prefs.nbox_integration") == "1" then
     showElements = true
@@ -414,8 +433,11 @@ function printMisc()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.web_user_interface")..'</th></tr>')
   if prefs.is_autologout_enabled == true then
-     toggleTableButtonPrefs(subpage_active.entries["toggle_autologout"].title, subpage_active.entries["toggle_autologout"].description,
-			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.is_autologon_enabled", "1")
+    prefsToggleButton({
+      field = "toggle_autologout",
+      default = "1",
+      pref = "is_autologon_enabled",
+    })
   end
   prefsInputFieldPrefs(subpage_active.entries["google_apis_browser_key"].title, subpage_active.entries["google_apis_browser_key"].description,
 		       "ntopng.prefs.",
@@ -494,7 +516,14 @@ function printAuthentication()
         "ntopng.prefs.ldap", "ldap_server_address", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}})
 
   local elementToSwitchBind = {"bind_dn","bind_pwd"}
-  toggleTableButtonPrefs(subpage_active.entries["toggle_ldap_anonymous_bind"].title, subpage_active.entries["toggle_ldap_anonymous_bind"].description, "On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
+  prefsToggleButton({
+      field = "toggle_ldap_anonymous_bind",
+      default = "1",
+      pref = "ldap.anonymous_bind",
+      to_switch = elementToSwitchBind,
+      reverse_switch = true,
+      hidden = not showElements,
+    })
 
   local showEnabledAnonymousBind = false
     if ntop.getPref("ntopng.prefs.ldap.anonymous_bind") == "0" then
@@ -529,17 +558,21 @@ function printInMemory()
 
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr>')
-  toggleTableButtonPrefs(subpage_active.entries["toggle_local_host_cache_enabled"].title, subpage_active.entries["toggle_local_host_cache_enabled"].description,
-			 "On", "1", "success", "Off", "0", "danger",
-			 "toggle_local_host_cache_enabled",
-			 "ntopng.prefs.is_local_host_cache_enabled", "1")
+
+  prefsToggleButton({
+    field = "toggle_local_host_cache_enabled",
+    default = "1",
+    pref = "is_local_host_cache_enabled",
+  })
 
   local elementToSwitchLocalCache = {"active_local_host_cache_interval"}
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_active_local_host_cache_enabled"].title, subpage_active.entries["toggle_active_local_host_cache_enabled"].description,
-			 "On", "1", "success", "Off", "0", "danger",
-			 "toggle_active_local_host_cache_enabled",
-			 "ntopng.prefs.is_active_local_host_cache_enabled", "0", nil, elementToSwitchLocalCache)
+  prefsToggleButton({
+    field = "toggle_active_local_host_cache_enabled",
+    default = "0",
+    pref = "is_active_local_host_cache_enabled",
+    to_switch = elementToSwitchLocalCache,
+  })
 
   local showActiveLocalHostCacheInterval = false
   if ntop.getPref("ntopng.prefs.is_active_local_host_cache_enabled") == "1" then
@@ -611,11 +644,19 @@ function printStatsTimeseries()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n('prefs.timeseries')..'</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_local"].title, subpage_active.entries["toggle_local"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
+  prefsToggleButton({
+    field = "toggle_local",
+    default = "1",
+    pref = "host_rrd_creation",
+    to_switch = elementToSwitchLocalCache,
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_local_ndpi"].title, subpage_active.entries["toggle_local_ndpi"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
+  prefsToggleButton({
+    field = "toggle_local_ndpi",
+    default = "0",
+    pref = "host_ndpi_rrd_creation",
+    to_switch = elementToSwitchLocalCache,
+  })
 
   local activityPrefsToSwitch = {"local_activity_prefs",
     "host_activity_rrd_raw_hours", "id_input_host_activity_rrd_raw_hours",
@@ -625,32 +666,51 @@ function printStatsTimeseries()
   local info = ntop.getInfo()
 
   if ntop.isPro() then
-     toggleTableButtonPrefs(subpage_active.entries["toggle_flow_rrds"].title, subpage_active.entries["toggle_flow_rrds"].description,
-                            "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_device_port_rrd_creation", "0", not info["version.enterprise_edition"])
+    prefsToggleButton({
+      field = "toggle_flow_rrds",
+      default = "0",
+      pref = "flow_device_port_rrd_creation",
+      disabled = not info["version.enterprise_edition"],
+    })
 
-    toggleTableButtonPrefs(subpage_active.entries["toggle_pools_rrds"].title, subpage_active.entries["toggle_pools_rrds"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")
+    prefsToggleButton({
+      field = "toggle_pools_rrds",
+      default = "0",
+      pref = "host_pools_rrd_creation",
+    })
   end
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_tcp_flags_rrds"].title, subpage_active.entries["toggle_tcp_flags_rrds"].description.."<br>",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_tcp_flags_rrds",
-			 "ntopng.prefs.tcp_flags_rrd_creation", "0")
+  prefsToggleButton({
+    field = "toggle_tcp_flags_rrds",
+    default = "0",
+    pref = "tcp_flags_rrd_creation",
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_tcp_retr_ooo_lost_rrds"].title, subpage_active.entries["toggle_tcp_retr_ooo_lost_rrds"].description.."<br>",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_tcp_retr_ooo_lost_rrds",
-			 "ntopng.prefs.tcp_retr_ooo_lost_rrd_creation", "0")
+  prefsToggleButton({
+    field = "toggle_tcp_retr_ooo_lost_rrds",
+    default = "0",
+    pref = "tcp_retr_ooo_lost_rrd_creation",
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_vlan_rrds"].title, subpage_active.entries["toggle_vlan_rrds"].description.."<br>",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_vlan_rrds",
-			 "ntopng.prefs.vlan_rrd_creation", "0")
+  prefsToggleButton({
+    field = "toggle_vlan_rrds",
+    default = "0",
+    pref = "vlan_rrd_creation",
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_asn_rrds"].title, subpage_active.entries["toggle_asn_rrds"].description.."<br>",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_asn_rrds",
-			 "ntopng.prefs.asn_rrd_creation", "0")
+  prefsToggleButton({
+    field = "toggle_asn_rrds",
+    default = "0",
+    pref = "asn_rrd_creation",
+  })
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_local_categorization"].title, subpage_active.entries["toggle_local_categorization"].description.."-k flashstart:&lt;user&gt;:&lt;password&gt;.",
-			 "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization",
-			 "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
+  prefsToggleButton({
+    field = "toggle_local_categorization",
+    default = "0",
+    pref = "host_categories_rrd_creation",
+    disabled = not prefs.is_categorization_enabled,
+  })
+
   print('</table>')
 
   print('<table class="table">')
@@ -698,11 +758,11 @@ function printLogging()
   loggingSelector(subpage_active.entries["toggle_logging_level"].title, subpage_active.entries["toggle_logging_level"].description,
         "toggle_logging_level", "ntopng.prefs.logging_level")
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_access_log"].title, subpage_active.entries["toggle_access_log"].description,
-        "On", "1", "success",
-        "Off", "0", "danger",
-        "toggle_access_log", "ntopng.prefs.enable_access_log", "0")
-
+  prefsToggleButton({
+    field = "toggle_access_log",
+    default = "0",
+    pref = "enable_access_log",
+  })
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
 
@@ -718,9 +778,12 @@ function printSnmp()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">SNMP</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_snmp_rrds"].title, subpage_active.entries["toggle_snmp_rrds"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_snmp_rrds", "ntopng.prefs.snmp_devices_rrd_creation", "0",
-			    not info["version.enterprise_edition"])
+  prefsToggleButton({
+    field = "toggle_snmp_rrds",
+    default = "0",
+    pref = "snmp_devices_rrd_creation",
+    disabled = not info["version.enterprise_edition"],
+  })
 
   prefsInputFieldPrefs(subpage_active.entries["default_snmp_community"].title, subpage_active.entries["default_snmp_community"].description,
 		       "ntopng.prefs.",
@@ -739,8 +802,11 @@ function printFlowDBDump()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.tiny_flows")..'</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["toggle_flow_db_dump_export"].title, subpage_active.entries["toggle_flow_db_dump_export"].description,
-			 "On", "1", "success", "Off", "0", "danger", "toggle_flow_db_dump_export", "ntopng.prefs.flow_db_dump_export_enabled", "1")
+  prefsToggleButton({
+    field = "toggle_flow_db_dump_export",
+    default = "1",
+    pref = "flow_db_dump_export_enabled",
+  })
 
   prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title, subpage_active.entries["max_num_packets_per_tiny_flow"].description,
         "ntopng.prefs.", "max_num_packets_per_tiny_flow", prefs.max_num_packets_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
