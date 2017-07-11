@@ -361,7 +361,7 @@ void NetworkInterface::checkAggregationMode() {
     char rsp[32];
 
     if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
-      if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) == 0) {
+      if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0) {
 	if(rsp[0] != '\0') {
 	  if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
 	  else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
@@ -370,7 +370,7 @@ void NetworkInterface::checkAggregationMode() {
 	}
       }
     } else {
-      if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) == 0)
+      if((ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) > 0)
 	 && (!strncmp(rsp, "1", 1)))
 	flowHashingMode = flowhashing_vlan;
     }
