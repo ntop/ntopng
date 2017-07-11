@@ -213,6 +213,13 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   redisReply *reply;
   StringCache_t *cached = NULL;
 
+  /* For backward compatibility, we check if it is a preference
+   even if it has been requested as a normal readis get */
+  if(!strncmp(key, "ntopng.prefs.", strlen("ntopng.prefs."))) {
+    if(ntop->getPrefs()->hashGet(key, rsp, rsp_len) > 0)
+      return 0;
+  }
+
   l->lock(__FILE__, __LINE__);
 
   HASH_FIND_STR(stringCache, key, cached);
