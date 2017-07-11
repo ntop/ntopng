@@ -362,6 +362,8 @@ bool RuntimePrefs::deserialize(char *json_str) {
     }
   }
 
+  json_object_put(o);
+
   return true;
 }
 
