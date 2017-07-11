@@ -15,6 +15,7 @@ sendHTTPHeader('application/json')
 local max_num_to_find = 5
 local res = {results={}}
 local results = res.results
+local menu_subpages = require "prefs_menu"
 
 local query = _GET["query"] or ""
 

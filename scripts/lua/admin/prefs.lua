@@ -46,9 +46,6 @@ if(haveAdminPrivileges()) then
       io.write("-----------------------\n")
    end
 
-   tab = _GET["tab"]
-   
-
    if toboolean(_POST["show_advanced_prefs"]) ~= nil then
       ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
       show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
@@ -62,32 +59,7 @@ if(haveAdminPrivileges()) then
     alerts_disabled = true
    end
 
-local subpage_active = nil
-
-for _, subpage in ipairs(menu_subpages) do
-  if not isSubpageAvailable(subpage, show_advanced_prefs) then
-    subpage.disabled = true
-    
-    if subpage.id == tab then
-      -- will set to default
-      tab = nil
-    end
-  elseif subpage.id == tab then
-    subpage_active = subpage
-  end
-end
-
--- default subpage
-if isEmptyString(tab) then
-  -- Pick the first available subpage
-  for _, subpage in ipairs(menu_subpages) do
-    if isSubpageAvailable(subpage, show_advanced_prefs) then
-      subpage_active = subpage
-      tab = subpage.id
-      break
-    end
-  end
-end
+local subpage_active, tab = prefsGetActiveSubpage(show_advanced_prefs, _GET["tab"])
 
 -- ================================================================================
 
@@ -806,11 +778,7 @@ end
    print[[
            <div class="list-group">]]
 
-for _, subpage in ipairs(menu_subpages) do
-  if not subpage.disabled then
-    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
-  end
-end
+printMenuSubpages(tab)
 
 print[[
            </div>
