@@ -367,7 +367,6 @@ class Ntop {
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Logstash*         getLogstash()             { return(logstash);            };
   inline Prefs*            getPrefs()                { return(prefs);               };
-  inline RuntimePrefs*     getRuntimePrefs()         { return(runtimeprefs);        };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 
 #ifdef NTOPNG_PRO

@@ -234,6 +234,52 @@ bool Utils::file_exists(const char *path) {
 
 /* ****************************************************** */
 
+size_t Utils::file_write(const char *path, const char *content, size_t content_len) {
+  size_t ret = 0;
+  FILE *fd = fopen(path, "wb");
+
+  if(fd == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to write file %s", path);
+  } else {
+    ret = fwrite(content, content_len, 1, fd);
+    fclose(fd);
+  }
+
+  return ret;
+}
+
+/* ****************************************************** */
+
+size_t Utils::file_read(const char *path, char **content) {
+  size_t ret = 0;
+  char *buffer = NULL;
+  u_int64_t length;
+  FILE *f = fopen(path, "rb");
+
+  if(f) {
+    fseek (f, 0, SEEK_END);
+    length = ftell(f);
+    fseek (f, 0, SEEK_SET);
+
+    buffer = (char*)malloc(length);
+    if(buffer)
+      ret = fread(buffer, 1, length, f);
+
+    fclose(f);
+  }
+  
+  if(buffer) {
+    if(content && ret)
+      *content = buffer;
+    else
+      free(buffer);
+  }
+
+  return ret;
+}
+
+/* ****************************************************** */
+
 bool Utils::mkdir_tree(char *path) {
   int rc;
   struct stat s;
@@ -353,6 +399,12 @@ int Utils::dropPrivileges() {
     return -1;
   }
 
+  if(Utils::retainWriteCapabilities() != 0) {
+#ifdef HAVE_LIBCAP
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain privileges for privileged file writing");
+#endif
+  }
+  
   username = ntop->getPrefs()->get_user();
   pw = getpwnam(username);
 
@@ -2180,4 +2232,87 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
   freeifaddrs(pList);
   return bindresult;
 #endif
+}
+
+/* ****************************************************** */
+
+int Utils::retainWriteCapabilities() {
+  int rc = 0;
+  
+#ifdef HAVE_LIBCAP
+  cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
+  cap_t caps;
+ 
+  /* Add the capability of interest to the perimitted capabilities  */
+  caps = cap_get_proc(); 
+  cap_set_flag(caps, CAP_PERMITTED, 1, cap_values, CAP_SET);
+  rc = cap_set_proc(caps);
+
+  if(rc == 0) {
+    /* Tell the kernel to retain permitted capabilities */
+    if(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain permitted capabilities [%s]\n", strerror(errno));
+      rc = -1;
+    }
+  }
+  
+  cap_free(caps);
+#else
+  rc = -1;
+#endif
+  
+return(rc);
+}
+
+/* ****************************************************** */
+
+static int _setWriteCapabilities(int enable) {
+  int rc = 0;
+  
+#ifdef HAVE_LIBCAP
+  cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
+  cap_t caps;
+   
+  caps = cap_get_proc();
+  if(caps) {
+    cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_values, enable ? CAP_SET : CAP_CLEAR);
+    rc = cap_set_proc(caps);
+    cap_free(caps);
+  } else
+    rc = -1;
+#else
+  rc = -1;
+#endif
+
+  return(rc);
+}
+
+/* ****************************************************** */
+
+/*
+  Usage example
+
+  local path="/etc/test.lua"
+  
+  ntop.gainWriteCapabilities()
+  
+  file = io.open(path, "w")
+  if(file ~= nil) then
+    file:write("-- End of the test.lua file")
+    file:close()
+  else
+    print("Unable to create file "..path.."<p>")
+  end
+  
+  ntop.dropWriteCapabilities()
+*/
+
+int Utils::gainWriteCapabilities() {
+  return(_setWriteCapabilities(true));
+}
+
+/* ****************************************************** */
+
+int Utils::dropWriteCapabilities() {
+  return(_setWriteCapabilities(false));
 }

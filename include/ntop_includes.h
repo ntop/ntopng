@@ -131,6 +131,10 @@ extern "C" {
 #include "third-party/uthash.h"
 #include <mysql.h>
 #include <errmsg.h>
+#ifdef HAVE_LIBCAP
+#include <sys/capability.h>
+#include <sys/prctl.h>
+#endif
 };
 
 #include <fstream>
@@ -147,6 +151,7 @@ using namespace std;
 #include "patricia.h"
 #include "ntop_defines.h"
 #include "Mutex.h"
+#include "RwLock.h"
 #include "AddressTree.h"
 #include "AddressList.h"
 #include "IpAddress.h"
@@ -177,6 +182,7 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "HostPools.h"
+#include "RuntimePrefs.h"
 #include "Prefs.h"
 #include "Utils.h"
 #include "ActivityStats.h"
@@ -270,7 +276,6 @@ using namespace std;
 #include "AddressResolution.h"
 #include "HTTPBL.h"
 #include "HTTPserver.h"
-#include "RuntimePrefs.h"
 #include "Paginator.h"
 #include "Ntop.h"
 

@@ -88,6 +88,7 @@ Host::~Host() {
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
   if(info)            free(info);
+  if(city)            free(city);
 }
 
 /* *************************************** */
@@ -652,8 +653,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
 
     if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
-      lua_push_str_table_entry(vm, "sites", top_sites->json());
-      lua_push_str_table_entry(vm, "sites.old", old_sites);
+      char *cur_sites = top_sites->json();
+      lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
+      lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
+      if(cur_sites) free(cur_sites);
     }
   }
 

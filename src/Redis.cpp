@@ -143,8 +143,7 @@ int Redis::expire(char *key, u_int expire_secs) {
 /* **************************************** */
 
 bool Redis::isCacheable(char *key) {
-  if(strstr(key, "ntopng.prefs.")
-     || (strstr(key, "ntopng.cache."))
+  if((strstr(key, "ntopng.cache."))
      || (strstr(key, "ntopng.user.") && (!strstr(key, ".password"))))
     return(true);
 
@@ -213,6 +212,13 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   bool cacheable = false;
   redisReply *reply;
   StringCache_t *cached = NULL;
+
+  /* For backward compatibility, we check if it is a preference
+   even if it has been requested as a normal readis get */
+  if(!strncmp(key, "ntopng.prefs.", strlen("ntopng.prefs."))) {
+    if(ntop->getPrefs()->hashGet(key, rsp, rsp_len) > 0)
+      return 0;
+  }
 
   l->lock(__FILE__, __LINE__);
 

@@ -238,7 +238,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL,
-    hosts_hash = NULL, ifDescription = NULL,
+    hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
@@ -361,7 +361,7 @@ void NetworkInterface::checkAggregationMode() {
     char rsp[32];
 
     if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
-      if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) == 0) {
+      if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0) {
 	if(rsp[0] != '\0') {
 	  if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
 	  else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
@@ -370,7 +370,7 @@ void NetworkInterface::checkAggregationMode() {
 	}
       }
     } else {
-      if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) == 0)
+      if((ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) > 0)
 	 && (!strncmp(rsp, "1", 1)))
 	flowHashingMode = flowhashing_vlan;
     }
@@ -630,6 +630,7 @@ NetworkInterface::~NetworkInterface() {
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
+  if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
 
   termLuaInterpreter();

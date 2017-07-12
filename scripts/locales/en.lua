@@ -777,6 +777,13 @@ local  en = {
       dns_service = "Service",
       primary_dns = "Primary DNS",
       secondary_dns = "Secondary DNS",
+      quick_network_setup = "Quick Network Setup",
+      network_mode = "Network Operational Mode",
+      network_mode_description = "Specifying the operational mode of this network box",
+      router_mode = "Router",
+      transparent_bridge = "Transparent Bridge",
+      network_mode_router = "<b>Router:</b> you need to <u>disable the DHCP on your router</u> and let this box dynamically assign IP addresses (DHCP) to local hosts and become their gateway. This box will use your router as gateway to the Internet, and thus it must have a static IP address configured in order to reach your router.",
+      network_mode_bridge = "<b>Transparent Bridge</b>: your hosts will be connected to this box either using the embedded access point or through the optional ethernet interface and won't notice any change in IP address configuration.",
    },
 
    entity_thresholds = {

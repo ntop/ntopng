@@ -167,6 +167,12 @@ local function validateMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateNetworkMode(mode)
+   local modes = { "router","transparent_bridge"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateOperator(mode)
    local modes = {"gt", "eq", "lt"}
 
@@ -781,6 +787,7 @@ local known_parameters = {
    ["toggle_flow_alerts_iface"]                    =  validateBool,
    ["toggle_ssl_alerts"]                           =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,
+   ["toggle_flow_db_dump_export"]                  =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
    ["toggle_slack_notification"]                   =  validateBool,
    ["toggle_alert_nagios"]                         =  validateBool,
@@ -927,6 +934,9 @@ local known_parameters = {
    ["unassigned_devices"]      =  validateUnassignedDevicesMode, -- unknown_device.lua
    ["create_guests_pool"]      =  validateOnOff,                 -- bridge wizard
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
+
+   -- ntopng Box
+   ["nbox_network_mode"]       =  validateNetworkMode,           -- bridge wizard
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

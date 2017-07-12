@@ -26,12 +26,6 @@
 
 class Host;
 
-typedef struct {
-  char *key, *value;
-  time_t expire;
-  UT_hash_handle hh; /* makes this structure hashable */
-} StringCache_t;
-
 class Redis {
  private:
   redisContext *redis;

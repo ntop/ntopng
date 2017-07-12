@@ -319,7 +319,9 @@
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
+#define CONST_DEFAULT_PREFS_DIR      CONST_DEFAULT_DATA_DIR
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
+#define CONST_DEFAULT_PREFS_FILE     "runtimeprefs.json"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
@@ -620,10 +622,10 @@
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
 #define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.alerts.sender_username"
-#define ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED "ntopng.alerts.slack_notifications_enabled"
+#define ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.slack_notifications_enabled"
 #define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.alerts.sender_username"
 #define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.alerts.slack_alert_severity"
-#define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.alerts.dump_alerts_when_iface_is_alerted"
+#define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.prefs.alerts.dump_alerts_when_iface_is_alerted"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"

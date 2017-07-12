@@ -507,6 +507,13 @@ function areAlertsEnabled()
           (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1"))
 end
 
+function hasAlertsDisabled()
+  local prefs = ntop.getPrefs()
+  return (prefs.has_cmdl_disable_alerts == true) or
+      ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
+      ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
+end
+
 function hasNagiosSupport()
   if prefs == nil then
     prefs = ntop.getPrefs()
@@ -3224,6 +3231,25 @@ end
 
 function isBridgeInterface(ifstats)
   return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+end
+
+function hasBridgeInterfaces()
+  local curif = ifname
+  local ifnames = interface.getIfNames()
+  local found = false
+
+  for _,ifname in pairs(ifnames) do
+    interface.select(ifname)
+
+    local ifstats = interface.getStats()
+    if isBridgeInterface(ifstats) then
+      found = true
+      break
+    end
+  end
+
+  interface.select(curif)
+  return found
 end
 
 -- Returns true if the captive portal can be started with the current configuration
