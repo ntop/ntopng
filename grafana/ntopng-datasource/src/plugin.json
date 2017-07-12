@@ -1,35 +1,31 @@
 {
-  "name": "SimpleJson",
-  "id": "grafana-simple-json-datasource",
+  "name": "ntopng",
+  "id": "ntop-ntopng-datasource",
   "type": "datasource",
 
-  "partials": {
-    "config": "public/app/plugins/datasource/simplejson/partials/config.html"
-  },
-
   "metrics": true,
-  "annotations": true,
+  "annotations": false,
 
   "info": {
-    "description": "simple json datasource",
+    "description": "ntopng datasource",
     "author": {
-      "name": "Grafana Labs",
-      "url": "https://grafana.com"
+      "name": "ntop",
+      "url": "https://www.ntop.org"
     },
     "logos": {
-      "small": "img/simpleJson_logo.svg",
-      "large": "img/simpleJson_logo.svg"
+      "small": "img/ntopng_logo.svg",
+      "large": "img/ntopng_logo.svg"
     },
     "links": [
-      {"name": "GitHub", "url": "https://github.com/grafana/simple-json-datasource"},
-      {"name": "MIT License", "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"}
+      {"name": "GitHub", "url": "https://github.com/ntop/ntopng/tree/dev/grafana/ntopng-datasource"},
+      {"name": "MIT License", "url": "https://github.com/ntop/ntopng/blob/dev/grafana/ntopng-datasource/LICENSE"}
     ],
-    "version": "1.3.3",
-    "updated": "2017-05-10"
+    "version": "1.0",
+    "updated": "2017-07-12"
   },
 
   "dependencies": {
-    "grafanaVersion": "3.x.x",
+    "grafanaVersion": "4.x.x",
     "plugins": [ ]
   }
 }

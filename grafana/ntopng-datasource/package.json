@@ -1,7 +1,7 @@
 {
-  "name": "grafana-simple-json",
+  "name": "ntop-ntopng",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/grafana/simple-json-datasource.git"
+    "url": "git+https://github.com/ntop/ntopng.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "ntop",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/grafana/simple-json-datasource/issues"
   },

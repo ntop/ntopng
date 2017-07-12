@@ -160,6 +160,9 @@ This plugin requires node 6.10.0
 
 ### Changelog
 
+1.3.3
+ - Adds support for basic authentication
+
 1.2.4
  - Add support returning sets in the search endpoint
 
