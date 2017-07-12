@@ -2147,6 +2147,9 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 /* ****************************************************** */
 
 int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
+#ifdef WIN32
+	return(-1);
+#else
   struct ifaddrs* pList = NULL;
   struct ifaddrs* pAdapter = NULL;
   struct ifaddrs* pAdapterFound = NULL;
@@ -2176,4 +2179,5 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
   
   freeifaddrs(pList);
   return bindresult;
+#endif
 }
