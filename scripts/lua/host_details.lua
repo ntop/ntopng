@@ -781,8 +781,6 @@ protocolChart.title(function(d){
       return d.key+": " + bytesToVolume(Math.pow(10, d.value));
       })
 
-protocolChart.on("click", function(){ alert("A"); });
-
 hostChart
     .width(600).height(300)
     .dimension(nameDim)
