@@ -157,6 +157,7 @@ function printAlerts()
 
   prefsToggleButton({
     field = "toggle_alert_probing",
+    pref = "probing_alerts",
     default = "0",
     hidden = not showElements,
   })
