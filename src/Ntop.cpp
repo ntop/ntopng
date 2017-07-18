@@ -280,7 +280,7 @@ void Ntop::initNetworkInterfaces() {
 
   memset(iface, 0, (sizeof(NetworkInterface*) * MAX_NUM_DEFINED_INTERFACES));
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
 }
 
 /* ******************************************* */
