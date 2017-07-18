@@ -2082,6 +2082,23 @@ local  en = {
       missing_user_name_message = "Missing user name",
    },
 
+   login = {
+      welcome_to = "Welcome to %{product}",
+      username_ph = "Username (default admin)",
+      password_ph = "Password (default admin)",
+      login = "Login",
+      donation = "If you find %{product} useful, please support us by making a small <A href=\"%{donation_url}\">donation</A>. Your funding will help to run and foster the development of this project. Thank you.",
+      license = "%{product} is released under <a href=\"%{license_url}\">%{license}</a>.",
+      password_mismatch = "Passwords do not match",
+      password_not_valid = "Please specify a different password",
+      change_password = "Change Password",
+      must_change_password = "Default admin password must be changed. Please enter a new password below.",
+      password = "Password",
+      confirm_password = "Confirm Password",
+      logout = "Logout",
+      logging_out = "Logging out...",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
