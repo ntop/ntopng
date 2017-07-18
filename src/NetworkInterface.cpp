@@ -2168,11 +2168,16 @@ void NetworkInterface::cleanup() {
 
   getStats()->cleanup();
 
+  disablePurge(true);
   flows_hash->cleanup();
+  enablePurge(true);
+
+  disablePurge(false);
   hosts_hash->cleanup();
   ases_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
+  enablePurge(false);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
