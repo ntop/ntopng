@@ -39,6 +39,7 @@ Paginator::Paginator() {
   l7proto_filter = -1;
   port_filter = 0;
   local_network_filter = 0;
+  vlan_id_filter = 0;
   ip_version = 0;
   client_mode = location_all;
   server_mode = location_all;
@@ -141,6 +142,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))
 	  local_network_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "vlanIdFilter"))
+	  vlan_id_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "ipVersion"))
 	  ip_version = lua_tointeger(L, -1);
 	//else

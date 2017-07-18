@@ -265,6 +265,43 @@ end
 
 -- ##############################################
 
+function printVLANFilterDropdown(base_url, page_params)
+   local vlans = interface.getVLANsList()
+
+   if vlans == nil then vlans = {VLANs={}} end
+   vlans = vlans["VLANs"]
+
+   local ids = {}
+   for _, vlan in ipairs(vlans) do
+      ids[#ids + 1] = vlan["vlan_id"]
+   end
+
+   local vlan_id = _GET["vlan"]
+   local vlan_id_filter = ''
+   if not isEmptyString(vlan_id) then
+      vlan_id_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   end
+
+   local vlan_id_params = table.clone(page_params)
+   vlan_id_params["vlan"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.vlan")) print[[]] print(vlan_id_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(i18n("flows_page.all_vlan_ids")) print[[</a></li>\]]
+   for _, vid in ipairs(ids) do
+      vlan_id_params["vlan"] = vid
+      print[[
+         <li>\
+           <a href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">VLAN ]] print(tostring(vid)) print[[</a></li>\]]
+   end
+   print[[
+
+      </ul>]]
+end
+
+-- ##############################################
+
 --
 -- Returns indexes to be used for string shortening. The portion of to_shorten between
 -- middle_start and middle_end will be inside the bounds.

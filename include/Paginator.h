@@ -33,6 +33,7 @@ class Paginator {
   int l7proto_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
+  u_int16_t vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   DetailsLevel details_level;
@@ -73,6 +74,10 @@ class Paginator {
 
   inline bool localNetworkFilter(int16_t *f) const {
     if(local_network_filter) { (*f) = local_network_filter; return true; } return false;
+  }
+
+  inline bool vlanIdFilter(u_int16_t *f) const {
+    if(vlan_id_filter) { (*f) = vlan_id_filter; return true; } return false;
   }
   
   inline bool ipVersion(u_int8_t *f) const {

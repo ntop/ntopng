@@ -786,6 +786,20 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_vlans_list(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface ||
+     ntop_interface->getActiveVLANList(vm,
+				       (char*)"column_vlan", CONST_MAX_NUM_HITS,
+				       0, true, details_normal /* Minimum details */) < 0)
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_vlans_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_vlan";
@@ -5775,6 +5789,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getASInfo",                      ntop_get_interface_as_info },
 
   /* VLANs */
+  { "getVLANsList",                   ntop_get_interface_vlans_list },
   { "getVLANsInfo",                   ntop_get_interface_vlans_info },
   { "getVLANInfo",                    ntop_get_interface_vlan_info } ,
 

@@ -14,34 +14,36 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-application = _GET["application"]
-application_filter = ""
-hosts = _GET["hosts"]
-host = _GET["host"]
-vhost = _GET["vhost"]
-flowhosts_type = _GET["flowhosts_type"]
-flowhosts_type_filter = ""
-ipversion = _GET["version"]
-ipversion_filter = ""
-traffic_type = _GET["traffic_type"]
-traffic_type_filter = ""
-flow_status = _GET["flow_status"]
-flow_status_filter = ""
-port = _GET["port"]
+local application = _GET["application"]
+local application_filter = ""
+local hosts = _GET["hosts"]
+local host = _GET["host"]
+local vhost = _GET["vhost"]
+local flowhosts_type = _GET["flowhosts_type"]
+local flowhosts_type_filter = ""
+local ipversion = _GET["version"]
+local ipversion_filter = ""
+local vlan = _GET["vlan"]
+local vlan_filter = ""
+local traffic_type = _GET["traffic_type"]
+local traffic_type_filter = ""
+local flow_status = _GET["flow_status"]
+local flow_status_filter = ""
+local port = _GET["port"]
 
-network_id = _GET["network"]
+local network_id = _GET["network"]
 
-prefs = ntop.getPrefs()
+local prefs = ntop.getPrefs()
 interface.select(ifname)
-ifstats = interface.getStats()
-ndpistats = interface.getnDPIStats()
+local ifstats = interface.getStats()
+local ndpistats = interface.getnDPIStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
 
 if (network_id ~= nil) then
-network_name = ntop.getNetworkNameById(tonumber(network_id))
-url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network='..network_id
+local network_name = ntop.getNetworkNameById(tonumber(network_id))
+local url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network='..network_id
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -104,6 +106,11 @@ end
 if(ipversion ~= nil) then
   page_params["version"] = ipversion
   ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(vlan ~= nil) then
+  page_params["vlan"] = vlan
+  vlan_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
 if(traffic_type ~= nil) then
@@ -275,6 +282,13 @@ print[[, '<div class="btn-group pull-right">]]
 printIpVersionDropdown(base_url, ipversion_params)
 print [[</div>']]
 
+-- VLAN selector
+local vlan_params = table.clone(page_params)
+if ifstats.vlan then
+   print[[, '<div class="btn-group pull-right">]]
+   printVLANFilterDropdown(base_url, vlan_params)
+   print[[</div>']]
+end
 -- end buttons
 
 print(" ],\n")

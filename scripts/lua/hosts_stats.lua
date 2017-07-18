@@ -219,6 +219,13 @@ print [[    showPagination: true, ]]
    printIpVersionDropdown(base_url, page_params)
    print[[</div>']]
 
+   -- VLAN selector
+   if ifstats.vlan then
+      print[[, '<div class="btn-group pull-right">]]
+      printVLANFilterDropdown(base_url, page_params)
+      print[[</div>']]
+   end
+
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)
 

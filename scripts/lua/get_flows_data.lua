@@ -13,36 +13,37 @@ local debug = false
 local debug_process = false -- Show flow processed information
 
 interface.select(ifname)
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 -- printGETParameters(_GET)
 
 -- Table parameters
-all = _GET["all"]
-currentPage = _GET["currentPage"]
-perPage     = _GET["perPage"]
-sortColumn  = _GET["sortColumn"]
-sortOrder   = _GET["sortOrder"]
-host_info   = url2hostinfo(_GET)
-port        = _GET["port"]
-application = _GET["application"]
-network_id  = _GET["network"]
-vhost       = _GET["vhost"]
-flowhosts_type  = _GET["flowhosts_type"]
-ipversion       = _GET["version"]
-traffic_type = _GET["traffic_type"]
-flow_status = _GET["flow_status"]
+local all = _GET["all"]
+local currentPage = _GET["currentPage"]
+local perPage     = _GET["perPage"]
+local sortColumn  = _GET["sortColumn"]
+local sortOrder   = _GET["sortOrder"]
+local host_info   = url2hostinfo(_GET)
+local port        = _GET["port"]
+local application = _GET["application"]
+local network_id  = _GET["network"]
+local vlan        = _GET["vlan"]
+local vhost       = _GET["vhost"]
+local flowhosts_type  = _GET["flowhosts_type"]
+local ipversion       = _GET["version"]
+local traffic_type = _GET["traffic_type"]
+local flow_status = _GET["flow_status"]
 
 -- System host parameters
-hosts  = _GET["hosts"]
-user   = _GET["username"]
-host   = _GET["host"]
-pid    = tonumber(_GET["pid"])
-name   = _GET["pid_name"]
+local hosts  = _GET["hosts"]
+local user   = _GET["username"]
+local host   = _GET["host"]
+local pid    = tonumber(_GET["pid"])
+local name   = _GET["pid_name"]
 
 -- Get from redis the throughput type bps or pps
-throughput_type = getThroughputType()
+local throughput_type = getThroughputType()
 
-prefs = ntop.getPrefs()
+local prefs = ntop.getPrefs()
 
 if(network_id ~= nil) then
    network_id = tonumber(network_id)
@@ -141,6 +142,10 @@ end
 
 if not isEmptyString(ipversion) then
    pageinfo["ipVersion"] = tonumber(ipversion)
+end
+
+if not isEmptyString(vlan) then
+   pageinfo["vlanIdFilter"] = tonumber(vlan)
 end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)

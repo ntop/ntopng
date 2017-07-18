@@ -2811,6 +2811,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   int ndpi_proto;
   u_int16_t port;
   int16_t local_network_id;
+  u_int16_t vlan_id;
   u_int8_t ip_version;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
@@ -2856,6 +2857,11 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && f->get_cli_host() && f->get_srv_host()
        && f->get_cli_host()->get_local_network_id() != local_network_id
        && f->get_srv_host()->get_local_network_id() != local_network_id)
+      return(false); /* false = keep on walking */
+
+    if(retriever->pag
+       && retriever->pag->vlanIdFilter(&vlan_id)
+       && f->get_vlan_id() != vlan_id)
       return(false); /* false = keep on walking */
 
     if(retriever->pag
