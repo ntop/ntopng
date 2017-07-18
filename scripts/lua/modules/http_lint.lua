@@ -371,6 +371,15 @@ local function validateUserRole(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateUserLanguage(code)
+   local codes = {}
+   for _, c in pairs(locales_utils.getAvailableLocales()) do
+      codes[#codes + 1] = c["code"]
+   end
+
+   return validateChoice(codes, code)
+end
+
 -- #################################################################
 
 local function validateHost(p)
@@ -671,6 +680,7 @@ local known_parameters = {
    ["old_password"]            =  validateSingleWord,            -- The old user password
    ["confirm_password"]        =  validateSingleWord,            -- Confirm user password
    ["user_role"]               =  validateUserRole,              -- User role
+   ["user_language"]           =  validateUserLanguage,          -- User language
 
 -- NDPI
    ["application"]             =  validateApplication,           -- An nDPI application protocol name

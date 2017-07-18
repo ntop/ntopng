@@ -740,6 +740,12 @@ void Ntop::getUsers(lua_State* vm) {
     else
       lua_push_str_table_entry(vm, "group", (char*)"unknown");
 
+    snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
+    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+      lua_push_str_table_entry(vm, "language", val);
+    else
+      lua_push_str_table_entry(vm, "language", (char*)"");
+
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
     if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
       lua_push_str_table_entry(vm, CONST_ALLOWED_NETS, val);
@@ -1054,6 +1060,8 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
   return(true);
 }
 
+/* ******************************************* */
+
 bool Ntop::changeUserHostPool(const char * const username, const char * const host_pool_id) const {
   if (username == NULL || username[0] == '\0')
     return false;
@@ -1076,8 +1084,31 @@ bool Ntop::changeUserHostPool(const char * const username, const char * const ho
 
 /* ******************************************* */
 
+bool Ntop::changeUserLanguage(const char * const username, const char * const language) const {
+  if (username == NULL || username[0] == '\0')
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing user language %s for %s",
+			       language, username);
+
+  char key[64];
+  snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
+
+  if(language != NULL && language[0] != '\0') {
+    return (ntop->getRedis()->set(key, (char*)language, 0) >= 0);
+  } else {
+    ntop->getRedis()->del(key);
+  }
+
+  return(true);
+}
+
+/* ******************************************* */
+
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
-		   char *allowed_networks, char *allowed_ifname, char *host_pool_id) {
+		   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
+		   char *language) {
   char key[64], val[64];
   char password_hash[33];
 
@@ -1096,6 +1127,11 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
   ntop->getRedis()->set(key, allowed_networks, 0);
+
+  if(language && language[0] != '\0') {
+    snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
+    ntop->getRedis()->set(key, language, 0);
+  }
 
   if(allowed_ifname && allowed_ifname[0] != '\0'){
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Setting allowed ifname: %s", allowed_ifname);
@@ -1194,6 +1230,9 @@ bool Ntop::deleteUser(char *username) {
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);

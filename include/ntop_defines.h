@@ -178,6 +178,7 @@
 #define STDIN_IFACE_ID          (MAX_NUM_INTERFACES-3)
 #define MAX_CSRF_DURATION       300 /* 5 mins */
 #define NTOP_NOLOGIN_USER	"nologin"
+#define NTOP_DEFAULT_USER_LANG  "en"
 #define MAX_OPTIONS             24
 #define CONST_ADMINISTRATOR_USER      "administrator"
 #define CONST_UNPRIVILEGED_USER       "unprivileged"
@@ -189,9 +190,11 @@
 #define CONST_STR_USER_NETS           "ntopng.user.%s.allowed_nets"
 #define CONST_STR_USER_ALLOWED_IFNAME "ntopng.user.%s.allowed_ifname"
 #define CONST_STR_USER_HOST_POOL_ID   "ntopng.user.%s.host_pool_id"
+#define CONST_STR_USER_LANGUAGE       "ntopng.user.%s.language"
 #define CONST_STR_USER_EXPIRE         "ntopng.user.%s.expire"
 #define CONST_ALLOWED_NETS            "allowed_nets"
 #define CONST_ALLOWED_IFNAME          "allowed_ifname"
+#define CONST_USER_LANGUAGE           "language"
 #define CONST_USER                     "user"
 
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"

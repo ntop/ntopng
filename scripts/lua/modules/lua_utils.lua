@@ -7,10 +7,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
 require "lua_trace"
-
-i18n = require "i18n"
-local locale = "en" -- FIX make it configurable
-i18n.loadFile(dirs.installdir..'/scripts/locales/'..locale..'.lua')
+locales_utils = require "locales_utils"
 
 -- ##############################################
 

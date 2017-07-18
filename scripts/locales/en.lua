@@ -99,6 +99,12 @@ local  en = {
    throughput = "Throughput",
    seen_since = "Seen Since",
 
+   locales = {
+      en = "English",
+      it = "Italian",
+      jp = "Japanese",
+   },
+
    graphs = {
       arp_requests = "ARP Requests",
       arp_replies = "ARP Replies",

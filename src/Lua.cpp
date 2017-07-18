@@ -3332,6 +3332,23 @@ static int ntop_change_user_host_pool(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_change_user_language(lua_State* vm) {
+  char *username, *language;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((language = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  return ntop->changeUserLanguage(username, language);
+}
+
+/* ****************************************** */
+
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
 
@@ -3356,7 +3373,8 @@ static int ntop_post_http_json_data(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_add_user(lua_State* vm) {
-  char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface, *host_pool_id = NULL;
+  char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
+  char *host_pool_id = NULL, *language = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3383,8 +3401,11 @@ static int ntop_add_user(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TSTRING)
     if((host_pool_id = (char*)lua_tostring(vm, 7)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
+  if(lua_type(vm, 8) == LUA_TSTRING)
+    if((language = (char*)lua_tostring(vm, 8)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
   return ntop->addUser(username, full_name, password, host_role,
-		       allowed_networks, allowed_interface, host_pool_id);
+		       allowed_networks, allowed_interface, host_pool_id, language);
 }
 
 /* ****************************************** */
@@ -5961,6 +5982,7 @@ static const luaL_Reg ntop_reg[] = {
   { "changeAllowedNets",  ntop_change_allowed_nets },
   { "changeAllowedIfname",ntop_change_allowed_ifname },
   { "changeUserHostPool", ntop_change_user_host_pool },
+  { "changeUserLanguage", ntop_change_user_language  },
   { "addUser",            ntop_add_user },
   { "addUserLifetime",    ntop_add_user_lifetime },
   { "clearUserLifetime",  ntop_clear_user_lifetime },
@@ -6534,7 +6556,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
     lua_pushlightuserdata(L, user);
     lua_setglobal(L, "user");
 
-    snprintf(key, sizeof(key), "ntopng.user.%s.allowed_nets", user);
+    snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
       ptree.addAddresses(val);
@@ -6542,6 +6564,15 @@ int Lua::handle_script_request(struct mg_connection *conn,
       lua_setglobal(L, CONST_ALLOWED_NETS);
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
     }
+
+    snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, user);
+    if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
+       && (val[0] != '\0')) {
+      lua_pushstring(L, val);
+    } else {
+      lua_pushstring(L, NTOP_DEFAULT_USER_LANG);
+    }
+    lua_setglobal(L, CONST_USER_LANGUAGE);
 
     snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
     if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
