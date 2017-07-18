@@ -57,9 +57,10 @@ Ntop::Ntop(char *appName) {
   logstash = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
+  iface = NULL;
   export_interface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
-  memset(iface, 0, sizeof(iface));
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL,
     hostBlacklistShadow = hostBlacklist = NULL;
 
@@ -139,6 +140,7 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   setservent(1);
 #endif
+
 }
 
 /* ******************************************* */
@@ -165,10 +167,12 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   if(httpd)      delete httpd; /* Stop the http server before tearing down network interfaces */
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i = 0; i < num_defined_interfaces; i++) {
     iface[i]->shutdown();
     delete(iface[i]);
   }
+
+  delete []iface;
 
   if(udp_socket != -1) closesocket(udp_socket);
 
@@ -233,8 +237,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     }
   }
 
-  memset(iface, 0, sizeof(iface));
-
   initRedis();
 
   if(ntop->getRedis() == NULL) {
@@ -251,7 +253,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
   pro->init_license();
+
 #endif
+
+  initNetworkInterfaces(); /* License check could have increased the number of interfaces available */
 }
 
 /* ******************************************* */
@@ -264,6 +269,19 @@ void Ntop::registerNagios(void) {
 #endif
 }
 #endif
+
+/* ******************************************* */
+
+void Ntop::initNetworkInterfaces() {
+  if(iface) delete []iface;
+
+  if((iface = new NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]) == NULL)
+    throw "Not enough memory";
+
+  memset(iface, 0, (sizeof(NetworkInterface*) * MAX_NUM_DEFINED_INTERFACES));
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
+}
 
 /* ******************************************* */
 
@@ -1488,8 +1506,13 @@ void Ntop::registerInterface(NetworkInterface *_if) {
 				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
     _if->startDBLoop();
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
+  } else {
+    static bool too_many_interfaces_error = false;
+    if(!too_many_interfaces_error) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
+      too_many_interfaces_error = true;
+    }
+  }
 };
 
 /* ******************************************* */

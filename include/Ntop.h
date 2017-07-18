@@ -44,7 +44,7 @@ class Ntop {
   char install_dir[MAX_PATH]; /**< Array of install directory. */
   char startup_dir[MAX_PATH]; /**< Array of startup directory. */
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
-  NetworkInterface *iface[MAX_NUM_DEFINED_INTERFACES];/**< Array of network interfaces. */
+  NetworkInterface **iface; /**< Array of network interfaces. */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
@@ -411,6 +411,7 @@ class Ntop {
   };
   IpAddress* getLocalNetworkIp(int16_t local_network_id);
   void createExportInterface();
+  void initNetworkInterfaces();
   void initRedis();
   void initElasticSearch();
   void initLogstash(); 
