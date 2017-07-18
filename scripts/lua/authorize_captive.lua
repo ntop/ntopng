@@ -13,7 +13,7 @@ print [[
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
-<TITLE>Authentication Successful</TITLE>
+<TITLE>]] print(i18n("login.auth_success")) print[[</TITLE>
 ]]
 
 if((prefs.redirection_url ~= nil) and (prefs.redirection_url ~= "")) then
@@ -27,7 +27,7 @@ Success ']] print(_GET["label"]) print [['.
 ]]
 
 if((prefs.redirection_url ~= nil) and (prefs.redirection_url ~= "")) then
-   print("We're redirecting you to the Internet...")
+   print(i18n("login.internet_redirecting"))
 end
 
 print [[

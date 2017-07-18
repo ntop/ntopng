@@ -2097,6 +2097,11 @@ local  en = {
       confirm_password = "Confirm Password",
       logout = "Logout",
       logging_out = "Logging out...",
+      device_label = "Device Label",
+      username = "Username",
+      enter_credentials = "Please enter your credentials for accessing this network.",
+      internet_redirecting = "We're redirecting you to the Internet...",
+      auth_success = "Authentication Successful",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",
