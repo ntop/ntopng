@@ -55,7 +55,6 @@ class Ntop {
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
-  RuntimePrefs *runtimeprefs;
   Geolocation *geo;
   MacManufacturers *mac_manufacturers;
   HTTPBL *httpbl;
