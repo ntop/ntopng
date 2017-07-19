@@ -461,4 +461,25 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
 
 end
 
+function host_pools_utils.getFirstAvailablePoolId(ifid)
+  local ids_key = get_pool_ids_key(ifid)
+  local ids = ntop.getMembersCache(ids_key) or {}
+
+  for i, id in pairs(ids) do
+    ids[i] = tonumber(id)
+  end
+
+  local host_pool_id = tonumber(host_pools_utils.FIRST_AVAILABLE_POOL_ID)
+
+  for _, pool_id in pairsByValues(ids, asc) do
+    if pool_id > host_pool_id then
+      break
+    end
+
+    host_pool_id = math.max(pool_id + 1, host_pool_id)
+  end
+
+  return tostring(host_pool_id)
+end
+
 return host_pools_utils
