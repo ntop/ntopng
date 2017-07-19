@@ -3400,6 +3400,13 @@ function printntopngRelease(info)
 end
 
 -- ###########################################
+
+-- avoids manual HTTP prefix and /lua concatenation
+function page_url(path)
+  return ntop.getHttpPrefix().."/lua/"..path
+end
+
+-- ###########################################
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
