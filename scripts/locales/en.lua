@@ -2112,6 +2112,20 @@ local  en = {
       auth_success = "Authentication Successful",
    },
 
+   policy_presets = {
+    default = "Default",
+    child = "Child",
+    child_description = "A preset for children. Blocks social networks and limits game time",
+    business = "Business",
+    business_description = "A preset for business company employees",
+    no_obfuscation = "No Obfuscation",
+    no_obfuscation_description = "A preset to prevent traffic obfuscation",
+    walled_garden = "Walled Garden",
+    walled_garden_description = "Blocks VPN and Social Networks",
+    guests = "Guests",
+    guests_description = "A preset for guests. Only basic navigation allowed",
+  },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
