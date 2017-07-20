@@ -6,8 +6,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          ntopng
-# Required-Start:    $local_fs $remote_fs $network $syslog $pf_ring
-# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Required-Start:    $local_fs $remote_fs $network $syslog pf_ring
+# Required-Stop:     
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start/stop ntopng web
@@ -55,7 +55,7 @@ error_handler() {
 		log_failure_msg "${MSG}"
 		log_end_msg $ERROR
 	    elif [ ${DISTRO} == "centos" ]; then
-		echo -n ${MSG}
+		echo -n "${MSG}"
 		echo_failure; echo
 	    fi
 	else
@@ -73,24 +73,24 @@ get_ntopng_pid() {
     PID=0
 
     if [ -f "/etc/ntopng/ntopng.conf" ]; then
-        PID_FILE=$(cat /etc/ntopng/ntopng.conf | grep -v '^#' | grep -E '\-G=|--pid'|cut -d '=' -f 2)
+        PID_FILE=$(grep -v '^#' /etc/ntopng/ntopng.conf | grep -E '\-G=|--pid'|cut -d '=' -f 2)
     else
         PID_FILE="/var/run/ntopng.pid"
     fi
 
-    if [ -z $PID_FILE ]; then
+    if [ -z "$PID_FILE" ]; then
 	return 0
     fi
 
-    if [ -f $PID_FILE ]; then
+    if [ -f "$PID_FILE" ]; then
  	PID=$(cat $PID_FILE)
-        if [ -z ${PID} ]; then
+        if [ -z "${PID}" ]; then
 	    /bin/rm $PID_FILE
 	else
-            if [ ${PID} -gt 0 ]; then
-		IS_EXISTING=$(ps auxw | grep -w $PID | grep -v grep | wc -l)
-		if [ ${IS_EXISTING} -gt 0 ]; then
-		    return $PID
+            if [ "${PID}" -gt 0 ]; then
+		IS_EXISTING=$(ps auxw | grep -w "$PID" | grep -v grep | wc -l)
+		if [ "${IS_EXISTING}" -gt 0 ]; then
+		    return "$PID"
 		else
 		    /bin/rm $PID_FILE
 		fi
@@ -130,20 +130,20 @@ start_ntopng() {
 
           echo "-d=/storage/ntopng" >> /etc/ntopng/ntopng.conf
         fi
-	    CHECK_P4P1=`grep p4p1 /proc/net/dev|wc -l`
-        if [ $CHECK_P4P1 -eq 1 ]; then
+        CHECK_P4P1=$(grep p4p1 /proc/net/dev|wc -l)
+        if [ "$CHECK_P4P1" -eq 1 ]; then
           echo "-i=p4p1" >> /etc/ntopng/ntopng.conf
         fi
 	    touch /etc/ntopng/ntopng.start
       fi
     fi
 
-    if [ -f /etc/ntopng/ntopng.start ] || [ $FORCE -eq 1 ]; then
+    if [ -f /etc/ntopng/ntopng.start ] || [ "$FORCE" -eq 1 ]; then
 	[ ${DISTRO} == "debian" ] && log_daemon_msg "Starting ntopng"
 	[ ${DISTRO} == "centos" ] && echo -n "Starting ntopng: "
 
 	get_ntopng_pid
-	if [ ${PID} -gt 0 ]; then
+	if [ "${PID}" -gt 0 ]; then
 	    MSG="ntopng already running. Quitting"
 	    ERROR=1
 	    RETVAL=1
@@ -160,7 +160,7 @@ start_ntopng() {
 	for i in {1..5}
 	do
 	    get_ntopng_pid
-	    if [ ${PID} -gt 0 ]; then
+	    if [ "${PID}" -gt 0 ]; then
 		MSG="Started ntopng with PID $PID"
 		ERROR=0
 		break
@@ -193,11 +193,11 @@ stop_ntopng() {
 
     get_ntopng_pid
 
-    if [ -z ${PID} ]; then
+    if [ -z "${PID}" ]; then
 	return 0
     fi
 
-    if [ ${PID} -eq 0 ]; then
+    if [ "${PID}" -eq 0 ]; then
         if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
             MSG="Missing /etc/ntopng/ntopng.conf"
 	    ERROR=1
@@ -221,8 +221,8 @@ stop_ntopng() {
     for i in {1..5}
     do  
         get_ntopng_pid
-        if [ ${PID} -gt 0 ]; then
-            kill -15 $PID &> /dev/null
+        if [ "${PID}" -gt 0 ]; then
+            kill -15 "$PID" &> /dev/null
             MSG="Sent kill to ntop PID $PID"
             sleep 1
         else
@@ -251,7 +251,7 @@ status_ntopng() {
     fi
 
     get_ntopng_pid
-    if [ ${PID} -gt 0 ]; then
+    if [ "${PID}" -gt 0 ]; then
         echo "ntopng running as ${PID}"
     else
 	echo "ntopng is not running"
