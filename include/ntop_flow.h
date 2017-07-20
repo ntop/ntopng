@@ -88,6 +88,7 @@
 #define MAX_TTL   53
 #define DST_TOS   55
 #define IN_SRC_MAC   56
+#define OUT_DST_MAC   57
 #define SRC_VLAN   58
 #define DST_VLAN   59
 #define DOT1Q_SRC_VLAN   243
@@ -108,7 +109,8 @@
 #define MPLS_LABEL_8   77
 #define MPLS_LABEL_9   78
 #define MPLS_LABEL_10   79
-#define OUT_DST_MAC   80
+#define IN_DST_MAC   80
+#define OUT_SRC_MAC  81
 #define APPLICATION_ID   95
 #define PACKET_SECTION_OFFSET   102
 #define SAMPLED_PACKET_SIZE   103

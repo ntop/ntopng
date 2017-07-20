@@ -48,6 +48,8 @@ Paginator::Paginator() {
   alerted_flows = -1;
   filtered_flows = -1;
 
+  deviceIP = inIndex = outIndex = 0;
+
   details_level = details_normal;
   details_level_set = false;
 
@@ -90,6 +92,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	if(!strcmp(key, "sortColumn")) {
 	  if(sort_column) free(sort_column);
 	  sort_column = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "deviceIpFilter")) {
+	  deviceIP = ntohl(inet_addr(lua_tostring(L, -1)));
 	} else if(!strcmp(key, "countryFilter")) {
 	  if(country_filter) free(country_filter);
 	  country_filter = strdup(lua_tostring(L, -1));
@@ -144,6 +148,10 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  local_network_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "vlanIdFilter"))
 	  vlan_id_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "inIndexFilter"))
+	  inIndex = lua_tointeger(L, -1);
+	else if(!strcmp(key, "outIndexFilter"))
+	  outIndex = lua_tointeger(L, -1);
 	else if(!strcmp(key, "ipVersion"))
 	  ip_version = lua_tointeger(L, -1);
 	//else

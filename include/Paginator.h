@@ -36,6 +36,8 @@ class Paginator {
   u_int16_t vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
+  u_int32_t deviceIP;
+  u_int16_t inIndex, outIndex; 
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -82,6 +84,18 @@ class Paginator {
   
   inline bool ipVersion(u_int8_t *f) const {
     if(ip_version) { (*f) = ip_version; return true; } return false;
+  }
+
+  inline bool deviceIpFilter(u_int32_t *f) const {
+    if(deviceIP) { (*f) = deviceIP; return true; } return false;
+  }
+
+  inline bool inIndexFilter(u_int16_t *f) const {
+    if(inIndex) { (*f) = inIndex; return true; } return false;
+  }
+
+  inline bool outIndexFilter(u_int16_t *f) const {
+    if(outIndex) { (*f) = outIndex; return true; } return false;
   }
 
   inline bool clientMode(LocationPolicy *f) const {

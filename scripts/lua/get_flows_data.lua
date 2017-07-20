@@ -27,6 +27,11 @@ local port        = _GET["port"]
 local application = _GET["application"]
 local network_id  = _GET["network"]
 local vlan        = _GET["vlan"]
+
+local deviceIP    = _GET["deviceIP"]
+local inIfIdx     = _GET["inIfIdx"]
+local outIfIdx    = _GET["outIfIdx"]
+
 local vhost       = _GET["vhost"]
 local flowhosts_type  = _GET["flowhosts_type"]
 local ipversion       = _GET["version"]
@@ -146,6 +151,18 @@ end
 
 if not isEmptyString(vlan) then
    pageinfo["vlanIdFilter"] = tonumber(vlan)
+end
+
+if not isEmptyString(deviceIP) then
+   pageinfo["deviceIpFilter"] = deviceIP
+
+   if not isEmptyString(inIfIdx) then
+      pageinfo["inIndexFilter"] = tonumber(inIfIdx)
+   end
+
+   if not isEmptyString(outIfIdx) then
+      pageinfo["outIndexFilter"] = tonumber(outIfIdx)
+   end
 end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)

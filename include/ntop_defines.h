@@ -301,6 +301,7 @@
 #define CONST_NUM_CONTACT_DBS          8
 #define MAX_ZMQ_SUBSCRIBERS           32
 #define MAX_ZMQ_POLL_WAIT_MS        1000 /* 1 sec */
+#define MAX_ZMQ_POLLS_BEFORE_PURGE  1000
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 

@@ -25,6 +25,15 @@ local ipversion = _GET["version"]
 local ipversion_filter = ""
 local vlan = _GET["vlan"]
 local vlan_filter = ""
+
+-- remote exporters address and interfaces
+local deviceIP = _GET["deviceIP"]
+local inIfIdx  = _GET["inIfIdx"]
+local outIfIdx = _GET["outIfIdx"]
+local deviceIP_filter = ""
+local inIfIdx_filter  = ""
+local outIfIdx_filter = ""
+
 local traffic_type = _GET["traffic_type"]
 local traffic_type_filter = ""
 local flow_status = _GET["flow_status"]
@@ -106,6 +115,21 @@ end
 if(ipversion ~= nil) then
   page_params["version"] = ipversion
   ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(deviceIP ~= nil) then
+   page_params["deviceIP"] = deviceIP
+   deviceIP_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(inIfIdx ~= nil) then
+   page_params["inIfIdx"] = inIfIdx
+   inIfIdx_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(outIfIdx ~= nil) then
+   page_params["outIfIdx"] = outIfIdx
+   outIfIdx_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
 if(vlan ~= nil) then
@@ -288,6 +312,10 @@ if ifstats.vlan then
    print[[, '<div class="btn-group pull-right">]]
    printVLANFilterDropdown(base_url, vlan_params)
    print[[</div>']]
+end
+
+if ntop.isPro() and interface.isPacketInterface() == false then
+   printFlowDevicesFilterDropdown(base_url, vlan_params)
 end
 -- end buttons
 

@@ -66,6 +66,7 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.last_dump = 0;
 
   memset(&protos, 0, sizeof(protos));
+  memset(&flow_device, 0, sizeof(flow_device));
 
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true);  }
@@ -795,7 +796,7 @@ char* Flow::print(char *buf, u_int buf_len) {
     ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.app_protocol;
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
+	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
 #endif
@@ -805,6 +806,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
 	   ndpiDetectedProtocol.master_protocol, ndpiDetectedProtocol.app_protocol,
 	   get_detected_protocol_name(pbuf, sizeof(pbuf)),
+	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),

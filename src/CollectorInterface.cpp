@@ -109,6 +109,7 @@ void CollectorInterface::collect_flows() {
   char payload[8192];
   u_int payload_len = sizeof(payload)-1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
+  u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
   u_int32_t now, next_purge_idle = (u_int32_t)time(NULL) + FLOW_PURGE_FREQUENCY;
   int rc, size;
 
@@ -126,13 +127,16 @@ void CollectorInterface::collect_flows() {
 
     do {
       rc = zmq_poll(items, num_subscribers,  MAX_ZMQ_POLL_WAIT_MS);
+
       now = (u_int32_t)time(NULL);
+      zmq_max_num_polls_before_purge--;
 
       if((rc < 0) || (!isRunning())) return;
 
-      if(rc == 0 || now >= next_purge_idle) {
+      if(rc == 0 || now >= next_purge_idle || zmq_max_num_polls_before_purge == 0) {
 	purgeIdle(now);
 	next_purge_idle = now + FLOW_PURGE_FREQUENCY;
+	zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
       }
     } while(rc == 0);
 

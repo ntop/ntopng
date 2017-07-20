@@ -694,7 +694,10 @@ local known_parameters = {
    ["ndpi"]                    =  validateApplicationsList,      -- a list applications
 
 -- Remote probe
-   ["ifIdx"]                   =  validateNumber,                -- A switch port id
+   ["ifIdx"]                   =  validateNumber,                -- A generic switch/router port id
+   ["inIfIdx"]                 =  validateNumber,                -- A switch/router INPUT port id (%INPUT_SNMP)
+   ["outIfIdx"]                =  validateNumber,                -- A switch/router OUTPUT port id (%OUTPUT_SNMP)
+   ["deviceIP"]                =  validateIPV4,                  -- The switch/router exporter ip address (%EXPORTER_IPV4_ADDRESS)
    ["pid_mode"]                =  validatePidMode,               -- pid mode for pid_stats.lua
    ["pid_name"]                =  validateSingleWord,            -- A process name
    ["pid"]                     =  validateNumber,                -- A process ID

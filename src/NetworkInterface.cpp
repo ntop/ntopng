@@ -987,6 +987,17 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     dstHost->updateMacSeen(dstMac);
   }
 
+#ifdef SECONDARY_MAC_DEBUG
+  char buf1[32], buf2[32], bufm1[32], bufm2[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+      "Processing Flow [src mac: %s src ip: %s][dst mac: %s dst ip: %s][src2dst: %i]",
+      Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+      srcHost->get_ip()->print(buf1, sizeof(buf1)),
+      Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
+      dstHost->get_ip()->print(buf2, sizeof(buf2)),
+      (*src2dst_direction) ? 1 : 0);
+#endif
+
   return(ret);
 }
 
@@ -1135,21 +1146,46 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(flow == NULL)
     return;
 
-  /* Update Mac stats */
-  if(srcMac) {
-    srcMac->incSentStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_pkts : zflow->out_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_bytes : zflow->out_bytes));
-    srcMac->incRcvdStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_pkts : zflow->in_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_bytes : zflow->in_bytes));
+  /* Update flow device stats */
+  if(!flow->setFlowDevice(zflow->deviceIP,
+			  src2dst_direction ? zflow->inIndex  : zflow->outIndex,
+			  src2dst_direction ? zflow->outIndex : zflow->inIndex)) {
+    static bool flow_device_already_set = false;
+    if(!flow_device_already_set) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "A flow has been seen from multiple exprters or from "
+				   "multiple IN/OUT interfaces. Check exporters configuration.");
+      flow_device_already_set = true;
+    }
+  }
+
+#ifdef SECONDARY_MAC_DEBUG
+  char bufm1[32], bufm2[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+      "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
+      Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+      Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
+      (src2dst_direction) ? 1 : 0);
+#endif
+
+  /* Update Mac stats
+     Note: do not use src2dst_direction to inc the stats as
+     in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
+     source mac (srcMac) and destination mac (dstMac)
+  */
+  if(likely(srcMac != NULL)) {
+    srcMac->incSentStats(zflow->pkt_sampling_rate * zflow->in_pkts,
+			 zflow->pkt_sampling_rate * zflow->in_bytes);
+    srcMac->incRcvdStats(zflow->pkt_sampling_rate * zflow->out_pkts,
+			 zflow->pkt_sampling_rate * zflow->out_bytes);
 
     if(!srcMac->isSourceMac())
       srcMac->setSourceMac();
   }
-  if(dstMac) {
-    dstMac->incSentStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_pkts : zflow->in_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_bytes : zflow->in_bytes));
-    dstMac->incRcvdStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_pkts : zflow->out_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_bytes : zflow->out_bytes));
+  if(likely(dstMac != NULL)) {
+    dstMac->incSentStats(zflow->pkt_sampling_rate * zflow->out_pkts,
+			 zflow->pkt_sampling_rate * zflow->out_bytes);
+    dstMac->incRcvdStats(zflow->pkt_sampling_rate * zflow->in_pkts,
+			 zflow->pkt_sampling_rate * zflow->in_bytes);
   }
 
   if(zflow->l4_proto == IPPROTO_TCP) {
@@ -2816,6 +2852,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   bool unicast, unidirectional, alerted_flows;
+  u_int32_t deviceIP;
+  u_int16_t inIndex, outIndex;
 #ifdef NTOPNG_PRO
   bool filtered_flows;
 #endif
@@ -2845,6 +2883,14 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && (((ip_version == 4) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv4()))
 	   || ((ip_version == 6) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv6()))))
       return(false); /* false = keep on walking */
+
+    if(retriever->pag
+       && retriever->pag->deviceIpFilter(&deviceIP)) {
+	if(f->getFlowDeviceIp() != deviceIP
+	   || (retriever->pag->inIndexFilter(&inIndex) && f->getFlowDeviceInIndex() != inIndex)
+	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
+	  return(false); /* false = keep on walking */
+    }
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)
@@ -2889,7 +2935,6 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && ((filtered_flows && f->isPassVerdict())
        || (!filtered_flows && !f->isPassVerdict())))
       return(false); /* false = keep on walking */
-
 #endif
 
     if(retriever->pag

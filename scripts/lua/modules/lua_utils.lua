@@ -297,6 +297,96 @@ function printVLANFilterDropdown(base_url, page_params)
       </ul>]]
 end
 
+
+-- ##############################################
+
+function printFlowDevicesFilterDropdown(base_url, page_params)
+   if (ntop.isPro()) then
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+      require "snmp_utils"
+   end
+
+   local flowdevs = interface.getFlowDevices()
+   local vlans = interface.getVLANsList()
+
+   if flowdevs == nil then flowdevs = {} end
+
+   local devips = {}
+   for dip, _ in pairsByValues(flowdevs, asc) do
+      devips[#devips + 1] = dip
+   end
+
+   local cur_dev = _GET["deviceIP"]
+   local cur_dev_filter = ''
+   local snmp_community = ''
+   if not isEmptyString(cur_dev) then
+      cur_dev_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   end
+
+   local dev_params = table.clone(page_params)
+   for _, p in pairs({"deviceIP", "outIfIdx", "inIfIdx"}) do
+      dev_params[p] = nil
+   end
+
+   print[[, '<div class="btn-group pull-right">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
+   for _, dip in ipairs(devips) do
+      dev_params["deviceIP"] = dip
+      local snmp_community = get_snmp_community(dip, true --[[ no default --]])
+      if not isEmptyString(snmp_community) then
+	 local snmp_name = get_snmp_device_name(dip, snmp_community)
+	 if not isEmptyString(snmp_name) and snmp_name ~= dip then
+	    dip = dip .. "["..shortenString(snmp_name).."]"
+	 end
+      else
+	 local resname = getResolvedAddress(hostkey2hostinfo(dip))
+	 if not isEmptyString(resname) and resname ~= dip then
+	    dip = dip .. "["..shortenString(resname).."]"
+	 end
+      end
+
+      print[[
+         <li>\
+           <a href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.device_ip").." "..dip) print[[</a></li>\]]
+   end
+   print[[
+      </ul>\
+</div>']]
+
+   if cur_dev ~= nil then -- also print dropddowns for input and output interface index
+      local ports = interface.getFlowDeviceInfo(cur_dev)
+
+      for _, direction in pairs({"outIfIdx", "inIfIdx"}) do
+	 local cur_if = _GET[direction]
+	 local cur_if_filter = ''
+	 if not isEmptyString(cur_if) then
+	    cur_if_filter = '<span class="glyphicon glyphicon-filter"></span>'
+	 end
+
+	 local if_params = table.clone(page_params)
+
+	 if_params[direction] = nil
+	    print[[, '<div class="btn-group pull-right">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page."..direction)) print[[]] print(cur_if_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
+
+	    for portidx, _ in pairsByKeys(ports, asc) do
+	       if_params[direction] = portidx
+	       print[[
+         <li>\
+           <a href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page."..direction).." "..tostring(portidx)) print[[</a></li>\]]
+	    end
+	    print[[
+      </ul>\
+</div>']]
+      end
+
+   end
+end
+
 -- ##############################################
 
 --

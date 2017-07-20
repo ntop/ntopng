@@ -70,6 +70,7 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("MAX_TTL", 53);
   addMapping("DST_TOS", 55);
   addMapping("IN_SRC_MAC", 56);
+  addMapping("OUT_DST_MAC", 57);
   addMapping("SRC_VLAN", 58);
   addMapping("DST_VLAN", 59);
   addMapping("DOT1Q_SRC_VLAN", 243);
@@ -87,7 +88,8 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("MPLS_LABEL_8", 77);
   addMapping("MPLS_LABEL_9", 78);
   addMapping("MPLS_LABEL_10", 79);
-  addMapping("OUT_DST_MAC", 80);
+  addMapping("IN_DST_MAC", 80);
+  addMapping("OUT_SRC_MAC", 81);
   addMapping("APPLICATION_ID", 95);
   addMapping("PACKET_SECTION_OFFSET", 102);
   addMapping("SAMPLED_PACKET_SIZE", 103);
@@ -609,9 +611,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           }
           break;
         case IN_SRC_MAC:
+	case OUT_SRC_MAC:
           /* Format 00:00:00:00:00:00 */
 	  Utils::parseMac(flow.src_mac, value);
           break;
+	case IN_DST_MAC:
         case OUT_DST_MAC:
 	  Utils::parseMac(flow.dst_mac, value);
           break;

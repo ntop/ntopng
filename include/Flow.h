@@ -120,6 +120,11 @@ class Flow : public GenericHashEntry {
     bool categorized_requested;
   } categorization;
 
+  struct {
+    u_int32_t device_ip;
+    u_int16_t in_index, out_index;
+  } flow_device;
+
   /* Process Information */
   ProcessInfo *client_proc, *server_proc;
 
@@ -409,7 +414,22 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()                  { return state == flow_state_established; }
   inline bool      isFlowAlerted()                  { return(flow_alerted);                   }
   inline void      setFlowAlerted()                 { flow_alerted = true;                    }
-  inline void      setVRFid(u_int32_t v)            { vrfId = v;                              }    
+  inline void      setVRFid(u_int32_t v)            { vrfId = v;                              }
+
+  inline bool      setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
+    if((flow_device.device_ip > 0 && flow_device.device_ip != device_ip)
+       || (flow_device.in_index > 0 && flow_device.in_index != inidx)
+       || (flow_device.out_index > 0 && flow_device.out_index != outidx))
+      return false;
+    if(device_ip) flow_device.device_ip = device_ip;
+    if(inidx)     flow_device.in_index = inidx;
+    if(outidx)    flow_device.out_index = outidx;
+    return true;
+  }
+  inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
+  inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
+  inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
+  
 #ifdef NTOPNG_PRO
   void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {
     if(src2dst_direction)
