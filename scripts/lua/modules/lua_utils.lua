@@ -21,8 +21,12 @@ end
 -- ##############################################
 
 function shortenString(name, max_len)
-   max_len = max_len or 24
-    if(string.len(name) < max_len) then
+   if max_len == nil then
+      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
+      max_len = tonumber(max_len)
+   end
+
+   if(string.len(name) < max_len) then
       return(name)
    else
       return(string.sub(name, 1, max_len).."...")
@@ -419,8 +423,9 @@ function shortHostName(name)
   if(#chunks == 4) then
     return(name)
   else
-    max_len = 24
-
+    local max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
+    max_len = tonumber(max_len)
+    
     chunks = {name:match("%w+:%w+:%w+:%w+:%w+:%w+")}
     --io.write(#chunks.."\n")
     if(#chunks == 1) then

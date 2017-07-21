@@ -76,6 +76,7 @@ class RuntimePrefs {
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   prefscache_t *redirection_url;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
+  u_int32_t max_ui_strlen;
   HostMask hostMask;
 
   prefscache_t *addToCache(const char *key, prefsptr_t value_ptr, void *value);

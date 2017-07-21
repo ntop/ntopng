@@ -73,6 +73,8 @@ RuntimePrefs::RuntimePrefs() {
   global_secondary_dns_ip = inet_addr(DEFAULT_GLOBAL_DNS);
   enable_captive_portal = false;
 
+  max_ui_strlen = CONST_DEFAULT_MAX_UI_STRLEN;
+
   hostMask = no_host_mask;
 
   addToCache(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, u_int32_t_ptr, (void*)&housekeeping_frequency);
@@ -117,6 +119,8 @@ RuntimePrefs::RuntimePrefs() {
   addToCache(CONST_SECONDARY_DNS, u_int32_t_ptr, (void*)&global_secondary_dns_ip);
   addToCache(CONST_PREFS_CAPTIVE_PORTAL, bool_ptr, (void*)&enable_captive_portal);
   redirection_url = addToCache(CONST_PREFS_REDIRECTION_URL, str, strdup(DEFAULT_REDIRECTION_URL));
+
+  addToCache(CONST_RUNTIME_MAX_UI_STRLEN, u_int32_t_ptr, (void*)&max_ui_strlen);
 
   addToCache(CONST_RUNTIME_PREFS_HOSTMASK, hostmask_ptr, (void*)&hostMask);
 
@@ -468,6 +472,7 @@ void RuntimePrefs::lua(lua_State* vm) {
     redirection_url->rwlock->unlock(__FILE__, __LINE__);
   }
 
+  lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 }
 
 /* *************************************** */

@@ -164,7 +164,7 @@ else
 		  flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>"
 	       end
 
-	       flow["INFO"] = base.."&l4proto=&port=&host=&info="..flow["INFO"].."'><span title='"..flow["INFO"].."'>"..shortenString(flow["INFO"], 32).."</span></A>"
+	       flow["INFO"] = base.."&l4proto=&port=&host=&info="..flow["INFO"].."'><span title='"..flow["INFO"].."'>"..shortenString(flow["INFO"]).."</span></A>"
 
 	       flow["PROTOCOL"] = base.."&protocol=&port=&host=&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	       flow["L7_PROTO"] = base.."&port=&host=&l4proto=&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
@@ -180,7 +180,7 @@ else
 	       flow["PROTOCOL"] = pname
 	       flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))
 	       flow["FLOW_URL"] = ""
-	       flow["INFO"] = "<span title='"..flow["INFO"].."'>"..shortenString(flow["INFO"], 32).."</span>"
+	       flow["INFO"] = "<span title='"..flow["INFO"].."'>"..shortenString(flow["INFO"]).."</span>"
 	    end
 	 end
 
