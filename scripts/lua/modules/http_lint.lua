@@ -904,6 +904,7 @@ local known_parameters = {
    ["task_id"]                 =  validateSingleWord,            -- get_nbox_data
    ["host_stats"]              =  validateBool,                  -- host_get_json
    ["captive_portal_users"]    =  validateBool,                  -- to show or hide captive portal users
+   ["long_names"]              =  validateBool,                  -- get_hosts_data
    ["id_to_delete"]            =  validateIdToDelete,            -- alert_utils.lua, alert ID to delete
    ["to_delete"]               =  validateLocalGlobal,           -- alert_utils.lua, set if alert configuration should be dropped
    ["SaveAlerts"]              =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should change

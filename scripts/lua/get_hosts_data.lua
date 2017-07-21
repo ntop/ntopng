@@ -15,6 +15,7 @@ perPage     = _GET["perPage"]
 sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
+long_names  = _GET["long_names"]
 criteria    = _GET["criteria"]
 
 -- Host comparison parameters
@@ -45,6 +46,16 @@ end
 
 -- Get from redis the throughput type bps or pps
 throughput_type = getThroughputType()
+
+if(long_names == nil) then
+   long_names = false
+else
+   if(long_names == "1") then
+      long_names = true
+   else
+      long_names = false
+   end
+end
 
 criteria_key = nil
 sortPrefs = "hosts"
@@ -249,7 +260,11 @@ for _key, _value in pairsByKeys(vals, funct) do
       value["name"] = key
    end
 
-   print(shortHostName(value["name"]))
+   if(long_names) then
+      print(value["name"])
+   else
+      print(shortHostName(value["name"]))
+   end
 
    if(value["ip"] ~= nil) then
       label = getHostAltName(value["ip"])
