@@ -3,14 +3,8 @@
 Grafana support is implemented through plugin Simple JSON Datasource:
 https://grafana.com/plugins/grafana-simple-json-datasource
 
-As the plugin was not supporting authentication
-(https://github.com/grafana/simple-json-datasource/issues/65) a forked
-version of the plugin has been used. The fork is available at:
-https://github.com/simonemainardi/simple-json-datasource
-
 The plugin can be installed following the instructions at:
 http://docs.grafana.org/plugins/installation/
-
 
 ## Adding a Grafana Datasource
 Once the plugin Simple JSON Datasource is ready, a new Grafana
@@ -28,7 +22,6 @@ that is authorized to access ntopng.
 Finally, hit "Save and Test" to make sure the datasource is properly
 configured. If everything is ok, Grafana will show a message "Success
 Data source is working".
-
 
 ## Adding Dashboard Panels
 With the new datasource properly configured, it is possible to add new
