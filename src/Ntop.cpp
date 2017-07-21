@@ -189,9 +189,9 @@ Ntop::~Ntop() {
   delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
+  delete prefs;
   if(redis) delete redis;
   delete globals;
-  delete prefs;
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;

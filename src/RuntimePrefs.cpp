@@ -373,11 +373,16 @@ bool RuntimePrefs::deserialize(char *json_str) {
 
 /* *************************************** */
 
-void RuntimePrefs::setDumpPath(const char *_path) {
-  snprintf(path, sizeof(path), "%s/%s",
-	   _path, CONST_DEFAULT_PREFS_FILE);
-  snprintf(tmp_path, sizeof(tmp_path), "%s/%s.temp",
-	   _path, CONST_DEFAULT_PREFS_FILE);
+void RuntimePrefs::setDumpPath(char *_path) {
+  path[0] = tmp_path[0] = '\0';
+
+  if(_path) {
+    Utils::mkdir_tree(_path);
+    snprintf(path, sizeof(path), "%s/%s",
+	     _path, CONST_DEFAULT_PREFS_FILE);
+    snprintf(tmp_path, sizeof(tmp_path), "%s/%s.temp",
+	     _path, CONST_DEFAULT_PREFS_FILE);
+  }
 }
 
 /* *************************************** */

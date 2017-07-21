@@ -42,7 +42,7 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
-  prefs_dir = strdup(CONST_DEFAULT_PREFS_DIR);
+  prefs_dir = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT, alt_http_port = 0;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
@@ -311,7 +311,7 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR,
-	 CONST_DEFAULT_PREFS_FILE, CONST_DEFAULT_PREFS_DIR,
+	 CONST_DEFAULT_PREFS_FILE, CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
 	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
@@ -805,7 +805,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case '4':
-    free(prefs_dir);
+    if(prefs_dir) free(prefs_dir);
     prefs_dir = strdup(optarg);
     break;
 
@@ -1044,7 +1044,7 @@ int Prefs::checkOptions() {
       char path[MAX_PATH];
 
       ntop_mkdir(data_dir, 0777);
-	  ntop_mkdir(ntop->get_working_dir(), 0777);
+      ntop_mkdir(ntop->get_working_dir(), 0777);
       snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
       ntop->fixPath(path);
       logFd = fopen(path, "w");
@@ -1060,10 +1060,12 @@ int Prefs::checkOptions() {
   free(data_dir);
   data_dir = strdup(ntop->get_install_dir());
 
+  if(!prefs_dir)
+    prefs_dir = strdup(ntop->get_working_dir());
+
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
-  ntop->fixPath(prefs_dir);
 
   if(!data_dir)         { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate data dir");      return(-1); }
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }
