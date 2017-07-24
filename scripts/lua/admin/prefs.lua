@@ -92,33 +92,36 @@ end
 -- ================================================================================
 
 function printInterfaces()
-  print('<form method="post">')
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.dynamic_network_interfaces")..'</th></tr>')
+   print('<form method="post">')
+   print('<table class="table">')
+   print('<tr><th colspan=2 class="info">'..i18n("prefs.dynamic_network_interfaces")..'</th></tr>')
 
-  toggleTableButtonPrefs(subpage_active.entries["dynamic_iface_vlan_creation"].title,
-			    subpage_active.entries["dynamic_iface_vlan_creation"].description .. "<p><b>"..i18n("shaping.notes")..":</b><ul>"..
-			    "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_1").."</li>"..
-			    "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_2").."</li>"..
-			    "</ul>",
-			    "On", "1", "success", "Off", "0", "danger", "dynamic_iface_vlan_creation", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
-  
-  local labels = {i18n("prefs.none"), i18n("prefs.probe_ip_address"), i18n("prefs.ingress_flow_interface"), i18n("prefs.ingress_vrf_id")}
-  local values = {"none","probe_ip","ingress_iface_idx", "ingress_vrf_id"}
-  local elementToSwitch = {}
-  local showElementArray = { true, false, false }
-  local javascriptAfterSwitch = "";
+   local labels = {i18n("prefs.none"),
+		   i18n("prefs.vlan"),
+		   i18n("prefs.probe_ip_address"),
+		   i18n("prefs.ingress_flow_interface"),
+		   i18n("prefs.ingress_vrf_id")}
+   local values = {"none",
+		   "vlan",
+		   "probe_ip",
+		   "ingress_iface_idx",
+		   "ingress_vrf_id"}
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_flow_collection"].title,
-				    subpage_active.entries["dynamic_flow_collection"].description.."<p><b>NOTE:</b><ul>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_1").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_2").."</ul>",
-				    labels, values, "none", "primary", "multiple_flow_collection", "ntopng.prefs.dynamic_flow_collection_mode", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+   local elementToSwitch = {}
+   local showElementArray = { true, false, false }
+   local javascriptAfterSwitch = "";
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+   retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
+				     subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
+					"<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+					"<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
+					"<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li></ul>",
+				     labels, values, "none", "primary", "disaggregation_criterion", "ntopng.prefs.dynamic_flow_collection_mode", nil,
+				     elementToSwitch, showElementArray, javascriptAfterSwitch)
+
+   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+   print('</table>')
+   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 

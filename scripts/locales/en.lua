@@ -52,6 +52,7 @@ local  en = {
    ipv4 = "IPv4",
    ipv6 = "IPv6",
    application = "Application",
+   applications = "Applications",
    key = "Key",
    client = "Client",
    server = "Server",
@@ -86,10 +87,23 @@ local  en = {
    similarity = "Similarity",
    quotas = "Quotas",
    l7_protocol = "L7 Protocol",
+   l7_protocols = "L7 Protocols",
    activity = "Activity",
    ["os"] = "OS",
    download = "Download",
    notes = "NOTES:",
+   aggregation = "Aggregation",
+   refresh = "Refresh",
+   l4_protocol = "L4 Protocol",
+   l4_protocols = "L4 Protocols",
+   throughput = "Throughput",
+   seen_since = "Seen Since",
+
+   locales = {
+      en = "English",
+      it = "Italian",
+      jp = "Japanese",
+   },
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -132,11 +146,20 @@ local  en = {
       one_way_non_multicast = "One-way Non-Multicast/Broadcast Traffic",
       normal = "Normal",
       alerted = "Alerted",
+      blocked = "Blocked",
       all_proto = "All Proto",
       ip_version = "IP Version",
       all_ip_versions = "All Versions",
       ipv4_only = "IPv4 Only",
       ipv6_only = "IPv6 Only",
+      device_ip = "Flow Exporter",
+      all_devices = "All Flow Exporters",
+      inIfIdx = "Input Interface",
+      all_inIfIdx = "All Input Interfaces",
+      outIfIdx = "Output Interface",
+      all_outIfIdx = "All Output Interfaces",
+      vlan = "VLAN",
+      all_vlan_ids = "All VLANs",
       actual_throughput = "Actual Thpt",
       total_bytes = "Total Bytes",
       applications = "Applications",
@@ -242,7 +265,12 @@ local  en = {
       open_files_limit_too_small = "Ntopng detected that the maximum number of files MySQL can open is potentially too small. "..
 	 "This can result in flow data loss due to errors such as "..
 	 "[Out of resources when opening file './ntopng/flowsv6#P#p22.MYD' (Errcode: 24 - Too many open files)][23]. "..
-	 "Make sure to increase open_files_limit or, if you just want to ignore this warning, disable the check from the preferences."
+	 "Make sure to increase open_files_limit or, if you just want to ignore this warning, disable the check from the preferences.",
+
+      -- Add here new alert entity formattings, lower case
+      host_entity = "host %{entity_value}",
+      interface_entity = "interface %{entity_value}",
+      network_entity = "network %{entity_value}",
    },
 
    show_alerts = {
@@ -419,6 +447,7 @@ local  en = {
       hosts_talking_proto_with = "Hosts talking %{proto} with {host}",
       last_hour_flows = "Flows seen in the last hour",
       download_flows = "Download flows",
+      empty_query_response = "Empty query response (database down or query killed/timed out?)",
    },
 
    traffic_profiles = {
@@ -480,13 +509,15 @@ local  en = {
       manufacturer_filter = "Manufacturer: %{manufacturer}",
       member_filter = "Member: %{member}",
       view = "View",
-      change_pool = "Change Pool",
+      change_pool = "Switch Pool",
       new_pool = "New Pool",
       change_member_pool = "Change Member Pool",
       select_new_pool = "Select a new pool from the dropdown below to assign member \"%{member}\" to:",
       max_pools_message = "With this version of ntopng you can only create %{maxnum} host pools. Upgrade to the enterprise version to remove this limit.",
       max_members_message = "With this version of ntopng you can only assign %{maxnum} members per host pool. Upgrade to the enterprise version to remove this limit.",
       members_limit_reached = "members limit reached",
+      cannot_delete_cp = "A pool cannot be deleted if there is any Captive Portal user associated",
+      per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
    },
 
    snmp = {
@@ -549,14 +580,14 @@ local  en = {
       misc = "Misc",
       traffic_bridging = "Traffic Bridging",
       dynamic_network_interfaces = "Dynamic Network Interfaces",
-      dynamic_iface_vlan_creation_title = "VLAN Disaggregation",
-      dynamic_iface_vlan_creation_description = "Toggle the automatic creation of virtual interfaces based on VLAN tags.",
-      dynamic_iface_vlan_creation_note_1 = "Value changes will not be effective for existing interfaces.",
-      dynamic_iface_vlan_creation_note_2 = "This setting is valid only for packet-based interfaces (no flow collection).",
-      dynamic_flow_collection_title = "Dynamic Flow Collection Interfaces",
-      dynamic_flow_collection_description = "When ntopng is used in flow collection mode (e.g. -i tcp://127.0.0.1:1234c), flows can be collected on dynamic sub-interfaces based on the specified criteria",
-      dynamic_flow_collection_note_1 = "Value changes will not be effective for existing interfaces.",
-      dynamic_flow_collection_note_2 = "This setting is valid only for based-based interfaces (no packet collection).",
+      dynamic_interfaces_creation_title = "Disaggregation Criterion",
+      dynamic_interfaces_creation_description = "ntopng can use a criterion to disaggregate incoming traffic. "..
+        "When a disaggregation criterion is selected, ntopng will use the criterion value to divert incoming traffic to dynamically-created interfaces. "..
+        "For example, when the VLAN Id criterion is selected, a dynamic interface will be created for each VLAN Id observed, "..
+	"and the incoming traffic will be diverted to one dynamic interface depending the VLAN Id value. ",
+      dynamic_interfaces_creation_note_0 = "VLAN Id disaggregation is supported both for physical interfaces as well as for flows received over ZMQ. The other disaggregation criteria are only supported for ZMQ flows and will be ineffective for physical interfaces.",
+      dynamic_interfaces_creation_note_1 = "Criterion changes will not affect existing interfaces.",
+      dynamic_interfaces_creation_note_2 = "When using the Ingress Interface criterion on non-sflow devices, %%INPUT_SNMP must appear into the nprobe template.",
       idle_timeout_settings = "Idle Timeout Settings",
       local_host_max_idle_title = "Local Host Idle Timeout",
       local_host_max_idle_description = "Inactivity time after which a local host is considered idle (sec). "..
@@ -583,7 +614,7 @@ local  en = {
             "Turn it off to save storage space.",
       toggle_flow_rrds_title = "Flow Devices",
       toggle_flow_rrds_description = "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
-            "For non sFlow devices, the ZMQ fields INPUT_SNMP and OUTPUT_SNMP are required.",
+            "For non sFlow devices, %%INPUT_SNMP and %%OUTPUT_SNMP must appear into the nprobe template.",
       toggle_pools_rrds_title = "Host Pools",
       toggle_pools_rrds_description = "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
       toggle_vlan_rrds_title = "VLANs",
@@ -706,6 +737,8 @@ local  en = {
       report_units = "Report Units",
       toggle_thpt_content_title = "Throughput Unit",
       toggle_thpt_content_description = "Select the throughput unit to be displayed in traffic reports.",
+      max_ui_strlen_title = "Maximum Displayed String Length",
+      max_ui_strlen_description = "Shorten strings longer than the specified maximum number of characters.",
       traffic_shaping = "Traffic Shaping",
       toggle_shaping_directions_title = "Split Shaping Directions",
       toggle_shaping_directions_description = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",
@@ -728,9 +761,10 @@ local  en = {
       toggle_ldap_anonymous_bind_description = "Enable anonymous binding.",
       slack_notification_severity_preference_title = "Notification Preference Based On Severity",
       slack_notification_severity_preference_description = "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (every kind of alerts will be notified).",
-      ingress_flow_interface = "Ingress Flow Interface",
+      ingress_flow_interface = "Ingress Interface",
       ingress_vrf_id = "Ingress VRF Id",
-      probe_ip_address = "Probe IP Address",
+      probe_ip_address = "Probe IP",
+      vlan = "VLAN Id",
       none = "None",
       errors = "Errors",
       errors_and_warnings = "Errors and Warnings",
@@ -759,6 +793,13 @@ local  en = {
       dns_service = "Service",
       primary_dns = "Primary DNS",
       secondary_dns = "Secondary DNS",
+      quick_network_setup = "Quick Network Setup",
+      network_mode = "Network Operational Mode",
+      network_mode_description = "Specifying the operational mode of this network box",
+      router_mode = "Router",
+      transparent_bridge = "Transparent Bridge",
+      network_mode_router = "<b>Router:</b> you need to <u>disable the DHCP on your router</u> and let this box dynamically assign IP addresses (DHCP) to local hosts and become their gateway. This box will use your router as gateway to the Internet, and thus it must have a static IP address configured in order to reach your router.",
+      network_mode_bridge = "<b>Transparent Bridge</b>: your hosts will be connected to this box either using the embedded access point or through the optional ethernet interface and won't notice any change in IP address configuration.",
    },
 
    entity_thresholds = {
@@ -1126,6 +1167,8 @@ local  en = {
       all_devices = "All Devices",
       hosts_only = "Hosts Only",
       all_manufacturers = "All Manufacturers",
+      arp_sent = "ARP Sent",
+      arp_received = "ARP Received",
    },
 
    details = {
@@ -1139,9 +1182,13 @@ local  en = {
       ago = "ago",
       rcvd = "Rcvd",
       router_access_point_mac_address = "(Router/AccessPoint) MAC Address",
+      additional_mac_address = "Additional MAC Address",
       host_snmp_localization ="Host SNMP Localization",
+      flow_snmp_localization ="Flow SNMP Localization",
       note_hosts_located_snmp_device = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
       device_port = "Device Port",
+      input_device_port = "Device Input Port",
+      output_device_port = "Device Output Port",
       host_pool = "Host Pool",
       source_id = "Source Id",
       vlan_id = "VLAN ID",
@@ -1333,6 +1380,20 @@ local  en = {
 
    geo_map = {
       hosts_geomap = "Hosts GeoMap",
+      note = "NOTE",
+      geolocation_error = "Geolocation error",
+      using_default_location = "Using default location.",
+      browser_reported_home_map = "Browser reported home map location",
+      latitude = "Latitude",
+      longitude = "Longitude",
+      unavailable_geolocation = "Geolocation not supported by your browser or disabled.",
+      note_requirements_visualize_maps = "In order to visualize maps you must",
+      note_working_internet_connection = "Have a working Internet connection.",
+      note_compiled_ntopng_with_geolocation = "Have compiled ntopng with geolocation and started with it.",
+      note_active_flows = "Have active flows between peers with public IP addresses.",
+      note_html_browser_geolocation = "HTML <A HREF=%{url}>browser geolocation</A> is used to place on map hosts based on unknown locations.",
+      note_google_maps_browser_api_key = "A Google Maps Browser API Key may be required. Detailed information on key generation <a href='%{url_google}'>can be found here</a>.<br>"..
+            "Once generated, the key can be submitted via ntopng <a href='%{url_prefs}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
    },
 
    top_hosts = {
@@ -1340,6 +1401,10 @@ local  en = {
    },
 
    http_servers_stats = {
+      bytes_sent = "Bytes Sent",
+      bytes_received = "Bytes Received",
+      total_requests = "Total Requests",
+      actual_requests = "Actual Requests",
       local_http_servers = "Local HTTP Servers",
       http_virtual_host = "HTTP Virtual Host",
       http_server_ip = "HTTP Server IP",
@@ -1371,6 +1436,9 @@ local  en = {
       networks_traffic_with_ipver = "%{networks} with IPv%{ipver} traffic",
       network_list = "Network List",
       network_name = "Network Name",
+      note_overlapping_networks = "NOTE: In case you have defined overlapping networks:",
+      note_see_both_network_entries = "You will see both network entries in the above table.",
+      note_broader_network = "The broader network will not include hosts defined in smaller networks.",
    },
 
    hosts_stats = {
@@ -1390,11 +1458,16 @@ local  en = {
       all_hosts = "All Hosts",
       local_hosts_only = "Local Hosts Only",
       remote_hosts_only = "Remote Hosts Only",
+      filtered_hosts_only = "Hosts With Blocked Traffic",
       host_pool = "Host Pool %{pool_name}",
       source_id = "Source Id",
       location = "Location",
       httpbl = "HTTP:BL",
       more_info_about_as_popup_msg = "More Information about AS",
+      blocking_traffic_policy_popup_msg = "Host traffic is affected by a blocking Traffic Policy",
+      label_local_host = "Local Host",
+      label_remote_host = "Remote Host",
+      label_blacklisted_host = "Blacklisted Host",
    },
 
    unknown_devices = {
@@ -1588,6 +1661,7 @@ local  en = {
       max_ttl = "Max flow TTL",
       dst_tos = "TOS/DSCP (dst->src)",
       in_src_mac = "Source MAC Address",
+      out_src_mac = "Source MAC Address, potentially modified by a middlebox function after the Observation Point",
       src_vlan = "Source VLAN (inner VLAN in QinQ)",
       dst_vlan = "Destination VLAN (inner VLAN in QinQ)",
       dot1q_src_vlan = "Source VLAN (outer VLAN in QinQ)",
@@ -1605,7 +1679,8 @@ local  en = {
       mpls_label_8 = "MPLS label at position 8",
       mpls_label_9 = "MPLS label at position 9",
       mpls_label_10 = "MPLS label at position 10",
-      out_dst_mac = "Destination MAC Address",
+      in_dst_mac = "Destination MAC Address",
+      out_dst_mac = "Destination MAC Address, potentially modified by a middlebox function after the Observation Point",
       application_id = "Collected Application Id (Cisco or IXIA)",
       packet_section_offset = "Packet section offset",
       sampled_packet_size = "Sampled packet size",
@@ -1980,8 +2055,86 @@ local  en = {
       never = "Never",
       live_update = "Live update",
       refresh = "Refresh",
+      refresh_graph_popup_msg = "Refresh graph",
       no_packet_warning = "No packet has been received yet on interface %{ifname}.<p>Please wait %{countdown} seconds until this page reloads.",
    },
+
+   hosts_comparison = {
+      hosts_parameter_missing_message = "Hosts parameter is missing (internal error ?)",
+   },
+
+   sflows_stats = {
+      total_bytes = "Total Bytes",
+      active_flows = "Active Flows",
+      l4_proto = "L4 Proto",
+      client_process = "Client Process",
+      client_peer = "Client Peer",
+      server_process = "Server Process",
+      server_peer = "Server Peer",
+   },
+
+   processes_stats = {
+      timeline = "Timeline",
+      active_processes_title = "Active Processes: Realtime View",
+      flows_count = "Flows Count",
+      active_since = "Active Since",
+      traffic_sent = "Traffic Sent",
+      traffic_rcvd = "Traffic Rcvd",
+      processes_timeline_title = "Processes Timeline",
+      legend = "Legend",
+      ["type"] = "Type",
+      stack = "Stack",
+      lines = "Lines",
+      top_l7_protocols = "Top L7 Protocols",
+      top_l4_protocols = "Top L4 Protocols",
+      top_hosts = "Top Hosts",
+      top_hosts_traffic = "Top Hosts Traffic",
+      missing_pid_name_message = "Missing pid name",
+      no_traffic_detected = "No traffic detected for this process, flow process expired, or process terminated.",
+   },
+
+   user_info = {
+      top_applications = "Top Applications",
+      top_l7_protocols = "Top L7 Protocols",
+      top_l4_protocols = "Top L4 Protocols",
+      missing_user_name_message = "Missing user name",
+   },
+
+   login = {
+      welcome_to = "Welcome to %{product}",
+      username_ph = "Username (default admin)",
+      password_ph = "Password (default admin)",
+      login = "Login",
+      donation = "If you find %{product} useful, please support us by making a small <A href=\"%{donation_url}\">donation</A>. Your funding will help to run and foster the development of this project. Thank you.",
+      license = "%{product} is released under <a href=\"%{license_url}\">%{license}</a>.",
+      password_mismatch = "Passwords do not match",
+      password_not_valid = "Please specify a different password",
+      change_password = "Change Password",
+      must_change_password = "Default admin password must be changed. Please enter a new password below.",
+      password = "Password",
+      confirm_password = "Confirm Password",
+      logout = "Logout",
+      logging_out = "Logging out...",
+      device_label = "Device Label",
+      username = "Username",
+      enter_credentials = "Please enter your credentials for accessing this network.",
+      internet_redirecting = "We're redirecting you to the Internet...",
+      auth_success = "Authentication Successful",
+   },
+
+   policy_presets = {
+    default = "Default",
+    child = "Child",
+    child_description = "A preset for children. Blocks social networks and limits game time",
+    business = "Business",
+    business_description = "A preset for business company employees",
+    no_obfuscation = "No Obfuscation",
+    no_obfuscation_description = "A preset to prevent traffic obfuscation",
+    walled_garden = "Walled Garden",
+    walled_garden_description = "Blocks VPN and Social Networks",
+    guests = "Guests",
+    guests_description = "A preset for guests. Only basic navigation allowed",
+  },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
