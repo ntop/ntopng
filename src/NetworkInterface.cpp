@@ -622,6 +622,8 @@ NetworkInterface::~NetworkInterface() {
       HASH_DEL(flowHashing, current);
       free(current);
     }
+
+    flowHashing = NULL;
   }
 
   ndpi_exit_detection_module(ndpi_struct);
@@ -1119,7 +1121,11 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       break;
 
     default:
-      vIface = NULL;
+      if((flowHashingMode == flowhashing_vlan) && (zflow->vlan_id > 0))
+	vIface = getSubInterface((u_int32_t)zflow->vlan_id);
+      else
+	vIface = NULL;
+      
       break;
     }
 
@@ -1318,7 +1324,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
 				  when, time,
-				  srcMac, dstMac,
+				  NULL, NULL, /* FIX: search Mac address locally */
 				  vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
@@ -2204,16 +2210,11 @@ void NetworkInterface::cleanup() {
 
   getStats()->cleanup();
 
-  disablePurge(true);
   flows_hash->cleanup();
-  enablePurge(true);
-
-  disablePurge(false);
   hosts_hash->cleanup();
   ases_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
-  enablePurge(false);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
