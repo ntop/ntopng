@@ -1105,7 +1105,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if(flowHashingMode != flowhashing_none) {
-    NetworkInterface *vIface;
+    NetworkInterface *vIface = NULL;
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
@@ -1121,11 +1121,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       break;
 
     default:
-      if((flowHashingMode == flowhashing_vlan) && (zflow->vlan_id > 0))
-	vIface = getSubInterface((u_int32_t)zflow->vlan_id);
-      else
-	vIface = NULL;
-      
       break;
     }
 
@@ -1290,7 +1285,7 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 				     const struct bpf_timeval *when,
 				     const u_int64_t time,
-				     Mac *srcMac, Mac *dstMac,
+				     struct ndpi_ethhdr *eth,
 				     u_int16_t vlan_id,
 				     struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6,
@@ -1304,6 +1299,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
   bool src2dst_direction, is_sent_packet = false; /* FIX */
   u_int8_t l4_proto;
   Flow *flow;
+  Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress src_ip, dst_ip;
   u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
   struct ndpi_tcphdr *tcph = NULL;
@@ -1324,7 +1320,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
 				  when, time,
-				  NULL, NULL, /* FIX: search Mac address locally */
+				  eth,
 				  vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
@@ -1337,6 +1333,13 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       return(ret);
     }
   }
+
+  if((srcMac = getMac(eth->h_source, vlan_id, true))) {
+    srcMac->incSentStats(1, rawsize);
+    srcMac->setSeenIface(bridge_iface_idx);
+  }
+  if((dstMac = getMac(eth->h_dest, vlan_id, true)))
+    dstMac->incRcvdStats(1, rawsize);
 
  decode_ip:
   if(iph != NULL) {
@@ -1803,7 +1806,6 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
-  Mac *srcMac = NULL, *dstMac = NULL;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
@@ -1849,14 +1851,6 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
-
-    if((srcMac = getMac(ethernet->h_source, vlan_id, true))) {
-      srcMac->incSentStats(1, rawsize);
-      srcMac->setSeenIface(bridge_iface_idx);
-    }
-    if((dstMac = getMac(ethernet->h_dest, vlan_id, true)))
-      dstMac->incRcvdStats(1, rawsize);
-
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
@@ -2042,7 +2036,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
 				     &h->ts, time,
-				     srcMac, dstMac,
+				     ethernet,
 				     vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
@@ -2131,7 +2125,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	try {
 	  pass_verdict = processPacket(bridge_iface_idx,
 				       &h->ts, time,
-				       srcMac, dstMac,
+				       ethernet,
 				       vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
@@ -2148,6 +2142,12 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
     break;
 
   default: /* No IPv4 nor IPv6 */
+    Mac *srcMac = getMac(ethernet->h_source, vlan_id, true);
+    Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
+
+    if(srcMac) srcMac->incSentStats(1, rawsize);
+    if(dstMac) dstMac->incRcvdStats(1, rawsize);
+
     if(srcMac && dstMac) {
       const u_int16_t arp_opcode_offset = ip_offset + 6;
       u_int16_t arp_opcode = 0;

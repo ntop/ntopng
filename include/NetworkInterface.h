@@ -308,7 +308,7 @@ class NetworkInterface {
   bool processPacket(u_int8_t bridge_iface_idx,
 		     const struct bpf_timeval *when,
 		     const u_int64_t time,
-		     Mac *srcMac, Mac *dstMac,
+		     struct ndpi_ethhdr *eth,
 		     u_int16_t vlan_id,
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,
