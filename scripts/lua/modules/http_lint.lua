@@ -865,7 +865,7 @@ local known_parameters = {
    ["redirection_url"]                             =  validateEmptyOr(validateSingleWord),
 
    -- Multiple Choice
-   ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx", "ingress_vrf_id"}),
+   ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "ingress_iface_idx", "ingress_vrf_id"}),
    ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),

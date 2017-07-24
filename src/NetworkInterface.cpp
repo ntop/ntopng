@@ -360,19 +360,25 @@ void NetworkInterface::checkAggregationMode() {
   if(!customIftype) {
     char rsp[32];
 
-    if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
-      if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0) {
-	if(rsp[0] != '\0') {
-	  if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
-	  else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
-	  else if(!strcmp(rsp, "ingress_vrf_id")) flowHashingMode = flowhashing_vrfid;
-	  else if(strcmp(rsp, "none") != 0) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown aggregation value %s", rsp);
-	}
+    if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0 && rsp[0] != '\0') {
+
+      if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) { /* ZMQ interface */
+	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
+	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID)) flowHashingMode = flowhashing_vrfid;
+	else if(!strcmp(rsp, DISAGGREGATION_VLAN)) flowHashingMode = flowhashing_vlan;
+	else if(strcmp(rsp,  DISAGGREGATION_NONE))
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Unknown aggregation value for interface %s [rsp: %s]",
+				       get_type(), rsp);
+      } else { /* non-ZMQ interface */
+	if(!strcmp(rsp, DISAGGREGATION_VLAN)) flowHashingMode = flowhashing_vlan;
+	else if(strcmp(rsp,  DISAGGREGATION_NONE))
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Unknown aggregation value for interface %s [rsp: %s]",
+				       get_type(), rsp);
+
       }
-    } else {
-      if((ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) > 0)
-	 && (!strncmp(rsp, "1", 1)))
-	flowHashingMode = flowhashing_vlan;
     }
   }
 }
@@ -1118,6 +1124,11 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
     case flowhashing_vrfid:
       vIface = getSubInterface((u_int32_t)zflow->vrfId);
+      break;
+
+    case flowhashing_vlan:
+      if(zflow->vlan_id)
+	vIface = getSubInterface((u_int32_t)zflow->vlan_id);
       break;
 
     default:

@@ -34,16 +34,9 @@ local menu_subpages = {
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  disabled=false, entries={
-    dynamic_iface_vlan_creation = {
-      title       = i18n("prefs.dynamic_iface_vlan_creation_title"),
-      description = i18n("prefs.dynamic_iface_vlan_creation_description"),
-      content  = "<p><b>"..i18n("shaping.notes")..":</b><ul>"..
-          "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_1").."</li>"..
-          "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_2").."</li>"..
-          "</ul>"
-    }, dynamic_flow_collection = {
-      title       = i18n("prefs.dynamic_flow_collection_title"),
-      description = i18n("prefs.dynamic_flow_collection_description"),
+    dynamic_interfaces_creation = {
+      title       = i18n("prefs.dynamic_interfaces_creation_title"),
+      description = i18n("prefs.dynamic_interfaces_creation_description"),
     },
   }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  disabled=false, entries={
     local_host_max_idle = {

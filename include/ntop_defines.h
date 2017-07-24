@@ -446,8 +446,12 @@
 #define CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY     "flow_victim_threshold"
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
-#define CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION        "ntopng.prefs.dynamic_iface_vlan_creation"
-#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none","probe_ip","ingress_iface_idx"} */
+#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
+#define DISAGGREGATION_PROBE_IP                        "probe_ip"
+#define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"
+#define DISAGGREGATION_INGRESS_VRF_ID                  "ingress_vrf_id"
+#define DISAGGREGATION_VLAN                            "vlan"
+#define DISAGGREGATION_NONE                            "none"
 #ifdef NTOPNG_PRO
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */

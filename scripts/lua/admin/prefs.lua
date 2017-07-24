@@ -68,23 +68,27 @@ function printInterfaces()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dynamic_network_interfaces")..'</th></tr>')
 
-  prefsToggleButton({
-    field = "dynamic_iface_vlan_creation",
-    default = "0",
-  })
-  
-  local labels = {i18n("prefs.none"), i18n("prefs.probe_ip_address"), i18n("prefs.ingress_flow_interface"), i18n("prefs.ingress_vrf_id")}
-  local values = {"none","probe_ip","ingress_iface_idx", "ingress_vrf_id"}
+  local labels = {i18n("prefs.none"),
+		  i18n("prefs.vlan"),
+		  i18n("prefs.probe_ip_address"),
+		  i18n("prefs.ingress_flow_interface"),
+		  i18n("prefs.ingress_vrf_id")}
+  local values = {"none",
+		  "vlan",
+		  "probe_ip",
+		  "ingress_iface_idx",
+		  "ingress_vrf_id"}
+
   local elementToSwitch = {}
   local showElementArray = { true, false, false }
   local javascriptAfterSwitch = "";
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_flow_collection"].title,
-				    subpage_active.entries["dynamic_flow_collection"].description.."<p><b>NOTE:</b><ul>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_1").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_2").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_3").."</li></ul>",
-				    labels, values, "none", "primary", "multiple_flow_collection", "ntopng.prefs.dynamic_flow_collection_mode", nil,
+  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
+				    subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
+				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
+				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li></ul>",
+				    labels, values, "none", "primary", "disaggregation_criterion", "ntopng.prefs.dynamic_flow_collection_mode", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
