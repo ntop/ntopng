@@ -1,7 +1,7 @@
-Analyzing Network Traffic with FritzBox!
+Analyzing Network Traffic with Fritz!Box
 ========================================
 
-Owner of FritzBox! routers can capture traffic accessing the URL
+Owner of Fritz!Box routers can capture traffic accessing the URL
 http://<ROUTER IP>/html/capture.html that is typically
 http://192.168.2.1/html/capture.html
 
@@ -9,10 +9,10 @@ Inside the page you can dump traffic in pcap format for later analysis. If
 instead you want to monitor traffic in realtime with ntopng you can do that
 easily using the script ntopng/tools/fritzdump.sh
 
-As you can see it will connect to the FritzBox! (modify the script to adapt it
+As you can see it will connect to the Fritz!Box (modify the script to adapt it
 in case you have different setups) and send ntopng via the stdout all the incoming
 traffic.
 
 Thanks to this solution you can use ntopng to monitor in realtime all the
-traffic that is flowing inside your FritzBox! router
+traffic that is flowing inside your Fritz!Box router
 
