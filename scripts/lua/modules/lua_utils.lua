@@ -21,9 +21,12 @@ end
 -- ##############################################
 
 function shortenString(name, max_len)
+   if(name == nil) then return("") end
+   
    if max_len == nil then
       max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
       max_len = tonumber(max_len)
+      if(max_len == nil) then max_len = 24 end
    end
 
    if(string.len(name) < max_len) then
@@ -34,6 +37,7 @@ function shortenString(name, max_len)
 end
 
 -- ##############################################
+
 function getInterfaceName(interface_id, windows_skip_description)
    local ifnames = interface.getIfNames()
 
