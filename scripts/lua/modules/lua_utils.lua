@@ -429,6 +429,7 @@ function shortHostName(name)
   else
     local max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
     max_len = tonumber(max_len)
+    if(max_len == nil) then max_len = 24 end
     
     chunks = {name:match("%w+:%w+:%w+:%w+:%w+:%w+")}
     --io.write(#chunks.."\n")
