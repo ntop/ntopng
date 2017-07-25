@@ -56,7 +56,7 @@ end
 
 --- ====================================================================
 
-function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order, aggregated_flows)
+function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, vlan, profile, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order, aggregated_flows)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
    if(version == 4) then
@@ -73,6 +73,8 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
+   if((vlan ~= nil) and (vlan ~= "")) then follow = follow .." AND VLAN_ID="..vlan end
+   if((profile ~= nil) and (profile ~= "")) then follow = follow .." AND PROFILE='"..profile.."'" end
    if(info ~= "") then follow = follow .." AND (INFO LIKE '%"..info.."%')" end
    follow = follow.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    follow = follow.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
@@ -145,7 +147,7 @@ end
 
 --- ====================================================================
 
-function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch, force_raw_flows)
+function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, vlan, profile, begin_epoch, end_epoch, force_raw_flows)
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -177,6 +179,8 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
 
    if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
    if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
+   if((vlan ~= nil) and (vlan ~= "")) then sql = sql .." AND VLAN_ID="..vlan end
+   if((profile ~= nil) and (profile ~= "")) then sql = sql .." AND PROFILE='"..profile.."'" end
    if(info ~= nil) then sql = sql .." AND (INFO LIKE '%"..info.."%')" end
 
    if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
@@ -212,7 +216,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    end
 end
 
-function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port)
+function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port, vlan, profile)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
    local exclude_same_src_dst = false
@@ -251,10 +255,18 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    if((port ~= nil) and (port ~= "")) then
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
    end
+
+   if((vlan ~= nil) and (vlan ~= "")) then
+      sql = sql .." AND VLAN_ID="..vlan
+   end
+
+   if((profile ~= nil) and (profile ~= "")) then
+      sql = sql .." AND PROFILE='"..profile.."'"
+   end
    return sql..'\n'
 end
 
-function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getOverallTopTalkers(interface_id, l4proto, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
 
    if(info == "") then info = nil end
@@ -269,13 +281,13 @@ function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, en
    sql = sql.." FROM "
 
    sql = sql.."("
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
    sql = sql..") talkers"
    sql = sql.." group by addr "
 
@@ -318,7 +330,7 @@ function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, en
 end
 
 
-function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- obtains host top talkers, possibly restricting the range only to l7_proto_id
    if host == nil or host == "" then return {} end
 
@@ -354,6 +366,14 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
 
    if((port ~= nil) and (port ~= "")) then
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
+   end
+
+   if((vlan ~= nil) and (vlan ~= "")) then
+      sql = sql .." AND VLAN_ID="..vlan
+   end
+
+   if((profile ~= nil) and (profile ~= "")) then
+      sql = sql .." AND PROFILE='"..profile.."'"
    end
    if(info ~= nil) then
       sql = sql .." AND (INFO LIKE '%"..info.."%')"
@@ -414,7 +434,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
    end
 end
 
-function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port)
+function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port, vlan, profile)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
    local exclude_same_src_dst = false
@@ -456,10 +476,17 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
    end
 
+   if((vlan ~= nil) and (vlan ~= "")) then
+      sql = sql .." AND VLAN_ID="..vlan
+   end
+
+   if((profile ~= nil) and (profile ~= "")) then
+      sql = sql .." AND PROFILE='"..profile.."'"
+   end
    return sql..'\n'
 end
 
-function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
    if(info == "") then info = nil end
 
@@ -473,13 +500,13 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, be
    sql = sql.." FROM "
 
    sql = sql.."("
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql..") talkers"
    sql = sql.." group by addr "
 
@@ -521,7 +548,7 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, be
    end
 end
 
-function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- if both peers are nil, top applications are overall in the time range
    -- if peer1 is nil nad peer2 is not nil, then top apps are for peer1
    -- if peer2 is nil nad peer1 is not nil, then top apps are for peer2
@@ -542,9 +569,16 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
-
    if((port ~= nil) and (port ~= "")) then
       sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
+   end
+
+   if((vlan ~= nil) and (vlan ~= "")) then
+      sql = sql .." AND VLAN_ID="..vlan
+   end
+
+   if((profile ~= nil) and (profile ~= "")) then
+      sql = sql .." AND PROFILE='"..profile.."'"
    end
 
    if l7_proto_id and l7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end

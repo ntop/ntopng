@@ -36,6 +36,8 @@ function useAggregatedFlows()
       -- or when searching in a time range that has not yet been included in an aggregation)
       if tonumber(_GET["l4proto"]) ~= nil
          or tonumber(_GET["port"]) ~= nil
+	 or tonumber(_GET["vlan"]) ~= nil
+	 or isEmptyString(_GET["profile"]) == false
          or isEmptyString(_GET["info"]) == false then
 	    -- tprint("coercing aggr to false")
 	    aggr = false

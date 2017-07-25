@@ -14,38 +14,41 @@ require "template"
 interface.select(ifname)
 ifstats = interface.getStats()
 
-ifId = _GET["ifid"]
-host = _GET["peer1"]
-peer = _GET["peer2"]
-epoch = _GET["epoch"]
-l7proto = _GET["l7proto"]
+local ifId = _GET["ifid"]
+local host = _GET["peer1"]
+local peer = _GET["peer2"]
+local vlan = _GET["vlan"]
+local epoch = _GET["epoch"]
+local l7proto = _GET["l7proto"]
 if l7proto == nil or l7proto == "" then
    l7proto = _GET["l7_proto_id"]
 end
 
-currentPage = _GET["currentPage"]
-perPage = _GET["perPage"]
-sortColumn = _GET["sortColumn"]
-sortOrder = _GET["sortOrder"]
+local currentPage = _GET["currentPage"]
+local perPage = _GET["perPage"]
+local sortColumn = _GET["sortColumn"]
+local sortOrder = _GET["sortOrder"]
 
-epoch_begin = _GET["epoch_begin"]
-epoch_end = _GET["epoch_end"]
+local epoch_begin = _GET["epoch_begin"]
+local epoch_end = _GET["epoch_end"]
 
-l4proto = _GET["l4proto"]
+local l4proto = _GET["l4proto"]
 if l4proto == nil or l4proto == "" then
    l4proto = _GET["l4_proto_id"]
 end
-port = _GET["port"]
-info = _GET["info"]
-limit = _GET["limit"]
+local port = _GET["port"]
+local info = _GET["info"]
+local vlan = _GET["vlan"]
+local profile = _GET["profile"]
+local limit = _GET["limit"]
 
-format = _GET["format"]
+local format = _GET["format"]
 if(format == nil) then format = "json" end
 
-ip_version = _GET["version"]
+local ip_version = _GET["version"]
 if(ip_version == nil) then ip_version = "4" end
 
-ip_version = tonumber(ip_version)
+local ip_version = tonumber(ip_version)
 
 if((currentPage == nil) or (currentPage == "")) then currentPage = 1 end
 if((perPage == nil) or (perPage == "")) then perPage = 5 end
@@ -60,6 +63,7 @@ else
    if limit == nil then
       -- when flow aggregation is used, requests can be made with a nil limit so it is important to re-calculate it
       local count = getNumFlows(ifId, ip_version, host, (l4proto or ""), (port or ""), (l7proto or ""), (info or ""),
+				(vlan or ""), (profile or ""),
 				epoch_begin, epoch_end, true --[[ force count from the raw flows table --]])
       if count ~= nil and count[1] ~= nil then
 	 limit = count[1]["TOT_FLOWS"]
@@ -67,7 +71,8 @@ else
    end
 end
 
-res = getInterfaceTopFlows(ifId, ip_version, host, peer, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""),
+res = getInterfaceTopFlows(ifId, ip_version, host, peer, (l7proto or ""), (l4proto or ""), (port or ""),
+			   vlan, (profile or ''), (info or ""),
 			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC')
 
 if(format == "txt") then
@@ -137,6 +142,9 @@ else
       for _,flow in pairs(res) do
 	 local num = 0
 	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search_flows=true&ifid="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end.."&search="
+	 if not isEmptyString(flow["VLAN_ID"]) and tonumber(flow["VLAN_ID"]) > 0 then
+	    base = base.."&vlan="..flow["VLAN_ID"]
+	 end
 
 	 if(flow["L4_SRC_PORT"] ~= nil) then
 	    local base_host_url = base.."&l4proto=&port=&host="

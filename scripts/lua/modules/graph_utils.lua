@@ -717,12 +717,14 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
 then
+   local k2info = hostkey2hostinfo(host)
+
    print('<div class="tab-pane fade" id="historical-flows">')
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
       -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
-      historicalFlowsTab(ifid, (host or ''), start_time, end_time, rrdFile, '', '', '', 5, 5)
+      historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, rrdFile, '', '', '', k2info["vlan"])
    else
-      printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
+      printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, rrdFile, k2info["vlan"])
    end
    print('</div>')
 end
@@ -1080,7 +1082,7 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
    end
 end
 
-function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
+function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto, vlan)
    -- Check if the DB is enabled
    rsp = interface.execSQLQuery("show tables")
    if(rsp == nil) then return end
@@ -1092,7 +1094,7 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    epoch_end = epoch
    epoch_begin = epoch-d
 
-   historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '')
+   historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', vlan)
 end
 
 -- ########################################################
