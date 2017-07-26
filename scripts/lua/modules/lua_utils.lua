@@ -2338,10 +2338,12 @@ end
 -- split
 function split(s, delimiter)
    result = {};
-   for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-      table.insert(result, match);
-    end
-    return result;
+   if(s ~= nil) then
+      for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+	 table.insert(result, match);
+      end
+   end
+   return result;
 end
 
 -- startswith
