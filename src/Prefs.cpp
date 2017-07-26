@@ -943,7 +943,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s\t[%s%s Edition]\n", PACKAGE_VERSION,
+    printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
 #ifdef NTOPNG_PRO
 	   "Enterprise/Professional"
 #else
