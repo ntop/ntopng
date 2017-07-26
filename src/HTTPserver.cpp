@@ -662,10 +662,16 @@ static int handle_lua_request(struct mg_connection *conn) {
     struct stat buf;
     bool found;
 
-    if(strstr(request_info->uri, "/lua/pro/enterprise/")
+    if(strstr(request_info->uri, "/lua/pro")
+       && (!ntop->getPrefs()->is_pro_edition())) {
+      return(send_error(conn, 403 /* Forbidden */, request_info->uri,
+			"Professional edition license required"));
+    }
+
+    if(strstr(request_info->uri, "/lua/pro/enterprise")
        && (!ntop->getPrefs()->is_enterprise_edition())) {
       return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-			"Enterprise edition license required: this features in still under development and it will be released in the near future"));
+			"Enterprise edition license required"));
     }
 
     if(isCaptiveConnection(conn) && (!isCaptiveURL(request_info->uri))) {

@@ -345,7 +345,8 @@ void Ntop::start() {
   else if(flashstart) flashstart->startLoop();
 
 #ifdef NTOPNG_PRO
-  pro->printLicenseInfo();
+  if(!pro->forced_community_edition())
+    pro->printLicenseInfo();
 #endif
   prefs->loadInstanceNameDefaults();
   loadLocalInterfaceAddress();

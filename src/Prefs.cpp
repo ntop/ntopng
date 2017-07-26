@@ -513,7 +513,7 @@ void Prefs::parseHTTPPort(char *arg) {
 /* ******************************************* */
 
 int Prefs::setOption(int optkey, char *optarg) {
-  char *double_dot, *p, *opt = NULL;
+  char *double_dot, *p, *opt = NULL, buf[128] = { '\0' };
   int len = (optarg ? strlen(optarg) : 0)+6;
 
   for(int i=0; ; i++) {
@@ -741,7 +741,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'r':
     {
-      char buf[64], *r;
+      char *r;
 
       /*
 	Supported formats for --redis
@@ -943,7 +943,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s [%s%s Edition]\n", PACKAGE_VERSION,
+    printf("v.%s\t[%s%s Edition]\n", PACKAGE_VERSION,
 #ifdef NTOPNG_PRO
 	   "Enterprise/Professional"
 #else
@@ -956,11 +956,27 @@ int Prefs::setOption(int optkey, char *optarg) {
 	   ""
 #endif
 	   );
-    printf("GIT rev:   %s\n", NTOPNG_GIT_RELEASE);
+    printf("GIT rev:\t%s\n", NTOPNG_GIT_RELEASE);
 #ifdef NTOPNG_PRO
-    printf("Pro rev:   %s\n", NTOPNG_PRO_GIT_RELEASE);
-    printf("System Id: %s\n", ntop->getPro()->get_system_id());
-    printf("Built on:  %s\n", PACKAGE_OS);
+    printf("Pro rev:\t%s\n", NTOPNG_PRO_GIT_RELEASE);
+    printf("Built on:\t%s\n", PACKAGE_OS);
+
+    printf("System Id:\t%s\n", ntop->getPro()->get_system_id());
+
+    ntop->getTrace()->set_trace_level((u_int8_t)0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->init_license();
+
+    printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
+    printf("License Type:\t%s\n", ntop->getPro()->get_license_type());
+
+    if(ntop->getPro()->demo_ends_at())
+      printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
+    else
+      printf("Maintenance:\t%s\n", ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
+
+    if(ntop->getPro()->get_license()[0] != '\0')
+      printf("License:\t%s\n",      ntop->getPro()->get_license());
 #endif
     exit(0);
     break;
