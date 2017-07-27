@@ -805,20 +805,25 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             for _, config in ipairs(anomalies_config) do
                local value = _POST[config.key]
                local global_value = _POST["global_"..config.key]
-               config_to_dump[#config_to_dump + 1] = value or ""
 
                if isEmptyString(global_value) then
                   global_value = config.global_default
                end
-
+	       global_anomalies["global_"..config.key] = global_value
                ntop.setHashCache(global_redis_hash, config.key, global_value)
 
-               if value ~= nil then anomalies[config.key] = value end
-               if global_value ~= nil then global_anomalies["global_"..config.key] = global_value end
+	       if not isEmptyString(value) then
+		  anomalies[config.key] = value
+	       else
+		  value = "global"
+	       end
+               config_to_dump[#config_to_dump + 1] = value
+
             end
 
             -- Serialize the settings
-            ntop.setCache(anomaly_config_key, table.concat(config_to_dump, "|"))
+	    local configdump = table.concat(config_to_dump, "|")
+            ntop.setCache(anomaly_config_key, configdump)
             interface.refreshHostsAlertsConfiguration()
          end
 
@@ -908,13 +913,14 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
          for idx, config in ipairs(anomalies_config) do
             if isEmptyString(vals[config.key]) then
-               local redis_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.'..(config.key)
-               if (idx <= #deserialized_config) and (not isEmptyString(deserialized_config[idx])) then
+               if (idx <= #deserialized_config)
+		  and(not deserialized_config[idx] == "global")
+     	          and (not isEmptyString(deserialized_config[idx])) then
                   vals[config.key] = deserialized_config[idx]
                end
             end
 
-            if isEmptyString(vals["global_"..config.key]) then
+	 if isEmptyString(vals["global_"..config.key]) then
                vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
                if isEmptyString(vals["global_"..config.key]) then
                   vals["global_"..config.key] = config.global_default
@@ -938,6 +944,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
             print("</td></tr>")
          end
+
       end
 
       print [[

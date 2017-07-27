@@ -1546,9 +1546,31 @@ void Host::refreshHostAlertPrefs() {
         snprintf(rkey, sizeof(rkey), CONST_HOST_ANOMALIES_THRESHOLD, key, vlan_id);
 
         /* per-host values */
-        if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-          /* Note: the order of the fields must match that of anomalies_config into alerts_utils.lua */
-          sscanf(rsp, "%i|%i|%i|%i", &flow_attacker_pref, &flow_victim_pref, &syn_attacker_pref, &syn_victim_pref);
+        if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+	  /* Note: the order of the fields must match that of anomalies_config into alerts_utils.lua
+	     e.g., %i|%i|%i|%i*/
+	  char *a, *_t;
+
+	  a = strtok_r(rsp, "|", &_t);
+	  if(a && strncmp(a, "global", strlen("global")))
+	    flow_attacker_pref = atoi(a);
+
+	  a = strtok_r(NULL, "|", &_t);
+	  if(a && strncmp(a, "global", strlen("global")))
+	    flow_victim_pref = atoi(a);
+
+	  a = strtok_r(NULL, "|", &_t);
+	  if(a && strncmp(a, "global", strlen("global")))
+	    syn_attacker_pref = atoi(a);
+
+	  a = strtok_r(NULL, "|", &_t);
+	  if(a && strncmp(a, "global", strlen("global")))
+	    syn_victim_pref = atoi(a);
+
+#if 0
+	  printf("%s: %s\n", rkey, rsp);
+#endif
+	}
 
         /* Counter reload logic */
         if((u_int32_t)flow_attacker_pref != attacker_max_num_flows_per_sec) {
