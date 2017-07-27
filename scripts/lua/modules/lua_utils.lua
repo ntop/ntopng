@@ -1339,9 +1339,6 @@ end
 function fixPath(path)
    if(ntop.isWindows() and (string.len(path) > 2)) then
       path = string.gsub(path, "/", getPathDivider())
-      -- Avoid changing c:\.... into c_\....
-      path = string.sub(path, 1, 2) .. string.gsub(string.sub(path, 3), ":", "_")
-      -- io.write("->"..path.."\n")
    end
 
   return(path)
@@ -2020,9 +2017,15 @@ function getRedisPrefix(str)
 end
 
 function getPathFromKey(key)
-  local path = string.gsub(key, "%.", "/")
-  path = string.gsub(path, ":", "_")
-  return fixPath(path)
+   if key == nil then key = "" end
+
+   while key:match("::") do
+      key = key:gsub("::", ":0000:")
+   end
+
+   key = key:gsub("[%.:]", "/")
+
+   return fixPath(key)
 end
 
 function getRedisIfacePrefix(ifid)

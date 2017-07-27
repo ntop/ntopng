@@ -100,13 +100,13 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 
 	 if(ntop.isdir(p)) then
 	    if(go_deep) then
-	       r = navigatedir(url, label.."/"..v, base, p, print_html, ifid, host, start_time, end_time)
+	       r = navigatedir(url, label.."/"..v, base, p, go_deep, print_html, ifid, host, start_time, end_time)
 	       for k,v in pairs(r) do
 		  ret[k] = v
 		  if(do_debug) then print(v.."<br>\n") end
 	       end
 	    end
-	else
+	 else
 	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
 	    if last_update ~= nil and last_update >= start_time then
 	       -- only show if there has been an update within the specified time frame

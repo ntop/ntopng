@@ -2074,6 +2074,7 @@ if(host_vlan and (host_vlan > 0)) then
    host_url = host_url.."&vlan="..host_vlan
    host_key = host_key.."@"..host_vlan
 end
+
 drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
