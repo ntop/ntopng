@@ -104,6 +104,9 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	     print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
 	  end
 
+	  -- Number of flows
+	  makeRRD(hostbase, ifstats.name, "num_flows", 300, host["flows.as_client"] + host["flows.as_server"])
+
 	  -- L4 Protocols
 	  for id, _ in ipairs(l4_keys) do
 	     k = l4_keys[id][2]

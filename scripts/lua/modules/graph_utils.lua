@@ -1197,15 +1197,17 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 if host ~= nil and not string.starts(host, 'profile:') and not string.starts(rrdFile, 'categories/') then
 	     extra_info = extra_info.." ".. firstToUpper(n)
 	 end
-	 if extra_info ~= "" then
+
+	 extra_info = trimSpace(extra_info)
+	 if extra_info ~= "" and extra_info ~= prefixLabel then
 	    if(port_mode) then
 	       if(#names == 0) then
-		  names[#names+1] = prefixLabel.." Egress ("..trimSpace(extra_info)..") "
+		  names[#names+1] = prefixLabel.." Egress ("..extra_info..") "
 	       else
-		  names[#names+1] = prefixLabel.." Ingress ("..trimSpace(extra_info)..") "
+		  names[#names+1] = prefixLabel.." Ingress ("..extra_info..") "
 	       end
 	    elseif prefixLabel ~= "" then
-	       names[#names+1] = prefixLabel.." ("..trimSpace(extra_info)..") "
+	       names[#names+1] = prefixLabel.." ("..extra_info..") "
 	    else
 	       names[#names+1] = extra_info
 	    end
