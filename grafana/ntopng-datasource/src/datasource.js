@@ -9,6 +9,7 @@ export class GenericDatasource {
     this.q = $q;
     this.backendSrv = backendSrv;
     this.templateSrv = templateSrv;
+    this.withCredentials = instanceSettings.withCredentials;
     this.headers = {'Content-Type': 'application/json'};
     if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
@@ -23,19 +24,17 @@ export class GenericDatasource {
       return this.q.when({data: []});
     }
 
-    return this.backendSrv.datasourceRequest({
+    return this.doRequest({
       url: this.url + '/query',
       data: query,
-      method: 'POST',
-      headers: this.headers
+      method: 'POST'
     });
   }
 
   testDatasource() {
-    return this.backendSrv.datasourceRequest({
+    return this.doRequest({
       url: this.url + '/',
       method: 'GET',
-      headers: this.headers
     }).then(response => {
       if (response.status === 200) {
         return { status: "success", message: "Data source is working", title: "Success" };
@@ -57,27 +56,24 @@ export class GenericDatasource {
       rangeRaw: options.rangeRaw
     };
 
-    return this.backendSrv.datasourceRequest({
+    return this.doRequest({
       url: this.url + '/annotations',
       method: 'POST',
-      headers: this.headers,
       data: annotationQuery
     }).then(result => {
       return result.data;
     });
   }
 
-  metricFindQuery(options) {
-    var target = typeof (options) === "string" ? options : options.target;
+  metricFindQuery(query) {
     var interpolated = {
-        target: this.templateSrv.replace(target, null, 'regex')
+        target: this.templateSrv.replace(query, null, 'regex')
     };
 
-    return this.backendSrv.datasourceRequest({
+    return this.doRequest({
       url: this.url + '/search',
       data: interpolated,
       method: 'POST',
-      headers: this.headers
     }).then(this.mapToTextValue);
   }
 
@@ -92,6 +88,13 @@ export class GenericDatasource {
     });
   }
 
+  doRequest(options) {
+    options.withCredentials = this.withCredentials;
+    options.headers = this.headers;
+
+    return this.backendSrv.datasourceRequest(options);
+  }
+
   buildQueryParameters(options) {
     //remove placeholder targets
     options.targets = _.filter(options.targets, target => {
@@ -100,7 +103,7 @@ export class GenericDatasource {
 
     var targets = _.map(options.targets, target => {
       return {
-        target: this.templateSrv.replace(target.target),
+        target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
         refId: target.refId,
         hide: target.hide,
         type: target.type || 'timeserie'

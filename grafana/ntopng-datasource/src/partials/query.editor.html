@@ -10,8 +10,11 @@
 
     <div ng-if="!ctrl.target.rawQuery">
       <div class="gf-form">
-        <metric-segment-model property="ctrl.target.target" get-options="ctrl.getOptions()" on-change="ctrl.onChangeInternal()"
-          css-class="tight-form-item-xxlarge"></metric-segment-model>
+        <gf-form-dropdown model="ctrl.target.target"
+          lookup-text="true"
+          get-options="ctrl.getOptions($query)"
+          on-change="ctrl.onChangeInternal()">
+      </gf-form-dropdown>
       </div>
     </div>
   </div>

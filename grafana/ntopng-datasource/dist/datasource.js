@@ -44,6 +44,7 @@ System.register(['lodash'], function (_export, _context) {
           this.q = $q;
           this.backendSrv = backendSrv;
           this.templateSrv = templateSrv;
+          this.withCredentials = instanceSettings.withCredentials;
           this.headers = { 'Content-Type': 'application/json' };
           if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
             this.headers['Authorization'] = instanceSettings.basicAuth;
@@ -62,20 +63,18 @@ System.register(['lodash'], function (_export, _context) {
               return this.q.when({ data: [] });
             }
 
-            return this.backendSrv.datasourceRequest({
+            return this.doRequest({
               url: this.url + '/query',
               data: query,
-              method: 'POST',
-              headers: this.headers
+              method: 'POST'
             });
           }
         }, {
           key: 'testDatasource',
           value: function testDatasource() {
-            return this.backendSrv.datasourceRequest({
+            return this.doRequest({
               url: this.url + '/',
-              method: 'GET',
-              headers: this.headers
+              method: 'GET'
             }).then(function (response) {
               if (response.status === 200) {
                 return { status: "success", message: "Data source is working", title: "Success" };
@@ -98,10 +97,9 @@ System.register(['lodash'], function (_export, _context) {
               rangeRaw: options.rangeRaw
             };
 
-            return this.backendSrv.datasourceRequest({
+            return this.doRequest({
               url: this.url + '/annotations',
               method: 'POST',
-              headers: this.headers,
               data: annotationQuery
             }).then(function (result) {
               return result.data;
@@ -109,17 +107,15 @@ System.register(['lodash'], function (_export, _context) {
           }
         }, {
           key: 'metricFindQuery',
-          value: function metricFindQuery(options) {
-            var target = typeof options === "string" ? options : options.target;
+          value: function metricFindQuery(query) {
             var interpolated = {
-              target: this.templateSrv.replace(target, null, 'regex')
+              target: this.templateSrv.replace(query, null, 'regex')
             };
 
-            return this.backendSrv.datasourceRequest({
+            return this.doRequest({
               url: this.url + '/search',
               data: interpolated,
-              method: 'POST',
-              headers: this.headers
+              method: 'POST'
             }).then(this.mapToTextValue);
           }
         }, {
@@ -135,6 +131,14 @@ System.register(['lodash'], function (_export, _context) {
             });
           }
         }, {
+          key: 'doRequest',
+          value: function doRequest(options) {
+            options.withCredentials = this.withCredentials;
+            options.headers = this.headers;
+
+            return this.backendSrv.datasourceRequest(options);
+          }
+        }, {
           key: 'buildQueryParameters',
           value: function buildQueryParameters(options) {
             var _this = this;
@@ -146,7 +150,7 @@ System.register(['lodash'], function (_export, _context) {
 
             var targets = _.map(options.targets, function (target) {
               return {
-                target: _this.templateSrv.replace(target.target),
+                target: _this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
                 refId: target.refId,
                 hide: target.hide,
                 type: target.type || 'timeserie'

@@ -3,19 +3,16 @@ import './css/query-editor.css!'
 
 export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
-  constructor($scope, $injector, uiSegmentSrv)  {
+  constructor($scope, $injector)  {
     super($scope, $injector);
 
     this.scope = $scope;
-    this.uiSegmentSrv = uiSegmentSrv;
     this.target.target = this.target.target || 'select metric';
     this.target.type = this.target.type || 'timeserie';
   }
 
-  getOptions() {
-    return this.datasource.metricFindQuery(this.target)
-      .then(this.uiSegmentSrv.transformToSegments(false));
-      // Options have to be transformed by uiSegmentSrv to be usable by metric-segment-model directive
+  getOptions(query) {
+    return this.datasource.metricFindQuery(query || '');
   }
 
   toggleEditorMode() {

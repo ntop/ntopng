@@ -9,7 +9,6 @@ describe('GenericDatasource', function() {
         ctx.backendSrv = {};
         ctx.templateSrv = {};
         ctx.ds = new Datasource({}, ctx.$q, ctx.backendSrv, ctx.templateSrv);
-
     });
 
     it('should return an empty array when no targets are set', function(done) {
@@ -89,7 +88,7 @@ describe('GenericDatasource', function() {
             return data;
         }
 
-        ctx.ds.metricFindQuery({target: 'search'}).then(function(result) {
+        ctx.ds.metricFindQuery('search').then(function(result) {
             expect(result).to.have.length(3);
             expect(result[0].text).to.equal('search_0');
             expect(result[0].value).to.equal('search_0');
@@ -117,7 +116,7 @@ describe('GenericDatasource', function() {
             return data;
         }
 
-        ctx.ds.metricFindQuery({target: ''}).then(function(result) {
+        ctx.ds.metricFindQuery('').then(function(result) {
             expect(result).to.have.length(3);
             expect(result[0].text).to.equal('metric_0');
             expect(result[0].value).to.equal('metric_0');
@@ -145,7 +144,7 @@ describe('GenericDatasource', function() {
             return data;
         }
 
-        ctx.ds.metricFindQuery({}).then(function(result) {
+        ctx.ds.metricFindQuery().then(function(result) {
             expect(result).to.have.length(3);
             expect(result[0].text).to.equal('metric_0');
             expect(result[0].value).to.equal('metric_0');
@@ -155,16 +154,6 @@ describe('GenericDatasource', function() {
             expect(result[2].value).to.equal('metric_2');
             done();
         });
-    });
-
-    it ('should throw error when args are undefined', function(done) {
-        global.assert.throw(ctx.ds.metricFindQuery, Error, "Cannot read property 'target' of undefined");
-        done();
-    });
-
-    it ('should throw error when args are null', function(done) {
-        global.assert.throw(function() { ctx.ds.metricFindQuery(null); }, Error, "Cannot read property 'target' of null");
-        done();
     });
 
     it ('should return the metric target results when the args are a string', function(done) {

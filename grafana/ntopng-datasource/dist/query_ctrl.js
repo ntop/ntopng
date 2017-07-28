@@ -61,13 +61,12 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
       _export('GenericDatasourceQueryCtrl', GenericDatasourceQueryCtrl = function (_QueryCtrl) {
         _inherits(GenericDatasourceQueryCtrl, _QueryCtrl);
 
-        function GenericDatasourceQueryCtrl($scope, $injector, uiSegmentSrv) {
+        function GenericDatasourceQueryCtrl($scope, $injector) {
           _classCallCheck(this, GenericDatasourceQueryCtrl);
 
           var _this = _possibleConstructorReturn(this, (GenericDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(GenericDatasourceQueryCtrl)).call(this, $scope, $injector));
 
           _this.scope = $scope;
-          _this.uiSegmentSrv = uiSegmentSrv;
           _this.target.target = _this.target.target || 'select metric';
           _this.target.type = _this.target.type || 'timeserie';
           return _this;
@@ -75,9 +74,8 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
 
         _createClass(GenericDatasourceQueryCtrl, [{
           key: 'getOptions',
-          value: function getOptions() {
-            return this.datasource.metricFindQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
-            // Options have to be transformed by uiSegmentSrv to be usable by metric-segment-model directive
+          value: function getOptions(query) {
+            return this.datasource.metricFindQuery(query || '');
           }
         }, {
           key: 'toggleEditorMode',
