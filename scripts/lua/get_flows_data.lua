@@ -327,7 +327,7 @@ for key, value in ipairs(flows_stats) do
 
    if(debug and (not process)) then io.write("Stop Host\n") end
 
-   info = ""
+   local info = ""
    if(flows_stats[key]["info"] ~= nil) then
       info = shortenString(flows_stats[key]["info"])
    elseif(flows_stats[key]["icmp"] ~= nil) then
@@ -417,17 +417,15 @@ for _key, _value in pairsByValues(vals, funct) do
    if(num > 0) then
       print ",\n"
    end
-   srv_tooltip = ""
-   cli_tooltip = ""
 
-   srv_name = flowinfo2hostname(value, "srv", ifstats.vlan)
-   cli_name = flowinfo2hostname(value, "cli", ifstats.vlan)
+   local srv_name = flowinfo2hostname(value, "srv")
+   local cli_name = flowinfo2hostname(value, "cli")
 
    if(cli_name == nil) then cli_name = "???" end
    if(srv_name == nil) then srv_name = "???" end
 
-   local cli_tooltip = cli_name
-   local srv_tooltip = srv_name
+   local cli_tooltip = cli_name:gsub("'","&#39;")
+   local srv_tooltip = srv_name:gsub("'","&#39;")
 
    if((value["tcp.nw_latency.client"] ~= nil) and (value["tcp.nw_latency.client"] > 0)) then
       cli_tooltip = cli_tooltip.."&#10;nw latency: "..string.format("%.3f", value["tcp.nw_latency.client"]).." ms"
@@ -438,7 +436,7 @@ for _key, _value in pairsByValues(vals, funct) do
    end
 
    if(value["cli.allowed_host"]) then
-      src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. abbreviateString(stripVlan(cli_name), 20)
+      src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. shortenString(stripVlan(cli_name))
       if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fa fa-flag'></i>" end
 
    -- Flow username
@@ -459,12 +457,12 @@ for _key, _value in pairsByValues(vals, funct) do
       src_port=""
          end
    else
-     src_key = abbreviateString(stripVlan(cli_name), 20)
+     src_key = shortenString(stripVlan(cli_name))
      src_port=":"..value["cli.port"]
    end
 
    if(value["srv.allowed_host"]) then
-   dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. abbreviateString(stripVlan(srv_name), 20)
+   dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. shortenString(stripVlan(srv_name))
    if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fa fa-flag'></i>" end
    dst_key = dst_key .. "</A>"
 
@@ -474,13 +472,12 @@ for _key, _value in pairsByValues(vals, funct) do
       dst_port=""
          end
   else
-     dst_key = abbreviateString(srv_name, 20)
+     dst_key = shortenString(stripVlan(srv_name))
      dst_port=":"..value["srv.port"]
    end
 
    print ("{ \"key\" : \"" .. value["ntopng.key"]..'\"')
-   descr=cli_name..":"..value["cli.port"].." &lt;-&gt; "..srv_name..":"..value["srv.port"]
-   print (", \"column_key\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key=" .. value["ntopng.key"] .. "&label=" .. descr)
+   print (", \"column_key\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key=" .. value["ntopng.key"])
    print ("'><span class='label label-info'>Info</span></A>")
    print ("\", \"column_client\" : \"" .. src_key)
 

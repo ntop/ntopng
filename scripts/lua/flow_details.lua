@@ -78,32 +78,6 @@ end
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-a = _GET["label"]
-
-if not isEmptyString(a) then
-   patterns = {
-      ['_'] = "",
-      ['-_'] = " <i class=\"fa fa-exchange fa-lg\"></i> "
-   }
-
-   for search,replace in pairs(patterns) do
-      a = string.gsub(a, search, replace)
-   end
-end
-
-print [[
-
-<div class="bs-docs-example">
-	    <nav class="navbar navbar-default" role="navigation">
-	      <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-	 <li><a href="#">]] print(i18n("flow")) print[[: ]] print(a) print [[ </a></li>
-<li class="active"><a href="#">]] print(i18n("overview")) print[[</a></li>
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</div>
-</div>
-</nav>
-]]
 
 throughput_type = getThroughputType()
 
@@ -118,6 +92,21 @@ else
 end
 
 local ifid = interface.name2id(ifname)
+local label = getFlowLabel(flow)
+
+print [[
+
+<div class="bs-docs-example">
+	    <nav class="navbar navbar-default" role="navigation">
+	      <div class="navbar-collapse collapse">
+<ul class="nav navbar-nav">
+	 <li><a href="#">]] print(i18n("flow")) print[[: ]] print(label) print [[ </a></li>
+<li class="active"><a href="#">]] print(i18n("overview")) print[[</a></li>
+<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
+</div>
+</div>
+</nav>
+]]
 
 if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
@@ -146,31 +135,8 @@ else
 
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
-   -- tprint(flow)
-     print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
-     print(flowinfo2hostname(flow,"cli",ifstats.vlan))
-     if(flow["cli.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
 
-   print("</A>")
-   if(flow["cli.port"] > 0) then
-      print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["cli.port"].. "\">" .. flow["cli.port"].."</A>")
-   end
-   if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
-      print(" [ <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["cli.mac"].. "\">" .. flow["cli.mac"].."</A> ]")
-   end
-   print("&nbsp; <i class=\"fa fa-exchange fa-lg\"></i> \n")
-
-   print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(flow,"srv") .. "\">")
-   print(flowinfo2hostname(flow,"srv",ifstats.vlan))
-   if(flow["srv.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
-   print("</A>")
-   if(flow["srv.port"] > 0) then
-      print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["srv.port"].. "\">" .. flow["srv.port"].. "</A>")
-   end
-   if(flow["srv.mac"] ~= nil and flow["srv.mac"]~= "" and flow["srv.mac"] ~= "00:00:00:00:00:00") then
-      print(" [ <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["srv.mac"].. "\">" .. flow["srv.mac"].."</A> ]")
-   end
-   print("</td></tr>\n")
+   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
 
    print("<tr><th width=30%>"..i18n("protocol").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
@@ -206,8 +172,8 @@ else
    
    if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_shapers").."</th>")
-      c = flowinfo2hostname(flow,"cli",ifstats.vlan)
-      s = flowinfo2hostname(flow,"srv",ifstats.vlan)
+      c = flowinfo2hostname(flow,"cli")
+      s = flowinfo2hostname(flow,"srv")
 
       cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_egress"]) if(srv_max_rate == "") then srv_max_rate = -1 end
@@ -487,7 +453,7 @@ else
       if(flow["host_server_name"] ~= nil and flow["host_server_name"] ~= "") then
 	 s = flow["host_server_name"]
       else
-	 s = flowinfo2hostname(flow,"srv",ifstats.vlan)
+	 s = flowinfo2hostname(flow,"srv")
       end
       print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\">")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end

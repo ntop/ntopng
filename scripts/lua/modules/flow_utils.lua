@@ -1124,6 +1124,93 @@ end
 
 -- #######################
 
+function getFlowLabel(flow, show_macs, add_hyperlinks)
+   if flow == nil then return "" end
+
+   local cli_name = shortenString(flowinfo2hostname(flow, "cli"))
+   local srv_name = shortenString(flowinfo2hostname(flow, "srv"))
+
+   local cli_port
+   local srv_port
+   if flow["cli.port"] > 0 then cli_port = flow["cli.port"] end
+   if flow["srv.port"] > 0 then srv_port = flow["srv.port"] end
+
+   local srv_mac
+   if(not isEmptyString(flow["srv.mac"]) and flow["srv.mac"] ~= "00:00:00:00:00:00") then
+      srv_mac = flow["srv.mac"]
+   end
+
+   local cli_mac
+   if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
+      cli_mac = flow["cli.mac"]
+   end
+
+   if add_hyperlinks then
+      cli_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">"
+      cli_name = cli_name..shortenString(flowinfo2hostname(flow,"cli"))
+      if(flow["cli.systemhost"] == true) then
+	 cli_name = cli_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+      end
+      cli_name = cli_name.."</A>"
+
+      srv_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"srv") .. "\">"
+      srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
+      if(flow["srv.systemhost"] == true) then
+	 srv_name = srv_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+      end
+      srv_name = srv_name.."</A>"
+
+      if cli_port then
+	 cli_port = "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..cli_port.. "\">"..cli_port.."</A>"
+      end
+
+      if srv_port then
+	 srv_port = "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..srv_port.. "\">"..srv_port.."</A>"
+      end
+
+      if cli_mac then
+	 cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
+      end
+
+      if srv_mac then
+	 srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+      end
+
+   end
+
+   local label = ""
+
+   if not isEmptyString(cli_name) then
+      label = label..cli_name
+   end
+
+   if cli_port then
+      label = label..":"..cli_port
+   end
+
+   if show_macs and cli_mac then
+      label = label.." ["..cli_mac.."]"
+   end
+
+   label = label.." <i class=\"fa fa-exchange fa-lg\"  aria-hidden=\"true\"></i> "
+
+   if not isEmptyString(srv_name) then
+      label = label..srv_name
+   end
+
+   if srv_port then
+      label = label..":"..srv_port
+   end
+
+   if show_macs and srv_mac then
+      label = label.." ["..srv_mac.."]"
+   end
+
+   return label
+end
+
+-- #######################
+
 function getFlowKey(name)
    local s = flow_fields_description[name]
 

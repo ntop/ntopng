@@ -1082,19 +1082,6 @@ function getCategoryIcon(what, cat)
   return(ret)
 end
 
-
-function abbreviateString(str, len)
-  if(str == nil) then
-    return("")
-  else
-    if(string.len(str) < len) then
-      return(str)
-    else
-      return(string.sub(str, 1, len).."...")
-    end
-  end
-end
-
 function bit(p)
   return 2 ^ (p - 1)  -- 1-based indexing
 end
@@ -1652,7 +1639,7 @@ function host2name(name, vlan)
    return name
 end
 
-function flowinfo2hostname(flow_info, host_type, vlan)
+function flowinfo2hostname(flow_info, host_type)
    local name
    local orig_name
 

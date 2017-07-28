@@ -106,12 +106,12 @@ else
       -- nest = nest + 1
       nest = displayProc(nest, flow.client_process, 
 			 flow["cli.ip"], 
-			 flowinfo2hostname(flow, "cli", flow["vlan"]),
+			 flowinfo2hostname(flow, "cli"),
 			 true,  true, true, true, last, false)
       
       displayProc(nest, flow.server_process, 
 		  flow["srv.ip"], 
-		  flowinfo2hostname(flow, "srv", flow["vlan"]),
+		  flowinfo2hostname(flow, "srv"),
 		  (flow["cli.ip"] ~= flow["srv.ip"]), 
 		  ((flow.client_process.father_pid ~= flow.server_process.father_pid) or (flow["cli.ip"] ~= flow["srv.ip"])),
 		  false,
@@ -121,11 +121,11 @@ else
       end
    elseif(flow.client_process ~= nil) then
       nest = displayProc(nest, flow.client_process, 
-			 flow["cli.ip"], flowinfo2hostname(flow, "cli", flow["vlan"]),
+			 flow["cli.ip"], flowinfo2hostname(flow, "cli"),
 			 true, true, true, true, true, false)
    elseif(flow.server_process ~= nil) then
       nest = displayProc(nest, flow.server_process,
-			 flow["srv.ip"], flowinfo2hostname(flow, "srv", flow["vlan"]),
+			 flow["srv.ip"], flowinfo2hostname(flow, "srv"),
 			 true, true, true, true, true, false)
    end
 end
