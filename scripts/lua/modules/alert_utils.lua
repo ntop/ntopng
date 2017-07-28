@@ -902,33 +902,33 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       if (entity_type == "host") and (tab == "min") then
          local vals = table.merge(anomalies, global_anomalies)
 
-         -- Possibly load old config
-         local serialized_config = ntop.getCache(anomaly_config_key)
-         local deserialized_config
-         if isEmptyString(serialized_config) then
-            deserialized_config = {}
-         else
-            deserialized_config = split(serialized_config, "|")
-         end
+	 -- Possibly load old config
+	 local serialized_config = ntop.getCache(anomaly_config_key)
+	 local deserialized_config
+	 if isEmptyString(serialized_config) then
+	    deserialized_config = {}
+	 else
+	    deserialized_config = split(serialized_config, "|")
+	 end
 
-         for idx, config in ipairs(anomalies_config) do
-            if isEmptyString(vals[config.key]) then
-               if (idx <= #deserialized_config)
-		  and(not deserialized_config[idx] == "global")
-     	          and (not isEmptyString(deserialized_config[idx])) then
-                  vals[config.key] = deserialized_config[idx]
-               end
-            end
+	 for idx, config in ipairs(anomalies_config) do
+	    if isEmptyString(vals[config.key]) then
+	       if idx <= #deserialized_config
+		  and deserialized_config[idx] ~= "global"
+	          and not isEmptyString(deserialized_config[idx]) then
+		  vals[config.key] = deserialized_config[idx]
+	       end
+	    end
 
 	 if isEmptyString(vals["global_"..config.key]) then
-               vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
-               if isEmptyString(vals["global_"..config.key]) then
-                  vals["global_"..config.key] = config.global_default
-               end
-            end
-         end
+	       vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
+	       if isEmptyString(vals["global_"..config.key]) then
+		  vals["global_"..config.key] = config.global_default
+	       end
+	    end
+	 end
 
-         -- Print the config
+	 -- Print the config
          for _, config in ipairs(anomalies_config) do
             print("<tr><td><b>"..(config.title).."</b><br>\n")
             print("<small>"..(config.descr)..".</small>")
