@@ -47,9 +47,7 @@ function toEpoch(datestring)
    return timestamp
 end
 
-function toSeries(jsonrrd)
-   local res = {}
-
+function toSeries(jsonrrd, res, label)
    for _, rrd in pairs(jsonrrd) do
       local datapoints = {}
 
@@ -59,10 +57,11 @@ function toSeries(jsonrrd)
 	 datapoints[#datapoints + 1] = {val, instant*1000}
       end
 
-      res[#res + 1] = {target = rrd["key"], datapoints = datapoints}
+      local target = rrd["key"]
+      if label then target = target.." "..label end
+      res[#res + 1] = {target = target, datapoints = datapoints}
    end
 
-   return res
 end
 
 if _GRAFANA == nil then
