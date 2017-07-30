@@ -863,7 +863,6 @@ void Host::housekeep() {
 				   Utils::formatMac(secondary_mac->get_mac(), bufm2, sizeof(bufm2)),
 				   secondary_mac_last_seen);
 #endif
-
       Mac *tmp = secondary_mac;
       secondary_mac = mac;
       mac = tmp;
@@ -885,9 +884,11 @@ void Host::housekeep() {
 #endif
       }
 
-    } else if(secondary_mac_last_seen + ntop->getPrefs()->get_host_max_idle(isLocalHost()) < iface->getTimeLastPktRcvd()) {
+    } else if((time_t)(secondary_mac_last_seen + ntop->getPrefs()->get_host_max_idle(isLocalHost()))
+	      < iface->getTimeLastPktRcvd()) {
 #ifdef SECONDARY_MAC_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Secondary mac is idle, decreasing its reference counter [host: %s]", ip.print(buf, sizeof(buf)));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Secondary mac is idle, decreasing its reference counter [host: %s]",
+				   ip.print(buf, sizeof(buf)));
 #endif
 
       secondary_mac->decUses();

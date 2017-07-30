@@ -79,7 +79,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   if(sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&sin, sin_len) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));    
   else {
-    struct timeval tv = { timeout /* sec */, 0 };
+    struct timeval tv = { (time_t)timeout /* sec */, 0 };
     fd_set fdset;
     
     FD_ZERO(&fdset);

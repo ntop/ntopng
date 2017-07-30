@@ -1809,6 +1809,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
+				     u_int8_t *sender_mac,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
 				     u_int16_t *ndpiProtocol,
@@ -1857,6 +1858,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
   } else if(pcap_datalink_type == DLT_EN10MB) {
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
@@ -1865,6 +1867,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
     ip_offset = 16 + eth_offset;
     incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1881,13 +1884,16 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
       incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict); /* Unknown IP protocol version */
     }
+
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
   } else if(pcap_datalink_type == DLT_IPV4) {
     eth_type = ETHERTYPE_IP;
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = 0;
   } else {
