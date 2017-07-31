@@ -493,12 +493,7 @@ print("</script>\n")
    print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
    print("<span id=pkts_trend></span></td>")
 
-   print("<th width=20%><span id='if_packet_drops_drop'")
-
-   if(ifstats.stats.drops > 0) then
-      print(" style='color:red'")
-   end
-   print("><i class='fa fa-tint' aria-hidden='true'></i></span> ")
+   print("<th width=20%><span id='if_packet_drops_drop'><i class='fa fa-tint' aria-hidden='true'></i></span> ")
 
    print(i18n("if_stats_overview.dropped_packets").."</th>")
 
@@ -559,11 +554,7 @@ print("</script>\n")
       end
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
 
-      print("<th><span id='if_flow_drops_drop'")
-      if(export_drops > 0) then
-	 print("style='color:red'")
-      end
-      print("<i class='fa fa-tint' aria-hidden='true'></i></span> ")
+      print("<th><span id='if_flow_drops_drop'<i class='fa fa-tint' aria-hidden='true'></i></span> ")
       print(i18n("if_stats_overview.dropped_flows").."</th>")
 
       local span_danger = ""
@@ -2504,11 +2495,7 @@ print [[
 
 	if(rsp.drops > 0) {
           drops = '<span class="label label-danger">';
-          $('#if_packet_drops_drop').css('color', 'red');
-        } else {
-          $('#if_packet_drops_drop').css('color', '');
         }
-
 	drops = drops + addCommas(rsp.drops)+" ]]
 
 print("Pkts")
@@ -2532,11 +2519,9 @@ print [[";
             /* If rsp.flow_export_count means that only drops have been occurring so it is meaningless to print a pct */
             $('#exported_flows_drops_pct').removeClass().html("");
           }
-          $('#if_flow_drops_drop').css('color', 'red');
         } else {
           $('#exported_flows_drops').removeClass().html("0");
           $('#exported_flows_drops_pct').removeClass().html("[0%]");
-          $('#if_flow_drops_drop').css('color', '');
         }
 
         var btn_disabled = true;

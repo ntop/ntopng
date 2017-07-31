@@ -340,12 +340,10 @@ for k,v in pairsByKeys(ifnames, asc) do
    print(descr)
    if(views[v] == true) then
       print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
-   elseif(not packetinterfaces[v]) then
-      print(' <i class="fa fa-cloud" aria-hidden="true"></i> ')
    end
 
    if(drops[v] == true) then
-      print('&nbsp;<span style="color:red"><i class="fa fa-tint" aria-hidden="true"></i></span>')
+      print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
    end
 
    print("</a>")
