@@ -39,6 +39,12 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 Host::Host(NetworkInterface *_iface, Mac *_mac,
 	   u_int16_t _vlanId, IpAddress *_ip) : GenericHost(_iface) {
   ip.set(_ip);
+
+#ifdef BROADCAST_DEBUG
+  char buf[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting %s [broadcast: %u]", ip.print(buf, sizeof(buf)), ip.isBroadcastAddress() ? 1 : 0);
+#endif
+
   initialize(_mac, _vlanId, true);
 }
 
@@ -552,6 +558,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "systemhost", systemHost);
   lua_push_bool_table_entry(vm, "is_blacklisted", blacklisted_host);
+  lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
   lua_push_int_table_entry(vm, "source_id", source_id);
   lua_push_int_table_entry(vm, "asn", asn);
@@ -1130,7 +1137,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
-  if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
   if(city) free(city);
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   if(json_object_object_get_ex(o, "localHost", &obj)) localHost = (json_object_get_boolean(obj) ? true : false);

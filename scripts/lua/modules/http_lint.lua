@@ -246,7 +246,8 @@ local function validateClientOrServer(mode)
 end
 
 local function validateBroadcastUnicast(mode)
-   local modes = {"unicast", "broadcast_multicast"}
+   local modes = {"unicast", "broadcast_multicast",
+		  "one_way_unicast", "one_way_broadcast_multicast"}
 
    return validateChoice(modes, mode)
 end

@@ -116,7 +116,7 @@ bool AddressTree::addAddresses(char *rule, const int16_t user_data) {
 
 /* ******************************************* */
 
-int16_t AddressTree::findAddress(int family, void *addr) {
+int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
   patricia_tree_t *p;
   int bits;
   patricia_node_t *node;
@@ -132,8 +132,11 @@ int16_t AddressTree::findAddress(int family, void *addr) {
   
   if(node == NULL)
     return(-1);
-  else
+  else {
+    if(network_mask_bits)
+      *network_mask_bits = node->bit;
     return(node->user_data);
+  }
 }
 
 /* ******************************************* */

@@ -73,7 +73,6 @@ class IpAddress {
   char* printMask(char *str, u_int str_len, bool isLocalIP);    
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();
-  void deserialize(json_object *o);
   char* serialize();
   json_object* getJSONObject();
   bool match(AddressTree *tree);

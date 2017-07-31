@@ -26,17 +26,28 @@
 
 class NetworkStats {
  private:
-  u_int64_t ingress; /* outside -> network */
-  u_int64_t egress;  /* network -> outside */
-  u_int64_t inner;   /* network -> network (local traffic) */
+  TrafficStats ingress, ingress_broadcast; /* outside -> network */
+  TrafficStats egress, egress_broadcast;   /* network -> outside */
+  TrafficStats inner, inner_broadcast;     /* network -> network (local traffic) */
 
  public:
   NetworkStats();
 
-  inline bool trafficSeen(){return ingress || egress || inner;};
-  inline void incIngress(u_int64_t num_bytes) { ingress += num_bytes; };
-  inline void incEgress(u_int64_t num_bytes)  { egress  += num_bytes; };
-  inline void incInner(u_int64_t num_bytes)   { inner   += num_bytes; };
+  inline bool trafficSeen(){
+    return ingress.getNumPkts() || egress.getNumPkts() || inner.getNumPkts();
+  };
+  inline void incIngress(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    ingress.incStats(num_pkts, num_bytes);
+    if(broadcast) ingress_broadcast.incStats(num_pkts, num_bytes);
+  };
+  inline void incEgress(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    egress.incStats(num_pkts, num_bytes);
+    if(broadcast) egress_broadcast.incStats(num_pkts, num_bytes);
+  };
+  inline void incInner(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    inner.incStats(num_pkts, num_bytes);
+    if(broadcast) inner_broadcast.incStats(num_pkts, num_bytes);
+  };
 
   void lua(lua_State* vm);
 };

@@ -268,9 +268,11 @@ print[[, '\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(traffic_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
          <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
-   printDropdownEntries({
-      {"broadcast_multicast", i18n("flows_page.one_way_multicast")},
-      {"unicast", i18n("flows_page.one_way_non_multicast")},
+printDropdownEntries({
+      {"unicast", i18n("flows_page.non_multicast")},
+      {"broadcast_multicast", i18n("flows_page.multicast")},
+      {"one_way_unicast", i18n("flows_page.one_way_non_multicast")},
+      {"one_way_broadcast_multicast", i18n("flows_page.one_way_multicast")},
    }, traffic_type_params, "traffic_type", traffic_type)
 print[[\
       </ul>\

@@ -66,9 +66,16 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	 if(not(ntop.exists(rrdpath))) then
 	    ntop.mkdir(rrdpath)
 	 end
-	 rrdpath = fixPath(rrdpath .. "/bytes.rrd")
-	 createTripleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
-	 ntop.rrd_update(rrdpath, "N:"..tolongint(sstats["ingress"]) .. ":" .. tolongint(sstats["egress"]) .. ":" .. tolongint(sstats["inner"]))
+
+	 local bytes_rrd = fixPath(rrdpath .. "/bytes.rrd")
+	 createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
+	 ntop.rrd_update(bytes_rrd, "N:"..tolongint(sstats["ingress"]) .. ":" .. tolongint(sstats["egress"]) .. ":" .. tolongint(sstats["inner"]))
+
+	 local bytes_bcast_rrd = fixPath(rrdpath .. "/broadcast_bytes.rrd")
+	 tprint(subnet)
+	 tprint(sstats["broadcast"])
+	 createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
+	 ntop.rrd_update(bytes_bcast_rrd, "N:"..tolongint(sstats["broadcast"]["ingress"]) .. ":" .. tolongint(sstats["broadcast"]["egress"]) .. ":" .. tolongint(sstats["broadcast"]["inner"]))
       end
 
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")

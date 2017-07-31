@@ -125,13 +125,15 @@ if not isEmptyString(flowhosts_type) then
 end
 
 if not isEmptyString(traffic_type) then
-   if traffic_type == "unicast" then
+   if traffic_type:contains("unicast") then
       pageinfo["unicast"] = true
    else
       pageinfo["unicast"] = false
    end
 
-   pageinfo["unidirectional"] = true
+   if traffic_type:contains("one_way") then
+      pageinfo["unidirectional"] = true
+   end
 end
 
 if not isEmptyString(flow_status) then

@@ -395,8 +395,13 @@ void Ntop::start() {
 
 /* ******************************************* */
 
-bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id) {
-  *network_id = address->findAddress(family, addr);
+bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id, u_int8_t *network_mask_bits) {
+  u_int8_t nmask_bits;
+  *network_id = address->findAddress(family, addr, &nmask_bits);
+
+  if(*network_id != -1 && network_mask_bits)
+    *network_mask_bits = nmask_bits;
+
   return(((*network_id) == -1) ? false : true);
 };
 

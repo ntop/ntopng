@@ -172,9 +172,10 @@ class Ntop {
    * @param family Internetwork: UDP, TCP, etc.
    * @param addr Internet Address.
    * @param network_id It returns the networkId to which the host belongs to
+   * @param network_mask_bits It returns the number of bits of the network mask
    * @return True if the address is in the local networks, false otherwise.
    */
-  bool isLocalAddress(int family, void *addr, int16_t *network_id);
+  bool isLocalAddress(int family, void *addr, int16_t *network_id, u_int8_t *network_mask_bits = NULL);
 
   /**
    * @brief Start ntopng packet processing.

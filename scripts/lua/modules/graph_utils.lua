@@ -12,6 +12,7 @@ local top_rrds = {
    {rrd="num_devices.rrd",             label=i18n("graphs.active_devices")},
    {rrd="num_http_hosts.rrd",          label=i18n("graphs.active_http_servers")},
    {rrd="bytes.rrd",                   label=i18n("traffic")},
+   {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
    {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
    {rrd="num_zmq_received_flows.rrd",  label=i18n("graphs.zmq_received_flows")},

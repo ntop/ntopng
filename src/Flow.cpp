@@ -991,11 +991,16 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       // update per-subnet byte counters
       if(cli_network_stats) { // only if the network is known and local
 	if(!cli_and_srv_in_same_subnet) {
-	  cli_network_stats->incEgress(diff_sent_bytes);
-	  cli_network_stats->incIngress(diff_rcvd_bytes);
+	  cli_network_stats->incEgress(diff_sent_packets, diff_sent_bytes,
+				       srv_host->get_ip()->isBroadcastAddress());
+	  cli_network_stats->incIngress(diff_rcvd_packets, diff_rcvd_bytes,
+					cli_host->get_ip()->isBroadcastAddress());
 	} else // client and server ARE in the same subnet
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
+	  cli_network_stats->incInner(diff_sent_packets + diff_rcvd_packets,
+				      diff_sent_bytes + diff_rcvd_bytes,
+				      srv_host->get_ip()->isBroadcastAddress()
+				      || cli_host->get_ip()->isBroadcastAddress());
       }
 
       NetworkStats *srv_network_stats;
@@ -1008,8 +1013,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       if(srv_network_stats) {
 	// local and known server network
 	if(!cli_and_srv_in_same_subnet) {
-	  srv_network_stats->incIngress(diff_sent_bytes);
-	  srv_network_stats->incEgress(diff_rcvd_bytes);
+	  srv_network_stats->incIngress(diff_sent_packets, diff_sent_bytes,
+					srv_host->get_ip()->isBroadcastAddress());
+	  srv_network_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
+				       cli_host->get_ip()->isBroadcastAddress());
 	}
       }
 

@@ -24,13 +24,21 @@
 /* *************************************** */
 
 NetworkStats::NetworkStats() {
-  ingress = egress = inner = 0;
 }
 
 /* *************************************** */
 
 void NetworkStats::lua(lua_State* vm) {
-  lua_push_int_table_entry(vm, "ingress", ingress);
-  lua_push_int_table_entry(vm, "egress", egress);
-  lua_push_int_table_entry(vm, "inner", inner);
+  lua_push_int_table_entry(vm, "ingress", ingress.getNumBytes());
+  lua_push_int_table_entry(vm, "egress", egress.getNumBytes());
+  lua_push_int_table_entry(vm, "inner", inner.getNumBytes());
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "ingress", ingress_broadcast.getNumBytes());
+  lua_push_int_table_entry(vm, "egress", egress_broadcast.getNumBytes());
+  lua_push_int_table_entry(vm, "inner", inner_broadcast.getNumBytes());
+  lua_pushstring(vm, "broadcast");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
 }
