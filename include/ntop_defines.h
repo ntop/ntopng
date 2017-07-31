@@ -291,6 +291,7 @@
 #define DROP_ALL_SHAPER_ID             1
 #define DEFAULT_SHAPER_ID              PASS_ALL_SHAPER_ID
 #define NUM_TRAFFIC_SHAPERS           16
+#define NUM_TC_TRAFFIC_SHAPERS         8
 #define MAX_SHAPER_RATE_KBPS       10240
 #define HOUSEKEEPING_FREQUENCY         5
 #define MAX_NUM_HOST_CONTACTS         16
