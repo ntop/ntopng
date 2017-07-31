@@ -287,9 +287,11 @@ print [[
       <ul class="dropdown-menu">
 ]]
 
-views = {}
-ifnames = {}
-ifdescr = {}
+local views = {}
+local drops = {}
+local packetinterfaces = {}
+local ifnames = {}
+local ifdescr = {}
 
 for v,k in pairs(interface.getIfNames()) do
    interface.select(k)
@@ -298,6 +300,11 @@ for v,k in pairs(interface.getIfNames()) do
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
+   if(interface.isPacketInterface()) then packetinterfaces[k] = true end
+   if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
+      drops[k] = true
+   end
+
 end
 
 for k,v in pairsByKeys(ifnames, asc) do
@@ -329,9 +336,18 @@ for k,v in pairsByKeys(ifnames, asc) do
 	 descr = descr .. " (".. v ..")"
       end
    end
-   
+
    print(descr)
-   if(views[v] == true) then print(' <i class="fa fa-eye"></i> ') end
+   if(views[v] == true) then
+      print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
+   elseif(not packetinterfaces[v]) then
+      print(' <i class="fa fa-cloud" aria-hidden="true"></i> ')
+   end
+
+   if(drops[v] == true) then
+      print('&nbsp;<span style="color:red"><i class="fa fa-tint" aria-hidden="true"></i></span>')
+   end
+
    print("</a>")
    print("</li>\n")
 end

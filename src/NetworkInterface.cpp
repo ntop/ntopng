@@ -605,6 +605,7 @@ NetworkInterface::~NetworkInterface() {
     cleanup();
   }
 
+  if(db)             delete db;
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
   if(ifDescription)     free(ifDescription);
@@ -612,7 +613,7 @@ NetworkInterface::~NetworkInterface() {
   if(remoteIfIPaddr)    free(remoteIfIPaddr);
   if(remoteProbeIPaddr) free(remoteProbeIPaddr);
   if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
-  if(db)             delete db;
+
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;
