@@ -167,9 +167,21 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   if(httpd)      delete httpd; /* Stop the http server before tearing down network interfaces */
 
+  /* Views are deleted first as they require access to the underlying sub-interfaces */
   for(int i = 0; i < num_defined_interfaces; i++) {
-    iface[i]->shutdown();
-    delete(iface[i]);
+    if(iface[i] && iface[i]->isView()) {
+	iface[i]->shutdown();
+	delete(iface[i]);
+	iface[i] = NULL;
+      }
+  }
+
+  for(int i = 0; i < num_defined_interfaces; i++) {
+    if(iface[i]) {
+      iface[i]->shutdown();
+      delete(iface[i]);
+      iface[i] = NULL;
+    }
   }
 
   delete []iface;

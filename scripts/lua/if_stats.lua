@@ -491,9 +491,23 @@ print("</script>\n")
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
    print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
-   print("<span id=pkts_trend></span></td><th width=20%>"..i18n("if_stats_overview.dropped_packets").."</th><td width=20%><span id=if_drops>")
+   print("<span id=pkts_trend></span></td>")
 
-   if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
+   print("<th width=20%><span id='if_packet_drops_drop'")
+
+   if(ifstats.stats.drops > 0) then
+      print(" style='color:red'")
+   end
+   print("><i class='fa fa-tint' aria-hidden='true'></i></span> ")
+
+   print(i18n("if_stats_overview.dropped_packets").."</th>")
+
+   print("<td width=20%><span id=if_drops>")
+
+   if(ifstats.stats.drops > 0) then
+      print('<span class="label label-danger">')
+   end
+
    print(formatValue(ifstats.stats.drops).. " " .. label)
 
    if ifstats.stats.packets == null or ifstats.stats.drops == null then
@@ -544,7 +558,14 @@ print("</script>\n")
 	export_rate = 0
       end
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
-      print("<th>"..i18n("if_stats_overview.dropped_flows").."</th>")
+
+      print("<th><span id='if_flow_drops_drop'")
+      if(export_drops > 0) then
+	 print("style='color:red'")
+      end
+      print("<i class='fa fa-tint' aria-hidden='true'></i></span> ")
+      print(i18n("if_stats_overview.dropped_flows").."</th>")
+
       local span_danger = ""
       if export_drops == nil then 
 
@@ -2480,9 +2501,14 @@ print [[
 	if((rsp.packets + rsp.drops) > 0) {
           pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
         }
+
 	if(rsp.drops > 0) {
           drops = '<span class="label label-danger">';
+          $('#if_packet_drops_drop').css('color', 'red');
+        } else {
+          $('#if_packet_drops_drop').css('color', '');
         }
+
 	drops = drops + addCommas(rsp.drops)+" ]]
 
 print("Pkts")
@@ -2506,9 +2532,11 @@ print [[";
             /* If rsp.flow_export_count means that only drops have been occurring so it is meaningless to print a pct */
             $('#exported_flows_drops_pct').removeClass().html("");
           }
+          $('#if_flow_drops_drop').css('color', 'red');
         } else {
           $('#exported_flows_drops').removeClass().html("0");
           $('#exported_flows_drops_pct').removeClass().html("[0%]");
+          $('#if_flow_drops_drop').css('color', '');
         }
 
         var btn_disabled = true;

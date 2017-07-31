@@ -42,6 +42,7 @@ class Prefs : public RuntimePrefs {
   pcap_direction_t captureDirection;
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
   char *http_binding_address, *https_binding_address;
+  char *lan_interface, *wan_interface;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
@@ -200,6 +201,7 @@ class Prefs : public RuntimePrefs {
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
+  void refreshLanWanInterfaces();
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
@@ -224,6 +226,8 @@ class Prefs : public RuntimePrefs {
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
 
+  inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); }
+  inline char* get_wan_interface()      { return(wan_interface ? wan_interface : (char*)""); }
   inline char* getInterfaceAt(int id)   { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }

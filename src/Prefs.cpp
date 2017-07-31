@@ -55,6 +55,7 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = NULL;
   https_binding_address = NULL; // CONST_ANY_ADDRESS;
+  lan_interface = wan_interface = NULL;
   httpbl_key = NULL, flashstart = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
@@ -131,6 +132,8 @@ Prefs::~Prefs() {
   if(ls_proto)	      free(ls_proto);
   if(http_binding_address)  free(http_binding_address);
   if(https_binding_address) free(https_binding_address);
+  if(lan_interface)	free(lan_interface);
+  if(wan_interface)	free(wan_interface);
   /* NOTE: flashstart is deleted by the Ntop class */
 }
 
@@ -413,7 +416,7 @@ void Prefs::reloadPrefsFromRedis() {
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
-
+  refreshLanWanInterfaces();
 }
 
 /* ******************************************* */
@@ -1296,6 +1299,27 @@ void Prefs::refreshHostsAlertsPrefs() {
     victim_max_num_syn_per_sec = atol(rsp);
   else
     victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
+}
+
+/* *************************************** */
+
+void Prefs::refreshLanWanInterfaces() {
+  char rsp[32];
+
+  if (lan_interface) free(lan_interface);
+  if (wan_interface) free(wan_interface);
+
+  if (ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_LAN_INTERFACE,
+      rsp, sizeof(rsp)) == 0)
+    lan_interface = strdup(rsp);
+  else
+    lan_interface = NULL;
+
+  if (ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_WAN_INTERFACE,
+      rsp, sizeof(rsp)) == 0)
+    wan_interface = strdup(rsp);
+  else
+    wan_interface = NULL;
 }
 
 /* *************************************** */
