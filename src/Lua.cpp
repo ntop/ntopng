@@ -2789,6 +2789,17 @@ static int ntop_load_scaling_factor_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_load_network_interfaces_prefs(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_newtable(vm);
+  ntop->getPrefs()->refreshLanWanInterfaces();
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /*
   Code partially taken from third-party/rrdtool-1.4.7/bindings/lua/rrdlua.c
   and made reentrant
@@ -5914,6 +5925,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getLocalNetworks",  ntop_get_local_networks },
   { "reloadPreferences", ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
+  { "loadNetworkInteracesPrefs",      ntop_load_network_interfaces_prefs },
 
 #ifdef NTOPNG_PRO
 #ifndef WIN32
