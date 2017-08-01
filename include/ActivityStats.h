@@ -48,8 +48,6 @@ class ActivityStats {
   char* serialize();  
   void deserialize(json_object *o);
   inline time_t get_wrap_time() { return(wrap_time); };
-  /* Returns the Pearson correlation coefficient */
-  double pearsonCorrelation(ActivityStats *s);
 };
 
 #endif /* _ACTIVITY_STATS_H_ */

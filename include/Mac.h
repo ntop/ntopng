@@ -28,7 +28,6 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
   const char * manuf;
-  u_int16_t vlan_id;
   bool source_mac:1, special_mac:1, bridge_seen_iface[2] /* , notused:4 */;
   ArpStats arp_stats;
 

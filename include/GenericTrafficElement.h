@@ -35,7 +35,6 @@ class GenericTrafficElement {
   ValueTrend bytes_thpt_trend, pkts_thpt_trend;
   float bytes_thpt_diff;
   u_int64_t last_bytes, last_packets;
-  u_int64_t last_bytes_periodic;
   struct timeval last_update_time;
 
  public:
@@ -45,7 +44,6 @@ class GenericTrafficElement {
   };
 
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
-  bool idle();
   void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 

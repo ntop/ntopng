@@ -59,10 +59,6 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
    hosts_stats = interface.getHostsInfo(false --[[ don't show details --]])
    hosts_stats = hosts_stats["hosts"]
 
-   for key, value in pairs(hosts_stats) do
-      interface.resetPeriodicStats(key, value["vlan"])
-   end
-
    if(interface.getInterfaceDumpDiskPolicy() == true) then
       ntop.deleteDumpFiles(interface_id)
    end

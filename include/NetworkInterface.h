@@ -510,10 +510,8 @@ class NetworkInterface {
   };
 
   void refreshHostsAlertPrefs(bool full_refresh);
-  int resetPeriodicHostStats(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
   int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
-  int getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip, u_int16_t host_vlan, u_int32_t peer_key);
   int engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
 			     AlertEngine alert_engine,
 			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);

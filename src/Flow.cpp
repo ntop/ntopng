@@ -1020,11 +1020,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	}
       }
 
-#ifdef NOTUSED
-      if(cli_host && srv_host->isLocalHost())
-	srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
-#endif
-
       if(host_server_name
 	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
 	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
@@ -1403,7 +1398,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   if(details_level >= details_high) {
     if(src && !mask_cli_host) {
       lua_push_str_table_entry(vm, "cli.host", src->get_visual_name(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
+      lua_push_int_table_entry(vm, "cli.source_id", 0 /* was never set by src->getSourceId()*/ );
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
 
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
@@ -1416,7 +1411,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(dst && !mask_dst_host) {
       lua_push_str_table_entry(vm, "srv.host", dst->get_visual_name(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
+      lua_push_int_table_entry(vm, "srv.source_id", 0 /* was never set by src->getSourceId() */);
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);

@@ -31,13 +31,14 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
  protected:
   bool localHost, systemHost;
   u_int32_t host_serial;
-  nDPIStats *ndpiStats;
+
   ActivityStats activityStats;
-  u_int32_t low_goodput_client_flows, low_goodput_server_flows;
-  u_int8_t source_id;
   time_t last_activity_update;
+
+  u_int32_t low_goodput_client_flows, low_goodput_server_flows;
+
   u_int32_t total_activity_time /* sec */, last_epoch_update; /* useful to avoid multiple updates */
-  
+
   /* Throughput */
   float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
   ValueTrend bytes_goodput_thpt_trend;
@@ -49,26 +50,25 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
 
  public:
   GenericHost(NetworkInterface *_iface);
-  ~GenericHost();
+  virtual ~GenericHost() {};
 
-  inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
   inline bool isLocalHost()                { return(localHost || systemHost); };
-  inline bool isSystemHost()               { return(systemHost); };
-  inline void setSystemHost()              { systemHost = true;  };
-  inline nDPIStats* get_ndpi_stats()       { return(ndpiStats); };
-  inline ActivityStats* getActivityStats() { return(&activityStats); };  
-  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets, 
+  inline bool isSystemHost()               { return(systemHost);              };
+  inline void setSystemHost()              { systemHost = true;               };
+
+  inline nDPIStats* get_ndpi_stats()       { return(ndpiStats);               };
+  inline ActivityStats* getActivityStats() { return(&activityStats);          };
+
+  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets,
 		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
-  inline u_int32_t get_host_serial()  { return(host_serial);               };
 
-  inline u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
-  void resetPeriodicStats(void);
+  inline u_int32_t get_host_serial() { return(host_serial);                        };
+
   void updateActivities();
   inline char* getJsonActivityMap()   { return(activityStats.serialize()); };
-  inline u_int8_t getSourceId()       { return(source_id);                 };
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
-  virtual bool match(AddressTree *ptree)             { return(true);   };
+  virtual bool match(AddressTree *ptree)             { return(true);       };
   virtual void set_to_purge() {
     iface->decNumHosts(isLocalHost());
     GenericHashEntry::set_to_purge();

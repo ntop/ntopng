@@ -71,8 +71,6 @@ Host::~Host() {
   if(as)            as->decUses();
   if(vlan)          vlan->decUses();
 #ifdef NTOPNG_PRO
-  if(sent_to_sketch)                 delete sent_to_sketch;
-  if(rcvd_from_sketch)               delete rcvd_from_sketch;
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
   if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
 
@@ -135,7 +133,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64], host[96];
 
 #ifdef NTOPNG_PRO
-  sent_to_sketch = rcvd_from_sketch = NULL;
   l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
@@ -259,14 +256,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     if(city) free(city);
     ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
-    if(isLocalHost()) {
-#ifdef NTOPNG_PRO
-      sent_to_sketch   = new CountMinSketch();
-      rcvd_from_sketch = new CountMinSketch();
-#endif
+    if(isLocalHost())
       readStats();
-
-    }
   }
 
   iface->incNumHosts(isLocalHost());
@@ -560,7 +551,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "is_blacklisted", blacklisted_host);
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
-  lua_push_int_table_entry(vm, "source_id", source_id);
   lua_push_int_table_entry(vm, "asn", asn);
   lua_push_int_table_entry(vm, "host_pool_id", host_pool_id);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
@@ -1130,8 +1120,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
 
-  if(json_object_object_get_ex(o, "source_id", &obj)) source_id = json_object_get_int(obj);
-
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
@@ -1491,12 +1479,6 @@ void Host::loadAlertsCounter() {
 
 /* *************************************** */
 
-void Host::resetPeriodicStats() {
-  ((GenericHost*)this)->resetPeriodicStats();
-}
-
-/* *************************************** */
-
 void Host::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req,
 				 u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
   if(http)
@@ -1619,36 +1601,6 @@ void Host::refreshHostAlertPrefs() {
 
   if(!alerts_read)
     trigger_host_alerts = false;
-}
-
-/* *************************************** */
-
-void Host::incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
-#ifdef NOTUSED // check for memory corruptions here!
-#ifdef NTOPNG_PRO
-  if(sent_bytes) sent_to_sketch->update(peer->key(), sent_bytes);
-  if(rcvd_bytes) rcvd_from_sketch->update(peer->key(), rcvd_bytes);
-#endif
-#endif
-}
-
-/* *************************************** */
-
-void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
-#ifdef NOTUSED
-  lua_newtable(vm);
-
-#ifdef NTOPNG_PRO
-  if(sent_to_sketch && rcvd_from_sketch) {
-    lua_push_int_table_entry(vm, "sent", sent_to_sketch->estimate(peer_key));
-    lua_push_int_table_entry(vm, "rcvd", rcvd_from_sketch->estimate(peer_key));
-    return;
-  }
-#endif
-
-  lua_push_int_table_entry(vm, "sent", 0);
-  lua_push_int_table_entry(vm, "rcvd", 0);
-#endif
 }
 
 /* *************************************** */

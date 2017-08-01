@@ -1953,28 +1953,6 @@ static int ntop_getsflowdeviceinfo(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_host_reset_periodic_stats(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  return ntop_interface->resetPeriodicHostStats(get_allowed_nets(vm), host_ip, vlan_id);
-}
-
-/* ****************************************** */
-
 static int ntop_correlate_host_activity(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -2413,37 +2391,6 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   return ntop_interface->setHostDumpTrafficPolicy(get_allowed_nets(vm), host_ip, vlan_id, dump_traffic_to_disk);
-}
-
-/* ****************************************** */
-
-static int ntop_get_host_hit_rate(lua_State* vm) {
-#ifdef NOTUSED
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  Host *h;
-  u_int32_t peer_key;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  peer_key = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  return ntop_interface->getPeerBytes(get_allowed_nets(vm), vm, host_ip, vlan_id, peer_key);
-#else
-  return(CONST_LUA_ERROR); // not supported
-#endif
 }
 
 /* ****************************************** */
@@ -5768,7 +5715,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostInfo",            ntop_get_interface_host_info },
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
-  { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
   { "correlateHostActivity",  ntop_correlate_host_activity },
   { "similarHostActivity",    ntop_similar_host_activity },
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
@@ -5790,7 +5736,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "refreshHostsAlertsConfiguration", ntop_refresh_hosts_alerts_configuration },
   { "setSecondTraffic",       ntop_set_second_traffic },
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
-  { "getPeerHitRate",            ntop_get_host_hit_rate },
   { "getLatestActivityHostsInfo",     ntop_get_interface_latest_activity_hosts_info },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
   { "getInterfaceDumpTapPolicy",      ntop_get_interface_dump_tap_policy },

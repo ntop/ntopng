@@ -5724,24 +5724,6 @@ void NetworkInterface::refreshHostsAlertPrefs(bool full_refresh) {
 
 /* **************************************** */
 
-int NetworkInterface::resetPeriodicHostStats(AddressTree* allowed_networks,
-					     char *host_ip, u_int16_t host_vlan) {
-  Host *h;
-  int rv;
-  disablePurge(false);
-
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
-    h->resetPeriodicStats();
-    rv = CONST_LUA_OK;
-  } else
-    rv = CONST_LUA_ERROR;
-
-  enablePurge(false);
-  return rv;
-}
-
-/* **************************************** */
-
 int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
 					      char *host_ip, u_int16_t host_vlan) {
   Host *h;
@@ -5768,24 +5750,6 @@ int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, ch
 
   if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->setDumpTrafficPolicy(dump_traffic_to_disk);
-    rv = CONST_LUA_OK;
-  } else
-    rv = CONST_LUA_ERROR;
-
-  enablePurge(false);
-  return rv;
-}
-
-/* **************************************** */
-
-int NetworkInterface::getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip,
-				   u_int16_t host_vlan, u_int32_t peer_key) {
-  Host *h;
-  int rv;
-  disablePurge(false);
-
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
-    h->getPeerBytes(vm, peer_key);
     rv = CONST_LUA_OK;
   } else
     rv = CONST_LUA_ERROR;

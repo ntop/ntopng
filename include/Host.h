@@ -43,9 +43,6 @@ class Host : public GenericHost {
   u_int32_t mac_last_seen, secondary_mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt, nextSitesUpdate;
-#ifdef NTOPNG_PRO
-  CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
-#endif
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   TrafficStats tcp_sent, tcp_rcvd;
@@ -97,7 +94,7 @@ class Host : public GenericHost {
   void updateStats(struct timeval *tv);
   void incLowGoodputFlows(bool asClient);
   void decLowGoodputFlows(bool asClient);
-  void resetPeriodicStats(void);
+
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num; };

@@ -178,16 +178,3 @@ void ActivityStats::deserialize(json_object *o) {
 void ActivityStats::extractPoints(activity_bitmap *b) {
   memcpy(b, &bitset, sizeof(activity_bitmap));
 }
-
-/* *************************************** */
-
-/* http://codereview.stackexchange.com/questions/10122/c-correlation-leastsquarescoefs */
-
-double ActivityStats::pearsonCorrelation(ActivityStats *s) {
-  activity_bitmap x, y;
-
-  extractPoints(&x);
-  s->extractPoints(&y);
-
-  return(Utils::pearsonValueCorrelation(&x, &y));
-}

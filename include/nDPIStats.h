@@ -62,20 +62,6 @@ class nDPIStats {
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
 
   void incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes);
-  
-  inline TrafficCounter* getPackets(u_int16_t proto_id) { 
-    if(proto_id < (MAX_NDPI_PROTOS)) 
-      return(&counters[proto_id]->packets);
-    else 
-      return(NULL); 
-  };
-
-  inline TrafficCounter* getBytes(u_int16_t proto_id) {
-    if((proto_id < MAX_NDPI_PROTOS) && (counters[proto_id] != NULL))
-      return(&counters[proto_id]->bytes);  
-    else 
-      return(NULL); 
-  };
 
   void print(NetworkInterface *iface);
   void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false);
