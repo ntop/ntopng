@@ -105,7 +105,7 @@ callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
 	  end
 
 	  -- Number of flows
-	  makeRRD(hostbase, ifstats.name, "num_flows", 300, host["flows.as_client"] + host["flows.as_server"])
+	  makeRRD(hostbase, ifstats.name, "num_flows", 300, host["active_flows.as_client"] + host["active_flows.as_server"])
 
 	  -- L4 Protocols
 	  for id, _ in ipairs(l4_keys) do
