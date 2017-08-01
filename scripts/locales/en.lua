@@ -128,6 +128,8 @@ local  en = {
       top_receivers = "Top Receivers",
       top_profiles = "Top Profiles",
       all_protocols = "All Protocols",
+      note_click_to_zoom = "Left-click on the chart to zoom in, right-click to zoom out.",
+      note_protocols_shown = "Protocols not seen in the selected timeframe are not listed in the dropdown.",
    },
 
    flows_page = {

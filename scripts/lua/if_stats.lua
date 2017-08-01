@@ -820,6 +820,24 @@ elseif(page == "historical") then
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
    drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
    --drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
+
+   if ntop.isPro() then
+
+      print[[
+
+<br>
+
+<div>
+  <b>]] print(i18n('notes')) print[[</b>
+  <ul>
+    <li>]] print(i18n('graphs.note_click_to_zoom')) print[[</li>
+    <li>]] print(i18n('graphs.note_protocols_shown')) print[[</li>
+  </ul>
+</div>
+
+]]
+   end
+
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
