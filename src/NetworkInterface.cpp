@@ -1159,6 +1159,59 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(flow == NULL)
     return;
 
+  if(zflow->absolute_packet_octet_counters) {
+    /* Ajdust bytes and packets counters if the zflow update contains absolute values.
+
+       As flows may arrive out of sequence, special care is needed to avoid counting absolute values multiple times.
+
+       http://www.cisco.com/c/en/us/td/docs/security/asa/special/netflow/guide/asa_netflow.html#pgfId-1331296
+       Different events in the life of a flow may be issued in separate NetFlow packets and may arrive out-of-order
+       at the collector. For example, the packet containing a flow teardown event may reach the collector before the packet
+       containing a flow creation event. As a result, it is important that collector applications use the Event Time field
+       to correlate events.
+    */
+
+    u_int64_t in_cur_pkts = src2dst_direction ? flow->get_packets_cli2srv() : flow->get_packets_srv2cli(),
+      in_cur_bytes = src2dst_direction ? flow->get_bytes_cli2srv() : flow->get_bytes_srv2cli();
+    u_int64_t out_cur_pkts = src2dst_direction ? flow->get_packets_srv2cli() : flow->get_packets_cli2srv(),
+      out_cur_bytes = src2dst_direction ? flow->get_bytes_srv2cli() : flow->get_bytes_cli2srv();
+    bool out_of_sequence = false;
+
+    if(zflow->in_pkts) {
+      if(zflow->in_pkts >= in_cur_pkts)     zflow->in_pkts -= in_cur_pkts;     else out_of_sequence = true;
+    }
+
+    if(zflow->in_bytes) {
+      if(zflow->in_bytes >= in_cur_bytes)   zflow->in_bytes -= in_cur_bytes;   else out_of_sequence = true;
+    }
+
+    if(zflow->out_pkts) {
+      if(zflow->out_pkts >= out_cur_pkts)   zflow->out_pkts -= out_cur_pkts;   else out_of_sequence = true;
+    }
+
+    if(zflow->out_bytes) {
+      if(zflow->out_bytes >= out_cur_bytes) zflow->out_bytes -= out_cur_bytes; else out_of_sequence = true;
+    }
+
+    if(out_of_sequence) {
+#ifdef ABSOLUTE_COUNTERS_DEBUG
+      char flowbuf[265];
+      bool out_of_sequence_msg = false;
+      if(!out_of_sequence_msg) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "A flow received an update with absolute values smaller than the current values. "
+				   "[in_bytes: %u][in_cur_bytes: %u][out_bytes: %u][out_cur_bytes: %u]"
+				   "[in_pkts: %u][in_cur_pkts: %u][out_pkts: %u][out_cur_pkts: %u]\n"
+				   "%s",
+				   zflow->in_bytes, in_cur_bytes, zflow->out_bytes, out_cur_bytes,
+				   zflow->in_pkts, in_cur_pkts, zflow->out_pkts, out_cur_pkts,
+				   flow->print(flowbuf, sizeof(flowbuf)));
+      out_of_sequence_msg = true;
+      }
+#endif
+    }
+  }
+
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->deviceIP,
 			  src2dst_direction ? zflow->inIndex  : zflow->outIndex,

@@ -104,12 +104,16 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("FLOW_END_MILLISECONDS", 153);
   addMapping("FLOW_END_MICROSECONDS", 155);
   addMapping("BIFLOW_DIRECTION", 239);
+  addMapping("INITIATOR_OCTETS", 231);
+  addMapping("RESPONDER_OCTETS", 232);
   addMapping("INGRESS_VRFID", 234);
   addMapping("FLOW_DURATION_MILLISECONDS", 161);
   addMapping("FLOW_DURATION_MICROSECONDS", 162);
   addMapping("ICMP_IPV4_TYPE", 176);
   addMapping("ICMP_IPV4_CODE", 177);
   addMapping("OBSERVATION_POINT_TYPE", 277);
+  addMapping("INITIATOR_PKTS", 298);
+  addMapping("RESPONDER_PKTS", 299);
   addMapping("OBSERVATION_POINT_ID", 300);
   addMapping("SELECTOR_ID", 302);
   addMapping("IPFIX_SAMPLING_ALGORITHM", 304);
@@ -703,15 +707,27 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case TCP_FLAGS:
           flow.tcp_flags = atoi(value);
           break;
+	case INITIATOR_PKTS:
+	  flow.absolute_packet_octet_counters = true;
+	  /* Don't break */
         case IN_PKTS:
           flow.in_pkts = atol(value);
           break;
+	case INITIATOR_OCTETS:
+	  flow.absolute_packet_octet_counters = true;
+	  /* Don't break */
         case IN_BYTES:
           flow.in_bytes = atol(value);
           break;
+	case RESPONDER_PKTS:
+	  flow.absolute_packet_octet_counters = true;
+	  /* Don't break */
         case OUT_PKTS:
           flow.out_pkts = atol(value);
           break;
+	case RESPONDER_OCTETS:
+	  flow.absolute_packet_octet_counters = true;
+	  /* Don't break */
         case OUT_BYTES:
           flow.out_bytes = atol(value);
           break;
