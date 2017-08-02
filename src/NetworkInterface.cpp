@@ -5091,37 +5091,31 @@ u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
 
 /* **************************************** */
 
-void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
-				      char *remoteProbeAddress, char *remoteProbePublicAddress,
-				      u_int64_t remBytes, u_int64_t remPkts,
-				      u_int32_t remTime, u_int32_t last_pps, u_int32_t last_bps) {
-  if(name)               setRemoteIfname(name);
-  if(address)            setRemoteIfIPaddr(address);
-  if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
-  if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd = 0, last_pkt_rcvd_remote = remTime,
-    last_remote_pps = last_pps, last_remote_bps = last_bps;
+void NetworkInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
+  if(!zrs) return;
+
+  if(zrs->remote_ifname)               setRemoteIfname(zrs->remote_ifname);
+  if(zrs->remote_ifaddress)            setRemoteIfIPaddr(zrs->remote_ifaddress);
+  if(zrs->remote_probe_address)        setRemoteProbeAddr(zrs->remote_probe_address);
+  if(zrs->remote_probe_public_address) setRemoteProbePublicAddr(zrs->remote_probe_public_address);
+
+  ifSpeed = zrs->remote_ifspeed, last_pkt_rcvd = 0, last_pkt_rcvd_remote = zrs->remote_time,
+    last_remote_pps = zrs->avg_pps, last_remote_bps = zrs->avg_bps;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
-     || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */
+     || (zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
      ) {
     /* Start over */
-    zmq_initial_bytes = remBytes, zmq_initial_pkts = remPkts;
-  } else {
-    remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]",
-				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
-				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
-    /*
-     * Don't override ethStats here, these stats are properly updated
-     * inside NetworkInterface::processFlow for ZMQ interfaces.
-     * Overriding values here may cause glitches and non-strictly-increasing counters
-     * yielding negative rates.
-     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
-     *
-     */
+    zmq_initial_bytes = zrs->remote_bytes, zmq_initial_pkts = zrs->remote_pkts;
   }
+  /*
+   * Don't override ethStats here, these stats are properly updated
+   * inside NetworkInterface::processFlow for ZMQ interfaces.
+   * Overriding values here may cause glitches and non-strictly-increasing counters
+   * yielding negative rates.
+   ethStats.setNumBytes(zrs->remote_bytes), ethStats.setNumPackets(zrs->remote_pkts);
+   *
+   */
 }
 
 /* **************************************** */

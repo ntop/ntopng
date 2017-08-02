@@ -175,6 +175,15 @@ typedef struct zmq_flow {
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
 
+typedef struct zmq_remote_stats {
+  char remote_ifname[32], remote_ifaddress[64];
+  char remote_probe_address[64], remote_probe_public_address[64];
+  u_int64_t remote_bytes, remote_pkts;
+  u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
+  u_int32_t remote_lifetime_timeout, remote_idle_timeout;
+  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops;
+} ZMQ_RemoteStats;
+
 struct vm_ptree {
   lua_State* vm;
   AddressTree *ptree;
