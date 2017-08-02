@@ -48,13 +48,13 @@ if(ifstats.stats ~= nil) then
   end
 end   
 
-total = ifstats.stats.bytes
+local total = ifstats.stats.bytes
 
-vals = {}
+local vals = {}
 
-for k in pairs(ifstats["ndpi"]) do
+for k, v in pairs(ifstats["ndpi"]) do
    -- io.write("->"..k.."\n")
-   if((ifstats["ndpi"][k]["bytes.rcvd"] > 0) or (ifstats["ndpi"][k]["bytes.sent"] > 0)) then
+   if v["bytes.rcvd"] > 0 or v["bytes.sent"] > 0 then
     vals[k] = k
    end
 end
@@ -63,7 +63,7 @@ table.sort(vals)
 
 if(json_format) then print('[\n') end
 
-num = 0
+local num = 0
 for _k in pairsByKeys(vals, rev) do
   k = vals[_k]
 
@@ -99,7 +99,7 @@ for _k in pairsByKeys(vals, rev) do
      print("<td ><span style=\"width: 60%; float: left;\">")
      percentageBar(total, t, "") -- k
      -- print("</td>\n")
-     print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 2).. " %</span></td></tr>\n")
+     print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 1).. " %</span></td></tr>\n")
   else
      print('"bytes": '..tostring(t)..' }')
   end
