@@ -1178,26 +1178,28 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     bool out_of_sequence = false;
 
     if(zflow->in_pkts) {
-      if(zflow->in_pkts >= in_cur_pkts)     zflow->in_pkts -= in_cur_pkts;     else out_of_sequence = true;
+      if(zflow->in_pkts >= in_cur_pkts) zflow->in_pkts -= in_cur_pkts;
+      else zflow->in_pkts = 0, out_of_sequence = true;
     }
 
     if(zflow->in_bytes) {
-      if(zflow->in_bytes >= in_cur_bytes)   zflow->in_bytes -= in_cur_bytes;   else out_of_sequence = true;
+      if(zflow->in_bytes >= in_cur_bytes) zflow->in_bytes -= in_cur_bytes;
+      else zflow->in_bytes = 0, out_of_sequence = true;
     }
 
     if(zflow->out_pkts) {
-      if(zflow->out_pkts >= out_cur_pkts)   zflow->out_pkts -= out_cur_pkts;   else out_of_sequence = true;
+      if(zflow->out_pkts >= out_cur_pkts) zflow->out_pkts -= out_cur_pkts;
+      else zflow->out_pkts = 0, out_of_sequence = true;
     }
 
     if(zflow->out_bytes) {
-      if(zflow->out_bytes >= out_cur_bytes) zflow->out_bytes -= out_cur_bytes; else out_of_sequence = true;
+      if(zflow->out_bytes >= out_cur_bytes) zflow->out_bytes -= out_cur_bytes;
+      else zflow->out_bytes = 0, out_of_sequence = true;
     }
 
     if(out_of_sequence) {
 #ifdef ABSOLUTE_COUNTERS_DEBUG
       char flowbuf[265];
-      bool out_of_sequence_msg = false;
-      if(!out_of_sequence_msg) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "A flow received an update with absolute values smaller than the current values. "
 				   "[in_bytes: %u][in_cur_bytes: %u][out_bytes: %u][out_cur_bytes: %u]"
@@ -1206,8 +1208,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				   zflow->in_bytes, in_cur_bytes, zflow->out_bytes, out_cur_bytes,
 				   zflow->in_pkts, in_cur_pkts, zflow->out_pkts, out_cur_pkts,
 				   flow->print(flowbuf, sizeof(flowbuf)));
-      out_of_sequence_msg = true;
-      }
 #endif
     }
   }
