@@ -86,13 +86,6 @@ class AlertsManager : protected StoreManager {
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
-
-  int getAlerts(lua_State* vm, AddressTree *allowed_hosts,
-		u_int32_t start_offset, u_int32_t end_offset,
-		bool engaged, const char *sql_where_clause);
-  int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
-		    u_int32_t start_offset, u_int32_t end_offset,
-		    const char *sql_where_clause);
   int getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled=false);
   int getNumFlowAlerts(const char *sql_where_clause);
 
@@ -120,13 +113,6 @@ class AlertsManager : protected StoreManager {
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
   };
-  inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
-			     AlertEngine alert_engine,
-			     const char *engaged_alert_id,
-			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			     const char *alert_origin, const char *alert_target) {
-    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
-  };
   inline int releaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			      AlertEngine alert_engine,
 			      const char *engaged_alert_id,
@@ -138,17 +124,12 @@ class AlertsManager : protected StoreManager {
   inline int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
   }
-
   int getNumHostAlerts(Host *h, bool engaged);
 
   /*
     ========== FLOW alerts API =========
    */
   int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
-  inline int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
-			   u_int32_t start_offset, u_int32_t end_offset) {
-    return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
-  };
   inline int getNumFlowAlerts() {
     return getNumFlowAlerts(NULL);
   };
@@ -186,13 +167,6 @@ class AlertsManager : protected StoreManager {
   };
   int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
-  
-  inline int getAlerts(lua_State* vm, AddressTree *allowed_hosts,
-		       u_int32_t start_offset, u_int32_t end_offset,
-		       bool engaged){
-    return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, NULL /* all alerts by default */);
-  }
-
   /*
     ========== counters API ======
   */
@@ -201,9 +175,6 @@ class AlertsManager : protected StoreManager {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
     return getNumAlerts(engaged, "alert_severity=2" /* errors only */);
   }
-  int getNumAlerts(bool engaged, u_int64_t start_time);
-  int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
-  int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
 
   /*
     ========== raw API ======
