@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#ifndef WIN32
+#if defined(__APPLE__)
 #include <net/if_dl.h>
 #endif
 
