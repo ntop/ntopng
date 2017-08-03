@@ -350,4 +350,21 @@ typedef struct {
 
 #endif
 
+typedef enum {
+  device_unknown = 0,
+  device_router,
+  device_tv,
+  device_printer,
+  device_phone,
+  device_tablet,
+  device_pc,
+} DeviceType; /* NOTE:
+  Keep in sync with Utils::deviceType2str
+*/
+
+typedef enum {
+  service_internet_gateway,
+  service_nas,
+} DeviceService;
+
 #endif /* _NTOP_TYPEDEFS_H_ */
