@@ -370,6 +370,29 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
 
 /* **************************************************** */
 
+/* Note: keep in sync with lua_utils icon_keys */
+const char* Utils::deviceType2str(DeviceType devtype) {
+  switch (devtype) {
+    case device_router:
+      return("Router");
+    case device_tv:
+      return("TV");
+    case device_printer:
+      return("Printer");
+    case device_phone:
+      return("Phone");
+    case device_tablet:
+      return("Tablet");
+    case device_pc:
+      return("Computer");
+    case device_unknown:
+    default:
+      return("Unknown");
+  }
+}
+
+/* **************************************************** */
+
 const char* Utils::trend2str(ValueTrend t) {
   switch(t) {
   case trend_up:
