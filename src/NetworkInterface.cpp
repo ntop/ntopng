@@ -5147,10 +5147,10 @@ u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
 void NetworkInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(!zrs) return;
 
-  if(zrs->remote_ifname)               setRemoteIfname(zrs->remote_ifname);
-  if(zrs->remote_ifaddress)            setRemoteIfIPaddr(zrs->remote_ifaddress);
-  if(zrs->remote_probe_address)        setRemoteProbeAddr(zrs->remote_probe_address);
-  if(zrs->remote_probe_public_address) setRemoteProbePublicAddr(zrs->remote_probe_public_address);
+  if(zrs->remote_ifname[0] != '\0')               setRemoteIfname(zrs->remote_ifname);
+  if(zrs->remote_ifaddress[0] != '\0')            setRemoteIfIPaddr(zrs->remote_ifaddress);
+  if(zrs->remote_probe_address[0] != '\0')        setRemoteProbeAddr(zrs->remote_probe_address);
+  if(zrs->remote_probe_public_address[0] != '\0') setRemoteProbePublicAddr(zrs->remote_probe_public_address);
 
   ifSpeed = zrs->remote_ifspeed, last_pkt_rcvd = 0, last_pkt_rcvd_remote = zrs->remote_time,
     last_remote_pps = zrs->avg_pps, last_remote_bps = zrs->avg_bps;

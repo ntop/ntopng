@@ -20,6 +20,14 @@ local function getbaseURL(url)
 end
 
 interface.select(ifname)
+res = interface.scanHosts()
+
+print("<table>\n")
+for mac,ip in pairsByValues(res, asc) do
+   print("<tr><th>"..ip.."</th><td>"..mac.."</td></tr>\n")
+end
+print("</table>\n")
+
 res = interface.discoverHosts(5)
 
 

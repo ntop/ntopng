@@ -76,6 +76,7 @@ class Utils {
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static void readMac(char *ifname, dump_mac_t mac_addr);
+  static u_int32_t readIPv4(char *ifname);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);
   static bool isGoodNameToCategorize(char *name);
@@ -112,7 +113,6 @@ class Utils {
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();
   static int dropWriteCapabilities();
-
 };
 
 #endif /* _UTILS_H_ */

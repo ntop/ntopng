@@ -21,6 +21,10 @@
 
 #include "ntop_includes.h"
 
+#ifndef WIN32
+#include <net/if_dl.h>
+#endif
+
 #include <curl/curl.h>
 #include <string.h>
 
@@ -602,19 +606,19 @@ extern "C" {
 		int i = -1;
 
 		while (haystack[++i] != '\0') {
-			if (tolower(haystack[i]) == tolower(needle[0])) {
+			if(tolower(haystack[i]) == tolower(needle[0])) {
 				int j = i, k = 0, match = 0;
 				while (tolower(haystack[++j]) == tolower(needle[++k])) {
 					match = 1;
 					// Catch case when they match at the end
 					//printf("j:%d, k:%d\n",j,k);
-					if (haystack[j] == '\0' && needle[k] == '\0') {
+					if(haystack[j] == '\0' && needle[k] == '\0') {
 						//printf("Mj:%d, k:%d\n",j,k);
 						return &haystack[i];
 					}
 				}
 				// Catch normal case
-				if (match && needle[k] == '\0'){
+				if(match && needle[k] == '\0'){
 					// printf("Norm j:%d, k:%d\n",j,k);
 					return &haystack[i];
 				}
@@ -687,7 +691,7 @@ char* Utils::sanitizeHostName(char *str) {
 /* **************************************************** */
 
 char* Utils::stripHTML(const char * const str) {
-    if (!str) return NULL;
+    if(!str) return NULL;
     int len = strlen(str), j = 0;
     char *stripped_str = NULL;
     try {
@@ -704,7 +708,7 @@ char* Utils::stripHTML(const char * const str) {
     // scan string
     for (int i = 0; i < len; i++) {
         // found an open '<', scan for its close
-        if (str[i] == '<') {
+        if(str[i] == '<') {
             // charge ahead in the string until it runs out or we find what we're looking for
             for (; i < len && str[i] != '>'; i++);
         } else {
@@ -865,7 +869,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
       char c;
       int new_i;
 
-      if ((u_char)param[i] == 0xC3) {
+      if((u_char)param[i] == 0xC3) {
         /* Latin-1 within UTF-8 - Align to ASCII encoding */
         c = param[i+1] | 0x40;
         new_i = i+1; /* We are actually validating two bytes */
@@ -879,7 +883,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
         && (c != '>')
         && (c != '"'); /* Prevents injections - single quotes are allowed and will be validated in http_lint.lua */
 
-      if (is_good)
+      if(is_good)
         i = new_i;
     }
 
@@ -1439,7 +1443,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 /* **************************************** */
 
-#if defined(linux) || defined(__FreeBSD__)
+#if defined(linux) || defined(__FreeBSD__) || defined(__APPLE__)
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   char ifname[32];
@@ -1449,7 +1453,7 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(_ifname, ':');
-  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+  if(colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
     _ifname = colon+1;
 
   snprintf(ifname, sizeof(ifname), "%s", _ifname);
@@ -1457,7 +1461,24 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   if(at != NULL)
     at[0] = '\0';
 
-#ifndef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)  
+  struct ifaddrs *ifap, *ifaptr;
+  unsigned char *ptr;
+
+  if((res = getifaddrs(&ifap)) == 0) {
+    for(ifaptr = ifap; ifaptr != NULL; ifaptr = ifaptr->ifa_next) {
+      if(!strcmp(ifaptr->ifa_name, ifname) && (ifaptr->ifa_addr->sa_family == AF_LINK)) {
+
+	ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)ifaptr->ifa_addr);
+	memcpy(mac_addr, ptr, 6);
+
+	break;
+
+      }
+    }
+    freeifaddrs(ifap);
+  }
+#else
   int _sock;
   struct ifreq ifr;
 
@@ -1471,24 +1492,6 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
 
   close(_sock);
-
-#else /* defined(__FreeBSD__) */
-  struct ifaddrs *ifap, *ifaptr;
-  unsigned char *ptr;
-
-  if((res = getifaddrs(&ifap)) == 0) {
-    for(ifaptr = ifap; ifaptr != NULL; ifaptr = ifaptr->ifa_next) {
-      if (!strcmp(ifaptr->ifa_name, ifname) && (ifaptr->ifa_addr->sa_family == AF_LINK)) {
-
-	ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)ifaptr->ifa_addr);
-	memcpy(mac_addr, ptr, 6);
-
-	break;
-
-      }
-    }
-    freeifaddrs(ifap);
-  }
 #endif
 
   if(res < 0)
@@ -1504,6 +1507,31 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
   memset(mac_addr, 0, 6);
 }
 #endif
+
+/* **************************************** */
+
+u_int32_t Utils::readIPv4(char *ifname) {
+  struct ifreq ifr;
+  int fd;
+  u_int32_t ret_ip = 0;
+  
+  memset(&ifr, 0, sizeof(ifr));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  ifr.ifr_addr.sa_family = AF_INET;
+
+  if((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
+  } else {
+    if(ioctl(fd, SIOCGIFADDR, &ifr) == -1)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read IPv4 for device %s", ifname);
+    else
+      ret_ip = (((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr).s_addr;
+
+    closesocket(fd);
+  }
+
+  return(ret_ip);
+}
 
 /* **************************************** */
 
@@ -2023,7 +2051,7 @@ void Utils::replacestr(char *line, const char *search, const char *replace) {
   char *sp;
   int search_len, replace_len, tail_len;
   
-  if ((sp = strstr(line, search)) == NULL) {
+  if((sp = strstr(line, search)) == NULL) {
     return;
   }
 
@@ -2074,7 +2102,7 @@ bool Utils::isInterfaceUp(char *ifname) {
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(ifname, ':');
-  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+  if(colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
     ifname = colon+1;
 
   memset(&ifr, 0, sizeof(ifr));
@@ -2312,3 +2340,5 @@ int Utils::gainWriteCapabilities() {
 int Utils::dropWriteCapabilities() {
   return(_setWriteCapabilities(false));
 }
+
+

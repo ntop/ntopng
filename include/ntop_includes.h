@@ -97,7 +97,7 @@
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif
-
+#include <sys/select.h>
 #ifdef __APPLE__
 #include <uuid/uuid.h>
 #endif
