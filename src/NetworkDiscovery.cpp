@@ -27,6 +27,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   iface = _iface;
 
   if((sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
+#if 0
     int rc = Utils::bindSockToDevice(sock, AF_INET, iface->get_name());
 
     if(rc < 0) {
@@ -36,6 +37,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
       sock = -1;
       throw("Unable to start network discovery");
     }
+#endif
   }
 }
 
@@ -148,17 +150,46 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
 void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct sockaddr_in sin;
-  socklen_t sin_len = sizeof(struct sockaddr_in);
-  char msg[1024];
+  char msg[1024], *queries;
+  bool mdns_discovery = true;
+  u_int16_t ssdp_port = htons(1900), mdns_port = htons(5353), i;
+  struct timeval tv = { (time_t)timeout /* sec */, 0 };
+  fd_set fdset;
+  struct ndpi_dns_packet_header *dns_h;
+  const char *query_list[] = {
+    "_sftp-ssh._tcp.local",
+    "_smb._tcp.local",
+    "_afpovertcp._tcp.local",
+    "_sftp-ssh._tcp.local",
+    "_nfs._tcp.local",
+    "_airplay._tcp.local",
+    "_googlecast._tcp.local",
+    NULL
+  };
+  const u_char additional_mdns[] = { 0x0, 0x0, 0x29, 0x05, 0xa0, 0x0, 0x0, 0x11, 0x94,
+				     0x0, 0x12, 0x0, 0x04, 0x0, 0x0e,
+				     0x0, 0x79, 0x26, 0x69, 0xf8, 0x58, 0x09, 0x51, 0x04, 0x69,
+				     0xf8, 0x58, 0x09, 0x51
+  };
 
+    
   lua_newtable(vm);
 
   if(sock == -1) return;
 
   if(timeout < 1) timeout = 1;
 
-  sin.sin_addr.s_addr = inet_addr("239.255.255.250"),
-    sin.sin_family = AF_INET, sin.sin_port  = htons(1900);
+  /* MDNS */
+  memset(&sin, 0, sizeof(sin));
+  sin.sin_family = AF_INET, sin.sin_addr.s_addr = htonl(INADDR_ANY), sin.sin_port = mdns_port;
+  
+  if(bind(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) == -1) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to port %d [%s]", ntohs(sin.sin_port), strerror(errno)); 
+    mdns_discovery = false;
+  }
+  
+  /* SSDP */
+  sin.sin_addr.s_addr = inet_addr("239.255.255.250"), sin.sin_family = AF_INET, sin.sin_port = ssdp_port;
 
   /*
     ssdp:all : to search all UPnP devices
@@ -177,21 +208,68 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 	   "\r\n",
 	   PACKAGE_MACHINE, PACKAGE_VERSION);
 
-  if(sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&sin, sin_len) < 0)
+  if(sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
-  else {
-    struct timeval tv = { (time_t)timeout /* sec */, 0 };
-    fd_set fdset;
 
-    FD_ZERO(&fdset);
-    FD_SET(sock, &fdset);
+  /* MDNS */
+  if(mdns_discovery) {
+    sin.sin_addr.s_addr = inet_addr("224.0.0.251"), sin.sin_family = AF_INET, sin.sin_port = mdns_port;
 
-    while(select(sock + 1, &fdset, NULL, NULL, &tv) > 0) {
-      struct sockaddr_in from;
-      socklen_t s;
-      int len = recvfrom(sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
+    dns_h = (struct ndpi_dns_packet_header*)msg;
+    dns_h->tr_id = 0;
+    dns_h->flags = 0 /* query */;
+    dns_h->num_queries = htons(1);
+    dns_h->num_answers = 0;
+    dns_h->authority_rrs = 0;
+    dns_h->additional_rrs = htons(1);
+    queries = &msg[sizeof(struct ndpi_dns_packet_header)];
+  
+    for(i=0; query_list[i] != NULL; i++) {
+      const char *str = query_list[i];
+      u_int last_dot = 0;
+      int j;
+    
+      dns_h->tr_id = htons(i);
+    
+      for(j=1; str[j] != '\0'; j++) {
+	if(str[j] == '.') {
+	  queries[last_dot] = j-last_dot-1;
+	  last_dot = j;
+	} else
+	  queries[j] = str[j];
+      }
 
-      if(len > 0) {
+      queries[last_dot] = j-last_dot-1;
+      queries[j++] = '\0';
+
+      queries[j++] = 0x00; queries[j++] = 0x0C; /* PTR */
+      queries[j++] = 0x80; queries[j++] = 0x01; /* IN */
+
+      /* Append additional record */
+      memcpy(&queries[j],  additional_mdns, sizeof(additional_mdns));    
+      j += sizeof(struct ndpi_dns_packet_header) + sizeof(additional_mdns);
+
+      if(sendto(sock, msg, j, 0, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) < 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+      else
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sent MDNS request [%s][len: %u]",
+				     str, j);
+    }
+  }
+
+  /* Receive replies */
+  FD_ZERO(&fdset);
+  FD_SET(sock, &fdset);
+
+  while(select(sock + 1, &fdset, NULL, NULL, &tv) > 0) {
+    struct sockaddr_in from;
+    socklen_t s;
+    int len = recvfrom(sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received packet from sport %u", ntohs(from.sin_port));
+      
+    if(len > 0) {
+      if(from.sin_port == ssdp_port) {
 	char src[32], *host = Utils::intoaV4(ntohl(from.sin_addr.s_addr), src, sizeof(src));
 	char *line, *tmp;
 
@@ -209,6 +287,8 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 	    }
 	  }
 	}
+      } else if(from.sin_port == mdns_port) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Got reply !");	  
       }
     }
   }
