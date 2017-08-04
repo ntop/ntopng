@@ -86,13 +86,6 @@ class AlertsManager : protected StoreManager {
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
-
-  int getAlerts(lua_State* vm, AddressTree *allowed_hosts,
-		u_int32_t start_offset, u_int32_t end_offset,
-		bool engaged, const char *sql_where_clause);
-  int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
-		    u_int32_t start_offset, u_int32_t end_offset,
-		    const char *sql_where_clause);
   int getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled=false);
   int getNumFlowAlerts(const char *sql_where_clause);
 
@@ -120,13 +113,6 @@ class AlertsManager : protected StoreManager {
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
   };
-  inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
-			     AlertEngine alert_engine,
-			     const char *engaged_alert_id,
-			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			     const char *alert_origin, const char *alert_target) {
-    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
-  };
   inline int releaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			      AlertEngine alert_engine,
 			      const char *engaged_alert_id,
@@ -138,30 +124,12 @@ class AlertsManager : protected StoreManager {
   inline int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
   }
-
-  int getHostAlerts(Host *h,
-		    lua_State* vm, AddressTree *allowed_hosts,
-		    u_int32_t start_offset, u_int32_t end_offset,
-		    bool engaged);
-  
-  int getHostAlerts(const char *host_ip, u_int16_t vlan_id,
-		    lua_State* vm, AddressTree *allowed_hosts,
-		    u_int32_t start_offset, u_int32_t end_offset,
-		    bool engaged);
-
-  int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
   int getNumHostAlerts(Host *h, bool engaged);
-  int getNumHostFlowAlerts(const char *host_ip, u_int16_t vlan_id);
-  int getNumHostFlowAlerts(Host *h);
 
   /*
     ========== FLOW alerts API =========
    */
   int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
-  inline int getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
-			   u_int32_t start_offset, u_int32_t end_offset) {
-    return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
-  };
   inline int getNumFlowAlerts() {
     return getNumFlowAlerts(NULL);
   };
@@ -199,13 +167,6 @@ class AlertsManager : protected StoreManager {
   };
   int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
-  
-  inline int getAlerts(lua_State* vm, AddressTree *allowed_hosts,
-		       u_int32_t start_offset, u_int32_t end_offset,
-		       bool engaged){
-    return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, NULL /* all alerts by default */);
-  }
-
   /*
     ========== counters API ======
   */
@@ -214,14 +175,6 @@ class AlertsManager : protected StoreManager {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
     return getNumAlerts(engaged, "alert_severity=2" /* errors only */);
   }
-  int getNumAlerts(bool engaged, u_int64_t start_time);
-  int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
-  int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
-
-  /*
-    ========== delete API ======
-   */
-  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type, time_t older_than);
 
   /*
     ========== raw API ======
@@ -233,46 +186,6 @@ class AlertsManager : protected StoreManager {
   inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
     return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_FLOWS_TABLE_NAME, ignore_disabled);
   };
-
-  /* Following are the legacy methods that were formally global to the whole ntopng */
-#ifdef NOTUSED
-  /**
-   * @brief Queue an alert in redis
-   *
-   * @param level The alert level
-   * @param s     The alert status (alert on/off)
-   * @param t     The alert type
-   * @param msg   The alert message
-   */
-  int queueAlert(AlertLevel level, AlertStatus s, AlertType t, char *msg);
-  /**
-   * @brief Returns up to the specified number of alerts, and removes them from redis. The first parameter must be long enough to hold the returned results
-   * @param allowed_hosts The list of hosts allowed to be returned by this function
-   * @param alerts The returned alerts
-   * @param start_idx The initial queue index from which extract messages. Zero (0) is the first (i.e. most recent) queue element.
-   * @param num The maximum number of alerts to return.
-   * @return The number of elements read.
-   *
-   */
-  int getQueuedAlerts(lua_State* vm, AddressTree *allowed_hosts, int start_offset, int end_offset);
-  /**
-   * @brief Returns the number of queued alerts in redis generated by ntopng
-   *
-   */
-  int getNumQueuedAlerts();
-  /**
-   * @brief Delete the alert identified by the specified index.
-   * @param idx The queued alert index to delete. Zero (0) is the first (i.e. most recent) queue element.
-   * @return The number of elements read.
-   *
-   */
-  int deleteQueuedAlert(u_int32_t idx_to_delete);
-  /**
-   * @brief Flush all queued alerts
-   *
-   */
-  int flushAllQueuedAlerts();
-#endif
 };
 
 #endif /* _ALERTS_MANAGER_H_ */

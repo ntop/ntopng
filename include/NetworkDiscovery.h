@@ -29,12 +29,14 @@
 class NetworkDiscovery {
  private:
   int sock;
+  NetworkInterface *iface;
   
 public:
   NetworkDiscovery(NetworkInterface *_iface);
   ~NetworkDiscovery();
 
   void discover(lua_State* vm, u_int timeout);
+  void arpScan(lua_State* vm);
 };
 
 #endif /* _NETWORK_DISCOVERY_H_ */

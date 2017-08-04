@@ -162,6 +162,7 @@ typedef struct zmq_flow {
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int8_t l4_proto, tcp_flags;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
+  bool absolute_packet_octet_counters;
   struct {
     u_int32_t ooo_in_pkts, ooo_out_pkts;
     u_int32_t retr_in_pkts, retr_out_pkts;
@@ -174,6 +175,15 @@ typedef struct zmq_flow {
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
+
+typedef struct zmq_remote_stats {
+  char remote_ifname[32], remote_ifaddress[64];
+  char remote_probe_address[64], remote_probe_public_address[64];
+  u_int64_t remote_bytes, remote_pkts;
+  u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
+  u_int32_t remote_lifetime_timeout, remote_idle_timeout;
+  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops;
+} ZMQ_RemoteStats;
 
 struct vm_ptree {
   lua_State* vm;
@@ -330,6 +340,22 @@ typedef struct {
   UT_hash_handle hh; /* makes this structure hashable */
 } StringCache_t;
 
+PACK_ON
+struct arp_packet {
+  u_char dst_mac[6], src_mac[6];
+  u_int16_t proto;
+  /* ************* */
+  u_int16_t ar_hrd;/* Format of hardware address.  */
+  u_int16_t ar_pro;/* Format of protocol address.  */
+  u_int8_t  ar_hln;/* Length of hardware address.  */
+  u_int8_t  ar_pln;/* Length of protocol address.  */
+  u_int16_t ar_op;/* ARP opcode (command).  */
+  u_char arp_sha[6];/* sender hardware address */
+  u_int32_t arp_spa;/* sender protocol address */
+  u_char arp_tha[6];/* target hardware address */
+  u_int32_t arp_tpa;/* target protocol address */
+} PACK_OFF;
+
 #ifdef NTOPNG_PRO
 
 typedef struct {
@@ -339,5 +365,22 @@ typedef struct {
 } volatile_members_t;
 
 #endif
+
+typedef enum {
+  device_unknown = 0,
+  device_router,
+  device_tv,
+  device_printer,
+  device_phone,
+  device_tablet,
+  device_pc,
+} DeviceType; /* NOTE:
+  Keep in sync with Utils::deviceType2str
+*/
+
+typedef enum {
+  service_internet_gateway,
+  service_nas,
+} DeviceService;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

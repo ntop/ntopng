@@ -76,6 +76,7 @@ class Utils {
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static void readMac(char *ifname, dump_mac_t mac_addr);
+  static u_int32_t readIPv4(char *ifname);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);
   static bool isGoodNameToCategorize(char *name);
@@ -87,6 +88,7 @@ class Utils {
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
   static const char* flowStatus2str(FlowStatus s, AlertType *aType);
+  static const char* deviceType2str(DeviceType devtype);
   static char* formatMac(u_int8_t *mac, char *buf, u_int buf_len);
   static void  parseMac(u_int8_t *mac, const char *symMac);
   static u_int32_t macHash(u_int8_t *mac);
@@ -112,7 +114,6 @@ class Utils {
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();
   static int dropWriteCapabilities();
-
 };
 
 #endif /* _UTILS_H_ */

@@ -2851,9 +2851,25 @@ function getHostIcons()
    return pairsByKeys(icon_keys, asc)
 end
 
+-- Get the device icon from the C side
+-- NOTE: this can be optimized by reading the device directly from the mac lua data
+function getDeviceIcon(mac)
+   local info = interface.getMacInfo(mac)
+
+   if (info ~= nil) and (info.device_type ~= "Unknown") then
+      return icon_keys[info.device_type]
+   end
+
+   return nil
+end
+
 function getHostIconName(key)
    local hash_key = "ntopng.host_icons"
    local icon = ntop.getHashCache(hash_key, key)
+
+   if isEmptyString(icon) and isMacAddress(key) then
+      icon = getDeviceIcon(key)
+   end
 
    if (icon == nil) then
       icon = ""
@@ -3496,6 +3512,17 @@ end
 -- avoids manual HTTP prefix and /lua concatenation
 function page_url(path)
   return ntop.getHttpPrefix().."/lua/"..path
+end
+
+-- extracts a page url from the path
+function path_get_page(path)
+   local prefix = ntop.getHttpPrefix() .. "/lua/"
+
+   if string.find(path, prefix) == 1 then
+      return string.sub(path, string.len(prefix) + 1)
+   end
+
+   return path
 end
 
 -- ###########################################

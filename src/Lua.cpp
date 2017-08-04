@@ -1917,6 +1917,30 @@ static int ntop_discover_iface_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_scan_iface_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  try {
+    NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
+
+    if(d) {
+      d->arpScan(vm);
+      delete d;
+    }
+  } catch(...) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_getsflowdevices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5797,6 +5821,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Network Discovery */
   { "discoverHosts",                 ntop_discover_iface_hosts },
+  { "scanHosts",                     ntop_scan_iface_hosts     },
 
   /* DB */
   { "execSQLQuery",                  ntop_interface_exec_sql_query },

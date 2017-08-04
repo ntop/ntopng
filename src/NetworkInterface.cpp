@@ -1159,6 +1159,59 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(flow == NULL)
     return;
 
+  if(zflow->absolute_packet_octet_counters) {
+    /* Ajdust bytes and packets counters if the zflow update contains absolute values.
+
+       As flows may arrive out of sequence, special care is needed to avoid counting absolute values multiple times.
+
+       http://www.cisco.com/c/en/us/td/docs/security/asa/special/netflow/guide/asa_netflow.html#pgfId-1331296
+       Different events in the life of a flow may be issued in separate NetFlow packets and may arrive out-of-order
+       at the collector. For example, the packet containing a flow teardown event may reach the collector before the packet
+       containing a flow creation event. As a result, it is important that collector applications use the Event Time field
+       to correlate events.
+    */
+
+    u_int64_t in_cur_pkts = src2dst_direction ? flow->get_packets_cli2srv() : flow->get_packets_srv2cli(),
+      in_cur_bytes = src2dst_direction ? flow->get_bytes_cli2srv() : flow->get_bytes_srv2cli();
+    u_int64_t out_cur_pkts = src2dst_direction ? flow->get_packets_srv2cli() : flow->get_packets_cli2srv(),
+      out_cur_bytes = src2dst_direction ? flow->get_bytes_srv2cli() : flow->get_bytes_cli2srv();
+    bool out_of_sequence = false;
+
+    if(zflow->in_pkts) {
+      if(zflow->in_pkts >= in_cur_pkts) zflow->in_pkts -= in_cur_pkts;
+      else zflow->in_pkts = 0, out_of_sequence = true;
+    }
+
+    if(zflow->in_bytes) {
+      if(zflow->in_bytes >= in_cur_bytes) zflow->in_bytes -= in_cur_bytes;
+      else zflow->in_bytes = 0, out_of_sequence = true;
+    }
+
+    if(zflow->out_pkts) {
+      if(zflow->out_pkts >= out_cur_pkts) zflow->out_pkts -= out_cur_pkts;
+      else zflow->out_pkts = 0, out_of_sequence = true;
+    }
+
+    if(zflow->out_bytes) {
+      if(zflow->out_bytes >= out_cur_bytes) zflow->out_bytes -= out_cur_bytes;
+      else zflow->out_bytes = 0, out_of_sequence = true;
+    }
+
+    if(out_of_sequence) {
+#ifdef ABSOLUTE_COUNTERS_DEBUG
+      char flowbuf[265];
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "A flow received an update with absolute values smaller than the current values. "
+				   "[in_bytes: %u][in_cur_bytes: %u][out_bytes: %u][out_cur_bytes: %u]"
+				   "[in_pkts: %u][in_cur_pkts: %u][out_pkts: %u][out_cur_pkts: %u]\n"
+				   "%s",
+				   zflow->in_bytes, in_cur_bytes, zflow->out_bytes, out_cur_bytes,
+				   zflow->in_pkts, in_cur_pkts, zflow->out_pkts, out_cur_pkts,
+				   flow->print(flowbuf, sizeof(flowbuf)));
+#endif
+    }
+  }
+
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->deviceIP,
 			  src2dst_direction ? zflow->inIndex  : zflow->outIndex,
@@ -5095,37 +5148,31 @@ u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
 
 /* **************************************** */
 
-void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
-				      char *remoteProbeAddress, char *remoteProbePublicAddress,
-				      u_int64_t remBytes, u_int64_t remPkts,
-				      u_int32_t remTime, u_int32_t last_pps, u_int32_t last_bps) {
-  if(name)               setRemoteIfname(name);
-  if(address)            setRemoteIfIPaddr(address);
-  if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
-  if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd = 0, last_pkt_rcvd_remote = remTime,
-    last_remote_pps = last_pps, last_remote_bps = last_bps;
+void NetworkInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
+  if(!zrs) return;
+
+  if(zrs->remote_ifname[0] != '\0')               setRemoteIfname(zrs->remote_ifname);
+  if(zrs->remote_ifaddress[0] != '\0')            setRemoteIfIPaddr(zrs->remote_ifaddress);
+  if(zrs->remote_probe_address[0] != '\0')        setRemoteProbeAddr(zrs->remote_probe_address);
+  if(zrs->remote_probe_public_address[0] != '\0') setRemoteProbePublicAddr(zrs->remote_probe_public_address);
+
+  ifSpeed = zrs->remote_ifspeed, last_pkt_rcvd = 0, last_pkt_rcvd_remote = zrs->remote_time,
+    last_remote_pps = zrs->avg_pps, last_remote_bps = zrs->avg_bps;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
-     || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */
+     || (zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
      ) {
     /* Start over */
-    zmq_initial_bytes = remBytes, zmq_initial_pkts = remPkts;
-  } else {
-    remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]",
-				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
-				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
-    /*
-     * Don't override ethStats here, these stats are properly updated
-     * inside NetworkInterface::processFlow for ZMQ interfaces.
-     * Overriding values here may cause glitches and non-strictly-increasing counters
-     * yielding negative rates.
-     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
-     *
-     */
+    zmq_initial_bytes = zrs->remote_bytes, zmq_initial_pkts = zrs->remote_pkts;
   }
+  /*
+   * Don't override ethStats here, these stats are properly updated
+   * inside NetworkInterface::processFlow for ZMQ interfaces.
+   * Overriding values here may cause glitches and non-strictly-increasing counters
+   * yielding negative rates.
+   ethStats.setNumBytes(zrs->remote_bytes), ethStats.setNumPackets(zrs->remote_pkts);
+   *
+   */
 }
 
 /* **************************************** */
