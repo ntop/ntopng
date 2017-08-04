@@ -110,32 +110,34 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   lua_push_str_table_entry(vm,
 			   Utils::formatMac(arp.arp_sha, macbuf, sizeof(macbuf)),
 			   Utils::intoaV4(ntohl(arp.arp_spa), ipbuf, sizeof(ipbuf)));
-  
-  for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
-    arp.arp_tpa = ntohl(host_ip);
 
-    if(arp.arp_tpa == arp.arp_spa)
-      continue; /* I know myself already */
+  for(int num_runs=0; num_runs<2; num_runs++) {
+    for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
+      arp.arp_tpa = ntohl(host_ip);
 
-    // Inject packet
-    if(pcap_inject(pd, &arp, sizeof(arp)) == -1)
-      break;
+      if(arp.arp_tpa == arp.arp_spa)
+	continue; /* I know myself already */
 
-    FD_ZERO(&rset);
-    FD_SET(fd, &rset);
+      // Inject packet
+      if(pcap_inject(pd, &arp, sizeof(arp)) == -1)
+	break;
 
-    tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
+      FD_ZERO(&rset);
+      FD_SET(fd, &rset);
 
-    if(select(fd + 1, &rset, NULL, NULL, &tv) > 0) {
-      reply = (struct arp_packet*)pcap_next(pd, &h);
+      tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
 
-      lua_push_str_table_entry(vm,
-			       Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
-			       Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-    } else
-      _usleep(1000); /* Avoid flooding */
+      if(select(fd + 1, &rset, NULL, NULL, &tv) > 0) {
+	reply = (struct arp_packet*)pcap_next(pd, &h);
+
+	lua_push_str_table_entry(vm,
+				 Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
+				 Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+      } else
+	_usleep(1000); /* Avoid flooding */
+    }
   }
-
+  
   /* Final rush */
   while((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
     lua_push_str_table_entry(vm,
@@ -171,7 +173,6 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 				     0x0, 0x79, 0x26, 0x69, 0xf8, 0x58, 0x09, 0x51, 0x04, 0x69,
 				     0xf8, 0x58, 0x09, 0x51
   };
-
     
   lua_newtable(vm);
 
