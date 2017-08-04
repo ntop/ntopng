@@ -135,8 +135,8 @@ class GenericHash {
   inline bool hasEmptyRoom() { return((current_size < max_hash_size) ? true : false); };
   inline u_int32_t getCurrentSize() { return current_size;}
 
-  inline void disablePurge() { purgeLock.lock(__FILE__, __LINE__);   }
-  inline void enablePurge()  { purgeLock.unlock(__FILE__, __LINE__); }
+  inline void disablePurge() { /* purgeLock.lock(__FILE__, __LINE__);   */ }
+  inline void enablePurge()  { /* purgeLock.unlock(__FILE__, __LINE__); */ }
 };
 
 #endif /* _GENERIC_HASH_H_ */

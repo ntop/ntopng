@@ -44,8 +44,8 @@ void Mutex::lock(const char *filename, const int line) {
 
   if(rc != 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, 
-					"pthread_mutex_lock() returned %d [%s][errno=%d]", 
-					rc, strerror(rc), errno);
+				 "pthread_mutex_lock() returned %d [%s][errno=%d]", 
+				 rc, strerror(rc), errno);
   else
     locked = true;
 

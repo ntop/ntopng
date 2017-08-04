@@ -2556,6 +2556,8 @@ static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data) {
   return(false); /* false = keep on walking */
 }
 
+/* **************************************************** */
+
 static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
   Host *h = (Host*)host;
 
@@ -2563,6 +2565,8 @@ static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
   h->resetBlockedTrafficStatus();
   return(false); /* false = keep on walking */
 }
+
+/* **************************************************** */
 
 void NetworkInterface::resetPoolsStats() {
   if(host_pools) {

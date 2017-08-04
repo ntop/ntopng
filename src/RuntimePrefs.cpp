@@ -83,7 +83,6 @@ RuntimePrefs::RuntimePrefs() {
   addToCache(CONST_REMOTE_HOST_IDLE_PREFS, u_int32_t_ptr, (void*)&non_local_host_max_idle);
   addToCache(CONST_FLOW_MAX_IDLE_PREFS, u_int32_t_ptr, (void*)&flow_max_idle);
   addToCache(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL, u_int32_t_ptr, (void*)&active_local_hosts_cache_interval);
-
   addToCache(CONST_INTF_RRD_RAW_DAYS, u_int32_t_ptr, (void*)&intf_rrd_raw_days);
   addToCache(CONST_INTF_RRD_1MIN_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1min_days);
   addToCache(CONST_INTF_RRD_1H_DAYS, u_int32_t_ptr, (void*)&intf_rrd_1h_days);
@@ -92,38 +91,28 @@ RuntimePrefs::RuntimePrefs() {
   addToCache(CONST_OTHER_RRD_1MIN_DAYS, u_int32_t_ptr, (void*)&other_rrd_1min_days);
   addToCache(CONST_OTHER_RRD_1H_DAYS, u_int32_t_ptr, (void*)&other_rrd_1h_days);
   addToCache(CONST_OTHER_RRD_1D_DAYS, u_int32_t_ptr, (void*)&other_rrd_1d_days);
-
   addToCache(CONST_TOP_TALKERS_ENABLED, bool_ptr, (void*)&enable_top_talkers);
-
   addToCache(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED, bool_ptr, (void*)&enable_idle_local_hosts_cache);
   addToCache(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED, bool_ptr, (void*)&enable_active_local_hosts_cache);
   addToCache(CONST_IS_TINY_FLOW_EXPORT_ENABLED, bool_ptr, (void*)&enable_tiny_flows_export);
-
   addToCache(CONST_MAX_NUM_ALERTS_PER_ENTITY, int32_t_ptr, (void*)&max_num_alerts_per_entity);
   addToCache(CONST_MAX_NUM_FLOW_ALERTS, int32_t_ptr, (void*)&max_num_flow_alerts);
-
   addToCache(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, bool_ptr, (void*)&enable_flow_device_port_rrd_creation);
-
   addToCache(CONST_ALERT_DISABLED_PREFS, bool_ptr, (void*)&disable_alerts);
   addToCache(CONST_RUNTIME_PREFS_ALERT_PROBING, bool_ptr, (void*)&enable_probing_alerts);
   addToCache(CONST_RUNTIME_PREFS_ALERT_SSL, bool_ptr, (void*)&enable_ssl_alerts);
   addToCache(CONST_RUNTIME_PREFS_ALERT_SYSLOG, bool_ptr, (void*)&enable_syslog_alerts);
   addToCache(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, bool_ptr, (void*)&slack_notifications_enabled);
   addToCache(ALERTS_DUMP_DURING_IFACE_ALERTED, bool_ptr, (void*)&dump_flow_alerts_when_iface_alerted);
-
   addToCache(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_packets_per_tiny_flow);
   addToCache(CONST_MAX_NUM_BYTES_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_bytes_per_tiny_flow);
-
   addToCache(CONST_SAFE_SEARCH_DNS, u_int32_t_ptr, (void*)&safe_search_dns_ip);
   addToCache(CONST_GLOBAL_DNS, u_int32_t_ptr, (void*)&global_primary_dns_ip);
   addToCache(CONST_SECONDARY_DNS, u_int32_t_ptr, (void*)&global_secondary_dns_ip);
   addToCache(CONST_PREFS_CAPTIVE_PORTAL, bool_ptr, (void*)&enable_captive_portal);
   redirection_url = addToCache(CONST_PREFS_REDIRECTION_URL, str, strdup(DEFAULT_REDIRECTION_URL));
-
   addToCache(CONST_RUNTIME_MAX_UI_STRLEN, u_int32_t_ptr, (void*)&max_ui_strlen);
-
   addToCache(CONST_RUNTIME_PREFS_HOSTMASK, hostmask_ptr, (void*)&hostMask);
-
 }
 
 /* ******************************************* */
@@ -162,17 +151,13 @@ int RuntimePrefs::hashGet(char *key, char *rsp, u_int rsp_len) {
     switch(m->value_ptr) {
     case str:
       m->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
-
       ret = snprintf(rsp, rsp_len, "%s", (char*)m->value);
-
       m->rwlock->unlock(__FILE__, __LINE__);
       break;
 
     case str_ptr:
       m->rwlock->lock(__FILE__, __LINE__, true /* rdlock */);
-
       ret = snprintf(rsp, rsp_len, "%s", *((char**)m->value));
-
       m->rwlock->unlock(__FILE__, __LINE__);
       break;
 

@@ -4721,7 +4721,6 @@ static int ntop_get_redis(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
 
-
   if((rsp = (char*)malloc(rsp_len)) != NULL) {
     lua_pushfstring(vm, "%s", (redis->get(key, rsp, rsp_len) == 0) ? rsp : (char*)"");
     free(rsp);

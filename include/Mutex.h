@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-#define MUTEX_DEBUG 1
+/* #define MUTEX_DEBUG 1 */
 
 /* ******************************* */
 
