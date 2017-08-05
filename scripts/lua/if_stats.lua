@@ -359,15 +359,31 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-      print("<tr><th>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
-      if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"].."</td>") end
-      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>"..i18n("if_stats_overview.probe_ip").."</b>: "..ifstats["probe.ip"].."</td><td></td>") end
-      if(ifstats["probe.public_ip"] ~= "") then
-         print("<td nowrap><b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
-      else
-         print("<td colspan=2>&nbsp;</td>\n")
+
+      local remote_if_addr, remote_probe_ip, remote_probe_public_ip = '', '', ''
+
+      if not isEmptyString(ifstats["remote.if_addr"]) then
+	 remote_if_addr = "<b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"]
       end
+
+      if not isEmptyString(ifstats["probe.ip"]) then
+	 remote_probe_ip = "<b>"..i18n("if_stats_overview.probe_ip").."</b>: "..ifstats["probe.ip"]
+      end
+
+      if not isEmptyString(ifstats["probe.public_ip"]) then
+         remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n"
+      end
+
+      print("<tr><th rowspan=2>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
+      print("<td nowrap>"..remote_if_addr.."</td>")
+      print("<td nowrap>"..remote_probe_ip.."</td>")
+      print("<td nowrap colspan=2>"..remote_probe_public_ip.."</td>\n")
       print("</tr>\n")
+
+      print("<tr>")
+      print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
+      print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
+      print("<td></td><td></td></tr>")
    end
 
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)

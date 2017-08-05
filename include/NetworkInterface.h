@@ -64,7 +64,6 @@ class NetworkInterface {
  protected:
   char *ifname, *ifDescription;
   const char *customIftype;
-  char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   u_int8_t alertLevel, purgeRuns;
 
   /* Disaggregations */
@@ -148,7 +147,7 @@ class NetworkInterface {
   void termLuaInterpreter();
   void init();
   void deleteDataStructures();
-  NetworkInterface* getSubInterface(u_int32_t criteria);
+  NetworkInterface* getSubInterface(u_int32_t criteria, bool parser_interface);
   Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
   		IpAddress *src_ip, IpAddress *dst_ip,
@@ -239,10 +238,6 @@ class NetworkInterface {
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
   inline char* get_ndpi_proto_breed_name(u_int id) {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
-  inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
-  inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
-  inline void setRemoteProbeAddr(char *ip)     { if(!remoteProbeIPaddr) remoteProbeIPaddr = strdup(ip);};
-  inline void setRemoteProbePublicAddr(char *ip) { if(!remoteProbePublicIPaddr) remoteProbePublicIPaddr = strdup(ip);};
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
@@ -487,7 +482,7 @@ class NetworkInterface {
   bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
   void initL7Policer();
 #endif
-  void setRemoteStats(ZMQ_RemoteStats *zrs);
+
   void getFlowsStatus(lua_State *vm);
   void startDBLoop() { if(db) db->startDBLoop(); };
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};

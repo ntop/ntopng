@@ -35,16 +35,22 @@ class ParserInterface : public NetworkInterface {
   struct FlowFieldMap *map;
   bool once;
 
+  ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
+
   int getKeyId(char *sym);
   void addMapping(const char *sym, int num);
 
  public:
-  ParserInterface(const char *endpoint);
+  ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();
 
   u_int8_t parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data);
+
+  virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
+
+  virtual void lua(lua_State* vm);
 };
 
 #endif /* _PARSER_INTERFACE_H_ */

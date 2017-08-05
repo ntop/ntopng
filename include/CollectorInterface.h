@@ -55,7 +55,7 @@ class CollectorInterface : public ParserInterface {
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);
-  void lua(lua_State* vm);
+  virtual void lua(lua_State* vm);
 };
 
 #endif /* _COLLECTOR_INTERFACE_H_ */

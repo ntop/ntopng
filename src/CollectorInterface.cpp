@@ -286,7 +286,7 @@ bool CollectorInterface::set_packet_filter(char *filter) {
 /* **************************************************** */
 
 void CollectorInterface::lua(lua_State* vm) {
-  NetworkInterface::lua(vm);
+  ParserInterface::lua(vm);
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "flows", recvStats.num_flows);

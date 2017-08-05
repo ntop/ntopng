@@ -51,7 +51,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
-  scalingFactor = 1, remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
+  scalingFactor = 1;
   if(strcmp(name, "-") == 0) name = "stdin";
   if(strcmp(name, "-") == 0) name = "stdin";
 
@@ -236,8 +236,7 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
-    remoteProbePublicIPaddr = NULL, flows_hash = NULL,
+  ifname = NULL, flows_hash = NULL,
     hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
@@ -609,10 +608,6 @@ NetworkInterface::~NetworkInterface() {
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
   if(ifDescription)     free(ifDescription);
-  if(remoteIfname)      free(remoteIfname);
-  if(remoteIfIPaddr)    free(remoteIfIPaddr);
-  if(remoteProbeIPaddr) free(remoteProbeIPaddr);
-  if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
 
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
@@ -1012,7 +1007,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
-NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
+NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool parser_interface) {
   FlowHashing *h = NULL;
 
   HASH_FIND_INT(flowHashing, &criteria, h);
@@ -1055,7 +1050,12 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
 	  break;
 	}
 
-	if((h->iface = new NetworkInterface(buf, vIface_type)) != NULL) {
+	if(parser_interface)
+	  h->iface = new ParserInterface(buf, vIface_type);
+	else
+	  h->iface = new NetworkInterface(buf, vIface_type);
+
+	if(h->iface) {
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
@@ -1116,20 +1116,20 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
-      vIface = getSubInterface((u_int32_t)zflow->deviceIP);
+      vIface = getSubInterface((u_int32_t)zflow->deviceIP, true);
       break;
 
     case flowhashing_ingress_iface_idx:
-      vIface = getSubInterface((u_int32_t)zflow->inIndex);
+      vIface = getSubInterface((u_int32_t)zflow->inIndex, true);
       break;
 
     case flowhashing_vrfid:
-      vIface = getSubInterface((u_int32_t)zflow->vrfId);
+      vIface = getSubInterface((u_int32_t)zflow->vrfId, true);
       break;
 
     case flowhashing_vlan:
       if(zflow->vlan_id)
-	vIface = getSubInterface((u_int32_t)zflow->vlan_id);
+	vIface = getSubInterface((u_int32_t)zflow->vlan_id, true);
       break;
 
     default:
@@ -1379,7 +1379,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
   if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
     NetworkInterface *vIface;
 
-    if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
+    if((vIface = getSubInterface((u_int32_t)vlan_id, false)) != NULL) {
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
@@ -4361,11 +4361,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
 
-  if(remoteIfname)      lua_push_str_table_entry(vm, "remote.name",    remoteIfname);
-  if(remoteIfIPaddr)    lua_push_str_table_entry(vm, "remote.if_addr", remoteIfIPaddr);
-  if(remoteProbeIPaddr) lua_push_str_table_entry(vm, "probe.ip", remoteProbeIPaddr);
-  if(remoteProbePublicIPaddr) lua_push_str_table_entry(vm, "probe.public_ip", remoteProbePublicIPaddr);
-
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "packets",     getNumPackets());
   lua_push_int_table_entry(vm, "bytes",       getNumBytes());
@@ -5145,35 +5140,6 @@ u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
   for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPacketDrops();
   return(tot);
 };
-
-/* **************************************** */
-
-void NetworkInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
-  if(!zrs) return;
-
-  if(zrs->remote_ifname[0] != '\0')               setRemoteIfname(zrs->remote_ifname);
-  if(zrs->remote_ifaddress[0] != '\0')            setRemoteIfIPaddr(zrs->remote_ifaddress);
-  if(zrs->remote_probe_address[0] != '\0')        setRemoteProbeAddr(zrs->remote_probe_address);
-  if(zrs->remote_probe_public_address[0] != '\0') setRemoteProbePublicAddr(zrs->remote_probe_public_address);
-
-  ifSpeed = zrs->remote_ifspeed, last_pkt_rcvd = 0, last_pkt_rcvd_remote = zrs->remote_time,
-    last_remote_pps = zrs->avg_pps, last_remote_bps = zrs->avg_bps;
-
-  if((zmq_initial_pkts == 0) /* ntopng has been restarted */
-     || (zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
-     ) {
-    /* Start over */
-    zmq_initial_bytes = zrs->remote_bytes, zmq_initial_pkts = zrs->remote_pkts;
-  }
-  /*
-   * Don't override ethStats here, these stats are properly updated
-   * inside NetworkInterface::processFlow for ZMQ interfaces.
-   * Overriding values here may cause glitches and non-strictly-increasing counters
-   * yielding negative rates.
-   ethStats.setNumBytes(zrs->remote_bytes), ethStats.setNumPackets(zrs->remote_pkts);
-   *
-   */
-}
 
 /* **************************************** */
 
