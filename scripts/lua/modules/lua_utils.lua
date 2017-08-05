@@ -2003,11 +2003,53 @@ function getRedisPrefix(str)
   end
 end
 
+function getPathFromIPv6(addr)
+   local ipv6 = {"0000", "0000", "0000", "0000",
+		 "0000", "0000", "0000", "0000"}
+
+   local ip, subnet = (addr or ''):match("([^/]+)/?(%d*)")
+
+   if ip == nil then ip = '' end
+   if subnet == nil then subnet = '' end
+
+   local prefix = ip or ''
+   local suffix = ''
+   if ip:find("::") then
+      local s = ip:gsub("::","x")
+      local t = s:split("x")
+      prefix, suffix = t[1] or '', t[2] or ''
+   end
+
+   for i, p in ipairs(prefix:split(":") or {prefix}) do
+      ipv6[i] = string.format('%.4x', tonumber(p, 16) or 0)
+   end
+
+   local i = 1
+   for _, p in pairsByKeys(suffix:split(":") or {suffix}, rev) do
+      ipv6[8 - i + 1] = string.format('%.4x', tonumber(p, 16) or 0)
+      i = i + 1
+   end
+
+   local most_significant = {ipv6[1], ipv6[2], ipv6[3], ipv6[4]}
+   local interface_identifier = {ipv6[5], ipv6[6], ipv6[7], ipv6[8]}
+
+   -- most significant part of the address goes in a hierarchical structure
+   local res = table.concat(most_significant, "/")
+   -- the interface identifies goes as-is because it is non structured
+   res = fixPath(res.."/"..table.concat(interface_identifier, "_"))
+
+   if not isEmptyString(subnet) then
+      res = fixPath(res.."/"..subnet)
+   end
+
+   return res
+end
+
 function getPathFromKey(key)
    if key == nil then key = "" end
 
-   while key:match("::") do
-      key = key:gsub("::", ":0000:")
+   if isIPv6(key) then
+      return getPathFromIPv6(key)
    end
 
    key = key:gsub("[%.:]", "/")
@@ -3372,7 +3414,7 @@ function paramsPairsDecode(params, strict_mode)
 end
 
 function isBridgeInterface(ifstats)
-  return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+  return ifstats.inline
 end
 
 function hasBridgeInterfaces()
