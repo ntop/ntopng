@@ -3372,7 +3372,7 @@ function paramsPairsDecode(params, strict_mode)
 end
 
 function isBridgeInterface(ifstats)
-  return (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+  return ifstats.inline
 end
 
 function hasBridgeInterfaces()

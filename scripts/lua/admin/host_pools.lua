@@ -286,7 +286,8 @@ print('</select>')
 local no_pools = (#available_pools <= 1)
 
 local ifstats = interface.getStats()
-local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+local is_bridge_iface = isBridgeInterface(ifstats)
+
 if is_bridge_iface and selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
   print("<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-cog' aria-hidden='true'></i></a>")
 end
