@@ -93,13 +93,17 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
 void NetworkDiscovery::arpScan(lua_State* vm) {
   bpf_u_int32 maskp, netp;
   u_int32_t first_ip, last_ip, host_ip, sender_ip = Utils::readIPv4(iface->get_name());
-  char macbuf[32], ipbuf[32];
+  char macbuf[32], ipbuf[32], mdnsbuf[256], mdnsreply[1500];
   const u_int max_num_ips = 1024;
   struct arp_packet arp, *reply;
   fd_set rset;
   struct timeval tv;
   struct pcap_pkthdr h;
   char errbuf[PCAP_ERRBUF_SIZE];
+  int mdns_sock, max_sock = pd_fd;
+  ndpi_dns_packet_header *dns_h;
+  u_int dns_query_len;
+  struct sockaddr_in mdns_dest;
 
   lua_newtable(vm);
 
@@ -108,6 +112,42 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   if(pcap_lookupnet(iface->get_name(), &netp, &maskp, errbuf) == -1) {
     /* Np IP/mask: can't do much then */
     return;
+  }
+
+  if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create MDNS socket");
+  else {
+    const char* anyservices = "_services._dns-sd._udp.local";
+    u_int last_dot = 0;
+    char *queries;
+
+    if(mdns_sock > max_sock) max_sock = mdns_sock;
+    dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
+    dns_h->tr_id = 0;
+    dns_h->flags = 0 /* query */;
+    dns_h->num_queries = htons(1);
+    dns_h->num_answers = 0;
+    dns_h->authority_rrs = 0;
+    dns_h->additional_rrs = 0;
+    queries = &mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
+
+    dns_h->tr_id = htons(0);
+
+    for(dns_query_len=0; anyservices[dns_query_len] != '\0'; dns_query_len++) {
+      if(anyservices[dns_query_len] == '.') {
+	queries[last_dot] = dns_query_len-last_dot;
+	last_dot = dns_query_len+1;
+      } else
+	queries[dns_query_len+1] = anyservices[dns_query_len];
+    }
+
+    dns_query_len++;
+    queries[last_dot] = dns_query_len-last_dot-1;
+    queries[dns_query_len++] = '\0';
+
+    queries[dns_query_len++] = 0x00; queries[dns_query_len++] = 0x0C; /* PTR */
+    queries[dns_query_len++] = 0x00; queries[dns_query_len++] = 0x01; /* IN */
+    dns_query_len += sizeof(struct ndpi_dns_packet_header);
   }
 
   netp = ntohl(netp), maskp = ntohl(maskp);
@@ -135,6 +175,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 			   Utils::formatMac(arp.arp_sha, macbuf, sizeof(macbuf)),
 			   Utils::intoaV4(ntohl(arp.arp_spa), ipbuf, sizeof(ipbuf)));
 
+  mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
+
   for(int num_runs=0; num_runs<2; num_runs++) {
     for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
       arp.arp_tpa = ntohl(host_ip);
@@ -148,38 +190,84 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
       FD_ZERO(&rset);
       FD_SET(pd_fd, &rset);
+      if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
 
       tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
 
-      if(select(pd_fd + 1, &rset, NULL, NULL, &tv) > 0) {
-	reply = (struct arp_packet*)pcap_next(pd, &h);
+      if(select(max_sock + 1, &rset, NULL, NULL, &tv) > 0) {
+	if(FD_ISSET(pd_fd, &rset)) {
+	  reply = (struct arp_packet*)pcap_next(pd, &h);
+	  
+	  lua_push_str_table_entry(vm,
+				   Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
+				   Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	  
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	  
+	  if(mdns_sock != -1) {
+	    mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
+	    if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+	  }
+	}
 
-	lua_push_str_table_entry(vm,
-				 Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
-				 Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-      } else
-	_usleep(1000); /* Avoid flooding */
+	if(FD_ISSET(mdns_sock, &rset)) {
+	  struct sockaddr_in from;
+	  socklen_t from_len = sizeof(from);
+	  int len = recvfrom(mdns_sock, mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
+
+	  if(len > 0) {
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received MDNS reply from %s [%u bytes]",
+					 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)), len);
+	  }
+	}
+      }
+      
+      _usleep(1000); /* Avoid flooding */
     }
   }
+
+  /* Query myself mith MDNS */
+  mdns_dest.sin_addr.s_addr = sender_ip, dns_h->tr_id++;
+  if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
 
   /* Final rush */
   while((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
     lua_push_str_table_entry(vm,
 			     Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
 			     Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+    mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
+    if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+  }
+
+  if(mdns_sock != -1) {
+    while(true) {
+      FD_ZERO(&rset);
+      FD_SET(mdns_sock, &rset);
+      
+      tv.tv_sec = 1, tv.tv_usec = 0;
+      if(select(max_sock + 1, &rset, NULL, NULL, &tv) > 0) {
+	struct sockaddr_in from;
+	socklen_t from_len = sizeof(from);
+	int len = recvfrom(mdns_sock, mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
+
+	if(len > 0) {
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received MDNS reply from %s [%u bytes]",
+				       Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)), len);
+	}
+      } else
+	break;
+    }
+    
+    close(mdns_sock);
   }
 }
 
 /* ******************************* */
-
-unsigned short csum(unsigned short *buf, int nwords){
-  unsigned long sum;
-  for (sum = 0; nwords > 0; nwords--)
-    sum += *buf++;
-  sum = (sum >> 16) + (sum & 0xffff);
-  sum += (sum >> 16);
-  return ~sum;
-}
 
 u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 						       u_int32_t sender_ip, u_int8_t *sender_mac,
@@ -192,7 +280,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
   char *queries, *data;
   const u_int8_t multicast_mac[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFB };
   u_int16_t dns_request_id = time(NULL) & 0xFFFF;
-  
+
   memset(pbuf, 0, pbuf_len);
 
   memcpy(eth->h_dest, multicast_mac, sizeof(struct ndpi_ethhdr));
@@ -238,7 +326,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
   iph->protocol = IPPROTO_UDP;
   iph->saddr = sender_ip;
   iph->daddr = inet_addr("224.0.0.251");
-  
+
   // UDP header
   udph->source = htons(5353);
   udph->dest = htons(5353);
@@ -255,7 +343,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 					  in_cksum((unsigned char *)&iph->saddr,
 						   2*sizeof(iph->saddr),
 						   IPPROTO_UDP + ntohs(udph->len)))));
-  
+
   return(tot_len);
 }
 
@@ -265,21 +353,9 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct sockaddr_in sin;
   char msg[1024];
-  u_int32_t sender_ip = Utils::readIPv4(iface->get_name());
-  u_int16_t ssdp_port = htons(1900), i;
+  u_int16_t ssdp_port = htons(1900);
   struct timeval tv = { (time_t)timeout /* sec */, 0 };
   fd_set fdset;
-  const char *query_list[] = {
-    "_sftp-ssh._tcp.local",
-    "_homekit._tcp.local.",
-    "_smb._tcp.local",
-    "_afpovertcp._tcp.local",
-    "_ssh._tcp.local",
-    "_nfs._tcp.local",
-    "_airplay._tcp.local",
-    "_googlecast._tcp.local",
-    NULL
-  };
 
   lua_newtable(vm);
 
@@ -289,8 +365,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   if(timeout < 1) timeout = 1;
 
   /* SSDP */
-  sin.sin_addr.s_addr = inet_addr("239.255.255.250"),
-    sin.sin_family = AF_INET, sin.sin_port = ssdp_port;
+  sin.sin_addr.s_addr = inet_addr("239.255.255.250"), sin.sin_family = AF_INET, sin.sin_port = ssdp_port;
 
   /*
     ssdp:all : to search all UPnP devices
@@ -312,9 +387,23 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   if(sendto(udp_sock, msg, strlen(msg), 0, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
 
+#ifdef MDNS_MULTICAST_DISCOVERY
   /* MDNS */
   {
     dump_mac_t sender_mac;
+    const char *query_list[] = {
+      "_sftp-ssh._tcp.local",
+      "_homekit._tcp.local.",
+      "_smb._tcp.local",
+      "_afpovertcp._tcp.local",
+      "_ssh._tcp.local",
+      "_nfs._tcp.local",
+      "_airplay._tcp.local",
+      "_googlecast._tcp.local",
+      NULL
+    };
+    int i;
+    u_int32_t sender_ip = Utils::readIPv4(iface->get_name());
 
     Utils::readMac(iface->get_name(), sender_mac);
 
@@ -327,6 +416,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sent MDNS request [%s][len: %u]", query_list[i], len);
     }
   }
+#endif /* MDNS_MULTICAST_DISCOVERY */
 
   /* Receive replies */
   FD_ZERO(&fdset);
