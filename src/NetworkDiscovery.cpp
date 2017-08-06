@@ -187,11 +187,12 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
   struct ndpi_ethhdr *eth = (struct ndpi_ethhdr*)pbuf;
   struct ndpi_iphdr *iph = (struct ndpi_iphdr *)(&pbuf[sizeof(struct ndpi_ethhdr)]);
   struct ndpi_udphdr *udph = (struct ndpi_udphdr *)&pbuf[sizeof(struct ndpi_ethhdr) +sizeof(struct ndpi_iphdr)];
-  u_int last_dot = 0, i, dns_query_len, tot_len;
+  u_int last_dot = 0, dns_query_len, tot_len;
   struct ndpi_dns_packet_header *dns_h;
   char *queries, *data;
-  const char multicast_mac[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFB };
-
+  const u_int8_t multicast_mac[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFB };
+  u_int16_t dns_request_id = time(NULL) & 0xFFFF;
+  
   memset(pbuf, 0, pbuf_len);
 
   memcpy(eth->h_dest, multicast_mac, sizeof(struct ndpi_ethhdr));
@@ -208,7 +209,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
   dns_h->additional_rrs = 0; // htons(1);
   queries = &data[sizeof(struct ndpi_dns_packet_header)];
 
-  dns_h->tr_id = htons(i);
+  dns_h->tr_id = htons(dns_request_id);
 
   for(dns_query_len=0; query[dns_query_len] != '\0'; dns_query_len++) {
     if(query[dns_query_len] == '.') {
@@ -231,7 +232,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
   iph->version = 4;
   iph->tos = 0;
   iph->tot_len = sizeof(struct ndpi_iphdr) + sizeof (struct ndpi_udphdr) + dns_query_len;
-  iph->id = htons(54321); //Id of this packet
+  iph->id = htons(dns_request_id); //Id of this packet
   iph->frag_off = htons(0);
   iph->ttl = 255;
   iph->protocol = IPPROTO_UDP;
@@ -313,14 +314,9 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 
   /* MDNS */
   {
-    struct sockaddr_in sin;
     dump_mac_t sender_mac;
 
     Utils::readMac(iface->get_name(), sender_mac);
-
-    sin.sin_family = AF_INET;
-    sin.sin_port = htons(5353);
-    sin.sin_addr.s_addr = inet_addr("224.0.0.251");
 
     for(i=0; query_list[i] != NULL; i++) {
       u_int16_t len = buildMDNSDiscoveryDatagram(query_list[i], sender_ip, sender_mac, msg, sizeof(msg));
