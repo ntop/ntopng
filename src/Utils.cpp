@@ -271,7 +271,7 @@ size_t Utils::file_read(const char *path, char **content) {
 
     fclose(f);
   }
-  
+
   if(buffer) {
     if(content && ret)
       *content = buffer;
@@ -431,7 +431,7 @@ int Utils::dropPrivileges() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain privileges for privileged file writing");
 #endif
   }
-  
+
   username = ntop->getPrefs()->get_user();
   pw = getpwnam(username);
 
@@ -1484,7 +1484,7 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   if(at != NULL)
     at[0] = '\0';
 
-#if defined(__FreeBSD__) || defined(__APPLE__)  
+#if defined(__FreeBSD__) || defined(__APPLE__)
   struct ifaddrs *ifap, *ifaptr;
   unsigned char *ptr;
 
@@ -1537,7 +1537,7 @@ u_int32_t Utils::readIPv4(char *ifname) {
   struct ifreq ifr;
   int fd;
   u_int32_t ret_ip = 0;
-  
+
   memset(&ifr, 0, sizeof(ifr));
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
   ifr.ifr_addr.sa_family = AF_INET;
@@ -1604,7 +1604,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
     /* These are interfaces with , (e.g. eth0,eth1) */
     char ifaces[128], *iface, *tmp;
     u_int32_t speed = 0;
-    
+
     snprintf(ifaces, sizeof(ifaces), "%s", ifname);
     iface = strtok_r(ifaces, ",", &tmp);
 
@@ -1617,7 +1617,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
     return(speed);
   }
-  
+
   memset(&ifr, 0, sizeof(struct ifreq));
 
   sock = socket(PF_INET, SOCK_DGRAM, 0);
@@ -1800,7 +1800,7 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
   else {
     u_int16_t v2 = (mac[0] << 8) + mac[1];
     u_int32_t v3 = (mac[0] << 16) + (mac[1] << 8) + mac[2];
-    
+
     switch(v3) {
     case 0x01000C:
     case 0x0180C2:
@@ -1809,14 +1809,14 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
     case 0x011B19:
       return(true);
     }
-    
+
     switch(v2) {
     case 0xFFFF:
     case 0x3333:
       return(true);
       break;
     }
-    
+
     return(false);
   }
 }
@@ -2067,20 +2067,20 @@ int Utils::numberOfSetBits(u_int32_t i) {
 
 /* ******************************************* */
 
-/* 
+/*
    IMPORTANT: line buffer is large enough to contain the replaced string
  */
 void Utils::replacestr(char *line, const char *search, const char *replace) {
   char *sp;
   int search_len, replace_len, tail_len;
-  
+
   if((sp = strstr(line, search)) == NULL) {
     return;
   }
 
   search_len = strlen(search), replace_len = strlen(replace);
   tail_len = strlen(sp+search_len);
-  
+
   memmove(sp+replace_len,sp+search_len,tail_len+1);
   memcpy(sp, replace, replace_len);
 }
@@ -2146,16 +2146,16 @@ bool Utils::isInterfaceUp(char *ifname) {
 
 bool Utils::maskHost(bool isLocalIP) {
   bool mask_host = false;
-  
+
   switch(ntop->getPrefs()->getHostMask()) {
   case mask_local_hosts:
     if(isLocalIP) mask_host = true;
     break;
-    
+
   case mask_remote_hosts:
     if(!isLocalIP) mask_host = true;
     break;
-    
+
   default:
     break;
   }
@@ -2172,7 +2172,7 @@ void Utils::luaCpuLoad(lua_State* vm) {
 
   if(vm) {
     if((fp = fopen("/proc/stat", "r"))) {
-      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu", 
+      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu",
 	     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
       fclose(fp);
 
@@ -2237,13 +2237,13 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 	if(devpointer->description)
 	  snprintf(buf, buf_len, "%s", devpointer->description);
 	break;
-      } else      
+      } else
 	devpointer = devpointer->next;
     }
 
     pcap_freealldevs(devpointer);
   }
-    
+
   return(buf);
 }
 
@@ -2271,12 +2271,12 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 
     pAdapter = pAdapter->ifa_next;
   }
-  
+
   if(pAdapterFound != NULL) {
     int addrsize = (family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
     bindresult = bind(sock, pAdapterFound->ifa_addr, addrsize);
   }
-  
+
   freeifaddrs(pList);
   return bindresult;
 }
@@ -2285,13 +2285,13 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 
 int Utils::retainWriteCapabilities() {
   int rc = 0;
-  
+
 #ifdef HAVE_LIBCAP
   cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
   cap_t caps;
- 
+
   /* Add the capability of interest to the perimitted capabilities  */
-  caps = cap_get_proc(); 
+  caps = cap_get_proc();
   cap_set_flag(caps, CAP_PERMITTED, 1, cap_values, CAP_SET);
   rc = cap_set_proc(caps);
 
@@ -2302,12 +2302,12 @@ int Utils::retainWriteCapabilities() {
       rc = -1;
     }
   }
-  
+
   cap_free(caps);
 #else
   rc = -1;
 #endif
-  
+
 return(rc);
 }
 
@@ -2315,11 +2315,11 @@ return(rc);
 
 static int _setWriteCapabilities(int enable) {
   int rc = 0;
-  
+
 #ifdef HAVE_LIBCAP
   cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
   cap_t caps;
-   
+
   caps = cap_get_proc();
   if(caps) {
     cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_values, enable ? CAP_SET : CAP_CLEAR);
@@ -2340,9 +2340,9 @@ static int _setWriteCapabilities(int enable) {
   Usage example
 
   local path="/etc/test.lua"
-  
+
   ntop.gainWriteCapabilities()
-  
+
   file = io.open(path, "w")
   if(file ~= nil) then
     file:write("-- End of the test.lua file")
@@ -2350,7 +2350,7 @@ static int _setWriteCapabilities(int enable) {
   else
     print("Unable to create file "..path.."<p>")
   end
-  
+
   ntop.dropWriteCapabilities()
 */
 
@@ -2364,4 +2364,24 @@ int Utils::dropWriteCapabilities() {
   return(_setWriteCapabilities(false));
 }
 
+/* ******************************* */
 
+/* Return IP is network byte order */
+u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
+  char cmd[128];
+  FILE *fp;
+
+  sprintf(cmd, "netstat -rn | grep %s | grep 'UG' | awk '{print $2}'", ifname);
+
+  if((fp = popen(cmd, "r")) != NULL) {
+    char line[256];
+    u_int32_t rc = 0;
+
+    if(fgets(line, sizeof(line), fp) != NULL)
+      rc = inet_addr(line);
+
+    pclose(fp);
+    return(rc);
+  } else
+    return(0);
+}

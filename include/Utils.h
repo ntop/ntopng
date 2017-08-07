@@ -114,6 +114,7 @@ class Utils {
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();
   static int dropWriteCapabilities();
+  static u_int32_t findInterfaceGatewayIPv4(const char* ifname);
 };
 
 #endif /* _UTILS_H_ */

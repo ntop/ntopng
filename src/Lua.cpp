@@ -1974,7 +1974,7 @@ static int ntop_mdns_queue_name_to_resolve(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->mdnsQueueResolveIPv4(inet_addr(numIP));
+  ntop_interface->mdnsQueueResolveIPv4(inet_addr(numIP), true);
 
   return(CONST_LUA_OK);
 }

@@ -70,7 +70,7 @@ class NetworkInterface {
   u_int16_t numVirtualInterfaces;
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
-  MDNS mdns;
+  MDNS *mdns;
   string ip_addresses;
   int id;
   bool bridge_interface;
@@ -533,12 +533,15 @@ class NetworkInterface {
 
   inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,
 			       char *buf, u_int buf_len, u_int timeout_sec = 2) {
-    return(mdns.resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
+    return(mdns->resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
   }
 
-  inline bool mdnsQueueResolveIPv4(u_int32_t ipv4addr) { return(mdns.queueResolveIPv4(ipv4addr)); }
+  inline bool mdnsQueueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
+    return(mdns->queueResolveIPv4(ipv4addr, alsoUseGatewayDNS));
+  }
+  
   inline void mdnsFetchResolveResponses(lua_State* vm, int32_t timeout_sec = 2) {
-    mdns.fetchResolveResponses(vm, timeout_sec);
+    mdns->fetchResolveResponses(vm, timeout_sec);
   }
 };
 

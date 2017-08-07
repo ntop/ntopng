@@ -24,25 +24,28 @@
 
 #include "ntop_includes.h"
 
+class NetworkInterface;
+
 /* ******************************* */
 
 class MDNS {
  private:
   int udp_sock, batch_udp_sock;
-  struct sockaddr_in mdns_dest;
+  u_int32_t gatewayIPv4;
   
   u_int16_t prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
 				    char *mdnsbuf, u_int mdnsbuf_len,
 				    u_int16_t tid = 0);
   char* decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
-			  char *buf, u_int buf_len);
+			  char *buf, u_int buf_len,
+			  u_int32_t *resolved_ip);
 
 public:
-  MDNS();
+  MDNS(NetworkInterface *iface);
   ~MDNS();
 
   /* Batch interface (via Lua) */
-  bool queueResolveIPv4(u_int32_t ipv4addr);
+  bool queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS);
   void fetchResolveResponses(lua_State* vm, int32_t timeout_sec);  
   
   /* Resolve the IPv4 immediately discarding */

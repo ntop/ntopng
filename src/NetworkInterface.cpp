@@ -34,7 +34,10 @@ static bool help_printed = false;
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() { init(); }
+NetworkInterface::NetworkInterface() {
+  init();
+  mdns = new MDNS(this);
+}
 
 /* **************************************************** */
 
@@ -99,7 +102,8 @@ NetworkInterface::NetworkInterface(const char *name,
   pkt_dumper_tap = NULL, lastSecUpdate = 0;
   ifname = strdup(name);
   ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
-    
+  mdns = new MDNS(this);
+  
   if(id >= 0) {
     u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
@@ -607,8 +611,8 @@ NetworkInterface::~NetworkInterface() {
   if(db)             delete db;
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
-  if(ifDescription)     free(ifDescription);
-
+  if(ifDescription)  free(ifDescription);
+  if(mdns)           delete mdns;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;
