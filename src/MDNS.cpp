@@ -25,12 +25,42 @@
 
 MDNS::MDNS(NetworkInterface *iface) {
   if(((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-     || ((batch_udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-     )
+     || ((batch_udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1))
     throw("Unable to create socket");
 
   /* Multicast group is 224.0.0.251 */
   gatewayIPv4 = Utils::findInterfaceGatewayIPv4(iface->get_name());
+
+  if(gatewayIPv4) {
+    /* Let's check if this resolver is active */
+    u_int dns_query_len;
+    char mdnsbuf[512];
+    u_int16_t tid = gatewayIPv4 & 0xFFFF;
+    struct sockaddr_in mdns_dest;
+    
+    dns_query_len = prepareIPv4ResolveQuery(gatewayIPv4, mdnsbuf, sizeof(mdnsbuf), tid);
+    
+    mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(53), mdns_dest.sin_addr.s_addr = gatewayIPv4;
+    if(sendto(udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) > 0) {
+      fd_set rset;
+      struct timeval tv;
+      
+      FD_ZERO(&rset);
+      FD_SET(udp_sock, &rset);
+      
+      tv.tv_sec = 2, tv.tv_usec = 0;
+      if(select(udp_sock + 1, &rset, NULL, NULL, &tv) > 0) {
+	struct sockaddr_in from;
+	socklen_t from_len = sizeof(from);
+	int len = recvfrom(udp_sock, mdnsbuf, sizeof(mdnsbuf), 0, (struct sockaddr *)&from, &from_len);
+
+	if(len > 0)
+	  return; /* This is a valid resolver */
+      }
+    }   
+
+    gatewayIPv4 = 0; /* Invalid */
+  }
 }
 
 /* ******************************* */
