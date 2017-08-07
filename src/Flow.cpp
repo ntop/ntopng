@@ -2067,6 +2067,18 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     }
   }
 
+#if 0 /* TODO enable after performance check */
+  if(isDetectionCompleted()) {
+    iface->topItemsCheckFlush(when);
+    iface->topProtocolsAdd(cli_host->get_host_pool(), &ndpiDetectedProtocol, pkt_len);
+    iface->topProtocolsAdd(srv_host->get_host_pool(), &ndpiDetectedProtocol, pkt_len);
+
+    if (cli_host->get_mac()) {
+      iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, pkt_len);
+      iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, pkt_len);
+    }
+  }
+#endif
 }
 
 /* *************************************** */

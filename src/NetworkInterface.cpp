@@ -275,6 +275,10 @@ void NetworkInterface::init() {
   L_user_scripts_inline = L_user_scripts_periodic = NULL;
   forceLuaInterpreterReload();
 
+  gettimeofday(&last_frequent_reset, NULL);
+  frequentMacs = new FrequentTrafficItems(5);
+  frequentProtocols = new FrequentTrafficItems(5);
+
   db = NULL;
 #ifdef NTOPNG_PRO
   aggregated_flows_hash = NULL;
@@ -633,6 +637,8 @@ NetworkInterface::~NetworkInterface() {
   }
 
   ndpi_exit_detection_module(ndpi_struct);
+  delete frequentProtocols;
+  delete frequentMacs;
   
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
@@ -5799,4 +5805,35 @@ int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char
   } else
     rv = CONST_LUA_ERROR;
   return rv;
+}
+
+/* *************************************** */
+
+void NetworkInterface::topItemsCheckFlush(const struct timeval *tv) {
+  float tdiff_msec = ((float)(tv->tv_sec-last_frequent_reset.tv_sec)*1000)+((tv->tv_usec-last_frequent_reset.tv_usec)/(float)1000);
+
+  /* Reset stats every x ms */
+  if (tdiff_msec >= 1000) {
+    frequentProtocols->reset(tdiff_msec);
+    frequentMacs->reset(tdiff_msec);
+    last_frequent_reset = *tv;
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes) {
+  if ((bytes > 0) && (pool_id != 0)) {
+    // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
+    frequentProtocols->addPoolProtocol(pool_id, proto->app_protocol, bytes);
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes) {
+  if ((bytes > 0) && (! mac->isSpecialMac())) {
+    // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
+    frequentMacs->addMacProtocol(mac->get_mac(), proto->app_protocol, bytes);
+  }
 }

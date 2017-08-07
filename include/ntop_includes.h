@@ -182,6 +182,7 @@ using namespace std;
 #endif
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
+#include "FrequentTrafficItems.h"
 #include "HostPools.h"
 #include "RuntimePrefs.h"
 #include "Prefs.h"
@@ -240,6 +241,7 @@ using namespace std;
 #include "FlowChecker.h"
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
+#include "FrequentTrafficItems.h"
 #ifdef HAVE_NETFILTER
 #include "NetfilterInterface.h"
 #endif

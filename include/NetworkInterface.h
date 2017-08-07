@@ -115,6 +115,11 @@ class NetworkInterface {
 
   u_int64_t zmq_initial_bytes, zmq_initial_pkts;
 
+  /* Frequent Items */
+  FrequentTrafficItems *frequentProtocols;
+  FrequentTrafficItems *frequentMacs;
+  struct timeval last_frequent_reset;
+
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
 
@@ -543,6 +548,12 @@ class NetworkInterface {
   inline void mdnsFetchResolveResponses(lua_State* vm, int32_t timeout_sec = 2) {
     mdns->fetchResolveResponses(vm, timeout_sec);
   }
+
+  void topItemsCheckFlush(const struct timeval *tv);
+  void topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes);
+  inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
+  void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
+  inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

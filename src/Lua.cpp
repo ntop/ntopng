@@ -3788,6 +3788,30 @@ static int ntop_find_mac_pool(lua_State *vm) {
 
 /* *******************************************/
 
+static int ntop_get_top_pools_protos(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface) {
+    ntop_interface->luaTopPoolsProtos(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* *******************************************/
+
+static int ntop_get_top_macs_protos(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface) {
+    ntop_interface->luaTopMacsProtos(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* *******************************************/
+
 static int ntop_reload_l7_rules(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5838,6 +5862,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacsInfo",                    ntop_get_interface_macs_info },
   { "getMacInfo",                     ntop_get_interface_mac_info },
   { "getMacManufacturers",            ntop_get_interface_macs_manufacturers },
+  { "getTopMacsProtos",               ntop_get_top_macs_protos },
 
   /* Autonomous Systems */
   { "getASesInfo",                    ntop_get_interface_ases_info },
@@ -5856,6 +5881,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHostPools",                ntop_reload_host_pools                },
   { "findMemberPool",                 ntop_find_member_pool                 },
   { "findMacPool",                    ntop_find_mac_pool                    },
+  { "getTopPoolsProtos",              ntop_get_top_pools_protos             },
 
 #ifdef NTOPNG_PRO
   { "resetPoolsStats",                ntop_reset_pools_stats                },
