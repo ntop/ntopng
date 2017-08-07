@@ -39,7 +39,7 @@ MDNS::~MDNS() {
 char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
 			char *buf, u_int buf_len,
 			u_int timeout_sec) {
-  u_int last_dot = 0, dns_query_len, i;
+  u_int last_dot = 0, dns_query_len;
   struct ndpi_dns_packet_header *dns_h;
   char *queries, mdnsbuf[512], query[64], addrbuf[32];
   u_int16_t tid = ipv4addr & 0xFFFF;
@@ -98,13 +98,12 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
 
       if((len > 0) && (dns_h->tr_id == tid) && (ntohs(dns_h->num_answers) > 0)) {
 	/* Decode MDNS response */
-	int to_skip = ntohs(dns_h->num_queries);
-	int offset = 0, idx;
+	u_int offset = 0, i, idx, to_skip = ntohs(dns_h->num_queries);
 
 	len -= sizeof(struct ndpi_dns_packet_header);
 
 	/* Skip queries */
-	for(i=0; (i<to_skip) && (offset < len); ) {
+	for(i=0; (i<to_skip) && (offset < (u_int)len); ) {
 	  if(queries[offset] != 0) {
 	    offset++;
 	    continue;
@@ -117,7 +116,7 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
 	/* Time to decode response. We consider only the first one */
 	offset += 14;
 
-	for(idx=0; (offset < len) && (queries[offset] != '\0') && (idx < buf_len); offset++, idx++) {
+	for(idx=0; (offset < (u_int)len) && (queries[offset] != '\0') && (idx < buf_len); offset++, idx++) {
 	  if(queries[offset] < 32)
 	    buf[idx] = '.';
 	  else
