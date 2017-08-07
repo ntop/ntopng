@@ -159,6 +159,8 @@
 #define DHCP_CACHE              "ntopng.dhcp.%d.cache"
 #define DNS_TO_RESOLVE          "ntopng.dns.toresolve"
 #define NTOPNG_TRACE            "ntopng.trace"
+#define TRACES_PER_LOG_FILE_HIGH_WATERMARK 10000
+#define MAX_NUM_NTOPNG_LOG_FILES 5
 #define MAX_NUM_NTOPNG_TRACES   32
 #define TRAFFIC_FILTERING_CACHE            "ntopng.trafficfiltering.cache"
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"

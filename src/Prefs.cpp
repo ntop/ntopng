@@ -63,7 +63,6 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   redis_port = 6379;
   redis_db_id = 0;
   dns_mode = 0;
-  logFd = NULL;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true;
@@ -99,7 +98,6 @@ Prefs::~Prefs() {
     if(ifNames[i].description) free(ifNames[i].description);
   }
 
-  if(logFd)            fclose(logFd);
   if(data_dir)         free(data_dir);
   if(install_dir)      free(install_dir);
   if(docs_dir)         free(docs_dir);
@@ -1066,11 +1064,8 @@ int Prefs::checkOptions() {
       ntop_mkdir(ntop->get_working_dir(), 0777);
       snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
       ntop->fixPath(path);
-      logFd = fopen(path, "w");
-      if(logFd)
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Logging into %s", path);
-      else
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", path);
+      ntop->registerLogFile(path);
+      ntop->rotateLogs(true /* Force rotation to start clean */);
     }
 
   if(install_dir)

@@ -47,17 +47,28 @@ class Mutex; /* Forward */
 
 class Trace {
  private:
-  u_int8_t traceLevel;
+  char *logFile;
+  FILE *logFd;
+  int *logFileTracesCount;
+  volatile u_int8_t traceLevel;
 
 #ifdef WIN32
   VOID AddToMessageLog(LPTSTR lpszMsg);
+  Mutex rotate_mutex;
+#else
+  bool logFileMsg;
+  FILE *logFdShadow;
+  int *logFileTracesCountShadow;
 #endif
+
 
  public:
   Trace();
   ~Trace();
 
   void init();
+  void rotate_logs(bool force_rotation);
+  void set_log_file(const char *log_file);
   void set_trace_level(u_int8_t id);
   inline u_int8_t get_trace_level() { return(traceLevel); };
   void traceEvent(int eventTraceLevel, const char* file, const int line, const char * format, ...);

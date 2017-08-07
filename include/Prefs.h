@@ -82,7 +82,6 @@ class Prefs : public RuntimePrefs {
   int redis_port;
   int dns_mode;
   bool json_labels_string_format;
-  FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   char *ls_host,*ls_port,*ls_proto;
@@ -121,7 +120,6 @@ class Prefs : public RuntimePrefs {
   }
   time_t pro_edition_demo_ends_at();
   inline char* get_local_networks()                     { if (!local_networks_set) return NULL; return(local_networks); };
-  inline FILE* get_log_fd()                             { return(logFd);                  };
   inline LocationPolicy get_host_stickiness()            { return(sticky_hosts);           };
   inline void disable_dns_resolution()                  { enable_dns_resolution = false;  };
   inline void resolve_all_hosts()                       { resolve_all_host_ip = true;     };
