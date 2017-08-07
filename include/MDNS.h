@@ -29,7 +29,13 @@
 class MDNS {
  private:
   int udp_sock;
-    
+
+  u_int16_t prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
+				    char *mdnsbuf, u_int mdnsbuf_len,
+				    u_int16_t tid = 0);
+  char* decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
+			  char *buf, u_int buf_len);
+
 public:
   MDNS();
   ~MDNS();

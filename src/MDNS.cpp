@@ -36,20 +36,16 @@ MDNS::~MDNS() {
 
 /* ******************************* */
 
-char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
-			char *buf, u_int buf_len,
-			u_int timeout_sec) {
-  u_int last_dot = 0, dns_query_len;
-  struct ndpi_dns_packet_header *dns_h;
-  char *queries, mdnsbuf[512], query[64], addrbuf[32];
-  u_int16_t tid = ipv4addr & 0xFFFF;
-  struct sockaddr_in mdns_dest;
+u_int16_t MDNS::prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
+					char *mdnsbuf, u_int mdnsbuf_len,
+					u_int16_t tid) {
+  u_int16_t last_dot = 0, dns_query_len;
+  struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
+  char *queries, query[64], addrbuf[32];
   
-  buf[0] = '\0';
   snprintf(query, sizeof(query), "%s.in-addr.arpa",
 	   Utils::intoaV4(ipv4addr, addrbuf, sizeof(addrbuf)));
-
-  dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
+  
   dns_h->tr_id = tid;
   dns_h->flags = 0 /* query */;
   dns_h->num_queries = htons(1);
@@ -58,7 +54,10 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
   dns_h->additional_rrs = 0;
   queries = &mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
 
-  for(dns_query_len=0; query[dns_query_len] != '\0'; dns_query_len++) {
+  mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header) + 4;
+  
+  for(dns_query_len=0; (query[dns_query_len] != '\0')
+	&& (dns_query_len < mdnsbuf_len); dns_query_len++) {
     if(query[dns_query_len] == '.') {
       queries[last_dot] = dns_query_len-last_dot;
       last_dot = dns_query_len+1;
@@ -74,9 +73,63 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
   queries[dns_query_len++] = 0x00; queries[dns_query_len++] = 0x01; /* IN */
   dns_query_len += sizeof(struct ndpi_dns_packet_header);
 
+  return(dns_query_len);
+}
+
+/* ******************************* */
+  
+char* MDNS::decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
+			      char *buf, u_int buf_len) {
+  struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
+  u_int offset = 0, i, idx, to_skip = ntohs(dns_h->num_queries);
+  char * queries = &mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
+  
+  mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header);
+
+  /* Skip queries */
+  for(i=0; (i<to_skip) && (offset < (u_int)mdnsbuf_len); ) {
+    if(queries[offset] != 0) {
+      offset++;
+      continue;
+    } else {
+      offset += 4;
+      i++; /* Found one query */
+    }
+  }
+
+  /* Time to decode response. We consider only the first one */
+  offset += 14;
+
+  for(idx=0; (offset < mdnsbuf_len) && (queries[offset] != '\0') && (idx < buf_len); offset++, idx++) {
+    if(queries[offset] < 32)
+      buf[idx] = '.';
+    else
+      buf[idx] = queries[offset];
+  }
+
+  /* As the response ends in ".local" let's cut it */
+  if(idx > 6) idx -= 6;
+  buf[idx] = '\0';
+	
+  return(buf);
+}
+
+/* ******************************* */
+
+char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
+			char *buf, u_int buf_len, u_int timeout_sec) {
+  u_int dns_query_len;
+  char mdnsbuf[512];
+  u_int16_t tid = ipv4addr & 0xFFFF;
+  struct sockaddr_in mdns_dest;
+  
+  buf[0] = '\0';
+  dns_query_len = prepareIPv4ResolveQuery(ipv4addr, mdnsbuf, sizeof(mdnsbuf), tid);
+  
   if(timeout_sec == 0) timeout_sec = 1;
 
-  mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353), mdns_dest.sin_addr.s_addr = inet_addr("224.0.0.251");
+  mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353),
+    mdns_dest.sin_addr.s_addr = inet_addr("224.0.0.251");
   
   if(sendto(udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
@@ -95,38 +148,10 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
       struct sockaddr_in from;
       socklen_t from_len = sizeof(from);
       int len = recvfrom(udp_sock, mdnsbuf, sizeof(mdnsbuf), 0, (struct sockaddr *)&from, &from_len);
-
-      if((len > 0) && (dns_h->tr_id == tid) && (ntohs(dns_h->num_answers) > 0)) {
-	/* Decode MDNS response */
-	u_int offset = 0, i, idx, to_skip = ntohs(dns_h->num_queries);
-
-	len -= sizeof(struct ndpi_dns_packet_header);
-
-	/* Skip queries */
-	for(i=0; (i<to_skip) && (offset < (u_int)len); ) {
-	  if(queries[offset] != 0) {
-	    offset++;
-	    continue;
-	  } else {
-	    offset += 4;
-	    i++; /* Found one query */
-	  }
-	}
-
-	/* Time to decode response. We consider only the first one */
-	offset += 14;
-
-	for(idx=0; (offset < (u_int)len) && (queries[offset] != '\0') && (idx < buf_len); offset++, idx++) {
-	  if(queries[offset] < 32)
-	    buf[idx] = '.';
-	  else
-	    buf[idx] = queries[offset];
-	}
-
-	/* As the response ends in ".local" let's cut it */
-	if(idx > 6) idx -= 6;
-	buf[idx] = '\0';
+      struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
 	
+      if((len > 0) && (dns_h->tr_id == tid) && (ntohs(dns_h->num_answers) > 0)) {
+	decodePTRResponse(mdnsbuf, (u_int)len, buf, buf_len);	
 	break;
       }
     } else
