@@ -1028,11 +1028,11 @@ void ParserInterface::lua(lua_State* vm) {
   if(zrs) {
     if(zrs->remote_ifname[0] != '\0')
       lua_push_str_table_entry(vm, "remote.name", zrs->remote_ifname);
-    if(zrs->remote_ifaddress != '\0')
+    if(zrs->remote_ifaddress[0] != '\0')
       lua_push_str_table_entry(vm, "remote.if_addr",zrs->remote_ifaddress);
-    if(zrs->remote_probe_address != '\0')
+    if(zrs->remote_probe_address[0] != '\0')
       lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
-    if(zrs->remote_probe_public_address != '\0')
+    if(zrs->remote_probe_public_address[0] != '\0')
       lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
 
     lua_push_int_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);

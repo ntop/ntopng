@@ -24,14 +24,20 @@
 /* ******************************* */
 
 MDNS::MDNS() {
-  if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-    throw("Unable to create socket");      
+  if(((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+     || ((batch_udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+     )    
+    throw("Unable to create socket");
+
+  /* Multicast group is 224.0.0.251 */
+  mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
 }
 
 /* ******************************* */
 
 MDNS::~MDNS() {
-  if(udp_sock != -1) close(udp_sock);
+  if(udp_sock != -1)       close(udp_sock);
+  if(batch_udp_sock != -1) close(batch_udp_sock);
 }
 
 /* ******************************* */
@@ -121,16 +127,13 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
   u_int dns_query_len;
   char mdnsbuf[512];
   u_int16_t tid = ipv4addr & 0xFFFF;
-  struct sockaddr_in mdns_dest;
   
   buf[0] = '\0';
   dns_query_len = prepareIPv4ResolveQuery(ipv4addr, mdnsbuf, sizeof(mdnsbuf), tid);
   
   if(timeout_sec == 0) timeout_sec = 1;
 
-  mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353),
-    mdns_dest.sin_addr.s_addr = inet_addr("224.0.0.251");
-  
+  mdns_dest.sin_addr.s_addr = ipv4addr;
   if(sendto(udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
     return(buf);
@@ -159,4 +162,53 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
   }
   
   return(buf);
+}
+
+/* ******************************* */
+
+bool MDNS::queueResolveIPv4(u_int32_t ipv4addr) {
+  u_int dns_query_len;
+  char mdnsbuf[512];
+  u_int16_t tid = ipv4addr & 0xFFFF;
+  
+  dns_query_len = prepareIPv4ResolveQuery(ipv4addr, mdnsbuf, sizeof(mdnsbuf), tid);
+
+  mdns_dest.sin_addr.s_addr = ipv4addr;
+  if(sendto(batch_udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+    return(false);    
+  }
+
+  return(true);
+}
+
+/* ******************************* */
+
+void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
+  lua_newtable(vm);
+  
+  while(true) {
+    fd_set rset;
+    struct timeval tv;
+    
+    FD_ZERO(&rset);
+    FD_SET(batch_udp_sock, &rset);
+    
+    tv.tv_sec = timeout_sec, tv.tv_usec = 0;
+    
+    if(select(batch_udp_sock + 1, &rset, NULL, NULL, &tv) > 0) {
+      struct sockaddr_in from;
+      char src[32], mdnsbuf[512], buf[128];
+      socklen_t from_len = sizeof(from);
+      int len = recvfrom(batch_udp_sock, mdnsbuf, sizeof(mdnsbuf), 0, (struct sockaddr *)&from, &from_len);
+      struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
+      
+      if((len > 0) && (ntohs(dns_h->num_answers) > 0)) {
+	decodePTRResponse(mdnsbuf, (u_int)len, buf, sizeof(buf));
+
+	lua_push_str_table_entry(vm, Utils::intoaV4(ntohl(from.sin_addr.s_addr), src, sizeof(src)), buf);
+      }
+    } else
+      break;
+  }
 }

@@ -28,8 +28,9 @@
 
 class MDNS {
  private:
-  int udp_sock;
-
+  int udp_sock, batch_udp_sock;
+  struct sockaddr_in mdns_dest;
+  
   u_int16_t prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
 				    char *mdnsbuf, u_int mdnsbuf_len,
 				    u_int16_t tid = 0);
@@ -40,6 +41,11 @@ public:
   MDNS();
   ~MDNS();
 
+  /* Batch interface (via Lua) */
+  bool queueResolveIPv4(u_int32_t ipv4addr);
+  void fetchResolveResponses(lua_State* vm, int32_t timeout_sec);  
+  
+  /* Resolve the IPv4 immediately discarding */
   char* resolveIPv4(u_int32_t ipv4addr /* network byte order */, char *buf, u_int buf_len, u_int timeout_sec);
 };
 

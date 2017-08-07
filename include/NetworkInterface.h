@@ -535,6 +535,11 @@ class NetworkInterface {
 			       char *buf, u_int buf_len, u_int timeout_sec = 2) {
     return(mdns.resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
   }
+
+  inline bool mdnsQueueResolveIPv4(u_int32_t ipv4addr) { return(mdns.queueResolveIPv4(ipv4addr)); }
+  inline void mdnsFetchResolveResponses(lua_State* vm, int32_t timeout_sec = 2) {
+    mdns.fetchResolveResponses(vm, timeout_sec);
+  }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
