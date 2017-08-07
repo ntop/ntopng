@@ -354,6 +354,10 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
       notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
 		  alert_type, alert_severity, alert_json,
 		  alert_origin, alert_target, true);
+
+#ifndef WIN32
+      syslog(LOG_WARNING, "[Alert] [ENGAGED] %s", alert_json ? alert_json : (char*)"");
+#endif
     }
 
     return rc;
@@ -387,6 +391,10 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
+
+#ifndef WIN32
+    syslog(LOG_WARNING, "[Alert] [RELEASED] %s", alert_json ? alert_json : (char*)"");
+#endif
 
     notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
           alert_type, alert_severity, alert_json,
@@ -701,6 +709,10 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
 
+#ifndef WIN32
+    syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
+#endif
+
     return rc;
   } else
     return(-1);
@@ -815,6 +827,10 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
 
     f->setFlowAlerted();
   
+#ifndef WIN32
+    syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
+#endif
+
     return rc;
   } else
     return(-1);
