@@ -19,32 +19,22 @@
  *
  */
 
-#ifndef _NETWORK_DISCOVERY_H_
-#define _NETWORK_DISCOVERY_H_
+#ifndef _MDNS_H_
+#define _MDNS_H_
 
 #include "ntop_includes.h"
 
 /* ******************************* */
 
-class NetworkDiscovery {
+class MDNS {
  private:
   int udp_sock;
-  NetworkInterface *iface;
-  pcap_t *pd;
-  int pd_fd;
-
-  u_int32_t wrapsum(u_int32_t sum);
-  u_int16_t in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t sum);
-  u_int16_t buildMDNSDiscoveryDatagram(const char *query, u_int32_t sender_ip, u_int8_t *sender_mac,
-				       char *datagram, u_int datagram_len);
-  void dissectMDNS(lua_State* vm, char *buf, u_int buf_len, char *out, u_int out_len);
     
 public:
-  NetworkDiscovery(NetworkInterface *_iface);
-  ~NetworkDiscovery();
+  MDNS();
+  ~MDNS();
 
-  void discover(lua_State* vm, u_int timeout);
-  void arpScan(lua_State* vm);
+  char* resolveIPv4(u_int32_t ipv4addr /* network byte order */, char *buf, u_int buf_len, u_int timeout_sec);
 };
 
-#endif /* _NETWORK_DISCOVERY_H_ */
+#endif /* _MDNS_H_ */

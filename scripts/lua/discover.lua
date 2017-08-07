@@ -117,10 +117,13 @@ ssdp = analyzeSSDP(ssdp)
 print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP Address</th><th>MAC</th><th>Services</th><th>Information</th></tr>")
 
 for mac,ip in pairsByValues(arp, asc) do
+   local symIP = interface.mdnsResolveName(ip)
    print("<tr><th align=left>")
 
    print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
    if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
+
+   if(symIP ~= "") then print(" [".. symIP .."]") end
    print("</th>")
 
    print("<td align=left>")

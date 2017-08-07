@@ -170,6 +170,7 @@ using namespace std;
 #include "FlowProfiles.h"
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
+#include "MDNS.h"
 #include "FlowInterfacesStats.h"
 #include "HostPoolStats.h"
 #ifdef HAVE_LDAP

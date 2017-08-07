@@ -1941,6 +1941,28 @@ static int ntop_scan_iface_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
+/* Similar to ntop_get_resolved_address but actually perfoms the address resolution now */
+static int ntop_mdns_resolve_address(lua_State* vm) {
+  char *numIP, symIP[64];
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((numIP = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, ntop_interface->mdnsResolveIPv4(inet_addr(numIP),
+						     symIP, sizeof(symIP),
+						     1 /* timeout */));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_getsflowdevices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5822,7 +5844,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Network Discovery */
   { "discoverHosts",                 ntop_discover_iface_hosts },
   { "scanHosts",                     ntop_scan_iface_hosts     },
-
+  { "mdnsResolveName",               ntop_mdns_resolve_address },
+  
   /* DB */
   { "execSQLQuery",                  ntop_interface_exec_sql_query },
 
@@ -5980,7 +6003,7 @@ static const luaL_Reg ntop_reg[] = {
   /* Address Resolution */
   { "resolveName",     ntop_resolve_address },       /* Note: you should use resolveAddress() to call from Lua */
   { "getResolvedName", ntop_get_resolved_address },  /* Note: you should use getResolvedAddress() to call from Lua */
-
+  
   /* Logging */
   { "syslog",         ntop_syslog },
   { "setLoggingLevel",ntop_set_logging_level },

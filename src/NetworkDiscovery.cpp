@@ -219,6 +219,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	  if(len > 0) {
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received MDNS reply from %s [%u bytes]",
 					 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)), len);
+
+	    // dissectMDNS(mdnsreply, len);
 	  }
 	}
       }
@@ -258,6 +260,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	if(len > 0) {
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received MDNS reply from %s [%u bytes]",
 				       Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)), len);
+
+	  // dissectMDNS(mdnsreply, len);
 	}
       } else
 	break;
@@ -349,7 +353,18 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 
 /* ******************************* */
 
-/* dig +short @192.168.2.35 -p 5353 -t any _services._dns-sd._udp.local */
+void NetworkDiscovery::dissectMDNS(lua_State* vm,
+				   char *buf, u_int buf_len,
+				   char *out, u_int out_len) {
+
+}
+
+/* ******************************* */
+
+/* 
+   Example:
+   dig +short @192.168.2.20 -p 5353 -t any _services._dns-sd._udp.local 
+*/
 void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct sockaddr_in sin;
   char msg[1024];
@@ -448,3 +463,4 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
     }
   }
 }
+
