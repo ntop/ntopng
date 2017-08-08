@@ -1055,6 +1055,18 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       float goodput_bytes_msec_srv2cli = ((float)(diff_goodput_bytes_srv2cli*1000))/tdiff_msec;
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
 
+      if(isDetectionCompleted() && cli_host && srv_host) {
+        iface->topProtocolsAdd(cli_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
+
+        if (cli_host->get_host_pool() != srv_host->get_host_pool())
+          iface->topProtocolsAdd(srv_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
+
+        if (cli_host->get_mac() && srv_host->getMac()) {
+          iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
+          iface->topMacsAdd(srv_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
+        }
+      }
+
       /* Just to be safe */
       if(bytes_msec < 0)                 bytes_msec                 = 0;
       if(bytes_msec_cli2srv < 0)         bytes_msec_cli2srv         = 0;
@@ -2066,19 +2078,6 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 				   - Utils::timeval2usec(&c2sFirstGoodputTime)))/1000;
     }
   }
-
-#if 0 /* TODO enable after performance check */
-  if(isDetectionCompleted()) {
-    iface->topItemsCheckFlush(when);
-    iface->topProtocolsAdd(cli_host->get_host_pool(), &ndpiDetectedProtocol, pkt_len);
-    iface->topProtocolsAdd(srv_host->get_host_pool(), &ndpiDetectedProtocol, pkt_len);
-
-    if (cli_host->get_mac()) {
-      iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, pkt_len);
-      iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, pkt_len);
-    }
-  }
-#endif
 }
 
 /* *************************************** */

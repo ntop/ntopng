@@ -2463,6 +2463,7 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tv, NULL);
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
+  topItemsCommit(&tv);
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
@@ -5809,15 +5810,13 @@ int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char
 
 /* *************************************** */
 
-void NetworkInterface::topItemsCheckFlush(const struct timeval *tv) {
+void NetworkInterface::topItemsCommit(const struct timeval *tv) {
   float tdiff_msec = ((float)(tv->tv_sec-last_frequent_reset.tv_sec)*1000)+((tv->tv_usec-last_frequent_reset.tv_usec)/(float)1000);
 
-  /* Reset stats every x ms */
-  if (tdiff_msec >= 1000) {
-    frequentProtocols->reset(tdiff_msec);
-    frequentMacs->reset(tdiff_msec);
-    last_frequent_reset = *tv;
-  }
+  frequentProtocols->reset(tdiff_msec);
+  frequentMacs->reset(tdiff_msec);
+
+  last_frequent_reset = *tv;
 }
 
 /* *************************************** */
@@ -5832,6 +5831,8 @@ void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, 
 /* *************************************** */
 
 void NetworkInterface::topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes) {
+  // TODO only consider MACS on the LAN side
+
   if ((bytes > 0) && (! mac->isSpecialMac())) {
     // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
     frequentMacs->addMacProtocol(mac->get_mac(), proto->app_protocol, bytes);

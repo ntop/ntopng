@@ -206,6 +206,8 @@ class NetworkInterface {
   Host* findHostsByIP(AddressTree *allowed_hosts,
 		      char *host_ip, u_int16_t vlan_id);
 
+  void topItemsCommit(const struct timeval *when);
+
  public:
   /**
   * @brief A Constructor
@@ -549,7 +551,6 @@ class NetworkInterface {
     mdns->fetchResolveResponses(vm, timeout_sec);
   }
 
-  void topItemsCheckFlush(const struct timeval *tv);
   void topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes);
   inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
   void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
