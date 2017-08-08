@@ -122,7 +122,7 @@ char* MDNS::decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
 			      u_int32_t *resolved_ip) {
   struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
   u_int offset = 0, i, idx, to_skip = ntohs(dns_h->num_queries);
-  char * queries = &mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
+  char *queries = &mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
 
   mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header);
   *resolved_ip = 0;
