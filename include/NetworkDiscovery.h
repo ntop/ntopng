@@ -37,7 +37,7 @@ class NetworkDiscovery {
   u_int16_t in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t sum);
   u_int16_t buildMDNSDiscoveryDatagram(const char *query, u_int32_t sender_ip, u_int8_t *sender_mac,
 				       char *datagram, u_int datagram_len);
-  void dissectMDNS(lua_State* vm, u_char *buf, u_int buf_len, char *out, u_int out_len);
+  void dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
     
 public:
   NetworkDiscovery(NetworkInterface *_iface);

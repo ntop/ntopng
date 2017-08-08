@@ -188,7 +188,6 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
       // Inject packet
       if(pcap_inject(pd, &arp, sizeof(arp)) == -1)
 	break;
-
       FD_ZERO(&rset);
       FD_SET(pd_fd, &rset);
       if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
@@ -220,9 +219,10 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	  if(len > 0) {
 	    char outbuf[1024];
 
-	    dissectMDNS(vm, mdnsreply, len, outbuf, sizeof(outbuf));
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received MDNS reply from %s [%u bytes][%s]",
-					 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)), len, outbuf);
+	    dissectMDNS(mdnsreply, len, outbuf, sizeof(outbuf));
+	    lua_push_str_table_entry(vm,
+				     Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
+				     outbuf);
 	  }
 	}
       }
@@ -262,9 +262,10 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	if(len > 0) {
 	  char outbuf[1024];
 
-	  dissectMDNS(vm, mdnsreply, len, outbuf, sizeof(outbuf));
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received MDNS reply from %s [%u bytes][%s]",
-				       Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)), len, outbuf);
+	  dissectMDNS(mdnsreply, len, outbuf, sizeof(outbuf));
+	  lua_push_str_table_entry(vm,
+				   Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
+				   outbuf);
 	}
       } else
 	break;
@@ -356,8 +357,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 
 /* ******************************* */
 
-void NetworkDiscovery::dissectMDNS(lua_State* vm,
-				   u_char *buf, u_int buf_len,
+void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len,
 				   char *out, u_int out_len) {
   ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)buf;
   u_int num_queries, num_answers, i, offset, idx;

@@ -21,6 +21,83 @@ local function getbaseURL(url)
    end
 end
 
+local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names)
+   local mdns = { }
+   local ssdp = { }
+   local str
+   
+   if(_mdns ~= nil) then
+      --io.write(mac .. " /" .. manufacturer .. " / ".. _mdns.."\n")
+      local mdns_items = string.split(_mdns, ";")
+
+      if(mdns_items == nil) then
+	 mdns[_mdns] = 1
+      else
+	 for _,v in pairs(mdns_items) do
+	    mdns[v] = 1
+	 end
+      end
+   end
+   
+   if(_ssdp ~= nil) then
+      --io.write(mac .. " /" .. manufacturer .. " / ".. _ssdp.."\n")
+      
+      local ssdp_items = string.split(_ssdp, ";")
+
+      if(ssdp_items == nil) then
+	 ssdp[_ssdp] = 1
+      else
+	 for _,v in pairs(ssdp_items) do
+	    ssdp[v] = 1
+	 end
+      end
+   end
+   
+   if(mdns["_afpovertcp._tcp.local"] ~= nil) then
+      return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)')
+   elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
+      return('<i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Windows)')
+   end
+
+
+   if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
+      return('<i class="fa fa-television fa-lg" aria-hidden="true"></i>')
+   end
+   
+
+   if(names[ip] == nil) then
+      str = ""
+   else
+      str = string.lower(names[ip])
+   end
+      
+   if(manufacturer == "Apple, Inc.") then
+      if(string.match(str, "iphone")) then
+	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPhone)')
+      elseif(string.match(str, "ipad")) then
+	 return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (iPad)')
+      elseif(string.match(str, "ipod")) then
+	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPod)')
+      else
+	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (Apple)')
+      end
+   end
+
+   if(string.match(mac, "F0:4F:7C") and string.match(str, "kindle-")) then
+      return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (Kindle)')
+   end
+
+   -- io.write(ip .. " / " .. names["gateway.local"].."\n")
+   if(names["gateway.local"] == ip) then
+      return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>')
+   end
+   
+   return("")
+end
+
+
+-- #############################################################################
+
 local function analyzeSSDP(ssdp)
    local rsp = {}
 
@@ -108,56 +185,75 @@ end
 
 interface.select(ifname)
 
-local arp = interface.scanHosts()
+local arp_mdns = interface.scanHosts()
 local ssdp = interface.discoverHosts(3)
 
-for mac,ip in pairsByValues(arp, asc) do
-   -- io.write("Attempting to resolve "..ip.."\n")
-   interface.mdnsQueueNameToResolve(ip)
+for mac,ip in pairsByValues(arp_mdns, asc) do
+   -- io.write("## '"..mac .. "' = '" ..ip.."'\n")
+   
+   if(string.find(mac, ":") ~= nil) then
+      -- This is an ARP entry
+      -- io.write("Attempting to resolve "..ip.."\n")
+      interface.mdnsQueueNameToResolve(ip)
+   end
 end
 
 ssdp = analyzeSSDP(ssdp)
 
-print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP Address</th><th>MAC</th><th>Services</th><th>Information</th></tr>")
+print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP Address</th><th>MAC</th><th>Services</th><th>Information</th><th>Device</th></tr>")
 
 local mdns = interface.mdnsReadQueuedResponses()
 
-for mac,ip in pairsByValues(arp, asc) do
-   local symIP = mdns[ip]
-   print("<tr><th align=left>")
-
-   print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
-   if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
-
-   if(symIP ~= nil) then print(" [".. symIP .."]") end
-   print("</th>")
-
-   print("<td align=left>")
-   if(ssdp[ip] and ssdp[ip].manufacturer) then
-      print(ssdp[ip].manufacturer .. " ( <A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A> )")
-   else
-      print(get_symbolic_mac(mac))
-   end
-   print("</td><td>")
-
-   if(ssdp[ip] ~= nil) then      
-      if(ssdp[ip].services ~= nil) then
-	 for i, name in ipairs(ssdp[ip].services) do
-	    if(i > 1) then print("<br>") end
-	    print(name)
-	 end
+for mac,ip in pairsByValues(arp_mdns, asc) do
+   if(string.find(mac, ":") ~= nil) then
+      -- This is an ARP entry
+      local deviceType
+      local symIP = mdns[ip]
+      local services = ""
+      
+      print("<tr><th align=left>")
+      
+      print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
+      if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
+      
+      if(symIP ~= nil) then print(" [".. symIP .."]") end
+      print("</th>")
+      
+      print("<td align=left>")
+      if(ssdp[ip] and ssdp[ip].manufacturer) then
+	 manufacturer = ssdp[ip].manufacturer
+	 print(ssdp[ip].manufacturer .. " ( <A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A> )")
       else
-	 print("Empty&nbsp;")
+	 manufacturer = get_manufacturer_mac(mac)
+	 print(get_symbolic_mac(mac))
+      end
+      print("</td><td>")
+
+		      
+      if(ssdp[ip] ~= nil) then      
+	 if(ssdp[ip].services ~= nil) then
+	    for i, name in ipairs(ssdp[ip].services) do
+	       if(i > 1) then print("<br>") end
+	       print(name)
+	       services = services .. ";" .. name
+	    end
+	 end
+	 
+	 if(arp_mdns[ip] ~= nil) then
+	    print(arp_mdns[ip])
+	 end
+	 
+	 print("</td><td>")
+	 
+	 if(ssdp[ip].url) then print(ssdp[ip].url .. "&nbsp;") end
+      else
+	 print("&nbsp;</td><td>&nbsp;")
       end
 
-      print("</td><td>")
-      
-      if(ssdp[ip].url) then print(ssdp[ip].url .. "&nbsp;") end
-   else
-      print("&nbsp;</td><td>&nbsp;")
-   end
+      deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, mdns)
 
-   print("</td></tr>\n")
+      print("</td><td>"..deviceType.."</td></tr>\n")
+   end
 end
 
 print("</table>\n")

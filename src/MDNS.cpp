@@ -247,6 +247,8 @@ bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
 /* ******************************* */
 
 void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
+  char src[32], buf[128];
+  
   lua_newtable(vm);
 
   while(true) {
@@ -260,7 +262,7 @@ void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
 
     if(select(batch_udp_sock + 1, &rset, NULL, NULL, &tv) > 0) {
       struct sockaddr_in from;
-      char src[32], mdnsbuf[512], buf[128];
+      char mdnsbuf[512];
       socklen_t from_len = sizeof(from);
       int len = recvfrom(batch_udp_sock, mdnsbuf, sizeof(mdnsbuf), 0, (struct sockaddr *)&from, &from_len);
       struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
@@ -282,4 +284,8 @@ void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
     } else
       break;
   }
+
+  if(gatewayIPv4 != 0)
+    lua_push_str_table_entry(vm, "gateway.local", Utils::intoaV4(ntohl(gatewayIPv4), src, sizeof(src)));
 }
+
