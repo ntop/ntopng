@@ -43,15 +43,10 @@ typedef struct {
 } FrequentTrafficNode_t;
 
 /*
- * A wrapper on the head node to avoid a lock on the q field
- * 
  * NOTE: The assumption to provide concurrent access is that:
  *  - only one thread, at a given moment, can call the add* / reset functions
  *  - one or more threads, concurrently, can call the lua* methods (data query)
  */
-typedef struct {
-  FrequentTrafficNode_t *head;
-} FrequentTrafficNodeWrapper_t;
 
 /* *************************************** */
 
@@ -60,10 +55,10 @@ class FrequentTrafficItems {
   u_int32_t max_items, max_items_threshold;
   u_int32_t values_sum, last_values_sum;
   float last_diff;
-  FrequentTrafficNodeWrapper_t *q, *q_old;
+  FrequentTrafficNode_t *q, *q_committed;
   Mutex m;
 
-  void cleanup(FrequentTrafficNodeWrapper_t *root);
+  void cleanup(FrequentTrafficNode_t *root);
   void prune();
   FrequentTrafficNode_t* addGeneric(FrequentTrafficKey_t *key, size_t keysize, u_int32_t value);
 

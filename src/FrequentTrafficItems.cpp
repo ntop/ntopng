@@ -24,8 +24,7 @@
 
 FrequentTrafficItems::FrequentTrafficItems(u_int32_t _max_items) {
   max_items =_max_items, max_items_threshold = 2 * _max_items;
-  q = (FrequentTrafficNodeWrapper_t *) calloc(1, sizeof(FrequentTrafficNodeWrapper_t));
-  q_old = (FrequentTrafficNodeWrapper_t *) calloc(1, sizeof(FrequentTrafficNodeWrapper_t));
+  q = q_committed = NULL;
   values_sum = last_values_sum = 0;
 }
 
@@ -33,39 +32,36 @@ FrequentTrafficItems::FrequentTrafficItems(u_int32_t _max_items) {
 
 FrequentTrafficItems::~FrequentTrafficItems() {
   cleanup(q);
-  cleanup(q_old);
+  cleanup(q_committed);
 }
 
 /* ******************************************************** */
 
-void FrequentTrafficItems::cleanup(FrequentTrafficNodeWrapper_t *root) {
+void FrequentTrafficItems::cleanup(FrequentTrafficNode_t *head) {
   FrequentTrafficNode_t *current, *tmp;
-  
-  HASH_ITER(hh, root->head, current, tmp) {
-    HASH_DEL(root->head, current);  /* delete it */
+
+  HASH_ITER(hh, head, current, tmp) {
+    HASH_DEL(head, current);  /* delete it */
     free(current);         /* free it */
   }
-
-  free(root);
 }
 
 /* ******************************************************** */
 
 FrequentTrafficNode_t* FrequentTrafficItems::addGeneric(FrequentTrafficKey_t *key, size_t keysize, u_int32_t value) {
   FrequentTrafficNode_t *s = NULL;
-  FrequentTrafficNodeWrapper_t *root = q;
 
   /* hh_name, head, key_ptr, key_len, item_ptr */
-  HASH_FIND(hh, root->head, key, keysize, s);
+  HASH_FIND(hh, q, key, keysize, s);
 
   if(! s) {
-    if(HASH_COUNT(root->head) > max_items_threshold)
+    if(HASH_COUNT(q) > max_items_threshold)
       prune();
 
     if((s = (FrequentTrafficNode_t*)calloc(1, sizeof(FrequentTrafficNode_t))) != NULL) {
       memcpy(&s->key, key, keysize);
 
-      HASH_ADD(hh, root->head, key, keysize, s);
+      HASH_ADD(hh, q, key, keysize, s);
     }
   }
 
@@ -102,9 +98,9 @@ void FrequentTrafficItems::luaTopPoolsProtocols(lua_State *vm) {
 
   m.lock(__FILE__, __LINE__);
 
-  HASH_SORT(q_old->head, value_sort);
+  HASH_SORT(q_committed, value_sort);
 
-  for(curr=q_old->head; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
+  for(curr=q_committed; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
     lua_newtable(vm);
     lua_push_int_table_entry(vm, "pool", curr->key.pool_proto.pool_id);
     lua_push_int_table_entry(vm, "proto", curr->key.pool_proto.proto_id);
@@ -141,9 +137,9 @@ void FrequentTrafficItems::luaTopMacsProtocols(lua_State *vm) {
 
   m.lock(__FILE__, __LINE__);
 
-  HASH_SORT(q_old->head, value_sort);
+  HASH_SORT(q_committed, value_sort);
 
-  for(curr=q_old->head; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
+  for(curr=q_committed; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
     lua_newtable(vm);
     lua_push_str_table_entry(vm, "mac", Utils::formatMac(curr->key.mac_proto.mac, buf, sizeof(buf)));
     lua_push_int_table_entry(vm, "proto", curr->key.mac_proto.proto_id);
@@ -159,18 +155,17 @@ void FrequentTrafficItems::luaTopMacsProtocols(lua_State *vm) {
 
 void FrequentTrafficItems::prune() {
   FrequentTrafficNode_t *curr, *tmp;
-  FrequentTrafficNodeWrapper_t *root = q;
   u_int32_t num = 0;
 
   /*
     Sort the hash items by value and remove those who exceeded
     the threshold of max_items_threshold
   */
-  HASH_SORT(root->head, value_sort);
+  HASH_SORT(q, value_sort);
 
-  HASH_ITER(hh, root->head, curr, tmp) {
+  HASH_ITER(hh, q, curr, tmp) {
     if(++num > max_items) {
-      HASH_DEL(root->head, curr);
+      HASH_DEL(q, curr);
       free(curr);
     }
   }
@@ -179,13 +174,13 @@ void FrequentTrafficItems::prune() {
 /* ******************************************************** */
 
 void FrequentTrafficItems::reset(float tdiff_msec) {
-  /* The mutex is only needed to guard q_old */
+  /* The mutex is only needed to guard q_committed */
   m.lock(__FILE__, __LINE__);
-  cleanup(q_old);
-  q_old = q;
+  cleanup(q_committed);
+  q_committed = q;
   m.unlock(__FILE__, __LINE__);
 
-  q = (FrequentTrafficNodeWrapper_t *) calloc(1, sizeof(FrequentTrafficNodeWrapper_t));
+  q = NULL;
   last_diff = tdiff_msec;
   last_values_sum = values_sum;
   values_sum = 0;
@@ -198,11 +193,10 @@ void FrequentTrafficItems::reset(float tdiff_msec) {
 
 void FrequentTrafficItems::print() {
   FrequentTrafficNode_t *curr;
-  FrequentTrafficNodeWrapper_t *root = q;
   
-  HASH_SORT(root->head, value_sort);
+  HASH_SORT(q, value_sort);
 
-  for(curr=root->head; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
+  for(curr=q; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "<%u, %u> = %u\n",
       curr->key.pool_proto.pool_id, curr->key.pool_proto.proto_id, curr->value);
   }
