@@ -54,7 +54,8 @@ void Trace::rotate_logs(bool force_rotation) {
   char buf1[MAX_PATH], buf2[MAX_PATH];
 
   if(!logFile
-     || ((logFileTracesCount && *logFileTracesCount < TRACES_PER_LOG_FILE_HIGH_WATERMARK)
+     || ((!logFileTracesCount
+	  || *logFileTracesCount < TRACES_PER_LOG_FILE_HIGH_WATERMARK)
 	 && !force_rotation))
     return;
 
