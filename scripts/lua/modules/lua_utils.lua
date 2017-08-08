@@ -15,7 +15,9 @@ function string.contains(String,Start)
    if type(String) ~= 'string' or type(Start) ~= 'string' then
       return false
    end
-   return(string.find(String,Start,1) ~= nil)
+   local i,j = string.find(String,Start,1)
+   
+   return(i ~= nil)
 end
 
 -- ##############################################

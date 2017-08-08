@@ -7,9 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+
 sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
 
 local function getbaseURL(url)
    local name = url:match( "([^/]+)$" )
@@ -72,24 +74,40 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names)
    end
       
    if(manufacturer == "Apple, Inc.") then
-      if(string.match(str, "iphone")) then
+      if(string.contains(str, "iphone")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPhone)')
-      elseif(string.match(str, "ipad")) then
+      elseif(string.contains(str, "ipad")) then
 	 return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (iPad)')
-      elseif(string.match(str, "ipod")) then
+      elseif(string.contains(str, "ipod")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPod)')
       else
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (Apple)')
       end
    end
 
-   if(string.match(mac, "F0:4F:7C") and string.match(str, "kindle-")) then
+   if(string.contains(mac, "F0:4F:7C") and string.contains(str, "kindle-")) then
       return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (Kindle)')
    end
 
    -- io.write(ip .. " / " .. names["gateway.local"].."\n")
    if(names["gateway.local"] == ip) then
       return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>')
+   end
+   
+   if(string.contains(manufacturer, "Ubiquity") ~= nil) then
+      rsp = ntop.snmpget(ip, "public", "1.3.6.1.2.1.1.5.0", 2, 0)
+      if(rsp ~= nil) then
+	 for k, v in pairs(rsp) do
+
+	    if(string.contains(v, "router")) then
+	       return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i> ('..v..')')
+	    elseif(string.contains(v, "air")) then
+	       return('<i class="fa fa-wifi fa-lg" aria-hidden="true"></i> ('..v..')')
+	    else
+	       return(v)
+	    end
+	 end
+      end
    end
    
    return("")
@@ -228,7 +246,6 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 print(get_symbolic_mac(mac))
       end
       print("</td><td>")
-
 		      
       if(ssdp[ip] ~= nil) then      
 	 if(ssdp[ip].services ~= nil) then

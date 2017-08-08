@@ -4050,7 +4050,7 @@ static int ntop_get_resolved_address(lua_State* vm) {
 static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   char *agent_host, *oid, *community;
   u_int agent_port = 161, timeout = 5, request_id = (u_int)time(NULL);
-  int sock, i = 0, rc = CONST_LUA_OK;
+  int sock, i = 0, rc = CONST_LUA_OK, version = 1 /* SNMPv2c */;
   SNMPMessage *message;
   int len;
   unsigned char *buf;
@@ -4068,12 +4068,15 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   /* Optional timeout: take the minimum */
   if(lua_type(vm, 4) == LUA_TNUMBER) timeout = min(timeout, (u_int)lua_tointeger(vm, 4));
 
+  /* Optional version */
+  if(lua_type(vm, 5) == LUA_TNUMBER) version = (u_int)lua_tointeger(vm, 5);
+
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   if(sock < 0) return(CONST_LUA_ERROR);
 
   message = snmp_create_message();
-  snmp_set_version(message, 1 /* SNMPv2c */);
+  snmp_set_version(message, version);
   snmp_set_community(message, community);
   snmp_set_pdu_type(message, operation);
   snmp_set_request_id(message, request_id);
