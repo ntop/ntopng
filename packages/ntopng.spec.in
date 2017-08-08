@@ -109,8 +109,6 @@ esac
 %endif
 
 %post
-echo 'Setting up redis auto startup'
-/sbin/chkconfig redis on
 if test -d /usr/local/share/ntopng ; then  
     echo 'Moving ntopng to ntopng.disabled'
     mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; 
@@ -118,6 +116,8 @@ fi
 %if 0%{?centos_ver} == 7
 %systemd_post ntopng.service
 %else
+echo 'Setting up redis auto startup'
+/sbin/chkconfig redis on
 /sbin/chkconfig --add ntopng
 case "$1" in
   1)
