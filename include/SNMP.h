@@ -34,14 +34,17 @@ class SNMP {
 
   int _get(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int _getnext(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
-  int snmp_get_fctn(lua_State* vm, int operation);  
-  void send_snmp_request(char *agent_host, char *community, int operation, char *oid[SNMP_MAX_NUM_OIDS], u_int version);
+  int snmp_get_fctn(lua_State* vm, bool isGetNext);  
   int snmp_read_response(lua_State* vm, u_int timeout);
   
   public:
   SNMP();
   ~SNMP();
 
+  void send_snmp_request(char *agent_host, char *community, bool isGetNext,
+			 char *oid[SNMP_MAX_NUM_OIDS], u_int version);
+  void snmp_fetch_responses(lua_State* vm);
+  
   int get(lua_State* vm);
   int getnext(lua_State* vm);
 };

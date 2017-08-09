@@ -36,7 +36,7 @@ static bool help_printed = false;
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
   init();
-  mdns = new MDNS(this);
+  mdns = new MDNS(this), snmp = new SNMP();
 }
 
 /* **************************************************** */
@@ -102,7 +102,7 @@ NetworkInterface::NetworkInterface(const char *name,
   pkt_dumper_tap = NULL, lastSecUpdate = 0;
   ifname = strdup(name);
   ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
-  mdns = new MDNS(this);
+  mdns = new MDNS(this), snmp = new SNMP();
   
   if(id >= 0) {
     u_int32_t num_hashes;
@@ -617,6 +617,7 @@ NetworkInterface::~NetworkInterface() {
   deleteDataStructures();
   if(ifDescription)  free(ifDescription);
   if(mdns)           delete mdns;
+  if(snmp)           delete snmp;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;

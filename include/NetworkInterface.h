@@ -72,6 +72,7 @@ class NetworkInterface {
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
   MDNS *mdns;
+  SNMP *snmp;
   string ip_addresses;
   int id;
   bool bridge_interface;
@@ -556,6 +557,7 @@ class NetworkInterface {
   inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
   void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
+  inline SNMP* getSNMP() { return(snmp); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

@@ -1959,6 +1959,44 @@ static int ntop_mdns_resolve_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_snmp_batch_get(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
+    
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+
+  oid[0] = (char*)lua_tostring(vm, 3);
+  ntop_interface->getSNMP()->send_snmp_request((char*)lua_tostring(vm, 1),
+					       (char*)lua_tostring(vm, 2),
+					       false /* SNMP GET */, oid,
+					       (u_int)lua_tonumber(vm, 4));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_snmp_read_responses(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->getSNMP()->snmp_fetch_responses(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_mdns_queue_name_to_resolve(lua_State* vm) {
   char *numIP;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -5809,6 +5847,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "mdnsResolveName",               ntop_mdns_resolve_name },
   { "mdnsQueueNameToResolve",        ntop_mdns_queue_name_to_resolve },
   { "mdnsReadQueuedResponses",       ntop_mdns_read_queued_responses },
+  { "snmpGetBatch",                  ntop_snmp_batch_get },
+  { "snmpReadResponses",             ntop_snmp_read_responses   },
   
   /* DB */
   { "execSQLQuery",                  ntop_interface_exec_sql_query },

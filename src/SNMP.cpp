@@ -42,13 +42,15 @@ SNMP::~SNMP() {
 
 /* ******************************************* */
 
-void SNMP::send_snmp_request(char *agent_host, char *community, int operation, char *oid[SNMP_MAX_NUM_OIDS], u_int version) {
+void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
+			     char *oid[SNMP_MAX_NUM_OIDS], u_int version) {
   u_int agent_port = 161, request_id = (u_int)time(NULL);
   int i = 0;
   SNMPMessage *message;
   int len;
   u_char buf[1500];
-
+  int operation = isGetNext ? SNMP_GETNEXT_REQUEST_TYPE : SNMP_GET_REQUEST_TYPE;
+  
   message = snmp_create_message();
   snmp_set_version(message, version);
   snmp_set_community(message, community);
@@ -67,10 +69,6 @@ void SNMP::send_snmp_request(char *agent_host, char *community, int operation, c
   snmp_destroy_message(message);
 
   send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "SNMP %s %s@%s %s",
-			       (operation == SNMP_GET_REQUEST_TYPE) ? "Get" : "GetNext",
-			       agent_host, community, oid);
 }
 
 /* ******************************************* */
@@ -111,11 +109,11 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
 
 /* ******************************************* */
 
-int SNMP::snmp_get_fctn(lua_State* vm, int operation) {
+int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext) {
   char *agent_host, *community;
   u_int timeout = 5, version = 1 /* SNMPv2c */, oid_idx = 0, i;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
-  
+    
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))  return(CONST_LUA_ERROR);
   agent_host = (char*)lua_tostring(vm, 1);
 
@@ -136,15 +134,48 @@ int SNMP::snmp_get_fctn(lua_State* vm, int operation) {
   while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, i) == LUA_TSTRING))
     oid[oid_idx++] = (char*)lua_tostring(vm, i), i++;  
 
-  send_snmp_request(agent_host, community, operation, oid, version);
+  send_snmp_request(agent_host, community, isGetNext, oid, version);
   
   return(snmp_read_response(vm, timeout));
 }
 
 /* ******************************************* */
 
-int SNMP::get(lua_State* vm)     { return(snmp_get_fctn(vm, SNMP_GET_REQUEST_TYPE));     }
+int SNMP::get(lua_State* vm)     { return(snmp_get_fctn(vm, false));  }
 
 /* ******************************************* */
 
-int SNMP::getnext(lua_State* vm) { return(snmp_get_fctn(vm, SNMP_GETNEXT_REQUEST_TYPE)); }
+int SNMP::getnext(lua_State* vm) { return(snmp_get_fctn(vm, true));   }
+
+/* ******************************************* */
+
+void SNMP::snmp_fetch_responses(lua_State* vm) {
+  int i = 0, rc = CONST_LUA_OK;
+
+  lua_newtable(vm);
+
+  while(true) {
+    if(input_timeout(udp_sock, 0) == 0) {
+      /* Timeout */
+      break;
+    } else {
+      char buf[BUFLEN];
+      SNMPMessage *message;
+      char *sender_host, *oid_str, *value_str;
+      int sender_port, len;
+
+      len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
+      message = snmp_parse_message(buf, len);
+
+      i = 0;
+      while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
+	if(value_str && (value_str[0] != '\0'))
+	  lua_push_str_table_entry(vm, sender_host, value_str);
+	
+	i++;
+      }
+    
+      snmp_destroy_message(message);
+    }
+  }
+}
