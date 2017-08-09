@@ -12,7 +12,6 @@ sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-
 local function getbaseURL(url)
    local name = url:match( "([^/]+)$" )
 
@@ -23,7 +22,7 @@ local function getbaseURL(url)
    end
 end
 
-local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp)
+local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
    local mdns = { }
    local ssdp = { }
    local str
@@ -55,8 +54,10 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp)
       end
    end
 
+   if(osx == nil) then osx = "" end
+   
    if(mdns["_afpovertcp._tcp.local"] ~= nil) then
-      return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)')
+      return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple ['..osx..'])')
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
       return('<i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Windows)')
    end
@@ -73,6 +74,17 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp)
       str = string.lower(names[ip])
    end
 
+   if(string.contains(manufacturer, "Oki Electric") and (snmp ~= nil)) then
+      return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
+   end
+   
+   if(string.contains(manufacturer, "Hewlett Packard")
+	 and (snmp ~= nil)
+	 and string.contains(snmp, "Jet")
+   ) then
+      return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
+   end
+   
    if(manufacturer == "Apple, Inc.") then
       if(string.contains(str, "iphone")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPhone)')
@@ -81,7 +93,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp)
       elseif(string.contains(str, "ipod")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPod)')
       else
-	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (Apple)')
+	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (Apple ['..osx..']])')
       end
    end
 
@@ -202,6 +214,7 @@ local arp_mdns = interface.scanHosts()
 io.write("Starting SSDP discovery...\n")
 local ssdp = interface.discoverHosts(3)
 
+local osx_devices = { }
 for mac,ip in pairsByValues(arp_mdns, asc) do
    -- io.write("## '"..mac .. "' = '" ..ip.."'\n")
 
@@ -218,6 +231,15 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 -- Query printer model
 	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.25.3.2.1.3.1", 0)
       end
+   else
+      local ip_addr = mac
+      local mdns_services = ip
+      
+      io.write("[MDNS Services] '"..ip_addr .. "' = '" ..mdns_services.."'\n")
+
+      if(string.contains(mdns_services, '_sftp')) then
+	 osx_devices[ip_addr] = 1
+      end
    end
 end
 
@@ -232,12 +254,34 @@ print("<th>Information</th><th>Device</th></tr>")
 
 io.write("Collecting MDNS responses\n")
 local mdns = interface.mdnsReadQueuedResponses()
+for ip,rsp in pairsByValues(mdns, asc) do
+   io.write("[MDNS Resolver] "..ip.." = "..rsp.."\n")
+end
+
+
+for ip,_ in pairs(osx_devices) do
+   io.write("[MDNS OSX] Querying "..ip.. "\n")
+   interface.mdnsQueueAnyQuery(ip, "_sftp-ssh._tcp.local")
+end
+
+
+
 
 io.write("Collecting SNMP responses\n")
 local snmp = interface.snmpReadResponses()
 for ip,rsp in pairsByValues(snmp, asc) do
    -- io.write("[SNMP] "..ip.." = "..rsp.."\n")
 end
+
+
+io.write("Collecting MDNS OSX responses\n")
+osx_devices = interface.mdnsReadQueuedResponses()
+io.write("Collected MDNS OSX responses\n")
+
+for a,b in pairs(osx_devices) do
+   io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
+end
+
 
 for mac,ip in pairsByValues(arp_mdns, asc) do
    if(string.find(mac, ":") ~= nil) then
@@ -290,7 +334,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 end
       end
 
-      deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, mdns, snmp[ip])
+      deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, mdns, snmp[ip], osx_devices[ip])
       if(deviceType == "") then deviceType = "&nbsp;" end
 
       print("</td><td>"..deviceType.."</td></tr>\n")

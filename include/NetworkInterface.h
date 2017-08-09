@@ -545,6 +545,10 @@ class NetworkInterface {
     return(mdns->resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
   }
 
+  inline void mdnsSendAnyQuery(char *targetIPv4, char *query) {
+    mdns->sendAnyQuery(targetIPv4, query);
+  }
+
   inline bool mdnsQueueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
     return(mdns->queueResolveIPv4(ipv4addr, alsoUseGatewayDNS));
   }

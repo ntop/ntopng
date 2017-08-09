@@ -72,19 +72,13 @@ MDNS::~MDNS() {
 
 /* ******************************* */
 
-u_int16_t MDNS::prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
-					char *mdnsbuf, u_int mdnsbuf_len,
-					u_int16_t tid) {
+u_int16_t MDNS::buildMDNSRequest(char *query, u_int8_t query_type,
+				 char *mdnsbuf, u_int mdnsbuf_len,
+				 u_int16_t tid) {
   u_int16_t last_dot = 0, dns_query_len;
   struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
-  char *queries, query[64], addrbuf[32];
-
-  /*
-    dig +short @224.0.0.251 -p 5353 -t PTR 20.2.168.192.in-addr.arpa
-  */
-  snprintf(query, sizeof(query), "%s.in-addr.arpa",
-	   Utils::intoaV4(ipv4addr, addrbuf, sizeof(addrbuf)));
-
+  char *queries;
+  
   dns_h->tr_id = tid;
   dns_h->flags = 0 /* query */;
   dns_h->num_queries = htons(1);
@@ -108,11 +102,45 @@ u_int16_t MDNS::prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order
   queries[last_dot] = dns_query_len-last_dot-1;
   queries[dns_query_len++] = '\0';
 
-  queries[dns_query_len++] = 0x00; queries[dns_query_len++] = 0x0C; /* PTR */
+  queries[dns_query_len++] = 0x00; queries[dns_query_len++] = query_type;
   queries[dns_query_len++] = 0x00; queries[dns_query_len++] = 0x01; /* IN */
   dns_query_len += sizeof(struct ndpi_dns_packet_header);
 
+  sentAnyQuery = (query_type == 0xFF) ? true : false;
   return(dns_query_len);
+}
+
+/* ******************************* */
+
+u_int16_t MDNS::prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
+					char *mdnsbuf, u_int mdnsbuf_len,
+					u_int16_t tid) {
+  char query[64], addrbuf[32];
+
+  /*
+    dig +short @224.0.0.251 -p 5353 -t PTR 20.2.168.192.in-addr.arpa
+  */
+  snprintf(query, sizeof(query), "%s.in-addr.arpa",
+	   Utils::intoaV4(ipv4addr, addrbuf, sizeof(addrbuf)));
+  
+  return(buildMDNSRequest(query, 0x0C /* PTR */, mdnsbuf, mdnsbuf_len, tid));
+}
+
+/* ******************************* */
+
+bool MDNS::sendAnyQuery(char *targetIPv4, char *query) {
+  char mdnsbuf[512];
+  u_int16_t len = buildMDNSRequest(query, 0xFF /* ANY */, mdnsbuf, sizeof(mdnsbuf), 0);
+  struct sockaddr_in dest;
+
+  /* dig @192.168.2.38 -p 5353 -t any _sftp-ssh._tcp.local */
+  
+  dest.sin_family = AF_INET, dest.sin_port = htons(5353), dest.sin_addr.s_addr = inet_addr(targetIPv4);
+  if(sendto(batch_udp_sock, mdnsbuf, len, 0, (struct sockaddr *)&dest, sizeof(struct sockaddr_in)) < 0) {
+    return(false);
+  }
+ 
+  return(true);
 }
 
 /* ******************************* */
@@ -173,6 +201,82 @@ char* MDNS::decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
 
 /* ******************************* */
 
+char* MDNS::decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len,
+			      char *buf, u_int buf_len) {
+  struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
+  u_int offset = 0, i, idx, to_skip;
+  u_char *queries = (u_char*)&mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
+
+  mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header);
+  
+  /* Skip queries */
+  to_skip = ntohs(dns_h->num_queries);
+  for(i=0, idx=0; (i<to_skip) && (offset < (u_int)mdnsbuf_len); ) {
+    if(queries[offset] != 0) {
+      offset++, idx++;
+      continue;
+    } else {
+      offset += 4, idx = 0;
+      i++; /* Found one query */
+    }
+  }
+
+  offset++;
+  
+  /* Skip replies */
+  to_skip = ntohs(dns_h->num_answers);
+  for(i=0, idx=0; (i<to_skip) && (offset < (u_int)mdnsbuf_len); ) {
+    u_int16_t len;
+  
+    offset += 10;
+    
+    len = ntohs(*(u_int16_t*)&queries[offset]);
+    offset += len + 2;
+    
+    i++; /* Found one reply */
+  }
+
+  to_skip = ntohs(dns_h->additional_rrs);
+  for(i=0, idx=0; (i<to_skip) && (offset < (u_int)mdnsbuf_len); ) {
+    u_int16_t len, qtype;
+
+    if(queries[offset] != 0xC0) {
+      while((offset < (u_int)mdnsbuf_len) && (queries[offset] != 0xC0))
+	offset++;
+    }
+    
+    qtype = ntohs(*(u_int16_t*)&queries[offset+2]);
+  
+    len = ntohs(*(u_int16_t*)&queries[offset+10]);
+    offset += 12;
+
+    if(qtype == 0x10) {
+      int j;
+
+      for(j=0; (j<len)  && (offset < (u_int)mdnsbuf_len); j++) {
+	if(queries[offset+j] < 32) {
+	  if(idx > 0) buf[idx++] = ';';
+	} else
+	  buf[idx++] = queries[offset+j];
+      }
+
+      if(idx > 0) {
+	buf[idx] = '\0';
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "[TXT] %s", buf);
+	break;
+      }
+    }
+    
+    offset += len;
+    
+    i++; /* Found one reply */
+  }
+
+  return(buf);
+}
+
+/* ******************************* */
+
 char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
 			char *buf, u_int buf_len, u_int timeout_sec) {
   u_int dns_query_len;
@@ -207,7 +311,10 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
       u_int32_t resolved_ip;
       
       if((len > 0) && (dns_h->tr_id == tid) && (ntohs(dns_h->num_answers) > 0)) {
-	decodePTRResponse(mdnsbuf, (u_int)len, buf, buf_len, &resolved_ip);
+	if(!sentAnyQuery)
+	  decodePTRResponse(mdnsbuf, (u_int)len, buf, buf_len, &resolved_ip);
+	else
+	  decodeAnyResponse(mdnsbuf, (u_int)len, buf, buf_len);
 	break;
       }
     } else
@@ -271,7 +378,10 @@ void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
 	u_int32_t resolved_ip;
 	char *dot;
 	
-	decodePTRResponse(mdnsbuf, (u_int)len, buf, sizeof(buf), &resolved_ip);
+	if(!sentAnyQuery)
+	  decodePTRResponse(mdnsbuf, (u_int)len, buf, sizeof(buf), &resolved_ip);
+	else
+	  decodeAnyResponse(mdnsbuf, (u_int)len, buf, sizeof(buf)), resolved_ip = 0;
 
 	if(resolved_ip == 0)
 	  resolved_ip = ntohl(from.sin_addr.s_addr);

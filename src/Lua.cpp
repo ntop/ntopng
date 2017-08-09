@@ -1959,6 +1959,28 @@ static int ntop_mdns_resolve_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_mdns_batch_any_query(lua_State* vm) {
+  char *query, *target;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((target = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((query = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->mdnsSendAnyQuery(target, query);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_snmp_batch_get(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
@@ -5842,16 +5864,17 @@ static const luaL_Reg ntop_interface_reg[] = {
 #endif
 
   /* Network Discovery */
-  { "discoverHosts",                 ntop_discover_iface_hosts },
-  { "scanHosts",                     ntop_scan_iface_hosts     },
-  { "mdnsResolveName",               ntop_mdns_resolve_name },
+  { "discoverHosts",                 ntop_discover_iface_hosts       },
+  { "scanHosts",                     ntop_scan_iface_hosts           },
+  { "mdnsResolveName",               ntop_mdns_resolve_name          },
   { "mdnsQueueNameToResolve",        ntop_mdns_queue_name_to_resolve },
+  { "mdnsQueueAnyQuery",             ntop_mdns_batch_any_query       },
   { "mdnsReadQueuedResponses",       ntop_mdns_read_queued_responses },
-  { "snmpGetBatch",                  ntop_snmp_batch_get },
-  { "snmpReadResponses",             ntop_snmp_read_responses   },
+  { "snmpGetBatch",                  ntop_snmp_batch_get             },
+  { "snmpReadResponses",             ntop_snmp_read_responses        },
   
   /* DB */
-  { "execSQLQuery",                  ntop_interface_exec_sql_query },
+  { "execSQLQuery",                  ntop_interface_exec_sql_query   },
 
   /* sFlow */
   { "getSFlowDevices",               ntop_getsflowdevices      },

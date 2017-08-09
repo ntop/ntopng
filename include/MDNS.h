@@ -32,19 +32,29 @@ class MDNS {
  private:
   int udp_sock, batch_udp_sock;
   u_int32_t gatewayIPv4;
+  bool sentAnyQuery;
   
+  u_int16_t buildMDNSRequest(char *query, u_int8_t query_type,
+			     char *mdnsbuf, u_int mdnsbuf_len,
+			     u_int16_t tid);
+
   u_int16_t prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
 				    char *mdnsbuf, u_int mdnsbuf_len,
 				    u_int16_t tid = 0);
+  u_int16_t prepareAnyQuery(char *query, char *mdnsbuf, u_int mdnsbuf_len,
+			    u_int16_t tid = 0);
   char* decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
 			  char *buf, u_int buf_len,
 			  u_int32_t *resolved_ip);
+  char* decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len,
+			  char *buf, u_int buf_len);
 
 public:
   MDNS(NetworkInterface *iface);
   ~MDNS();
 
   /* Batch interface (via Lua) */
+  bool sendAnyQuery(char *targetIPv4, char *query);
   bool queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS);
   void fetchResolveResponses(lua_State* vm, int32_t timeout_sec);  
   
