@@ -33,11 +33,9 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
     if(rc < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
 				   iface->get_name(), errno, strerror(errno));
-      close(udp_sock);
-      udp_sock = -1;
-      throw("Unable to start network discovery");
     }
-  }
+  } else
+    throw("Unable to start network discovery");
 
   if((pd = pcap_open_live(iface->get_name(), 128 /* snaplen */, 0 /* no promisc */, 500, errbuf)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create pcap socket [%d/%s]", errno, strerror(errno));
