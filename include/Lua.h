@@ -146,5 +146,6 @@ extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value)
 extern void lua_push_float_table_entry(lua_State *L, const char *key, float value);
 
 
+int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
 
 #endif /* _LUA_H_ */

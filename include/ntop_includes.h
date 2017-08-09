@@ -190,6 +190,7 @@ using namespace std;
 #include "ActivityStats.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
+#include "SNMP.h"
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"

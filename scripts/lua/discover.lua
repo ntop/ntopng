@@ -203,7 +203,9 @@ end
 
 interface.select(ifname)
 
+io.write("Starting ARP discovery...\n")
 local arp_mdns = interface.scanHosts()
+io.write("Starting SSDP discovery...\n")
 local ssdp = interface.discoverHosts(3)
 
 for mac,ip in pairsByValues(arp_mdns, asc) do
@@ -216,10 +218,16 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
    end
 end
 
+io.write("Analyzing SSDP...\n")
 ssdp = analyzeSSDP(ssdp)
 
-print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP Address</th><th>MAC</th><th>Services</th><th>Information</th><th>Device</th></tr>")
+local show_services = false
 
+print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
+if(show_services) then print("<th>Services</th>") end
+print("<th>Information</th><th>Device</th></tr>")
+
+io.write("Collecting MDNS responses\n")
 local mdns = interface.mdnsReadQueuedResponses()
 
 for mac,ip in pairsByValues(arp_mdns, asc) do
@@ -229,46 +237,53 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       local symIP = mdns[ip]
       local services = ""
       
-      print("<tr><th align=left>")
+      print("<tr><td align=left>")
       
       print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
       
-      if(symIP ~= nil) then print(" [".. symIP .."]") end
-      print("</th>")
+      print("</td><td>")
+
+      if(symIP ~= nil) then print(symIP) else print("&nbsp;") end
       
-      print("<td align=left>")
+      print("</td><td align=left>")
       if(ssdp[ip] and ssdp[ip].manufacturer) then
 	 manufacturer = ssdp[ip].manufacturer
-	 print(ssdp[ip].manufacturer .. " ( <A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A> )")
       else
 	 manufacturer = get_manufacturer_mac(mac)
-	 print(get_symbolic_mac(mac))
       end
+
+      print(manufacturer .. "</td><td><A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A>")
+      
       print("</td><td>")
-		      
-      if(ssdp[ip] ~= nil) then      
-	 if(ssdp[ip].services ~= nil) then
-	    for i, name in ipairs(ssdp[ip].services) do
-	       if(i > 1) then print("<br>") end
-	       print(name)
-	       services = services .. ";" .. name
+
+      if(ssdp[ip] ~= nil) then
+	 if(show_services) then 
+	    if(ssdp[ip].services ~= nil) then
+	       for i, name in ipairs(ssdp[ip].services) do
+		  if(i > 1) then print("<br>") end
+		  print(name)
+		  services = services .. ";" .. name
+	       end
 	    end
+	    
+	    if(arp_mdns[ip] ~= nil) then
+	       print(arp_mdns[ip])
+	    end
+	    
+	    print("</td><td>")
 	 end
-	 
-	 if(arp_mdns[ip] ~= nil) then
-	    print(arp_mdns[ip])
-	 end
-	 
-	 print("</td><td>")
 	 
 	 if(ssdp[ip].url) then print(ssdp[ip].url .. "&nbsp;") end
       else
-	 print("&nbsp;</td><td>&nbsp;")
+	 if(show_services) then
+	    print("&nbsp;</td><td>&nbsp;")
+	 end
       end
 
       deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, mdns)
-
+      if(deviceType == "") then deviceType = "&nbsp;" end
+      
       print("</td><td>"..deviceType.."</td></tr>\n")
    end
 end

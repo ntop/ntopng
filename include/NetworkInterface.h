@@ -23,6 +23,7 @@
 #define _NETWORK_INTERFACE_H_
 
 #include "ntop_includes.h"
+
 /** @defgroup NetworkInterface Network Interface
  * ............
  */
