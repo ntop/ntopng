@@ -52,12 +52,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
 	    ssdp[v] = 1
 	 end
       end
-   end
-
-   if(osx == nil) then osx = "" end
+   end   
    
    if(mdns["_afpovertcp._tcp.local"] ~= nil) then
-      return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple ['..osx..'])')
+      local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple'
+
+      if(osx ~= nil) then ret = ret .. ' ['..osx..']' end
+      return(ret..')')
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
       return('<i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Windows)')
    end
@@ -93,7 +94,10 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
       elseif(string.contains(str, "ipod")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPod)')
       else
-	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (Apple ['..osx..']])')
+	 local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple'
+	 
+	 if(osx ~= nil) then ret = ret .. ' ['..osx..']' end
+	 return(ret..')')
       end
    end
 
