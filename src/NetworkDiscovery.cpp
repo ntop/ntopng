@@ -198,16 +198,18 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	if(FD_ISSET(pd_fd, &rset)) {
 	  reply = (struct arp_packet*)pcap_next(pd, &h);
 
-	  lua_push_str_table_entry(vm,
-				   Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
-				   Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-
-	  if(mdns_sock != -1) {
-	    mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
-	    if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
-	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+	  if(reply) {
+	    lua_push_str_table_entry(vm,
+				     Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
+				     Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	    
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	    
+	    if(mdns_sock != -1) {
+	      mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
+	      if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+		ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+	    }
 	  }
 	}
 
@@ -237,16 +239,27 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
 
   /* Final rush */
-  while((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
-    lua_push_str_table_entry(vm,
-			     Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
-			     Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+  while(true) {
+    FD_ZERO(&rset);
+    FD_SET(pd_fd, &rset);
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-    mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
-    if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+    tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
+    
+    if(select(pd_fd + 1, &rset, NULL, NULL, &tv) > 0) {      
+      if((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
+	lua_push_str_table_entry(vm,
+				 Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
+				 Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
+	if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+      }
+    } else
+      break;
   }
+  
 
   if(mdns_sock != -1) {
     while(true) {
