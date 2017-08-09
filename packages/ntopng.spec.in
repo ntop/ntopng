@@ -13,8 +13,33 @@ AutoReq: no
 BuildRequires: systemd
 %endif
 
+%package pcap
+Requires: redis >= 2.4.0, GeoIP >= 1.4.8, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, openssl, hiredis, mysql, libnetfilter_queue, ethtool, bridge-utils
+Summary: ntopng without pfring
+AutoReq: no
+%description pcap
+ntopng without pfring
+%files pcap
+%defattr(-, root, root)
+/usr/bin/ntopng
+/usr/share/man/man8/ntopng.8.gz
+%if 0%{?centos_ver} == 7
+%{_unitdir}/ntopng.service
+%{_unitdir}/ntopng.service.d/ntopng-pcap.service
+%endif
+/etc/init.d/ntopng
+/etc/logrotate.d/ntopng
+/usr/share/ntopng
+/usr/local/bin/ntopng
+%config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+
+%changelog pcap
+* Tue Aug 29 2017 Giacomo Sanchietti - @NTOPNG_VERSION@-@REVISION@
+- First release
+
+
 %description
-Web-based traffic monitoring
+Web-based traffic monitoring (without pfring support)
 
 %setup -q
 
@@ -57,6 +82,8 @@ fi
 if test -d "/etc/systemd"; then
    mkdir -p %{buildroot}/%{_unitdir}
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service  %{buildroot}/%{_unitdir}
+   mkdir %{buildroot}/%{_unitdir}/ntopng.service.d
+   cp $HOME/ntopng/packages/etc/systemd/system/ntopng-pcap.service %{buildroot}/%{_unitdir}/ntopng.service.d
 fi
 cp $HOME/ntopng/packages/etc/init.d/ntopng    %{buildroot}/etc/init.d
 cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    %{buildroot}/etc/logrotate.d/
