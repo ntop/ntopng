@@ -53,6 +53,13 @@ void Trace::rotate_logs(bool force_rotation) {
   int rc;
   char buf1[MAX_PATH], buf2[MAX_PATH];
 
+#ifndef WIN32
+  if(logFdShadow)
+    fclose(logFdShadow), logFdShadow = NULL;
+  if(logFileTracesCountShadow)
+    delete logFileTracesCountShadow, logFileTracesCountShadow = NULL;
+#endif
+
   if(!logFile
      || ((!logFileTracesCount
 	  || *logFileTracesCount < TRACES_PER_LOG_FILE_HIGH_WATERMARK)
@@ -92,9 +99,6 @@ void Trace::rotate_logs(bool force_rotation) {
 
   /* It's safe to rename even if another thread is writing as the FS inode doesn't change */
 #ifndef WIN32
-  if(logFdShadow)              fclose(logFdShadow);
-  if(logFileTracesCountShadow) delete logFileTracesCountShadow;
-
   logFdShadow = logFd;
   logFileTracesCountShadow = logFileTracesCount;
 
