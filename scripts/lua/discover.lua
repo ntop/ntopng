@@ -220,15 +220,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
 
    if(string.contains(manufacturer, "Oki Electric") and (snmp ~= nil)) then
       return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
-   end
-   
-   if(string.contains(manufacturer, "Hewlett Packard")
-	 and (snmp ~= nil)
-	 and string.contains(snmp, "Jet")) then
+   elseif(string.contains(manufacturer, "Hikvision")) then
+      return('<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>')
+   elseif(string.contains(manufacturer, "Hewlett Packard")
+	     and (snmp ~= nil)
+	  and string.contains(snmp, "Jet")) then
       return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
-   end
-   
-   if(string.contains(manufacturer, "Apple, Inc.")) then
+   elseif(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(str, "iphone")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPhone)')
       elseif(string.contains(str, "ipad")) then
@@ -239,7 +237,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
 	 return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)')
       end
    end
-
+   
    if(string.contains(mac, "F0:4F:7C") and string.contains(str, "kindle-")) then
       return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (Kindle)')
    end
