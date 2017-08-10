@@ -107,6 +107,7 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
   addMapping("BIFLOW_DIRECTION", 239);
   addMapping("INITIATOR_OCTETS", 231);
   addMapping("RESPONDER_OCTETS", 232);
+  addMapping("FIREWALL_EVENT", 233);
   addMapping("INGRESS_VRFID", 234);
   addMapping("FLOW_DURATION_MILLISECONDS", 161);
   addMapping("FLOW_DURATION_MICROSECONDS", 162);

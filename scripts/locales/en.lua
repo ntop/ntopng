@@ -1701,6 +1701,7 @@ local  en = {
       flow_start_microseconds = "uSec (epoch) of the first flow packet",
       flow_end_milliseconds = "Msec (epoch) of the last flow packet",
       flow_end_microseconds = "uSec (epoch) of the first flow packet",
+      firewall_event = "Firewall Event 0=ignore, 1=flow created, 2=flow deleted, 3=flow denied, 4=flow alert, 5=flow update",
       biflow_direction = "1=initiator, 2=reverseInitiator",
       ingress_vrfid = "Ingress VRF ID",
       flow_duration_milliseconds = "Flow duration (msec)",
