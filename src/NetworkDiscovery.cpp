@@ -532,9 +532,12 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   while(select(udp_sock + 1, &fdset, NULL, NULL, &tv) > 0) {
     struct sockaddr_in from;
     socklen_t s;
+    char ipbuf[32];
     int len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received packet from sport %u", ntohs(from.sin_port));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received SSDP packet from %s:%u",
+				 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
+				 ntohs(from.sin_port));
 
     if(len > 0) {
       char src[32], *host = Utils::intoaV4(ntohl(from.sin_addr.s_addr), src, sizeof(src));
@@ -542,10 +545,13 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 
       msg[len] = '\0';
 
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP] %s", msg);
+
       line = strtok_r(msg, "\n", &tmp); /* HTTP/1.1 200 OK */
 
       if(line) {
 	while((line = strtok_r(NULL, "\r", &tmp)) != NULL) {
+	  while((line[0] == '\n') || (line[0] == '\r'))line++;
 	  if(strncasecmp(line, "Location:", 9) == 0) {
 	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %s", host, &line[10]);
 	    lua_push_str_table_entry(vm, &line[10], host);
