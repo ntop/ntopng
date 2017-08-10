@@ -150,7 +150,7 @@ int SNMP::getnext(lua_State* vm) { return(snmp_get_fctn(vm, true));   }
 /* ******************************************* */
 
 void SNMP::snmp_fetch_responses(lua_State* vm) {
-  int i = 0, rc = CONST_LUA_OK;
+  int i = 0;
 
   lua_newtable(vm);
 
