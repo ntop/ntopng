@@ -21841,7 +21841,7 @@
 50:FF:99:C0:00:00/28	Goetting               # Goetting KG
 50:FF:99:D0:00:00/28	Shenzhen               # Shenzhen Haipengxin Electronic Co., Ltd.
 50:FF:99:E0:00:00/28	InformaL               # Informa LLC
-52:54:00	RealtekU	# Realtek (UpTech? also reported)
+52:54:00	RealtekU	# Realtek
 52:54:4C	Novell20	# Novell 2000
 52:54:AB	RealtekA	# REALTEK (a Realtek 8029 based PCI Card)
 54:02:37	Teltroni               # Teltronic AG

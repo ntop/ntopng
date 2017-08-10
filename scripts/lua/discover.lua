@@ -195,15 +195,15 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
 	    osxvers = osxvers[2]
 	 end
 
-	 osx = model.." - "..osxvers
+	 osx = "<br>"..model.."<br>"..osxvers
       end
    end
    
    if(mdns["_ssh._tcp.local"] ~= nil) then
-      local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> ('
+      local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)'
 
-      if(osx ~= nil) then ret = ret .. ' ['..osx..']' else ret = '(Apple' end
-      return(ret..')')
+      if(osx ~= nil) then ret = ret .. osx end
+      return(ret)
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
       return('<i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Windows)')
    end
@@ -489,3 +489,5 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 end
 
 print("</table>\n")
+
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
