@@ -199,7 +199,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
       end
    end
    
-   if(mdns["_afpovertcp._tcp.local"] ~= nil) then
+   if(mdns["_ssh._tcp.local"] ~= nil) then
       local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> ('
 
       if(osx ~= nil) then ret = ret .. ' ['..osx..']' else ret = '(Apple' end
@@ -211,7 +211,6 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
    if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
       return('<i class="fa fa-television fa-lg" aria-hidden="true"></i>')
    end
-
 
    if(names[ip] == nil) then
       str = ""
@@ -225,12 +224,11 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
    
    if(string.contains(manufacturer, "Hewlett Packard")
 	 and (snmp ~= nil)
-	 and string.contains(snmp, "Jet")
-   ) then
+	 and string.contains(snmp, "Jet")) then
       return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
    end
    
-   if(manufacturer == "Apple, Inc.") then
+   if(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(str, "iphone")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPhone)')
       elseif(string.contains(str, "ipad")) then
@@ -238,7 +236,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
       elseif(string.contains(str, "ipod")) then
 	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPod)')
       else
-	 local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)'
+	 return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)')
       end
    end
 
@@ -434,15 +432,16 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       local deviceType
       local symIP = mdns[ip]
       local services = ""
-
+      local sym = ntop.resolveName(ip)
+      
       print("<tr><td align=left>")
 
       print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
 
-      print("</td><td>")
-
-      if(symIP ~= nil) then print(symIP) else print("&nbsp;") end
+      print("</td><td>"..sym)
+      
+      if(symIP ~= nil) then print(" ["..symIP.."]") else print("&nbsp;") end
 
       print("</td><td align=left>")
       if(ssdp[ip] and ssdp[ip].manufacturer) then
