@@ -442,7 +442,15 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 
       print("</td><td>"..sym)
       
-      if(symIP ~= nil) then print(" ["..symIP.."]") else print("&nbsp;") end
+      if(symIP ~= nil) then
+	 if(sym ~= "") then
+	    print(" ["..symIP.."]")
+	 else
+	    print(symIP)
+	 end
+      else
+	 print("&nbsp;")
+      end
 
       print("</td><td align=left>")
       if(ssdp[ip] and ssdp[ip].manufacturer) then
@@ -470,9 +478,12 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 
 	 if(arp_mdns[ip] ~= nil) then
 	    local s = string.split(arp_mdns[ip], ";")
-	    for i,name in pairs(s) do
-	       if(i > 1) then print("<br>") end
-	       print(name)
+
+	    if(s ~= nil) then
+	       for i,name in pairs(s) do
+		  if(i > 1) then print("<br>") end
+		  print(name)
+	       end
 	    end
 	 end
 	 if(ssdp[ip] ~= nil and ssdp[ip].url ~= nil) then print(ssdp[ip].url .. "&nbsp;") end
