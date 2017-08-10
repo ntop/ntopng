@@ -2368,10 +2368,11 @@ int Utils::dropWriteCapabilities() {
 
 /* Return IP is network byte order */
 u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
+#ifndef WIN32
   char cmd[128];
   FILE *fp;
 
-  sprintf(cmd, "netstat -rn | grep %s | grep 'UG' | awk '{print $2}'", ifname);
+  sprintf(cmd, "netstat -rn | grep '%s' | grep 'UG' | awk '{print $2}'", ifname);
 
   if((fp = popen(cmd, "r")) != NULL) {
     char line[256];
@@ -2383,5 +2384,6 @@ u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
     pclose(fp);
     return(rc);
   } else
+#endif
     return(0);
 }
