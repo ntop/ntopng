@@ -391,6 +391,7 @@ ssdp = analyzeSSDP(ssdp)
 
 local show_services = false
 
+print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
 print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
 if(show_services) then print("<th>Services</th>") end
 print("<th>Information</th><th>Device</th></tr>")

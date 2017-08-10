@@ -78,8 +78,9 @@ end
 
 print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
 
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
 if(ntop.isPro()) then
-	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Traffic Report</a></li>')
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Traffic Report</a></li>')
 end
 
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
