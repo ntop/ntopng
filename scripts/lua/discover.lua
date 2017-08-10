@@ -142,7 +142,7 @@ local function getbaseURL(url)
    end
 end
 
-local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
+local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names, snmp, osx)
    local mdns = { }
    local ssdp = { }
    local str
@@ -160,13 +160,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
       end
    end
 
-   if(_ssdp ~= nil) then
-      --io.write(mac .. " /" .. manufacturer .. " / ".. _ssdp.."\n")
+   if(ssdp_str ~= nil) then
+      --io.write(mac .. " /" .. manufacturer .. " / ".. ssdp_str.."\n")
 
-      local ssdp_items = string.split(_ssdp, ";")
+      local ssdp_items = string.split(ssdp_str, ";")
 
       if(ssdp_items == nil) then
-	 ssdp[_ssdp] = 1
+	 ssdp[ssdp_str] = 1
       else
 	 for _,v in pairs(ssdp_items) do
 	    ssdp[v] = 1
@@ -210,6 +210,16 @@ local function findDevice(ip, mac, manufacturer, _mdns, _ssdp, names, snmp, osx)
 
    if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
       return('<i class="fa fa-television fa-lg" aria-hidden="true"></i>')
+   end
+
+   if(ssdp_entries and ssdp_entries["modelDescription"]) then
+   	local descr = string.lower(ssdp_entries["modelDescription"])
+
+	if(string.contains(descr, "camera")) then
+  	  return('<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>')
+	elseif(string.contains(descr, "router")) then
+          return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>')
+	end
    end
 
    if(names[ip] == nil) then
@@ -270,6 +280,8 @@ local function analyzeSSDP(ssdp)
       local hresp = ntop.httpGet(url, "", "", 3 --[[ seconds ]])
       local friendlyName = ""
       local manufacturer = ""
+      local modelDescription = ""
+      local modelName = ""
       local icon = ""
       local base_url = getbaseURL(url)
       local services = { }
@@ -282,6 +294,12 @@ local function analyzeSSDP(ssdp)
 	    if(r.root.device ~= nil) then
 	       if(r.root.device.friendlyName ~= nil) then
 		  friendlyName = r.root.device.friendlyName:value()
+	       end
+	       if(r.root.device.modelName ~= nil) then
+		  modelName = r.root.device.modelName:value()
+	       end
+	       if(r.root.device.modelDescription ~= nil) then
+	          modelDescription = r.root.device.modelDescription:value()
 	       end
 	    end
 	 end
@@ -337,7 +355,8 @@ local function analyzeSSDP(ssdp)
 	    table.insert(rsp[host].services, v)
 	 end
       else
-	 rsp[host] = { ["icon"] = icon, ["manufacturer"] = manufacturer, ["url"] = "<A HREF="..url..">"..friendlyName.."</A>", ["services"] = services }
+	 rsp[host] = { ["icon"] = icon, ["manufacturer"] = manufacturer, ["url"] = "<A HREF="..url..">"..friendlyName.."</A>",
+	 	       ["services"] = services, ["modelName"] = modelName, ["modelDescription"] = modelDescription }
       end
 
       -- io.write(rsp[host].icon .. " / " ..rsp[host].manufacturer .. " / " ..rsp[host].url .. " / " .. "\n")
@@ -381,6 +400,8 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       if(string.contains(mdns_services, '_sftp')) then
 	 osx_devices[ip_addr] = 1
       end
+
+      ntop.resolveName(ip) -- Force address resolution
    end
 end
 
@@ -405,9 +426,6 @@ for ip,_ in pairs(osx_devices) do
    io.write("[MDNS OSX] Querying "..ip.. "\n")
    interface.mdnsQueueAnyQuery(ip, "_sftp-ssh._tcp.local")
 end
-
-
-
 
 io.write("Collecting SNMP responses\n")
 local snmp = interface.snmpReadResponses()
@@ -438,10 +456,11 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
 
-      print("</td><td>"..sym)
-      
+      print("</td><td>")
+      if(sym ~= ip) then print(sym) end
+	
       if(symIP ~= nil) then
-	 if(sym ~= "") then
+	 if((sym ~= "") and (sym ~= ip)) then
 	    print(" ["..symIP.."]")
 	 else
 	    print(symIP)
@@ -457,7 +476,9 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 manufacturer = get_manufacturer_mac(mac)
       end
 
-      print(manufacturer .. "</td><td><A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A>")
+      print(manufacturer)
+      if(ssdp[ip] and ssdp[ip]["modelName"]) then print(" ["..ssdp[ip]["modelName"].."]") end
+      print("</td><td><A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A>")
 
       print("</td><td>")
 
@@ -491,7 +512,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 end
       end
 
-      deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, mdns, snmp[ip], osx_devices[ip])
+      deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip])
       if(deviceType == "") then deviceType = "&nbsp;" end
 
       print("</td><td>"..deviceType.."</td></tr>\n")
