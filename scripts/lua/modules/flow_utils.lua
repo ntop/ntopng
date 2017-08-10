@@ -661,6 +661,7 @@ local flow_fields_description = {
     ["FLOW_START_MICROSECONDS"] = i18n("flow_fields_description.flow_start_microseconds"),
     ["FLOW_END_MILLISECONDS"] = i18n("flow_fields_description.flow_end_milliseconds"),
     ["FLOW_END_MICROSECONDS"] = i18n("flow_fields_description.flow_end_microseconds"),
+    ['FIREWALL_EVENT'] = i18n("flow_fields_description.firewall_event"),
     ["BIFLOW_DIRECTION"] = i18n("flow_fields_description.biflow_direction"),
     ["INGRESS_VRFID"] = i18n("flow_fields_description.ingress_vrfid"),
     ["FLOW_DURATION_MILLISECONDS"] = i18n("flow_fields_description.flow_duration_milliseconds"),
