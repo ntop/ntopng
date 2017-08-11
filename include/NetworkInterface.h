@@ -305,6 +305,7 @@ class NetworkInterface {
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
+  bool findHostsByMac(lua_State* vm, u_int8_t *mac);
   bool dissectPacket(u_int8_t bridge_iface_idx,
 		     u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */
 		     const struct pcap_pkthdr *h, const u_char *packet,

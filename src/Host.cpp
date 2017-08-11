@@ -1092,11 +1092,26 @@ bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
   keybuf_ptr = get_hostkey(keybuf, sizeof(keybuf));
 
   if(strcasestr((ipbuf_ptr = Utils::formatMac(m ? m->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
-     ||
-     strcasestr((ipbuf_ptr = Utils::formatMac(sm ? sm->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
+     || strcasestr((ipbuf_ptr = Utils::formatMac(sm ? sm->get_mac() : NULL, ipbuf, sizeof(ipbuf))), key) /* Match by MAC */
      || strcasestr((ipbuf_ptr = keybuf_ptr), key)                                                  /* Match by hostkey */
      || strcasestr((ipbuf_ptr = get_visual_name(ipbuf, sizeof(ipbuf))), key)) {                    /* Match by name */
     lua_push_str_table_entry(vm, keybuf_ptr, ipbuf_ptr);
+    return(true);
+  }
+
+  return(false);
+}
+
+/* *************************************** */
+
+bool Host::addIfMatching(lua_State* vm, u_int8_t *_mac) {
+  if((mac && mac->equal(0, _mac))
+     || (secondary_mac && secondary_mac->equal(0, _mac))) {
+    char keybuf[64], ipbuf[32];
+
+    lua_push_str_table_entry(vm,
+			     get_string_key(ipbuf, sizeof(ipbuf)),
+			     get_hostkey(keybuf, sizeof(keybuf)));
     return(true);
   }
 

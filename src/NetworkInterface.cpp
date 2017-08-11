@@ -4622,6 +4622,39 @@ static bool hosts_search_walker(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
+struct search_mac_info {
+  lua_State *vm;
+  u_int8_t *mac;
+  u_int num_matches;
+};
+
+/* **************************************************** */
+
+static bool macs_search_walker(GenericHashEntry *h, void *user_data) {
+  Host *host = (Host*)h;
+  struct search_mac_info *info = (struct search_mac_info*)user_data;
+
+  if(host->addIfMatching(info->vm, info->mac))
+    info->num_matches++;  
+  
+  /* Stop after CONST_MAX_NUM_FIND_HITS matches */
+  return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
+}
+
+/* *************************************** */
+
+bool NetworkInterface::findHostsByMac(lua_State* vm, u_int8_t *mac) {
+  struct search_mac_info info;
+
+  info.vm = vm, info.mac = mac, info.num_matches = 0;
+
+  lua_newtable(vm);
+  walker(walker_hosts, macs_search_walker, (void*)&info);
+  return(info.num_matches > 0);
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::findHostsByName(lua_State* vm,
 				       AddressTree *allowed_hosts,
 				       char *key) {
@@ -5844,3 +5877,4 @@ void NetworkInterface::topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t byte
     frequentMacs->addMacProtocol(mac->get_mac(), proto->app_protocol, bytes);
   }
 }
+

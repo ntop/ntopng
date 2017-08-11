@@ -697,15 +697,15 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   u_int16_t vlan_id = 0, pool_filter = (u_int16_t)-1;
   bool a2zSortOrder = true, sourceMacsOnly = false, hostMacsOnly = false;
 
-  if(lua_type(vm, 1) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 1);
-  if(lua_type(vm, 2) == LUA_TNUMBER) maxHits = (u_int16_t)lua_tonumber(vm, 2);
-  if(lua_type(vm, 3) == LUA_TNUMBER) toSkip = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 1) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 1);
+  if(lua_type(vm, 2) == LUA_TNUMBER)  maxHits = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 3) == LUA_TNUMBER)  toSkip = (u_int16_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) a2zSortOrder = lua_toboolean(vm, 4);
-  if(lua_type(vm, 5) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 5);
+  if(lua_type(vm, 5) == LUA_TNUMBER)  vlan_id = (u_int16_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TBOOLEAN) sourceMacsOnly = lua_toboolean(vm, 6);
   if(lua_type(vm, 7) == LUA_TBOOLEAN) hostMacsOnly = lua_toboolean(vm, 7);
-  if(lua_type(vm, 8) == LUA_TSTRING) manufacturer = lua_tostring(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER) pool_filter = (u_int16_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 8) == LUA_TSTRING)  manufacturer = lua_tostring(vm, 8);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 9);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
@@ -2469,6 +2469,26 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
   ntop_interface->findHostsByName(vm, get_allowed_nets(vm), key);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac;
+  u_int8_t _mac[6];
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  mac = (char*)lua_tostring(vm, 1);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+  Utils::parseMac(_mac, mac);
+  
+  ntop_interface->findHostsByMac(vm, _mac);
 
   return(CONST_LUA_OK);
 }
@@ -5818,6 +5838,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "findNameFlows",          ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",          ntop_list_http_hosts },
   { "findHost",               ntop_get_interface_find_host },
+  { "findHostByMac",          ntop_get_interface_find_host_by_mac },
   { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
   { "refreshHostsAlertsConfiguration", ntop_refresh_hosts_alerts_configuration },
   { "setSecondTraffic",       ntop_set_second_traffic },

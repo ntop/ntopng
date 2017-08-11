@@ -144,6 +144,8 @@ local asset_icons = {
    ['wifi']       = '<i class="fa fa-wifi fa-lg" aria-hidden="true"></i>',
 }
 
+local ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
+
 local function getbaseURL(url)
    local name = url:match( "([^/]+)$" )
 
@@ -394,6 +396,8 @@ end
 
 interface.select(ifname)
 
+
+
 io.write("Starting ARP discovery...\n")
 local arp_mdns = interface.arpScanHosts()
 
@@ -402,6 +406,27 @@ if(arp_mdns == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Unable to start network discovery</div>')
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
+end
+
+local ghost_macs  = {}
+local ghost_found = false
+
+-- Add the known macs to the list
+local known_macs = interface.getMacsInfo(nil, 999, 0, false, 0, tonumber(vlan), true, true, nil)
+
+for _,hmac in pairs(known_macs.macs) do
+   if(hmac["bytes.sent"] > 0) then -- Skip silent hosts
+      if(arp_mdns[hmac.mac] == nil) then
+	 local ips = interface.findHostByMac(hmac.mac)
+	 -- io.write("Missing MAC "..hmac.mac.."\n")
+
+	 for k,v in pairs(ips) do
+	    arp_mdns[hmac.mac] = k
+	    ghost_macs[hmac.mac] = k
+	    ghost_found = true
+	 end
+      end
+   end
 end
 
 io.write("Starting SSDP discovery...\n")
@@ -490,6 +515,10 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
 
+      if(ghost_macs[mac] ~= nil) then
+	 print(' <font color=red>'..ghost_icon..'</font>')
+      end
+
       print("</td><td>")
       if((sym ~= "") and (sym ~= ip)) then print(sym) end
 	
@@ -554,5 +583,9 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 end
 
 print("</table>\n")
+
+if(ghost_found) then
+   print('<b>NOTE</b>: The <font color=red>'..ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

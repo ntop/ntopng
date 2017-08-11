@@ -174,6 +174,7 @@ class Host : public GenericHost {
   void  serialize2redis();
   bool  deserialize(char *json_str, char *key);
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
+  bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
 
   void incNumFlows(bool as_client);
