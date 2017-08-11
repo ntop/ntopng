@@ -48,7 +48,8 @@ class MDNS {
 			  u_int32_t *resolved_ip);
   char* decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len,
 			  char *buf, u_int buf_len);
-
+  char* decodeNetBIOS(u_char *buf, u_int buf_len, char *out, u_int out_len);
+  
 public:
   MDNS(NetworkInterface *iface);
   ~MDNS();

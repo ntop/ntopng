@@ -330,7 +330,12 @@ bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
   u_int dns_query_len;
   char mdnsbuf[512];
   u_int16_t tid = ipv4addr & 0xFFFF;
-  struct sockaddr_in mdns_dest;
+  struct sockaddr_in mdns_dest, nbns_dest;
+  u_int8_t nbns_discover[] = {0x12, 0x34, /* Transaction ID: 0x1234 */
+			      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x43, 0x4b, 0x41,
+			      0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
+			      0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x00, 0x00, 0x21,
+			      0x00, 0x01 };
 
   dns_query_len = prepareIPv4ResolveQuery(ipv4addr, mdnsbuf, sizeof(mdnsbuf), tid);
 
@@ -347,6 +352,10 @@ bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
       return(false);
     }
   }
+  
+  nbns_dest.sin_family = AF_INET, nbns_dest.sin_port = htons(137), nbns_dest.sin_addr.s_addr = ipv4addr;
+  if(sendto(batch_udp_sock, nbns_discover, sizeof(nbns_discover), 0, (struct sockaddr *)&nbns_dest, sizeof(struct sockaddr_in)) < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "NBNS Send error [%d/%s]", errno, strerror(errno)); 
 
   return(true);
 }
@@ -355,7 +364,8 @@ bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
 
 void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
   char src[32], buf[128];
-  
+  u_int16_t onethreeseven = ntohs(137);
+    
   lua_newtable(vm);
 
   while(true) {
@@ -372,24 +382,34 @@ void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
       char mdnsbuf[512];
       socklen_t from_len = sizeof(from);
       int len = recvfrom(batch_udp_sock, mdnsbuf, sizeof(mdnsbuf), 0, (struct sockaddr *)&from, &from_len);
-      struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
-      
-      if((len > 0) && (ntohs(dns_h->num_answers) > 0)) {
-	u_int32_t resolved_ip;
-	char *dot;
-	
-	if(!sentAnyQuery)
-	  decodePTRResponse(mdnsbuf, (u_int)len, buf, sizeof(buf), &resolved_ip);
-	else
-	  decodeAnyResponse(mdnsbuf, (u_int)len, buf, sizeof(buf)), resolved_ip = 0;
 
-	if(resolved_ip == 0)
-	  resolved_ip = ntohl(from.sin_addr.s_addr);
+      if(len > 0) {	 
+	if(from.sin_port == onethreeseven) {
+	  /* NetBIOS */
+	  decodeNetBIOS((u_char*)mdnsbuf, len, buf, sizeof(buf));
+	  lua_push_str_table_entry(vm, Utils::intoaV4(ntohl(from.sin_addr.s_addr),
+						      src, sizeof(src)), buf);
+	} else {
+	  struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
 
-	if((dot = strchr(buf, '.')) != NULL)
-	  dot[0] = '\0';
-	
-	lua_push_str_table_entry(vm, Utils::intoaV4(resolved_ip, src, sizeof(src)), buf);
+	  if(ntohs(dns_h->num_answers) > 0) {
+	    u_int32_t resolved_ip;
+	    char *dot;
+	    
+	    if(!sentAnyQuery)
+	      decodePTRResponse(mdnsbuf, (u_int)len, buf, sizeof(buf), &resolved_ip);
+	    else
+	      decodeAnyResponse(mdnsbuf, (u_int)len, buf, sizeof(buf)), resolved_ip = 0;
+	    
+	    if(resolved_ip == 0)
+	      resolved_ip = ntohl(from.sin_addr.s_addr);
+	    
+	    if((dot = strchr(buf, '.')) != NULL)
+	      dot[0] = '\0';
+	    
+	    lua_push_str_table_entry(vm, Utils::intoaV4(resolved_ip, src, sizeof(src)), buf);
+	  }
+	}
       }
     } else
       break;
@@ -399,3 +419,50 @@ void MDNS::fetchResolveResponses(lua_State* vm, int32_t timeout_sec) {
     lua_push_str_table_entry(vm, "gateway.local", Utils::intoaV4(ntohl(gatewayIPv4), src, sizeof(src)));
 }
 
+/* ******************************* */
+  
+/*
+  Ok I know this is not a MDNS packet but it is convenient to combine
+  MDNS with NetBIOS address resolution
+*/
+char* MDNS::decodeNetBIOS(u_char *buf, u_int buf_len,
+			  char *out, u_int out_len) {
+  struct netbios_header {
+    u_int16_t transaction_id, flags, questions, answer_rrs, authority_rrs, additional_rrs;
+  };
+  struct netbios_header *h = (struct netbios_header*)buf;
+  u_int16_t offset, i16;
+  
+  out[0] = '\0';
+
+  if((buf_len < sizeof(struct netbios_header)+32 /* Just to be safe */)
+     || (ntohs(h->transaction_id) != 0x1234)
+     || ((ntohs(h->flags) & 0x8000) == 0 /* Not a reply */)
+     || (ntohs(h->questions)  != 0)
+     || (ntohs(h->answer_rrs) == 0)
+     )
+    return(out);
+
+  offset = sizeof(struct netbios_header);
+  offset += buf[offset] + 2; /* Skip name */
+
+  if(offset > buf_len) return(out);
+  i16 = ntohs(*((u_int16_t*)&buf[offset])); /* Type */
+  if(i16 != 0x21) /* NBSTAT */ return(out); else offset += 2;
+
+  offset += 8; /* Skip class, TTL and data len */
+  if(offset > buf_len) return(out);
+
+  if(buf[offset] == 0) /* Number of names */ return(out); else offset += 1;
+  if((offset+16) > buf_len) return(out);
+
+  strncpy(out, (char*)&buf[offset], 16);
+
+  for(i16=15; i16>0; i16--)
+    if((out[i16] == ' ') || (out[i16] == 0x0))
+      out[i16] = '\0';
+    else
+      break;
+
+  return(out);
+}

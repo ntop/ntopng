@@ -457,7 +457,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
 
       print("</td><td>")
-      if(sym ~= ip) then print(sym) end
+      if((sym ~= "") and (sym ~= ip)) then print(sym) end
 	
       if(symIP ~= nil) then
 	 if((sym ~= "") and (sym ~= ip)) then

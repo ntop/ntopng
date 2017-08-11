@@ -120,7 +120,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     u_int last_dot = 0;
     char *queries;
 
-    if(mdns_sock > max_sock) max_sock = mdns_sock;
+    if(mdns_sock > max_sock) max_sock = mdns_sock;    
     dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
     dns_h->tr_id = 0;
     dns_h->flags = 0 /* query */;
@@ -175,7 +175,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 			   Utils::intoaV4(ntohl(arp.arp_spa), ipbuf, sizeof(ipbuf)));
 
   mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
-
+    
   for(int num_runs=0; num_runs<2; num_runs++) {
     for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
       arp.arp_tpa = ntohl(host_ip);
@@ -186,6 +186,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
       // Inject packet
       if(pcap_inject(pd, &arp, sizeof(arp)) == -1)
 	break;
+
       FD_ZERO(&rset);
       FD_SET(pd_fd, &rset);
       if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
@@ -206,7 +207,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	    if(mdns_sock != -1) {
 	      mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
 	      if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
-		ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+		ntop->getTrace()->traceEvent(TRACE_ERROR, "MDNS Send error [%d/%s]", errno, strerror(errno));
 	    }
 	  }
 	}
@@ -218,14 +219,16 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
 	  if(len > 0) {
 	    char outbuf[1024];
-
+	    
 	    dissectMDNS(mdnsreply, len, outbuf, sizeof(outbuf));
-	    lua_push_str_table_entry(vm,
-				     Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
-				     outbuf);
+	    
+	    if(outbuf[0] != '\0')
+	      lua_push_str_table_entry(vm,
+				       Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
+				       outbuf);	  
 	  }
 	}
-      }
+      } /* select */
 
       _usleep(1000); /* Avoid flooding */
     }
