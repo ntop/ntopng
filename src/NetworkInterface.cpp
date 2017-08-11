@@ -36,7 +36,6 @@ static bool help_printed = false;
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
   init();
-  mdns = new MDNS(this), snmp = new SNMP();
 }
 
 /* **************************************************** */
@@ -102,7 +101,12 @@ NetworkInterface::NetworkInterface(const char *name,
   pkt_dumper_tap = NULL, lastSecUpdate = 0;
   ifname = strdup(name);
   ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
-  mdns = new MDNS(this), snmp = new SNMP();
+  snmp = new SNMP();
+
+  if(strchr(name, ':') || strchr(name, '@')  || (!strncmp(name, "lo", 2)))
+    ; /* Don't setup MDNS on ZC or RSS interfaces */
+  else
+    mdns = new MDNS(this); 
   
   if(id >= 0) {
     u_int32_t num_hashes;
@@ -257,7 +261,8 @@ void NetworkInterface::init() {
     has_too_many_hosts = has_too_many_flows = false,
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
-    pollLoopCreated = false, bridge_interface = false;
+    pollLoopCreated = false, bridge_interface = false,
+    mdns = NULL, snmp = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);

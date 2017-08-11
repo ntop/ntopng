@@ -542,19 +542,24 @@ class NetworkInterface {
 
   inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,
 			       char *buf, u_int buf_len, u_int timeout_sec = 2) {
-    return(mdns->resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
+    if(mdns)
+      return(mdns->resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
+    else {
+      buf[0] = '\0';
+      return(buf);
+    }
   }
 
   inline void mdnsSendAnyQuery(char *targetIPv4, char *query) {
-    mdns->sendAnyQuery(targetIPv4, query);
+    if(mdns) mdns->sendAnyQuery(targetIPv4, query);
   }
 
   inline bool mdnsQueueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
-    return(mdns->queueResolveIPv4(ipv4addr, alsoUseGatewayDNS));
+    return(mdns ? mdns->queueResolveIPv4(ipv4addr, alsoUseGatewayDNS) : false);    
   }
   
   inline void mdnsFetchResolveResponses(lua_State* vm, int32_t timeout_sec = 2) {
-    mdns->fetchResolveResponses(vm, timeout_sec);
+    if(mdns) mdns->fetchResolveResponses(vm, timeout_sec);
   }
 
   void topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes);
@@ -562,6 +567,7 @@ class NetworkInterface {
   void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline SNMP* getSNMP() { return(snmp); }
+  inline MDNS* getMDNS() { return(mdns); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

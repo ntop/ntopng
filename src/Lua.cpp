@@ -227,8 +227,8 @@ static int ntop_get_interface_names(lua_State* vm) {
 
     if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
       char num[8], *name = iface->get_name();
-
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", name);
+      
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name [%d][%s]", i, name);
       snprintf(num, sizeof(num), "%d", i);
       lua_push_str_table_entry(vm, num, name);
     }
@@ -1887,6 +1887,17 @@ static int ntop_get_flow_device_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_discoverable(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ((!ntop_interface) || (ntop_interface->getMDNS() == NULL)) ? 0 : 1);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_discover_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int timeout = 3; /* sec */
@@ -1898,23 +1909,28 @@ static int ntop_discover_iface_hosts(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TNUMBER) timeout = (u_int)lua_tonumber(vm, 1);
 
-  try {
-    NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
-
-    if(d) {
-      d->discover(vm, timeout);
-      delete d;
+  if(ntop_interface->getMDNS()) {
+    /* This is a device we can use for network discovery */
+    
+    try {
+      NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
+      
+      if(d) {
+	d->discover(vm, timeout);
+	delete d;
+      }
+    } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network discovery");
     }
-  } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network discovery");
-  }
 
-  return(CONST_LUA_OK);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */
 
-static int ntop_scan_iface_hosts(lua_State* vm) {
+static int ntop_arpscan_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1922,18 +1938,23 @@ static int ntop_scan_iface_hosts(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  try {
-    NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
-
-    if(d) {
-      d->arpScan(vm);
-      delete d;
+  if(ntop_interface->getMDNS()) {
+    /* This is a device we can use for network discovery */
+    
+    try {
+      NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
+      
+      if(d) {
+	d->arpScan(vm);
+	delete d;
+      }
+    } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
     }
-  } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
-  }
 
-  return(CONST_LUA_OK);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */
@@ -5865,7 +5886,8 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Network Discovery */
   { "discoverHosts",                 ntop_discover_iface_hosts       },
-  { "scanHosts",                     ntop_scan_iface_hosts           },
+  { "arpScanHosts",                  ntop_arpscan_iface_hosts        },
+  { "isDiscoverable",                ntop_is_discoverable            },
   { "mdnsResolveName",               ntop_mdns_resolve_name          },
   { "mdnsQueueNameToResolve",        ntop_mdns_queue_name_to_resolve },
   { "mdnsQueueAnyQuery",             ntop_mdns_batch_any_query       },

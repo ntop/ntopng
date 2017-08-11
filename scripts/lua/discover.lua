@@ -132,6 +132,18 @@ local apple_products = {
    ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)'
 }
 
+local asset_icons = {
+   ['printer']    = '<i class="fa fa-print fa-lg" aria-hidden="true"></i>',
+   ['video']      = '<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>',
+   ['desktop']    = '<i class="fa fa-desktop fa-lg" aria-hidden="true"></i>',
+   ['laptop']     = '<i class="fa fa-laptop fa-lg" aria-hidden="true"></i>',
+   ['tablet']     = '<i class="fa fa-tablet fa-lg" aria-hidden="true"></i>',
+   ['phone']      = '<i class="fa fa-mobile fa-lg" aria-hidden="true"></i>',
+   ['television'] = '<i class="fa fa-television fa-lg" aria-hidden="true"></i>',
+   ['router']     = '<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>',
+   ['wifi']       = '<i class="fa fa-wifi fa-lg" aria-hidden="true"></i>',
+}
+
 local function getbaseURL(url)
    local name = url:match( "([^/]+)$" )
 
@@ -200,25 +212,34 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
    
    if(mdns["_ssh._tcp.local"] ~= nil) then
-      local ret = '</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)'
+      local icon = 'desktop'
+      local ret
+      
+      if(osx ~= nil) then
+	 if(string.contains(osx, "MacBook")) then
+	    icon = 'laptop'
+	 end
+      end
+
+      ret = '</i>'..asset_icons[icon]..' (Apple)'
 
       if(osx ~= nil) then ret = ret .. osx end
       return(ret)
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
-      return('<i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Windows)')
+      return(asset_icons['desktop']..' (Windows)')
    end
 
    if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
-      return('<i class="fa fa-television fa-lg" aria-hidden="true"></i>')
+      return(asset_icons['television'])
    end
 
    if(ssdp_entries and ssdp_entries["modelDescription"]) then
    	local descr = string.lower(ssdp_entries["modelDescription"])
 
 	if(string.contains(descr, "camera")) then
-  	  return('<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>')
+	   return(asset_icons['video'])
 	elseif(string.contains(descr, "router")) then
-          return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>')
+	   return(asset_icons['router'])
 	end
    end
 
@@ -229,39 +250,43 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if(string.contains(manufacturer, "Oki Electric") and (snmp ~= nil)) then
-      return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
+      return(asset_icons['printer'].. ' ('..snmp..')')
    elseif(string.contains(manufacturer, "Hikvision")) then
-      return('<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>')
+      return(asset_icons['video'])
+   elseif(string.contains(manufacturer, "Super Micro")) then
+      return(asset_icons['desktop'])
+   elseif(string.contains(manufacturer, "Raspberry")) then
+      return(asset_icons['desktop'])
    elseif(string.contains(manufacturer, "Hewlett Packard")
 	     and (snmp ~= nil)
 	  and string.contains(snmp, "Jet")) then
-      return('<i class="fa fa-print fa-lg" aria-hidden="true"></i> ('..snmp..')')
+      return(asset_icons['printer']..' ('..snmp..')')
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(str, "iphone")) then
-	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPhone)')
+	 return(asset_icons['phone']..' (iPhone)')
       elseif(string.contains(str, "ipad")) then
-	 return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (iPad)')
+	 return(asset_icons['tablet']..' (iPad)')
       elseif(string.contains(str, "ipod")) then
-	 return('<i class="fa fa-mobile fa-lg" aria-hidden="true"></i> (iPod)')
+	 return(asset_icons['phone']..' (iPod)')
       else
 	 return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)')
       end
    end
    
    if(string.contains(mac, "F0:4F:7C") and string.contains(str, "kindle-")) then
-      return('<i class="fa fa-tablet fa-lg" aria-hidden="true"></i> (Kindle)')
+      return(asset_icons['tablet']..' (Kindle)')
    end
 
    -- io.write(ip .. " / " .. names["gateway.local"].."\n")
    if(names["gateway.local"] == ip) then
-      return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>')
+      return(asset_icons['router'])
    end
 
    if(snmp ~= nil) then
       if(string.contains(snmp, "router")) then
-	 return('<i class="fa fa-arrows fa-lg" aria-hidden="true"></i> ('..snmp..')')
+	 return(asset_icons['router']..' ('..snmp..')')
       elseif(string.contains(snmp, "air")) then
-	 return('<i class="fa fa-wifi fa-lg" aria-hidden="true"></i> ('..snmp..')')
+	 return(asset_icons['wifi']..' ('..snmp..')')
       else
 	 return(snmp)
       end
@@ -370,10 +395,19 @@ end
 interface.select(ifname)
 
 io.write("Starting ARP discovery...\n")
-local arp_mdns = interface.scanHosts()
+local arp_mdns = interface.arpScanHosts()
+
+if(arp_mdns == nil) then
+   -- Internal error
+   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Unable to start network discovery</div>')
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
+end
+
 io.write("Starting SSDP discovery...\n")
 local ssdp = interface.discoverHosts(3)
 
+io.write(type(arp_mdns).."\n")
 local osx_devices = { }
 for mac,ip in pairsByValues(arp_mdns, asc) do
    -- io.write("## '"..mac .. "' = '" ..ip.."'\n")

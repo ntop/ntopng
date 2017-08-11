@@ -9,13 +9,15 @@ require "lua_utils"
 local template = require "template_utils"
 
 prefs = ntop.getPrefs()
-names = interface.getIfNames()
+local iface_names = interface.getIfNames()
+
+-- tprint(iface_names)
+
 num_ifaces = 0
-for k,v in pairs(names) do
+for k,v in pairs(iface_names) do
    num_ifaces = num_ifaces+1
 end
 
--- tprint(names)
 
 print [[
       <div class="masthead">
@@ -78,7 +80,10 @@ end
 
 print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
 
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
+  if(interface.isDiscoverable()) then
+    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
+  end
+
 if(ntop.isPro()) then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Traffic Report</a></li>')
 end
@@ -294,7 +299,7 @@ local packetinterfaces = {}
 local ifnames = {}
 local ifdescr = {}
 
-for v,k in pairs(interface.getIfNames()) do
+for v,k in pairs(iface_names) do
    interface.select(k)
    _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
