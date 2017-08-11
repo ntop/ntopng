@@ -60,6 +60,7 @@ class Prefs : public RuntimePrefs {
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
+  bool read_flows_from_mysql;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
@@ -144,6 +145,7 @@ class Prefs : public RuntimePrefs {
   inline bool are_vss_apcon_timestamps_enabled()        { return(enable_vss_apcon_timestamps); };
   inline char* get_user()                               { return(user);                   };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
+  inline bool  do_read_flows_from_nprobe_mysql()        { return(read_flows_from_mysql);  };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };

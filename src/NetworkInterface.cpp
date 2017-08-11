@@ -157,9 +157,10 @@ NetworkInterface::NetworkInterface(const char *name,
 
     running = false, sprobe_interface = false, inline_interface = false, db = NULL;
 
-    if((!isViewInterface) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
+    if((!isViewInterface)
+       && (ntop->getPrefs()->do_dump_flows_on_mysql() || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition()){
+      if(ntop->getPrefs()->is_enterprise_edition() && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()){
 	db = new BatchedMySQLDB(this);
 
 	ntop->getPrefs()->enable_flow_aggregation();

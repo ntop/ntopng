@@ -176,7 +176,13 @@ else
 
 	       flow["PROTOCOL"] = base.."&protocol=&port=&host=&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	       flow["L7_PROTO"] = base.."&port=&host=&l4proto=&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
-	       flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
+
+	       -- nProbe/related database doesn't handle idx so we have to disable the info
+	       if flow["idx"] ~= "-1" then
+		  flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
+	       else
+		  flow["FLOW_URL"] = "<span class='label label-default'>Info</span></A>"
+	       end
 
 	       if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
 		  flow["INFO"] = "<span class='label label-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]

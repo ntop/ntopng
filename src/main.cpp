@@ -286,6 +286,13 @@ int main(int argc, char *argv[])
 				   "Unable to create database schema, quitting.");
       exit(EXIT_FAILURE);
     }
+  } else if(prefs->do_read_flows_from_nprobe_mysql()) {
+    /* Create a view only one time for the first interface */
+    if(!ntop->getInterfaceAtId(0)->createNprobeDBView()){
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to create a view on the nProbe database.");
+      exit(EXIT_FAILURE);
+    }
   }
 
   /*

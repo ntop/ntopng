@@ -38,6 +38,7 @@ class DB {
   virtual void startDBLoop();
   virtual void flush() {};
   virtual bool createDBSchema(bool set_db_created = true) {return false; /* override in non-schemaless subclasses */};
+  virtual bool createNprobeDBView() { return false; };
   virtual void updateStats(const struct timeval *tv) {};
   virtual void checkPointCounters(bool drops_only) {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const {};
