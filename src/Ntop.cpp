@@ -199,10 +199,11 @@ Ntop::~Ntop() {
 
   delete address;
   delete pa;
-
+  if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
   delete prefs;
   if(redis) delete redis;
+  delete globals;
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
@@ -213,9 +214,6 @@ Ntop::~Ntop() {
 #endif
   if(flow_checker) delete flow_checker;
 #endif
-
-  delete globals;
-  if(geo)   delete geo;
 }
 
 /* ******************************************* */
