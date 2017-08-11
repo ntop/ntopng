@@ -67,6 +67,7 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
+  read_flows_from_mysql = false;
   enable_taps = false;
   memset(ifNames, 0, sizeof(ifNames));
   dump_hosts_to_db = location_none;
@@ -248,7 +249,7 @@ void usage() {
 	 "[--disable-alerts|-H]               | Disable alerts generation\n"
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
-	 "                                    | es       Dump in ElasticSearch database\n"
+	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   es;<idx type>;<idx name>;<es URL>;<http auth>\n"
 	 "                                    |   Example:\n"
@@ -256,16 +257,28 @@ void usage() {
 	 "                                    |   Note: the <idx name> accepts the\n"
 	 "                                    |   strftime() format.\n"
 	 "                                    |\n"
-	 "                                    | logstash Dump in LogStash engine\n"
+	 "                                    | logstash      Dump in LogStash engine\n"
 	 "                                    |   Format:\n"
 	 "                                    |   logstash;<host>;<proto>;<port>\n"
 	 "                                    |   Example:\n"
 	 "                                    |   logstash;localhost;tcp;5510\n"
 	 "                                    |\n"
-	 "                                    | mysql    Dump in MySQL database\n"
+	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
 	 "                                    |   mysql;localhost;ntopng;flows;root;\n"
+	 "                                    |\n"
+	 "                                    | mysql-nprobe  Read from an nProbe-generated MySQL database\n"
+	 "                                    |   Format:\n"
+	 "                                    |   mysql-nprobe;<host|socket>;<dbname>;<prefix>;<user>;<pw>\n"
+	 "                                    |   mysql-nprobe;localhost;ntopng;nf;root;\n"
+	 "                                    |   Notes:\n"
+	 "                                    |    The <prefix> must be the same as used in nProbe.\n"
+	 "                                    |    Only one ntopng -i <interface> is allowed.\n"
+	 "                                    |    Flows are only read. Dump is assumed to be done by nProbe.\n"
+	 "                                    |   Example:\n"
+	 "                                    |     ./nprobe ... --mysql=\"localhost:ntopng:nf:root:root\"\n"
+	 "                                    |     ./ntopng ... --dump-flows=\"mysql-nprobe;localhost;ntopng;nf;root;root\"\n"
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"
@@ -889,8 +902,13 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     } else if(!strncmp(optarg, "mysql", 5)) {
+      if(!strncmp(optarg, "mysql-nprobe", 12))
+	read_flows_from_mysql = true;
+      else
+	dump_flows_on_mysql = true;
+
       /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
-      optarg = Utils::tokenizer(&optarg[6], ';', &mysql_host);
+      optarg = Utils::tokenizer(strchr(optarg, ';') + 1, ';', &mysql_host);
       optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
       optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
       optarg = Utils::tokenizer(optarg, ';', &mysql_user);
@@ -900,10 +918,13 @@ int Prefs::setOption(int optkey, char *optarg) {
 	if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
 	if((mysql_tablename == NULL)
 	   || (mysql_tablename[0] == '\0')
-	   || 1 /*forcefully defaults the table name*/) mysql_tablename  = strdup("flows");
+	   || dump_flows_on_mysql /*forcefully defaults the table name*/) {
+	  if(mysql_tablename) free(mysql_tablename);
+	  mysql_tablename  = strdup("flows");
+	}
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
-	dump_flows_on_mysql = true;
+
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
@@ -1222,7 +1243,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
   lua_push_bool_table_entry(vm, "is_flow_aggregation_enabled", is_flow_aggregation_enabled());
   if(is_flow_aggregation_enabled())
     lua_push_int_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());

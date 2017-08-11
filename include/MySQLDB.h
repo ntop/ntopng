@@ -48,6 +48,7 @@ class MySQLDB : public DB {
 
   virtual void* queryLoop();
   virtual bool createDBSchema(bool set_db_created = true);
+  virtual bool createNprobeDBView();
   void disconnectFromDB(MYSQL *conn);
   static volatile bool isDbCreated() { return db_created; };
   void checkPointCounters(bool drops_only) {

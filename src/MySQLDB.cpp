@@ -417,6 +417,59 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 
 /* ******************************************* */
 
+bool MySQLDB::createNprobeDBView() {
+  char sql[CONST_MAX_SQL_QUERY_LEN];
+  const u_int16_t ipvers[2] = {4, 6};
+  u_int16_t i = 0;
+
+  if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
+    goto err;
+    return false;
+  }
+
+  for(; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
+    snprintf(sql, sizeof(sql), MYSQL_DROP_NPROBE_VIEW, ipvers[i]);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+				 "Deleting existing nProbe views for IPV%hu:\n"
+				 "[%s]",
+				 ipvers[i],
+				 sql);
+
+    if(exec_sql_query(&mysql, sql, true) < 0)
+      goto err;
+
+    snprintf(sql, sizeof(sql), MYSQL_CREATE_NPROBE_VIEW,
+	     ipvers[i], ipvers[i], ipvers[i], iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ipvers[i]);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+				 "Creating nProbe view on table %sflows for IPV%hu:\n"
+				 "[%s]",
+				 ntop->getPrefs()->get_mysql_tablename(),
+				 ipvers[i],
+				 sql);
+
+    if(exec_sql_query(&mysql, sql, true) < 0) {
+    err:
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Before starting ntopng, make sure to start nprobe with option --mysql and template @NTOPNG@.");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Example:");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "./nprobe -i eno1 -T \"@NTOPNG@\" --mysql=\"localhost:ntopng:nf:root:root\" --zmq \"tcp://127.0.0.1:5556\" --zmq-probe-mode");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "./ntopng  -i \"tcp://*:5556c\" -F \"mysql-nprobe;localhost;ntopng;nf;root;root\"");
+      return false;
+    }
+
+  }
+
+  db_created = true;
+
+  return true;
+}
+
+/* ******************************************* */
+
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   mysqlDroppedFlows = 0;
   mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
