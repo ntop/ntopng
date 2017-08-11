@@ -193,7 +193,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       -- model=iMac11,3;osxvers=16
       local elems   = string.split(osx, ';')
 
-      if((elems = nil) and (#elems == 2)) then
+      if((elems ~= nil) and (#elems == 2)) then
 	 local model   = string.split(elems[1], '=')
 	 local osxvers = string.split(elems[2], '=')
 
