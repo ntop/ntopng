@@ -191,25 +191,36 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 
    if(osx ~= nil) then
       -- model=iMac11,3;osxvers=16
-      local elems   = string.split(osx, ';')
+      local elems = string.split(osx, ';')
 
-      if((elems ~= nil) and (#elems == 2)) then
+      if((elems == nil) and string.contains(osx, "model=")) then
+	 elems = {}
+	 table.insert(elems, osx)
+      end
+
+      if(elems ~= nil) then
 	 local model   = string.split(elems[1], '=')
-	 local osxvers = string.split(elems[2], '=')
+	 local osxvers = nil
 
 	 if(apple_products[model[2]] ~= nil) then
 	    model = apple_products[model[2]]
+	    if(model == nil) then model = "" end
 	 else
 	    model = model[2]
 	 end
 
-	 if(apple_osx_versions[osxvers[2]] ~= nil) then
-	    osxvers = apple_osx_versions[osxvers[2]]
-	 else
-	    osxvers = osxvers[2]
+	 if(elems[2] ~= nil) then
+	    local osxvers = string.split(elems[2], '=')
+	    if(apple_osx_versions[osxvers[2]] ~= nil) then
+	       osxvers = apple_osx_versions[osxvers[2]]
+	       if(osxvers == nil) then osxvers = "" end
+	    else
+	       osxvers = osxvers[2]
+	    end
 	 end
+	 osx = "<br>"..model
 
-	 osx = "<br>"..model.."<br>"..osxvers
+	 if(osxvers ~= nil) then osx = osx .."<br>"..osxvers end
       end
    end
    
@@ -259,9 +270,14 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return(asset_icons['desktop'])
    elseif(string.contains(manufacturer, "Raspberry")) then
       return(asset_icons['desktop'])
-   elseif(string.contains(manufacturer, "Hewlett Packard")
-	     and (snmp ~= nil)
+   elseif(string.contains(manufacturer, "Juniper Networks")) then
+      return(asset_icons['router'])
+   elseif(string.contains(manufacturer, "Cisco")) then
+      return(asset_icons['router'])
+   elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)
 	  and string.contains(snmp, "Jet")) then
+      return(asset_icons['printer']..' ('..snmp..')')
+   elseif(string.contains(manufacturer, "Xerox") and (snmp ~= nil)) then
       return(asset_icons['printer']..' ('..snmp..')')
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(str, "iphone")) then
@@ -432,7 +448,6 @@ end
 io.write("Starting SSDP discovery...\n")
 local ssdp = interface.discoverHosts(3)
 
-io.write(type(arp_mdns).."\n")
 local osx_devices = { }
 for mac,ip in pairsByValues(arp_mdns, asc) do
    -- io.write("## '"..mac .. "' = '" ..ip.."'\n")

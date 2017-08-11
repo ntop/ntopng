@@ -328,7 +328,7 @@ char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
 
 bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
   u_int dns_query_len;
-  char mdnsbuf[512];
+  char mdnsbuf[512], src[32];
   u_int16_t tid = ipv4addr & 0xFFFF;
   struct sockaddr_in mdns_dest, nbns_dest;
   u_int8_t nbns_discover[] = {0x12, 0x34, /* Transaction ID: 0x1234 */
@@ -341,21 +341,21 @@ bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
 
   mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353), mdns_dest.sin_addr.s_addr = ipv4addr;
   if(sendto(batch_udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error %s [%d/%s]", Utils::intoaV4(ntohl(ipv4addr), src, sizeof(src)), errno, strerror(errno));
     return(false);
   }
 
   if(alsoUseGatewayDNS && (gatewayIPv4 != 0)) {
     mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(53), mdns_dest.sin_addr.s_addr = gatewayIPv4;
     if(sendto(batch_udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error %s [%d/%s]", Utils::intoaV4(ntohl(gatewayIPv4), src, sizeof(src)), errno, strerror(errno));
       return(false);
     }
   }
   
   nbns_dest.sin_family = AF_INET, nbns_dest.sin_port = htons(137), nbns_dest.sin_addr.s_addr = ipv4addr;
   if(sendto(batch_udp_sock, nbns_discover, sizeof(nbns_discover), 0, (struct sockaddr *)&nbns_dest, sizeof(struct sockaddr_in)) < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "NBNS Send error [%d/%s]", errno, strerror(errno)); 
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error %s [%d/%s]", Utils::intoaV4(ntohl(ipv4addr), src, sizeof(src)), errno, strerror(errno));
 
   return(true);
 }
