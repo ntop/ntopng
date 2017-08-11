@@ -135,13 +135,14 @@ local apple_products = {
 local asset_icons = {
    ['printer']    = '<i class="fa fa-print fa-lg" aria-hidden="true"></i>',
    ['video']      = '<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>',
-   ['desktop']    = '<i class="fa fa-desktop fa-lg" aria-hidden="true"></i>',
+   ['workstation']    = '<i class="fa fa-desktop fa-lg" aria-hidden="true"></i>',
    ['laptop']     = '<i class="fa fa-laptop fa-lg" aria-hidden="true"></i>',
    ['tablet']     = '<i class="fa fa-tablet fa-lg" aria-hidden="true"></i>',
    ['phone']      = '<i class="fa fa-mobile fa-lg" aria-hidden="true"></i>',
    ['television'] = '<i class="fa fa-television fa-lg" aria-hidden="true"></i>',
-   ['router']     = '<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>',
+   ['networking']     = '<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>',
    ['wifi']       = '<i class="fa fa-wifi fa-lg" aria-hidden="true"></i>',
+   ['nas']        = '<i class="fa fa-database fa-lg" aria-hidden="true"></i>',
 }
 
 local ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
@@ -225,7 +226,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
    
    if(mdns["_ssh._tcp.local"] ~= nil) then
-      local icon = 'desktop'
+      local icon = 'workstation'
       local ret
       
       if(osx ~= nil) then
@@ -239,7 +240,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       if(osx ~= nil) then ret = ret .. osx end
       return(ret)
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
-      return(asset_icons['desktop']..' (Windows)')
+      return(asset_icons['workstation']..' (Windows)')
+   elseif(mdns["_workstation._tcp.local"] ~= nil) then
+      return(asset_icons['workstation']..' (Linux)')
    end
 
    if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
@@ -252,7 +255,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	if(string.contains(descr, "camera")) then
 	   return(asset_icons['video'])
 	elseif(string.contains(descr, "router")) then
-	   return(asset_icons['router'])
+	   return(asset_icons['networking'])
 	end
    end
 
@@ -267,16 +270,29 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    elseif(string.contains(manufacturer, "Hikvision")) then
       return(asset_icons['video'])
    elseif(string.contains(manufacturer, "Super Micro")) then
-      return(asset_icons['desktop'])
+      return(asset_icons['workstation'])
    elseif(string.contains(manufacturer, "Raspberry")) then
-      return(asset_icons['desktop'])
+      return(asset_icons['workstation'])
    elseif(string.contains(manufacturer, "Juniper Networks")) then
-      return(asset_icons['router'])
+      return(asset_icons['networking'])
    elseif(string.contains(manufacturer, "Cisco")) then
-      return(asset_icons['router'])
-   elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)
-	  and string.contains(snmp, "Jet")) then
-      return(asset_icons['printer']..' ('..snmp..')')
+      return(asset_icons['networking'])
+   elseif(string.contains(manufacturer, "HUAWEI")) then
+      return(asset_icons['phone'])
+   elseif(string.contains(manufacturer, "TP-LINK")) then
+      return(asset_icons['networking'])
+   elseif(string.contains(manufacturer, "Samsung Electronics")) then
+      return(asset_icons['phone'])
+   elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)) then
+      local _snmp = string.lower(snmp)
+      
+      if(string.contains(_snmp, "jet") or string.contains(_snmp, "fax")) then
+	 return(asset_icons['printer']..' ('..snmp..')')
+      elseif(string.contains(_snmp, "curve")) then
+	 return(asset_icons['networking']..' ('..snmp..')')
+      else
+	 return(asset_icons['workstation']..' ('..snmp..')')
+      end
    elseif(string.contains(manufacturer, "Xerox") and (snmp ~= nil)) then
       return(asset_icons['printer']..' ('..snmp..')')
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
@@ -287,7 +303,21 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       elseif(string.contains(str, "ipod")) then
 	 return(asset_icons['phone']..' (iPod)')
       else
-	 return('</i> <i class="fa fa-desktop fa-lg" aria-hidden="true"></i> (Apple)')
+	 local ret = '</i> '..asset_icons['workstation']..' (Apple)'
+	 local sym = names[ip]
+
+	 if(sym == nil) then sym = "" else sym = string.lower(sym) end
+	 
+	 if((snmp and string.contains(snmp, "capsule"))
+	       or string.contains(sym, "capsule"))
+	 then
+	    ret = '</i> '..asset_icons['nas']
+	 elseif(string.contains(sym, "book")) then
+	    ret = '</i> '..asset_icons['laptop']..' (Apple)'
+	 end
+	 
+	 if(snmp ~= nil) then ret = ret .. " ["..snmp.."]" end
+	 return(ret)
       end
    end
    
@@ -297,12 +327,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 
    -- io.write(ip .. " / " .. names["gateway.local"].."\n")
    if(names["gateway.local"] == ip) then
-      return(asset_icons['router'])
+      return(asset_icons['networking'])
    end
 
    if(snmp ~= nil) then
       if(string.contains(snmp, "router")) then
-	 return(asset_icons['router']..' ('..snmp..')')
+	 return(asset_icons['networking']..' ('..snmp..')')
       elseif(string.contains(snmp, "air")) then
 	 return(asset_icons['wifi']..' ('..snmp..')')
       else
@@ -452,7 +482,9 @@ local osx_devices = { }
 for mac,ip in pairsByValues(arp_mdns, asc) do
    -- io.write("## '"..mac .. "' = '" ..ip.."'\n")
 
-   if(string.find(mac, ":") ~= nil) then
+   if((ip == "0.0.0.0") or (ip == "255.255.255.255")) then
+      -- This does not lokk like a good IP/MAC combination
+   elseif(string.find(mac, ":") ~= nil) then
       local manufacturer = get_manufacturer_mac(mac)
       
       -- This is an ARP entry
@@ -504,7 +536,7 @@ end
 io.write("Collecting SNMP responses\n")
 local snmp = interface.snmpReadResponses()
 for ip,rsp in pairsByValues(snmp, asc) do
-   -- io.write("[SNMP] "..ip.." = "..rsp.."\n")
+   io.write("[SNMP] "..ip.." = "..rsp.."\n")
 end
 
 

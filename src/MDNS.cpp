@@ -262,7 +262,7 @@ char* MDNS::decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len,
 
       if(idx > 0) {
 	buf[idx] = '\0';
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "[TXT] %s", buf);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[TXT] %s", buf);
 	break;
       }
     }
