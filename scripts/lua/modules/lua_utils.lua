@@ -2534,7 +2534,7 @@ function get_symbolic_mac(mac_address, only_symbolic)
 	 local s = get_mac_classification(m)
 
 	 if(m == s) then
-	    return(get_mac_classification(m)..":"..t)
+	    return '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">' .. get_mac_classification(m) .. ":" .. t .. '</a>'
 	 else
 	    if(only_symbolic == true) then
 	       return(get_mac_classification(m).."_"..t)
