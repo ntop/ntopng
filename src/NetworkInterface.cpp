@@ -103,7 +103,10 @@ NetworkInterface::NetworkInterface(const char *name,
   ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
   snmp = new SNMP();
 
-  if(strchr(name, ':') || strchr(name, '@')  || (!strncmp(name, "lo", 2)))
+  if(strchr(name, ':')
+     || strchr(name, '@')
+     || (!strncmp(name, "lo", 2))
+     || (Utils::readIPv4((char*)name) == 0))
     ; /* Don't setup MDNS on ZC or RSS interfaces */
   else
     mdns = new MDNS(this); 

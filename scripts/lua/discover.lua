@@ -12,6 +12,8 @@ sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+-- ################################################################################
+
 local function getbaseURL(url)
    local name = url:match( "([^/]+)$" )
 
@@ -21,6 +23,8 @@ local function getbaseURL(url)
       return(string.sub(url, 1, string.len(url)-string.len(name)-1))
    end
 end
+
+-- ################################################################################
 
 local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names, snmp, osx)
    local mdns = { }
@@ -138,6 +142,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	end
    end
 
+   io.write("[manufacturer] "..manufacturer.."\n")
    if(string.contains(manufacturer, "Oki Electric") and (snmp ~= nil)) then
       return 'printer', discover.asset_icons['printer'].. ' ('..snmp..')'
    elseif(string.contains(manufacturer, "Hikvision")) then
@@ -152,7 +157,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "HUAWEI")) then
       return 'phone', discover.asset_icons['phone']
-   elseif(string.contains(manufacturer, "TP-LINK")) then
+   elseif(string.contains(manufacturer, 'TP%-LINK')) then -- % is the escape char in Lua
+      return 'wifi', discover.asset_icons['wifi']
+   elseif(string.contains(manufacturer, 'Broadband')) then -- % is the escape char in Lua
       return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "Samsung Electronics")) then
       return 'phone', discover.asset_icons['phone']
@@ -178,19 +185,22 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       else
 	 local ret = '</i> '..discover.asset_icons['workstation']..' (Apple)'
 	 local sym = names[ip]
-
+	 local what = 'workstation'
+	 
 	 if(sym == nil) then sym = "" else sym = string.lower(sym) end
 	 
 	 if((snmp and string.contains(snmp, "capsule"))
 	       or string.contains(sym, "capsule"))
 	 then
 	    ret = '</i> '..discover.asset_icons['nas']
+	    what = 'nas'
 	 elseif(string.contains(sym, "book")) then
 	    ret = '</i> '..discover.asset_icons['laptop']..' (Apple)'
+	    what = 'laptop'
 	 end
 	 
 	 if(snmp ~= nil) then ret = ret .. " ["..snmp.."]" end
-	 return 'workstation', ret
+	 return what, ret
       end
    end
    
@@ -204,10 +214,18 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 
    if(string.starts(hostname, "desktop-")) then
       return 'workstation', discover.asset_icons['workstation']..' (Windows)'
+   elseif(string.contains(hostname, "thinkpad")) then
+      return 'laptop', discover.asset_icons['laptop']
+   elseif(string.contains(hostname, "android")) then
+      return 'phone', discover.asset_icons['phone']..' (Android)'
+   elseif(string.contains(hostname, "%-NAS")) then
+      return 'nas', discover.asset_icons['nas']
    end
 
    if(snmp ~= nil) then
-      if(string.contains(snmp, "router")) then
+      if(string.contains(snmp, "router")
+	    or string.contains(snmp, "switch")
+      ) then
 	 return 'networking', discover.asset_icons['networking']..' ('..snmp..')'
       elseif(string.contains(snmp, "air")) then
 	 return 'wifi', discover.asset_icons['wifi']..' ('..snmp..')'
@@ -304,7 +322,8 @@ local function analyzeSSDP(ssdp)
 	 end
       else
 	 rsp[host] = { ["icon"] = icon, ["manufacturer"] = manufacturer, ["url"] = "<A HREF="..url..">"..friendlyName.."</A>",
-	    ["services"] = services, ["modelName"] = modelName, ["modelDescription"] = modelDescription, ["friendlyName"] = friendlyName }
+	    ["services"] = services, ["modelName"] = modelName,
+	    ["modelDescription"] = modelDescription, ["friendlyName"] = friendlyName }
       end
 
       -- io.write(rsp[host].icon .. " / " ..rsp[host].manufacturer .. " / " ..rsp[host].url .. " / " .. "\n")
@@ -313,11 +332,9 @@ local function analyzeSSDP(ssdp)
    return rsp
 end
 
-
+-- ################################################################################
 
 interface.select(ifname)
-
-
 
 io.write("Starting ARP discovery...\n")
 local arp_mdns = interface.arpScanHosts()
@@ -425,14 +442,16 @@ end
 
 
 for mac,ip in pairsByValues(arp_mdns, asc) do
-   if(string.find(mac, ":") ~= nil) then
+   if((string.find(mac, ":") ~= nil)
+	 and (ip ~= "0.0.0.0")
+      	 and (ip ~= "255.255.255.255")) then
       -- This is an ARP entry
       local deviceType
       local symIP = mdns[ip]
       local services = ""
       local sym = ntop.resolveName(ip)
       
-      print("<tr><td align=left>")
+      print("<tr><td align=left nowrap>")
 
       print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
@@ -445,7 +464,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       if((sym ~= "") and (sym ~= ip)) then print(sym) end
 	
       if(symIP ~= nil) then
-	 if((sym ~= "") and (sym ~= ip)) then
+	 if((sym ~= "") and (symIP ~= ip) and (sym ~= ip)) then
 	    print(" ["..symIP.."]")
 	 else
 	    print(symIP)

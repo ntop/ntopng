@@ -9,13 +9,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.
 require "lua_trace"
 locales_utils = require "locales_utils"
 
+
 -- ##############################################
 
 function string.contains(String,Start)
    if type(String) ~= 'string' or type(Start) ~= 'string' then
       return false
    end
-   local i,j = string.find(String,Start,1)
+
+   local i,j = string.find(String, Start, 1)
    
    return(i ~= nil)
 end
@@ -30,7 +32,7 @@ function shortenString(name, max_len)
       max_len = tonumber(max_len)
       if(max_len == nil) then max_len = 24 end
    end
-
+   
    if(string.len(name) < max_len) then
       return(name)
    else
