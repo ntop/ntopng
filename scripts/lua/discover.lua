@@ -26,7 +26,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    local mdns = { }
    local ssdp = { }
    local str
+   local friendlyName = ""
 
+   if(ssdp_entries and ssdp_entries.friendlyName) then
+      friendlyName = ssdp_entries["friendlyName"]
+   end
+   
    if((names == nil) or (names[ip] == nil)) then
       hostname = ""
    else
@@ -59,7 +64,6 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 end
       end
    end   
-
 
    if(osx ~= nil) then
       -- model=iMac11,3;osxvers=16
@@ -119,7 +123,11 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
       return 'tv', discover.asset_icons['tv']
    end
-
+   
+   if(string.contains(friendlyName, "TV")) then
+      return 'tv', discover.asset_icons['tv']
+   end
+   
    if(ssdp_entries and ssdp_entries["modelDescription"]) then
    	local descr = string.lower(ssdp_entries["modelDescription"])
 
@@ -216,10 +224,9 @@ end
 
 local function analyzeSSDP(ssdp)
    local rsp = {}
-
+   
    for url,host in pairs(ssdp) do
       local hresp = ntop.httpGet(url, "", "", 3 --[[ seconds ]])
-      local friendlyName = ""
       local manufacturer = ""
       local modelDescription = ""
       local modelName = ""
@@ -297,13 +304,13 @@ local function analyzeSSDP(ssdp)
 	 end
       else
 	 rsp[host] = { ["icon"] = icon, ["manufacturer"] = manufacturer, ["url"] = "<A HREF="..url..">"..friendlyName.."</A>",
-	 	       ["services"] = services, ["modelName"] = modelName, ["modelDescription"] = modelDescription }
+	    ["services"] = services, ["modelName"] = modelName, ["modelDescription"] = modelDescription, ["friendlyName"] = friendlyName }
       end
 
       -- io.write(rsp[host].icon .. " / " ..rsp[host].manufacturer .. " / " ..rsp[host].url .. " / " .. "\n")
    end
 
-   return(rsp)
+   return rsp
 end
 
 
