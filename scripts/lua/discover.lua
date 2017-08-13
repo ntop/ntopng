@@ -493,7 +493,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip])
       if(deviceLabel == "") then deviceLabel = "&nbsp;" end
       print("</td><td>"..deviceLabel.."</td></tr>\n")
-      interface.setMacDeviceType(mac, deviceType)
+      interface.setMacDeviceType(mac, deviceType, false) -- false means don't overwrite if already set to ~= unknown
    end
 end
 

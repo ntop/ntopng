@@ -260,7 +260,7 @@ print [[
 ]]
 
 if ifs["has_macs"] == true then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Layer 2</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua?devices_mode=host_macs_only">Layer 2</a></li>')
    if(info["version.enterprise_edition"] == true) then
       print('<li class="divider"></li>')
    end

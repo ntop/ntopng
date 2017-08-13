@@ -748,16 +748,21 @@ static int ntop_set_mac_device_type(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
   DeviceType dtype = device_unknown;
-
+  bool overwriteType;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   mac = (char*)lua_tostring(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   dtype = (DeviceType)Utils::str2DeviceType((char*)lua_tostring(vm, 2));
-  
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
+  overwriteType = (bool)lua_toboolean(vm, 3);
+
   if((!ntop_interface)
      || (!mac)
-     || (!ntop_interface->setMacDeviceType(mac, 0 /* no vlan */, dtype)))
+     || (!ntop_interface->setMacDeviceType(mac, 0 /* no vlan */,
+					   dtype, overwriteType)))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
