@@ -5665,17 +5665,20 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 
   const char *cur_manuf = NULL;
   u_int32_t cur_count = 0;
-  for(int i = 0; i<(int)retriever.actNumEntries && i < (int)maxHits; i++) {
+  int k = 0;
+
+  for(int i = 0; i<(int)retriever.actNumEntries && k < (int)maxHits; i++) {
     Mac *m = retriever.elems[i].macValue;
 
     const char *manufacturer = m->get_manufacturer();
     if(manufacturer != NULL) {
-      if(cur_manuf != manufacturer) {
+      if(!cur_manuf || (strcmp(cur_manuf, manufacturer) != 0)) {
 	if(cur_manuf != NULL)
 	  lua_push_int32_table_entry(vm, cur_manuf, cur_count);
 
 	cur_manuf = manufacturer;
 	cur_count = 1;
+	k++;
       } else {
 	cur_count++;
       }
