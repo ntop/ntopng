@@ -2681,6 +2681,7 @@ struct mac_find_info {
   u_int8_t mac[6];
   u_int16_t vlan_id;
   Mac *m;
+  DeviceType dtype;
 };
 
 /* **************************************************** */
@@ -5713,6 +5714,21 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
   enablePurge(false);
 
   return ret;
+}
+
+/* **************************************** */
+
+bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId, DeviceType dtype) {
+  u_int8_t mac[6];
+  Mac *m;
+  
+  Utils::parseMac(mac, strmac);
+
+  if((m = getMac(mac, vlanId, false /* Don't create if missing */))) {
+    m->setDeviceType(dtype);
+    return(true);
+  } else
+    return(false);
 }
 
 /* **************************************** */

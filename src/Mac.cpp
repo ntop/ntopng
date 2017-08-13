@@ -30,7 +30,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   source_mac = false;
   bridge_seen_iface[0] = bridge_seen_iface[1] = 0;
   device_type = device_unknown;
-  services_bitmap = 0;
 
   if(ntop->getMacManufacturers())
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
@@ -56,14 +55,12 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
    * Note: We do not load MAC data from redis right now.
    * We only need redis MAC data to show Unassigned Devices in host pools view.
    */
-#if 0
-  /* NOTE: source_mac is always false here. */
-  if(source_mac) {
+  if(!special_mac) {
     char redis_key[64], buf1[64];
     char *json = NULL;
     snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
 
-    if ((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
+    if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
                "Unable to allocate memory to deserialize %s", redis_key);
     } else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)) {
@@ -75,11 +72,10 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 
     if(json) free(json);
   }
-#endif
 
 #if 0
   /* TODO */
-  if (device_type == device_unknown)
+  if(device_type == device_unknown)
     start_services_detection(this);
 #endif
 }
@@ -87,11 +83,10 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 /* *************************************** */
 
 Mac::~Mac() {
-  if (source_mac) {
-    /* Only dump source-mac devices */
+  if(!special_mac) {
     char key[64], buf1[64];
     char *json = serialize();
-
+    
     snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     free(json);
@@ -157,6 +152,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
+    lua_push_int_table_entry(vm, "devtype", device_type);
     lua_push_str_table_entry(vm, "device_type", (char *)Utils::deviceType2str(device_type));
     ((GenericTrafficElement*)this)->lua(vm, show_details);
   }
@@ -217,7 +213,6 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj)) last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj)) device_type = (DeviceType)json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "services", &obj)) services_bitmap = json_object_get_int(obj);
 }
 
 /* *************************************** */
@@ -232,9 +227,8 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
-  json_object_object_add(my_object, "services", json_object_new_int(services_bitmap));
 
-  if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
+  if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
 
   return my_object;
 }

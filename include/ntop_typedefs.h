@@ -366,21 +366,26 @@ typedef struct {
 
 #endif
 
+/*
+  NOTE:
+  Keep in sync with Utils::deviceType2str / Utils::str2DeviceType
+  and discover.lua (asset_icons)
+*/
 typedef enum {
   device_unknown = 0,
-  device_router,
-  device_tv,
   device_printer,
-  device_phone,
+  device_video,
+  device_workstation,
+  device_laptop,
   device_tablet,
-  device_pc,
-} DeviceType; /* NOTE:
-  Keep in sync with Utils::deviceType2str
-*/
+  device_phone,
+  device_tv,  
+  device_networking,
+  device_wifi,
+  device_nas,
 
-typedef enum {
-  service_internet_gateway,
-  service_nas,
-} DeviceService;
+  device_max_type /* Leave it at the end */
+} DeviceType;
+
 
 #endif /* _NTOP_TYPEDEFS_H_ */

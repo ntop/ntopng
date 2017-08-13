@@ -744,6 +744,27 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_mac_device_type(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac = NULL;
+  DeviceType dtype = device_unknown;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  mac = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  dtype = (DeviceType)Utils::str2DeviceType((char*)lua_tostring(vm, 2));
+  
+  if((!ntop_interface)
+     || (!mac)
+     || (!ntop_interface->setMacDeviceType(mac, 0 /* no vlan */, dtype)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_ases_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_asn";
@@ -5868,7 +5889,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacInfo",                     ntop_get_interface_mac_info },
   { "getMacManufacturers",            ntop_get_interface_macs_manufacturers },
   { "getTopMacsProtos",               ntop_get_top_macs_protos },
-
+  { "setMacDeviceType",               ntop_set_mac_device_type },
+  
   /* Autonomous Systems */
   { "getASesInfo",                    ntop_get_interface_ases_info },
   { "getASInfo",                      ntop_get_interface_as_info },

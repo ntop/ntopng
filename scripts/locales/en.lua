@@ -1220,6 +1220,7 @@ local  en = {
       l4_proto = "L4 Proto",
       total_traffic = "Total Traffic",
       goodput = "Goodput",
+      device_type = "Device Type"
    },
 
    host_details = {

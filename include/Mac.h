@@ -31,7 +31,6 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   bool source_mac:1, special_mac:1, bridge_seen_iface[2] /* , notused:4 */;
   ArpStats arp_stats;
   DeviceType device_type;
-  u_int32_t services_bitmap;
 
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
@@ -70,13 +69,10 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
   inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; setSourceMac(); }
   inline bool isSeenIface(u_int8_t idx)   { return(bridge_seen_iface[idx & 0x01]); }
-  inline void setService(DeviceService service) { services_bitmap |= (1 << (u_int32_t)service); }
-  inline bool hasService(DeviceService service) { return services_bitmap & (1 << (u_int32_t)service); }
-  inline u_int32_t getServices()     { return (services_bitmap); }
   inline void setDeviceType(DeviceType devtype) { device_type = devtype; }
   inline DeviceType getDeviceType()        { return (device_type); }
-  inline u_int64_t getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
-  inline u_int64_t getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
+  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
+  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
 
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);

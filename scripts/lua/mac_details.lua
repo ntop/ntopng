@@ -14,6 +14,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+local discover = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
 
 local host_info = url2hostinfo(_GET)
@@ -38,6 +39,8 @@ if(mac == nil) then
 end
 
 mac_info = interface.getMacInfo(mac, vlanId)
+
+-- tprint(mac_info)
 
 if(mac_info == nil) then
       print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
@@ -73,8 +76,6 @@ end
 if(_POST["custom_icon"] ~=nil) then
  setHostIcon(mac, _POST["custom_icon"])
 end
-
-print(getHostIcon(mac))
 
 local label = getHostAltName(mac)
 
@@ -130,6 +131,11 @@ if isAdministrator() then
    if not ifstats.isView then
       printPoolChangeDropdown(pool_id)
    end
+end
+
+if(mac_info.devtype ~= 0) then
+   -- This is a known device type
+   print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " " .. mac_info.device_type .. "</td><td></td></tr>\n")
 end
 
 print("<tr><th>".. i18n("details.first_last_seen") .. "</th><td nowrap><span id=first_seen>" .. formatEpoch(mac_info["seen.first"]) ..  " [" .. secondsToTime(os.time()-mac_info["seen.first"]) .. " " .. i18n("details.ago").."]" .. "</span></td>\n")

@@ -6,146 +6,11 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
+local discover = require "discover_utils"
 
 sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
-local apple_osx_versions = {
-   ['4'] = 'Mac OS X 10.0 (Cheetah)',
-   ['5'] = 'Mac OS X 10.1 (Puma)',
-   ['6'] = 'Mac OS X 10.2 (Jaguar)',
-   ['7'] = 'Mac OS X 10.3 (Panther)',
-   ['8'] = 'Mac OS X 10.4 (Tiger)',
-   ['9'] = 'Mac OS X 10.5 (Leopard)',
-   ['10'] = 'Mac OS X 10.6 (Snow Leopard)',
-   ['11'] = 'Mac OS X 10.7 (Lion)',
-   ['12'] = 'OS X 10.8 (Mountain Lion)',
-   ['13'] = 'OS X 10.9 (Mavericks)',
-   ['14'] = 'OS X 10.10 (Yosemite)',
-   ['15'] = 'OS X 10.11 (El Capitan)',
-   ['16'] = 'OS X 10.12 (Sierra)',
-}
-
-local apple_products = {
-   ['Macmini5,3'] = 'Mac mini "Core i7" 2.0 (Mid-2011/Server)',
-   ['Macmini5,2'] = 'Mac mini "Core i7" 2.7 (Mid-2011)',
-   ['Macmini5,1'] = 'Mac mini "Core i5" 2.3 (Mid-2011)',
-   ['MacPro4,1'] = 'Mac Pro "Eight Core" 2.93 (2009/Nehalem)',
-   ['iMac16,2'] = 'iMac "Core i7" 3.3 21.5-Inch (4K, Late 2015)',
-   ['iMac16,1'] = 'iMac "Core i5" 1.6 21.5-Inch (Late 2015)',
-   ['iMac5,1'] = 'iMac "Core 2 Duo" 2.33 20-Inch',
-   ['MacBookPro7,1'] = 'MacBook Pro "Core 2 Duo" 2.66 13" Mid-2010',
-   ['MacPro2,1'] = 'Mac Pro "Eight Core" 3.0 (2,1)',
-   ['MacBook10,1'] = 'MacBook "Core i7" 1.4 12" (Mid-2017)',
-   ['Macmini1,1'] = 'Mac mini "Core Duo" 1.83',
-   ['iMac12,2'] = 'iMac "Core i7" 3.4 27-Inch (Mid-2011)',
-   ['iMac6,1'] = 'iMac "Core 2 Duo" 2.33 24-Inch',
-   ['MacBookPro5,1'] = 'MacBook Pro "Core 2 Duo" 2.93 15" (Unibody)',
-   ['MacBookPro11,5'] = 'MacBook Pro "Core i7" 2.8 15" Mid-2015 (DG)',
-   ['MacBookPro11,4'] = 'MacBook Pro "Core i7" 2.8 15" Mid-2015 (IG)',
-   ['MacBookPro11,3'] = 'MacBook Pro "Core i7" 2.8 15" Mid-2014 (DG)',
-   ['MacBookPro11,2'] = 'MacBook Pro "Core i7" 2.8 15" Mid-2014 (IG)',
-   ['MacBookPro11,1'] = 'MacBook Pro "Core i7" 3.0 13" Mid-2014',
-   ['MacBookPro10,2'] = 'MacBook Pro "Core i7" 3.0 13" Early 2013',
-   ['MacBookPro10,1'] = 'MacBook Pro "Core i7" 2.8 15" Early 2013',
-   ['MacBookPro5,5'] = 'MacBook Pro "Core 2 Duo" 2.53 13" (SD/FW)',
-   ['MacBookAir7,1'] = 'MacBook Air "Core i7" 2.2 11" (Early 2015)',
-   ['MacBookAir7,2'] = 'MacBook Air "Core i7" 2.2 13" (Early 2015)',
-   ['iMac17,1'] = 'iMac "Core i7" 4.0 27-Inch (5K, Late 2015)',
-   ['MacBookPro8,1'] = 'MacBook Pro "Core i7" 2.8 13" Late 2011',
-   ['MacBookPro8,2'] = 'MacBook Pro "Core i7" 2.5 15" Late 2011',
-   ['MacBookPro8,3'] = 'MacBook Pro "Core i7" 2.5 17" Late 2011',
-   ['MacBook6,1'] = 'MacBook "Core 2 Duo" 2.26 13" (Uni/Late 09)',
-   ['MacBookPro4,1'] = 'MacBook Pro "Core 2 Duo" 2.6 17" (08)',
-   ['Macmini4,1'] = 'Mac mini "Core 2 Duo" 2.66 (Server)',
-   ['PowerMac10,2'] = 'Mac mini G4/1.5',
-   ['PowerMac10,1'] = 'Mac mini G4/1.42',
-   ['iMac13,2'] = 'iMac "Core i7" 3.4 27-Inch (Late 2012)',
-   ['iMac13,1'] = 'iMac "Core i3" 3.3 21.5-Inch (Early 2013)',
-   ['iMac9,1'] = 'iMac "Core 2 Duo" 2.26 20-Inch (Mid-2009)',
-   ['Macmini3,1'] = 'Mac mini "Core 2 Duo" 2.53 (Server)',
-   ['iMac5,2'] = 'iMac "Core 2 Duo" 1.83 17-Inch (IG)',
-   ['MacBook2,1'] = 'MacBook "Core 2 Duo" 2.16 13" (Black)',
-   ['MacBook1,1'] = 'MacBook "Core Duo" 2.0 13" (Black)',
-   ['iMac14,4'] = 'iMac "Core i5" 1.4 21.5-Inch (Mid-2014)',
-   ['iMac14,1'] = 'iMac "Core i5" 2.7 21.5-Inch (Late 2013)',
-   ['iMac14,3'] = 'iMac "Core i7" 3.1 21.5-Inch (Late 2013)',
-   ['iMac14,2'] = 'iMac "Core i7" 3.5 27-Inch (Late 2013)',
-   ['MacBookPro2,2'] = 'MacBook Pro "Core 2 Duo" 2.33 15"',
-   ['MacBookAir3,2'] = 'MacBook Air "Core 2 Duo" 2.13 13" (Late 2010)',
-   ['MacBookPro13,1'] = 'MacBook Pro "Core i7" 2.4 13" Late 2016',
-   ['MacBookPro13,3'] = 'MacBook Pro "Core i7" 2.9 15" Touch/Late 2016',
-   ['MacBookPro13,2'] = 'MacBook Pro "Core i7" 3.3 13" Touch/Late 2016',
-   ['MacBook9,1'] = 'MacBook "Core m7" 1.3 12" (Early 2016)',
-   ['MacBookAir6,1'] = 'MacBook Air "Core i7" 1.7 11" (Early 2014)',
-   ['MacBookAir6,2'] = 'MacBook Air "Core i7" 1.7 13" (Early 2014)',
-   ['MacBookPro9,1'] = 'MacBook Pro "Core i7" 2.7 15" Mid-2012',
-   ['MacBookPro9,2'] = 'MacBook Pro "Core i7" 2.9 13" Mid-2012',
-   ['MacBook3,1'] = 'MacBook "Core 2 Duo" 2.2 13" (Black-SR)',
-   ['MacPro6,1'] = 'Mac Pro "Twelve Core" 2.7 (Late 2013)',
-   ['iMac10,1'] = 'iMac "Core 2 Duo" 3.33 27-Inch (Late 2009)',
-   ['MacBookPro1,1'] = 'MacBook Pro "Core Duo" 2.16 15"',
-   ['MacBookPro5,3'] = 'MacBook Pro "Core 2 Duo" 3.06 15" (SD)',
-   ['MacBookPro5,2'] = 'MacBook Pro "Core 2 Duo" 3.06 17" Mid-2009',
-   ['iMac8,1'] = 'iMac "Core 2 Duo" 3.06 24-Inch (Early 2008)',
-   ['MacBookPro5,4'] = 'MacBook Pro "Core 2 Duo" 2.53 15" (SD)',
-   ['Macmini2,1'] = 'Mac mini "Core 2 Duo" 2.0',
-   ['MacBookAir3,1'] = 'MacBook Air "Core 2 Duo" 1.6 11" (Late 2010)',
-   ['Macmini6,1'] = 'Mac mini "Core i5" 2.5 (Late 2012)',
-   ['MacBookPro1,2'] = 'MacBook Pro "Core Duo" 2.16 17"',
-   ['iMac4,1'] = 'iMac "Core Duo" 2.0 20-Inch',
-   ['iMac4,2'] = 'iMac "Core Duo" 1.83 17-Inch (IG)',
-   ['Macmini7,1'] = 'Mac mini "Core i7" 3.0 (Late 2014)',
-   ['MacBookPro2,1'] = 'MacBook Pro "Core 2 Duo" 2.33 17"',
-   ['MacBook5,1'] = 'MacBook "Core 2 Duo" 2.4 13" (Unibody)',
-   ['MacBook5,2'] = 'MacBook "Core 2 Duo" 2.13 13" (White-09)',
-   ['MacBookPro14,2'] = 'MacBook Pro "Core i7" 3.5 13" Touch/Mid-2017',
-   ['MacBookPro14,3'] = 'MacBook Pro "Core i7" 3.1 15" Touch/Mid-2017',
-   ['MacPro1,1*'] = 'Mac Pro "Quad Core" 3.0 (Original)',
-   ['MacBookPro14,1'] = 'MacBook Pro "Core i7" 2.5 13" Mid-2017',
-   ['MacBookPro12,1'] = 'MacBook Pro "Core i7" 3.1 13" Early 2015',
-   ['MacBook8,1'] = 'MacBook "Core M" 1.3 12" (Early 2015)',
-   ['iMac15,1'] = 'iMac "Core i5" 3.3 27-Inch (5K, Mid-2015)',
-   ['MacBookAir1,1'] = 'MacBook Air "Core 2 Duo" 1.8 13" (Original)',
-   ['MacBookAir2,1'] = 'MacBook Air "Core 2 Duo" 2.13 13" (Mid-09)',
-   ['iMac7,1'] = 'iMac "Core 2 Extreme" 2.8 24-Inch (Al)',
-   ['MacBookAir5,2'] = 'MacBook Air "Core i7" 2.0 13" (Mid-2012)',
-   ['MacBook4,1'] = 'MacBook "Core 2 Duo" 2.4 13" (Black-08)',
-   ['MacBookAir5,1'] = 'MacBook Air "Core i7" 2.0 11" (Mid-2012)',
-   ['MacBookPro3,1'] = 'MacBook Pro "Core 2 Duo" 2.6 17" (SR)',
-   ['iMac11,1'] = 'iMac "Core i7" 2.8 27-Inch (Late 2009)',
-   ['iMac11,2'] = 'iMac "Core i5" 3.6 21.5-Inch (Mid-2010)',
-   ['iMac11,3'] = 'iMac "Core i7" 2.93 27-Inch (Mid-2010)',
-   ['MacBook7,1'] = 'MacBook "Core 2 Duo" 2.4 13" (Mid-2010)',
-   ['Macmini6,2'] = 'Mac mini "Core i7" 2.6 (Late 2012/Server)',
-   ['MacPro5,1'] = 'Mac Pro "Twelve Core" 3.06 (Server 2012)',
-   ['MacBookPro6,2'] = 'MacBook Pro "Core i7" 2.8 15" Mid-2010',
-   ['MacBookPro6,1'] = 'MacBook Pro "Core i7" 2.8 17" Mid-2010',
-   ['iMac18,1'] = 'iMac "Core i5" 2.3 21.5-Inch (Mid-2017)',
-   ['iMac18,3'] = 'iMac "Core i7" 4.2 27-Inch (5K, Mid-2017)',
-   ['iMac18,2'] = 'iMac "Core i7" 3.6 21.5-Inch (4K, Mid-2017)',
-   ['iMac12,1'] = 'iMac "Core i3" 3.1 21.5-Inch (Late 2011)',
-   ['MacBookAir4,2'] = 'MacBook Air "Core i5" 1.6 13" (Edu Only)',
-   ['MacBookAir4,1'] = 'MacBook Air "Core i7" 1.8 11" (Mid-2011)',
-   ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)'
-}
-
-local asset_icons = {
-   ['printer']    = '<i class="fa fa-print fa-lg" aria-hidden="true"></i>',
-   ['video']      = '<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>',
-   ['workstation']    = '<i class="fa fa-desktop fa-lg" aria-hidden="true"></i>',
-   ['laptop']     = '<i class="fa fa-laptop fa-lg" aria-hidden="true"></i>',
-   ['tablet']     = '<i class="fa fa-tablet fa-lg" aria-hidden="true"></i>',
-   ['phone']      = '<i class="fa fa-mobile fa-lg" aria-hidden="true"></i>',
-   ['television'] = '<i class="fa fa-television fa-lg" aria-hidden="true"></i>',
-   ['networking']     = '<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>',
-   ['wifi']       = '<i class="fa fa-wifi fa-lg" aria-hidden="true"></i>',
-   ['nas']        = '<i class="fa fa-database fa-lg" aria-hidden="true"></i>',
-}
-
-local ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
 
 local function getbaseURL(url)
    local name = url:match( "([^/]+)$" )
@@ -162,6 +27,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    local ssdp = { }
    local str
 
+   if((names == nil) or (names[ip] == nil)) then
+      hostname = ""
+   else
+      hostname = string.lower(names[ip])
+   end
+   
    if(_mdns ~= nil) then
       --io.write(mac .. " /" .. manufacturer .. " / ".. _mdns.."\n")
       local mdns_items = string.split(_mdns, ";")
@@ -203,8 +74,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 local model   = string.split(elems[1], '=')
 	 local osxvers = nil
 
-	 if(apple_products[model[2]] ~= nil) then
-	    model = apple_products[model[2]]
+	 if(discover.apple_products[model[2]] ~= nil) then
+	    model = discover.apple_products[model[2]]
 	    if(model == nil) then model = "" end
 	 else
 	    model = model[2]
@@ -212,8 +83,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 
 	 if(elems[2] ~= nil) then
 	    local osxvers = string.split(elems[2], '=')
-	    if(apple_osx_versions[osxvers[2]] ~= nil) then
-	       osxvers = apple_osx_versions[osxvers[2]]
+	    if(discover.apple_osx_versions[osxvers[2]] ~= nil) then
+	       osxvers = discover.apple_osx_versions[osxvers[2]]
 	       if(osxvers == nil) then osxvers = "" end
 	    else
 	       osxvers = osxvers[2]
@@ -235,75 +106,69 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 end
       end
 
-      ret = '</i>'..asset_icons[icon]..' (Apple)'
+      ret = '</i>'..discover.asset_icons[icon]..' (Apple)'
 
       if(osx ~= nil) then ret = ret .. osx end
-      return(ret)
+      return icon, ret
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
-      return(asset_icons['workstation']..' (Windows)')
+      return 'workstation', discover.asset_icons['workstation']..' (Windows)'
    elseif(mdns["_workstation._tcp.local"] ~= nil) then
-      return(asset_icons['workstation']..' (Linux)')
+      return 'workstation', discover.asset_icons['workstation']..' (Linux)'
    end
 
    if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
-      return(asset_icons['television'])
+      return 'tv', discover.asset_icons['tv']
    end
 
    if(ssdp_entries and ssdp_entries["modelDescription"]) then
    	local descr = string.lower(ssdp_entries["modelDescription"])
 
 	if(string.contains(descr, "camera")) then
-	   return(asset_icons['video'])
+	   return 'video', discover.asset_icons['video']
 	elseif(string.contains(descr, "router")) then
-	   return(asset_icons['networking'])
+	   return 'networking', discover.asset_icons['networking']
 	end
    end
 
-   if(names[ip] == nil) then
-      str = ""
-   else
-      str = string.lower(names[ip])
-   end
-
    if(string.contains(manufacturer, "Oki Electric") and (snmp ~= nil)) then
-      return(asset_icons['printer'].. ' ('..snmp..')')
+      return 'printer', discover.asset_icons['printer'].. ' ('..snmp..')'
    elseif(string.contains(manufacturer, "Hikvision")) then
-      return(asset_icons['video'])
+      return 'video', discover.asset_icons['video']
    elseif(string.contains(manufacturer, "Super Micro")) then
-      return(asset_icons['workstation'])
+      return 'workstation', discover.asset_icons['workstation']
    elseif(string.contains(manufacturer, "Raspberry")) then
-      return(asset_icons['workstation'])
+      return 'workstation', discover.asset_icons['workstation']
    elseif(string.contains(manufacturer, "Juniper Networks")) then
-      return(asset_icons['networking'])
+      return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "Cisco")) then
-      return(asset_icons['networking'])
+      return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "HUAWEI")) then
-      return(asset_icons['phone'])
+      return 'phone', discover.asset_icons['phone']
    elseif(string.contains(manufacturer, "TP-LINK")) then
-      return(asset_icons['networking'])
+      return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "Samsung Electronics")) then
-      return(asset_icons['phone'])
+      return 'phone', discover.asset_icons['phone']
    elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)) then
       local _snmp = string.lower(snmp)
       
       if(string.contains(_snmp, "jet") or string.contains(_snmp, "fax")) then
-	 return(asset_icons['printer']..' ('..snmp..')')
+	 return 'printer', discover.asset_icons['printer']..' ('..snmp..')'
       elseif(string.contains(_snmp, "curve")) then
-	 return(asset_icons['networking']..' ('..snmp..')')
+	 return 'networking', discover.asset_icons['networking']..' ('..snmp..')'
       else
-	 return(asset_icons['workstation']..' ('..snmp..')')
+	 return 'workstation', discover.asset_icons['workstation']..' ('..snmp..')'
       end
    elseif(string.contains(manufacturer, "Xerox") and (snmp ~= nil)) then
-      return(asset_icons['printer']..' ('..snmp..')')
+      return 'printer', discover.asset_icons['printer']..' ('..snmp..')'
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
-      if(string.contains(str, "iphone")) then
-	 return(asset_icons['phone']..' (iPhone)')
-      elseif(string.contains(str, "ipad")) then
-	 return(asset_icons['tablet']..' (iPad)')
-      elseif(string.contains(str, "ipod")) then
-	 return(asset_icons['phone']..' (iPod)')
+      if(string.contains(hostname, "iphone")) then
+	 return 'phone', discover.asset_icons['phone']..' (iPhone)'
+      elseif(string.contains(hostname, "ipad")) then
+	 return 'tablet', discover.asset_icons['tablet']..' (iPad)'
+      elseif(string.contains(hostname, "ipod")) then
+	 return 'phone', discover.asset_icons['phone']..' (iPod)'
       else
-	 local ret = '</i> '..asset_icons['workstation']..' (Apple)'
+	 local ret = '</i> '..discover.asset_icons['workstation']..' (Apple)'
 	 local sym = names[ip]
 
 	 if(sym == nil) then sym = "" else sym = string.lower(sym) end
@@ -311,36 +176,39 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 if((snmp and string.contains(snmp, "capsule"))
 	       or string.contains(sym, "capsule"))
 	 then
-	    ret = '</i> '..asset_icons['nas']
+	    ret = '</i> '..discover.asset_icons['nas']
 	 elseif(string.contains(sym, "book")) then
-	    ret = '</i> '..asset_icons['laptop']..' (Apple)'
+	    ret = '</i> '..discover.asset_icons['laptop']..' (Apple)'
 	 end
 	 
 	 if(snmp ~= nil) then ret = ret .. " ["..snmp.."]" end
-	 return(ret)
+	 return 'workstation', ret
       end
    end
    
-   if(string.contains(mac, "F0:4F:7C") and string.contains(str, "kindle-")) then
-      return(asset_icons['tablet']..' (Kindle)')
+   if(string.contains(mac, "F0:4F:7C") and string.contains(hostname, "kindle-")) then
+      return 'tablet', discover.asset_icons['tablet']..' (Kindle)'
    end
 
-   -- io.write(ip .. " / " .. names["gateway.local"].."\n")
    if(names["gateway.local"] == ip) then
-      return(asset_icons['networking'])
+      return 'networking', discover.asset_icons['networking']
+   end
+
+   if(string.starts(hostname, "desktop-")) then
+      return 'workstation', discover.asset_icons['workstation']..' (Windows)'
    end
 
    if(snmp ~= nil) then
       if(string.contains(snmp, "router")) then
-	 return(asset_icons['networking']..' ('..snmp..')')
+	 return 'networking', discover.asset_icons['networking']..' ('..snmp..')'
       elseif(string.contains(snmp, "air")) then
-	 return(asset_icons['wifi']..' ('..snmp..')')
+	 return 'wifi', discover.asset_icons['wifi']..' ('..snmp..')'
       else
-	 return(snmp)
+	 return 'unknown', snmp
       end
    end
 
-   return("")
+   return 'unknown', ""
 end
 
 
@@ -622,10 +490,10 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 end
       end
 
-      deviceType = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip])
-      if(deviceType == "") then deviceType = "&nbsp;" end
-
-      print("</td><td>"..deviceType.."</td></tr>\n")
+      deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip])
+      if(deviceLabel == "") then deviceLabel = "&nbsp;" end
+      print("</td><td>"..deviceLabel.."</td></tr>\n")
+      interface.setMacDeviceType(mac, deviceType)
    end
 end
 

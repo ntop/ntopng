@@ -1,4 +1,5 @@
 require "lua_utils"
+local discover = require "discover_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -8,7 +9,8 @@ local now = os.time()
 function macAddIcon(mac, pre)
    local pre = pre or mac
    if not isSpecialMac(mac) then
-      local icon = getHostIcon(mac)
+      local icon = discover.devtype2icon(mac.devtype)
+
       if not isEmptyString(icon) then
          return pre.."&nbsp;"..icon
       end
@@ -18,7 +20,8 @@ function macAddIcon(mac, pre)
 end
 
 function mac2link(mac)
-   local link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..mac.."'>"..mac..'</A>'
+   local macaddress = mac["mac"]
+   local link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..macaddress.."'>"..macaddress..'</A>'
    return macAddIcon(mac, link)
 end
 
@@ -26,7 +29,7 @@ function mac2record(mac)
    local record = {}
    record["key"] = hostinfo2jqueryid(mac)
 
-   record["column_mac"] = mac2link(mac["mac"])
+   record["column_mac"] = mac2link(mac)
 
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end
