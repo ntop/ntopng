@@ -431,7 +431,6 @@ for ip,rsp in pairsByValues(snmp, asc) do
    io.write("[SNMP] "..ip.." = "..rsp.."\n")
 end
 
-
 io.write("Collecting MDNS OSX responses\n")
 osx_devices = interface.mdnsReadQueuedResponses()
 io.write("Collected MDNS OSX responses\n")
@@ -439,7 +438,6 @@ io.write("Collected MDNS OSX responses\n")
 for a,b in pairs(osx_devices) do
    io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
 end
-
 
 for mac,ip in pairsByValues(arp_mdns, asc) do
    if((string.find(mac, ":") ~= nil)
@@ -517,7 +515,12 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       end
 
       deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip])
-      if(deviceLabel == "") then deviceLabel = "&nbsp;" end
+      if(deviceLabel == "") then
+	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
+	 
+	 deviceLabel = "&nbsp;"
+	 discover.devtype2icon(mac_info.devtype)
+      end
       print("</td><td>"..deviceLabel.."</td></tr>\n")
       interface.setMacDeviceType(mac, deviceType, false) -- false means don't overwrite if already set to ~= unknown
    end
