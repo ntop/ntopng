@@ -438,7 +438,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
 
       if(ghost_macs[mac] ~= nil) then
-	 print(' <font color=red>'..ghost_icon..'</font>')
+	 print(' <font color=red>'..discover.ghost_icon..'</font>')
       end
 
       print("</td><td>")
@@ -507,7 +507,7 @@ end
 print("</table>\n")
 
 if(ghost_found) then
-   print('<b>NOTE</b>: The <font color=red>'..ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
+   print('<b>NOTE</b>: The <font color=red>'..discover.ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
