@@ -3541,7 +3541,7 @@ function printntopngRelease(info)
    if(info["version.enterprise_edition"]) then
    print(" Enterprise")
    elseif(info["pro.release"]) then
-      print(" Pro [Small Business Edition]")
+      print(" Professional")
    else
       print(" Community")
    end
