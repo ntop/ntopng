@@ -1167,7 +1167,9 @@ local  en = {
 
    mac_stats = {
       layer_2_host_devices = "Layer 2 Host Devices",
+      layer_2_dev_devices = "Layer 2 %{device_type} Devices",
       all_layer_2_devices = "All Layer 2 Devices",
+      dev_layer_2_devices = "%{device_type} Layer 2 Devices",
       layer_2_devices_with_manufacturer = "%{title} from '%{manufacturer}' manufacturer",
       filter_macs = "Filter MACs",
       manufacturer = "Manufacturer",

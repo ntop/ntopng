@@ -695,6 +695,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   const char* manufacturer = NULL;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_id = 0, pool_filter = (u_int16_t)-1;
+  u_int8_t devtype_filter = (u_int8_t)-1;
   bool a2zSortOrder = true, sourceMacsOnly = false, hostMacsOnly = false;
 
   if(lua_type(vm, 1) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 1);
@@ -706,6 +707,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TBOOLEAN) hostMacsOnly = lua_toboolean(vm, 7);
   if(lua_type(vm, 8) == LUA_TSTRING)  manufacturer = lua_tostring(vm, 8);
   if(lua_type(vm, 9) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 10) == LUA_TSTRING) devtype_filter = Utils::str2DeviceType((char *)lua_tostring(vm, 10));
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
@@ -713,7 +715,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 				      vlan_id, sourceMacsOnly,
 				      hostMacsOnly, manufacturer,
 				      sortColumn, maxHits,
-				      toSkip, a2zSortOrder, pool_filter) < 0)
+				      toSkip, a2zSortOrder, pool_filter, devtype_filter) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -766,6 +768,40 @@ static int ntop_set_mac_device_type(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_mac_device_types(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int16_t vlan_id = 0;
+  u_int16_t maxHits = CONST_MAX_NUM_HITS;
+  bool sourceMacsOnly = false;
+  bool hostMacsOnly = true;
+  char *manufacturer = NULL;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER)
+    vlan_id = (u_int16_t)lua_tonumber(vm, 1);
+
+  if(lua_type(vm, 2) == LUA_TNUMBER)
+    maxHits = (u_int16_t)lua_tonumber(vm, 2);
+
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)
+    sourceMacsOnly = lua_toboolean(vm, 3) ? true : false;
+
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)
+    hostMacsOnly = lua_toboolean(vm, 4) ? true : false;
+
+  if(lua_type(vm, 5) == LUA_TSTRING)
+    manufacturer = (char*)lua_tostring(vm, 5);
+
+  if((!ntop_interface)
+     || (ntop_interface->getActiveDeviceTypes(vm, vlan_id, sourceMacsOnly,
+                 hostMacsOnly, 0 /* bridge_iface_idx - TODO */,
+                 maxHits, manufacturer) < 0))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);  
 }
 
 /* ****************************************** */
@@ -898,29 +934,29 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_id = 0;
+  u_int8_t devtype_filter = (u_int8_t)-1;
   bool sourceMacsOnly = false, hostMacsOnly = false;
 
-  if(lua_type(vm, 1) == LUA_TNUMBER) {
+  if(lua_type(vm, 1) == LUA_TNUMBER)
     vlan_id = (u_int16_t)lua_tonumber(vm, 1);
 
-    if(lua_type(vm, 2) == LUA_TNUMBER) {
-      maxHits = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 2) == LUA_TNUMBER)
+    maxHits = (u_int16_t)lua_tonumber(vm, 2);
 
-      if(lua_type(vm, 3) == LUA_TBOOLEAN) {
-        sourceMacsOnly = lua_toboolean(vm, 3) ? true : false;
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)
+    sourceMacsOnly = lua_toboolean(vm, 3) ? true : false;
 
-        if(lua_type(vm, 4) == LUA_TBOOLEAN) {
-          hostMacsOnly = lua_toboolean(vm, 4) ? true : false;
-        }
-      }
-    }
-  }
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)
+    hostMacsOnly = lua_toboolean(vm, 4) ? true : false;
+
+  if(lua_type(vm, 5) == LUA_TSTRING)
+    devtype_filter = Utils::str2DeviceType((char *)lua_tostring(vm, 5));
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacManufacturers(vm,
 					       0, /* bridge_iface_idx - TODO */
 					       vlan_id, sourceMacsOnly,
-					       hostMacsOnly,maxHits) < 0)
+					       hostMacsOnly, maxHits, devtype_filter) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -5806,6 +5842,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacManufacturers",            ntop_get_interface_macs_manufacturers },
   { "getTopMacsProtos",               ntop_get_top_macs_protos },
   { "setMacDeviceType",               ntop_set_mac_device_type },
+  { "getMacDeviceTypes",              ntop_get_mac_device_types },
   
   /* Autonomous Systems */
   { "getASesInfo",                    ntop_get_interface_ases_info },

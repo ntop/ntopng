@@ -18,6 +18,7 @@ local sortOrder    = _GET["sortOrder"]
 local vlan         = _GET["vlan"]
 local devices_mode          = _GET["devices_mode"]
 local manufacturer          = _GET["manufacturer"]
+local device_type           = _GET["device_type"]
 
 local sortPrefs = "macs"
 
@@ -70,7 +71,7 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
 					 tonumber(vlan),
 					 source_macs_only,
-					 host_macs_only, manufacturer)
+					 host_macs_only, manufacturer, nil, device_type)
 
 local total_rows = 0
 

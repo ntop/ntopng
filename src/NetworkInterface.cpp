@@ -2887,6 +2887,7 @@ struct flowHostRetriever {
   u_int32_t asnFilter;
   int16_t networkFilter;
   u_int16_t poolFilter;
+  u_int8_t devtypeFilter;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
@@ -3177,6 +3178,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
      || ((r->vlan_id && (r->vlan_id != m->get_vlan_id())))
      || (r->sourceMacsOnly && !m->isSourceMac())
      || (r->hostMacsOnly && m->getNumHosts() == 0)
+     || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->poolFilter != (u_int16_t)-1) && (
         (((pool_found = m->getInterface()->getHostPools()->findMacPool(m, &pool_value)) == false /* unassigned */) && r->poolFilter != 0)
         || ((pool_found == true) && (pool_value != r->poolFilter))))
@@ -3212,6 +3214,10 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
 
   case column_manufacturer:
     r->elems[r->actNumEntries++].stringValue = m->get_manufacturer() ? (char*)m->get_manufacturer() : (char*)"zzz";
+    break;
+
+  case column_device_type:
+    r->elems[r->actNumEntries++].numericValue = m->getDeviceType();
     break;
 
   case column_arp_sent:
@@ -3732,7 +3738,8 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 			       u_int8_t bridge_iface_idx,
 			       u_int16_t vlan_id, bool sourceMacsOnly,
 			       bool hostMacsOnly, const char *manufacturer,
-			       char *sortColumn, u_int16_t pool_filter) {
+			       char *sortColumn, u_int16_t pool_filter,
+			       u_int8_t devtype_filter) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
 
@@ -3748,6 +3755,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
     retriever->poolFilter = pool_filter,
     retriever->manufacturer = (char *)manufacturer,
     retriever->maxNumEntries = maxHits,
+    retriever->devtypeFilter = devtype_filter,
     retriever->ndpi_proto = -1,
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
@@ -3763,6 +3771,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_manufacturer")) retriever->sorter = column_manufacturer, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_device_type"))  retriever->sorter = column_device_type, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd, sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
@@ -5352,14 +5361,14 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 				       bool hostMacsOnly, const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder,
-				       u_int16_t pool_filter) {
+				       u_int16_t pool_filter, u_int8_t devtype_filter) {
   struct flowHostRetriever retriever;
   bool show_details = true;
 
   disablePurge(false);
 
   if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
-	      hostMacsOnly, manufacturer, sortColumn, pool_filter) < 0) {
+	      hostMacsOnly, manufacturer, sortColumn, pool_filter, devtype_filter) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -5506,13 +5515,14 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 						u_int8_t bridge_iface_idx,
 						u_int16_t vlan_id,
 						bool sourceMacsOnly,
-						bool hostMacsOnly, u_int32_t maxHits) {
+						bool hostMacsOnly, u_int32_t maxHits,
+						u_int8_t devtype_filter) {
   struct flowHostRetriever retriever;
 
   disablePurge(false);
 
   if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
-	      hostMacsOnly, NULL, (char*)"column_manufacturer", (u_int16_t)-1) < 0) {
+	      hostMacsOnly, NULL, (char*)"column_manufacturer", (u_int16_t)-1, devtype_filter) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -5542,6 +5552,57 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
   }
   if(cur_manuf != NULL)
     lua_push_int32_table_entry(vm, cur_manuf, cur_count);
+
+  enablePurge(false);
+
+  // finally free the elements regardless of the sorted kind
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
+/* **************************************** */
+
+int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
+						u_int8_t bridge_iface_idx,
+						u_int16_t vlan_id,
+						bool sourceMacsOnly,
+						bool hostMacsOnly,
+						u_int32_t maxHits,
+						const char *manufacturer) {
+  struct flowHostRetriever retriever;
+
+  disablePurge(false);
+
+  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      hostMacsOnly, manufacturer, (char*)"column_device_type", (u_int16_t)-1, (u_int8_t)-1) < 0) {
+    enablePurge(false);
+    return -1;
+  }
+
+  lua_newtable(vm);
+
+  u_int8_t cur_devtype = 0;
+  u_int32_t cur_count = 0;
+  int k = 0;
+
+  for(int i = 0; i<(int)retriever.actNumEntries && k < (int)maxHits; i++) {
+    Mac *m = retriever.elems[i].macValue;
+
+    if(m->getDeviceType() != cur_devtype) {
+      if (cur_count)
+        lua_push_int32_table_entry(vm, Utils::deviceType2str((DeviceType) cur_devtype), cur_count);
+
+      cur_devtype = m->getDeviceType();
+      cur_count = 1;
+      k++;
+    } else {
+      cur_count++;
+    }
+  }
+
+  if (cur_count)
+    lua_push_int32_table_entry(vm, Utils::deviceType2str((DeviceType) cur_devtype), cur_count);
 
   enablePurge(false);
 

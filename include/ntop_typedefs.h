@@ -268,6 +268,7 @@ typedef enum {
   /* Macs */
   column_num_hosts,
   column_manufacturer,
+  column_device_type,
   column_arp_sent,
   column_arp_rcvd
 } sortField;
