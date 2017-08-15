@@ -2850,6 +2850,7 @@ end
 -- #############################################
 
 -- Add here the icons you guess based on the Mac address
+-- TODO move to discovery stuff
 local guess_icon_keys = {
   ["dell inc."] = "fa-desktop",
   ["vmware, inc."] = "fa-desktop",
@@ -2879,82 +2880,6 @@ function guessHostIcon(key)
    else
       return ""
    end
-end
-
--- #############################################
-
-local icon_keys = {
-  [ ""] = "",
-  [ "Computer"] = "fa-desktop",
-  [ "Laptop"]   = "fa-laptop",
-  [ "Phone"]    = "fa-mobile",
-  [ "Tablet"]   = "fa-tablet",
-  [ "TV"]       = "fa-television",
-  [ "Printer"]  = "fa-print",
-  [ "Camera"]  = "fa-video-camera",
-  [ "Router"]  = "fa-arrows"
-}
-
-function getHostIcons()
-   return pairsByKeys(icon_keys, asc)
-end
-
--- Get the device icon from the C side
--- NOTE: this can be optimized by reading the device directly from the mac lua data
-function getDeviceIcon(mac)
-   local info = interface.getMacInfo(mac)
-
-   if (info ~= nil) and (info.device_type ~= "Unknown") then
-      return icon_keys[info.device_type]
-   end
-
-   return nil
-end
-
-function getHostIconName(key)
-   local hash_key = "ntopng.host_icons"
-   local icon = ntop.getHashCache(hash_key, key)
-
-   if isEmptyString(icon) and isMacAddress(key) then
-      icon = getDeviceIcon(key)
-   end
-
-   if (icon == nil) then
-      icon = ""
-   end
-
-   return icon
-end
-
-function getHostIcon(key)
-  local icon = getHostIconName(key)
-  if((icon == nil) or (icon == "")) then
-     return(guessHostIcon(key))
-  else
-     return(" <i class='fa "..icon.." fa-lg'></i>")
-  end
-end
-
-function setHostIcon(key, icon)
-  ntop.setHashCache("ntopng.host_icons", key, icon)
-end
-
-function pickIcon(key, alt_key)
-  local icon = getHostIconName(key)
-  if (isEmptyString(icon) and (alt_key ~= nil)) then
-    icon = getHostIconName(alt_key)
-  end
-
-print [[<div class="form-group"><select name="custom_icon" class="form-control">]]
-
-  for k,v in getHostIcons() do
-      print("<option value=\"".. v.."\"")
-      if(v == icon) then print(" selected") end
-      print(">".. k .."</option>")
-  end
-
-print [[</select></div>]]
-
 end
 
 -- ####################################################

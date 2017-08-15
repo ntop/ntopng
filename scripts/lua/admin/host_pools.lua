@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+local discover = require "discover_utils"
 local template = require "template_utils"
 
 if(ntop.isPro()) then
@@ -176,7 +177,20 @@ elseif (_POST["edit_members"] ~= nil) then
 
       local icon = value.icon
       if((not is_new_member) or (not isEmptyString(icon))) then
-        setHostIcon(host_key, icon)
+        local mac = nil
+
+        if isMacAddress(new_member) then
+          mac = new_member
+        else
+          local hostinfo = hostkey2hostinfo(new_member)
+          hostinfo["host"] = splitNetworkPrefix(hostinfo.host)
+          local info = interface.getHostInfo(hostinfo["host"], hostinfo["vlan"])
+          mac = info and info["mac"]
+        end
+
+        if (not isEmptyString(mac)) and (mac ~= "00:00:00:00:00:00") then
+          interface.setMacDeviceType(mac, icon, true --[[ overwrite ]])
+        end
       end
     end
   end
@@ -222,13 +236,7 @@ function printMemberVlanField(member_str)
 end
 
 function printIconField(member_str)
-  print[[<select name="icon_member_' + ]] print(member_str) print[[ + '" class="form-control">]]
-  for k,v in getHostIcons() do
-      print[[<option value="]] print(v) print[["]]
-      if(v == icon) then print[[ selected]] end
-      print[[>]] print(k) print[[</option>]]
-  end
-  print[[</select>]]
+  discover.printDeviceTypeSelector("", "icon_member_' + " .. member_str .. " + '")
 end
 
 function printAliasField(member_str)
@@ -503,6 +511,9 @@ print[[
         icon_field.attr("disabled", vlanicon_disabled);
         select_field.attr("disabled", vlanicon_disabled);
       }
+
+      if (]] print(ternary(ifstats.has_macs, "false", "true")) print[[)
+        select_field.attr("disabled", true);
     }
     
     /* Make the pair address,vlan unique */
@@ -790,9 +801,10 @@ print[[            css : {
             alias.html(input);
 
             /* Icon field */
-            var input = $(']] printIconField('member_id') print[[');
+            var div = $(']] printIconField('member_id') print[[');
+            input = $("select", div);
             input.val(icon.html().replace(/&nbsp;/gi,''));
-            icon.html(input);
+            icon.html(div);
 
             /* Make vlan editable */
             var input = $(']] printMemberVlanField('member_id') print[[');

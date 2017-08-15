@@ -20,6 +20,7 @@ require "historical_utils"
 
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
+local discover = require "discover_utils"
 
 debug_hosts = false
 page        = _GET["page"]
@@ -163,6 +164,13 @@ else
 
    if(_POST["custom_name"] ~=nil) then
       setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
+   end
+
+   if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
+      if(_POST["device_type"] ~= nil) then
+         interface.setMacDeviceType(host["mac"], _POST["device_type"], true --[[ overwrite ]])
+	 host["device_type"] = _POST["device_type"]
+      end
    end
 
    host["label"] = getHostAltName(hostinfo2hostkey(host_info), host["mac"])
@@ -380,7 +388,7 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
-	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
+	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
 	 print('</td><td>&nbsp;</td></tr>')
       end
 
@@ -498,7 +506,6 @@ if((page == "overview") or (page == nil)) then
       if(host["systemhost"] == true) then print(' <span class="label label-info">'..i18n("details.label_system_ip")..' '..'<i class=\"fa fa-flag\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
 
-      print(getHostIcon(labelKey))
       print("</td><td></td>\n")
    end
 
@@ -1752,10 +1759,6 @@ elseif (page == "config") then
       end
    end
 
-   if(_POST["custom_icon"] ~= nil) then
-      setHostIcon(labelKey, _POST["custom_icon"])
-   end
-
    print[[
    <table class="table table-bordered table-striped">
       <tr>
@@ -1765,7 +1768,11 @@ elseif (page == "config") then
                <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
    if(host["label"] ~= nil) then print(host["label"]) end
    print[["></input> ]]
-   pickIcon(labelKey, host["mac"])
+
+   if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
+      discover.printDeviceTypeSelector(host["device_type"], "device_type")
+   end
+
    print [[
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
                &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>

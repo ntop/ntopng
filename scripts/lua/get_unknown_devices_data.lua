@@ -154,7 +154,7 @@ for mac, _ in pairsByValues(mac_to_sort, sort_function) do
       local record = {}
 
       if in_memory then
-         record["column_mac"] = mac2link(device["mac"])
+         record["column_mac"] = mac2link(device)
       else
          record["column_mac"] = macAddIcon(device["mac"])
       end

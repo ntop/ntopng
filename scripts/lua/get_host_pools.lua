@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+local discover = require "discover_utils"
 local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
@@ -56,11 +57,12 @@ if((ifid ~= nil) and (isAdministrator())) then
         if (i >= start_i) and (i <= stop_i) then
           local host_key, is_network = host_pools_utils.getMemberKey(member.key)
           local is_host = (not is_network) and (not is_mac)
+          local mac_info = interface.getMacInfo(host_key)
           local link
 
           if active_hosts[host_key] then
             link = ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url(active_hosts[host_key])
-          elseif is_mac and interface.getMacInfo(host_key) ~= nil then
+          elseif is_mac and mac_info ~= nil then
             link = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. host_key
           elseif is_network and network_stats[host_key] ~= nil then
             link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?network=" .. network_stats[host_key].network_id
@@ -72,14 +74,20 @@ if((ifid ~= nil) and (isAdministrator())) then
           local icon = ""
           if is_mac then
             alias = getDeviceName(member.address, 0)
-            icon = getHostIconName(member.address)
+
+            if mac_info ~= nil then
+              icon = mac_info["device_type"]
+            end
 
             if alias == host_key then
               alias = ""
             end
           elseif is_host then
             alias = getHostAltName(host_key)
-            icon = getHostIconName(host_key)
+
+            if active_hosts[host_key] then
+              icon = active_hosts[host_key]["device_type"]
+            end
 
             if alias == host_key then
               alias = ""
@@ -91,9 +99,6 @@ if((ifid ~= nil) and (isAdministrator())) then
                 if alias == active_hosts[host_key].mac then
                   alias = ""
                 end
-              end
-              if isEmptyString(icon) then
-                icon = getHostIconName(active_hosts[host_key].mac)
               end
             end
           end

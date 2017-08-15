@@ -124,7 +124,7 @@ discover.apple_products = {
    ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)'
 }
 
-discover.asset_icons = {
+local asset_icons = {
    ['unknown']     = '',
    ['printer']     = '<i class="fa fa-print fa-lg" aria-hidden="true"></i>', -- 1
    ['video']       = '<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>', -- 2 
@@ -156,12 +156,23 @@ discover.id2label = {
 
 discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
 
+function discover.printDeviceTypeSelector(device_type, field_name)
+   print [[<div class="form-group"><select name="]] print(field_name) print[[" class="form-control">\
+   <option></option>]]
+
+   for devtype, icon in pairsByKeys(asset_icons) do
+      if devtype ~= "unknown" then
+         print("<option value=\"".. devtype .."\"")
+         if(devtype == device_type) then print(" selected") end
+         print(">".. (i18n("device_types."..devtype) or "") .."</option>")
+      end
+   end
+
+   print [[</select></div>]]
+end
+
 function discover.devtype2icon(devtype)
-   local label = discover.id2label[tonumber(devtype)]
-
-   if(label == nil) then label = 'unknown' else label = label[1] end
-
-   return(discover.asset_icons[label])
+   return asset_icons[devtype or ""] or ""
 end
 
 function discover.devtype2id(devtype)

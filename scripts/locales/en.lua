@@ -2145,6 +2145,20 @@ local  en = {
     guests_description = "A preset for guests. Only basic navigation allowed",
   },
 
+  device_types = {
+    unknown = "Unknown",
+    printer = "Printer",
+    video = "Video",
+    workstation = "Computer",
+    laptop = "Laptop",
+    tablet = "Tablet",
+    phone = "Phone",
+    tv = "TV",
+    networking = "Router/Switch",
+    wifi = "WiFi Device",
+    nas = "NAS",
+  },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

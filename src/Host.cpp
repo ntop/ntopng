@@ -502,6 +502,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "ipkey", ip.key());
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf)));
+  lua_push_int_table_entry(vm, "devtype", m->getDeviceType());
 
   lua_push_bool_table_entry(vm, "localhost", localHost);
 

@@ -185,13 +185,14 @@ function print_single_group(value)
    if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
    print('"column_link": "<A HREF=\''..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'\'>'.. value["id"]..alt..'</A>')
 
-   if(not(isSpecialMac(value["id"]))) then
+   -- TODO how is this used?
+   --[[if(not(isSpecialMac(value["id"]))) then
         local icon = getHostIcon(value["id"])
 
 	if(icon ~= "") then
 	   print(icon)
         end
-   end
+   end]]
 
    print('",')
 

@@ -22,6 +22,16 @@ local host_info = url2hostinfo(_GET)
 mac         = host_info["host"]
 vlanId      = host_info["vlan"]
 
+if isAdministrator() then
+   if(_POST["custom_name"] ~=nil) then
+      setHostAltName(mac, _POST["custom_name"])
+   end
+
+   if(_POST["device_type"] ~=nil) then
+      interface.setMacDeviceType(mac, _POST["device_type"], true --[[ overwrite ]])
+   end
+end
+
 if(vlanId == nil) then vlanId = 0 end
 
 interface.select(ifname)
@@ -69,14 +79,6 @@ if(s ~= mac) then
      print(" ("..s..")")
 end
 
-if(_POST["custom_name"] ~=nil) then
- setHostAltName(mac, _POST["custom_name"])
-end
-
-if(_POST["custom_icon"] ~=nil) then
- setHostIcon(mac, _POST["custom_icon"])
-end
-
 local label = getHostAltName(mac)
 
 if mac_info["num_hosts"] > 0 then
@@ -92,7 +94,7 @@ if(isAdministrator()) then
       if(label ~= nil) then print(label) end
       print("\"></input> &nbsp;")
 
-pickIcon(mac)
+discover.printDeviceTypeSelector(mac_info.device_type, "device_type")
 
 print [[
 	 &nbsp;<button  type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]

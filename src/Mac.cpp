@@ -72,12 +72,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 
     if(json) free(json);
   }
-
-#if 0
-  /* TODO */
-  if(device_type == device_unknown)
-    start_services_detection(this);
-#endif
 }
 
 /* *************************************** */

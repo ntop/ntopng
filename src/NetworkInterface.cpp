@@ -5581,12 +5581,20 @@ bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId,
 					DeviceType dtype, bool alwaysOverwrite) {
   u_int8_t mac[6];
   Mac *m;
+  DeviceType oldtype;
   
   Utils::parseMac(mac, strmac);
 
   if((m = getMac(mac, vlanId, false /* Don't create if missing */))) {
-    if(alwaysOverwrite || (m->getDeviceType() == device_unknown))
+    oldtype = m->getDeviceType();
+
+    if(alwaysOverwrite || (oldtype == device_unknown)) {
       m->setDeviceType(dtype);
+
+      if(alwaysOverwrite && (oldtype != device_unknown) && (oldtype != dtype))
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Device %s type changed from %s to %s\n",
+				strmac, Utils::deviceType2str(oldtype), Utils::deviceType2str(dtype));
+    }
     return(true);
   } else
     return(false);

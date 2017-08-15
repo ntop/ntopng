@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local discover = require("discover_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -237,10 +238,8 @@ for _key, _value in pairsByKeys(vals, funct) do
    print("&nbsp;")
 
    local icon = getOSIcon(value["os"])
-   if(mac ~= nil and trimSpace(getOSIcon(value["os"])) ~= trimSpace(getHostIcon(hosts_stats[key]["mac"]))) then
-      icon = icon.."&nbsp;"..getHostIcon(hosts_stats[key]["mac"])
-   end
-   if(icon == "") then icon = getHostIcon(hosts_stats[key]["ip"].."@"..hosts_stats[key]["vlan"]) end
+   icon = icon .. discover.devtype2icon(hosts_stats[key].device_type)
+   icon = icon:gsub('"',"'")
    print(icon)
 
    if(value["dump_host_traffic"] == true) then print("&nbsp;<i class='fa fa-hdd-o fa-lg'></i>") end
