@@ -2093,13 +2093,6 @@ void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_i
 
 /* *************************************** */
 
-void Flow::updateActivities() {
-  if(cli_host) cli_host->updateActivities();
-  if(srv_host) srv_host->updateActivities();
-}
-
-/* *************************************** */
-
 void Flow::addFlowStats(bool cli2srv_direction,
 			u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
@@ -2112,8 +2105,6 @@ void Flow::addFlowStats(bool cli2srv_direction,
   else
     cli2srv_packets += out_pkts, cli2srv_bytes += out_bytes, cli2srv_goodput_bytes += out_goodput_bytes,
       srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes, srv2cli_goodput_bytes += in_goodput_bytes;
-
-  updateActivities();
 }
 
 /* *************************************** */

@@ -953,11 +953,10 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     *new_flow = false;
     has_too_many_flows = false;
   }
-
+  
   if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
-
     if((primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
-#ifdef SECONDARY_MAC_DEBUG
+#ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Detected mac address [%s] [host: %s][primary mac: %s]",
@@ -965,28 +964,14 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				   srcHost->get_ip()->print(buf, sizeof(buf)),
 				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
-
-      /* Mac address is not the primary host mac address, let's see if it is the secondary */
-      if(!srcHost->getSecondaryMac()) {
-#ifdef SECONDARY_MAC_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Adding secondary mac [host: %s][primary mac: %s][secondary mac: %s]",
-				     srcHost->get_ip()->print(buf, sizeof(buf)),
-				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)),
-				     Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)));
-#endif
-
-	srcHost->set_mac(srcMac, false /* Secondary mac */);
-      }
+      
+      srcHost->set_mac(srcMac);
     }
-
-    srcHost->updateMacSeen(srcMac);
   }
 
   if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
-
     if((primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
-#ifdef SECONDARY_MAC_DEBUG
+#ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Detected mac address [%s] [host: %s][primary mac: %s]",
@@ -994,34 +979,9 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				   dstHost->get_ip()->print(buf, sizeof(buf)),
 				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
-
-      /* Mac address is not the primary host mac address, let's see if it is the secondary */
-      if(!dstHost->getSecondaryMac()) {
-#ifdef SECONDARY_MAC_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Adding secondary mac [host: %s][primary mac: %s][secondary mac: %s]",
-				     dstHost->get_ip()->print(buf, sizeof(buf)),
-				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)),
-				     Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)));
-#endif
-
-	dstHost->set_mac(dstMac, false /* Secondary mac */);
-      }
+      dstHost->set_mac(dstMac);
     }
-
-    dstHost->updateMacSeen(dstMac);
   }
-
-#ifdef SECONDARY_MAC_DEBUG
-  char buf1[32], buf2[32], bufm1[32], bufm2[32];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-      "Processing Flow [src mac: %s src ip: %s][dst mac: %s dst ip: %s][src2dst: %i]",
-      Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
-      srcHost->get_ip()->print(buf1, sizeof(buf1)),
-      Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
-      dstHost->get_ip()->print(buf2, sizeof(buf2)),
-      (*src2dst_direction) ? 1 : 0);
-#endif
 
   return(ret);
 }
@@ -1245,7 +1205,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 
-#ifdef SECONDARY_MAC_DEBUG
+#ifdef MAC_DEBUG
   char bufm1[32], bufm2[32];
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
       "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
@@ -1313,7 +1273,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   p.app_protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
-  flow->updateActivities();
 
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
@@ -1612,7 +1571,6 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
   }
 
   /* Protocol Detection */
-  flow->updateActivities();
   flow->updateInterfaceLocalStats(src2dst_direction, 1, rawsize);
 
   if(!flow->isDetectionCompleted()) {
@@ -3100,7 +3058,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   char buf[64];
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
-  Mac *sm = NULL;
 
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
@@ -3114,10 +3071,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac()
-			   && (!(sm = h->getSecondaryMac()) || !sm->isSourceMac())))                     ||
-     (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)
-			   && (!(sm = h->getSecondaryMac()) || !sm->equal(r->vlan_id, r->mac))))         ||
+     (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac())) ||
+     (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
@@ -4768,109 +4723,6 @@ bool NetworkInterface::isNumber(const char *str) {
   }
 
   return(true);
-}
-
-/* **************************************************** */
-
-struct correlator_host_info {
-  lua_State* vm;
-  Host *h;
-  activity_bitmap x;
-};
-
-static bool correlator_walker(GenericHashEntry *node, void *user_data) {
-  Host *h = (Host*)node;
-  struct correlator_host_info *info = (struct correlator_host_info*)user_data;
-
-  if(h
-     // && h->isLocalHost() /* Consider only local hosts */
-     && h->get_ip()
-     && (h != info->h)) {
-    char buf[32], *name = h->get_ip()->print(buf, sizeof(buf));
-    activity_bitmap y;
-    double pearson;
-
-    h->getActivityStats()->extractPoints(&y);
-
-    pearson = Utils::pearsonValueCorrelation(&(info->x), &y);
-
-    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s: %f", name, pearson); */
-    lua_push_float_table_entry(info->vm, name, (float)pearson);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-static bool similarity_walker(GenericHashEntry *node, void *user_data) {
-  Host *h = (Host*)node;
-  struct correlator_host_info *info = (struct correlator_host_info*)user_data;
-
-  if(h
-     // && h->isLocalHost() /* Consider only local hosts */
-     && h->get_ip()
-     && (h != info->h)) {
-    char buf[32], name[64];
-
-    if(h->get_vlan_id() == 0) {
-      sprintf(name, "%s",h->get_ip()->print(buf, sizeof(buf)));
-    } else {
-      sprintf(name, "%s@%d",h->get_ip()->print(buf, sizeof(buf)), h->get_vlan_id());
-    }
-
-    activity_bitmap y;
-    double jaccard;
-
-    h->getActivityStats()->extractPoints(&y);
-
-    jaccard = Utils::JaccardSimilarity(&(info->x), &y);
-
-    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s: %f", name, pearson); */
-    lua_push_float_table_entry(info->vm, name, (float)jaccard);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::correlateHostActivity(lua_State* vm,
-					     AddressTree *allowed_hosts,
-					     char *host_ip, u_int16_t vlan_id) {
-  Host *h = getHost(host_ip, vlan_id);
-
-  if(h) {
-    struct correlator_host_info info;
-
-    memset(&info, 0, sizeof(info));
-
-    info.vm = vm, info.h = h;
-    h->getActivityStats()->extractPoints(&info.x);
-    walker(walker_hosts, correlator_walker, &info);
-
-    return(true);
-  } else
-    return(false);
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::similarHostActivity(lua_State* vm,
-					   AddressTree *allowed_hosts,
-					   char *host_ip, u_int16_t vlan_id) {
-  Host *h = getHost(host_ip, vlan_id);
-
-  if(h) {
-    struct correlator_host_info info;
-
-    memset(&info, 0, sizeof(info));
-
-    info.vm = vm, info.h = h;
-    h->getActivityStats()->extractPoints(&info.x);
-    walker(walker_hosts, similarity_walker, &info);
-
-    return(true);
-  } else
-    return(false);
 }
 
 /* **************************************************** */

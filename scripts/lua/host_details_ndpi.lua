@@ -77,8 +77,6 @@ end
 
 local total = total_sent + total_recv
 
-print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_activity_time"]) .."</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
-
 print("<td>")
 breakdownBar(total_sent, i18n("ndpi_page.sent"), total_recv, i18n("ndpi_page.rcvd"), 0, 100)
 print("</td>\n")

@@ -128,7 +128,8 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
 
 /* *************************************** */
 
-void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude) {
+void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country_code,
+			  char **city, float *latitude, float *longitude) {
 #ifdef HAVE_GEOIP
   GeoIPRecord *geo = NULL;
   struct ipAddress *ip = addr->getIP();

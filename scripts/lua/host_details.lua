@@ -246,14 +246,6 @@ else
    end
 end
 
-if(page == "activities") then
- print("<li class=\"active\"><a href=\"#\">"..i18n("activity").."</a></li>\n")
-else
- if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
-   print("<li><a href=\""..url.."&page=activities\">"..i18n("activity").."</a></li>")
- end
-end
-
 if(page == "dns") then
   print("<li class=\"active\"><a href=\"#\">"..i18n("dns").."</a></li>\n")
 else
@@ -319,19 +311,6 @@ if(not(isLoopback(ifname))) then
    end
 else
 
-end
-
-if(false) then
--- NOTE: code temporarily disabled
-if(not(isLoopback(ifname))) then
-   if(page == "jaccard") then
-      print("<li class=\"active\"><a href=\"#\">"..i18n("similarity").."</a></li>\n")
-   else
-      if(host["ip"] ~= nil) then
-	 print("<li><a href=\""..url.."&page=jaccard\">"..i18n("similarity").."</a></li>")
-      end
-   end
-end
 end
 
 if(host.systemhost) then
@@ -402,10 +381,6 @@ if((page == "overview") or (page == nil)) then
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
-	 print('</td><td>&nbsp;</td></tr>')
-      end
-      if(not isEmptyString(host["secondary_mac"]) and host["secondary_mac"]  ~= "00:00:00:00:00:00") then
-	 print("<tr><th width=35%>"..i18n("details.additional_mac_address").."</th><td>" ..get_symbolic_mac(host["secondary_mac"]).. " "..getHostIcon(host["secondary_mac"]))
 	 print('</td><td>&nbsp;</td></tr>')
       end
 
@@ -496,7 +471,6 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(host["ip"] ~= nil) then
-      tprint(host["name"])
       if(host["name"] == nil) then
 	 host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
       end
@@ -518,7 +492,6 @@ if((page == "overview") or (page == nil)) then
 
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
       print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
-
 
       if(host["localhost"] == true) then print('<span class="label label-success">'..i18n("details.label_local_host")..'</span>') else print('<span class="label label-default">'..i18n("details.label_remote")..'</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">'..i18n("details.label_private_ip")..'</span>') end
@@ -1028,68 +1001,8 @@ print [[
 </script>
 
 ]]
-
    end
 
-   elseif(page == "activities") then
-	 print("<table class=\"table table-bordered table-striped\">\n")
-
-   print [[
-	    <tr><th>]] print(i18n("activities_page.host_activity")) print[[</th><td colspan=2>
-	    <span id="sentHeatmap"></span>
-	    <button id="sent-heatmap-prev-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-left fa-lg""></i></button>
-	    <button id="heatmap-refresh" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-refresh fa-lg"></i></button>
-	    <button id="sent-heatmap-next-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-right fa-lg"></i></button>
-	    <p><span id="heatmapInfo"></span>
-
-	    <script type="text/javascript">
-
-	 var sent_calendar = new CalHeatMap();
-        sent_calendar.init({
-		       itemSelector: "#sentHeatmap",
-		       data: "]]
-     print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(host_info)..'",\n')
-
-     timezone = get_timezone()
-
-     now = ((os.time()-5*3600)*1000)
-     today = os.time()
-     today = today - (today % 86400) - 2*3600
-     today = today * 1000
-
-     print("/* "..timezone.." */\n")
-     print("\t\tstart:   new Date("..now.."),\n") -- now-3h
-     print("\t\tminDate: new Date("..today.."),\n")
-     print("\t\tmaxDate: new Date("..(os.time()*1000).."),\n")
-		     print [[
-   		       domain : "hour",
-		       range : 6,
-		       nextSelector: "#sent-heatmap-next-selector",
-		       previousSelector: "#sent-heatmap-prev-selector",
-
-			   onClick: function(date, nb) {
-					  if(nb === null) { ("#heatmapInfo").html(""); }
-				       else {
-					     $("#heatmapInfo").html(date + ": detected traffic for <b>" + nb + "</b> seconds ("+ Math.round((nb*100)/60)+" % of time).");
-				       }
-				    }
-
-		    });
-
-	    $(document).ready(function(){
-			    $('#heatmap-refresh').click(function(){
-							      sent_calendar.update(]]
-									     print("\""..ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(host_info)..'\");\n')
-									     print [[
-						    });
-				      });
-
-   </script>
-
-	    </td></tr>
-      ]]
-
-	 print("</table>\n")
    elseif(page == "dns") then
       if(host["dns"] ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
@@ -1686,127 +1599,6 @@ print [[
 </script>
     <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/googleMapJson.js" ></script>
 ]]
-
-elseif(page == "jaccard") then
--- NOTE: code temporarily disabled
-
-print [[
-<div id="prg" class="container">
-    <div class="progress progress-striped active">
-	 <div class="bar" style="width: 100%;"></div>
-    </div>
-</div>
-]]
-
-jaccard = interface.similarHostActivity(host_info["host"],host_info["vlan"])
-
-if(jaccard ~= nil) then
-print [[
-<script type="text/javascript">
-  var $bar = $('#prg');
-
-  $bar.hide();
-  $bar.remove();
-</script>
-]]
-
-vals = {}
-for k,v in pairs(jaccard) do
-   vals[v] = k
-end
-
-max_hosts = 10
-
-n = 0
-
-if(host["name"] == nil) then host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"])) end
-
-for v,k in pairsByKeys(vals, rev) do
-
-   if(v > 0) then
-      if(n == 0) then
-	 print("<table class=\"table table-bordered table-striped\">\n")
-	 print("<tr><th>Local Hosts Similar to ".. hostinfo2hostkey(host) .."</th><th>Jaccard Coefficient</th><th>Activity Map</th>\n")
-      end
-
-      correlated_host = interface.getHostInfo(k)
-      if(correlated_host ~= nil) then
-
-	 if(correlated_host["name"] == nil) then correlated_host["name"] = getResolvedAddress(hostkey2hostinfo(correlated_host["ip"])) end
-
-         -- print the host row together with the Jaccard coefficient
-	 print("<tr>")
-   -- print("<th align=left><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k.."'>"..correlated_host["name"].."</a></th>")
-	 print("<th align=left><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(correlated_host).."'>"..hostinfo2hostkey(correlated_host).."</a></th>")
-	 print("<th>"..round(v,2).."</th>");
-
-	 -- print the activity map row
-	 print("<td>");
-	 print("<span id=\"sentHeatmap"..n.."\"></span>");
-	 print [[
-	 <script type="text/javascript">
-	 	 var sent_calendar = new CalHeatMap();
-		 sent_calendar.init({
-	 ]]
-	print("itemSelector: \"#sentHeatmap"..n.."\",data: \"");
-  print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(correlated_host)..'",\n')
-  -- print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?host="..k..'",\n')
-
-	timezone = get_timezone()
-
-	now = ((os.time()-5*3600)*1000)
-	today = os.time()
-	today = today - (today % 86400) - 2*3600
-	today = today * 1000
-
-	print("/* "..timezone.." */\n")
-	print("\t\tstart:   new Date("..now.."),\n") -- now-3h
-	print("\t\tminDate: new Date("..today.."),\n")
-	print("\t\tmaxDate: new Date("..(os.time()*1000).."),\n")
-	print [[
-	domain : "hour",
-	range : 6,
-	nextSelector: "#sent-heatmap-next-selector",
-	previousSelector: "#sent-heatmap-prev-selector",
-	    });
-
-	    $(document).ready(function(){
-			    $('#heatmap-refresh').click(function(){
-				    sent_calendar.update(]]
-					    print("\""..ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(correlated_host)..'\");\n')
-				    print [[
-				    });
-			    });
-	    </script>
-	    </td>
-	 ]]
-
-	 print("</td></tr>")
-	 n = n +1
-
-	 if(n >= max_hosts) then
-	    break
-	 end
-      end
-   end
-end
-
-if(n > 0) then
-   print("</table>\n")
-else
-   print("There is no host correlated to ".. hostinfo2hostkey(host).."<p>\n")
-end
-
-print [[
-<b>Note</b>:
-<ul>
-	 <li>Jaccard Similarity considers only activity map as shown in the <A HREF="]]
-print (ntop.getHttpPrefix())
-print [[/lua/host_details.lua?ifid=]] print(ifId.."&"..hostinfo2url(host_info)) print [[">host overview</A>.
-<li>Two hosts are similar according to the Jaccard coefficient when their activity tends to overlap. In particular when their activity map is very similar. The <A HREF="http://en.wikipedia.org/wiki/Jaccard_index">Jaccard similarity coefficient</A> is a number between +1 and 0.
-</ul>
-]]
-end
 
 elseif(page == "contacts") then
 

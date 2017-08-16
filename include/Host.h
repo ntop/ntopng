@@ -39,8 +39,8 @@ class Host : public GenericHost {
   float latitude, longitude;
   IpAddress ip;
   Mutex *m;
-  Mac *mac, *secondary_mac;
-  u_int32_t mac_last_seen, secondary_mac_last_seen;
+  Mac *mac;
+  u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt, nextSitesUpdate;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
@@ -109,16 +109,15 @@ class Host : public GenericHost {
   char* getJSON();
   inline void setOS(char *_os)                 { if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os); }
   inline IpAddress* get_ip()                   { return(&ip);              }
-  void set_mac(Mac  *m,     bool primary = true);
-  void set_mac(char *m,     bool primary = true);
-  void set_mac(u_int8_t *m, bool primary = true);
+  void set_mac(Mac  *m);
+  void set_mac(char *m);
+  void set_mac(u_int8_t *m);
   inline bool isBlacklisted()                  { return(blacklisted_host); }
   inline bool isBlacklistedAlarmEmitted()      { return(blacklisted_alarm_emitted); }
   inline void setBlacklistedAlarmEmitted()     { blacklisted_alarm_emitted = true; }
   bool hasAnomalies();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
-  inline Mac* getSecondaryMac()                { return(secondary_mac);    }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_continent()                 { return(continent);        }
@@ -163,7 +162,6 @@ class Host : public GenericHost {
   inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
-  virtual void housekeep();
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
@@ -215,12 +213,6 @@ class Host : public GenericHost {
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
   bool IsAllowedTrafficCategory(struct site_categories *category);
-  inline void updateMacSeen(Mac *m) {
-    if(mac == m && mac)
-      mac_last_seen = m->get_last_seen();
-    else if(secondary_mac == m && secondary_mac)
-      secondary_mac_last_seen = m->get_last_seen();
-  }
   inline bool isChildSafe() {
 #ifdef NTOPNG_PRO
     return(iface->getHostPools()->isChildrenSafePool(host_pool_id));

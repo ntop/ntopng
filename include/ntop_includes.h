@@ -187,7 +187,6 @@ using namespace std;
 #include "RuntimePrefs.h"
 #include "Prefs.h"
 #include "Utils.h"
-#include "ActivityStats.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
 #include "SNMP.h"
