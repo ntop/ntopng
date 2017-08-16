@@ -83,6 +83,13 @@ elseif (_POST["edit_members"] ~= nil) then
       icon = parts[3],
     }
 
+    -- Convention: use uppercase letters for mac, lowercase for ip
+    if isMacAddress(new_member) then
+      new_member = string.upper(new_member)
+    else
+      new_member = string.lower(new_member)
+    end
+
     if (not isEmptyString(old_member)) and (not isValidPoolMember(assembled.old_member)) then
       http_lint.validationError(_POST, "old_member", new_member, "Invalid pool member")
     end
