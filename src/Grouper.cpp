@@ -138,7 +138,7 @@ int8_t Grouper::newGroup(Host *h) {
     {
       char buf[32], *c = h->get_country(buf, sizeof(buf));
       
-      group_id_s  = c;
+      group_id_s  = strdup(c);
       group_label = strdup(group_id_s);
     }
     break;
