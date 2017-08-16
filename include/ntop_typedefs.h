@@ -383,6 +383,7 @@ typedef enum {
   device_networking,
   device_wifi,
   device_nas,
+  device_multimedia,
 
   device_max_type /* Leave it at the end */
 } DeviceType;

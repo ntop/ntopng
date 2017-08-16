@@ -71,8 +71,12 @@ class NetworkInterface {
   u_int16_t numVirtualInterfaces;
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
+
+  /* Network Discovery */
+  NetworkDiscovery *discovery;
   MDNS *mdns;
   SNMP *snmp;
+  
   string ip_addresses;
   int id;
   bool bridge_interface;
@@ -571,6 +575,7 @@ class NetworkInterface {
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
+  inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

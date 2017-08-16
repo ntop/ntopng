@@ -755,23 +755,25 @@ end
 -- Convert bits to human readable format
 
 function bitsToSizeMultiplier(bits, multiplier)
-  precision = 2
-  kilobit = 1000;
-  megabit = kilobit * multiplier;
-  gigabit = megabit * multiplier;
-  terabit = gigabit * multiplier;
-
-  if((bits >= kilobit) and (bits < megabit)) then
-    return round(bits / kilobit, precision) .. ' kbit/s';
-  elseif((bits >= megabit) and (bits < gigabit)) then
-    return round(bits / megabit, precision) .. ' Mbit/s';
-  elseif((bits >= gigabit) and (bits < terabit)) then
-    return round(bits / gigabit, precision) .. ' Gbit/s';
-  elseif(bits >= terabit) then
-    return round(bits / terabit, precision) .. ' Tbit/s';
-  else
-    return round(bits, precision) .. ' bit/s';
-  end
+   if(bits == nil) then return(0) end
+   
+   precision = 2
+   kilobit = 1000;
+   megabit = kilobit * multiplier;
+   gigabit = megabit * multiplier;
+   terabit = gigabit * multiplier;
+   
+   if((bits >= kilobit) and (bits < megabit)) then
+      return round(bits / kilobit, precision) .. ' kbit/s';
+   elseif((bits >= megabit) and (bits < gigabit)) then
+      return round(bits / megabit, precision) .. ' Mbit/s';
+   elseif((bits >= gigabit) and (bits < terabit)) then
+      return round(bits / gigabit, precision) .. ' Gbit/s';
+   elseif(bits >= terabit) then
+      return round(bits / terabit, precision) .. ' Tbit/s';
+   else
+      return round(bits, precision) .. ' bit/s';
+   end
 end
 
 function bitsToSize(bits)

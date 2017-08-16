@@ -153,8 +153,6 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_int_table_entry(vm, "devtype", device_type);
-    lua_push_str_table_entry(vm, "device_type", (char *)Utils::deviceType2str(device_type));
-    ((GenericTrafficElement*)this)->lua(vm, show_details);
   }
 
   lua_push_int_table_entry(vm, "seen.first", first_seen);

@@ -112,10 +112,24 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   if(!pd) return;
 
   if(pcap_lookupnet(iface->get_name(), &netp, &maskp, errbuf) == -1) {
-    /* Np IP/mask: can't do much then */
+    /* No IP/mask: can't do much then */
     return;
   }
-
+    
+  /* Purge existing packets */
+  while(true) {
+    FD_ZERO(&rset);
+    FD_SET(pd_fd, &rset);
+    
+    tv.tv_sec = 1, tv.tv_usec = 0; /* Wait very little */
+    
+    if(select(pd_fd + 1, &rset, NULL, NULL, &tv) > 0) {      
+      if((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL)
+	;      
+    } else
+      break;
+  }  
+  
   if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create MDNS socket");
   else {

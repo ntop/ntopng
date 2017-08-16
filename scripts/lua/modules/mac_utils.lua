@@ -45,11 +45,11 @@ function mac2record(mac)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
       .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
-   if(throughput_type == "pps") then
-      record["column_thpt"] = pktsToSize(mac["throughput_pps"])
-   else
-      record["column_thpt"] = bitsToSize(8*mac["throughput_bps"])
-   end
+--  if(throughput_type == "pps") then
+--    record["column_thpt"] = pktsToSize(mac["throughput_pps"])
+--  else
+--    record["column_thpt"] = bitsToSize(8*mac["throughput_bps"])
+--  end
 
    record["column_traffic"] = bytesToSize(mac["bytes.sent"] + mac["bytes.rcvd"])
 

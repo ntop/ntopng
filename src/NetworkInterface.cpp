@@ -108,8 +108,8 @@ NetworkInterface::NetworkInterface(const char *name,
      || (!strncmp(name, "lo", 2))
      || (Utils::readIPv4((char*)name) == 0))
     ; /* Don't setup MDNS on ZC or RSS interfaces */
-  else
-    mdns = new MDNS(this); 
+  else 
+    mdns = new MDNS(this), discovery = new NetworkDiscovery(this);
   
   if(id >= 0) {
     u_int32_t num_hashes;
@@ -266,7 +266,7 @@ void NetworkInterface::init() {
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
-    mdns = NULL, snmp = NULL;
+    mdns = NULL, snmp = NULL, discovery = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
@@ -625,6 +625,7 @@ NetworkInterface::~NetworkInterface() {
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
   if(ifDescription)  free(ifDescription);
+  if(discovery)      delete discovery;
   if(mdns)           delete mdns;
   if(snmp)           delete snmp;
   if(statsManager)   delete statsManager;

@@ -136,20 +136,22 @@ discover.asset_icons = {
    ['networking']  = '<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>',
    ['wifi']        = '<i class="fa fa-wifi fa-lg" aria-hidden="true"></i>',
    ['nas']         = '<i class="fa fa-database fa-lg" aria-hidden="true"></i>',
+   ['multimedia']  = '<i class="fa fa-music fa-lg" aria-hidden="true"></i>',
 }
 
 discover.id2label = {
-   [0]  = 'unknown',
-   [1]  = 'printer',
-   [2]  = 'video',
-   [3]  = 'workstation',
-   [4]  = 'laptop',
-   [5]  = 'tablet',
-   [6]  = 'phone',
-   [7]  = 'tv',
-   [8]  = 'networking',
-   [9]  = 'wifi',
-   [10] = 'nas',
+   [0]  = { 'unknown', '' },
+   [1]  = { 'printer', 'Printer' },
+   [2]  = { 'video', 'Video Recording/Display Device' },
+   [3]  = { 'workstation', 'PC' },
+   [4]  = { 'laptop', 'Laptop' },
+   [5]  = { 'tablet', 'Tablet' },
+   [6]  = { 'phone', 'Phone' },
+   [7]  = { 'tv', 'TV' },
+   [8]  = { 'networking', 'Network Device' },
+   [9]  = { 'wifi', 'Wireless Network Device' },
+   [10] = { 'nas', 'NAS' },
+   [11] = { 'multimedia', 'Multimedia Device' },
 }
 
 discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
@@ -157,9 +159,25 @@ discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true">
 function discover.devtype2icon(devtype)
    local label = discover.id2label[tonumber(devtype)]
 
-   if(label == nil) then label = 0 end
+   if(label == nil) then label = 'unknown' else label = label[1] end
 
    return(discover.asset_icons[label])
+end
+
+function discover.devtype2id(devtype)
+   for k,v in pairs(discover.id2label) do
+      if(v[1] == devtype) then return k end
+   end
+
+   return(0) -- unknown
+end
+
+function discover.devtype2string(devtype)
+   for k,v in pairs(discover.id2label) do
+      if(k == devtype) then return v[2] end
+   end
+
+   return("") -- unknown
 end
 
 -- ###############

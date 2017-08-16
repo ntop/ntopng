@@ -370,53 +370,6 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
 
 /* **************************************************** */
 
-/* Note: keep in sync with lua_utils icon_keys on discover.lua */
-const DeviceType Utils::str2DeviceType(char *devtype) {
-
-  if(!strcasecmp(devtype, "printer"))  return(device_printer);
-  else if(!strcasecmp(devtype, "video"))  return(device_video);
-  else if(!strcasecmp(devtype, "workstation"))  return(device_workstation);
-  else if(!strcasecmp(devtype, "laptop"))  return(device_laptop);
-  else if(!strcasecmp(devtype, "tablet"))  return(device_tablet);
-  else if(!strcasecmp(devtype, "phone"))  return(device_phone);
-  else if(!strcasecmp(devtype, "tv"))  return(device_tv);
-  else if(!strcasecmp(devtype, "networking"))  return(device_networking);
-  else if(!strcasecmp(devtype, "wifi"))  return(device_wifi);
-  else if(!strcasecmp(devtype, "nas"))  return(device_nas);
-  else return(device_unknown);
-}
-
-/* Note: keep in sync with lua_utils icon_keys on discover.lua */
-const char* Utils::deviceType2str(DeviceType devtype) {
-  switch (devtype) {
-  case device_printer:
-    return("Printer");
-  case device_video:
-    return("Video");  
-  case device_workstation:
-    return("Computer");
-  case device_laptop:
-    return("Laptop");
-  case device_tablet:
-    return("Tablet");
-  case device_phone:
-    return("Phone");
-  case device_tv:
-    return("TV");      
-  case device_networking:
-    return("Router/Switch");
-  case device_wifi:
-    return("WiFi Device");
-  case device_nas:
-    return("NAS");
-  case device_unknown:
-  default:
-    return("Unknown");
-  }
-} 
-
-/* **************************************************** */
-
 const char* Utils::trend2str(ValueTrend t) {
   switch(t) {
   case trend_up:

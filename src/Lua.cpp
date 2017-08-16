@@ -753,9 +753,10 @@ static int ntop_set_mac_device_type(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   mac = (char*)lua_tostring(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  dtype = (DeviceType)Utils::str2DeviceType((char*)lua_tostring(vm, 2));
-
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  dtype = (DeviceType)lua_tonumber(vm, 2);
+  if(dtype > device_max_type) dtype = device_unknown;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
   overwriteType = (bool)lua_toboolean(vm, 3);
 
@@ -1935,16 +1936,11 @@ static int ntop_discover_iface_hosts(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TNUMBER) timeout = (u_int)lua_tonumber(vm, 1);
 
-  if(ntop_interface->getMDNS()) {
-    /* This is a device we can use for network discovery */
+  if(ntop_interface->getNetworkDiscovery()) {
+    /* TODO: do it periodically and not inline */
     
     try {
-      NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
-      
-      if(d) {
-	d->discover(vm, timeout);
-	delete d;
-      }
+      ntop_interface->getNetworkDiscovery()->discover(vm, timeout);
     } catch(...) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network discovery");
     }

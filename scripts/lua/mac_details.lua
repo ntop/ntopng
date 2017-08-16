@@ -135,7 +135,8 @@ end
 
 if(mac_info.devtype ~= 0) then
    -- This is a known device type
-   print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " " .. mac_info.device_type .. "</td><td></td></tr>\n")
+   print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " ")
+   print(discover.devtype2string(mac_info.devtype) .. "</td><td></td></tr>\n")
 end
 
 print("<tr><th>".. i18n("details.first_last_seen") .. "</th><td nowrap><span id=first_seen>" .. formatEpoch(mac_info["seen.first"]) ..  " [" .. secondsToTime(os.time()-mac_info["seen.first"]) .. " " .. i18n("details.ago").."]" .. "</span></td>\n")

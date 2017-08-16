@@ -124,12 +124,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'workstation', discover.asset_icons['workstation']..' (Linux)'
    end
 
-   if((ssdp["upnp-org:serviceId:AVTransport"] ~= nil) or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
+   if(string.contains(friendlyName, "TV")) then
       return 'tv', discover.asset_icons['tv']
    end
    
-   if(string.contains(friendlyName, "TV")) then
-      return 'tv', discover.asset_icons['tv']
+   if((ssdp["urn:upnp-org:serviceId:AVTransport"] ~= nil)
+      or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
+      return 'multimedia', discover.asset_icons['multimedia']
    end
    
    if(ssdp_entries and ssdp_entries["modelDescription"]) then
@@ -234,6 +235,10 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    end
 
+   if(string.contains(manufacturer, "Ubiquity")) then
+      return 'networking', discover.asset_icons['networking']
+   end
+   
    return 'unknown', ""
 end
 
@@ -522,7 +527,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 discover.devtype2icon(mac_info.devtype)
       end
       print("</td><td>"..deviceLabel.."</td></tr>\n")
-      interface.setMacDeviceType(mac, deviceType, false) -- false means don't overwrite if already set to ~= unknown
+      interface.setMacDeviceType(mac, discover.devtype2id(deviceType), false) -- false means don't overwrite if already set to ~= unknown
    end
 end
 
