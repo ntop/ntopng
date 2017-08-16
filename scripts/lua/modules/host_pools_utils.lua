@@ -319,6 +319,21 @@ function host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id)
   return toboolean(get_pool_detail(ifid, pool_id, "enforce_quotas_per_pool_member"))
 end
 
+function host_pools_utils.clearPools()
+  for _, ifname in pairs(interface.getIfNames()) do
+    local ifid = getInterfaceId(ifname)
+    local ifstats = interface.getStats()
+
+    if not ifstats.isView then
+       local pools_list = host_pools_utils.getPoolsList(ifid)
+       for _, pool in pairs(pools_list) do
+	  host_pools_utils.deletePool(ifid, pool["id"])
+       end
+    end
+
+  end
+end
+
 function host_pools_utils.initPools()
   for _, ifname in pairs(interface.getIfNames()) do
     local ifid = getInterfaceId(ifname)

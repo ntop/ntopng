@@ -4,6 +4,7 @@
 
 local pragma_once = 1
 local http_lint = {}
+local json = require "dkjson"
 
 -- #################################################################
 
@@ -151,6 +152,10 @@ end
 
 local function validateNumMinutes(m)
    return (m == "custom") or validateNumber(m)
+end
+
+local function validateJSON(j)
+   return (json.decode(j) ~= nil)
 end
 
 -- #################################################################
@@ -952,6 +957,9 @@ local known_parameters = {
 
    -- ntopng Box
    ["nbox_network_mode"]       =  validateNetworkMode,           -- bridge wizard
+
+   -- json POST DATA
+   ["payload"]                 =  validateJSON
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

@@ -105,6 +105,7 @@
 #define HOTSPOT_DETECT_LUA_URL    "/lua/hotspot-detect.lua"
 #define CHANGE_PASSWORD_ULR       "/lua/change_password.lua"
 #define GRAFANA_URL               "/lua/modules/grafana"
+#define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 

@@ -18,7 +18,8 @@ require "lua_utils"
 require "alert_utils"
 require "blacklist_utils"
 require "db_utils"
-host_pools_utils = require "host_pools_utils"
+local host_pools_utils = require "host_pools_utils"
+local http_bridge_conf_utils = require "http_bridge_conf_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -118,3 +119,5 @@ loadHostBlackList()
 checkOpenFiles()
 -- TODO: migrate custom re-arm settings
 
+-- this will retrieve host pools and policers configurtions via HTTP if enabled
+http_bridge_conf_utils.configureBridge()

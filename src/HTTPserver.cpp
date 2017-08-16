@@ -113,7 +113,8 @@ static void set_cookie(const struct mg_connection *conn,
   char key[256], session_id[64], random[64];
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL)))
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
     return;
 
   // Authentication success:
