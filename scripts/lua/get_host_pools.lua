@@ -74,9 +74,10 @@ if((ifid ~= nil) and (isAdministrator())) then
           local icon = ""
           if is_mac then
             alias = getDeviceName(member.address, 0)
+            icon = getCustomDeviceType(member.key)
 
-            if mac_info ~= nil then
-              icon = mac_info["device_type"]
+            if (icon == nil) and (mac_info ~= nil) then
+              icon = mac_info["devtype"]
             end
 
             if alias == host_key then
@@ -84,10 +85,6 @@ if((ifid ~= nil) and (isAdministrator())) then
             end
           elseif is_host then
             alias = getHostAltName(host_key)
-
-            if active_hosts[host_key] then
-              icon = active_hosts[host_key]["device_type"]
-            end
 
             if alias == host_key then
               alias = ""

@@ -2884,6 +2884,22 @@ end
 
 -- ####################################################
 
+-- Functions to set/get a device type of user choice
+
+local function getCustomDeviceKey(mac)
+   return "ntopng.prefs.device_types." .. string.upper(mac)
+end
+
+function getCustomDeviceType(mac)
+   return tonumber(ntop.getPref(getCustomDeviceKey(mac)))
+end
+
+function setCustomDeviceType(mac, device_type)
+   ntop.setPref(getCustomDeviceKey(mac), tostring(device_type))
+end
+
+-- ####################################################
+
 function tableToJsObject(lua_table)
    local json = require("dkjson")
    return json.encode(lua_table, nil)

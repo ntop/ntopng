@@ -28,7 +28,9 @@ if isAdministrator() then
    end
 
    if(_POST["device_type"] ~=nil) then
-      interface.setMacDeviceType(mac, tonumber(_POST["device_type"]), true --[[ overwrite ]])
+      local devtype = tonumber(_POST["device_type"])
+      setCustomDeviceType(mac, devtype)
+      interface.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
    end
 end
 

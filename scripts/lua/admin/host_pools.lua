@@ -175,22 +175,14 @@ elseif (_POST["edit_members"] ~= nil) then
         setHostAltName(host_key, alias)
       end
 
-      local icon = value.icon
-      if((not is_new_member) or (not isEmptyString(icon))) then
-        local mac = nil
+      local icon = tonumber(value.icon)
 
-        if isMacAddress(new_member) then
-          mac = new_member
-        else
-          local hostinfo = hostkey2hostinfo(new_member)
-          hostinfo["host"] = splitNetworkPrefix(hostinfo.host)
-          local info = interface.getHostInfo(hostinfo["host"], hostinfo["vlan"])
-          mac = info and info["mac"]
-        end
-
-        if (not isEmptyString(mac)) and (mac ~= "00:00:00:00:00:00") then
-          interface.setMacDeviceType(mac, icon, true --[[ overwrite ]])
-        end
+      if (not isEmptyString(icon))
+            and ((not is_new_member) or (icon ~= 0))
+            and isMacAddress(new_member)
+            and new_member ~= "00:00:00:00:00:00" then
+        setCustomDeviceType(new_member, icon)
+        interface.setMacDeviceType(new_member, icon, true --[[ overwrite ]])
       end
     end
   end
@@ -498,12 +490,8 @@ print[[
 
         if (is_cidr) {
           vlan_field.removeAttr("disabled");
-
-          if ((is_cidr.type == "ipv4" && is_cidr.mask != 32) ||
-             ((is_cidr.type == "ipv6" && is_cidr.mask != 128)))
-            vlanicon_disabled = true
-          else
-            vlanicon_disabled = false;
+          select_field.attr("disabled", true);
+          vlanicon_disabled = null;
         }
       }
 

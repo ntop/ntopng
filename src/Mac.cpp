@@ -56,9 +56,10 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
    * We only need redis MAC data to show Unassigned Devices in host pools view.
    */
   if(!special_mac) {
-    char redis_key[64], buf1[64];
+    char redis_key[64], buf1[64], rsp[8];
     char *json = NULL;
-    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
+    char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
+    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), mac_ptr, vlan_id);
 
     if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -71,6 +72,11 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
     }
 
     if(json) free(json);
+
+    // Load the user defined device type, if available
+    snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
+    if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
+      device_type = (DeviceType) atoi(rsp);
   }
 }
 
