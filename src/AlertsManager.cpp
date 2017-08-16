@@ -728,8 +728,9 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
     Host *cli, *srv;
-    char *cli_ip = NULL, *cli_ip_buf = NULL, *srv_ip = NULL, *srv_ip_buf = NULL;
-
+    char *cli_ip = NULL, *cli_ip_buf = NULL, *srv_ip = NULL, *srv_ip_buf = NULL,
+      cb[64], cb1[64];
+    
     if(!store_initialized || !store_opened || !f)
       return(-1);
 
@@ -782,8 +783,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
        || sqlite3_bind_int(stmt,   7, f->get_detected_protocol().app_protocol)
        || sqlite3_bind_int(stmt,   8, f->get_first_seen())
        || sqlite3_bind_int(stmt,   9, f->get_last_seen())
-       || sqlite3_bind_text(stmt, 10, cli ? cli->get_country() : NULL, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt, 11, srv ? srv->get_country() : NULL, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt, 10, cli ? cli->get_country(cb, sizeof(cb)) : NULL, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt, 11, srv ? srv->get_country(cb1, sizeof(cb1)) : NULL, -1, SQLITE_STATIC)
        || sqlite3_bind_text(stmt, 12, cli ? cli->get_os() : NULL, -1, SQLITE_STATIC)
        || sqlite3_bind_text(stmt, 13, srv ? srv->get_os() : NULL, -1, SQLITE_STATIC)
        || sqlite3_bind_int(stmt,  14, cli ? cli->get_asn() : 0)

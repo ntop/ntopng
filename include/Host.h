@@ -29,14 +29,13 @@ class Host : public GenericHost {
   u_int32_t asn;
   AutonomousSystem *as;
   Vlan *vlan;
-  char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
+  char *symbolic_name, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char *old_sites;
   bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
   u_int32_t host_quota_mb;
   int16_t local_network_id;
   u_int32_t num_alerts_detected;
-  float latitude, longitude;
   IpAddress ip;
   Mutex *m;
   Mac *mac;
@@ -120,9 +119,6 @@ class Host : public GenericHost {
   inline Mac* getMac()                         { return(mac);              }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
-  inline char* get_continent()                 { return(continent);        }
-  inline char* get_country()                   { return(country);          }
-  inline char* get_city()                      { return(city);             }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
 #ifdef NTOPNG_PRO
   inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
@@ -143,8 +139,6 @@ class Host : public GenericHost {
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
-  inline float get_latitude()                  { return(latitude);         }
-  inline float get_longitude()                 { return(longitude);        }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   char* get_visual_name(char *buf, u_int buf_len, bool from_info=false);
@@ -212,6 +206,9 @@ class Host : public GenericHost {
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
+  char* get_country(char *buf, u_int buf_len);
+  char* get_city(char *buf, u_int buf_len);
+  void get_geocoordinates(float *latitude, float *longitude);
   bool IsAllowedTrafficCategory(struct site_categories *category);
   inline bool isChildSafe() {
 #ifdef NTOPNG_PRO

@@ -3074,7 +3074,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac())) ||
      (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
-     (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
+     (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
@@ -3099,7 +3099,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     break;
 
   case column_country:
-    r->elems[r->actNumEntries++].stringValue = strdup(h->get_country() ? h->get_country() : (char*)"");
+    r->elems[r->actNumEntries++].stringValue = strdup(h->get_country(buf, sizeof(buf)));
     break;
 
   case column_os:

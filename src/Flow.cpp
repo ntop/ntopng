@@ -1608,21 +1608,27 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     dumpPacketStats(vm, false);
 
     if((!mask_flow) && (details_level >= details_higher)) {
+      float latitude, longitude;
+      char buf[32];
+      
       lua_push_int_table_entry(vm, "cli2srv.goodput_bytes.last", get_current_goodput_bytes_cli2srv());
       lua_push_int_table_entry(vm, "srv2cli.goodput_bytes.last", get_current_goodput_bytes_srv2cli());
 
-      lua_push_float_table_entry(vm, "cli.latitude", get_cli_host()->get_latitude());
-      lua_push_float_table_entry(vm, "cli.longitude", get_cli_host()->get_longitude());
-      lua_push_float_table_entry(vm, "srv.latitude", get_srv_host()->get_latitude());
-      lua_push_float_table_entry(vm, "srv.longitude", get_srv_host()->get_longitude());
+      get_cli_host()->get_geocoordinates(&latitude, &longitude);
+      lua_push_float_table_entry(vm, "cli.latitude", latitude);
+      lua_push_float_table_entry(vm, "cli.longitude", longitude);
+
+      get_srv_host()->get_geocoordinates(&latitude, &longitude);
+      lua_push_float_table_entry(vm, "srv.latitude", latitude);
+      lua_push_float_table_entry(vm, "srv.longitude", longitude);
 
       if(details_level >= details_max) {
 	lua_push_bool_table_entry(vm, "cli.private", get_cli_host()->get_ip()->isPrivateAddress()); // cli. */
-	lua_push_str_table_entry(vm,  "cli.country", get_cli_host()->get_country() ? get_cli_host()->get_country() : (char*)"");
-	lua_push_str_table_entry(vm,  "cli.city", get_cli_host()->get_city() ? get_cli_host()->get_city() : (char*)"");
+	lua_push_str_table_entry(vm,  "cli.country", get_cli_host()->get_country(buf, sizeof(buf)));
+	lua_push_str_table_entry(vm,  "cli.city", get_cli_host()->get_city(buf, sizeof(buf)));
 	lua_push_bool_table_entry(vm, "srv.private", get_srv_host()->get_ip()->isPrivateAddress());
-	lua_push_str_table_entry(vm,  "srv.country", get_srv_host()->get_country() ? get_srv_host()->get_country() : (char*)"");
-	lua_push_str_table_entry(vm,  "srv.city", get_srv_host()->get_city() ? get_srv_host()->get_city() : (char*)"");
+	lua_push_str_table_entry(vm,  "srv.country", get_srv_host()->get_country(buf, sizeof(buf)));
+	lua_push_str_table_entry(vm,  "srv.city", get_srv_host()->get_city(buf, sizeof(buf)));
       }
     }
   }
@@ -1875,28 +1881,38 @@ json_object* Flow::flow2json() {
   if(client_proc != NULL) processJson(true, my_object, client_proc);
   if(server_proc != NULL) processJson(false, my_object, server_proc);
 
-  c = cli_host->get_country() ? cli_host->get_country() : NULL;
+  c = cli_host->get_country(buf, sizeof(buf));
   if(c) {
     json_object *location = json_object_new_array();
 
     json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
     if(location) {
-      json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
-      json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
+      float latitude, longitude;
+
+      cli_host->get_geocoordinates(&latitude, &longitude);      
+      json_object_array_add(location, json_object_new_double(longitude));
+      json_object_array_add(location, json_object_new_double(latitude));
       json_object_object_add(my_object, "SRC_IP_LOCATION", location);
     }
   }
 
-  c = srv_host->get_country() ? srv_host->get_country() : NULL;
+  c = srv_host->get_country(buf, sizeof(buf));
   if(c) {
     json_object *location = json_object_new_array();
 
     json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
 
     if(location) {
-      json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
-      json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
-      json_object_object_add(my_object, "DST_IP_LOCATION", location);
+      json_object *location = json_object_new_array();
+
+      if(location) {
+	float latitude, longitude;
+	
+	srv_host->get_geocoordinates(&latitude, &longitude);
+	json_object_array_add(location, json_object_new_double(longitude));
+	json_object_array_add(location, json_object_new_double(latitude));
+	json_object_object_add(my_object, "DST_IP_LOCATION", location);
+      }
     }
   }
 

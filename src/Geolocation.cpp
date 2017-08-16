@@ -162,7 +162,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
     *latitude = geo->latitude, *longitude = geo->longitude;
     GeoIPRecord_delete(geo);
   } else
-    *country_code = NULL, *city = NULL, *latitude = *longitude = 0;
+    *country_code = (char*)UNKNOWN_COUNTRY, *city = NULL, *latitude = *longitude = 0;
 #endif
 }
 

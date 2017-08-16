@@ -229,8 +229,9 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if(value.childSafe == true) then print(getSafeChildIcon()) end
 
-   if((value["country"] ~= nil) and (value["country"] ~= "")) then
-      print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
+   local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
+   if((host ~= nil) and (host.country ~= nil) and (host.country ~= "")) then
+      print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>")
    end
 
    print("&nbsp;")

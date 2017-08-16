@@ -89,7 +89,6 @@ Host::~Host() {
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
   if(info)            free(info);
-  if(city)            free(city);
 }
 
 /* *************************************** */
@@ -167,10 +166,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
-  continent = NULL, country = NULL, city = NULL;
   asn = 0, asname = NULL;
   as = NULL;
-  longitude = 0, latitude = 0;
   k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
@@ -247,9 +244,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
       asn = as->get_asn();
       asname = as->get_asname();
     }
-
-    if(city) free(city);
-    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   }
 
   iface->incNumHosts(isLocalHost());
@@ -538,8 +532,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
   lua_push_str_table_entry(vm, "os", os);
 
-  lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
-  lua_push_str_table_entry(vm, "country", country ? country : (char*)"");
   lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
   lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
   lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
@@ -594,8 +586,15 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   }
 
   if(host_details) {
+    char *continent, *country, *city = NULL;
+    float latitude, longitude;
+    
+    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+    
     if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
 
+    lua_push_str_table_entry(vm, "continent", continent);
+    lua_push_str_table_entry(vm, "country", country);
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
@@ -635,6 +634,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
       lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
       if(cur_sites) free(cur_sites);
     }
+
+    if(city) free(city);
   }
 
   if(localHost) {
@@ -907,7 +908,9 @@ json_object* Host::getJSONObject() {
   json_object *my_object;
   char buf[32];
   Mac *m = mac;
-
+  char *continent, *country, *city = NULL;
+  float latitude, longitude;
+  
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf))));
@@ -921,7 +924,7 @@ json_object* Host::getJSONObject() {
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
-  if(city) free(city);
+
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
@@ -970,7 +973,8 @@ json_object* Host::getJSONObject() {
   if(categoryStats)  json_object_object_add(my_object, "categories", categoryStats->getJSONObject());
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
-
+  if(city) free(city);
+  
   return(my_object);
 }
 
@@ -1053,10 +1057,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
-  if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
-  if(city) free(city);
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
   if(json_object_object_get_ex(o, "localHost", &obj)) localHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "systemHost", &obj)) systemHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);
@@ -1695,4 +1695,44 @@ void Host::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer
     if(!icmp) icmp = new ICMPstats();
     if(icmp)  icmp->incStats(icmp_type, icmp_code, sent, peer);
   }
+}
+
+/* *************************************** */
+
+char* Host::get_country(char *buf, u_int buf_len) {
+  char *continent, *country, *city = NULL;
+  float latitude, longitude;
+  
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+  snprintf(buf, buf_len, "%s", country);
+  if(city) free(city);
+  
+  return(buf);
+}
+
+/* *************************************** */
+
+char* Host::get_city(char *buf, u_int buf_len) {
+  char *continent, *country, *city = NULL;
+  float latitude, longitude;
+  
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+
+  if(city) {
+    snprintf(buf, buf_len, "%s", city);
+    free(city);
+  } else
+    buf[0] = '\0';
+  
+  return(buf);
+}
+
+/* *************************************** */
+
+void Host::get_geocoordinates(float *latitude, float *longitude) {
+  char *continent, *country, *city = NULL;
+
+  *latitude = 0, *longitude = 0;
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, latitude, longitude);
+  if(city) free(city);
 }
