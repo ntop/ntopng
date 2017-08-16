@@ -154,6 +154,8 @@ local id2label = {
    [11] = { 'multimedia', i18n("device_types.multimedia") },
 }
 
+discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
+
 local function device_label_sort_fn(a, b)
    return asc_insensitive(a[2], b[2])
 end
