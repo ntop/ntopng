@@ -193,7 +193,6 @@ function discover.devtype2icon(devtype)
 end
 
 function discover.devtype2id(devtype)
-   devtype = tonumber(devtype)
    for k,v in pairs(id2label) do
       if(v[1] == devtype) then return k end
    end
