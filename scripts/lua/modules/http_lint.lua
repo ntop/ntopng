@@ -794,7 +794,7 @@ local known_parameters = {
    ["flow_victim_threshold"]           = validateEmptyOr(validateNumber),
    ["global_flow_victim_threshold"]    =  validateEmptyOr(validateNumber),
    ["re_arm_minutes"]          =  validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
-   ["device_type"]             =  validateSingleWord,
+   ["device_type"]             =  validateNumber,
    ["senders_receivers"]       =  validateSendersReceivers,      -- Used in top scripts
 
 -- PREFERENCES - see prefs.lua for details

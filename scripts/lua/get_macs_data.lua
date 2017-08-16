@@ -18,7 +18,7 @@ local sortOrder    = _GET["sortOrder"]
 local vlan         = _GET["vlan"]
 local devices_mode          = _GET["devices_mode"]
 local manufacturer          = _GET["manufacturer"]
-local device_type           = _GET["device_type"]
+local device_type           = tonumber(_GET["device_type"])
 
 local sortPrefs = "macs"
 

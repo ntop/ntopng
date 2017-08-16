@@ -31,10 +31,6 @@ function mac2record(mac)
 
    record["column_mac"] = mac2link(mac)
 
-   if mac["device_type"] ~= "unknown" then
-      record["column_mac"] = record["column_mac"] .. " " .. discover.devtype2icon(mac["device_type"])
-   end
-
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end
    record["column_manufacturer"] = manufacturer

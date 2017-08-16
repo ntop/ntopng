@@ -5590,8 +5590,11 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
     Mac *m = retriever.elems[i].macValue;
 
     if(m->getDeviceType() != cur_devtype) {
-      if (cur_count)
-        lua_push_int32_table_entry(vm, Utils::deviceType2str((DeviceType) cur_devtype), cur_count);
+      if (cur_count) {
+        lua_pushnumber(vm, cur_devtype);
+        lua_pushnumber(vm, cur_count);
+        lua_settable(vm, -3);
+      }
 
       cur_devtype = m->getDeviceType();
       cur_count = 1;
@@ -5601,8 +5604,11 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
     }
   }
 
-  if (cur_count)
-    lua_push_int32_table_entry(vm, Utils::deviceType2str((DeviceType) cur_devtype), cur_count);
+  if (cur_count) {
+    lua_pushnumber(vm, cur_devtype);
+    lua_pushnumber(vm, cur_count);
+    lua_settable(vm, -3);
+  }
 
   enablePurge(false);
 
@@ -5653,8 +5659,8 @@ bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId,
       m->setDeviceType(dtype);
 
       if(alwaysOverwrite && (oldtype != device_unknown) && (oldtype != dtype))
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Device %s type changed from %s to %s\n",
-				strmac, Utils::deviceType2str(oldtype), Utils::deviceType2str(dtype));
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Device %s type changed from %d to %d\n",
+				strmac, oldtype, dtype);
     }
     return(true);
   } else

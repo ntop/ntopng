@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local discover = require("discover_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -42,7 +43,7 @@ end
 local device_type = nil
 local devtype_filter = ""
 if(not isEmptyString(_GET["device_type"])) then
-   device_type = _GET["device_type"]
+   device_type = tonumber(_GET["device_type"])
    page_params["device_type"] = device_type
    devtype_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
@@ -68,13 +69,13 @@ local title
 
 if devices_mode == "host_macs_only" then
    if device_type then
-      title = i18n("mac_stats.layer_2_dev_devices", {device_type=i18n("device_types."..device_type) or device_type})
+      title = i18n("mac_stats.layer_2_dev_devices", {device_type=discover.devtype2string(device_type)})
    else
       title = i18n("mac_stats.layer_2_host_devices")
    end
 else
    if device_type then
-      title = i18n("mac_stats.dev_layer_2_devices", {device_type=i18n("device_types."..device_type) or device_type})
+      title = i18n("mac_stats.dev_layer_2_devices", {device_type=discover.devtype2string(device_type)})
    else
       title = i18n("mac_stats.all_layer_2_devices")
    end
@@ -144,11 +145,11 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\
    ]]
 
-   for devtype, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, nil, nil, manufacturer), asc) do
-      devicetype_params.device_type = devtype
+   for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, nil, nil, manufacturer), asc) do
+      devicetype_params.device_type = typeidx
       print('<li')
-      if devtype == device_type then print(' class="active"') end
-      print('><a href="'..getPageUrl(base_url, devicetype_params)..'">'..(i18n("device_types."..devtype) or devtype)..' ('..count..')'..'</a></li>')
+      if typeidx == device_type then print(' class="active"') end
+      print('><a href="'..getPageUrl(base_url, devicetype_params)..'">'.. discover.devtype2string(typeidx) ..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\

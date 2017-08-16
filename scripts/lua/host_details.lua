@@ -166,13 +166,6 @@ else
       setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
    end
 
-   if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
-      if(_POST["device_type"] ~= nil) then
-         interface.setMacDeviceType(host["mac"], _POST["device_type"], true --[[ overwrite ]])
-	 host["device_type"] = _POST["device_type"]
-      end
-   end
-
    host["label"] = getHostAltName(hostinfo2hostkey(host_info), host["mac"])
 
    if((host["label"] == nil) or (host["label"] == "")) then
@@ -383,13 +376,28 @@ print [[
 </div>
    ]]
 
+local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
+
 --tprint(host)
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
-	 print('</td><td>&nbsp;</td></tr>')
+	 print('</td><td>')
+
+   if(macinfo ~= nil) then
+      -- This is a known device type
+      print(discover.devtype2icon(macinfo.devtype) .. " ")
+      if macinfo.devtype ~= 0 then
+         print(discover.devtype2string(macinfo.devtype) .. " ")
+      else
+         print(i18n("host_details.unknown_device_type") .. " ")
+      end
+      print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host["mac"]..'"><i class="fa fa-cog"></i></a>\n')
+   end
+
+    print('</td></tr>')
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
@@ -615,8 +623,6 @@ end
 	 print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       end
       if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
-         local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
-
          if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
             print('<tr><th class="text-left">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
@@ -1768,10 +1774,6 @@ elseif (page == "config") then
                <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
    if(host["label"] ~= nil) then print(host["label"]) end
    print[["></input> ]]
-
-   if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
-      discover.printDeviceTypeSelector(host["device_type"], "device_type")
-   end
 
    print [[
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />

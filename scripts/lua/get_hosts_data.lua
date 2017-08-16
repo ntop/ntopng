@@ -238,7 +238,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    print("&nbsp;")
 
    local icon = getOSIcon(value["os"])
-   icon = icon .. discover.devtype2icon(hosts_stats[key].device_type)
+   icon = icon .. discover.devtype2icon(hosts_stats[key].devtype)
    icon = icon:gsub('"',"'")
    print(icon)
 

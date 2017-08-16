@@ -28,7 +28,7 @@ if isAdministrator() then
    end
 
    if(_POST["device_type"] ~=nil) then
-      interface.setMacDeviceType(mac, _POST["device_type"], true --[[ overwrite ]])
+      interface.setMacDeviceType(mac, tonumber(_POST["device_type"]), true --[[ overwrite ]])
    end
 end
 
@@ -94,7 +94,7 @@ if(isAdministrator()) then
       if(label ~= nil) then print(label) end
       print("\"></input> &nbsp;")
 
-discover.printDeviceTypeSelector(mac_info.device_type, "device_type")
+discover.printDeviceTypeSelector(mac_info.devtype, "device_type")
 
 print [[
 	 &nbsp;<button  type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]

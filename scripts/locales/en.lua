@@ -1239,6 +1239,7 @@ local  en = {
       host_traffic_blocked_quota = "Some host traffic has been blocked by an exceeded quota",
       host_traffic_blocked_shaper = "Some host traffic has been blocked by a blocking shaper",
       host_traffic_blocked_quota_and_shaper = "Some host traffic has been blocked by an exceeded quota and a blocking shaper",
+      unknown_device_type = "Unknown Device Type",
    },
 
    mac_details = {
@@ -2147,6 +2148,7 @@ local  en = {
     guests_description = "A preset for guests. Only basic navigation allowed",
   },
 
+  -- NOTE: do not add "Device" in these mappings
   device_types = {
     unknown = "Unknown",
     printer = "Printer",
@@ -2157,8 +2159,9 @@ local  en = {
     phone = "Phone",
     tv = "TV",
     networking = "Router/Switch",
-    wifi = "WiFi Device",
+    wifi = "Wireless Network",
     nas = "NAS",
+    multimedia = "Multimedia",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

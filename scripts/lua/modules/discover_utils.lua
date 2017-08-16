@@ -139,32 +139,43 @@ local asset_icons = {
    ['multimedia']  = '<i class="fa fa-music fa-lg" aria-hidden="true"></i>',
 }
 
-discover.id2label = {
-   [0]  = { 'unknown', '' },
-   [1]  = { 'printer', 'Printer' },
-   [2]  = { 'video', 'Video Recording/Display Device' },
-   [3]  = { 'workstation', 'PC' },
-   [4]  = { 'laptop', 'Laptop' },
-   [5]  = { 'tablet', 'Tablet' },
-   [6]  = { 'phone', 'Phone' },
-   [7]  = { 'tv', 'TV' },
-   [8]  = { 'networking', 'Network Device' },
-   [9]  = { 'wifi', 'Wireless Network Device' },
-   [10] = { 'nas', 'NAS' },
-   [11] = { 'multimedia', 'Multimedia Device' },
+local id2label = {
+   [0]  = { 'unknown', i18n("device_types.unknown") },
+   [1]  = { 'printer', i18n("device_types.printer") },
+   [2]  = { 'video', i18n("device_types.video") },
+   [3]  = { 'workstation', i18n("device_types.workstation") },
+   [4]  = { 'laptop', i18n("device_types.laptop") },
+   [5]  = { 'tablet', i18n("device_types.tablet") },
+   [6]  = { 'phone', i18n("device_types.phone") },
+   [7]  = { 'tv', i18n("device_types.tv") },
+   [8]  = { 'networking', i18n("device_types.networking") },
+   [9]  = { 'wifi', i18n("device_types.wifi") },
+   [10] = { 'nas', i18n("device_types.nas") },
+   [11] = { 'multimedia', i18n("device_types.multimedia") },
 }
 
-discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
+local function device_label_sort_fn(a, b)
+   return asc_insensitive(a[2], b[2])
+end
+
+local function sortedDeviceTypeLabels()
+   return pairsByValues(id2label, device_label_sort_fn)
+end
 
 function discover.printDeviceTypeSelector(device_type, field_name)
-   print [[<div class="form-group"><select name="]] print(field_name) print[[" class="form-control">\
-   <option></option>]]
+   device_type = tonumber(device_type)
 
-   for devtype, icon in pairsByKeys(asset_icons) do
+   print [[<div class="form-group"><select name="]] print(field_name) print[[" class="form-control">\
+   <option value="0"></option>]]
+
+   for typeid, info in sortedDeviceTypeLabels() do
+      local devtype = info[1]
+      local label = info[2]
+
       if devtype ~= "unknown" then
-         print("<option value=\"".. devtype .."\"")
-         if(devtype == device_type) then print(" selected") end
-         print(">".. (i18n("device_types."..devtype) or "") .."</option>")
+         print("<option value=\"".. typeid .."\"")
+         if(typeid == device_type) then print(" selected") end
+         print(">".. label .."</option>")
       end
    end
 
@@ -172,11 +183,16 @@ function discover.printDeviceTypeSelector(device_type, field_name)
 end
 
 function discover.devtype2icon(devtype)
-   return asset_icons[devtype or ""] or ""
+   local label = id2label[tonumber(devtype) or 0]
+
+   if(label == nil) then label = 'unknown' else label = label[1] end
+
+   return(asset_icons[label])
 end
 
 function discover.devtype2id(devtype)
-   for k,v in pairs(discover.id2label) do
+   devtype = tonumber(devtype)
+   for k,v in pairs(id2label) do
       if(v[1] == devtype) then return k end
    end
 
@@ -184,7 +200,8 @@ function discover.devtype2id(devtype)
 end
 
 function discover.devtype2string(devtype)
-   for k,v in pairs(discover.id2label) do
+   devtype = tonumber(devtype)
+   for k,v in pairs(id2label) do
       if(k == devtype) then return v[2] end
    end
 

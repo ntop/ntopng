@@ -707,7 +707,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TBOOLEAN) hostMacsOnly = lua_toboolean(vm, 7);
   if(lua_type(vm, 8) == LUA_TSTRING)  manufacturer = lua_tostring(vm, 8);
   if(lua_type(vm, 9) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 9);
-  if(lua_type(vm, 10) == LUA_TSTRING) devtype_filter = Utils::str2DeviceType((char *)lua_tostring(vm, 10));
+  if(lua_type(vm, 10) == LUA_TNUMBER) devtype_filter = (u_int8_t)lua_tonumber(vm, 10);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
@@ -949,8 +949,8 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   if(lua_type(vm, 4) == LUA_TBOOLEAN)
     hostMacsOnly = lua_toboolean(vm, 4) ? true : false;
 
-  if(lua_type(vm, 5) == LUA_TSTRING)
-    devtype_filter = Utils::str2DeviceType((char *)lua_tostring(vm, 5));
+  if(lua_type(vm, 5) == LUA_TNUMBER)
+    devtype_filter = (u_int8_t)lua_tonumber(vm, 5);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacManufacturers(vm,
