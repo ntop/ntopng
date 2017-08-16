@@ -496,9 +496,11 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(host["ip"] ~= nil) then
+      tprint(host["name"])
       if(host["name"] == nil) then
 	 host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
       end
+      
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then

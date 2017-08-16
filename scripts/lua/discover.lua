@@ -26,7 +26,7 @@ end
 
 -- ################################################################################
 
-local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names, snmp, osx)
+local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names, snmp, osx, symName)
    local mdns = { }
    local ssdp = { }
    local str
@@ -41,6 +41,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    else
       hostname = string.lower(names[ip])
    end
+
+   if(symName == nil) then symName = "" else symName = string.lower(symName) end
    
    if(_mdns ~= nil) then
       --io.write(mac .. " /" .. manufacturer .. " / ".. _mdns.."\n")
@@ -176,12 +178,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    elseif(string.contains(manufacturer, "Xerox") and (snmp ~= nil)) then
       return 'printer', discover.asset_icons['printer']..' ('..snmp..')'
-   elseif(string.contains(manufacturer, "Apple, Inc.")) then
-      if(string.contains(hostname, "iphone")) then
+   elseif(string.contains(manufacturer, "Apple, Inc.")) then      
+      if(string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
 	 return 'phone', discover.asset_icons['phone']..' (iPhone)'
-      elseif(string.contains(hostname, "ipad")) then
+      elseif(string.contains(hostname, "ipad") or string.contains(symName, "ipad")) then
 	 return 'tablet', discover.asset_icons['tablet']..' (iPad)'
-      elseif(string.contains(hostname, "ipod")) then
+      elseif(string.contains(hostname, "ipod") or string.contains(symName, "ipod")) then
 	 return 'phone', discover.asset_icons['phone']..' (iPod)'
       else
 	 local ret = '</i> '..discover.asset_icons['workstation']..' (Apple)'
@@ -213,13 +215,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'networking', discover.asset_icons['networking']
    end
 
-   if(string.starts(hostname, "desktop-")) then
+   if(string.starts(hostname, "desktop-") or string.starts(symName, "desktop-")) then
       return 'workstation', discover.asset_icons['workstation']..' (Windows)'
-   elseif(string.contains(hostname, "thinkpad")) then
+   elseif(string.contains(hostname, "thinkpad") or string.contains(symName, "thinkpad")) then
       return 'laptop', discover.asset_icons['laptop']
-   elseif(string.contains(hostname, "android")) then
+   elseif(string.contains(hostname, "android") or string.contains(symName, "android")) then
       return 'phone', discover.asset_icons['phone']..' (Android)'
-   elseif(string.contains(hostname, "%-NAS")) then
+   elseif(string.contains(hostname, "%-NAS") or string.contains(symName, "%-NAS")) then
       return 'nas', discover.asset_icons['nas']
    end
 
@@ -452,7 +454,10 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       local deviceType
       local symIP = mdns[ip]
       local services = ""
-      local sym = ntop.resolveName(ip)
+      local host = interface.getHostInfo(ip, 0) -- no VLAN
+      local sym
+
+      if(host ~= nil) then sym = host["name"] else sym = ntop.resolveName(ip) end
       
       print("<tr><td align=left nowrap>")
 
@@ -519,7 +524,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
 	 end
       end
 
-      deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip])
+      deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
       if(deviceLabel == "") then
 	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
 	 
