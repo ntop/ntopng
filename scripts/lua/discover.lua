@@ -527,9 +527,7 @@ for mac,ip in pairsByValues(arp_mdns, asc) do
       deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
       if(deviceLabel == "") then
 	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
-	 
-	 deviceLabel = "&nbsp;"
-	 discover.devtype2icon(mac_info.devtype)
+	 deviceLabel = deviceLabel .. discover.devtype2icon(mac_info.devtype)
       end
       print("</td><td>"..deviceLabel.."</td></tr>\n")
       interface.setMacDeviceType(mac, discover.devtype2id(deviceType), false) -- false means don't overwrite if already set to ~= unknown

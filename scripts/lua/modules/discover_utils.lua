@@ -124,7 +124,7 @@ discover.apple_products = {
    ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)'
 }
 
-local asset_icons = {
+discover.asset_icons = {
    ['unknown']     = '',
    ['printer']     = '<i class="fa fa-print fa-lg" aria-hidden="true"></i>', -- 1
    ['video']       = '<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>', -- 2 
@@ -187,7 +187,7 @@ function discover.devtype2icon(devtype)
 
    if(label == nil) then label = 'unknown' else label = label[1] end
 
-   return(asset_icons[label])
+   return(discover.asset_icons[label])
 end
 
 function discover.devtype2id(devtype)
