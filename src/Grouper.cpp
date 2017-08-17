@@ -52,7 +52,6 @@ bool Grouper::inGroup(Host *h) {
   case column_asn:
     return h->get_asn() == group_id_i;
 
-
   case column_vlan:
     return h->get_vlan_id() == group_id_i;
 
@@ -69,8 +68,9 @@ bool Grouper::inGroup(Host *h) {
   case column_country:
     {
       char buf[32], *c = h->get_country(buf, sizeof(buf));
-      return strcmp(group_id_s, c);
+      return (strcmp(group_id_s, c) == 0) ? true : false;
     }
+    break;
     
   case column_os:
     return h->get_os() ?

@@ -386,18 +386,20 @@ if((page == "overview") or (page == nil)) then
 	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
 	 print('</td><td>')
 
-   if(macinfo ~= nil) then
-      -- This is a known device type
-      print(discover.devtype2icon(macinfo.devtype) .. " ")
-      if macinfo.devtype ~= 0 then
-         print(discover.devtype2string(macinfo.devtype) .. " ")
-      else
-         print(i18n("host_details.unknown_device_type") .. " ")
-      end
-      print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host["mac"]..'"><i class="fa fa-cog"></i></a>\n')
-   end
-
-    print('</td></tr>')
+	 if(host['localhost'] and (macinfo ~= nil)) then
+	    -- This is a known device type
+	    print(discover.devtype2icon(macinfo.devtype) .. " ")
+	    if macinfo.devtype ~= 0 then
+	       print(discover.devtype2string(macinfo.devtype) .. " ")
+	    else
+	       print(i18n("host_details.unknown_device_type") .. " ")
+	    end
+	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host["mac"]..'"><i class="fa fa-cog"></i></a>\n')
+	 else
+	    print("&nbsp;")
+	 end
+	 
+	 print('</td></tr>')
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
