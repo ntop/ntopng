@@ -57,6 +57,7 @@ class Ntop {
   Prefs *prefs;
   Geolocation *geo;
   MacManufacturers *mac_manufacturers;
+  void *trackers_automa;
   HTTPBL *httpbl;
   Flashstart *flashstart;
   ExportInterface *export_interface;
@@ -439,7 +440,8 @@ class Ntop {
   inline void getLocalNetworks(lua_State* vm) { address->getLocalNetworks(vm);          };
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void reloadInterfacesLuaInterpreter();
-
+  void loadTrackers();
+  bool isATrackerHost(char *host);
   void allocHostBlacklist();
   void swapHostBlacklist();
   void addToHostBlacklist(char *net);

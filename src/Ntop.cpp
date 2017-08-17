@@ -55,6 +55,7 @@ Ntop::Ntop(char *appName) {
   prefs = NULL, redis = NULL;
   elastic_search = NULL;
   logstash = NULL;
+  trackers_automa = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
   iface = NULL;
@@ -188,9 +189,9 @@ Ntop::~Ntop() {
 
   if(udp_socket != -1) closesocket(udp_socket);
 
-  if(httpbl)     delete httpbl;
-  if(flashstart) delete flashstart;
-
+  if(httpbl)              delete httpbl;
+  if(flashstart)          delete flashstart;
+  if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
   if(elastic_search)      delete(elastic_search);
   if(logstash)            delete(logstash);
@@ -1647,6 +1648,36 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
   // if(rc) ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Found blacklist [%p]", n);
 
   return(rc);
+}
+
+/* ******************************************* */
+
+void Ntop::loadTrackers() {
+  FILE *fd;
+  char line[255];
+
+  snprintf(line, sizeof(line), "%s/other/trackers.txt", prefs->get_docs_dir());
+
+  if((fd = fopen(line, "r")) != NULL) {
+    if((trackers_automa = ndpi_init_automa()) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to initialize trackers");
+      fclose(fd);
+      return;
+    }
+
+    while(fscanf(fd, "%s", line) != EOF)
+      ndpi_add_string_to_automa(trackers_automa, line);
+
+    fclose(fd);
+    ndpi_finalize_automa(trackers_automa);
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to load trackers file %s", line);
+}
+
+/* ******************************************* */
+
+bool Ntop::isATrackerHost(char *host) {
+  return((trackers_automa && (!ndpi_match_string(trackers_automa, host))) ? true : false);
 }
 
 /* ******************************************* */

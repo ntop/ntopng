@@ -1597,15 +1597,18 @@ void Host::incrVisitedWebSite(char *hostname) {
      && ntop->getPrefs()->are_top_talkers_enabled()
      && (strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
-     ) {
-
+     ) {    
+    if(ntop->isATrackerHost(hostname)) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[TRACKER] %s", hostname);
+      return; /* Ignore trackers */
+    }
+    
     firstdot = strchr(hostname, '.');
-
+    
     if(firstdot)
       nextdot = strchr(&firstdot[1], '.');
 
     top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
-
   }
 }
 
