@@ -195,6 +195,9 @@ geoip:
 	  gunzip -f *.dat.gz ; \
 	fi
 
+trackers:
+	./tools/download_trackers.sh httpdocs/other/trackers.txt
+
 # Do NOT build package as root (http://wiki.centos.org/HowTos/SetupRpmBuildEnvironment)
 #	mkdir -p $(HOME)/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 #	echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
