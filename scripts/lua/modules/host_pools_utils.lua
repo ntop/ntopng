@@ -42,10 +42,16 @@ local function initInterfacePools(ifid)
   host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
 end
 
-local function get_pool_detail(ifid, pool_id, detail)
+function host_pools_utils.getPoolDetail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
 
   return ntop.getHashCache(details_key, detail)
+end
+
+function host_pools_utils.setPoolDetail(ifid, pool_id, detail, value)
+  local details_key = get_pool_details_key(ifid, pool_id)
+
+  return ntop.setHashCache(details_key, detail, tostring(value))
 end
 
 local function addMemberToRedisPool(members_key, member_key)
@@ -308,15 +314,15 @@ function host_pools_utils.getMemberKey(member)
 end
 
 function host_pools_utils.getPoolName(ifid, pool_id)
-  return get_pool_detail(ifid, pool_id, "name")
+  return host_pools_utils.getPoolDetail(ifid, pool_id, "name")
 end
 
 function host_pools_utils.getChildrenSafe(ifid, pool_id)
-  return toboolean(get_pool_detail(ifid, pool_id, "children_safe"))
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "children_safe"))
 end
 
 function host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id)
-  return toboolean(get_pool_detail(ifid, pool_id, "enforce_quotas_per_pool_member"))
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "enforce_quotas_per_pool_member"))
 end
 
 function host_pools_utils.clearPools()
