@@ -1901,18 +1901,13 @@ json_object* Flow::flow2json() {
     json_object *location = json_object_new_array();
 
     json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
-
     if(location) {
-      json_object *location = json_object_new_array();
+      float latitude, longitude;
 
-      if(location) {
-	float latitude, longitude;
-	
-	srv_host->get_geocoordinates(&latitude, &longitude);
-	json_object_array_add(location, json_object_new_double(longitude));
-	json_object_array_add(location, json_object_new_double(latitude));
-	json_object_object_add(my_object, "DST_IP_LOCATION", location);
-      }
+      srv_host->get_geocoordinates(&latitude, &longitude);
+      json_object_array_add(location, json_object_new_double(longitude));
+      json_object_array_add(location, json_object_new_double(latitude));
+      json_object_object_add(my_object, "DST_IP_LOCATION", location);
     }
   }
 

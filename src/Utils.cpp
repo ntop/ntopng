@@ -2204,12 +2204,14 @@ void Utils::luaMeminfo(lua_State* vm) {
 
 char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
   char ebuf[256];
-  pcap_if_t *devpointer;
+  pcap_if_t *devs, *devpointer;
 
   snprintf(buf, buf_len, "%s", ifname);
   ebuf[0] = '\0';
 
-  if(pcap_findalldevs(&devpointer, ebuf) == 0) {
+  if(pcap_findalldevs(&devs, ebuf) == 0) {
+    devpointer = devs;
+
     for(int i = 0; devpointer != NULL; i++) {
       if(strcmp(devpointer->name, ifname) == 0) {
 	if(devpointer->description)
@@ -2219,7 +2221,7 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 	devpointer = devpointer->next;
     }
 
-    pcap_freealldevs(devpointer);
+    pcap_freealldevs(devs);
   }
 
   return(buf);
