@@ -211,6 +211,8 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj)) last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj)) device_type = (DeviceType)json_object_get_int(obj);
+
+  json_object_put(o);
 }
 
 /* *************************************** */

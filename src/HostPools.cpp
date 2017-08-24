@@ -108,6 +108,8 @@ HostPools::~HostPools() {
     deleteTree(&tree);
   if(children_safe)
     free(children_safe);
+  if(swap_lock)
+    delete swap_lock;
 
 #ifdef NTOPNG_PRO
   dumpToRedis();

@@ -208,10 +208,8 @@ Ntop::~Ntop() {
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
-#ifdef WIN32
 #ifndef WIN32
   if(nagios_manager) delete nagios_manager;
-#endif
 #endif
   if(flow_checker) delete flow_checker;
 #endif
@@ -363,6 +361,7 @@ void Ntop::start() {
 #endif
   prefs->loadInstanceNameDefaults();
   loadLocalInterfaceAddress();
+  address->startResolveAddressLoop();
 
   pa->startPeriodicActivitiesLoop();
   for(int i=0; i<num_defined_interfaces; i++) {
@@ -371,7 +370,6 @@ void Ntop::start() {
   }
 
   sleep(2);
-  address->startResolveAddressLoop();
 
   while(!globals->isShutdown()) {
     struct timeval begin, end;

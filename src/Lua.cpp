@@ -4926,7 +4926,7 @@ static int ntop_get_hash_all_redis(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_keys_redis(lua_State* vm) {
-  char *pattern, **keys;
+  char *pattern, **keys = NULL;
   Redis *redis = ntop->getRedis();
   int rc;
 
@@ -4944,9 +4944,10 @@ static int ntop_get_keys_redis(lua_State* vm) {
       lua_push_str_table_entry(vm, keys[i] ? keys[i] : "", (char*)"");
       if(keys[i]) free(keys[i]);
     }
-    free(keys);
   } else
     lua_pushnil(vm);
+
+  if (keys) free(keys);
 
   return(CONST_LUA_OK);
 }
