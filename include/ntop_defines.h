@@ -661,10 +661,10 @@
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
-#define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.alerts.sender_username"
+#define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.prefs.alerts.sender_username"
 #define ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.slack_notifications_enabled"
-#define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.alerts.sender_username"
-#define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.alerts.slack_alert_severity"
+#define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.prefs.alerts.sender_username"
+#define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.prefs.alerts.slack_alert_severity"
 #define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.prefs.alerts.dump_alerts_when_iface_is_alerted"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64

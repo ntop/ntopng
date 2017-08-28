@@ -17,7 +17,7 @@ function sendSlackMessages()
     return
   end
   
-  webhook = ntop.getCache("ntopng.alerts.slack_webhook")
+  webhook = ntop.getCache("ntopng.prefs.alerts.slack_webhook")
   if((webhook == nil) or (webhook == "")) then
      return
   end

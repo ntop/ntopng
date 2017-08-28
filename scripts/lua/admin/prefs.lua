@@ -253,14 +253,14 @@ function printExternalAlertsReport()
 
   local retVal = multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                labels, values, "only_errors", "primary", "slack_notification_severity_preference",
-	       "ntopng.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
+	       "ntopng.prefs.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
 
   prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
-           "ntopng.alerts.", "sender_username",
+           "ntopng.prefs.alerts.", "sender_username",
 		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
 
   prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
-		       "ntopng.alerts.", "slack_webhook",
+		       "ntopng.prefs.alerts.", "slack_webhook",
 		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
 
   if(ntop.isPro() and hasNagiosSupport()) then
