@@ -974,6 +974,14 @@ function secondsToTime(seconds)
   return msg
 end
 
+function compactTime(seconds)
+   if seconds >= 60 then
+      seconds = seconds - seconds % 60
+   end
+
+   return secondsToTime(seconds)
+end
+
 function msToTime(ms)
   if(ms > 1000) then
     return secondsToTime(ms/1000)
