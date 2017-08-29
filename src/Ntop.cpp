@@ -800,7 +800,7 @@ void Ntop::getUsers(lua_State* vm) {
 void Ntop::getUserGroup(lua_State* vm) {
   char key[64], val[64];
   char username[33];
-  struct mg_connection *conn = vm ? getLuaVMUserdata(vm)->conn : NULL;
+  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
@@ -831,7 +831,7 @@ void Ntop::getUserGroup(lua_State* vm) {
 void Ntop::getAllowedNetworks(lua_State* vm) {
   char key[64], val[64];
   char username[33];
-  struct mg_connection *conn = vm ? getLuaVMUserdata(vm)->conn : NULL;
+  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
@@ -842,7 +842,7 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 /* ******************************************* */
 
 bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
-  char *allowed_ifname = vm ? getLuaVMUserdata(vm)->ifname : NULL;
+  char *allowed_ifname = getLuaVMUserdata(vm,ifname);
 
   if(ifname == NULL)
     return false;
@@ -859,7 +859,7 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
 /* ******************************************* */
 
 bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
-  char *allowed_ifname = vm ? getLuaVMUserdata(vm)->ifname : NULL;
+  char *allowed_ifname = getLuaVMUserdata(vm,ifname);
   bool ret;
 
   if(vm == NULL || ifname == NULL)
