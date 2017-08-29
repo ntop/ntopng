@@ -45,7 +45,8 @@ struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 Lua::Lua() {
   L = luaL_newstate();
 
-  if(L == NULL) {
+  if(L) L->userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
+  if((L == NULL) || (L->userdata == NULL)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
     return;
   }
@@ -54,7 +55,10 @@ Lua::Lua() {
 /* ******************************* */
 
 Lua::~Lua() {
-  if(L) lua_close(L);
+  if(L) {
+    if(L->userdata) free(L->userdata);
+    lua_close(L);
+  }
 }
 
 /* ******************************* */
@@ -122,15 +126,9 @@ static NetworkInterface* handle_null_interface(lua_State* vm) {
 static int ntop_dump_file(lua_State* vm) {
   char *fname;
   FILE *fd;
-  struct mg_connection *conn;
+  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)vm->userdata)->conn : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_getglobal(vm, CONST_HTTP_CONN);
-  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
-    return(CONST_LUA_ERROR);
-  }
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((fname = (char*)lua_tostring(vm, 1)) == NULL)     return(CONST_LUA_PARAM_ERROR);
@@ -167,17 +165,18 @@ static int ntop_dump_file(lua_State* vm) {
  */
 static int ntop_get_default_interface_name(lua_State* vm) {
   char ifname[MAX_INTERFACE_NAME_LEN];
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop->getInterfaceAllowed(vm, ifname)) {
     // if there is an allowed interface for the user
     // we return that interface
-    lua_pushstring(vm,
-		   ntop->getNetworkInterface(ifname)->get_name());
+    lua_pushstring(vm, ntop->getNetworkInterface(ifname)->get_name());
   } else {
     lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constraint */
 					      0)->get_name());
   }
+  
   return(CONST_LUA_OK);
 }
 
@@ -240,29 +239,20 @@ static int ntop_get_interface_names(lua_State* vm) {
 /* ****************************************** */
 
 static AddressTree* get_allowed_nets(lua_State* vm) {
-  AddressTree *ptree;
-
+  AddressTree *ptree = vm ? ((struct ntopngLuaContext*)vm->userdata)->allowedNets : NULL;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_getglobal(vm, CONST_ALLOWED_NETS);
-  ptree = (AddressTree*)lua_touserdata(vm, lua_gettop(vm));
-  //ntop->getTrace()->traceEvent(TRACE_WARNING, "GET %p", ptree);
   return(ptree);
 }
 
 /* ****************************************** */
 
 static NetworkInterface* getCurrentInterface(lua_State* vm) {
-  NetworkInterface *ntop_interface;
+  NetworkInterface *ntop_interface = vm ? ((struct ntopngLuaContext*)vm->userdata)->iface : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  lua_getglobal(vm, "ntop_interface");
-  if((ntop_interface = (NetworkInterface*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop_interface = handle_null_interface(vm);
-  }
-
-  return(ntop_interface);
+  return(ntop_interface ? ntop_interface : handle_null_interface(vm));
 }
 
 /* ****************************************** */
@@ -285,9 +275,10 @@ static int ntop_select_interface(lua_State* vm) {
     ifname = (char*)lua_tostring(vm, 1);
   }
 
-  lua_pushlightuserdata(vm, (char*)ntop->getNetworkInterface(vm, ifname));
-  lua_setglobal(vm, "ntop_interface");
+  ((struct ntopngLuaContext*)vm->userdata)->iface = ntop->getNetworkInterface(vm, ifname);
 
+  // lua_pop(vm, 1); /* Cleanup the Lua stack */
+  
   return(CONST_LUA_OK);
 }
 
@@ -345,8 +336,9 @@ static int ntop_get_host_pool_interface_stats(lua_State* vm) {
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
-
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get the Host Pool volatile members
@@ -365,8 +357,9 @@ static int ntop_get_host_pool_volatile_members(lua_State* vm) {
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
-
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get the SNMP statistics of interface.
@@ -386,6 +379,8 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get the Host statistics corresponding to the amount of host quotas used
@@ -1467,11 +1462,8 @@ static int ntop_zmq_connect(lua_State* vm) {
     return -1;
   }
 
-  lua_pushlightuserdata(vm, context);
-  lua_setglobal(vm, "zmq_context");
-
-  lua_pushlightuserdata(vm, subscriber);
-  lua_setglobal(vm, "zmq_subscriber");
+  ((struct ntopngLuaContext*)vm->userdata)->zmq_context = context;
+  ((struct ntopngLuaContext*)vm->userdata)->zmq_subscriber = subscriber;
 
   return(CONST_LUA_OK);
 }
@@ -1593,21 +1585,10 @@ static int ntop_delete_hash_redis_key(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_zmq_disconnect(lua_State* vm) {
-  void *context, *subscriber;
+  void *context = vm ? ((struct ntopngLuaContext*)vm->userdata)->zmq_context : NULL;
+  void *subscriber = vm ? ((struct ntopngLuaContext*)vm->userdata)->zmq_subscriber : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_getglobal(vm, "zmq_context");
-  if((context = (void*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: NULL context");
-    return(CONST_LUA_ERROR);
-  }
-
-  lua_getglobal(vm, "zmq_subscriber");
-  if((subscriber = (void*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: NULL subscriber");
-    return(CONST_LUA_ERROR);
-  }
 
   zmq_close(subscriber);
   zmq_ctx_destroy(context);
@@ -1619,7 +1600,7 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 
 static int ntop_zmq_receive(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  void *subscriber;
+  void *subscriber = vm ? ((struct ntopngLuaContext*)vm->userdata)->zmq_subscriber : NULL;
   int size;
   struct zmq_msg_hdr h;
   char *payload;
@@ -1628,12 +1609,6 @@ static int ntop_zmq_receive(lua_State* vm) {
   int rc;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_getglobal(vm, "zmq_subscriber");
-  if((subscriber = (void*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: NULL subscriber");
-    return(CONST_LUA_ERROR);
-  }
 
   item.socket = subscriber;
   item.events = ZMQ_POLLIN;
@@ -2515,8 +2490,10 @@ static int ntop_set_second_traffic(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
+
   ntop_interface->updateSecondTraffic(time(NULL));
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -2873,6 +2850,7 @@ static int ntop_load_dump_prefs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   ntop_interface->loadDumpPrefs();
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -2884,6 +2862,7 @@ static int ntop_load_scaling_factor_prefs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   ntop_interface->loadScalingFactorPrefs();
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -4164,13 +4143,7 @@ static int ntop_syslog(lua_State* vm) {
 static int ntop_generate_csrf_value(lua_State* vm) {
   char random_a[32], random_b[32], csrf[33], user[64] = { '\0' };
   Redis *redis = ntop->getRedis();
-  struct mg_connection *conn;
-
-  lua_getglobal(vm, CONST_HTTP_CONN);
-  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
-    return(CONST_LUA_OK);
-  }
+  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)vm->userdata)->conn : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5535,17 +5508,11 @@ static int ntop_set_preference(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_lua_http_print(lua_State* vm) {
-  struct mg_connection *conn;
+  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)vm->userdata)->conn : NULL;
   char *printtype;
   int t;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_getglobal(vm, CONST_HTTP_CONN);
-  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
-    return(CONST_LUA_OK);
-  }
 
   /* Handle binary blob */
   if(lua_type(vm, 2) == LUA_TSTRING &&
@@ -6466,8 +6433,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
   luaL_openlibs(L); /* Load base libraries */
   lua_register_classes(L, true); /* Load custom classes */
 
-  lua_pushlightuserdata(L, (char*)conn);
-  lua_setglobal(L, CONST_HTTP_CONN);
+  ((struct ntopngLuaContext*)L->userdata)->conn = conn;
 
   content_type = mg_get_header(conn, "Content-Type");
 
@@ -6607,15 +6573,13 @@ int Lua::handle_script_request(struct mg_connection *conn,
   if(user[0] != '\0') {
     char val[255];
 
-    lua_pushlightuserdata(L, user);
-    lua_setglobal(L, "user");
+    ((struct ntopngLuaContext*)L->userdata)->user = user;
 
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
       ptree.addAddresses(val);
-      lua_pushlightuserdata(L, &ptree);
-      lua_setglobal(L, CONST_ALLOWED_NETS);
+      ((struct ntopngLuaContext*)L->userdata)->allowedNets = &ptree;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
     }
 
@@ -6635,14 +6599,12 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	NetworkInterface *iface = ntop->getFirstInterface();
 
 	ntop->getRedis()->set(key, iface->get_name());
-	lua_pushlightuserdata(L, iface);
+	((struct ntopngLuaContext*)L->userdata)->ifname = iface->get_name();
+	((struct ntopngLuaContext*)L->userdata)->iface  = iface;
       } else
-	lua_pushlightuserdata(L, ifname);
-
-      lua_setglobal(L, CONST_ALLOWED_IFNAME);
+	((struct ntopngLuaContext*)L->userdata)->ifname = ifname;
     }
   }
-
 
 #ifndef NTOPNG_PRO
   rc = luaL_dofile(L, script_path);

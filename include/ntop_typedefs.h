@@ -380,7 +380,7 @@ typedef enum {
   device_laptop,
   device_tablet,
   device_phone,
-  device_tv,  
+  device_tv,
   device_networking,
   device_wifi,
   device_nas,
@@ -389,5 +389,12 @@ typedef enum {
   device_max_type /* Leave it at the end */
 } DeviceType;
 
+struct ntopngLuaContext {
+  char *ifname, *user;
+  void *zmq_context, *zmq_subscriber;
+  struct mg_connection *conn;
+  AddressTree *allowedNets;
+  NetworkInterface *iface;
+};
 
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -108,6 +108,7 @@
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
+#define CONST_NTOP_INTERFACE      "ntop_interface"
 
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
 #define NDPI_MIN_NUM_PACKETS      10
@@ -350,7 +351,7 @@
 #define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
-#define CONST_HTTP_CONN              "http.conn"
+
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
