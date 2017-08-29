@@ -31,7 +31,6 @@
 
 extern "C" {
 #include "rrd.h"
-#include "lua.h"
 #ifdef HAVE_GEOIP
   extern const char * GeoIP_lib_version(void);
 #endif
@@ -44,23 +43,20 @@ struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 /* ******************************* */
 
 Lua::Lua() {
-  void *userdata;
   L = luaL_newstate();
 
-  if(L) userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
-  if((L == NULL) || (userdata == NULL)) {
+  if(L) L->userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
+  if((L == NULL) || (L->userdata == NULL)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
     return;
-  } else
-    lua_setuserdata(L, userdata);
+  }
 }
 
 /* ******************************* */
 
 Lua::~Lua() {
   if(L) {
-    void *userdata = lua_getuserdata(L);
-    if(userdata) free(userdata);
+    if(L->userdata) free(L->userdata);
     lua_close(L);
   }
 }
@@ -130,7 +126,7 @@ static NetworkInterface* handle_null_interface(lua_State* vm) {
 static int ntop_dump_file(lua_State* vm) {
   char *fname;
   FILE *fd;
-  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->conn : NULL;
+  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)vm->userdata)->conn : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -243,7 +239,7 @@ static int ntop_get_interface_names(lua_State* vm) {
 /* ****************************************** */
 
 static AddressTree* get_allowed_nets(lua_State* vm) {
-  AddressTree *ptree = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->allowedNets : NULL;
+  AddressTree *ptree = vm ? ((struct ntopngLuaContext*)vm->userdata)->allowedNets : NULL;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return(ptree);
@@ -252,7 +248,7 @@ static AddressTree* get_allowed_nets(lua_State* vm) {
 /* ****************************************** */
 
 static NetworkInterface* getCurrentInterface(lua_State* vm) {
-  NetworkInterface *ntop_interface = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->iface : NULL;
+  NetworkInterface *ntop_interface = vm ? ((struct ntopngLuaContext*)vm->userdata)->iface : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -279,7 +275,7 @@ static int ntop_select_interface(lua_State* vm) {
     ifname = (char*)lua_tostring(vm, 1);
   }
 
-  ((struct ntopngLuaContext*)lua_getuserdata(vm))->iface = ntop->getNetworkInterface(vm, ifname);
+  ((struct ntopngLuaContext*)vm->userdata)->iface = ntop->getNetworkInterface(vm, ifname);
 
   // lua_pop(vm, 1); /* Cleanup the Lua stack */
   
@@ -1466,8 +1462,8 @@ static int ntop_zmq_connect(lua_State* vm) {
     return -1;
   }
 
-  ((struct ntopngLuaContext*)lua_getuserdata(vm))->zmq_context = context;
-  ((struct ntopngLuaContext*)lua_getuserdata(vm))->zmq_subscriber = subscriber;
+  ((struct ntopngLuaContext*)vm->userdata)->zmq_context = context;
+  ((struct ntopngLuaContext*)vm->userdata)->zmq_subscriber = subscriber;
 
   return(CONST_LUA_OK);
 }
@@ -1589,8 +1585,8 @@ static int ntop_delete_hash_redis_key(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_zmq_disconnect(lua_State* vm) {
-  void *context = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->zmq_context : NULL;
-  void *subscriber = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->zmq_subscriber : NULL;
+  void *context = vm ? ((struct ntopngLuaContext*)vm->userdata)->zmq_context : NULL;
+  void *subscriber = vm ? ((struct ntopngLuaContext*)vm->userdata)->zmq_subscriber : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1604,7 +1600,7 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 
 static int ntop_zmq_receive(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  void *subscriber = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->zmq_subscriber : NULL;
+  void *subscriber = vm ? ((struct ntopngLuaContext*)vm->userdata)->zmq_subscriber : NULL;
   int size;
   struct zmq_msg_hdr h;
   char *payload;
@@ -4147,7 +4143,7 @@ static int ntop_syslog(lua_State* vm) {
 static int ntop_generate_csrf_value(lua_State* vm) {
   char random_a[32], random_b[32], csrf[33], user[64] = { '\0' };
   Redis *redis = ntop->getRedis();
-  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->conn : NULL;
+  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)vm->userdata)->conn : NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5512,7 +5508,7 @@ static int ntop_set_preference(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_lua_http_print(lua_State* vm) {
-  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)lua_getuserdata(vm))->conn : NULL;
+  struct mg_connection *conn = vm ? ((struct ntopngLuaContext*)vm->userdata)->conn : NULL;
   char *printtype;
   int t;
 
