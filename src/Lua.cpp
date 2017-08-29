@@ -32,6 +32,7 @@
 extern "C" {
 #include "rrd.h"
 #include "lua.h"
+#include "lj_obj.h"
 #ifdef HAVE_GEOIP
   extern const char * GeoIP_lib_version(void);
 #endif
