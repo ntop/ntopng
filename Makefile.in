@@ -252,11 +252,14 @@ uninstall:
 	if test -f $(MAN_DIR)/man8/ntopng.8; then rm $(MAN_DIR)/man8/ntopng.8; fi;
 	if test -d $(INSTALL_DIR)/share/ntopng; then rm -r $(INSTALL_DIR)/share/ntopng; fi;
 
-Makefile: @GIT_INDEX@
-	@echo ""
-	@echo "Re-running configure as the git release has changed"
-	@echo ""
+Makefile: configure Makefile.in
 	./configure
+
+configure: @GIT_INDEX@
+	@echo ""
+	@echo "Re-running autogen as the git release has changed"
+	@echo ""
+	./autogen.sh
 
 cppcheck:
 	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=all --force -I include/ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp
