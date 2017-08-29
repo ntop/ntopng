@@ -4045,13 +4045,13 @@ static int ntop_get_info(lua_State* vm) {
     verbose = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
-  lua_push_str_table_entry(vm, "product", (char*)"ntopng");
+  lua_push_str_table_entry(vm, "product",   (char*)"ntopng");
   lua_push_str_table_entry(vm, "copyright", (char*)"&copy; 1998-17 - ntop.org");
-  lua_push_str_table_entry(vm, "authors", (char*)"The ntop.org team");
-  lua_push_str_table_entry(vm, "license", (char*)"GNU GPLv3");
-
-  lua_push_str_table_entry(vm, "version", (char*)PACKAGE_VERSION);
-  lua_push_str_table_entry(vm, "git", (char*)NTOPNG_GIT_RELEASE);
+  lua_push_str_table_entry(vm, "authors",   (char*)"The ntop.org team");
+  lua_push_str_table_entry(vm, "license",   (char*)"GNU GPLv3");
+  lua_push_str_table_entry(vm, "platform",  (char*)PACKAGE_MACHINE);
+  lua_push_str_table_entry(vm, "version",   (char*)PACKAGE_VERSION);
+  lua_push_str_table_entry(vm, "git",       (char*)NTOPNG_GIT_RELEASE);
 
   snprintf(rsp, sizeof(rsp), "%s [%s][%s]",
 	   PACKAGE_OSNAME, PACKAGE_MACHINE, PACKAGE_OS);

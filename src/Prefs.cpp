@@ -988,7 +988,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
-
+    printf("Platform:\t%s\n", PACKAGE_MACHINE);
     printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
     printf("License Type:\t%s\n", ntop->getPro()->get_license_type());
 
@@ -1263,6 +1263,7 @@ void Prefs::lua(lua_State* vm) {
   /* Sticky hosts preferences */
   if(sticky_hosts != location_none) {
     char *location_string = NULL;
+    
     if(sticky_hosts == location_all) location_string = (char*)"all";
     else if(sticky_hosts == location_local_only) location_string = (char*)"local";
     else if(sticky_hosts == location_remote_only) location_string = (char*)"remote";
@@ -1292,25 +1293,25 @@ void Prefs::lua(lua_State* vm) {
 void Prefs::refreshHostsAlertsPrefs() {
   char rsp[32];
 
-  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+  if(ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
           (char*)CONST_HOST_FLOW_ATTACKER_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
     attacker_max_num_flows_per_sec = atol(rsp);
   else
     attacker_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
 
-  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+  if(ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
           (char*)CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
     victim_max_num_flows_per_sec = atol(rsp);
   else
     victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
 
-  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+  if(ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
           (char*)CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
     attacker_max_num_syn_per_sec = atol(rsp);
   else
     attacker_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
 
-  if (ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
+  if(ntop->getRedis()->hashGet((char*)CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG,
           (char*)CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY, rsp, sizeof(rsp)) == 0)
     victim_max_num_syn_per_sec = atol(rsp);
   else
@@ -1322,16 +1323,16 @@ void Prefs::refreshHostsAlertsPrefs() {
 void Prefs::refreshLanWanInterfaces() {
   char rsp[32];
 
-  if (lan_interface) free(lan_interface);
-  if (wan_interface) free(wan_interface);
+  if(lan_interface) free(lan_interface);
+  if(wan_interface) free(wan_interface);
 
-  if (ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_LAN_INTERFACE,
+  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_LAN_INTERFACE,
       rsp, sizeof(rsp)) == 0)
     lan_interface = strdup(rsp);
   else
     lan_interface = NULL;
 
-  if (ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_WAN_INTERFACE,
+  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_WAN_INTERFACE,
       rsp, sizeof(rsp)) == 0)
     wan_interface = strdup(rsp);
   else
