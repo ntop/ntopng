@@ -1,6 +1,6 @@
 [Unit]
 Description=Start/stop ntopng program
-After=network.target syslog.target redis.service pf_ring.service cluster.service
+After=network-online.target syslog.target redis.service pf_ring.service cluster.service
 Requires=pf_ring.service cluster.service
 
 [Service]
