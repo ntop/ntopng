@@ -105,6 +105,7 @@
 extern "C" {
 #include "pcap.h"
 #include "ndpi_main.h"
+#include "lj_obj.h"
 #include "luajit.h"
 #include "lauxlib.h"
 #include "lualib.h"
