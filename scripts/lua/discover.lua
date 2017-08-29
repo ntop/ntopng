@@ -164,7 +164,10 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'wifi', discover.asset_icons['wifi']
    elseif(string.contains(manufacturer, 'Broadband')) then -- % is the escape char in Lua
       return 'networking', discover.asset_icons['networking']
-   elseif(string.contains(manufacturer, "Samsung Electronics")) then
+   elseif(string.contains(manufacturer, "Samsung Electronics")
+	  or string.contains(manufacturer, "SAMSUNG ELECTRO-MECHANICS")
+	  or string.contains(manufacturer, "Mobile Communications") -- LG Electronics (Mobile Communications)
+        ) then
       return 'phone', discover.asset_icons['phone']
    elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)) then
       local _snmp = string.lower(snmp)

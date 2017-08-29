@@ -458,7 +458,7 @@ char* MDNS::decodeNetBIOS(u_char *buf, u_int buf_len,
   if(offset > buf_len) return(out);
 
   if(buf[offset] == 0) /* Number of names */ return(out); else offset += 1;
-  if((offset+16) > buf_len) return(out);
+  if((u_int)(offset+16) > buf_len) return(out);
 
   strncpy(out, (char*)&buf[offset], 16);
 

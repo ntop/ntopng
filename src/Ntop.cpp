@@ -800,14 +800,7 @@ void Ntop::getUsers(lua_State* vm) {
 void Ntop::getUserGroup(lua_State* vm) {
   char key[64], val[64];
   char username[33];
-  struct mg_connection *conn;
-
-  lua_getglobal(vm, CONST_HTTP_CONN);
-  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
-    lua_pushstring(vm, (char*)"unknown");
-    return;
-  }
+  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
@@ -838,14 +831,7 @@ void Ntop::getUserGroup(lua_State* vm) {
 void Ntop::getAllowedNetworks(lua_State* vm) {
   char key[64], val[64];
   char username[33];
-  struct mg_connection *conn;
-
-  lua_getglobal(vm, CONST_HTTP_CONN);
-  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
-    lua_pushstring(vm, (char*)"");
-    return;
-  }
+  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
@@ -856,18 +842,16 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 /* ******************************************* */
 
 bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
-  char *allowed_ifname;
+  char *allowed_ifname = getLuaVMUserdata(vm,ifname);
 
-  if(ifname == NULL) {
+  if(ifname == NULL)
     return false;
-  }
 
-  lua_getglobal(vm, CONST_ALLOWED_IFNAME);
-  if((allowed_ifname = (char*)lua_touserdata(vm, lua_gettop(vm))) == NULL
-     || allowed_ifname[0] == '\0') {
+  if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ifname = NULL;
     return false;
   }
+  
   strncpy(ifname, allowed_ifname, strlen(allowed_ifname));
   return true;
 }
@@ -875,19 +859,16 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
 /* ******************************************* */
 
 bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
-  char *allowed_ifname;
+  char *allowed_ifname = getLuaVMUserdata(vm,ifname);
   bool ret;
 
-  if(vm == NULL || ifname == NULL) {
-    return true; /* always return true when no lua state is passed */
-  }
+  if(vm == NULL || ifname == NULL)
+    return true; /* Always return true when no lua state is passed */  
 
-  lua_getglobal(vm, CONST_ALLOWED_IFNAME);
-  if((allowed_ifname = (char*)lua_touserdata(vm, lua_gettop(vm))) == NULL
-     || allowed_ifname[0] == '\0') {
+  if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
 				 "No allowed interface found for %s", ifname);
-    // this is a lua script called within nopng (no HTTP UI and user interaction)
+    // this is a lua script called within ntopng (no HTTP UI and user interaction, e.g. startup.lua)
     ret = true;
   } else {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
@@ -896,7 +877,6 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
     ret = !strncmp(allowed_ifname, ifname, strlen(allowed_ifname));
   }
 
-  lua_pop(vm, 1);
   return ret;
 }
 
@@ -1465,51 +1445,51 @@ bool Ntop::isExistingInterface(char *name) {
 /* ******************************************* */
 
 NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
-	if (name == NULL)
-		return NULL;
+  if (name == NULL)
+    return NULL;
 
-	/* This method accepts both interface names or Ids */
-	int if_id = atoi(name);
-	char str[8];
+  /* This method accepts both interface names or Ids */
+  int if_id = atoi(name);
+  char str[8];
 
-	snprintf(str, sizeof(str), "%d", if_id);
-	if (strcmp(name, str) == 0) {
-		/* name is a number */
-		return(getInterfaceById(if_id));
-	}
+  snprintf(str, sizeof(str), "%d", if_id);
+  if (strcmp(name, str) == 0) {
+    /* name is a number */
+    return(getInterfaceById(if_id));
+  }
 
-	/* if here, name is a string */
-	for (int i = 0; i<num_defined_interfaces; i++) {
-		if (!strcmp(name, iface[i]->get_name())) {
-			NetworkInterface *ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
+  /* if here, name is a string */
+  for(int i = 0; i<num_defined_interfaces; i++) {
+    if (!strcmp(name, iface[i]->get_name())) {
+      NetworkInterface *ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
+		  
+      if (ret_iface != NULL)
+	return(ret_iface);
+      else
+	goto iface_not_found;
+    }
+  }
+	
+  /* FIX: remove this for at some point, when endpoint is passed */
+  for(int i = 0; i<num_defined_interfaces; i++) {
+    char *script = iface[i]->getScriptName();
+    if (script != NULL && strcmp(script, name) == 0)
+      return(iface[i]);
+  }
 
-			if (ret_iface != NULL)
-				return(ret_iface);
-			else
-				goto iface_not_found;
-		}
-	}
+ iface_not_found:
+  /* Not found */
+  //if(!strcmp(name, "any"))
+  return(getFirstInterface()); /* FIX: remove at some point */
 
-	/* FIX: remove this for at some point, when endpoint is passed */
-	for (int i = 0; i<num_defined_interfaces; i++) {
-		char *script = iface[i]->getScriptName();
-		if (script != NULL && strcmp(script, name) == 0)
-			return(iface[i]);
-	}
-
-iface_not_found:
-	/* Not found */
-	//if(!strcmp(name, "any"))
-	return(getFirstInterface()); /* FIX: remove at some point */
-
-	return(NULL);
+  return(NULL);
 };
 
 /* ******************************************* */
 
 int Ntop::getInterfaceIdByName(char *name) {
   if(name == NULL) {
-	  return(getFirstInterface()->get_id());
+    return(getFirstInterface()->get_id());
   } else {
     /* This method accepts both interface names or Ids */
     int if_id = atoi(name);

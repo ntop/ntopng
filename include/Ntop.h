@@ -266,7 +266,7 @@ class Ntop {
    * @return The network interface instance if exists, NULL otherwise.
    */
   inline NetworkInterface* getInterfaceAtId(lua_State *vm, int i) const {
-    if(i<num_defined_interfaces && iface[i]) {
+    if((i < num_defined_interfaces) && iface[i]) {
       return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
     }
     return NULL;

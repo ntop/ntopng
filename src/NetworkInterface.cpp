@@ -5238,7 +5238,8 @@ lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, co
 
   L = luaL_newstate();
 
-  if(!L) {
+  if(L) L->userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
+  if((L == NULL) || (L->userdata == NULL)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize lua interpreter");
     return(NULL);
   }
@@ -5264,6 +5265,7 @@ lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, co
   if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s[%s]: %s",
 				 script_path, context, lua_tostring(L, -1));
+    if(L->userdata) free(L->userdata);
     lua_close(L);
     L = NULL;
   } else {
@@ -5279,8 +5281,8 @@ lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, co
 /* **************************************** */
 
 void NetworkInterface::termLuaInterpreter() {
-  if(L_user_scripts_inline) { lua_close(L_user_scripts_inline); L_user_scripts_inline = NULL; }
-  if(L_user_scripts_periodic) { lua_close(L_user_scripts_periodic); L_user_scripts_periodic = NULL; }
+  if(L_user_scripts_inline) { if(L_user_scripts_inline->userdata) free(L_user_scripts_inline->userdata); lua_close(L_user_scripts_inline); L_user_scripts_inline = NULL; }
+  if(L_user_scripts_periodic) { if(L_user_scripts_periodic->userdata) free(L_user_scripts_periodic->userdata); lua_close(L_user_scripts_periodic); L_user_scripts_periodic = NULL; }
 }
 
 /* **************************************** */
@@ -5319,7 +5321,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   switch(context) {
   case user_script_context_inline:
     if (user_scripts_reload_inline) {
-      if(L_user_scripts_inline) lua_close(L_user_scripts_inline);
+      if(L_user_scripts_inline) { if(L_user_scripts_inline->userdata) free(L_user_scripts_inline->userdata); lua_close(L_user_scripts_inline); }
       L_user_scripts_inline = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_INLINE);
       user_scripts_reload_inline = false;
     }
@@ -5328,7 +5330,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
     break;
   case user_script_context_periodic:
     if (user_scripts_reload_periodic) {
-      if(L_user_scripts_periodic) lua_close(L_user_scripts_periodic);
+      if(L_user_scripts_periodic) { if(L_user_scripts_periodic->userdata) free(L_user_scripts_periodic->userdata); lua_close(L_user_scripts_periodic); }
       L_user_scripts_periodic = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_PERIODIC);
       user_scripts_reload_periodic = false;
     }
