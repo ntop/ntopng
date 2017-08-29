@@ -434,7 +434,8 @@ char* MDNS::decodeNetBIOS(u_char *buf, u_int buf_len,
     u_int16_t transaction_id, flags, questions, answer_rrs, authority_rrs, additional_rrs;
   };
   struct netbios_header *h = (struct netbios_header*)buf;
-  u_int16_t offset, i16;
+  u_int16_t i16;
+  u_int offset;
   
   out[0] = '\0';
 
