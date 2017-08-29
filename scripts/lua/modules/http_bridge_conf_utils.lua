@@ -17,8 +17,11 @@ end
 require "lua_utils"
 local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
-local shaper_utils = require "shaper_utils"
+local shaper_utils
 
+if(ntop.isPro()) then
+   shaper_utils = require "shaper_utils"
+end
 
 local http_bridge_conf_utils = {}
 
