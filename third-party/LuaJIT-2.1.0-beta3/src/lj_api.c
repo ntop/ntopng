@@ -1290,3 +1290,7 @@ LUA_API void lua_setallocf(lua_State *L, lua_Alloc f, void *ud)
   g->allocf = f;
 }
 
+/* NTOP BEGIN */
+void* lua_getuserdata(struct lua_State *vm)          { return(vm->userdata); }
+void  lua_setuserdata(struct lua_State *vm, void *v) { vm->userdata = v;     }
+/* NTOP END */

@@ -50,6 +50,11 @@
 
 typedef struct lua_State lua_State;
 
+/* NTOP BEGIN */
+extern void* lua_getuserdata(struct lua_State *vm);
+extern void  lua_setuserdata(struct lua_State *vm, void *v);
+/* NTOP END */
+
 typedef int (*lua_CFunction) (lua_State *L);
 
 
