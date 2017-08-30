@@ -32,7 +32,7 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
   bool localHost, systemHost;
   u_int32_t host_serial;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
-  u_int32_t last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t total_activity_time /* sec */, last_epoch_update; /* useful to avoid multiple updates */
   
   /* Throughput */
   float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;

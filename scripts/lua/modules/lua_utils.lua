@@ -913,7 +913,11 @@ string.split = function(s, p)
 end
 
 function formatEpoch(epoch)
-  return(os.date("%d/%m/%Y %X", epoch))
+  if epoch == 0 then
+    return("-")
+  else
+    return(os.date("%d/%m/%Y %X", epoch))
+  end
 end
 
 function secondsToTime(seconds)
