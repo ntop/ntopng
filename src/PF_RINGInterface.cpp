@@ -72,6 +72,12 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 
   memset(&last_pfring_stat, 0, sizeof(last_pfring_stat));
+
+  /* 
+     We need to enable the ring here and not in packetPollLoop() as otherwise
+     with ZC we cannot allocate hugepages after we switched to nobody
+  */
+  pfring_enable_ring(pfring_handle);
 }
 
 /* **************************************************** */
@@ -91,7 +97,6 @@ static void* packetPollLoop(void* ptr) {
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
-  pfring_enable_ring(pd);
 
   while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
 
