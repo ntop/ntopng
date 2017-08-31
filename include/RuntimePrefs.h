@@ -29,6 +29,7 @@ typedef enum {
   str = 0,
   /* Pointers to class members */
   str_ptr,
+  ipv4_addr_ptr,
   u_int32_t_ptr,
   int32_t_ptr,
   bool_ptr,

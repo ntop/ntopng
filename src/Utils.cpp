@@ -1692,6 +1692,15 @@ char* Utils::tokenizer(char *arg, int c, char **data) {
 
 /* ****************************************************** */
 
+in_addr_t Utils::inet_addr(const char *cp) {
+  if((cp == NULL) || (cp[0] == '\0'))
+    return(0);
+  else
+    return(::inet_addr(cp));
+}
+
+/* ****************************************************** */
+
 char* Utils::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
   char *cp, *retStr;
   int n;

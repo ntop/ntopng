@@ -82,6 +82,7 @@ class Utils {
   static bool isGoodNameToCategorize(char *name);
   static char* get2ndLevelDomain(char *_domainname);
   static char* tokenizer(char *arg, int c, char **data);
+  static in_addr_t inet_addr(const char *cp);
   static char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   static char* intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_short bufLen);
   static u_int32_t timeval2usec(const struct timeval *tv);
