@@ -2919,43 +2919,29 @@ end
 
 -- ####################################################
 
--- Compute the difference in seconds between local time and UTC.
-local function get_timezone()
-   local now = os.time()
-   return os.difftime(now, os.time(os.date("!*t", now)))
-end
-
-local function get_tzoffset(timezone)
-   local h, m = math.modf(timezone / 3600)
-   return string.format("%+.4d", 100 * h + 60 * m)
-end
-
-function get_timezone_offset()
-   local ts = get_tzoffset(get_timezone())
-   local utcdate   = os.date("!*t", ts)
-   local localdate = os.date("*t", ts)
-   localdate.isdst = false -- this is the trick
-   return os.difftime(os.time(localdate), os.time(utcdate))
-end
-
-function format_time(timestamp, format, tzoffset)
-   if tzoffset == "local" then  -- calculate local time zone (for the server)
-      local now = os.time()
-      local local_t = os.date("*t", now)
-      local utc_t = os.date("!*t", now)
-      local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
-      local h, m = math.modf( delta / 60)
-      tzoffset = string.format("%+.4d", 100 * h + 60 * m)
-   end
-
-   return os.date(format, timestamp + tzoffset)
-end
-
-function makeTimeStamp(d)
+function makeTimeStamp(d, tzoffset)
+   -- tzoffset is the timezone difference between UTC and Local Time in the browser
    local pattern = "(%d+)%/(%d+)%/(%d+) (%d+):(%d+):(%d+)"
    local day,month, year, hour, minute, seconds = string.match(d, pattern);
 
    local timestamp = os.time({year=year, month=month, day=day, hour=hour, min=minute, sec=seconds});
+
+   -- tprint("pre-timestamp is:"..timestamp)
+   if tzoffset then
+      -- from browser local time to UTC
+      timestamp = timestamp - (tzoffset or 0)
+
+      -- from UTC to machine local time
+      local now = os.time()
+      local local_t = os.date("*t", now)
+      local utc_t = os.date("!*t", now)
+      local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
+      delta = delta * 60 -- to seconds
+
+      timestamp = timestamp + (delta or 0)
+      -- tprint("delta: "..delta.." tzoffset is: "..tzoffset)
+      -- tprint("post-timestamp is:"..timestamp)
+   end
 
    return timestamp.."";
 end

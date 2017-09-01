@@ -718,6 +718,7 @@ local known_parameters = {
    ["epoch_end"]               =  validateNumber,                -- A timestamp value to indicate end time
    ["period_begin_str"]        =  validateDate,                  -- Specifies a start date in JS format
    ["period_end_str"]          =  validateDate,                  -- Specifies an end date in JS format
+   ["timezone"]                =  validateNumber,                -- The timezone of the browser
 
 -- PAGINATION
    ["perPage"]                 =  validateNumber,                -- Number of results per page (used for pagination)

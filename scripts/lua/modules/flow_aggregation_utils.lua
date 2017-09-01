@@ -54,7 +54,7 @@ function useAggregatedFlows()
 	    if not isEmptyString(_GET[w]) then
 	       local period
 	       if w:ends("_str") then
-		  period = tonumber(makeTimeStamp(_GET[w]))
+		  period = tonumber(makeTimeStamp(_GET[w], _GET["timezone"]))
 	       else
 		  period = tonumber(_GET[w])
 	       end

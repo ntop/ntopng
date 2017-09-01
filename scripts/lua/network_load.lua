@@ -54,8 +54,6 @@ function dumpInterfaceStats(interface_name)
       res["num_devices"]      = ifstats.stats.devices
 
       res["epoch"]      = os.time()
-      res["tz_offset"]  = get_timezone_offset()
-      -- res["localtime"]  = format_time(res["epoch"], "!%H:%M:%S %z", res["tz_offset"])
       res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
       res["uptime"]     = secondsToTime(uptime)
       res["system_host_stats"] = ntop.systemHostStat()
