@@ -30,6 +30,13 @@ class Mac;
 
 class HostPools {
  private:
+  Mutex *swap_lock;
+  volatile time_t latest_swap;
+  AddressTree **tree, **tree_shadow;
+  NetworkInterface *iface;
+  bool *children_safe;
+  u_int16_t max_num_pools;
+
 #ifdef NTOPNG_PRO
   bool *enforce_quotas_per_pool_member; /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
@@ -38,9 +45,6 @@ class HostPools {
 
   void reloadVolatileMembers(AddressTree **_trees);
   void addVolatileMember(char *host_or_mac, u_int16_t user_pool_id, time_t lifetime);
-#endif
-
-#ifdef NTOPNG_PRO
   void swap(AddressTree **new_trees, HostPoolStats **new_stats);
 
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
@@ -54,13 +58,6 @@ class HostPools {
   void swap(AddressTree **new_trees);
 #endif
   static void deleteTree(AddressTree ***at);
-
-  Mutex *swap_lock;
-  volatile time_t latest_swap;
-  AddressTree **tree, **tree_shadow;
-  NetworkInterface *iface;
-  bool *children_safe;
-  u_int16_t max_num_pools;
 
   void loadFromRedis();
   void dumpToRedis();

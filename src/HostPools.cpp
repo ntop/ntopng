@@ -556,8 +556,10 @@ void HostPools::reloadPools() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
+  
   for(u_int32_t i = 0; i < MAX_NUM_VLAN; i++)
     new_tree[i] = NULL;
+
 #ifdef NTOPNG_PRO
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
     new_stats[i] = NULL;
@@ -671,12 +673,13 @@ void HostPools::reloadPools() {
 
 bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool) {
   AddressTree *cur_tree; /* must use this as tree can be swapped */
-
+  int16_t ret;
+  
   if(!tree || !(cur_tree = tree[vlan_id]))
     return false;
 
-  int16_t ret = cur_tree->findMac(mac);
-
+  ret = cur_tree->findMac(mac);
+  
   if(ret != -1) {
     *found_pool = (u_int16_t)ret;
     return true;
@@ -688,10 +691,17 @@ bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_p
 /* *************************************** */
 
 bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
-  if (mac->isSpecialMac())
+  bool found;
+  
+  if(mac->isSpecialMac())
     return false;
-
-  return findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
+  
+  found = findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
+  
+  if((!found) && (mac->get_vlan_id() != 0))
+    found = findMacPool(mac->get_mac(), 0 /* No VLAN */, found_pool);
+  
+  return(found);
 }
 
 /* *************************************** */

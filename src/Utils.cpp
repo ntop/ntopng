@@ -1821,15 +1821,11 @@ void Utils::parseMac(u_int8_t *mac, const char *symMac) {
 /* *********************************************** */
 
 static int fill_prefix_v4(prefix_t *p, struct in_addr *a, int b, int mb) {
-  do {
-    if(b < 0 || b > mb)
-      return(-1);
-
-    memcpy(&p->add.sin, a, (mb+7)/8);
-    p->family = AF_INET;
-    p->bitlen = b;
-    p->ref_count = 0;
-  } while (0);
+  if(b < 0 || b > mb)
+    return(-1);
+  
+  memcpy(&p->add.sin, a, (mb+7)/8);
+  p->family = AF_INET, p->bitlen = b, p->ref_count = 0;
 
   return(0);
 }
@@ -1841,9 +1837,7 @@ static int fill_prefix_v6(prefix_t *prefix, struct in6_addr *addr, int bits, int
     return -1;
 
   memcpy(&prefix->add.sin6, addr, (maxbits + 7) / 8);
-  prefix->family = AF_INET6;
-  prefix->bitlen = bits;
-  prefix->ref_count = 0;
+  prefix->family = AF_INET6, prefix->bitlen = bits, prefix->ref_count = 0;
 
   return 0;
 }
@@ -1855,9 +1849,7 @@ static int fill_prefix_mac(prefix_t *prefix, u_int8_t *mac, int bits, int maxbit
     return -1;
 
   memcpy(prefix->add.mac, mac, 6);
-  prefix->family = AF_MAC;
-  prefix->bitlen = bits;
-  prefix->ref_count = 0;
+  prefix->family = AF_MAC, prefix->bitlen = bits, prefix->ref_count = 0;
 
   return 0;
 }
