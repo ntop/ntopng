@@ -600,16 +600,16 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
   if(lua_type(vm,15) == LUA_TBOOLEAN) filtered_hosts = lua_toboolean(vm, 15);
 
-  if(!ntop_interface ||
-     ntop_interface->getActiveHostsList(vm,
-					0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-					get_allowed_nets(vm),
-					show_details, location,
-					country, mac_filter,
-					vlan_filter, os_filter, asn_filter,
-					network_filter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
-					sortColumn, maxHits,
-					toSkip, a2zSortOrder) < 0)
+  if((!ntop_interface)
+     || ntop_interface->getActiveHostsList(vm,
+					   0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+					   get_allowed_nets(vm),
+					   show_details, location,
+					   country, mac_filter,
+					   vlan_filter, os_filter, asn_filter,
+					   network_filter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
+					   sortColumn, maxHits,
+					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -2743,7 +2743,7 @@ static int ntop_interface_is_bridge_interface(lua_State* vm) {
     ifid = lua_tointeger(vm, 1);
 
     if(ifid < 0 || !(iface = ntop->getNetworkInterface(ifid)))
-      return (CONST_LUA_ERROR);
+      return(CONST_LUA_ERROR);
   }
 
   lua_pushboolean(vm, iface->is_bridge_interface());
@@ -2831,9 +2831,11 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   ndpi_protocol_category_t category_filter;
 
-  if(ntop_interface == NULL) {
+  if(ntop_interface == NULL)
     ntop_interface = getCurrentInterface(vm);
-  }
+
+  if(ntop_interface == NULL)
+    return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2841,7 +2843,7 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
     category_filter = (ndpi_protocol_category_t)lua_tointeger(vm, 1);
 
     if(category_filter >= NDPI_PROTOCOL_NUM_CATEGORIES)
-      return (CONST_LUA_ERROR);
+      return(CONST_LUA_ERROR);
 
     ntop_interface->getnDPIProtocols(vm, category_filter);
   } else
@@ -4308,7 +4310,7 @@ static int ntop_stats_insert_minute_sampling(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   time(&rawtime);
 
@@ -4346,7 +4348,7 @@ static int ntop_stats_insert_hour_sampling(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   time(&rawtime);
   rawtime -= (rawtime % 60);
@@ -4385,7 +4387,7 @@ static int ntop_stats_insert_day_sampling(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   time(&rawtime);
   rawtime -= (rawtime % 60);
@@ -4424,7 +4426,7 @@ static int ntop_stats_get_minute_sampling(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(sm->getMinuteSampling(epoch, &sampling))
     return(CONST_LUA_ERROR);
@@ -4464,7 +4466,7 @@ static int ntop_stats_delete_minute_older_than(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(sm->deleteMinuteStatsOlderThan(num_days))
     return(CONST_LUA_ERROR);
@@ -4503,7 +4505,7 @@ static int ntop_stats_delete_hour_older_than(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(sm->deleteHourStatsOlderThan(num_days))
     return(CONST_LUA_ERROR);
@@ -4542,7 +4544,7 @@ static int ntop_stats_delete_day_older_than(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(sm->deleteDayStatsOlderThan(num_days))
     return(CONST_LUA_ERROR);
@@ -4585,7 +4587,7 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
@@ -4635,7 +4637,7 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   epoch_start = epoch_end - (60 * num_minutes);
 
@@ -4687,7 +4689,7 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   epoch_start = epoch_end - (num_hours * 60 * 60);
 
@@ -4739,7 +4741,7 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
 
   if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   epoch_start = epoch_end - (num_days * 24 * 60 * 60);
 
@@ -5328,9 +5330,9 @@ static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
-  return (!am->getCachedNumAlerts(vm)) ? CONST_LUA_OK : CONST_LUA_ERROR;
+  return(!am->getCachedNumAlerts(vm)) ? CONST_LUA_OK : CONST_LUA_ERROR;
 }
 
 /* ****************************************** */
@@ -5345,7 +5347,7 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN)
     engaged = lua_toboolean(vm, 1);
@@ -5364,7 +5366,7 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
   if(am->queryAlertsRaw(vm, engaged, selection, clauses, ignore_disabled))
     return(CONST_LUA_ERROR);
 
-  return (CONST_LUA_OK);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -5378,7 +5380,7 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TSTRING)
     if((selection = (char*)lua_tostring(vm, 1)) == NULL)
@@ -5394,7 +5396,7 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
   if(am->queryFlowAlertsRaw(vm, selection, clauses, ignore_disabled))
     return(CONST_LUA_ERROR);
 
-  return (CONST_LUA_OK);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -5559,17 +5561,17 @@ static int ntop_lua_http_print(lua_State* vm) {
     if(!strncmp(printtype, "blob", 4)) {
       char *str = NULL;
 
-      if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return (CONST_LUA_ERROR);
+      if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
       if((str = (char*)lua_tostring(vm, 1)) != NULL) {
 	int len = strlen(str);
 
 	if(len <= 1)
 	  mg_printf(conn, "%c", str[0]);
 	else
-	  return (CONST_LUA_PARAM_ERROR);
+	  return(CONST_LUA_PARAM_ERROR);
       }
 
-      return (CONST_LUA_OK);
+      return(CONST_LUA_OK);
     }
 
   switch(t = lua_type(vm, 1)) {

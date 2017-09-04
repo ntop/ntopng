@@ -96,7 +96,8 @@ int main(int argc, char *argv[])
   int core_id;
   char path[MAX_PATH];
   FILE *fd;
-
+  ThreadedActivity *boot_activity;
+  
 #ifdef WIN32
   initWinsock32();
 #endif
@@ -117,6 +118,11 @@ int main(int argc, char *argv[])
 
   ntop->registerPrefs(prefs, false);
 
+  if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
+    boot_activity->run();
+    delete boot_activity;
+  }
+  
   prefs->registerNetworkInterfaces();
 
   if(prefs->get_num_user_specified_interfaces() == 0) {

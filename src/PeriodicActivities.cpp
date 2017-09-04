@@ -46,7 +46,8 @@ PeriodicActivities::~PeriodicActivities() {
 
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
-
+  ThreadedActivity *startup_activity;
+  
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
   if(stat(ntop->get_callbacks_dir(), &buf) != 0) {
@@ -58,7 +59,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     exit(0);
   }
 
-  ThreadedActivity *startup_activity;
   if((startup_activity = new ThreadedActivity(STARTUP_SCRIPT_PATH))) {
     startup_activity->run();
     delete startup_activity;

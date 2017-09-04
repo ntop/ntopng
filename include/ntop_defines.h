@@ -670,6 +670,7 @@
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
+#define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
 #define MINUTE_SCRIPT_PATH         "minute.lua"

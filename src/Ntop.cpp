@@ -264,10 +264,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
   pro->init_license();
-
 #endif
 
-  initNetworkInterfaces(); /* License check could have increased the number of interfaces available */
+  /* License check could have increased the number of interfaces available */
+  initNetworkInterfaces();
 }
 
 /* ******************************************* */
