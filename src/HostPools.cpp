@@ -102,14 +102,10 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
 HostPools::~HostPools() {
   int i;
 
-  if(tree_shadow)
-    deleteTree(&tree_shadow);
-  if(tree)
-    deleteTree(&tree);
-  if(children_safe)
-    free(children_safe);
-  if(swap_lock)
-    delete swap_lock;
+  if(tree_shadow)   deleteTree(&tree_shadow);
+  if(tree)          deleteTree(&tree);
+  if(children_safe) free(children_safe);
+  if(swap_lock)     delete swap_lock;
 
 #ifdef NTOPNG_PRO
   dumpToRedis();
@@ -117,16 +113,15 @@ HostPools::~HostPools() {
   if(enforce_quotas_per_pool_member)
     free(enforce_quotas_per_pool_member);
   
-  if(stats)
-    deleteStats(&stats);
-  if(stats_shadow)
-    deleteStats(&stats_shadow);
+  if(stats)        deleteStats(&stats);
+  if(stats_shadow) deleteStats(&stats_shadow);
 
   if(volatile_members_lock) {
     for(i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if(volatile_members_lock[i])
 	delete volatile_members_lock[i];
     }
+    
     delete []volatile_members_lock;
   }
 
@@ -158,6 +153,7 @@ void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
 void HostPools::swap(AddressTree **new_trees) {
 #endif
   swap_lock->lock(__FILE__, __LINE__);
+
   while(time(NULL) - latest_swap < 1) {
     swap_lock->unlock(__FILE__, __LINE__);
     sleep(1); /* Force at least 1 sec. time between consecutive swaps */
@@ -168,10 +164,10 @@ void HostPools::swap(AddressTree **new_trees) {
   /* Swap statistics */
   if(new_stats) {
     if(stats) {
-      if(stats_shadow)
-	deleteStats(&stats_shadow);
+      if(stats_shadow) deleteStats(&stats_shadow);
       stats_shadow = stats;
     }
+    
     stats = new_stats;
   }
 #endif
@@ -179,10 +175,10 @@ void HostPools::swap(AddressTree **new_trees) {
   /* Swap address trees */
   if(new_trees) {
     if(tree) {
-      if(tree_shadow)
-	deleteTree(&tree_shadow); /* Invokes the destructor */
+      if(tree_shadow) deleteTree(&tree_shadow); /* Invokes the destructor */
       tree_shadow = tree;
     }
+    
     tree = new_trees;
   }
 
@@ -245,10 +241,11 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
     }
 
     volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-
   }
 };
 
+/* *************************************** */
+ 
 void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, time_t lifetime) {
   volatile_members_t *m;
 
@@ -290,6 +287,7 @@ void HostPools::dumpToRedis() {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
+
       if(value) {
 	redis->hashSet(key, buf, value);
 	free(value);
@@ -340,8 +338,7 @@ void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t n
 			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
   HostPoolStats *hps = getPoolStats(host_pool_id);
   
-  if(!hps)
-    return;
+  if(!hps) return;
   
   /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
   hps->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
@@ -433,7 +430,6 @@ void HostPools::luaVolatileMembers(lua_State *vm) {
     }
 
     volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-
   }
 };
 
@@ -545,7 +541,7 @@ void HostPools::reloadPools() {
 #endif
   Redis *redis = ntop->getRedis();
 
-  if(!iface || iface->get_id() == -1)
+  if(!iface || (iface->get_id() == -1))
     return;
 
   if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL
@@ -568,7 +564,7 @@ void HostPools::reloadPools() {
   snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY, iface->get_id());
 
 #ifdef NTOPNG_PRO
-  /* Always allocate defaul pool stats */
+  /* Always allocate default pool stats */
   if(stats && stats[0]) /* Duplicate existing statistics */
     new_stats[0] = new HostPoolStats(*stats[0]);
   else /* Brand new statistics */
@@ -643,9 +639,8 @@ void HostPools::reloadPools() {
 					 rc ? "Successfully added" : "Unable to add",
 					 member, vlan_id,
 					 pools[i]);
-
 	}
-
+	
 	free(member);
       }
 
@@ -655,8 +650,7 @@ void HostPools::reloadPools() {
     free(pools[i]);
   }
 
-  if(pools)
-    free(pools);
+  if(pools) free(pools);
 
 #ifdef NTOPNG_PRO
   if(ntop->getPrefs()->isCaptivePortalEnabled())
@@ -676,16 +670,16 @@ bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_p
   int16_t ret;
   
   if(!tree || !(cur_tree = tree[vlan_id]))
-    return false;
+    return(false);
 
   ret = cur_tree->findMac(mac);
   
   if(ret != -1) {
     *found_pool = (u_int16_t)ret;
-    return true;
+    return(true);
   }
 
-  return false;
+  return(false);
 }
 
 /* *************************************** */
@@ -694,7 +688,7 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
   bool found;
   
   if(mac->isSpecialMac())
-    return false;
+    return(false);
   
   found = findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
   
@@ -713,9 +707,10 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
 #endif
 
   if(!tree || !(cur_tree = tree[vlan_id]))
-    return false;
+    return(false);
 
   *found_node = (patricia_node_t*)ip->findAddress(cur_tree);
+
   if(*found_node) {
 #ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -723,10 +718,10 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
 				   ip->print(buf, sizeof(buf)), (*found_node)->user_data);
 #endif
       *found_pool = (*found_node)->user_data;
-      return true;
+      return(true);
   }
 
-  return false;
+  return(false);
 }
 
 
@@ -740,6 +735,7 @@ u_int16_t HostPools::getPool(Host *h) {
   if(h) {
     if(h->getMac())
       found = findMacPool(h->getMac(), &pool_id);
+    
     if(!found && h->get_ip()) {
       found = findIpPool(h->get_ip(), h->get_vlan_id(), &pool_id, &node);
     }
