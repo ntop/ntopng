@@ -1350,6 +1350,10 @@ void Ntop::daemonize() {
 #ifndef WIN32
   int childpid;
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+
+			       "Parent process is exiting (this is normal)");
+
   signal(SIGHUP, SIG_IGN);
   signal(SIGCHLD, SIG_IGN);
   signal(SIGQUIT, SIG_IGN);
@@ -1385,11 +1389,8 @@ void Ntop::daemonize() {
       /* setlinebuf (stdout); */
       setvbuf(stdout, (char *)NULL, _IOLBF, 0);
 #endif
-    } else { /* father */
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Parent process is exiting (this is normal)");
+    } else /* father */
       exit(0);
-    }
   }
 #endif
 }
