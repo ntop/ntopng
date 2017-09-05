@@ -1496,6 +1496,13 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flush_redis(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, (ntop->getRedis()->flushDb() == 0) ? true : false);
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 /**
@@ -5938,6 +5945,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getCache",        ntop_get_redis },
   { "setCache",        ntop_set_redis },
   { "delCache",        ntop_delete_redis_key },
+  { "flushCache",      ntop_flush_redis },
   { "listIndexCache",  ntop_list_index_redis },
   { "lpushCache",      ntop_lpush_redis },
   { "lpopCache",       ntop_lpop_redis },

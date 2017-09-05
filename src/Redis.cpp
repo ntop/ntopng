@@ -848,6 +848,31 @@ void Redis::setDefaults() {
 
 /* **************************************** */
 
+int Redis::flushDb() {
+  int rc;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "FLUSHDB");
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
+
+  l->unlock(__FILE__, __LINE__);
+
+  if (rc == 0) {
+    flushCache();
+    setDefaults();
+  }
+
+  return(rc);
+}
+
+/* **************************************** */
+
 int Redis::getAddressTrafficFiltering(char *numeric_ip,
 				      NetworkInterface *iface,
 				      char *rsp, u_int rsp_len,
