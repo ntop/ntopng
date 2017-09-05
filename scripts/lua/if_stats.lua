@@ -361,6 +361,7 @@ if((page == "overview") or (page == nil)) then
    if(ifstats["remote.name"] ~= nil) then
 
       local remote_if_addr, remote_probe_ip, remote_probe_public_ip = '', '', ''
+      local num_remote_flow_exports, num_remote_flow_exporters = '', ''
 
       if not isEmptyString(ifstats["remote.if_addr"]) then
 	 remote_if_addr = "<b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"]
@@ -374,6 +375,14 @@ if((page == "overview") or (page == nil)) then
          remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n"
       end
 
+      if not isEmptyString(ifstats["zmq.num_flow_exports"]) then
+	 num_remote_flow_exports = "<b>"..i18n("if_stats_overview.probe_zmq_num_flow_exports").."</b>: <span id=if_num_remote_zmq_flow_exports>"..formatValue(ifstats["zmq.num_flow_exports"]).."</span>"
+      end
+
+      if not isEmptyString(ifstats["zmq.num_exporters"]) then
+	 num_remote_flow_exporters = "<b>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</b>: <span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span>"
+      end
+
       print("<tr><th rowspan=2>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
       print("<td nowrap>"..remote_if_addr.."</td>")
       print("<td nowrap>"..remote_probe_ip.."</td>")
@@ -383,7 +392,8 @@ if((page == "overview") or (page == nil)) then
       print("<tr>")
       print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
       print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
-      print("<td></td><td></td></tr>")
+      print("<td nowrap colspan=3>"..num_remote_flow_exporters.."</td>")
+      print("</tr>")
    end
 
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
@@ -2441,6 +2451,8 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
    print("var last_zmq_msg_drops = ".. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
+
+   print("var last_probe_zmq_exported_flows = ".. ifstats["zmq.num_flow_exports"] .. ";\n")
 end
 
 print [[
@@ -2494,10 +2506,13 @@ print [[/lua/network_load.lua',
            $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events));
            $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
            $('#if_zmq_msg_drops').html(addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
+           $('#if_num_remote_zmq_flow_exports').html(addCommas(rsp["zmq.num_flow_exports"])+" "+get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
 
            last_zmq_flows = rsp.zmqRecvStats.flows;
            last_zmq_events = rsp.zmqRecvStats.events;
            last_zmq_counters = rsp.zmqRecvStats.counters;
+           last_zmq_msg_drops = rsp.zmqRecvStats.zmq_msg_drops;
+           last_probe_zmq_exported_flows = rsp["zmq.num_flow_exports"];
            last_zmq_time = now;
         }
 

@@ -26,6 +26,7 @@
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
 ParserInterface::ParserInterface(const char *endpoint, const char *custom_interface_type) : NetworkInterface(endpoint, custom_interface_type) {
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
+  zmq_remote_initial_exported_flows = 0;
   map = NULL, once = false;
 
   addMapping("IN_BYTES", 1);
@@ -542,17 +543,26 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
 	zrs->elk_flow_drops = (u_int32_t)json_object_get_int64(z);
     }
 
+    if(json_object_object_get_ex(o, "zmq", &w)) {
+      if(json_object_object_get_ex(w, "num_flow_exports", &z))
+	zrs->num_flow_exports = (u_int64_t)json_object_get_int64(z);
+      if(json_object_object_get_ex(w, "num_exporters", &z))
+	zrs->num_exporters = (u_int8_t)json_object_get_int(z);
+    }
+
 #ifdef ZMQ_EVENT_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event parsed "
 				 "[iface: {name: %s, speed: %u, ip:%s}]"
 				 "[probe: {public_ip: %s, ip: %s}]"
 				 "[avg: {bps: %u, pps: %u}]"
-				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, lifetime_timeout:%u}]",
+				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, lifetime_timeout:%u}]"
+				 "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
 				 zrs->remote_ifname, zrs->remote_ifspeed, zrs->remote_ifaddress,
 				 zrs->remote_probe_public_address, zrs->remote_probe_address,
 				 zrs->avg_bps, zrs->avg_pps,
 				 zrs->remote_time, (u_int32_t)zrs->remote_bytes, (u_int32_t)zrs->remote_pkts,
-				 zrs->remote_idle_timeout, zrs->remote_lifetime_timeout);
+				 zrs->remote_idle_timeout, zrs->remote_lifetime_timeout,
+				 zrs->num_exporters, zrs->num_flow_exports);
 #endif
 
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
@@ -1007,6 +1017,10 @@ void ParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
     zmq_initial_bytes = zrs->remote_bytes, zmq_initial_pkts = zrs->remote_pkts;
   }
 
+  if(zmq_remote_initial_exported_flows == 0 /* ntopng has been restarted */
+     || zrs->num_flow_exports < zmq_remote_initial_exported_flows) /* nProbe has been restarted */
+    zmq_remote_initial_exported_flows = zrs->num_flow_exports;
+
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
   zmq_remote_stats_shadow = zmq_remote_stats;
   zmq_remote_stats = zrs;
@@ -1035,6 +1049,9 @@ void ParserInterface::lua(lua_State* vm) {
       lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
     if(zrs->remote_probe_public_address[0] != '\0')
       lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
+
+    lua_push_int_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
+    lua_push_int_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
 
     lua_push_int_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
     lua_push_int_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
