@@ -1499,6 +1499,10 @@ static int ntop_delete_redis_key(lua_State* vm) {
 static int ntop_flush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+    !Utils::isUserAdministrator(vm))
+      return(CONST_LUA_ERROR);
+
   lua_pushboolean(vm, (ntop->getRedis()->flushDb() == 0) ? true : false);
   return(CONST_LUA_OK);
 }
