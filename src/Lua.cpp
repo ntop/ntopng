@@ -2517,21 +2517,6 @@ static int ntop_refresh_hosts_alerts_configuration(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_second_traffic(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-
-  ntop_interface->updateSecondTraffic(time(NULL));
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_set_host_dump_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -5837,7 +5822,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "findHostByMac",          ntop_get_interface_find_host_by_mac },
   { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
   { "refreshHostsAlertsConfiguration", ntop_refresh_hosts_alerts_configuration },
-  { "setSecondTraffic",       ntop_set_second_traffic },
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
   { "getLatestActivityHostsInfo",     ntop_get_interface_latest_activity_hosts_info },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },

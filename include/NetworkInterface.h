@@ -110,11 +110,6 @@ class NetworkInterface {
   bool user_scripts_reload_inline, user_scripts_reload_periodic;
   lua_State *L_user_scripts_inline, *L_user_scripts_periodic;
 
-  /* Second update */
-  u_int64_t lastSecTraffic,
-    lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
-    currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
-  time_t lastSecUpdate;
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
@@ -277,10 +272,6 @@ class NetworkInterface {
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
-  inline void resetSecondTraffic() {
-    memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;
-  };
-  void updateSecondTraffic(time_t when);
   void checkPointCounters(bool drops_only);
   u_int64_t getCheckPointNumPackets();
   u_int64_t getCheckPointNumBytes();
@@ -291,7 +282,6 @@ class NetworkInterface {
     ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
     pktStats.incStats(pkt_len);
-    if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
 
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
@@ -490,7 +480,6 @@ class NetworkInterface {
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);
-  inline u_int64_t* getLastMinuteTrafficStats() { return((u_int64_t*)lastMinuteTraffic); }
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }

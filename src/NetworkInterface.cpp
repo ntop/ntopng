@@ -98,7 +98,7 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  pkt_dumper_tap = NULL, lastSecUpdate = 0;
+  pkt_dumper_tap = NULL;
   ifname = strdup(name);
   ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
   snmp = new SNMP();
@@ -256,7 +256,7 @@ void NetworkInterface::init() {
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, numSubInterfaces = 0,
     numVirtualInterfaces = 0, flowHashing = NULL,
-    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0,
+    pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
     sprobe_interface = false, has_vlan_packets = false,
@@ -277,9 +277,6 @@ void NetworkInterface::init() {
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL;
-
-  memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
-  resetSecondTraffic();
 
   L_user_scripts_inline = L_user_scripts_periodic = NULL;
   forceLuaInterpreterReload();
@@ -1836,7 +1833,6 @@ void NetworkInterface::purgeIdle(time_t when) {
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
-  updateSecondTraffic(when);
 }
 
 /* **************************************************** */
@@ -4999,22 +4995,6 @@ NetworkStats* NetworkInterface::getNetworkStats(u_int8_t networkId) {
   else
     return(&networkStats[networkId]);
 }
-
-/* **************************************** */
-
-void NetworkInterface::updateSecondTraffic(time_t when) {
-  u_int64_t bytes = ethStats.getNumBytes();
-  u_int16_t sec = when % 60;
-
-  if(sec == 0) {
-    /* Beginning of a new minute */
-    memcpy(lastMinuteTraffic, currentMinuteTraffic, sizeof(currentMinuteTraffic));
-    resetSecondTraffic();
-  }
-
-  currentMinuteTraffic[sec] = max_val(0, bytes-lastSecTraffic);
-  lastSecTraffic = bytes;
-};
 
 /* **************************************** */
 
