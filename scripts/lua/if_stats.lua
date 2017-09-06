@@ -22,6 +22,7 @@ require "prefs_utils"
 require "graph_utils"
 require "alert_utils"
 require "db_utils"
+require "rrd_utils"
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
@@ -1186,21 +1187,52 @@ elseif(page == "config") then
       end
    end
 
-      print [[<tr>
+   print [[<tr>
          <th>]] print(i18n("if_stats_config.trigger_interface_alerts")) print[[</th>
          <td>
             <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
                <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
                <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
-                  <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  ]] print(i18n("if_stats_config.trigger_alerts_for_interface", {ifname=short_name})) print[[
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
          </td>
       </tr>]]
 
-   print[[
+   -- per-interface RRD generation
+   local interface_rrd_creation = true
+   local interface_rrd_creation_checked = "checked"
+
+   if (_POST["interface_rrd_creation"] ~= nil) then
+      if _POST["interface_rrd_creation"] ~= "true" then
+         interface_rrd_creation = false
+         interface_rrd_creation_checked = ""
+      end
+
+      ntop.setPref(get_interface_rrd_creation_key(ifId), tostring(interface_rrd_creation))
+   else
+      interface_rrd_creation = ntop.getPref(get_interface_rrd_creation_key(ifId))
+
+      if interface_rrd_creation == "false" then
+         interface_rrd_creation = false
+         interface_rrd_creation_checked = ""
+      end
+   end
+
+   print [[<tr>
+         <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
+         <td>
+            <form id="rrd_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
+               <input type="hidden" name="interface_rrd_creation" value="]] print(not interface_rrd_creation) print[[">
+               <input type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[ onclick="this.form.submit();">
+               </input>
+               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+            </form>
+         </td>
+      </tr>]]
+
+
+      print[[
    </table>]]
 
 elseif(page == "snmp_bind") then

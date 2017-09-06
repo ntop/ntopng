@@ -2034,7 +2034,7 @@ function flushAlertsData()
    ntop.setAlertsTemporaryDisabled(true);
    os.execute("sleep 3")
 
-   callback_utils.foreachInterface(ifnames, false, function(ifname, ifstats)
+   callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
       if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
 
       -- Clear hosts status
@@ -2057,7 +2057,7 @@ function flushAlertsData()
    if(verbose) then io.write("[Alerts] Enabling alerts generation...\n") end
    ntop.setAlertsTemporaryDisabled(false);
 
-   callback_utils.foreachInterface(ifnames, false, function(_ifname, ifstats)
+   callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
       -- Reload hosts status
       interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
    end)

@@ -16,6 +16,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+require "rrd_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 
@@ -49,14 +50,14 @@ local ifnames = interface.getIfNames()
 local prefs = ntop.getPrefs()
 
 -- Scan "5 minute" alerts
-callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
+callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
    scanAlerts("5mins", ifname)
    housekeepingAlertsMakeRoom(getInterfaceId(ifname))
 end)
 
 -- ########################################################
 
-callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
+callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
   basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
   for k in pairs(ifstats["ndpi"]) do
     v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]

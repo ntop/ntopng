@@ -20,21 +20,21 @@ end
 
 -- Iterates available interfaces, excluding PCAP interfaces.
 -- Each valid interface is select-ed and passed to the callback.
-function callback_utils.foreachInterface(ifnames, verbose, callback)
-  for _,_ifname in pairs(ifnames) do
-    interface.select(_ifname)
-    ifstats = interface.getStats()
+function callback_utils.foreachInterface(ifnames, condition, callback)
+   for _,_ifname in pairs(ifnames) do
+      interface.select(_ifname)
+      local ifstats = interface.getStats()
 
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]\n") end
-
-    if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
-      if callback(_ifname, ifstats, verbose) == false then
-         return false
+      if condition == nil or condition(ifstats.id) then
+	 if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
+	    if callback(_ifname, ifstats, false) == false then
+	       return false
+	    end
+	 end
       end
-    end
-  end
+   end
 
-  return true
+   return true
 end
 
 -- ########################################################
@@ -43,6 +43,7 @@ end
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachHost(ifname, verbose, localHostsOnly, callback, deadline)
    local hostbase
+   local hosts_stats
 
    interface.select(ifname)
 
@@ -77,7 +78,7 @@ function callback_utils.foreachHost(ifname, verbose, localHostsOnly, callback, d
 	 
          if(host.localhost) then
             local keypath = getPathFromKey(hostname)
-            hostbase = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
+            hostbase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
 
             if(not(ntop.exists(hostbase))) then
                if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", hostbase, '\n') end

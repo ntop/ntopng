@@ -24,7 +24,7 @@ local verbose = ntop.verboseTrace()
 local ifnames = interface.getIfNames()
 
 -- Scan "day" alerts
-callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
+callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
    scanAlerts("day", ifname)
 end)
 
@@ -49,14 +49,14 @@ mysql_retention = os.time() - 86400*tonumber(mysql_retention)
 minute_top_talkers_retention = ntop.getCache("ntopng.prefs.minute_top_talkers_retention")
 if((minute_top_talkers_retention == nil) or (minute_top_talkers_retention == "")) then minute_top_talkers_retention = "365" end
 
-callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
-   interface_id = getInterfaceId(_ifname)
+callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
+   local interface_id = getInterfaceId(_ifname)
 
    ntop.deleteMinuteStatsOlderThan(interface_id, tonumber(minute_top_talkers_retention))
 
    callback_utils.harverstExpiredMySQLFlows(_ifname, mysql_retention, verbose)
 
-   hosts_stats = interface.getHostsInfo(false --[[ don't show details --]])
+   local hosts_stats = interface.getHostsInfo(false --[[ don't show details --]])
    hosts_stats = hosts_stats["hosts"]
 
    if(interface.getInterfaceDumpDiskPolicy() == true) then

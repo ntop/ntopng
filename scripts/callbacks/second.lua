@@ -11,10 +11,11 @@ end
 
 require "lua_utils"
 require "graph_utils"
+require "rrd_utils"
 local callback_utils = require "callback_utils"
 
 -- Toggle debug
-enable_second_debug = false
+local enable_second_debug = false
 
 if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
    enable_second_debug = true
@@ -26,7 +27,7 @@ end
 
 local ifnames = interface.getIfNames()
 
-callback_utils.foreachInterface(ifnames, enable_second_debug, function(_ifname, ifstats)
+callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
       -- tprint(ifstats)
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
@@ -36,8 +37,6 @@ callback_utils.foreachInterface(ifnames, enable_second_debug, function(_ifname, 
 	 if(enable_second_debug) then io.write('Creating base directory ', basedir, '\n') end
 	 ntop.mkdir(basedir)
       end
-      
-      interface.setSecondTraffic()
 
       -- Traffic stats
       makeRRD(basedir, ifname, "bytes", 1, ifstats.stats.bytes)

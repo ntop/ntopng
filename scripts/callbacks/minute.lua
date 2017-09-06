@@ -16,6 +16,8 @@ end
 require "lua_utils"
 require "graph_utils"
 require "top_structure"
+require "rrd_utils"
+
 local tcp_flags_rrd_creation = ntop.getPref("ntopng.prefs.tcp_flags_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 local callback_utils = require "callback_utils"
@@ -30,7 +32,7 @@ local verbose = ntop.verboseTrace()
 local ifnames = interface.getIfNames()
 
 -- Scan "minute" alerts
-callback_utils.foreachInterface(ifnames, verbose, function(ifname, ifstats)
+callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
    scanAlerts("min", ifname)
 end)
 
@@ -42,7 +44,7 @@ if(verbose) then
    sendHTTPHeader('text/plain')
 end
 
-callback_utils.foreachInterface(ifnames, verbose, function(_ifname, ifstats)
+callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
       -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
       do
         -- Dump topTalkers every minute

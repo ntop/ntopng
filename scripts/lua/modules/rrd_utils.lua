@@ -322,3 +322,13 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   if with_activity then rawdata.activity = activity end
   return times
 end
+
+
+function get_interface_rrd_creation_key(ifid)
+   local k = "ntopng.prefs.interface_rrd_creation.ifid_"..ifid
+   return k
+end
+
+function interface_rrd_creation_enabled(ifId)
+   return not (ntop.getPref(get_interface_rrd_creation_key(ifId)) == "false")
+end

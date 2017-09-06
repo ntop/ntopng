@@ -1079,7 +1079,7 @@ local  en = {
       scaling_factor = "Ingress Packets Sampling Rate",
       scaling_factor_popup_msg = "This should match your capture interface sampling rate",
       trigger_interface_alerts = "Trigger Interface Alerts",
-      trigger_alerts_for_interface = "Trigger alerts for Interface %{ifname}",
+      interface_rrd_creation = "Create Interface Timeseries",
    },
 
    bridge_wizard = {
