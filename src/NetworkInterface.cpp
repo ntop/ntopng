@@ -236,9 +236,9 @@ NetworkInterface::NetworkInterface(const char *name,
     iface = strtok_r(ifaces, ",", &tmp);
 
     while(iface != NULL) {
-      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", iface);
+      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off 2>/dev/null", iface);
       system(buf);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s", buf);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", buf);
       iface = strtok_r(NULL, ",", &tmp);
     }
   }
@@ -2227,7 +2227,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 void NetworkInterface::startPacketPolling() {
   if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
     if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
 				   get_name(), cpu_affinity);
     else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",

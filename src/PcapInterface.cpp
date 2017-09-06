@@ -163,7 +163,7 @@ static void* packetPollLoop(void* ptr) {
       while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
 
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
-	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
+	if((pkt != NULL) && (hdr->caplen > 0)) {
 	  u_int16_t p;
 	  Host *srcHost = NULL, *dstHost = NULL;
 	  Flow *flow = NULL;
