@@ -38,7 +38,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	if((ifName = ntop->get_if_name(i)) == NULL)
 	  continue;
 
-	if(strstr(ifName, iface)) {
+	if(!strncmp(ifName, iface, MAX_INTERFACE_NAME_LEN)) {
 	  found = true;
 	  
 	  if(numSubInterfaces < MAX_NUM_VIEW_INTERFACES) {

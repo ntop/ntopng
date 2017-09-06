@@ -150,15 +150,14 @@ int main(int argc, char *argv[])
   for(int i=0; i<MAX_NUM_INTERFACES; i++) {
     NetworkInterface *iface = NULL;
 
-    if((ifName = ntop->get_if_name(i)) == NULL)
+    if((ifName = ntop->get_if_name(i)) == NULL
+       || !strncmp(ifName, "view:", 5) /* Defer view interfaces init */)
       continue;
 
     try {
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
       if(!strcmp(ifName, "dummy")) {
 	iface = new DummyInterface();
-      } else if(!strncmp(ifName, "view:", 5)) {
-	iface = new ViewInterface(ifName);
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
 	char *at = strchr(ifName, '@');
 	char *endpoint;
@@ -245,6 +244,17 @@ int main(int argc, char *argv[])
       ntop->registerInterface(iface);
     }
   } /* for */
+
+  /* Instantiated deferred view interfaces */
+  for(int i = 0; i < MAX_NUM_INTERFACES; i++) {
+    NetworkInterface *iface = NULL;
+
+    if((ifName = ntop->get_if_name(i)) == NULL || strncmp(ifName, "view:", 5))
+      continue;
+
+    if((iface = new ViewInterface(ifName)))
+      ntop->registerInterface(iface);
+  }
 
   ntop->createExportInterface();
 
