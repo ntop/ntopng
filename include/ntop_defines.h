@@ -748,20 +748,20 @@
 #define HTTP_MAX_CONTENT_TYPE_LENGTH    63
 #define HTTP_MAX_HEADER_LINES           20
 #define HTTP_MAX_POST_DATA_LEN          8192
-#define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
-#define CONST_HELLO_HOST         "hello"
+#define HTTP_CONTENT_TYPE_HEADER        "Content-Type: "
+#define CONST_HELLO_HOST                "hello"
 
-#define CACHED_ENTRIES_THRESHOLD      1024
-#define MAX_CATEGORY_CACHE_DURATION    300 /* Purge entries more than 5 mins old */
+#define CACHED_ENTRIES_THRESHOLD        1024
+#define MAX_CATEGORY_CACHE_DURATION     300 /* Purge entries more than 5 mins old */
 
-#define MARKER_NO_ACTION               0 /* Pass when a verdict is not yet reached */
-#define MARKER_PASS                    1
-#define MARKER_DROP                    2
+#define MARKER_NO_ACTION                0 /* Pass when a verdict is not yet reached */
+#define MARKER_PASS                     1
+#define MARKER_DROP                     2
 
-#define NO_HOST_POOL_ID                0
+#define NO_HOST_POOL_ID                 0
 /* Flow aggregation duration is expressed in housekeeping periods. If housekeeping frequency
    is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
-#define FLOW_AGGREGATION_DURATION      12 * 5 /* 1 minute * 5 = 5 minutes */
+#define FLOW_AGGREGATION_DURATION       12 * 5 /* 1 minute * 5 = 5 minutes */
 
 #define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
 #define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)G(a)->userdata)->b

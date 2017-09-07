@@ -66,7 +66,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   } else {
     pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(),
 				 ntop->getPrefs()->use_promiscuous(),
-				 500, pcap_error_buffer);  
+				 1000 /* 1 sec */, pcap_error_buffer);  
 
     if(pcap_handle) {
       char *bl = strrchr(ifname, 

@@ -94,12 +94,15 @@ PF_RINGInterface::~PF_RINGInterface() {
 static void* packetPollLoop(void* ptr) {
   PF_RINGInterface *iface = (PF_RINGInterface*)ptr;
   pfring  *pd = iface->get_pfring_handle();
-
+  u_int sleep_time, max_sleep = 1000, step_sleep = 100;
+  
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
 
   while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
 
+  sleep_time = step_sleep;
+  
   while(iface->isRunning()) {
     if(pfring_is_pkt_available(pd)) {
       u_char *buffer;
@@ -114,6 +117,7 @@ static void* packetPollLoop(void* ptr) {
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
 	  iface->dissectPacket(0, NULL, (const struct pcap_pkthdr *) &hdr, buffer,
 			       &p, &srcHost, &dstHost, &flow);
+	  sleep_time = step_sleep;
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
@@ -124,7 +128,8 @@ static void* packetPollLoop(void* ptr) {
 	}
       }
     } else {
-      usleep(1);
+      if(sleep_time < max_sleep) sleep_time += step_sleep;
+      usleep(sleep_time);
       iface->purgeIdle(time(NULL));
     }
   }
