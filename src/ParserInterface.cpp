@@ -114,6 +114,10 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
   addMapping("FLOW_DURATION_MICROSECONDS", 162);
   addMapping("ICMP_IPV4_TYPE", 176);
   addMapping("ICMP_IPV4_CODE", 177);
+  addMapping("POST_NAT_SRC_IPV4_ADDR", 225);
+  addMapping("POST_NAT_DST_IPV4_ADDR", 226);
+  addMapping("POST_NAPT_SRC_TRANSPORT_PORT", 227);
+  addMapping("POST_NAPT_DST_TRANSPORT_PORT", 228);
   addMapping("OBSERVATION_POINT_TYPE", 277);
   addMapping("INITIATOR_PKTS", 298);
   addMapping("RESPONDER_PKTS", 299);
