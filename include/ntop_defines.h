@@ -763,7 +763,7 @@
    is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
 #define FLOW_AGGREGATION_DURATION      12 * 5 /* 1 minute * 5 = 5 minutes */
 
-#define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)a->userdata)->b : NULL)
-#define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)a->userdata)->b
+#define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
+#define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)G(a)->userdata)->b
 
 #endif /* _NTOP_DEFINES_H_ */

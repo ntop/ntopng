@@ -43,23 +43,22 @@ struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 /* ******************************* */
 
 Lua::Lua() {
-  void *userdata;
-
   L = luaL_newstate();
 
-  if(L) userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
-  if((L == NULL) || (userdata == NULL)) {
+  if (L) G(L)->userdata = NULL;
+  
+  if(L) G(L)->userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
+  if((L == NULL) || (G(L)->userdata == NULL)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
     return;
-  } else
-    lua_setuserdata(L, userdata);
+  }
 }
 
 /* ******************************* */
 
 Lua::~Lua() {
   if(L) {
-    if(L->userdata) free(L->userdata);
+    if(G(L)->userdata) free(G(L)->userdata);
     lua_close(L);
   }
 }
