@@ -27,7 +27,7 @@ local http_bridge_conf_utils = {}
 
 -- set to a non-empty value to enable HTTP configuration, e.g.,
 -- http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "localhost:8000"
-http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = ""--"localhost:8000"
+http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "" --localhost:8000"
 
 function http_bridge_conf_utils.configureBridge()
    if not isEmptyString(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL) then
@@ -72,8 +72,16 @@ function http_bridge_conf_utils.configureBridge()
       local shaper_id = 2 -- 0 and 1 are reserved for the drop-all end pass-all shapers
       if bridge_conf ~= nil and bridge_conf["shaping_profiles"] ~= nil then
 	 for shaper_name, shaper in pairs(bridge_conf["shaping_profiles"]) do
-	    shapers[shaper_name] = {bw = shaper["bw"], id = shaper_id}
-	    shaper_id = shaper_id + 1
+            local this_id = shaper_id
+	    if shaper["bw"] == -1 then
+	      this_id = 0 -- NO LIMIT
+	    elseif shaper["bw"] == 0 then
+	      this_id = 1 -- DROP ALL
+	    else
+              shaper_id = shaper_id + 1
+	    end
+	    shapers[shaper_name] = {bw = shaper["bw"], id = this_id}
+
 	 end
       end
 
