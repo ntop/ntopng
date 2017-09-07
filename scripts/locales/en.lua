@@ -226,6 +226,15 @@ local  en = {
       receivers = "Receivers",
    },
 
+   topk_heuristic = {
+      precision = {
+	 disabled = "Disabled",
+	 more_accurate = "More Accurate",
+	 less_accurate = "Less Accurate",
+	 aggressive = "Aggressive",
+      },
+   },
+
    shaping = {
       protocols = "Protocols",
       manage_policies = "Manage Policies",
@@ -744,11 +753,13 @@ local  en = {
             "and now requires a browser API key to be submitted for every request. Detailed information on how to obtain an API key "..
             "<a href=\"%{url}\">can be found here</a>. "..
             "Once obtained, the API key can be placed in this field.",
-      report_units = "Report Units",
+      report = "Report",
       toggle_thpt_content_title = "Throughput Unit",
       toggle_thpt_content_description = "Select the throughput unit to be displayed in traffic reports.",
       max_ui_strlen_title = "Maximum Displayed String Length",
       max_ui_strlen_description = "Shorten strings longer than the specified maximum number of characters.",
+      topk_heuristic_precision_title = "Top-K Heuristic",
+      topk_heuristic_precision_description = "Use an heuristic when aggregating historical top hosts, countries, etc, to build traffic reports. Useful when building reports over long-periods.",
       traffic_shaping = "Traffic Shaping",
       toggle_shaping_directions_title = "Split Shaping Directions",
       toggle_shaping_directions_description = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",

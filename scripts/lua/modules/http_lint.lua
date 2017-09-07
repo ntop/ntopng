@@ -882,6 +882,7 @@ local known_parameters = {
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
    ["toggle_thpt_content"]                         =  validateChoiceInline({"bps", "pps"}),
    ["toggle_host_mask"]                            =  validateChoiceInline({"0", "1", "2"}),
+   ["topk_heuristic_precision"]                    =  validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
 
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,

@@ -210,7 +210,10 @@ local menu_subpages = {
     }, toggle_host_mask = {
       title       = i18n("prefs.toggle_host_mask_title"),
       description = i18n("prefs.toggle_host_mask_description"),
-    }
+    }, topk_heuristic_precision = {
+      title       = i18n("prefs.topk_heuristic_precision_title"),
+      description = i18n("prefs.topk_heuristic_precision_description"),
+    },
   }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
     safe_search_dns = {
       title       = i18n("prefs.safe_search_dns_title"),

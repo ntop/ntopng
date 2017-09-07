@@ -469,13 +469,28 @@ function printMisc()
 
   -- ######################
 
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.report_units")..'</th></tr>')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr>')
 
   local t_labels = {i18n("bytes"), i18n("packets")}
   local t_values = {"bps", "pps"}
 
   multipleTableButtonPrefs(subpage_active.entries["toggle_thpt_content"].title, subpage_active.entries["toggle_thpt_content"].description,
 			   t_labels, t_values, "bps", "primary", "toggle_thpt_content", "ntopng.prefs.thpt_content")
+
+  -- ######################
+
+  if ntop.isPro() then
+     t_labels = {i18n("topk_heuristic.precision.disabled"),
+		 i18n("topk_heuristic.precision.more_accurate"),
+		 i18n("topk_heuristic.precision.less_accurate"),
+		 i18n("topk_heuristic.precision.aggressive")}
+     t_values = {"disabled", "more_accurate", "accurate", "aggressive"}
+
+     multipleTableButtonPrefs(subpage_active.entries["topk_heuristic_precision"].title,
+			      subpage_active.entries["topk_heuristic_precision"].description,
+			      t_labels, t_values, "more_accurate", "primary", "topk_heuristic_precision",
+			      "ntopng.prefs.topk_heuristic_precision")
+  end
 
   -- ######################
 
