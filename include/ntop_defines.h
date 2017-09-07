@@ -498,6 +498,10 @@
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MAX_PACKET_SIZE  1518
 
+/* SRC/DST override for ZMQ interfaces */
+#define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    "ntopng.prefs.override_src_with_post_nat_src"
+#define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    "ntopng.prefs.override_dst_with_post_nat_dst"
+
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED   true /* disabled by default */
 #define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3

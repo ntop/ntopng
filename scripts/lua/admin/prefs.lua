@@ -91,6 +91,20 @@ function printInterfaces()
 				    labels, values, "none", "primary", "disaggregation_criterion", "ntopng.prefs.dynamic_flow_collection_mode", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch)
 
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.zmq_interfaces")..'</th></tr>')
+
+  prefsToggleButton({
+	field = "toggle_dst_with_post_nat_dst",
+	default = "0",
+	pref = "override_dst_with_post_nat_dst",
+  })
+
+  prefsToggleButton({
+	field = "toggle_src_with_post_nat_src",
+	default = "0",
+	pref = "override_src_with_post_nat_src",
+  })
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

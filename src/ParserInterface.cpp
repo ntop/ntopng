@@ -684,7 +684,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	    flow.src_ip.set((char*)value);
 	  } else {
 	    ip_aux.set((char*)value);
-	    if(!ip_aux.isEmpty())
+	    if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_src_with_post_nat_src())
 	      /* tried to overwrite a non-empty IP with another non-empty IP */
 	      ntop->getTrace()->traceEvent(TRACE_WARNING,
 					   "Attempt to set source ip multiple times. "
@@ -697,17 +697,17 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	    flow.dst_ip.set((char*)value);
 	  } else {
 	    ip_aux.set((char*)value);
-	    if(!ip_aux.isEmpty())
+	    if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
 	      ntop->getTrace()->traceEvent(TRACE_WARNING,
 					   "Attempt to set destination ip multiple times. "
 					   "Check exported fields in %s", payload);
 	  }
           break;
         case L4_SRC_PORT:
-          flow.src_port = htons(atoi(value));
+	  if(!flow.src_port) flow.src_port = htons(atoi(value));
           break;
         case L4_DST_PORT:
-          flow.dst_port = htons(atoi(value));
+	  if(!flow.dst_port) flow.dst_port = htons(atoi(value));
           break;
         case SRC_VLAN:
         case DST_VLAN:
@@ -800,6 +800,18 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  flow.outIndex = atoi(value);
 	  add_to_additional_fields = true;
 	  break;
+	case POST_NAT_SRC_IPV4_ADDR:
+	  if(ntop->getPrefs()->do_override_src_with_post_nat_src()) flow.src_ip.set((char*)value);
+	  break;
+	case POST_NAT_DST_IPV4_ADDR:
+	  if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) flow.dst_ip.set((char*)value);
+	  break;
+	case POST_NAPT_SRC_TRANSPORT_PORT:
+	  if(ntop->getPrefs()->do_override_src_with_post_nat_src()) flow.src_port = htons(atoi(value));
+	  break;
+	case POST_NAPT_DST_TRANSPORT_PORT:
+	  if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) flow.dst_port = htons(atoi(value));
+	  break;
         case SRC_PROC_PID:
           iface->enable_sprobe(); /* We're collecting system flows */
           flow.src_process.pid = atoi(value);
@@ -879,20 +891,16 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	case BITTORRENT_HASH:
 	  flow.bittorrent_hash = strdup(value);
 	  break;
-
 	case IPV4_NEXT_HOP:
 	  if(strcmp(value, "0.0.0.0")) add_to_additional_fields = true;
 	  break;
-
 	case IPV4_SRC_MASK:
 	case IPV4_DST_MASK:
 	  if(strcmp(value, "0")) add_to_additional_fields = true;
 	  break;
-
 	case INGRESS_VRFID:
 	  flow.vrfId = atoi(value);
 	  break;
-	  
         default:
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
 	  add_to_additional_fields = true;

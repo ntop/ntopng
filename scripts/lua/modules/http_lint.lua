@@ -833,6 +833,8 @@ local known_parameters = {
    ["toggle_shaping_directions"]                   =  validateBool,
    ["toggle_tcp_flags_rrds"]                       =  validateBool,
    ["toggle_tcp_retr_ooo_lost_rrds"]               =  validateBool,
+   ["toggle_dst_with_post_nat_dst"]                =  validateBool,
+   ["toggle_src_with_post_nat_src"]                =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,

@@ -37,6 +37,12 @@ local menu_subpages = {
     dynamic_interfaces_creation = {
       title       = i18n("prefs.dynamic_interfaces_creation_title"),
       description = i18n("prefs.dynamic_interfaces_creation_description"),
+    }, toggle_src_with_post_nat_src = {
+      title       = i18n("prefs.toggle_src_with_post_nat_src_title"),
+      description = i18n("prefs.toggle_src_with_post_nat_src_description"),
+    }, toggle_dst_with_post_nat_dst = {
+      title       = i18n("prefs.toggle_dst_with_post_nat_dst_title"),
+      description = i18n("prefs.toggle_dst_with_post_nat_dst_description"),
     },
   }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  disabled=false, entries={
     local_host_max_idle = {

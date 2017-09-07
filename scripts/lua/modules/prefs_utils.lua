@@ -312,7 +312,6 @@ end
 
 function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement)
-
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
     if ( (value == nil) or (value ~= _POST[submit_field])) then

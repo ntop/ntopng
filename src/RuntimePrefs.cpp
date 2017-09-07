@@ -65,6 +65,8 @@ RuntimePrefs::RuntimePrefs() {
   slack_notifications_enabled = false;
   dump_flow_alerts_when_iface_alerted = false;
 
+  override_dst_with_post_nat_dst =  override_src_with_post_nat_src = false;
+
   max_num_packets_per_tiny_flow = CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW;
   max_num_bytes_per_tiny_flow = CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW;
 
@@ -104,6 +106,8 @@ RuntimePrefs::RuntimePrefs() {
   addToCache(CONST_RUNTIME_PREFS_ALERT_SYSLOG, bool_ptr, (void*)&enable_syslog_alerts);
   addToCache(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, bool_ptr, (void*)&slack_notifications_enabled);
   addToCache(ALERTS_DUMP_DURING_IFACE_ALERTED, bool_ptr, (void*)&dump_flow_alerts_when_iface_alerted);
+  addToCache(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, bool_ptr, (void*)&override_dst_with_post_nat_dst);
+  addToCache(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, bool_ptr, (void*)&override_src_with_post_nat_src);
   addToCache(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_packets_per_tiny_flow);
   addToCache(CONST_MAX_NUM_BYTES_PER_TINY_FLOW, u_int32_t_ptr, (void*)&max_num_bytes_per_tiny_flow);
   addToCache(CONST_SAFE_SEARCH_DNS, ipv4_addr_ptr, (void*)&safe_search_dns_ip);

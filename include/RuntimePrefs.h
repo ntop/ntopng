@@ -73,6 +73,7 @@ class RuntimePrefs {
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation, enable_probing_alerts, enable_ssl_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
+  bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   prefscache_t *redirection_url;
@@ -125,6 +126,9 @@ class RuntimePrefs {
   inline bool  are_alerts_syslog_enabled()               { return(enable_syslog_alerts);             };
   inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);  };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
+
+  inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };
+  inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
 
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);  }
 
