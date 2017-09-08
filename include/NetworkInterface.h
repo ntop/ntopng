@@ -66,7 +66,8 @@ class NetworkInterface {
   char *ifname, *ifDescription;
   const char *customIftype;
   u_int8_t alertLevel, purgeRuns;
-
+  u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
+  
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
   FlowHashingEnum flowHashingMode;
@@ -467,12 +468,16 @@ class NetworkInterface {
   void loadScalingFactorPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
-  inline HostHash* get_hosts_hash()            { return(hosts_hash); }
-  inline MacHash*  get_macs_hash()             { return(macs_hash);  }
-  inline VlanHash*  get_vlans_hash()           { return(vlans_hash); }
-  inline AutonomousSystemHash* get_ases_hash() { return(ases_hash);  }
-  inline bool is_bridge_interface()  { return(bridge_interface); }
-  inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
+  inline void setBridgeLanInterfaceId(u_int32_t v) { bridge_lan_interface_id = v;     };
+  inline u_int32_t getBridgeLanInterfaceId()       { return(bridge_lan_interface_id); };
+  inline void setBridgeWanInterfaceId(u_int32_t v) { bridge_wan_interface_id = v;     };
+  inline u_int32_t getBridgeWanInterfaceId()       { return(bridge_wan_interface_id); };  
+  inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
+  inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
+  inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
+  inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
+  inline bool is_bridge_interface()                { return(bridge_interface);        }
+  inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
     return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);

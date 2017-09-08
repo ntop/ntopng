@@ -37,17 +37,19 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
-  inline u_int16_t getNumHosts()               { return getUses();            }
-  inline void incUses()                        { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
-  inline void decUses()                        { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
-  inline bool isSpecialMac()                   { return(special_mac);         }
-  inline bool isSourceMac()                    { return(source_mac);          }
+  inline u_int16_t getNumHosts() { return getUses();            }
+  inline void incUses()          { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
+  inline void decUses()          { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
+  inline bool isSpecialMac()     { return(special_mac);         }
+  inline bool isSourceMac()      { return(source_mac);          }
   inline void setSourceMac() {
     if(!source_mac && !special_mac) {
       source_mac = true;
       if(getUses() > 0) iface->incNumL2Devices();
     }
   }
+
+  MacLocation locate();
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()                   { return(mac);                 }
   inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }

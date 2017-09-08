@@ -398,4 +398,11 @@ struct ntopngLuaContext {
   NetworkInterface *iface;
 };
 
+typedef enum {
+  located_on_lan_interface = 1,
+  located_on_wan_interface,
+  located_on_unknown_interface,
+} MacLocation;
+
+
 #endif /* _NTOP_TYPEDEFS_H_ */

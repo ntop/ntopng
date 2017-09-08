@@ -181,6 +181,7 @@
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)
 #define STDIN_IFACE_ID          (MAX_NUM_INTERFACES-3)
+#define DUMMY_BRIDGE_INTERFACE_ID       1 /* Anything but zero */
 #define MAX_CSRF_DURATION       300 /* 5 mins */
 #define NTOP_NOLOGIN_USER	"nologin"
 #define NTOP_DEFAULT_USER_LANG  "en"

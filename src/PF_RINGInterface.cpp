@@ -115,7 +115,8 @@ static void* packetPollLoop(void* ptr) {
 	  Flow *flow = NULL;
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  iface->dissectPacket(0, NULL, (const struct pcap_pkthdr *) &hdr, buffer,
+	  iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+			       NULL, (const struct pcap_pkthdr *) &hdr, buffer,
 			       &p, &srcHost, &dstHost, &flow);
 	  sleep_time = step_sleep;
 	} catch(std::bad_alloc& ba) {

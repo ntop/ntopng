@@ -23,7 +23,8 @@
 
 /* *************************************** */
 
-Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface), GenericTrafficElement() {
+Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
+  : GenericHashEntry(_iface), GenericTrafficElement() {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
@@ -231,4 +232,20 @@ json_object* Mac::getJSONObject() {
   if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
 
   return my_object;
+}
+
+/* *************************************** */
+
+MacLocation Mac::locate() {
+  if(iface->is_bridge_interface()) {
+    if(bridge_seen_iface_id == iface->getBridgeLanInterfaceId())
+      return(located_on_lan_interface);
+    else if(bridge_seen_iface_id == iface->getBridgeWanInterfaceId())
+      return(located_on_wan_interface);    
+  } else {
+    if(bridge_seen_iface_id == DUMMY_BRIDGE_INTERFACE_ID)
+      return(located_on_lan_interface);
+  }
+
+  return(located_on_unknown_interface);
 }
