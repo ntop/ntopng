@@ -60,7 +60,7 @@ if(stats ~= nil) then
       if(tot > 0) then
 	 if(num > 0) then print(", ") end
 	 print("\t { \"label\": \"Other\", \"value\": ".. tot .." }")
-      else
+      elseif(num == 0) then
 	 print("\t { \"label\": \"No Flows\", \"value\": 0 }")
       end
 
