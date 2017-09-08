@@ -2070,7 +2070,7 @@ function getPathFromKey(key)
       return getPathFromIPv6(key)
    end
 
-   key = key:gsub("[%.:]", "/")
+   key = tostring(key):gsub("[%.:]", "/")
 
    return fixPath(key)
 end

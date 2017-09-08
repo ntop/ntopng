@@ -6,48 +6,37 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local json = require("dkjson")
 
-sendHTTPHeader('application/json')
+sendHTTPContentTypeHeader('application/json', 'attachment; filename="exported_data.json"')
 
-if _GET["ifid"] ~= nil then
-   interface.select(_GET["ifid"])
-end
+local mode = _GET["mode"]
 
-if((_GET["ip"] ~= nil) and (_GET["ip"] ~= "")) then
-   vlan = 0
-   if ((_GET["vlan"] ~= nil) and (_GET["vlan"] ~= "")) then
-      vlan = tonumber(_GET["vlan"])
+if mode == "filtered" then
+   local host_info = url2hostinfo(_GET)
+   local host
+
+   if not isEmptyString(host_info["host"]) then
+      host = interface.getHostInfo(host_info["host"], host_info["vlan"] or 0)
    end
-  
-   host = interface.getHostInfo(_GET["ip"], vlan)
 
-   if(host == nil) then 
-      print("{ }\n")
-   else
-      print(host["json"].."\n")
-   end
+   print(json.encode(host or {}))
+
 else
-   -- All hosts
-   
-   hosts_stats = interface.getHostsInfo()
-   hosts_stats = hosts_stats["hosts"]
-   num = 0
-   print("[\n")
+   local hosts_retrv_function
+   local hosts_stats
 
-   for key, value in pairs(hosts_stats) do
-      
-      host_info = split(key,"@")
-      ip = host_info[1]
-      vlan = host_info[2]
-       
-      host = interface.getHostInfo(ip,vlan)
-      
-      if((host ~= nil) and (host["json"] ~= nil)) then
-	 if(num > 0) then print(",\n") end
-	 print(host["json"])
-	 num = num + 1
-      end
+   if mode == "all" then
+      hosts_retrv_function = interface.getHostsInfo
+   elseif mode == "local" then
+      hosts_retrv_function = interface.getLocalHostsInfo
+   elseif mode == "remote" then
+      hosts_retrv_function = interface.getRemoteHostsInfo
    end
 
-   print("\n]\n")
+   if hosts_retrv_function then
+      hosts_stats = hosts_retrv_function()
+   end
+
+   print(json.encode(hosts_stats or {}))
 end

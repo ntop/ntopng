@@ -835,13 +835,16 @@ local  en = {
    },
 
    export_data = {
-      export_data = "Export Data",
-      host = "Host",
+      export_data = "Export Host Data",
+      hosts = "Hosts",
+      all_hosts = "All",
+      local_hosts = "Local",
+      remote_hosts = "Remote",
+      single = "Single",
       ip_or_mac_address = "IP or MAC Address",
-      note_host = "NOTE: If the field is empty all hosts will be exported",
-      note_vlan = "NOTE: If the field is empty vlan is set to 0.",
       export_json_data = "Export JSON Data",
-      reset_form = "Reset Form",
+      note_maximum_number = "The maximum number of downloadable hosts is 32,768.",
+      note_active_hosts = "Only active hosts are returned.",
    },
 
    if_stats_overview = {
