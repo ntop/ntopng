@@ -1324,7 +1324,7 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
-bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
+bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     const struct bpf_timeval *when,
 				     const u_int64_t time,
 				     struct ndpi_ethhdr *eth,
@@ -1837,7 +1837,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 /* **************************************************** */
 
-bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
+bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 				     u_int8_t *sender_mac,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,

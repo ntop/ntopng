@@ -28,7 +28,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false;
-  bridge_seen_iface[0] = bridge_seen_iface[1] = 0;
+  bridge_seen_iface_id = 0;
   device_type = device_unknown;
 
   if(ntop->getMacManufacturers())
@@ -137,7 +137,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   lua_push_str_table_entry(vm, "mac", m = Utils::formatMac(mac, buf, sizeof(buf)));
   lua_push_int_table_entry(vm, "vlan", vlan_id);
-
+  lua_push_int_table_entry(vm, "bridge_seen_iface_id", bridge_seen_iface_id);
   lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 

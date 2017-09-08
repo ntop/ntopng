@@ -27,8 +27,9 @@
 class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
+  u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
   const char * manuf;
-  bool source_mac:1, special_mac:1, bridge_seen_iface[2] /* , notused:4 */;
+  bool source_mac:1, special_mac:1 /* , notused:6 */;
   ArpStats arp_stats;
   DeviceType device_type;
 
@@ -42,7 +43,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline bool isSpecialMac()                   { return(special_mac);         }
   inline bool isSourceMac()                    { return(source_mac);          }
   inline void setSourceMac() {
-    if (!source_mac && !special_mac) {
+    if(!source_mac && !special_mac) {
       source_mac = true;
       if(getUses() > 0) iface->incNumL2Devices();
     }
@@ -67,8 +68,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
   inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
-  inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; setSourceMac(); }
-  inline bool isSeenIface(u_int8_t idx)   { return(bridge_seen_iface[idx & 0x01]); }
+  inline void setSeenIface(u_int32_t idx)  { bridge_seen_iface_id = idx; setSourceMac(); }
+  inline u_int32_t getSeenIface()     { return(bridge_seen_iface_id); }
   inline void setDeviceType(DeviceType devtype) { device_type = devtype; }
   inline DeviceType getDeviceType()        { return (device_type); }
   inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
