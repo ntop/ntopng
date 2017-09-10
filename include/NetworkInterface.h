@@ -391,6 +391,7 @@ class NetworkInterface {
         bool sourceMacsOnly,
         bool hostMacsOnly, u_int32_t maxHits, const char *manufacturer,
         u_int8_t location_filter);
+  int getMacsIpAddresses(lua_State *vm, int idx);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
 #ifdef NOTUSED

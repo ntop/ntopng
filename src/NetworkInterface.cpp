@@ -3928,6 +3928,61 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 
 /* **************************************************** */
 
+struct hosts_get_macs_retriever {
+  lua_State *vm;
+  int idx;
+};
+
+static bool hosts_get_macs(GenericHashEntry *he, void *user_data) {
+  struct hosts_get_macs_retriever *r = (struct hosts_get_macs_retriever *) user_data;
+  Host *host = (Host *)he;
+  Mac *mac = host->getMac();
+  char mac_buf[32], *mac_ptr;
+  char ip_buf[64];
+
+  if(mac && !mac->isSpecialMac() && host->get_ip()) {
+    mac_ptr = Utils::formatMac(mac->get_mac(), mac_buf, sizeof(mac_buf));
+    lua_getfield(r->vm, r->idx, mac_ptr);
+
+    if(lua_type(r->vm, -1) == LUA_TTABLE) {
+      lua_getfield(r->vm, -1, "ip");
+
+      if(lua_type(r->vm, -1) == LUA_TNIL) {
+        /* First assignment - create table */
+        lua_pop(r->vm, 1);
+        lua_pushstring(r->vm, "ip");
+        lua_newtable(r->vm);
+        lua_settable(r->vm, -3);
+        lua_getfield(r->vm, -1, "ip");
+      }
+
+      if(lua_type(r->vm, -1) == LUA_TTABLE) {
+        /* Add the ip address to the table */
+        lua_push_int_table_entry(r->vm, host->get_hostkey(ip_buf, sizeof(ip_buf)), host->get_ip()->isIPv4() ? 4 : 6);
+      }
+
+      lua_pop(r->vm, 1);
+    }
+
+    lua_pop(r->vm, 1);
+  }
+
+  /* keep on iterating */
+  return (false);
+}
+
+int NetworkInterface::getMacsIpAddresses(lua_State *vm, int idx) {
+  struct hosts_get_macs_retriever retriever;
+
+  retriever.vm = vm;
+  retriever.idx = idx;
+
+  walker(walker_hosts, hosts_get_macs, (void*)&retriever);
+  return 0;
+}
+
+/* **************************************************** */
+
 int NetworkInterface::getActiveHostsGroup(lua_State* vm,	       
 					  AddressTree *allowed_hosts,
 					  bool host_details, LocationPolicy location,

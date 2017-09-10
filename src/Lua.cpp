@@ -616,6 +616,24 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 
 /* ****************************************** */
 
+/* Receives in input a Lua table, having mac address as keys and tables as values. Every IP address found for a mac is inserted into the table as an 'ip' field. */
+static int ntop_add_macs_ip_addresses(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TTABLE)) return(CONST_LUA_ERROR);
+
+  if((!ntop_interface) || ntop_interface->getMacsIpAddresses(vm, 1) < 0)
+    return(CONST_LUA_ERROR);
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5818,6 +5836,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getRemoteHostsInfo",     ntop_get_interface_remote_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
+  { "addMacsIpAddresses",     ntop_add_macs_ip_addresses },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "restoreHost",            ntop_restore_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
