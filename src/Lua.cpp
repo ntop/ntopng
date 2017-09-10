@@ -686,6 +686,13 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static u_int8_t str_2_location(const char *s) {
+  if (! strcmp(s, "lan")) return located_on_lan_interface;
+  else if (! strcmp(s, "wan")) return located_on_wan_interface;
+  else if (! strcmp(s, "unknown")) return located_on_unknown_interface;
+  return (u_int8_t)-1;
+}
+
 static int ntop_get_interface_macs_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_mac";
@@ -694,6 +701,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   u_int16_t vlan_id = 0, pool_filter = (u_int16_t)-1;
   u_int8_t devtype_filter = (u_int8_t)-1;
   bool a2zSortOrder = true, sourceMacsOnly = false, hostMacsOnly = false;
+  u_int8_t location_filter = (u_int8_t)-1;
 
   if(lua_type(vm, 1) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 1);
   if(lua_type(vm, 2) == LUA_TNUMBER)  maxHits = (u_int16_t)lua_tonumber(vm, 2);
@@ -705,6 +713,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if(lua_type(vm, 8) == LUA_TSTRING)  manufacturer = lua_tostring(vm, 8);
   if(lua_type(vm, 9) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 9);
   if(lua_type(vm, 10) == LUA_TNUMBER) devtype_filter = (u_int8_t)lua_tonumber(vm, 10);
+  if(lua_type(vm, 11) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 11));
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
@@ -712,7 +721,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 				      vlan_id, sourceMacsOnly,
 				      hostMacsOnly, manufacturer,
 				      sortColumn, maxHits,
-				      toSkip, a2zSortOrder, pool_filter, devtype_filter) < 0)
+				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -776,6 +785,7 @@ static int ntop_get_mac_device_types(lua_State* vm) {
   bool sourceMacsOnly = false;
   bool hostMacsOnly = true;
   char *manufacturer = NULL;
+  u_int8_t location_filter = (u_int8_t)-1;
 
   if(lua_type(vm, 1) == LUA_TNUMBER)
     vlan_id = (u_int16_t)lua_tonumber(vm, 1);
@@ -792,10 +802,12 @@ static int ntop_get_mac_device_types(lua_State* vm) {
   if(lua_type(vm, 5) == LUA_TSTRING)
     manufacturer = (char*)lua_tostring(vm, 5);
 
+  if(lua_type(vm, 6) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 6));
+
   if((!ntop_interface)
      || (ntop_interface->getActiveDeviceTypes(vm, vlan_id, sourceMacsOnly,
                  hostMacsOnly, 0 /* bridge_iface_idx - TODO */,
-                 maxHits, manufacturer) < 0))
+                 maxHits, manufacturer, location_filter) < 0))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -933,6 +945,7 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   u_int16_t vlan_id = 0;
   u_int8_t devtype_filter = (u_int8_t)-1;
   bool sourceMacsOnly = false, hostMacsOnly = false;
+  u_int8_t location_filter = (u_int8_t)-1;
 
   if(lua_type(vm, 1) == LUA_TNUMBER)
     vlan_id = (u_int16_t)lua_tonumber(vm, 1);
@@ -949,11 +962,13 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   if(lua_type(vm, 5) == LUA_TNUMBER)
     devtype_filter = (u_int8_t)lua_tonumber(vm, 5);
 
+  if(lua_type(vm, 6) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 6));
+
   if(!ntop_interface ||
      ntop_interface->getActiveMacManufacturers(vm,
 					       0, /* bridge_iface_idx - TODO */
 					       vlan_id, sourceMacsOnly,
-					       hostMacsOnly, maxHits, devtype_filter) < 0)
+					       hostMacsOnly, maxHits, devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

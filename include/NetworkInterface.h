@@ -181,7 +181,8 @@ class NetworkInterface {
 	       u_int8_t bridge_iface_idx,
 	       u_int16_t vlan_id, bool sourceMacsOnly,
 	       bool hostMacsOnly, const char *manufacturer,
-	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter);
+	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
+	       u_int8_t location_filter);
 
   bool isNumber(const char *str);
   bool validInterface(char *name);
@@ -376,17 +377,20 @@ class NetworkInterface {
 		       bool hostMacsOnly, const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder,
-		       u_int16_t pool_filter, u_int8_t devtype_filter);
+		       u_int16_t pool_filter, u_int8_t devtype_filter,
+		       u_int8_t location_filter);
   int getActiveMacManufacturers(lua_State* vm,
 				u_int8_t bridge_iface_idx,
 				u_int16_t vlan_id,
 				bool sourceMacsOnly,
-				bool hostMacsOnly, u_int32_t maxHits, u_int8_t devtype_filter);
+				bool hostMacsOnly, u_int32_t maxHits, u_int8_t devtype_filter,
+			        u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
         u_int8_t bridge_iface_idx,
         u_int16_t vlan_id,
         bool sourceMacsOnly,
-        bool hostMacsOnly, u_int32_t maxHits, const char *manufacturer);
+        bool hostMacsOnly, u_int32_t maxHits, const char *manufacturer,
+        u_int8_t location_filter);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
 #ifdef NOTUSED
