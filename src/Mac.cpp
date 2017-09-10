@@ -137,10 +137,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "mac", m = Utils::formatMac(mac, buf, sizeof(buf)));
-  lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_int_table_entry(vm, "bridge_seen_iface_id", bridge_seen_iface_id);
-  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   if(show_details) {
     if(manuf)
@@ -155,6 +152,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_int_table_entry(vm, "devtype", device_type);
   }
+
+  ((GenericTrafficElement*)this)->lua(vm, true);
 
   lua_push_int_table_entry(vm, "seen.first", first_seen);
   lua_push_int_table_entry(vm, "seen.last", last_seen);
