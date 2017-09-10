@@ -5834,9 +5834,7 @@ void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, 
 /* *************************************** */
 
 void NetworkInterface::topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes) {
-  // TODO only consider MACS on the LAN side
-
-  if ((bytes > 0) && (! mac->isSpecialMac())) {
+  if ((bytes > 0) && (! mac->isSpecialMac()) && (mac->locate() == located_on_lan_interface)) {
     // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
     frequentMacs->addMacProtocol(mac->get_mac(), proto->app_protocol, bytes);
   }
