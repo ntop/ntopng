@@ -162,6 +162,7 @@ class NetworkInterface {
 		u_int8_t l4_proto,
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
+		u_int32_t rawsize,
 		bool *new_flow);
   int sortHosts(struct flowHostRetriever *retriever,
 		u_int8_t bridge_iface_idx,
@@ -234,8 +235,9 @@ class NetworkInterface {
   /* calling virtual in constructors/destructors should be avoided
      See C++ FAQ Lite covers this in section 23.7
   */
-  inline virtual bool isPacketInterface()      { return(strcmp(get_type(), CONST_INTERFACE_TYPE_FLOW) != 0); }
+  inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
+  inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
   inline virtual bool is_ndpi_enabled()        { return(true);          }

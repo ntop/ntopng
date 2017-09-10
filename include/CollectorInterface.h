@@ -46,6 +46,7 @@ class CollectorInterface : public ParserInterface {
   ~CollectorInterface();
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZMQ);      };
+  inline InterfaceType getIfType()      { return(interface_type_ZMQ); }
   inline bool is_ndpi_enabled()         { return(false);      };
   inline char* getEndpoint(u_int8_t id) { return((id < num_subscribers) ?
 						 subscriber[id].endpoint : (char*)""); };

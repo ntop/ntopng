@@ -404,5 +404,19 @@ typedef enum {
   located_on_unknown_interface,
 } MacLocation;
 
+typedef enum {
+  interface_type_UNKNOWN = 0,
+  interface_type_PCAP,
+  interface_type_PCAP_DUMP,
+  interface_type_ZMQ,
+  interface_type_VLAN,
+  interface_type_FLOW,
+  interface_type_VIEW,
+  interface_type_PF_RING,
+  interface_type_NETFILTER,
+  interface_type_DIVERT,
+  interface_type_DUMMY,
+  interface_type_ZC_FLOW  
+} InterfaceType;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

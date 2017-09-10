@@ -37,7 +37,8 @@ class PF_RINGInterface : public NetworkInterface {
   PF_RINGInterface(const char *name);
   ~PF_RINGInterface();
 
-  inline const char* get_type()      { return(CONST_INTERFACE_TYPE_PF_RING);     };
+  inline InterfaceType getIfType()   { return(interface_type_PF_RING);       };
+  inline const char* get_type()      { return(CONST_INTERFACE_TYPE_PF_RING); };
   inline pfring* get_pfring_handle() { return(pfring_handle); };
   void startPacketPolling();
   void shutdown();

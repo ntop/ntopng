@@ -28,6 +28,7 @@ class ViewInterface : public NetworkInterface {
  public:
   ViewInterface(const char *_endpoint);
 
+  inline InterfaceType getIfType()      { return(interface_type_VIEW);           };
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_VIEW);     };
   inline bool is_ndpi_enabled()         { return(false);                         };
   inline bool isView()                  { return(true);                          };

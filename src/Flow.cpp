@@ -1100,7 +1100,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)
+	if((iface->getIfType() != interface_type_ZMQ)
 	   && (protocol == IPPROTO_TCP)
 	   && (get_goodput_bytes() > 0)
 	   && (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH)) {
@@ -1442,8 +1442,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
        || iface->is_ndpi_enabled()
        || iface->isSampledTraffic()
        || iface->is_sprobe_interface()
-       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))
-       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZC_FLOW))) {
+       || (iface->getIfType() == interface_type_ZMQ)
+       || (iface->getIfType() == interface_type_ZC_FLOW)) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
@@ -1962,7 +1962,7 @@ json_object* Flow::flow2json() {
 bool Flow::isIdleFlow() {
   time_t now = iface->getTimeLastPktRcvd();
 
-  if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
+  if(iface->getIfType() != interface_type_ZMQ) {
     u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
 
     if(protocol == IPPROTO_TCP) {
@@ -2989,7 +2989,7 @@ FlowStatus Flow::getFlowStatus() {
   if((tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost) > threshold)
     return status_tcp_connection_issues;
 
-  if(!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
+  if(iface->getIfType() == interface_type_ZMQ) {
     /* ZMQ flows */
   } else {
     /* Packet flows */

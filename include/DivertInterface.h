@@ -35,6 +35,7 @@ class DivertInterface : public NetworkInterface {
   ~DivertInterface();
 
   inline const char* get_type()                 { return(CONST_INTERFACE_TYPE_DIVERT); };
+  inline InterfaceType getIfType()              { return(interface_type_DIVERT);       };
   inline int get_fd()                           { return(sock);                        };
   void startPacketPolling();
 };

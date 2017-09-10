@@ -376,7 +376,7 @@ void NetworkInterface::checkAggregationMode() {
 
     if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0 && rsp[0] != '\0') {
 
-      if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) { /* ZMQ interface */
+      if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
 	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID)) flowHashingMode = flowhashing_vrfid;
@@ -904,6 +904,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				u_int8_t l4_proto,
 				bool *src2dst_direction,
 				time_t first_seen, time_t last_seen,
+				u_int32_t rawsize,
 				bool *new_flow) {
   Flow *ret;
   Mac *primary_mac;
@@ -953,7 +954,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   }
   
   if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
-    if((primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
+    if((!srcMac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
 #ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -962,13 +963,36 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				   srcHost->get_ip()->print(buf, sizeof(buf)),
 				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
+
+      if(srcHost->getMac()->isSpecialMac()) {
+	if(getIfType() == interface_type_NETFILTER) {
+	  /* 
+	     This is the first *reply* packet of a flow so we need to increment it
+	     with the initial packet that was missed as NetFilter did not report
+	     the (destination) MAC. From now on, all flow peers are known
+	  */
+
+	  if(ret->get_packets_cli2srv() == 1 /* first packet */)
+	    srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
+	}
+      }
       
       srcHost->set_mac(srcMac);
     }
   }
 
   if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
-    if((primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
+    if(dstMac->isSpecialMac()) {
+      if(getIfType() == interface_type_NETFILTER) {
+	/* 
+	   In this case the destination Mac is unknown and thus we need to
+	   increase the bytes/packets counters for the flow peer (if set)
+	*/
+	
+	if(!dstHost->getMac()->isSpecialMac())
+	  dstHost->getMac()->incRcvdStats(1, rawsize);	
+      }
+    } else if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
 #ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -1133,7 +1157,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->src_port, zflow->dst_port,
 		 zflow->l4_proto, &src2dst_direction,
 		 zflow->first_switched,
-		 zflow->last_switched, &new_flow);
+		 zflow->last_switched, 0, &new_flow);
 
   if(flow == NULL)
     return;
@@ -1372,7 +1396,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
       incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-
+      
       return(ret);
     }
   }
@@ -1381,6 +1405,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     srcMac->incSentStats(1, rawsize);
     srcMac->setSeenIface(bridge_iface_idx);
   }
+
   if((dstMac = getMac(eth->h_dest, vlan_id, true)))
     dstMac->incRcvdStats(1, rawsize);
 
@@ -1422,7 +1447,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       ipv6_shift = 8 * (options[1] + 1);
 
       if(ipsize < ipv6_shift) {
-	incStats(when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       }
     }
@@ -1513,7 +1539,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, &new_flow);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow);
 
   if(flow == NULL) {
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -1852,6 +1878,10 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
+
+  /* Netfilter interfaces don't report MAC addresses on packets */
+  if(getIfType() == interface_type_NETFILTER)
+    rawsize += sizeof(struct ndpi_ethhdr);
 
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {

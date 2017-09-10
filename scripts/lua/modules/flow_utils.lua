@@ -1108,6 +1108,7 @@ end
  end
 
 -- #######################
+
 function map_failure_resp_code(fail_resp_code_string)
   if (fail_resp_code_string ~= nil) then
     if(fail_resp_code_string == "200") then
@@ -1194,7 +1195,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks)
    end
 
    if show_macs and cli_mac then
-      label = label.." ["..cli_mac.."]"
+      label = label.." [ "..cli_mac.." ]"
    end
 
    label = label.." <i class=\"fa fa-exchange fa-lg\"  aria-hidden=\"true\"></i> "
@@ -1208,7 +1209,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks)
    end
 
    if show_macs and srv_mac then
-      label = label.." ["..srv_mac.."]"
+      label = label.." [ "..srv_mac.." ]"
    end
 
    return label

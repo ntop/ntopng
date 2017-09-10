@@ -32,6 +32,7 @@ class DummyInterface : public ParserInterface {
   DummyInterface();
 
   const char* get_type()                { return(CONST_INTERFACE_TYPE_DUMMY);      };
+  inline InterfaceType getIfType()      { return(interface_type_DUMMY);            };
   inline bool is_ndpi_enabled()         { return(false);  };
   inline bool isPacketInterface()       { return(false);  };
 
