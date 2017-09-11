@@ -28,6 +28,9 @@
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
 
+  if((num_active_pool_members = (u_int16_t*)calloc(sizeof(u_int16_t), MAX_NUM_HOST_POOLS)) == NULL)
+    throw 1;
+  
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
@@ -59,8 +62,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
 #endif
 
   max_num_pools = MAX_NUM_HOST_POOLS;
-
-  assert(max_num_pools == MAX_NUM_HOST_POOLS);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Host Pools Available: %u", MAX_NUM_HOST_POOLS);
 }
@@ -102,6 +103,7 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
 HostPools::~HostPools() {
   int i;
 
+  if(num_active_pool_members) free(num_active_pool_members);
   if(tree_shadow)   deleteTree(&tree_shadow);
   if(tree)          deleteTree(&tree);
   if(children_safe) free(children_safe);
@@ -723,7 +725,6 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
 
   return(false);
 }
-
 
 /* *************************************** */
 

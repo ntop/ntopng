@@ -36,7 +36,7 @@ class HostPools {
   NetworkInterface *iface;
   bool *children_safe;
   u_int16_t max_num_pools;
-
+  u_int16_t *num_active_pool_members;
 #ifdef NTOPNG_PRO
   bool *enforce_quotas_per_pool_member; /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
@@ -97,16 +97,18 @@ public:
 
   void resetPoolsStats();
   inline bool isChildrenSafePool(u_int16_t pool_id) {
-    return((pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools) ? children_safe[pool_id] : false);
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? children_safe[pool_id] : false);
   }
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
-    return((pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools) ? enforce_quotas_per_pool_member[pool_id] : false);
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_quotas_per_pool_member[pool_id] : false);
   }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
   void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);
   void purgeExpiredVolatileMembers();
 #endif
+  inline void incPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]++; }
+  inline void decPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]--; }
 };
 
 #endif /* _HOST_POOLS_H_ */

@@ -80,7 +80,7 @@ class NetworkInterface {
   
   string ip_addresses;
   int id;
-  bool bridge_interface;
+  bool bridge_interface, forcePoolReload;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
@@ -211,7 +211,8 @@ class NetworkInterface {
 		      char *host_ip, u_int16_t vlan_id);
 
   void topItemsCommit(const struct timeval *when);
-
+  void doRefreshHostPools();
+  
  public:
   /**
   * @brief A Constructor
@@ -454,7 +455,7 @@ class NetworkInterface {
   inline void luaHostPoolsStats(lua_State *vm)           { if (host_pools) host_pools->luaStats(vm);           };
   inline void luaHostPoolsVolatileMembers(lua_State *vm) { if (host_pools) host_pools->luaVolatileMembers(vm); };
 #endif
-  void refreshHostPools();
+  inline void refreshHostPools() { forcePoolReload = true; }
   inline u_int16_t getHostPool(Host *h) { if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID; };
 
   bool updateDumpAllTrafficPolicy(void);
@@ -580,6 +581,8 @@ class NetworkInterface {
   inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
+  inline void incPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->incPoolNumMembers(id); }
+  inline void decPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->decPoolNumMembers(id); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

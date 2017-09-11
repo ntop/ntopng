@@ -249,7 +249,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
 void NetworkInterface::init() {
   ifname = NULL, flows_hash = NULL,
-    hosts_hash = NULL,
+    hosts_hash = NULL, forcePoolReload = false,
     bridge_lan_interface_id = bridge_wan_interface_id = 0,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
@@ -1860,6 +1860,11 @@ void NetworkInterface::purgeIdle(time_t when) {
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
+
+  if(forcePoolReload) {
+    doRefreshHostPools();
+    forcePoolReload = false;
+  }
 }
 
 /* **************************************************** */
@@ -2525,7 +2530,6 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
     h->updateHostL7Policy();
 
 #ifdef HOST_POOLS_DEBUG
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Going to refresh pool for %s "
 			       "[refresh pool id: %i] "
@@ -2537,7 +2541,6 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 			       up->update_l7policy ? 1 : 0,
 			       cur_pool_id,
 			       h->get_host_pool());
-
 #endif
 
   return(false); /* false = keep on walking */
@@ -2545,7 +2548,7 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 
 /* **************************************************** */
 
-void NetworkInterface::refreshHostPools() {
+void NetworkInterface::doRefreshHostPools() {
   if(isView()) return;
 
   struct update_host_pool_l7policy update_host;
