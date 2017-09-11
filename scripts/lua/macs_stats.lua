@@ -19,7 +19,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "devices_stats"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local base_url = ntop.getHttpPrefix() .. "/lua/mac_stats.lua"
+local base_url = ntop.getHttpPrefix() .. "/lua/macs_stats.lua"
 local page_params = {}
 
 local devices_mode = ""

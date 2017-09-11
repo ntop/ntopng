@@ -394,7 +394,7 @@ if((page == "overview") or (page == nil)) then
 	    else
 	       print(i18n("host_details.unknown_device_type") .. " ")
 	    end
-	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host["mac"]..'"><i class="fa fa-cog"></i></a>\n')
+	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(macinfo)..'&page=config"><i class="fa fa-cog"></i></a>\n')
 	 else
 	    print("&nbsp;")
 	 end

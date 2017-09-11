@@ -1544,7 +1544,11 @@ resolved_host_labels_cache = {}
 
 -- host_ip can be a mac. host_mac can be null.
 function getHostAltName(host_ip, host_mac)
-   local alt_name = resolved_host_labels_cache[host_ip]
+   local alt_name = nil
+
+   if not isEmptyString(host_ip) then
+      alt_name = resolved_host_labels_cache[host_ip]
+   end
 
    -- cache hit
    if(alt_name ~= nil) then
@@ -1568,7 +1572,7 @@ function getHostAltName(host_ip, host_mac)
 end
 
 function setHostAltName(host_ip, alt_name)
-  ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
+   ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
 end
 
 -- Mac Addresses --

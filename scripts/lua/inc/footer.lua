@@ -313,7 +313,7 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 
             msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/mac_stats.lua?devices_mode=host_macs_only\">";
+print [[/lua/macs_stats.lua?devices_mode=host_macs_only\">";
 		  msg += "<span class=\"label label-default\">";
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 

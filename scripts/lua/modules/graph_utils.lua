@@ -1714,7 +1714,8 @@ end
 
 function poolDropdown(pool_id, exclude)
    local output = {}
-   exclude = exclude or {[host_pools_utils.DEFAULT_POOL_ID]=true}
+   --exclude = exclude or {[host_pools_utils.DEFAULT_POOL_ID]=true}
+   exclude = exclude or {}
 
    for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
       if (not exclude[pool.id]) or (pool.id == pool_id) then
