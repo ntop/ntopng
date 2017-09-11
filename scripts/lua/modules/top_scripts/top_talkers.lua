@@ -58,6 +58,10 @@ local function printTopTalkersTable(tbl)
 	       rsp = rsp..'"'..k..'": '
 	       if(k == "value") then
 		  rsp = rsp..tostring(v)
+	       elseif(k == "label") then
+		  local alt_name = getHostAltName(rv["address"])
+		  if isEmptyString(alt_name) or (alt_name == rv["address"]) then alt_name = rv["label"] end
+		  rsp = rsp..'"'..alt_name..'"'
 	       else
 		  rsp = rsp..'"'..v..'"'
 	       end
