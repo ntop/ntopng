@@ -74,9 +74,9 @@ DIST_COMMON = $(am__configure_deps) $(include_HEADERS) \
 	$(top_srcdir)/builds/redhat/zeromq.spec.in \
 	$(top_srcdir)/configure $(top_srcdir)/src/libzmq.pc.in \
 	$(top_srcdir)/src/platform.hpp.in AUTHORS COPYING \
-	COPYING.LESSER INSTALL NEWS config/compile config/config.guess \
-	config/config.sub config/depcomp config/install-sh \
-	config/ltmain.sh config/missing
+	COPYING.LESSER ChangeLog INSTALL NEWS config/compile \
+	config/config.guess config/config.sub config/depcomp \
+	config/install-sh config/ltmain.sh config/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
