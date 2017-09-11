@@ -227,6 +227,7 @@ using namespace std;
 #include "Logstash.h"
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
+#include "DnsHostMapping.h"
 #ifndef WIN32
 #include "PacketBridge.h"
 #endif
