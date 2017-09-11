@@ -65,6 +65,7 @@ class HostPools {
 public:
   HostPools(NetworkInterface *_iface);
   virtual ~HostPools();
+
   void reloadPools();
   u_int16_t getPool(Host *h);
 
@@ -77,6 +78,7 @@ public:
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void updateStats(struct timeval *tv);
+  void lua(lua_State *vm);
   void luaStats(lua_State *vm);
 
   inline bool getProtoStats(u_int16_t host_pool_id, u_int16_t ndpi_proto, u_int64_t *bytes, u_int32_t *duration) {

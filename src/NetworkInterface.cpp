@@ -4514,6 +4514,9 @@ void NetworkInterface::lua(lua_State *vm) {
     if(flow_profiles) flow_profiles->lua(vm);
 #endif
   }
+
+  if(host_pools)
+    host_pools->lua(vm);
 }
 
 /* **************************************************** */

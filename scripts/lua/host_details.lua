@@ -1783,6 +1783,7 @@ elseif (page == "config") then
             </form>
          </td>
       </tr>]]
+
    if not ifstats.isView then
       printPoolChangeDropdown(host_pool_id)
    end

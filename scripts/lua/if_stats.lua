@@ -305,10 +305,18 @@ if(isAdministrator()) then
 end
 
 if isAdministrator() and (not ifstats.isView) then
+   local num_pool_hosts = 0
+   local label
+   
+   for k,v in pairs(ifstats.num_pool_members) do
+      num_pool_hosts = num_pool_hosts + v
+   end
+
+   label = "<span class='badge badge-top-right'>".. num_pool_hosts .."</span>"
    if(page == "pools") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i></a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
    else
-      print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i></a></li>")
+      print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
    end
 end
 

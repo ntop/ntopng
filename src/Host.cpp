@@ -362,7 +362,7 @@ void Host::updateHostPool() {
   if(!iface)
     return;
 
-  if(host_pool_id != NO_HOST_POOL_ID) iface->incPoolNumMembers(host_pool_id);
+  if(host_pool_id != NO_HOST_POOL_ID) iface->decPoolNumMembers(host_pool_id);
   host_pool_id = iface->getHostPool(this);
   if(host_pool_id != NO_HOST_POOL_ID) iface->incPoolNumMembers(host_pool_id);
   

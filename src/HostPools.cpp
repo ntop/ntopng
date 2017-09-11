@@ -360,6 +360,25 @@ void HostPools::updateStats(struct timeval *tv) {
 
 /* *************************************** */
 
+void HostPools::lua(lua_State *vm) {
+  lua_newtable(vm);
+  
+  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    if(num_active_pool_members[i] > 0) {
+      char buf[8];
+      
+      snprintf(buf, sizeof(buf), "%u", i);
+      lua_push_int_table_entry(vm, buf, num_active_pool_members[i]);
+    }      
+  }
+  
+  lua_pushstring(vm, "num_pool_members");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void HostPools::luaStats(lua_State *vm) {
   HostPoolStats *hps;
 

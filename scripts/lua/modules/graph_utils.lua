@@ -1761,8 +1761,9 @@ function printPoolChangeDropdown(pool_id)
             </select>&nbsp;
             <input id="csrf" name="csrf" type="hidden" value="]] .. ntop.getRandomCSRFValue() ..[[" />
             <button type="submit" class="btn btn-default">]] .. i18n("save") ..  [[</button>
-         </form>
-      </td>
+         </form> 
+        <A HREF=/lua/if_stats.lua?page=pools#create><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
+   .. i18n("host_pools.edit_host_pools") .. [[</A>
    </tr>]]
 
    print(table.concat(output, ''))
