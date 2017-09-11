@@ -72,13 +72,13 @@ public:
   bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
   bool findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
-
+  void lua(lua_State *vm);
+  
 #ifdef NTOPNG_PRO
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void updateStats(struct timeval *tv);
-  void lua(lua_State *vm);
   void luaStats(lua_State *vm);
 
   inline bool getProtoStats(u_int16_t host_pool_id, u_int16_t ndpi_proto, u_int64_t *bytes, u_int32_t *duration) {

@@ -64,6 +64,8 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
+  if(host_pool_id != NO_HOST_POOL_ID) iface->decPoolNumMembers(host_pool_id);
+  
   if(mac)           mac->decUses();
   if(as)            as->decUses();
   if(vlan)          vlan->decUses();
