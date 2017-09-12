@@ -811,7 +811,10 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
 
     while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
       if(rc == SQLITE_ERROR) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s]", query);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s][%s][%s]",
+				     query,
+				     sqlite3_errmsg(db),
+				     sqlite3_errstr(rc));
 	rc = 1;
 	goto out;
       }
