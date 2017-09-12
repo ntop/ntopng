@@ -155,6 +155,8 @@ local id2label = {
 }
 
 discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
+discover.android_icon = '<i class="fa fa-android fa-lg" aria-hidden="true"></i>'
+discover.apple_icon = '<i class="fa fa-apple fa-lg" aria-hidden="true"></i>'
 
 local function device_label_sort_fn(a, b)
    return asc_insensitive(a[2], b[2])

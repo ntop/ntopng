@@ -32,7 +32,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    local str
    local friendlyName = ""
 
-   if(ssdp_entries and ssdp_entries.friendlyName) then
+   if((ssdp_entries ~= nil)and (ssdp_entries.friendlyName ~= nil)) then
       friendlyName = ssdp_entries["friendlyName"]
    end
    
@@ -116,7 +116,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 end
       end
 
-      ret = '</i>'..discover.asset_icons[icon]..' (Apple)'
+      ret = '</i>'..discover.asset_icons[icon]..' ' .. discover.apple_icon
 
       if(osx ~= nil) then ret = ret .. osx end
       return icon, ret
@@ -158,17 +158,22 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "Cisco")) then
       return 'networking', discover.asset_icons['networking']
-   elseif(string.contains(manufacturer, "HUAWEI")) then
-      return 'phone', discover.asset_icons['phone']
+   elseif(string.contains(manufacturer, "Palo Alto Networks")) then
+      return 'networking', discover.asset_icons['networking']
+   elseif(string.contains(manufacturer, "Liteon Technology")) then
+      return 'workstation', discover.asset_icons['workstation']
    elseif(string.contains(manufacturer, 'TP%-LINK')) then -- % is the escape char in Lua
       return 'wifi', discover.asset_icons['wifi']
    elseif(string.contains(manufacturer, 'Broadband')) then -- % is the escape char in Lua
       return 'networking', discover.asset_icons['networking']
    elseif(string.contains(manufacturer, "Samsung Electronics")
-	  or string.contains(manufacturer, "SAMSUNG ELECTRO-MECHANICS")
+	  or string.contains(manufacturer, "SAMSUNG ELECTRO")
+	  or string.contains(manufacturer, "HTC Corporation")
+	  or string.contains(manufacturer, "HUAWEI")
+	  or string.contains(manufacturer, "Xiaomi Communications")
 	  or string.contains(manufacturer, "Mobile Communications") -- LG Electronics (Mobile Communications)
         ) then
-      return 'phone', discover.asset_icons['phone']
+      return 'phone', discover.asset_icons['phone'].. ' ' ..discover.android_icon
    elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)) then
       local _snmp = string.lower(snmp)
       
@@ -183,13 +188,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'printer', discover.asset_icons['printer']..' ('..snmp..')'
    elseif(string.contains(manufacturer, "Apple, Inc.")) then      
       if(string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
-	 return 'phone', discover.asset_icons['phone']..' (iPhone)'
+	 return 'phone', discover.asset_icons['phone']..' ('  .. discover.apple_icon .. ' iPhone)'
       elseif(string.contains(hostname, "ipad") or string.contains(symName, "ipad")) then
-	 return 'tablet', discover.asset_icons['tablet']..' (iPad)'
+	 return 'tablet', discover.asset_icons['tablet']..' ('  .. discover.apple_icon .. 'iPad)'
       elseif(string.contains(hostname, "ipod") or string.contains(symName, "ipod")) then
-	 return 'phone', discover.asset_icons['phone']..' (iPod)'
+	 return 'phone', discover.asset_icons['phone']..' ('  .. discover.apple_icon .. 'iPod)'
       else
-	 local ret = '</i> '..discover.asset_icons['workstation']..' (Apple)'
+	 local ret = '</i> '..discover.asset_icons['workstation']..' ' .. discover.apple_icon
 	 local sym = names[ip]
 	 local what = 'workstation'
 	 
@@ -201,7 +206,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	    ret = '</i> '..discover.asset_icons['nas']
 	    what = 'nas'
 	 elseif(string.contains(sym, "book")) then
-	    ret = '</i> '..discover.asset_icons['laptop']..' (Apple)'
+	    ret = '</i> '..discover.asset_icons['laptop']..' ' .. discover.apple_icon
 	    what = 'laptop'
 	 end
 	 
@@ -223,7 +228,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    elseif(string.contains(hostname, "thinkpad") or string.contains(symName, "thinkpad")) then
       return 'laptop', discover.asset_icons['laptop']
    elseif(string.contains(hostname, "android") or string.contains(symName, "android")) then
-      return 'phone', discover.asset_icons['phone']..' (Android)'
+      return 'phone', discover.asset_icons['phone']..' ' ..discover.android_icon
    elseif(string.contains(hostname, "%-NAS") or string.contains(symName, "%-NAS")) then
       return 'nas', discover.asset_icons['nas']
    end
@@ -261,7 +266,8 @@ local function analyzeSSDP(ssdp)
       local icon = ""
       local base_url = getbaseURL(url)
       local services = { }
-
+      local friendlyName = ""
+      
       if(hresp ~= nil) then
 	 local xml = require("xmlSimple").newParser()
 	 local r = xml:ParseXmlText(hresp["CONTENT"])
