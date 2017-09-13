@@ -819,6 +819,7 @@ local known_parameters = {
    ["toggle_ldap_anonymous_bind"]                  =  validateBool,
    ["toggle_local_host_cache_enabled"]             =  validateBool,
    ["toggle_active_local_host_cache_enabled"]      =  validateBool,
+   ["toggle_device_discovery"]                     =  validateBool,
    ["toggle_local"]                                =  validateBool,
    ["toggle_local_ndpi"]                           =  validateBool,
    ["toggle_flow_rrds"]                            =  validateBool,

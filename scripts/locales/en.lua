@@ -597,6 +597,7 @@ local  en = {
       flow_database_dump = "Flow Database Dump",
       snmp = "SNMP",
       nbox_integration = "nBox Integration",
+      device_discovery = "Device Discovery",
       misc = "Misc",
       traffic_bridging = "Traffic Bridging",
       dynamic_network_interfaces = "Dynamic Network Interfaces",
@@ -661,8 +662,7 @@ local  en = {
             "Cached local hosts counters are restored automatically to their previous values "..
             " upon detection of additional host traffic.",
       toggle_active_local_host_cache_enabled_title = "Active Local Hosts Cache",
-      toggle_active_local_host_cache_enabled_description = "Toggle the creation of cache entries for idle local hosts. "..
-            "Toggle the creation of cache entries for active local hosts. "..
+      toggle_active_local_host_cache_enabled_description = "Toggle the creation of cache entries for active local hosts. "..
             "Caching active local hosts periodically can be useful to protect host counters against "..
             "failures (e.g., power losses). This is particularly important for local hosts that seldomly go idle "..
             "as it guarantees that their counters will be cached after the specified time interval.",
@@ -751,6 +751,12 @@ local  en = {
       nbox_user_description = "User that has privileges to access the nBox. Default: nbox",
       nbox_password_title = "nBox Password",
       nbox_password_description = "Password associated to the nBox user. Default: nbox",
+
+      toggle_device_discovery_title = "Active Device Discovery",
+      toggle_device_discovery_description = "Toggle the periodic discovery of devices using multiple techniques that include ARP scan, MDNS and SSDP.",
+      device_discovery_interval_title = "Active Device Discovery Interval",
+      device_discovery_interval_description = "Interval between consecutive discoveries of devices. Default: 15 min.",
+
       web_user_interface = "Web User Interface",
       toggle_autologout_title = "Auto Logout",
       toggle_autologout_description = "Toggle the automatic logout of web interface users with expired sessions.",

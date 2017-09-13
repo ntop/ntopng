@@ -446,6 +446,45 @@ end
 
 -- ================================================================================
 
+function printDeviceDiscovery()
+   print('<table class="table">')
+   print('<form method="post">')
+
+   print('<tr><th colspan=2 class="info">'..i18n("prefs.device_discovery")..'</th></tr>')
+
+   local elementToSwitch = {"device_discovery_interval"}
+
+   prefsToggleButton({
+    field = "toggle_device_discovery",
+    default = "0",
+    pref = "is_device_discovery_enabled",
+    to_switch = elementToSwitch,
+  })
+
+   local showDeviceDiscoveryInterval = false
+   if ntop.getPref("ntopng.prefs.is_device_discovery_enabled") == "1" then
+      showDeviceDiscoveryInterval = true
+   end
+
+   local interval = ntop.getPref("ntopng.prefs.device_discovery_interval")
+
+   if isEmptyString(interval) then -- set a default value
+      interval = 15 * 60 -- 15 minutes
+      ntop.setPref("ntopng.prefs.device_discovery_interval", tostring(interval))
+   end
+
+   prefsInputFieldPrefs(subpage_active.entries["device_discovery_interval"].title, subpage_active.entries["device_discovery_interval"].description,
+    "ntopng.prefs.", "device_discovery_interval", interval, "number", showDeviceDiscoveryInterval, nil, nil, {min=60 * 15, tformat="mhd"})
+
+   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+
+   print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ================================================================================
+
 function printMisc()
   print('<form method="post">')
   print('<table class="table">')
@@ -955,6 +994,10 @@ if(tab == "nbox") then
   if(ntop.isPro()) then
      printNbox()
   end
+end
+
+if(tab == "discovery") then
+   printDeviceDiscovery()
 end
 
 if(tab == "bridging") then

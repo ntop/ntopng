@@ -3324,7 +3324,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
   js_specific_code = string.gsub(js_specific_code, "\n", "")
 
   if tonumber(value) ~= nil then
-    -- returns the new value with selected resolution
+     -- returns the new value with selected resolution
     return {html=html, init=js_init_code, js=js_specific_code, value=tonumber(value) / fmt_to_data[selected].value}
   else
     return {html=html, init=js_init_code, js=js_specific_code, value=nil}
