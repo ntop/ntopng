@@ -367,7 +367,7 @@ local function discoverARP()
 
 
    if(arp_mdns == nil) then
-      status = discoverStatus("ERROR", "Unable to start ARP network discovery")
+      status = discoverStatus("ERROR", i18n("discover.err_unable_to_arp_discovery"))
    else
       -- Add the known macs to the list
       local known_macs = interface.getMacsInfo(nil, 999, 0, false, 0, tonumber(vlan), true, true, nil) or {}
@@ -538,7 +538,7 @@ end
 
 -- #############################################################################
 
-print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
+print("<p>&nbsp;<H2>"..ifname.." "..i18n("discover.network_discovery").."</H2><p>&nbsp;<p>\n")
 
 local discovered = discover2table(ifname)
 
@@ -546,8 +546,8 @@ if discovered["status"]["code"] ~= "OK" then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..discovered["status"]["message"]..'</div>')
 
 else
-   print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
-   print("<th>Information</th><th>Device</th></tr>")
+   print("<table class=\"table table-bordered table-striped\">\n<tr><th>"..i18n("ip_address").."</th><th>"..i18n("name").."</th><th>"..i18n("mac_stats.manufacturer").."</th><th>"..i18n("mac_address").."</th>")
+   print("<th>"..i18n("info").."</th><th>"..i18n("discover.device").."</th></tr>")
 
    for _, el in ipairs(discovered["devices"] or {}) do
       print("<tr>")

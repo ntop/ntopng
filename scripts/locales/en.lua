@@ -534,6 +534,12 @@ local  en = {
       per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
    },
 
+   discover = {
+      network_discovery = "Network Discovery",
+      err_unable_to_arp_discovery = "Unable to start ARP network discovery",
+      device = "Device",
+   },
+
    snmp = {
       snmp_device = "SNMP Device",
       view_device = "View Device",
