@@ -2,7 +2,7 @@
 -- (C) 2013-17 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -35,7 +35,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if((ssdp_entries ~= nil)and (ssdp_entries.friendlyName ~= nil)) then
       friendlyName = ssdp_entries["friendlyName"]
    end
-   
+
    if((names == nil) or (names[ip] == nil)) then
       hostname = ""
    else
@@ -43,7 +43,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if(symName == nil) then symName = "" else symName = string.lower(symName) end
-   
+
    if(_mdns ~= nil) then
       --io.write(mac .. " /" .. manufacturer .. " / ".. _mdns.."\n")
       local mdns_items = string.split(_mdns, ";")
@@ -69,7 +69,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	    ssdp[v] = 1
 	 end
       end
-   end   
+   end
 
    if(osx ~= nil) then
       -- model=iMac11,3;osxvers=16
@@ -105,11 +105,11 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 if(osxvers ~= nil) then osx = osx .."<br>"..osxvers end
       end
    end
-   
+
    if(mdns["_ssh._tcp.local"] ~= nil) then
       local icon = 'workstation'
       local ret
-      
+
       if(osx ~= nil) then
 	 if(string.contains(osx, "MacBook")) then
 	    icon = 'laptop'
@@ -129,14 +129,14 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if(string.contains(friendlyName, "TV")) then
       return 'tv', discover.asset_icons['tv']
    end
-   
+
    if((ssdp["urn:upnp-org:serviceId:AVTransport"] ~= nil)
       or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
       return 'multimedia', discover.asset_icons['multimedia']
    end
-   
+
    if(ssdp_entries and ssdp_entries["modelDescription"]) then
-   	local descr = string.lower(ssdp_entries["modelDescription"])
+	local descr = string.lower(ssdp_entries["modelDescription"])
 
 	if(string.contains(descr, "camera")) then
 	   return 'video', discover.asset_icons['video']
@@ -172,11 +172,11 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	  or string.contains(manufacturer, "HUAWEI")
 	  or string.contains(manufacturer, "Xiaomi Communications")
 	  or string.contains(manufacturer, "Mobile Communications") -- LG Electronics (Mobile Communications)
-        ) then
+	) then
       return 'phone', discover.asset_icons['phone'].. ' ' ..discover.android_icon
    elseif(string.contains(manufacturer, "Hewlett Packard") and (snmp ~= nil)) then
       local _snmp = string.lower(snmp)
-      
+
       if(string.contains(_snmp, "jet") or string.contains(_snmp, "fax")) then
 	 return 'printer', discover.asset_icons['printer']..' ('..snmp..')'
       elseif(string.contains(_snmp, "curve")) then
@@ -186,7 +186,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    elseif(string.contains(manufacturer, "Xerox") and (snmp ~= nil)) then
       return 'printer', discover.asset_icons['printer']..' ('..snmp..')'
-   elseif(string.contains(manufacturer, "Apple, Inc.")) then      
+   elseif(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
 	 return 'phone', discover.asset_icons['phone']..' ('  .. discover.apple_icon .. ' iPhone)'
       elseif(string.contains(hostname, "ipad") or string.contains(symName, "ipad")) then
@@ -197,9 +197,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 local ret = '</i> '..discover.asset_icons['workstation']..' ' .. discover.apple_icon
 	 local sym = names[ip]
 	 local what = 'workstation'
-	 
+
 	 if(sym == nil) then sym = "" else sym = string.lower(sym) end
-	 
+
 	 if((snmp and string.contains(snmp, "capsule"))
 	       or string.contains(sym, "capsule"))
 	 then
@@ -209,12 +209,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	    ret = '</i> '..discover.asset_icons['laptop']..' ' .. discover.apple_icon
 	    what = 'laptop'
 	 end
-	 
+
 	 if(snmp ~= nil) then ret = ret .. " ["..snmp.."]" end
 	 return what, ret
       end
    end
-   
+
    if(string.contains(mac, "F0:4F:7C") and string.contains(hostname, "kindle-")) then
       return 'tablet', discover.asset_icons['tablet']..' (Kindle)'
    end
@@ -248,16 +248,15 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if(string.contains(manufacturer, "Ubiquity")) then
       return 'networking', discover.asset_icons['networking']
    end
-   
+
    return 'unknown', ""
 end
-
 
 -- #############################################################################
 
 local function analyzeSSDP(ssdp)
    local rsp = {}
-   
+
    for url,host in pairs(ssdp) do
       local hresp = ntop.httpGet(url, "", "", 3 --[[ seconds ]])
       local manufacturer = ""
@@ -267,7 +266,7 @@ local function analyzeSSDP(ssdp)
       local base_url = getbaseURL(url)
       local services = { }
       local friendlyName = ""
-      
+
       if(hresp ~= nil) then
 	 local xml = require("xmlSimple").newParser()
 	 local r = xml:ParseXmlText(hresp["CONTENT"])
@@ -281,7 +280,7 @@ local function analyzeSSDP(ssdp)
 		  modelName = r.root.device.modelName:value()
 	       end
 	       if(r.root.device.modelDescription ~= nil) then
-	          modelDescription = r.root.device.modelDescription:value()
+		  modelDescription = r.root.device.modelDescription:value()
 	       end
 	    end
 	 end
@@ -350,107 +349,131 @@ end
 
 -- ################################################################################
 
-interface.select(ifname)
+local function discoverStatus(code, message)
+   return {code = code or '', message = message or ''}
 
-io.write("Starting ARP discovery...\n")
-local arp_mdns = interface.arpScanHosts()
-
-if(arp_mdns == nil) then
-   -- Internal error
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Unable to start network discovery</div>')
-   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-   return
 end
 
-local ghost_macs  = {}
-local ghost_found = false
+-- #############################################################################
 
--- Add the known macs to the list
-local known_macs = interface.getMacsInfo(nil, 999, 0, false, 0, tonumber(vlan), true, true, nil)
+local function discoverARP()
+   io.write("Starting ARP discovery...\n")
+   local status = discoverStatus("OK")
+   local res = {}
 
-for _,hmac in pairs(known_macs.macs) do
-   if(hmac["bytes.sent"] > 0) then -- Skip silent hosts
-      if(arp_mdns[hmac.mac] == nil) then
-	 local ips = interface.findHostByMac(hmac.mac)
-	 -- io.write("Missing MAC "..hmac.mac.."\n")
+   local ghost_macs  = {}
+   local ghost_found = false
+   local arp_mdns = interface.arpScanHosts()
 
-	 for k,v in pairs(ips) do
-	    arp_mdns[hmac.mac] = k
-	    ghost_macs[hmac.mac] = k
-	    ghost_found = true
+
+   if(arp_mdns == nil) then
+      status = discoverStatus("ERROR", "Unable to start ARP network discovery")
+   else
+      -- Add the known macs to the list
+      local known_macs = interface.getMacsInfo(nil, 999, 0, false, 0, tonumber(vlan), true, true, nil) or {}
+
+      for _,hmac in pairs(known_macs.macs) do
+	 if(hmac["bytes.sent"] > 0) then -- Skip silent hosts
+	    if(arp_mdns[hmac.mac] == nil) then
+	       local ips = interface.findHostByMac(hmac.mac) or {}
+	       -- io.write("Missing MAC "..hmac.mac.."\n")
+
+	       for k,v in pairs(ips) do
+		  arp_mdns[hmac.mac] = k
+		  ghost_macs[hmac.mac] = k
+		  ghost_found = true
+	       end
+	    end
 	 end
       end
    end
+
+   return {status = status, ghost_macs = ghost_macs, ghost_found = ghost_found, arp_mdns = arp_mdns}
 end
 
-io.write("Starting SSDP discovery...\n")
-local ssdp = interface.discoverHosts(3)
-
-local osx_devices = { }
-for mac,ip in pairsByValues(arp_mdns, asc) do
-   -- io.write("## '"..mac .. "' = '" ..ip.."'\n")
-
-   if((ip == "0.0.0.0") or (ip == "255.255.255.255")) then
-      -- This does not lokk like a good IP/MAC combination
-   elseif(string.find(mac, ":") ~= nil) then
-      local manufacturer = get_manufacturer_mac(mac)
-      
-      -- This is an ARP entry
-      -- io.write("Attempting to resolve "..ip.."\n")
-      interface.mdnsQueueNameToResolve(ip)
-
-      interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.5.0", 0)
-      
-      if(string.contains(manufacturer, "HP") or string.contains(manufacturer, "Hewlett Packard")) then
-	 -- Query printer model
-	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.25.3.2.1.3.1", 0)
-      end
-   else
-      local ip_addr = mac
-      local mdns_services = ip
-      
-      io.write("[MDNS Services] '"..ip_addr .. "' = '" ..mdns_services.."'\n")
-
-      if(string.contains(mdns_services, '_sftp')) then
-	 osx_devices[ip_addr] = 1
-      end
-
-      ntop.resolveName(ip) -- Force address resolution
-   end
-end
-
-io.write("Analyzing SSDP...\n")
-ssdp = analyzeSSDP(ssdp)
-
-local show_services = false
-
-io.write("Collecting MDNS responses\n")
-local mdns = interface.mdnsReadQueuedResponses()
-for ip,rsp in pairsByValues(mdns, asc) do
-   io.write("[MDNS Resolver] "..ip.." = "..rsp.."\n")
-end
-
-
-for ip,_ in pairs(osx_devices) do
-   io.write("[MDNS OSX] Querying "..ip.. "\n")
-   interface.mdnsQueueAnyQuery(ip, "_sftp-ssh._tcp.local")
-end
-
-io.write("Collecting SNMP responses\n")
-local snmp = interface.snmpReadResponses()
-for ip,rsp in pairsByValues(snmp, asc) do
-   io.write("[SNMP] "..ip.." = "..rsp.."\n")
-end
-
-io.write("Collecting MDNS OSX responses\n")
-osx_devices = interface.mdnsReadQueuedResponses()
-io.write("Collected MDNS OSX responses\n")
-
-for a,b in pairs(osx_devices) do
-   io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
-end
+-- #############################################################################
 
 local function discover2table(interface_name)
+   interface.select(interface_name)
+
+   -- ARP
+   local arp_d = discoverARP()
+   if arp_d["status"]["code"] ~= "OK" then
+      return {status = arp_d["status"]}
+   end
+
+   local arp_mdns = arp_d["arp_mdns"] or {}
+   local ghost_macs = arp_d["ghost_macs"]
+   local ghost_found = arp_d["ghost_found"]
+
+   -- SSDP, MDNS and SNMP
+   io.write("Starting SSDP discovery...\n")
+   local ssdp = interface.discoverHosts(3)
+   local osx_devices = {}
+
+   for mac,ip in pairsByValues(arp_mdns, asc) do
+      if((ip == "0.0.0.0") or (ip == "255.255.255.255")) then
+	 -- This does not look like a good IP/MAC combination
+      elseif(string.find(mac, ":") ~= nil) then
+	 local manufacturer = get_manufacturer_mac(mac)
+
+	 -- This is an ARP entry
+	 -- io.write("Attempting to resolve "..ip.."\n")
+	 interface.mdnsQueueNameToResolve(ip)
+
+	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.5.0", 0)
+
+	 if(string.contains(manufacturer, "HP") or string.contains(manufacturer, "Hewlett Packard")) then
+	    -- Query printer model
+	    interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.25.3.2.1.3.1", 0)
+	 end
+      else
+	 local ip_addr = mac
+	 local mdns_services = ip
+
+	 io.write("[MDNS Services] '"..ip_addr .. "' = '" ..mdns_services.."'\n")
+
+	 if(string.contains(mdns_services, '_sftp')) then
+	    osx_devices[ip_addr] = 1
+	 end
+
+	 ntop.resolveName(ip) -- Force address resolution
+      end
+   end
+
+   io.write("Analyzing SSDP...\n")
+   ssdp = analyzeSSDP(ssdp)
+
+   local show_services = false
+
+   io.write("Collecting MDNS responses\n")
+   local mdns = interface.mdnsReadQueuedResponses()
+   for ip,rsp in pairsByValues(mdns, asc) do
+      io.write("[MDNS Resolver] "..ip.." = "..rsp.."\n")
+   end
+
+   for ip,_ in pairs(osx_devices) do
+      io.write("[MDNS OSX] Querying "..ip.. "\n")
+      interface.mdnsQueueAnyQuery(ip, "_sftp-ssh._tcp.local")
+   end
+
+   io.write("Collecting SNMP responses\n")
+   local snmp = interface.snmpReadResponses()
+   for ip,rsp in pairsByValues(snmp, asc) do
+      io.write("[SNMP] "..ip.." = "..rsp.."\n")
+   end
+
+   io.write("Collecting MDNS OSX responses\n")
+   osx_devices = interface.mdnsReadQueuedResponses()
+   io.write("Collected MDNS OSX responses\n")
+
+   for a,b in pairs(osx_devices) do
+      io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
+   end
+
+
+   -- Time to pack the results in a table...
+   local status = discoverStatus("OK")
    local res = {}
 
    for mac, ip in pairsByValues(arp_mdns, asc) do
@@ -510,78 +533,82 @@ local function discover2table(interface_name)
       ::continue::
    end
 
-   return {status = "OK", devices = res}
+   return {status = status, devices = res, ghost_found = ghost_found}
 end
 
-
+-- #############################################################################
 
 print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
-print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
-print("<th>Information</th><th>Device</th></tr>")
 
 local discovered = discover2table(ifname)
 
-for _, el in ipairs(discovered["devices"]) do
-   print("<tr>")
-   -- IP
-   print("<td align=left nowrap>")
-   print("<a href='" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..tostring(el["ip"]).."'>"..tostring(el["ip"]).."</A>")
-   if el["icon"] then print(el["icon"] .. "&nbsp;") end
-   if el["ghost"] then print(' <font color=red>'..discover.ghost_icon..'</font>') end
-   print("</td>")
+if discovered["status"]["code"] ~= "OK" then
+   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..discovered["status"]["message"]..'</div>')
 
-   -- Name
-   print("<td>")
-   if el["sym"] then print(el["sym"]) end
-   if el["symIP"] then
-      if el["sym"] then
-	 print(" ["..el["symIP"].."]")
-      else
-	 print(el["symIP"])
+else
+   print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
+   print("<th>Information</th><th>Device</th></tr>")
+
+   for _, el in ipairs(discovered["devices"] or {}) do
+      print("<tr>")
+      -- IP
+      print("<td align=left nowrap>")
+      print("<a href='" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..tostring(el["ip"]).."'>"..tostring(el["ip"]).."</A>")
+      if el["icon"] then print(el["icon"] .. "&nbsp;") end
+      if el["ghost"] then print(' <font color=red>'..discover.ghost_icon..'</font>') end
+      print("</td>")
+
+      -- Name
+      print("<td>")
+      if el["sym"] then print(el["sym"]) end
+      if el["symIP"] then
+	 if el["sym"] then
+	    print(" ["..el["symIP"].."]")
+	 else
+	    print(el["symIP"])
+	 end
       end
-   end
-   print("</td>")
+      print("</td>")
 
-   -- Manufacturer
-   print("<td>")
-   if el["manufacturer"] then print(el["manufacturer"]) end
-   if el["modelName"] then
-      if el["manufacturer"] then
-	 print(" ["..el["modelName"].."]")
-      else
-	 print(el["modelName"])
+      -- Manufacturer
+      print("<td>")
+      if el["manufacturer"] then print(el["manufacturer"]) end
+      if el["modelName"] then
+	 if el["manufacturer"] then
+	    print(" ["..el["modelName"].."]")
+	 else
+	    print(el["modelName"])
+	 end
       end
-   end
-   print("</td>")
+      print("</td>")
 
-   -- Mac
-   print("<td>")
-   print("<A HREF='"..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..el["mac"].."'>"..el["mac"].."</A>")
-   print("</td>")
+      -- Mac
+      print("<td>")
+      print("<A HREF='"..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..el["mac"].."'>"..el["mac"].."</A>")
+      print("</td>")
 
-   -- Information
-   print("<td>")
-   if el["information"] then print(table.concat(el["information"], "<br>")) end
-   if el["url"] then
-      if el["information"] then
-	 print("<br>"..el["url"])
-      else
-	 print(el["url"])
+      -- Information
+      print("<td>")
+      if el["information"] then print(table.concat(el["information"], "<br>")) end
+      if el["url"] then
+	 if el["information"] then
+	    print("<br>"..el["url"])
+	 else
+	    print(el["url"])
+	 end
       end
+      print("</td>")
+
+      -- Device
+      print("<td>")
+      if el["device_label"] then print(el["device_label"]) end
+      print("</td>")
+
+      print("</tr>")
    end
-   print("</td>")
-
-   -- Device
-   print("<td>")
-   if el["device_label"] then print(el["device_label"]) end
-   print("</td>")
-
-   print("</tr>")
 end
 
-
 if false then -- TODO: remove
-
    print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
    print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
    if(show_services) then print("<th>Services</th>") end
@@ -679,7 +706,7 @@ end -- TODO: remove
 
 print("</table>\n")
 
-if(ghost_found) then
+if(discovered["ghost_found"]) then
    print('<b>NOTE</b>: The <font color=red>'..discover.ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
 end
 
