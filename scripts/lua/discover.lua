@@ -424,11 +424,6 @@ ssdp = analyzeSSDP(ssdp)
 
 local show_services = false
 
-print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
-print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
-if(show_services) then print("<th>Services</th>") end
-print("<th>Information</th><th>Device</th></tr>")
-
 io.write("Collecting MDNS responses\n")
 local mdns = interface.mdnsReadQueuedResponses()
 for ip,rsp in pairsByValues(mdns, asc) do
@@ -455,98 +450,238 @@ for a,b in pairs(osx_devices) do
    io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
 end
 
-for mac,ip in pairsByValues(arp_mdns, asc) do
-   if((string.find(mac, ":") ~= nil)
-	 and (ip ~= "0.0.0.0")
-      	 and (ip ~= "255.255.255.255")) then
-      -- This is an ARP entry
-      local deviceType
-      local symIP = mdns[ip]
-      local services = ""
+local function discover2table(interface_name)
+   local res = {}
+
+   for mac, ip in pairsByValues(arp_mdns, asc) do
+      if((string.find(mac, ":") == nil)
+	 or (ip == "0.0.0.0")
+	 or (ip == "255.255.255.255")) then
+	 goto continue
+      end
+
+      local entry = {ip = ip, mac = mac, ghost = false, information = {}}
+
       local host = interface.getHostInfo(ip, 0) -- no VLAN
-      local sym
+      local sym, device_type, device_label
+      local manufacturer
+      local services = ""
+      local symIP = mdns[ip]
 
       if(host ~= nil) then sym = host["name"] else sym = ntop.resolveName(ip) end
-      
-      print("<tr><td align=left nowrap>")
-
-      print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
-      if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
-
-      if(ghost_macs[mac] ~= nil) then
-	 print(' <font color=red>'..discover.ghost_icon..'</font>')
+      if not isEmptyString(sym) and sym ~= ip then
+	 entry["sym"] = sym
+      end
+      if not isEmptyString(symIP) and symIP ~= ip then
+	 entry["symIP"] = symIP
       end
 
-      print("</td><td>")
-      if((sym ~= "") and (sym ~= ip)) then print(sym) end
-	
-      if(symIP ~= nil) then
-	 if((sym ~= "") and (symIP ~= ip) and (sym ~= ip)) then
-	    print(" ["..symIP.."]")
-	 else
-	    print(symIP)
+      if not isEmptyString(arp_mdns[ip]) then
+	 entry["information"] = table.merge(entry["information"], string.split(arp_mdns[ip], ";"))
+      end
+
+      if ssdp[ip] then
+	 if ssdp[ip].icon then entry["icon"] = ssdp[ip].icon end
+	 if ssdp[ip].manufacturer then manufacturer = ssdp[ip].manufacturer end
+	 if ssdp[ip].modelName then entry["modelName"] = ssdp[ip].modelName end
+	 if ssdp[ip].url then entry["url"] = ssdp[ip].url end
+	 if ssdp[ip].services then
+	    entry["information"] = table.merge(entry["information"], ssdp[ip].services)
+	    for i, name in ipairs(ssdp[ip].services) do services = services .. ";" .. name end
 	 end
-      else
-	 print("&nbsp;")
       end
+      if isEmptyString(manufacturer) then manufacturer = get_manufacturer_mac(mac) end
+      entry["manufacturer"] = manufacturer
 
-      print("</td><td align=left>")
-      if(ssdp[ip] and ssdp[ip].manufacturer) then
-	 manufacturer = ssdp[ip].manufacturer
-      else
-	 manufacturer = get_manufacturer_mac(mac)
+      if(ghost_macs[mac] ~= nil) then entry["ghost"] = true  end
+
+      device_type, device_label = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
+
+      if isEmptyString(device_label) then
+	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
+	 device_label = device_label .. discover.devtype2icon(mac_info.devtype)
       end
+      interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
 
-      print(manufacturer)
-      if(ssdp[ip] and ssdp[ip]["modelName"]) then print(" ["..ssdp[ip]["modelName"].."]") end
-      print("</td><td><A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A>")
+      entry["device_type"] = device_type
+      entry["device_label"] = device_label
 
-      print("</td><td>")
+      res[#res + 1] = entry
+      ::continue::
+   end
 
-      if(ssdp[ip] ~= nil or arp_mdns[ip] ~= nil) then
-	 if(show_services) then
-	    if(ssdp[ip].services ~= nil) then
-	       for i, name in ipairs(ssdp[ip].services) do
-		  if(i > 1) then print("<br>") end
-		  print(name)
-		  services = services .. ";" .. name
-	       end	       
+   return {status = "OK", devices = res}
+end
+
+
+
+print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
+print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
+print("<th>Information</th><th>Device</th></tr>")
+
+local discovered = discover2table(ifname)
+
+for _, el in ipairs(discovered["devices"]) do
+   print("<tr>")
+   -- IP
+   print("<td align=left nowrap>")
+   print("<a href='" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..tostring(el["ip"]).."'>"..tostring(el["ip"]).."</A>")
+   if el["icon"] then print(el["icon"] .. "&nbsp;") end
+   if el["ghost"] then print(' <font color=red>'..discover.ghost_icon..'</font>') end
+   print("</td>")
+
+   -- Name
+   print("<td>")
+   if el["sym"] then print(el["sym"]) end
+   if el["symIP"] then
+      if el["sym"] then
+	 print(" ["..el["symIP"].."]")
+      else
+	 print(el["symIP"])
+      end
+   end
+   print("</td>")
+
+   -- Manufacturer
+   print("<td>")
+   if el["manufacturer"] then print(el["manufacturer"]) end
+   if el["modelName"] then
+      if el["manufacturer"] then
+	 print(" ["..el["modelName"].."]")
+      else
+	 print(el["modelName"])
+      end
+   end
+   print("</td>")
+
+   -- Mac
+   print("<td>")
+   print("<A HREF='"..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..el["mac"].."'>"..el["mac"].."</A>")
+   print("</td>")
+
+   -- Information
+   print("<td>")
+   if el["information"] then print(table.concat(el["information"], "<br>")) end
+   if el["url"] then
+      if el["information"] then
+	 print("<br>"..el["url"])
+      else
+	 print(el["url"])
+      end
+   end
+   print("</td>")
+
+   -- Device
+   print("<td>")
+   if el["device_label"] then print(el["device_label"]) end
+   print("</td>")
+
+   print("</tr>")
+end
+
+
+if false then -- TODO: remove
+
+   print("<p>&nbsp;<H2>"..ifname.." Network Discovery</H2><p>&nbsp;<p>\n")
+   print("<table class=\"table table-bordered table-striped\">\n<tr><th>IP</th><th>Name</th><th>Manufacturer</th><th>MAC</th>")
+   if(show_services) then print("<th>Services</th>") end
+   print("<th>Information</th><th>Device</th></tr>")
+
+   for mac,ip in pairsByValues(arp_mdns, asc) do
+      if((string.find(mac, ":") ~= nil)
+	    and (ip ~= "0.0.0.0")
+	 and (ip ~= "255.255.255.255")) then
+	 -- This is an ARP entry
+	 local deviceType
+	 local symIP = mdns[ip]
+	 local services = ""
+	 local host = interface.getHostInfo(ip, 0) -- no VLAN
+	 local sym
+
+	 if(host ~= nil) then sym = host["name"] else sym = ntop.resolveName(ip) end
+
+	 print("<tr><td align=left nowrap>")
+
+	 print("<a href=" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..ip..">"..ip.."</A>")
+	 if(ssdp[ip] and ssdp[ip].icon) then print(ssdp[ip].icon .. "&nbsp;") end
+
+	 if(ghost_macs[mac] ~= nil) then
+	    print(' <font color=red>'..discover.ghost_icon..'</font>')
+	 end
+
+	 print("</td><td>")
+	 if((sym ~= "") and (sym ~= ip)) then print(sym) end
+
+	 if(symIP ~= nil) then
+	    if((sym ~= "") and (symIP ~= ip) and (sym ~= ip)) then
+	       print(" ["..symIP.."]")
+	    else
+	       print(symIP)
 	    end
-	    
-	    print("</td><td>")
+	 else
+	    print("&nbsp;")
 	 end
-	 
-	 if(arp_mdns[ip] ~= nil) then
-	    local s = string.split(arp_mdns[ip], ";")
 
-	    if(s ~= nil) then
-	       for i,name in pairs(s) do
-		  if(i > 1) then print("<br>") end
-		  print(name)
+	 print("</td><td align=left>")
+	 if(ssdp[ip] and ssdp[ip].manufacturer) then
+	    manufacturer = ssdp[ip].manufacturer
+	 else
+	    manufacturer = get_manufacturer_mac(mac)
+	 end
+
+	 print(manufacturer)
+	 if(ssdp[ip] and ssdp[ip]["modelName"]) then print(" ["..ssdp[ip]["modelName"].."]") end
+	 print("</td><td><A HREF="..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..mac..">"..mac.."</A>")
+
+	 print("</td><td>INFORMATION ")
+
+	 if(ssdp[ip] ~= nil or arp_mdns[ip] ~= nil) then
+	    if(show_services) then
+	       if(ssdp[ip].services ~= nil) then
+		  for i, name in ipairs(ssdp[ip].services) do
+		     if(i > 1) then print("<br>") end
+		     print(name)
+		     services = services .. ";" .. name
+		  end
+	       end
+
+	       print("</td><td>")
+	    end
+
+	    if(arp_mdns[ip] ~= nil) then
+	       local s = string.split(arp_mdns[ip], ";")
+
+	       if(s ~= nil) then
+		  for i,name in pairs(s) do
+		     if(i > 1) then print(" --- <br>") end
+		     print(name)
+		  end
 	       end
 	    end
+	    if(ssdp[ip] ~= nil and ssdp[ip].url ~= nil) then print(ssdp[ip].url .. "&nbsp;") end
+	 else
+	    if(show_services) then
+	       print("&nbsp;</td><td>&nbsp;")
+	    end
 	 end
-	 if(ssdp[ip] ~= nil and ssdp[ip].url ~= nil) then print(ssdp[ip].url .. "&nbsp;") end
-      else
-	 if(show_services) then
-	    print("&nbsp;</td><td>&nbsp;")
-	 end
-      end
 
-      deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
-      if(deviceLabel == "") then
-	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
-	 deviceLabel = deviceLabel .. discover.devtype2icon(mac_info.devtype)
+	 deviceType,deviceLabel = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
+	 if(deviceLabel == "") then
+	    local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
+	    deviceLabel = deviceLabel .. discover.devtype2icon(mac_info.devtype)
+	 end
+	 print("</td><td>"..deviceLabel.."</td></tr>\n")
+	 interface.setMacDeviceType(mac, discover.devtype2id(deviceType), false) -- false means don't overwrite if already set to ~= unknown
       end
-      print("</td><td>"..deviceLabel.."</td></tr>\n")
-      interface.setMacDeviceType(mac, discover.devtype2id(deviceType), false) -- false means don't overwrite if already set to ~= unknown
    end
-end
+
+end -- TODO: remove
 
 print("</table>\n")
 
 if(ghost_found) then
    print('<b>NOTE</b>: The <font color=red>'..discover.ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
 end
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
