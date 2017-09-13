@@ -98,3 +98,71 @@ function aysUpdateForm(form_selector) {
 function aysRecheckForm(form_selector) {
   $(form_selector).trigger('checkform.areYouSure');
 }
+
+/*
+ * Get a list of dirty fields. Useful for debugging.
+ */
+function aysGetDirty(form_selector, fields_selector) {
+  fields_selector = fields_selector || ":input:not(input[type=submit]):not(input[type=button])";
+
+  /* Note: this code is from ays */
+  var getValue = function($field) {
+    if ($field.hasClass('ays-ignore')
+        || $field.hasClass('aysIgnore')
+        || $field.attr('data-ays-ignore')
+        || $field.attr('name') === undefined) {
+      return null;
+    }
+
+    if ($field.is(':disabled')) {
+      return 'ays-disabled';
+    }
+
+    var val;
+    var type = $field.attr('type');
+    if ($field.is('select')) {
+      type = 'select';
+    }
+
+    switch (type) {
+      case 'checkbox':
+      case 'radio':
+        val = $field.is(':checked');
+        break;
+      case 'select':
+        val = '';
+        $field.find('option').each(function(o) {
+          var $option = $(this);
+          if ($option.is(':selected')) {
+            val += $option.val();
+          }
+        });
+        break;
+      default:
+        val = $field.val();
+    }
+
+    return val;
+  };
+
+  var isFieldDirty = function($field) {
+    var origValue = $field.data('ays-orig');
+    var curValue = getValue($field);
+    var dirty = (undefined !== origValue) && (origValue != curValue);
+
+    return {dirty:dirty, origValue:origValue, curValue:curValue};
+  };
+
+  var l = [];
+
+  $(form_selector).find(fields_selector).each(function() {
+    var dirty_status = isFieldDirty($(this));
+
+    if (dirty_status.dirty) {
+      dirty_status.input = $(this);
+      l.push(dirty_status);
+    }
+  });
+
+  return l;
+}
