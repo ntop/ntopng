@@ -887,6 +887,7 @@ local known_parameters = {
 
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,
+   ["device_discovery_interval"]                   =  validateNumber,
 --
 
 -- PAGE SPECIFIC

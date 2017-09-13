@@ -447,8 +447,8 @@ end
 -- ================================================================================
 
 function printDeviceDiscovery()
-   print('<table class="table">')
    print('<form method="post">')
+   print('<table class="table">')
 
    print('<tr><th colspan=2 class="info">'..i18n("prefs.device_discovery")..'</th></tr>')
 
