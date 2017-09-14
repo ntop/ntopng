@@ -1980,17 +1980,6 @@ static int ntop_get_flow_device_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_is_discoverable(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_pushboolean(vm, ((!ntop_interface) || (ntop_interface->getMDNS() == NULL)) ? 0 : 1);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_discover_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int timeout = 3; /* sec */
@@ -2756,6 +2745,19 @@ static int ntop_interface_is_packet_interface(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   lua_pushboolean(vm, ntop_interface->isPacketInterface());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_is_discoverable_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop_interface->isDiscoverableInterface());
   return(CONST_LUA_OK);
 }
 
@@ -5867,6 +5869,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getInterfacePacketsDumpedTap",   ntop_get_interface_pkts_dumped_tap },
   { "getEndpoint",                    ntop_get_interface_endpoint },
   { "isPacketInterface",              ntop_interface_is_packet_interface },
+  { "isDiscoverableInterface",        ntop_interface_is_discoverable_interface },
   { "isBridgeInterface",              ntop_interface_is_bridge_interface },
   { "isPcapDumpInterface",            ntop_interface_is_pcap_dump_interface },
   { "isRunning",                      ntop_interface_is_running },
@@ -5923,7 +5926,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Network Discovery */
   { "discoverHosts",                 ntop_discover_iface_hosts       },
   { "arpScanHosts",                  ntop_arpscan_iface_hosts        },
-  { "isDiscoverable",                ntop_is_discoverable            },
   { "mdnsResolveName",               ntop_mdns_resolve_name          },
   { "mdnsQueueNameToResolve",        ntop_mdns_queue_name_to_resolve },
   { "mdnsQueueAnyQuery",             ntop_mdns_batch_any_query       },

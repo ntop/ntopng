@@ -80,7 +80,7 @@ end
 
 print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
 
-  if(interface.isDiscoverable()) then
+  if(interface.isDiscoverableInterface()) then
     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
   end
 

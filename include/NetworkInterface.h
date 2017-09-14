@@ -237,6 +237,7 @@ class NetworkInterface {
      See C++ FAQ Lite covers this in section 23.7
   */
   inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
+  inline virtual bool isDiscoverableInterface(){ return(false);                              }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }

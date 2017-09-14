@@ -37,6 +37,7 @@ class PcapInterface : public NetworkInterface {
   PcapInterface(const char *name);
   ~PcapInterface();
 
+  inline virtual bool isDiscoverableInterface(){ return(true); };
   inline InterfaceType getIfType() { return(read_pkts_from_pcap_dump ? interface_type_PCAP_DUMP : interface_type_PCAP); }
   inline const char* get_type()    { return(read_pkts_from_pcap_dump ? CONST_INTERFACE_TYPE_PCAP_DUMP : CONST_INTERFACE_TYPE_PCAP); };
   inline pcap_t* get_pcap_handle() { return(pcap_handle);   };

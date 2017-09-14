@@ -21,7 +21,7 @@ if discovery_enabled then
       local ifnames = interface.getIfNames()
 
       callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-         if interface.isPacketInterface() then
+         if interface.isDiscoverableInterface() then
 	    local res = discover_utils.discover2table(ifname, true --[[ recache --]])
 	 end
 
