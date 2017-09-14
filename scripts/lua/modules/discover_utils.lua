@@ -127,17 +127,17 @@ discover.apple_products = {
 
 discover.asset_icons = {
    ['unknown']     = '',
-   ['printer']     = '<i class="fa fa-print fa-lg" aria-hidden="true"></i>', -- 1
-   ['video']       = '<i class="fa fa-video-camera fa-lg" aria-hidden="true"></i>', -- 2 
-   ['workstation'] = '<i class="fa fa-desktop fa-lg" aria-hidden="true"></i>', -- ... and so on
-   ['laptop']      = '<i class="fa fa-laptop fa-lg" aria-hidden="true"></i>',
-   ['tablet']      = '<i class="fa fa-tablet fa-lg" aria-hidden="true"></i>',
-   ['phone']       = '<i class="fa fa-mobile fa-lg" aria-hidden="true"></i>',
-   ['tv']          = '<i class="fa fa-television fa-lg" aria-hidden="true"></i>',
-   ['networking']  = '<i class="fa fa-arrows fa-lg" aria-hidden="true"></i>',
-   ['wifi']        = '<i class="fa fa-wifi fa-lg" aria-hidden="true"></i>',
-   ['nas']         = '<i class="fa fa-database fa-lg" aria-hidden="true"></i>',
-   ['multimedia']  = '<i class="fa fa-music fa-lg" aria-hidden="true"></i>',
+   ['printer']     = '<i class="fa fa-print fa-lg devtype-icon" aria-hidden="true"></i>', -- 1
+   ['video']       = '<i class="fa fa-video-camera fa-lg devtype-icon" aria-hidden="true"></i>', -- 2 
+   ['workstation'] = '<i class="fa fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>', -- ... and so on
+   ['laptop']      = '<i class="fa fa-laptop fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['tablet']      = '<i class="fa fa-tablet fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['phone']       = '<i class="fa fa-mobile fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['tv']          = '<i class="fa fa-television fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['networking']  = '<i class="fa fa-arrows fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['wifi']        = '<i class="fa fa-wifi fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['nas']         = '<i class="fa fa-database fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['multimedia']  = '<i class="fa fa-music fa-lg devtype-icon" aria-hidden="true"></i>',
 }
 
 local id2label = {
