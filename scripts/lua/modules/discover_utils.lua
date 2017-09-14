@@ -174,7 +174,7 @@ end
 -- ################################################################################
 
 function discover.getCachedDiscoveryKey(interface_name)
-   return "ntopng.cache.device_discovery.ifid_"..getInterfaceId(interface_name)
+   return "ntopng.cache.ifid_"..getInterfaceId(interface_name)..".device_discovery"
 end
 
 -- ################################################################################

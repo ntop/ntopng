@@ -446,35 +446,35 @@ end
 
 -- ================================================================================
 
-function printDeviceDiscovery()
+function printNetworkDiscovery()
    print('<form method="post">')
    print('<table class="table">')
 
-   print('<tr><th colspan=2 class="info">'..i18n("prefs.device_discovery")..'</th></tr>')
+   print('<tr><th colspan=2 class="info">'..i18n("prefs.network_discovery")..'</th></tr>')
 
-   local elementToSwitch = {"device_discovery_interval"}
+   local elementToSwitch = {"network_discovery_interval"}
 
    prefsToggleButton({
-    field = "toggle_device_discovery",
+    field = "toggle_network_discovery",
     default = "0",
-    pref = "is_device_discovery_enabled",
+    pref = "is_network_discovery_enabled",
     to_switch = elementToSwitch,
   })
 
-   local showDeviceDiscoveryInterval = false
-   if ntop.getPref("ntopng.prefs.is_device_discovery_enabled") == "1" then
-      showDeviceDiscoveryInterval = true
+   local showNetworkDiscoveryInterval = false
+   if ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1" then
+      showNetworkDiscoveryInterval = true
    end
 
-   local interval = ntop.getPref("ntopng.prefs.device_discovery_interval")
+   local interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
 
    if isEmptyString(interval) then -- set a default value
       interval = 15 * 60 -- 15 minutes
-      ntop.setPref("ntopng.prefs.device_discovery_interval", tostring(interval))
+      ntop.setPref("ntopng.prefs.network_discovery_interval", tostring(interval))
    end
 
-   prefsInputFieldPrefs(subpage_active.entries["device_discovery_interval"].title, subpage_active.entries["device_discovery_interval"].description,
-    "ntopng.prefs.", "device_discovery_interval", interval, "number", showDeviceDiscoveryInterval, nil, nil, {min=60 * 15, tformat="mhd"})
+   prefsInputFieldPrefs(subpage_active.entries["network_discovery_interval"].title, subpage_active.entries["network_discovery_interval"].description,
+    "ntopng.prefs.", "network_discovery_interval", interval, "number", showNetworkDiscoveryInterval, nil, nil, {min=60 * 15, tformat="mhd"})
 
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
 
@@ -997,7 +997,7 @@ if(tab == "nbox") then
 end
 
 if(tab == "discovery") then
-   printDeviceDiscovery()
+   printNetworkDiscovery()
 end
 
 if(tab == "bridging") then

@@ -194,13 +194,13 @@ local menu_subpages = {
       title       = i18n("prefs.nbox_password_title"),
       description = i18n("prefs.nbox_password_description"),
     },
-  }}, {id="discovery",     label=i18n("prefs.device_discovery"),     advanced=false,  pro_only=false,   disabled=false, entries={
-    toggle_device_discovery = {
-      title       = i18n("prefs.toggle_device_discovery_title"),
-      description = i18n("prefs.toggle_device_discovery_description"),
-    }, device_discovery_interval = {
-      title       = i18n("prefs.device_discovery_interval_title"),
-      description = i18n("prefs.device_discovery_interval_description"),
+  }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   disabled=false, entries={
+    toggle_network_discovery = {
+      title       = i18n("prefs.toggle_network_discovery_title"),
+      description = i18n("prefs.toggle_network_discovery_description"),
+    }, network_discovery_interval = {
+      title       = i18n("prefs.network_discovery_interval_title"),
+      description = i18n("prefs.network_discovery_interval_description"),
     },
   }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  disabled=false, entries={
     toggle_autologout = {

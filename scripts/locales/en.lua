@@ -598,7 +598,7 @@ local  en = {
       flow_database_dump = "Flow Database Dump",
       snmp = "SNMP",
       nbox_integration = "nBox Integration",
-      device_discovery = "Device Discovery",
+      network_discovery = "Network Discovery",
       misc = "Misc",
       traffic_bridging = "Traffic Bridging",
       dynamic_network_interfaces = "Dynamic Network Interfaces",
@@ -753,10 +753,10 @@ local  en = {
       nbox_password_title = "nBox Password",
       nbox_password_description = "Password associated to the nBox user. Default: nbox",
 
-      toggle_device_discovery_title = "Active Device Discovery",
-      toggle_device_discovery_description = "Toggle the periodic discovery of devices using multiple techniques that include ARP scan, MDNS and SSDP.",
-      device_discovery_interval_title = "Active Device Discovery Interval",
-      device_discovery_interval_description = "Interval between consecutive discoveries of devices. Default: 15 min.",
+      toggle_network_discovery_title = "Active Network Discovery",
+      toggle_network_discovery_description = "Toggle the periodic discovery of network devices using multiple techniques that include ARP scan, MDNS and SSDP.",
+      network_discovery_interval_title = "Active Network Discovery Interval",
+      network_discovery_interval_description = "Interval between consecutive discoveries of networks. Default: 15 min.",
 
       web_user_interface = "Web User Interface",
       toggle_autologout_title = "Auto Logout",
