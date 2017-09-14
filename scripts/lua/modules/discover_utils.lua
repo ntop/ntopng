@@ -179,6 +179,18 @@ end
 
 -- ################################################################################
 
+function discover.getInterfaceNetworkDiscoveryEnabledKey(ifid)
+   return "ntopng.prefs.ifid_"..ifid..".interface_network_discovery"
+end
+
+-- ################################################################################
+
+function discover.interfaceNetworkDiscoveryEnabled(ifid)
+   return not (ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifid)) == "false")
+end
+
+-- ################################################################################
+
 function discover.printDeviceTypeSelector(device_type, field_name)
    device_type = tonumber(device_type)
 

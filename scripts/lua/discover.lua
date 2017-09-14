@@ -20,7 +20,7 @@ if discovery_enabled == false then
    print('<div class=\"alert alert-info\"><i class="fa fa-info-circle fa-lg"></i>&nbsp;'..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fa fa-flask\"></i>"})..'</div>')
 
 else
-   local discovered = discover.discover2table(ifname, true)
+   local discovered = discover.discover2table(ifname)
 
    if discovered["status"]["code"] ~= "OK" then
       print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..discovered["status"]["message"]..'</div>')

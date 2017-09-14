@@ -1239,6 +1239,41 @@ elseif(page == "config") then
          </td>
       </tr>]]
 
+   -- per-interface Network Discovery
+   if interface.isDiscoverableInterface() and (ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1") then
+      local discover = require "discover_utils"
+
+      local interface_network_discovery = true
+      local interface_network_discovery_checked = "checked"
+
+      if (_POST["interface_network_discovery"] ~= nil) then
+	 if _POST["interface_network_discovery"] ~= "true" then
+	    interface_network_discovery = false
+	    interface_network_discovery_checked = ""
+	 end
+
+	 ntop.setPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifId), tostring(interface_network_discovery))
+      else
+	 interface_network_discovery = ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifId))
+
+	 if interface_network_discovery == "false" then
+	    interface_network_discovery = false
+	    interface_network_discovery_checked = ""
+	 end
+      end
+
+      print [[<tr>
+	 <th>]] print(i18n("if_stats_config.interface_network_discovery")) print[[</th>
+	 <td>
+	    <form id="rrd_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
+	       <input type="hidden" name="interface_network_discovery" value="]] print(not interface_network_discovery) print[[">
+	       <input type="checkbox" value="1" ]] print(interface_network_discovery_checked) print[[ onclick="this.form.submit();">
+	       </input>
+	       <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+	    </form>
+	 </td>
+      </tr>]]
+   end
 
       print[[
    </table>]]

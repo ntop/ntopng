@@ -1112,6 +1112,7 @@ local  en = {
       scaling_factor_popup_msg = "This should match your capture interface sampling rate",
       trigger_interface_alerts = "Trigger Interface Alerts",
       interface_rrd_creation = "Create Interface Timeseries",
+      interface_network_discovery = "Periodic Interface Network Discovery",
    },
 
    bridge_wizard = {
