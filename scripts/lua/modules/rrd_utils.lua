@@ -325,7 +325,7 @@ end
 
 
 function get_interface_rrd_creation_key(ifid)
-   local k = "ntopng.prefs.interface_rrd_creation.ifid_"..ifid
+   local k = "ntopng.prefs.ifid_"..ifid..".interface_rrd_creation"
    return k
 end
 
