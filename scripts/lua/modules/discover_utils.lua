@@ -191,6 +191,30 @@ end
 
 -- ################################################################################
 
+local function getRequestNetworkDiscoveryKey(ifid)
+   return "ntopng.cache.ifid_"..ifid..".network_discovery_requested"
+end
+
+-- ################################################################################
+
+function discover.requestNetworkDiscovery(ifid)
+   ntop.setCache(getRequestNetworkDiscoveryKey(ifid), "true")
+end
+
+-- ################################################################################
+
+function discover.clearNetworkDiscovery(ifid)
+   ntop.delCache(getRequestNetworkDiscoveryKey(ifid))
+end
+
+-- ################################################################################
+
+function discover.networkDiscoveryRequested(ifid)
+   return ntop.getCache(getRequestNetworkDiscoveryKey(ifid)) == "true"
+end
+
+-- ################################################################################
+
 function discover.printDeviceTypeSelector(device_type, field_name)
    device_type = tonumber(device_type)
 
@@ -629,7 +653,9 @@ function discover.discover2table(interface_name, recache)
    if recache ~= true then
       local cached = ntop.getCache(discover.getCachedDiscoveryKey(interface_name))
       if not isEmptyString(cached) then
-	 return json.decode(cached) or {}
+	 return json.decode(cached) or {status = discoverStatus("ERROR", i18n("discover.error_unable_to_decode_json"))}
+      else
+	 return {status = discoverStatus("NOCACHE", i18n("discover.error_no_discovery_cached"))}
       end
    end
 

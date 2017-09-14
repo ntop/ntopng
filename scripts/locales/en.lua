@@ -536,9 +536,12 @@ local  en = {
 
    discover = {
       network_discovery = "Network Discovery",
+      network_discovery_datetime = "Network Discovery Date and Time",
       err_unable_to_arp_discovery = "Unable to start ARP network discovery",
       device = "Device",
-      device_discovery_not_enabled = "Device discovery is not enabled. Use the <a href='%{url}'>%{flask_icon} Preferences</a> to enable it.",
+      network_discovery_not_enabled = "A network discovery is in progress. This may take up to two minutes. The page will refresh with the new results when ready.",
+      error_unable_to_decode_json = "Unable to decode cache JSON discovery data.",
+      error_no_discovery_cached = "No discovery data has been cached yet.",
    },
 
    snmp = {
