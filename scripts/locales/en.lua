@@ -538,6 +538,7 @@ local  en = {
       network_discovery = "Network Discovery",
       err_unable_to_arp_discovery = "Unable to start ARP network discovery",
       device = "Device",
+      device_discovery_not_enabled = "Device discovery is not enabled. Use the <a href='%{url}'>%{flask_icon} Preferences</a> to enable it.",
    },
 
    snmp = {

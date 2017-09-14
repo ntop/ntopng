@@ -677,12 +677,12 @@
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
+#define DISCOVER_SCRIPT_PATH       "discover.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
 #define MINUTE_SCRIPT_PATH         "minute.lua"
 #define FIVE_MINUTES_SCRIPT_PATH   "5min.lua"
 #define HOURLY_SCRIPT_PATH         "hourly.lua"
 #define DAILY_SCRIPT_PATH          "daily.lua"
-
 
 /* GRE (Generic Route Encapsulation) */
 #ifndef IPPROTO_GRE
