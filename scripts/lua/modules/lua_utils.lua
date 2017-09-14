@@ -2080,7 +2080,7 @@ function getPathFromKey(key)
 end
 
 function getRedisIfacePrefix(ifid)
-   return "ntopng.prefs.iface_"..tostring(ifid)
+   return "ntopng.prefs.ifid_"..tostring(ifid)
 end
 
 -----  End of Redis Utils  ------
