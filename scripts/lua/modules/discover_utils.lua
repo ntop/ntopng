@@ -730,20 +730,18 @@ function discover.discover2table(interface_name, recache)
 
       if ssdp[ip] then
 	 if ssdp[ip].icon then entry["icon"] = ssdp[ip].icon end
-	 if ssdp[ip].manufacturer then manufacturer = ssdp[ip].manufacturer end
 	 if ssdp[ip].modelName then entry["modelName"] = ssdp[ip].modelName end
 	 if ssdp[ip].url then entry["url"] = ssdp[ip].url end
+	 if ssdp[ip].manufacturer then entry["manufacturer"] = ssdp[ip].manufacturer end
 	 if ssdp[ip].services then
 	    entry["information"] = table.merge(entry["information"], ssdp[ip].services)
 	    for i, name in ipairs(ssdp[ip].services) do services = services .. ";" .. name end
 	 end
       end
-      if isEmptyString(manufacturer) then manufacturer = get_manufacturer_mac(mac) end
-      entry["manufacturer"] = manufacturer
 
-      if(ghost_macs[mac] ~= nil) then entry["ghost"] = true  end
+      if(ghost_macs[mac] == true) then entry["ghost"] = true end
 
-      device_type, device_label = findDevice(ip, mac, manufacturer, arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
+      device_type, device_label = findDevice(ip, mac, entry["manufacturer"] or get_manufacturer_mac(mac), arp_mdns[ip], services, ssdp[ip], mdns, snmp[ip], osx_devices[ip], sym)
 
       if isEmptyString(device_label) then
 	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
