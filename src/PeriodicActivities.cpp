@@ -72,14 +72,14 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   } activity_descr;
 
   static activity_descr ad[] = { 
-    {SECOND_SCRIPT_PATH,       1,     false},
-    {MINUTE_SCRIPT_PATH,       60,    false},
-    {FIVE_MINUTES_SCRIPT_PATH, 300,   false},
-    {HOURLY_SCRIPT_PATH,       3600,  false},
-    {DAILY_SCRIPT_PATH,        86400, true },
-    {HOUSEKEEPING_SCRIPT_PATH, 3,     false},
-    {DISCOVER_SCRIPT_PATH,     10,    false},
-    {NULL, 0, false}
+    { SECOND_SCRIPT_PATH,       1,     false},
+    { MINUTE_SCRIPT_PATH,       60,    false},
+    { FIVE_MINUTES_SCRIPT_PATH, 300,   false},
+    { HOURLY_SCRIPT_PATH,       3600,  false},
+    { DAILY_SCRIPT_PATH,        86400, true },
+    { HOUSEKEEPING_SCRIPT_PATH, 3,     false},
+    { DISCOVER_SCRIPT_PATH,     60,    false},
+    { NULL, 0, false}
   };
 
   activity_descr *d = ad;
