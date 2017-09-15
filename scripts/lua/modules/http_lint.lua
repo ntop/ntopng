@@ -698,6 +698,8 @@ local known_parameters = {
    ["l7proto"]                 =  validateProtocolId,            -- An nDPI application protocol ID, layer 7
    ["protocol"]                =  validateProtocolId,            -- An nDPI application protocol ID, (layer 7? Duplicate?)
    ["ndpi"]                    =  validateApplicationsList,      -- a list applications
+   ["ndpi_new_cat_id"]         =  validateNumber,                -- An ndpi category id after change
+   ["ndpi_old_cat_id"]         =  validateNumber,                -- An ndpi category id before change
 
 -- Remote probe
    ["ifIdx"]                   =  validateNumber,                -- A generic switch/router port id

@@ -4304,6 +4304,12 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
   }
 }
 
+/* *************************************** */
+
+void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+  ndpi_set_proto_category(ndpi_struct, protoId, protoCategory);
+}
+
 /* **************************************************** */
 
 void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter) {

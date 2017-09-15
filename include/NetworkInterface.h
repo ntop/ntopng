@@ -331,6 +331,7 @@ class NetworkInterface {
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter);
+  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
 
   /**
    * @brief Returns host statistics during latest activity

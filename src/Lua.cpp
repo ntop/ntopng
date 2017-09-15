@@ -538,6 +538,26 @@ static int ntop_get_ndpi_protocol_category(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_ndpi_protocol_category(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int16_t proto;
+  ndpi_protocol_category_t category;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  proto = (u_int16_t)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  category = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
+
+  if(ntop_interface)
+    ntop_interface->setnDPIProtocolCategory(proto, category);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Same as ntop_get_ndpi_protocol_name() with the exception that the protocol breed is returned
  *
@@ -5891,6 +5911,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
+  { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },  
   { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getFlowsStatus",         ntop_get_ndpi_interface_flows_status },
   { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
