@@ -2931,8 +2931,27 @@ static int ntop_load_network_interfaces_prefs(lua_State* vm) {
   lua_newtable(vm);
   ntop->getPrefs()->refreshLanWanInterfaces();
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
+
+static int ntop_set_lan_ip_address(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
+    ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(lua_tostring(vm, 1)));
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+#endif
 
 /* ****************************************** */
 
@@ -5920,6 +5939,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Flow Devices */
   { "getFlowDevices",                ntop_get_flow_devices     },
   { "getFlowDeviceInfo",             ntop_get_flow_device_info },
+  { "setLanIpAddress",               ntop_set_lan_ip_address },
 
 #endif
 
