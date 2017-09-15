@@ -754,7 +754,7 @@ function discover.discover2table(interface_name, recache)
       local services = ""
       local symIP = mdns[ip]
 
-      if(host ~= nil) then sym = host["name"] else sym = ntop.resolveName(ip) end
+      if(host ~= nil) then sym = host["name"] else sym = ntop.getResolvedName(ip) end
       if not isEmptyString(sym) and sym ~= ip then
 	 entry["sym"] = sym
       end
