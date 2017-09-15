@@ -1019,6 +1019,27 @@ static int ntop_get_site_categories(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_shutdown(lua_State* vm) {
+  extern bool rebootAfterShutdown;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  
+  if(getLuaVMUservalue(vm,conn) && !Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) {
+    if(lua_toboolean(vm, 1))
+      rebootAfterShutdown = true;
+  }
+
+  ntop->getGlobals()->requestShutdown();
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Get local hosts information of network interface.
  * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
@@ -2940,13 +2961,15 @@ static int ntop_load_network_interfaces_prefs(lua_State* vm) {
 #ifdef NTOPNG_PRO
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
+#ifdef linux
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
     ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(lua_tostring(vm, 1)));
-
+#endif
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -6141,7 +6164,8 @@ static const luaL_Reg ntop_reg[] = {
   { "getservbyport",      ntop_getservbyport        },
   { "getMacManufacturer", ntop_get_mac_manufacturer },
   { "getSiteCategories",  ntop_get_site_categories  },
-
+  { "shutdown",           ntop_shutdown             },
+  
   { NULL,          NULL}
 };
 

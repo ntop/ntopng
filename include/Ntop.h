@@ -49,7 +49,7 @@ class Ntop {
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
-  Redis *redis; /**< Pointer of Redis server. */
+  Redis *redis; /**< Pointer to the Redis server. */
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
   PeriodicActivities *pa; /**< Instance of periodical activities. */

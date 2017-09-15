@@ -366,7 +366,7 @@ void Ntop::start() {
 
   sleep(2);
 
-  while(!globals->isShutdown()) {
+  while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     struct timeval begin, end;
     u_long usec_diff;
     u_long nap = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
@@ -1346,7 +1346,6 @@ void Ntop::daemonize() {
   int childpid;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-
 			       "Parent process is exiting (this is normal)");
 
   signal(SIGHUP, SIG_IGN);

@@ -25,6 +25,8 @@ extern "C" {
   extern char* rrd_strversion(void);
 };
 
+bool rebootAfterShutdown = false;
+
 /* ******************************** */
 
 void sighup(int sig) {
@@ -57,6 +59,12 @@ void sigproc(int sig) {
 #endif
 
   delete ntop;
+
+#ifdef linux
+  if(rebootAfterShutdown)
+    system("/sbin/reboot &");
+#endif
+  
   _exit(0);
 }
 
@@ -366,9 +374,15 @@ int main(int argc, char *argv[])
 
   ntop->start();
 
+  if(ntop->getGlobals()->isShutdownRequested()) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutdown requested: hold on");
+    sleep(3); /* Wait until all open activities have been completed */
+    ntop->shutdown();
+  }
+  
   sigproc(0);
   delete ntop;
-
+ 
   return(0);
 }
 

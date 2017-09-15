@@ -29,7 +29,7 @@ NtopGlobals::NtopGlobals() {
   file_id = 0;
   trace = new Trace();  
   mutex = new Mutex();
-  is_shutdown = false, do_decode_tunnels = true;
+  is_shutdown = shutdown_requested = false, do_decode_tunnels = true;
 };
 
 /* **************************************** */
