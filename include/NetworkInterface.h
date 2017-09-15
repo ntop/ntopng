@@ -238,6 +238,7 @@ class NetworkInterface {
   */
   inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
   inline virtual bool isDiscoverableInterface(){ return(false);                              }
+  inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
@@ -583,7 +584,7 @@ class NetworkInterface {
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
   inline void incPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->incPoolNumMembers(id); }
-  inline void decPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->decPoolNumMembers(id); }
+  inline void decPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->decPoolNumMembers(id); }  
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

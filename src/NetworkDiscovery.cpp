@@ -29,13 +29,17 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 
   if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
     int rc;
+    char *ifname  = iface->altDiscoverableName();
+
+    if(ifname == NULL)
+      ifname = iface->get_name();
 
     errno = 0;
-    rc = Utils::bindSockToDevice(udp_sock, AF_INET, iface->get_name());
+    rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
 
     if((rc < 0) and (errno != 0)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
-				   iface->get_name(), errno, strerror(errno));
+				   ifname, errno, strerror(errno));
     }
   } else
     throw("Unable to start network discovery");
