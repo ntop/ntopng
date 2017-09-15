@@ -50,7 +50,8 @@ class Prefs : public RuntimePrefs {
     enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     enable_access_log,
-    flow_aggregation_enabled;
+    flow_aggregation_enabled,
+    enable_mac_ndpi_stats;
 
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   bool enable_user_scripts;
@@ -202,6 +203,7 @@ class Prefs : public RuntimePrefs {
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
   void refreshLanWanInterfaces();
+  void refreshMacNdpiStatsPrefs();
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
@@ -229,6 +231,7 @@ class Prefs : public RuntimePrefs {
   inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); }
   inline char* get_wan_interface()      { return(wan_interface ? wan_interface : (char*)""); }
   inline char* getInterfaceAt(int id)   { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); };
+  inline bool areMacNdpiStatsEnabled()  { return(enable_mac_ndpi_stats); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }

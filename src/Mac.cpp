@@ -32,6 +32,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
   bridge_seen_iface_id = 0;
   device_type = device_unknown;
 
+  if(ntop->getPrefs()->areMacNdpiStatsEnabled())
+    ndpiStats = new nDPIStats();
+
   if(ntop->getMacManufacturers())
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
   else
@@ -93,6 +96,8 @@ Mac::~Mac() {
     free(json);
   }
 
+  if(ndpiStats) delete ndpiStats;
+
 #ifdef DEBUG
   char buf[32];
 
@@ -151,6 +156,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_int_table_entry(vm, "devtype", device_type);
+    if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }
 
   ((GenericTrafficElement*)this)->lua(vm, true);
@@ -211,6 +217,7 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj)) last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj)) device_type = (DeviceType)json_object_get_int(obj);
+  if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
 
   json_object_put(o);
 }
@@ -227,6 +234,7 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
+  if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
 
   if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
 
