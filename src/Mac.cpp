@@ -96,7 +96,10 @@ Mac::~Mac() {
     free(json);
   }
 
-  if(ndpiStats) delete ndpiStats;
+  if(ndpiStats) {
+    delete ndpiStats;
+    ndpiStats = NULL;
+  }
 
 #ifdef DEBUG
   char buf[32];
