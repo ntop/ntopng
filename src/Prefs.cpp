@@ -37,6 +37,7 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;  
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
+  enable_mac_ndpi_stats = false;
 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -428,6 +429,7 @@ void Prefs::reloadPrefsFromRedis() {
   setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
   refreshLanWanInterfaces();
+  refreshMacNdpiStatsPrefs();
 }
 
 /* ******************************************* */
@@ -1337,6 +1339,18 @@ void Prefs::refreshLanWanInterfaces() {
     wan_interface = strdup(rsp);
   else
     wan_interface = NULL;
+}
+
+/* *************************************** */
+
+void Prefs::refreshMacNdpiStatsPrefs() {
+  char rsp[32];
+
+  if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS,
+      rsp, sizeof(rsp)) == 0) && (rsp[0] == '1'))
+    enable_mac_ndpi_stats = true;
+  else
+    enable_mac_ndpi_stats = false;
 }
 
 /* *************************************** */

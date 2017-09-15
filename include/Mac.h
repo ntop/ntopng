@@ -65,6 +65,18 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(num_pkts, num_bytes);
   }
+  inline void incnDPIStats(u_int32_t when, const ndpi_protocol protocol,
+            u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+            u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+    if(ndpiStats) {
+      //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      ndpiStats->incCategoryStats(when,
+        getInterface()->get_ndpi_proto_category(protocol.master_protocol), sent_bytes+rcvd_bytes);
+      ndpiStats->incCategoryStats(when,
+        getInterface()->get_ndpi_proto_category(protocol.app_protocol), sent_bytes+rcvd_bytes);
+    }
+  }
 
   inline void incSentArpRequests()   { arp_stats.sent_requests++;         }
   inline void incSentArpReplies()    { arp_stats.sent_replies++;          }

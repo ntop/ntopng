@@ -954,6 +954,17 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_packets || diff_rcvd_packets) {
+      /* Update L2 Device stats */
+      if (ntop->getPrefs()->areMacNdpiStatsEnabled() && cli_host->get_mac() && srv_host->getMac()) {
+	srv_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
+	  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+	  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+
+	cli_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
+	  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+	  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+      }
+
 #ifdef NTOPNG_PRO
       if(ntop->getPro()->has_valid_license()) {
 
@@ -1214,7 +1225,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
     if(cli_host) {
       cli_host_pool_id = cli_host->get_host_pool();
 
-      /* Overal host pool stats */
+      /* Overall host pool stats */
       hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,

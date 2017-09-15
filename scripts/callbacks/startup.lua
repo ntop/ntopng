@@ -115,6 +115,7 @@ ntop.delCache(hash_name)
 
 -- ##################################################################
 
+initCustomnDPIProtoCategories()
 loadHostBlackList()
 checkOpenFiles()
 -- TODO: migrate custom re-arm settings

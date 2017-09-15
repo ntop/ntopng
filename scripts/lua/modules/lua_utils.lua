@@ -1220,6 +1220,20 @@ function get_timezone()
   return os.difftime(now, os.time(os.date("!*t", now)))
 end
 
+function getCategoriesWithProtocols()
+   local protocol_categories = interface.getnDPICategories()
+
+   for k,v in pairsByKeys(protocol_categories) do
+      protocol_categories[k] = {id=v, protos=interface.getnDPIProtocols(tonumber(v)), count=0}
+
+      for proto,_ in pairs(protocol_categories[k].protos) do
+         protocol_categories[k].count = protocol_categories[k].count + 1
+      end
+   end
+
+   return protocol_categories
+end
+
 function isValidPoolMember(member)
   if isEmptyString(member) then
     return false
@@ -2228,6 +2242,47 @@ function setInterfaceRegreshRate(ifid, refreshrate)
    else
       ntop.setCache(key, tostring(refreshrate))
    end
+end
+
+local function getCustomnDPIProtoCategoriesKey(ifid)
+   return getRedisIfacePrefix(ifid)..".custom_nDPI_proto_categories"
+end
+
+function getCustomnDPIProtoCategories(if_name)
+   local ifid = getInterfaceId(if_name)
+   local ndpi_protos = interface.getnDPIProtocols()
+   local key = getCustomnDPIProtoCategoriesKey(ifid)
+
+   local res = {}
+   for _, app_id in pairs(ndpi_protos) do
+      local custom_category = ntop.getHashCache(key, tostring(app_id))
+      if not isEmptyString(custom_category) then
+	 res[tonumber(app_id)] = tonumber(custom_category)
+      end
+   end
+
+   return res
+end
+
+function initCustomnDPIProtoCategories()
+   for _, ifname in pairs(interface.getIfNames()) do
+      interface.select(ifname)
+      local custom = getCustomnDPIProtoCategories(ifname)
+
+      for app_id, cat_id in pairs(custom) do
+	 interface.setnDPIProtoCategory(app_id, cat_id)
+      end
+   end
+end
+
+function setCustomnDPIProtoCategory(if_name, app_id, new_cat_id)
+   interface.select(if_name)
+   interface.setnDPIProtoCategory(app_id, new_cat_id)
+
+   local ifid = getInterfaceId(if_name)
+   local key = getCustomnDPIProtoCategoriesKey(ifid)
+
+   ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
 end
 
 function getHumanReadableInterfaceName(interface_name)
