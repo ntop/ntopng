@@ -106,7 +106,7 @@ class Host : public GenericHost {
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
-  inline void setOS(char *_os)                 { if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os); }
+  void setOS(char *_os);
   inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(Mac  *m);
   void set_mac(char *m);

@@ -1747,3 +1747,22 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, latitude, longitude);
   if(city) free(city);
 }
+
+/* *************************************** */
+
+void Host::setOS(char *_os) {
+  if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os);
+
+  if(!localHost || (mac == NULL)) return;
+
+  if(strcasestr(os, "iPhone")
+     || strcasestr(os, "Android")
+     || strcasestr(os, "mobile"))
+    mac->setDeviceType(device_phone);  
+  else if(strcasestr(os, "Mac OS")
+	  || strcasestr(os, "Windows")
+	  || strcasestr(os, "Linux"))
+    mac->setDeviceType(device_workstation);
+  else if(strcasestr(os, "iPad") || strcasestr(os, "tablet"))
+    mac->setDeviceType(device_tablet);
+}
