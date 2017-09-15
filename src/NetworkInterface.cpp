@@ -144,7 +144,7 @@ NetworkInterface::NetworkInterface(const char *name,
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
 			    (char*)"Operating System",
-			    NDPI_PROTOCOL_CATEGORY_SYSTEM,
+			    NDPI_PROTOCOL_CATEGORY_SYSTEM_OS,
 			    d_port, d_port);
 
     // enable all protocols
