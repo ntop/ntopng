@@ -2040,7 +2040,14 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
     /* This is a device we can use for network discovery */
 
     try {
-      NetworkDiscovery *d = new NetworkDiscovery(ntop_interface);
+      NetworkDiscovery *d;
+
+      if(Utils::gainWriteCapabilities() == -1)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+      
+      d = new NetworkDiscovery(ntop_interface);
+
+      Utils::dropWriteCapabilities();
 
       if(d) {
 	d->arpScan(vm);
@@ -2048,7 +2055,9 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
       }
     } catch(...) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
+      Utils::dropWriteCapabilities();
     }
+
 
     return(CONST_LUA_OK);
   } else

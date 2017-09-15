@@ -5,6 +5,8 @@ local json = require "dkjson"
 
 local discover = {}
 
+discover.debug = false
+
 discover.apple_osx_versions = {
    ['4'] = 'Mac OS X 10.0 (Cheetah)',
    ['5'] = 'Mac OS X 10.1 (Puma)',
@@ -299,7 +301,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if(symName == nil) then symName = "" else symName = string.lower(symName) end
 
    if(_mdns ~= nil) then
-      --io.write(mac .. " /" .. manufacturer .. " / ".. _mdns.."\n")
+      if(discover.debug) then io.write(mac .. " /" .. manufacturer .. " / ".. _mdns.."\n") end
       local mdns_items = string.split(_mdns, ";")
 
       if(mdns_items == nil) then
@@ -312,7 +314,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if(ssdp_str ~= nil) then
-      --io.write(mac .. " /" .. manufacturer .. " / ".. ssdp_str.."\n")
+      if(discover.debug) then  io.write(mac .. " /" .. manufacturer .. " / ".. ssdp_str.."\n") end
 
       local ssdp_items = string.split(ssdp_str, ";")
 
@@ -399,7 +401,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	end
    end
 
-   io.write("[manufacturer] "..manufacturer.."\n")
+   if(discover.debug) then io.write("[manufacturer] "..manufacturer.."\n") end
    if(string.contains(manufacturer, "Oki Electric") and (snmp ~= nil)) then
       return 'printer', discover.asset_icons['printer'].. ' ('..snmp..')'
    elseif(string.contains(manufacturer, "Hikvision")) then
@@ -551,7 +553,7 @@ local function analyzeSSDP(ssdp)
 
 		  for k,v in pairs(serviceList) do
 		     if(v.serviceId ~= nil) then
-			io.write(v.serviceId:value().."\n")
+			if(discover.debug) then io.write(v.serviceId:value().."\n") end
 
 			table.insert(services, v.serviceId:value())
 		     end
@@ -580,7 +582,7 @@ local function analyzeSSDP(ssdp)
 	    end
 	 end
 
-	 -- io.write(hresp["CONTENT"].."\n")
+	 if(discover.debug) then  io.write(hresp["CONTENT"].."\n") end
       end
 
       if(rsp[host] ~= nil) then
@@ -595,7 +597,7 @@ local function analyzeSSDP(ssdp)
 	    ["modelDescription"] = modelDescription, ["friendlyName"] = friendlyName }
       end
 
-      -- io.write(rsp[host].icon .. " / " ..rsp[host].manufacturer .. " / " ..rsp[host].url .. " / " .. "\n")
+      if(discover.debug) then io.write(rsp[host].icon .. " / " ..rsp[host].manufacturer .. " / " ..rsp[host].url .. " / " .. "\n") end
    end
 
    return rsp
@@ -611,7 +613,7 @@ end
 -- #############################################################################
 
 local function discoverARP()
-   io.write("Starting ARP discovery...\n")
+   if(discover.debug) then io.write("Starting ARP discovery...\n") end
    local status = discoverStatus("OK")
    local res = {}
 
@@ -630,7 +632,7 @@ local function discoverARP()
 	 if(hmac["bytes.sent"] > 0) then -- Skip silent hosts
 	    if(arp_mdns[hmac.mac] == nil) then
 	       local ips = interface.findHostByMac(hmac.mac) or {}
-	       -- io.write("Missing MAC "..hmac.mac.."\n")
+	       if(discover.debug) then io.write("Missing MAC "..hmac.mac.."\n") end
 
 	       for k,v in pairs(ips) do
 		  arp_mdns[hmac.mac] = k
@@ -670,7 +672,7 @@ function discover.discover2table(interface_name, recache)
    local ghost_found = arp_d["ghost_found"]
 
    -- SSDP, MDNS and SNMP
-   io.write("Starting SSDP discovery...\n")
+   if(discover.debug) then io.write("Starting SSDP discovery...\n") end
    local ssdp = interface.discoverHosts(3)
    local osx_devices = {}
 
@@ -681,7 +683,7 @@ function discover.discover2table(interface_name, recache)
 	 local manufacturer = get_manufacturer_mac(mac)
 
 	 -- This is an ARP entry
-	 -- io.write("Attempting to resolve "..ip.."\n")
+	 if(discover.debug) then io.write("Attempting to resolve "..ip.."\n") end
 	 interface.mdnsQueueNameToResolve(ip)
 
 	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.5.0", 0)
@@ -694,7 +696,7 @@ function discover.discover2table(interface_name, recache)
 	 local ip_addr = mac
 	 local mdns_services = ip
 
-	 io.write("[MDNS Services] '"..ip_addr .. "' = '" ..mdns_services.."'\n")
+	 if(discover.debug) then io.write("[MDNS Services] '"..ip_addr .. "' = '" ..mdns_services.."'\n") end
 
 	 if(string.contains(mdns_services, '_sftp')) then
 	    osx_devices[ip_addr] = 1
@@ -704,36 +706,43 @@ function discover.discover2table(interface_name, recache)
       end
    end
 
-   io.write("Analyzing SSDP...\n")
+   if(discover.debug) then io.write("Analyzing SSDP...\n") end
    ssdp = analyzeSSDP(ssdp)
 
    local show_services = false
 
-   io.write("Collecting MDNS responses\n")
+   if(discover.debug) then io.write("Collecting MDNS responses\n") end
    local mdns = interface.mdnsReadQueuedResponses()
-   for ip,rsp in pairsByValues(mdns, asc) do
-      io.write("[MDNS Resolver] "..ip.." = "..rsp.."\n")
+
+   if(discover.debug) then 
+      for ip,rsp in pairsByValues(mdns, asc) do
+	 io.write("[MDNS Resolver] "..ip.." = "..rsp.."\n")
+      end
    end
 
    for ip,_ in pairs(osx_devices) do
-      io.write("[MDNS OSX] Querying "..ip.. "\n")
+      if(discover.debug) then io.write("[MDNS OSX] Querying "..ip.. "\n") end
       interface.mdnsQueueAnyQuery(ip, "_sftp-ssh._tcp.local")
    end
 
-   io.write("Collecting SNMP responses\n")
+   if(discover.debug) then io.write("Collecting SNMP responses\n") end
    local snmp = interface.snmpReadResponses()
-   for ip,rsp in pairsByValues(snmp, asc) do
-      io.write("[SNMP] "..ip.." = "..rsp.."\n")
+
+   if(discover.debug) then 
+      for ip,rsp in pairsByValues(snmp, asc) do
+	 io.write("[SNMP] "..ip.." = "..rsp.."\n")
+      end
    end
 
-   io.write("Collecting MDNS OSX responses\n")
+   if(discover.debug) then io.write("Collecting MDNS OSX responses\n") end
    osx_devices = interface.mdnsReadQueuedResponses()
-   io.write("Collected MDNS OSX responses\n")
+   if(discover.debug) then io.write("Collected MDNS OSX responses\n") end
 
-   for a,b in pairs(osx_devices) do
-      io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
+   if(discover.debug) then 
+      for a,b in pairs(osx_devices) do
+	 io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
+      end
    end
-
 
    -- Time to pack the results in a table...
    local status = discoverStatus("OK")

@@ -28,10 +28,13 @@ if discovery_enabled or requests then
    local diff = now % tonumber(discovery_interval)
 
    if diff < 60 then
-
       callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
          if interface.isDiscoverableInterface() and discover_utils.interfaceNetworkDiscoveryEnabled(ifstats.id) then
-	    local res = discover_utils.discover2table(ifname, true --[[ recache --]])
+	    local res
+
+	    io.write("[Discover] Started interface "..ifname.." discovery\n")
+	    res = discover_utils.discover2table(ifname, true --[[ recache --]])
+	    io.write("[Discover] Completed interface "..ifname.." discovery\n")
 	    discover_utils.clearNetworkDiscovery(ifstats.id)
 	 end
       end)
@@ -39,7 +42,11 @@ if discovery_enabled or requests then
    elseif requests then
       callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
          if discover_utils.networkDiscoveryRequested(ifstats.id) then
-	    local res = discover_utils.discover2table(ifname, true --[[ recache --]])
+	    local res
+
+	    io.write("[Discover] Started interface "..ifname.." discovery\n")
+	    res = discover_utils.discover2table(ifname, true --[[ recache --]])
+	    io.write("[Discover] Completed interface "..ifname.." discovery\n")
 	    discover_utils.clearNetworkDiscovery(ifstats.id)
 	 end
 

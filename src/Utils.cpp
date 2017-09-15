@@ -39,6 +39,24 @@ typedef struct {
   u_int num_bytes;
 } DownloadState;
 
+#ifdef HAVE_LIBCAP
+/* 
+   The include below can be found in libcap-dev 
+   
+   sudo apt-get install libcap-dev
+*/
+#include <sys/capability.h>
+#include <sys/prctl.h>
+
+static cap_value_t cap_values[] = { 
+  CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
+  CAP_NET_RAW,      /* Use RAW and PACKET sockets */
+  CAP_NET_ADMIN     /* Perform various network-related operations */
+};
+
+int num_cap = sizeof(cap_values)/sizeof(cap_value_t);
+#endif
+
 /* ****************************************************** */
 
 char* Utils::jsonLabel(int label, const char *label_str,char *buf, u_int buf_len){
@@ -157,7 +175,7 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
     return(0);
   else {
     int ret = -1;
-#ifdef linux
+#ifdef HAVE_LIBCAP
     u_int num_cores = ntop->getNumCPUs();
     u_long core = core_id % num_cores;
     cpu_set_t cpu_set;
@@ -2276,12 +2294,12 @@ int Utils::retainWriteCapabilities() {
   int rc = 0;
 
 #ifdef HAVE_LIBCAP
-  cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
   cap_t caps;
 
-  /* Add the capability of interest to the perimitted capabilities  */
+  /* Add the capability of interest to the permitted capabilities  */
   caps = cap_get_proc();
-  cap_set_flag(caps, CAP_PERMITTED, 1, cap_values, CAP_SET);
+  cap_set_flag(caps, CAP_PERMITTED, num_cap, cap_values, CAP_SET);
+  cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, CAP_SET);
   rc = cap_set_proc(caps);
 
   if(rc == 0) {
@@ -2306,12 +2324,11 @@ static int _setWriteCapabilities(int enable) {
   int rc = 0;
 
 #ifdef HAVE_LIBCAP
-  cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
   cap_t caps;
 
   caps = cap_get_proc();
   if(caps) {
-    cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_values, enable ? CAP_SET : CAP_CLEAR);
+    cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, enable ? CAP_SET : CAP_CLEAR);
     rc = cap_set_proc(caps);
     cap_free(caps);
   } else

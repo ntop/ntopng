@@ -219,7 +219,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 				     Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
 				     Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
 	    
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
 	    
 	    if(mdns_sock != -1) {
 	      mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
@@ -269,7 +269,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 				 Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
 				 Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
 	
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received ARP reply from %s",
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",
 				     Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
 	mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
 	if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
@@ -555,7 +555,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
     char ipbuf[32];
     int len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received SSDP packet from %s:%u",
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Received SSDP packet from %s:%u",
 				 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
 				 ntohs(from.sin_port));
 

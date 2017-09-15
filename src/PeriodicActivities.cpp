@@ -77,7 +77,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 				{HOURLY_SCRIPT_PATH,       3600,  false},
 				{DAILY_SCRIPT_PATH,        86400, true },
 				{HOUSEKEEPING_SCRIPT_PATH, 3,     false},
-				{DISCOVER_SCRIPT_PATH,     60,    false},
+				{DISCOVER_SCRIPT_PATH,     10,    false},
 				{NULL, 0, false}};
 
   activity_descr *d = ad;
