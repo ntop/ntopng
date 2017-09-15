@@ -260,7 +260,6 @@ fi
 
 AC_CHECK_LIB([cap], [cap_get_proc])
 if test "x$ac_cv_lib_cap_cap_get_proc" = xyes; then
-   AC_DEFINE_UNQUOTED(HAVE_USER_CAPABILITIES 1, [Linux capabilities present])
    LDFLAGS="${LDFLAGS} -lcap"
 fi
 
