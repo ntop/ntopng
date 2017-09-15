@@ -28,6 +28,7 @@ Trace::Trace() {
   logFile = NULL;
   logFd = NULL;
   logFileTracesCount = new int(0);
+  traceRedis = NULL;
 #ifndef WIN32
   logFileMsg = false;
   logFdShadow = NULL;
@@ -41,6 +42,7 @@ Trace::~Trace() {
   if(logFd)                    fclose(logFd);
   if(logFile)                  free(logFile);
   if(logFileTracesCount)       delete logFileTracesCount;
+  if(traceRedis)               delete traceRedis;
 #ifndef WIN32
   if(logFdShadow)              fclose(logFdShadow);
   if(logFileTracesCountShadow) delete logFileTracesCountShadow;
@@ -139,6 +141,12 @@ void Trace::set_trace_level(u_int8_t id) {
 
 /* ******************************* */
 
+void Trace::initRedis(const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id) {
+  Utils::initRedis(&traceRedis, redis_host, redis_password, redis_port, _redis_db_id);
+}
+
+/* ******************************* */
+
 void Trace::traceEvent(int eventTraceLevel, const char* _file,
 		       const int line, const char * format, ...) {
   va_list va_ap;
@@ -210,8 +218,9 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
     printf("%s\n", out_buf);
     fflush(stdout);
 
-    if(ntop->getRedis())
-      ntop->getRedis()->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES);
+    if(traceRedis)
+      traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
+			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
 
 
 #ifndef WIN32

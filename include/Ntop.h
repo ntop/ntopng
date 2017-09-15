@@ -423,7 +423,6 @@ class Ntop {
   IpAddress* getLocalNetworkIp(int16_t local_network_id);
   void createExportInterface();
   void initNetworkInterfaces();
-  void initRedis();
   void initElasticSearch();
   void initLogstash(); 
 

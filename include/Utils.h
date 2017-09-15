@@ -94,6 +94,7 @@ class Utils {
   static u_int32_t macHash(u_int8_t *mac);
   static bool isSpecialMac(u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
+  static void initRedis(Redis **r, const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id);
 
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);

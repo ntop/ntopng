@@ -31,8 +31,9 @@
 
 /* **************************************** */
 
-Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_int8_t _redis_db_id) {
-  redis_host = _redis_host, redis_password = _redis_password;
+Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _redis_port, u_int8_t _redis_db_id) {
+  redis_host = _redis_host ? strdup(_redis_host) : NULL;
+  redis_password = _redis_password ? strdup(_redis_password) : NULL;
   redis_port = _redis_port, redis_db_id = _redis_db_id;
 
   num_requests = num_reconnections = 0;
@@ -40,7 +41,6 @@ Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_
   reconnectRedis();
   stringCache = NULL, numCached = 0;
   l = new Mutex();
-  setDefaults();
 }
 
 /* **************************************** */
@@ -50,6 +50,8 @@ Redis::~Redis() {
   redisFree(redis);
   // flushCache();
   delete l;
+  if(redis_host)     free(redis_host);
+  if(redis_password) free(redis_password);
 }
 
 /* **************************************** */
@@ -1203,8 +1205,8 @@ int Redis::id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len) {
 
 /* ******************************************* */
 
-int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("LPUSH", queue_name, msg, queue_trim_size));
+int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
+  return(msg_push("LPUSH", queue_name, msg, queue_trim_size, trace_errors));
 }
 
 /* ******************************************* */
@@ -1215,7 +1217,7 @@ int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
 
 /* ******************************************* */
 
-int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size) {
+int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
   redisReply *reply;
   int rc = 0;
 
@@ -1226,7 +1228,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 
   if(!reply) reconnectRedis();
   if(reply) {
-    if(reply->type == REDIS_REPLY_ERROR)
+    if(reply->type == REDIS_REPLY_ERROR && trace_errors)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
     else
       rc = reply->integer;
@@ -1238,7 +1240,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
       reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size - 1);
       if(!reply) reconnectRedis();
       if(reply) {
-	if(reply->type == REDIS_REPLY_ERROR)
+	if(reply->type == REDIS_REPLY_ERROR && trace_errors)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
 
 	freeReplyObject(reply);

@@ -248,7 +248,12 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     }
   }
 
-  initRedis();
+  /* Initialize redis and populate some default values */
+  Utils::initRedis(&redis, prefs->get_redis_host(), prefs->get_redis_password(), prefs->get_redis_port(), prefs->get_redis_db_id());
+  if(redis) redis->setDefaults();
+
+  /* Initialize another redis instance for the trace of events */
+  ntop->getTrace()->initRedis(prefs->get_redis_host(), prefs->get_redis_password(), prefs->get_redis_port(), prefs->get_redis_db_id());
 
   if(ntop->getRedis() == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
@@ -292,16 +297,6 @@ void Ntop::initNetworkInterfaces() {
   memset(iface, 0, (sizeof(NetworkInterface*) * MAX_NUM_DEFINED_INTERFACES));
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
-}
-
-/* ******************************************* */
-
-void Ntop::initRedis() {
-  if(redis) delete(redis);
-
-  redis = new Redis(prefs->get_redis_host(),
-		    prefs->get_redis_password(),
-		    prefs->get_redis_port(), prefs->get_redis_db_id());
 }
 
 /* ******************************************* */

@@ -42,6 +42,7 @@
 #define TRACE_DEBUGGING MAX_TRACE_LEVEL
 
 class Mutex; /* Forward */
+class Redis;
 
 /* ******************************* */
 
@@ -49,6 +50,7 @@ class Trace {
  private:
   char *logFile;
   FILE *logFd;
+  Redis *traceRedis;
   int *logFileTracesCount;
   volatile u_int8_t traceLevel;
 
@@ -67,6 +69,7 @@ class Trace {
   ~Trace();
 
   void init();
+  void initRedis(const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id);
   void rotate_logs(bool force_rotation);
   void set_log_file(const char *log_file);
   void set_trace_level(u_int8_t id);
