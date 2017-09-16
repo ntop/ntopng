@@ -30,7 +30,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;</H2><br>')
 print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;'..refresh_button..'</H2><br>')
 
-print("<script>setTimeout(function(){window.location.href='"..ntop.getHttpPrefix().."/lua/discover.lua'}, 60000);</script>")
+print("<script>setTimeout(function(){window.location.href='"..ntop.getHttpPrefix().."/lua/discover.lua'}, 30000);</script>")
 
 local discovered = discover.discover2table(ifname)
 
