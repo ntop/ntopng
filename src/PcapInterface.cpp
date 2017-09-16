@@ -184,10 +184,12 @@ static void* packetPollLoop(void* ptr) {
 	  hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
 	  memcpy(pkt_copy, pkt, hdr_copy.len);
 	  iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+			       true /* ingress - TODO: see if we pass the real packet direction */,
 			       &hdr_copy, (const u_char*)pkt_copy, &p, &srcHost, &dstHost, &flow);
 #else
 	  hdr->caplen = min_val(hdr->caplen, iface->getMTU());
 	  iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+			       true /* ingress - TODO: see if we pass the real packet direction */,
 			       NULL, hdr, pkt, &p, &srcHost, &dstHost, &flow);
 #endif
 	}

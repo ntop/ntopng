@@ -115,8 +115,6 @@ class NetworkInterface {
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
 
-  u_int64_t zmq_initial_bytes, zmq_initial_pkts;
-
   /* Frequent Items */
   FrequentTrafficItems *frequentProtocols;
   FrequentTrafficItems *frequentMacs;
@@ -284,9 +282,9 @@ class NetworkInterface {
   u_int64_t getCheckPointNumBytes();
   u_int32_t getCheckPointNumPacketDrops();
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
-  inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
+  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
+    ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
     pktStats.incStats(pkt_len);
   };
@@ -308,11 +306,13 @@ class NetworkInterface {
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool findHostsByMac(lua_State* vm, u_int8_t *mac);
   bool dissectPacket(u_int32_t bridge_iface_idx,
+		     bool ingressPacket,
 		     u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */
 		     const struct pcap_pkthdr *h, const u_char *packet,
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
   bool processPacket(u_int32_t bridge_iface_idx,
+		     bool ingressPacket,
 		     const struct bpf_timeval *when,
 		     const u_int64_t time,
 		     struct ndpi_ethhdr *eth,

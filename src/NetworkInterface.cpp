@@ -248,8 +248,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = NULL, flows_hash = NULL,
     hosts_hash = NULL, forcePoolReload = false,
-    bridge_lan_interface_id = bridge_wan_interface_id = 0,
-    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
+    bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL, 
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
@@ -1313,7 +1312,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
   if(zflow->vrfId)           flow->setVRFid(zflow->vrfId);
   /* Do not put incStats before guessing the flow protocol */
-  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStats(true /* ingressPacket */,
+	   now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
@@ -1348,6 +1348,7 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 /* **************************************************** */
 
 bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
+				     bool ingressPacket,
 				     const struct bpf_timeval *when,
 				     const u_int64_t time,
 				     struct ndpi_ethhdr *eth,
@@ -1384,7 +1385,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
-				  when, time,
+				  ingressPacket, when, time,
 				  eth,
 				  vlan_id,
 				  iph, ip6, ipsize, rawsize,
@@ -1392,7 +1393,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				  srcHost, dstHost, hostFlow);
       vIface->purgeIdle(h->ts.tv_sec);
 
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       
       return(ret);
@@ -1411,7 +1412,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket, 
+	       when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1430,7 +1432,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 
     if(ipsize < sizeof(const struct ndpi_ipv6hdr)) {
-      incStats(when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
+      incStats(ingressPacket, 
+	       when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
 	       1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1445,7 +1448,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       ipv6_shift = 8 * (options[1] + 1);
 
       if(ipsize < ipv6_shift) {
-	incStats(when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+	incStats(ingressPacket, 
+		 when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       }
@@ -1470,7 +1474,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", l4_packet_len);
-      incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_UDP) {
@@ -1483,7 +1488,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", l4_packet_len);
-      incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_GRE) {
@@ -1540,7 +1546,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow);
 
   if(flow == NULL) {
-    incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+    incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
@@ -1833,7 +1839,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
   }
 
-  incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
@@ -1868,6 +1874,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
+				     bool ingressPacket,
 				     u_int8_t *sender_mac,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
@@ -1881,6 +1888,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", ingressPacket ? "RX" : "TX");
 
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
@@ -1915,7 +1924,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
-      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict); /* Any other non IP protocol */
     }
 
@@ -1933,7 +1942,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
     ip_offset = 16 + eth_offset;
-    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 #ifdef DLT_RAW
   } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
     switch((packet[eth_offset] & 0xf0) >> 4) {
@@ -1944,7 +1953,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
-      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict); /* Unknown IP protocol version */
     }
 
@@ -1960,7 +1969,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = 0;
   } else {
-    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   }
 
@@ -1999,7 +2008,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
       if(iph->version != 4) {
 	/* This is not IPv4 */
-	incStats(h->ts.tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
+		 NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else
 	frag_off = ntohs(iph->frag_off);
@@ -2027,7 +2037,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
 	    if(iph->version != 4) {
 	      /* FIX - Add IPv6 support */
-	      incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
+		       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	  }
@@ -2062,7 +2073,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	      offset += tag_len;
 
 	      if(offset >= h->caplen) {
-		incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+			 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 		return(pass_verdict);
 	      } else {
 		eth_offset = offset;
@@ -2090,7 +2102,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	  ip_offset = ip_offset+capwap_header_len+24+8;
 
 	  if(ip_offset >= h->len) {
-	    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -2104,7 +2117,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	    ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	    break;
 	  default:
-	    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	}
@@ -2115,7 +2129,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
-				     &h->ts, time,
+				     ingressPacket, &h->ts, time,
 				     ethernet,
 				     vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
@@ -2138,7 +2152,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
       if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
-	incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
@@ -2153,7 +2168,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
 	  // ip_offset += ipv6_shift;
 	  if((ip_offset + ipv6_shift) >= h->len) {
-	    incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 
@@ -2179,7 +2195,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	    ip_offset = ip_offset+capwap_header_len+24+8;
 
 	    if(ip_offset >= h->len) {
-	      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -2193,7 +2210,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	      ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	      break;
 	    default:
-	      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	  }
@@ -2204,7 +2222,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
 	try {
 	  pass_verdict = processPacket(bridge_iface_idx,
-				       &h->ts, time,
+				       ingressPacket, &h->ts, time,
 				       ethernet,
 				       vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
@@ -2246,8 +2264,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       }
     }
 
-    incStats(h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN, rawsize,
-	     1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN,
+	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
   }
 

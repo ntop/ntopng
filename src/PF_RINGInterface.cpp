@@ -116,6 +116,8 @@ static void* packetPollLoop(void* ptr) {
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
 	  iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+			       (hdr.extended_hdr.rx_direction == 1) ? 
+			       true /* ingress */ : false /* egress */,
 			       NULL, (const struct pcap_pkthdr *) &hdr, buffer,
 			       &p, &srcHost, &dstHost, &flow);
 	  sleep_time = step_sleep;

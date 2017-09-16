@@ -29,9 +29,13 @@ EthStats::EthStats() {
 
 /* *************************************** */
 
-void EthStats::incStats(u_int16_t proto, u_int32_t num_pkts,
+void EthStats::incStats(bool ingressPacket,
+			u_int16_t proto, u_int32_t num_pkts,
 			u_int32_t num_bytes, u_int pkt_overhead) {
-  raw.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
+  if(ingressPacket)
+    rawIngress.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
+  else
+    rawEgress.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
 
   switch(proto) {
   case ETHERTYPE_ARP:
@@ -57,6 +61,7 @@ void EthStats::incStats(u_int16_t proto, u_int32_t num_pkts,
 
 void EthStats::lua(lua_State *vm) {
   lua_newtable(vm);
+
   eth_IPv4.lua(vm,  "IPv4_");
   eth_IPv6.lua(vm,  "IPv6_");
   eth_ARP.lua(vm,   "ARP_");
@@ -67,7 +72,6 @@ void EthStats::lua(lua_State *vm) {
   lua_pushstring(vm, "eth");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-
 }
 
 /* *************************************** */
@@ -83,7 +87,7 @@ void EthStats::print() {
 /* *************************************** */
 
 void EthStats::cleanup() {
-  raw.reset();
+  rawIngress.reset(), rawEgress.reset(); 
   eth_IPv4.reset();
   eth_IPv6.reset();
   eth_ARP.reset();

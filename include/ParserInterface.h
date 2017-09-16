@@ -34,8 +34,8 @@ class ParserInterface : public NetworkInterface {
  private:
   struct FlowFieldMap *map;
   bool once;
-  u_int64_t zmq_remote_initial_exported_flows;
-
+  u_int64_t zmq_initial_bytes, zmq_initial_pkts,
+    zmq_remote_initial_exported_flows;
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
 
   int getKeyId(char *sym);

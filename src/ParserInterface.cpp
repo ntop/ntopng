@@ -25,6 +25,7 @@
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
 ParserInterface::ParserInterface(const char *endpoint, const char *custom_interface_type) : NetworkInterface(endpoint, custom_interface_type) {
+  zmq_initial_bytes = 0, zmq_initial_pkts = 0;
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   zmq_remote_initial_exported_flows = 0;
   map = NULL, once = false;
