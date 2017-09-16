@@ -4457,6 +4457,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
+  lua_push_bool_table_entry(vm, "has_traffic_directions", areTrafficDirectionsSupported());
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "packets",     getNumPackets());

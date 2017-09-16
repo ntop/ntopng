@@ -49,10 +49,10 @@ class EthStats {
     if(ingressPacket) rawIngress.setBytes(v); else rawEgress.setBytes(v); 
   };
 
-  inline u_int64_t getIngressPackets() { return(rawIngress.getPkts());  };
-  inline u_int64_t getEgressPackets()  { return(rawEgress.getPkts());   };
-  inline u_int64_t getIngressBytes()   { return(rawIngress.getBytes()); };
-  inline u_int64_t getEgressBytes()    { return(rawEgress.getBytes());  };
+  inline u_int64_t getNumIngressPackets() { return(rawIngress.getPkts());  };
+  inline u_int64_t getNumEgressPackets()  { return(rawEgress.getPkts());   };
+  inline u_int64_t getNumIngressBytes()   { return(rawIngress.getBytes()); };
+  inline u_int64_t getNumEgressBytes()    { return(rawEgress.getBytes());  };
 
   inline u_int64_t getNumPackets() { return(rawIngress.getPkts() + rawEgress.getPkts());  };
   inline u_int64_t getNumBytes()   { return(rawIngress.getBytes() + rawEgress.getBytes()); };

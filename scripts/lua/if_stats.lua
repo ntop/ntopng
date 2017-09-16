@@ -439,6 +439,10 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.inline) then
       print(" "..i18n("if_stats_overview.in_path_interface"))
    end
+
+   if(ifstats.has_traffic_directions) then
+      print(" ".. i18n("if_stats_overview.has_traffic_directions") .. " ")
+   end
    print("</tr>")
 
    if not is_bridge_iface then

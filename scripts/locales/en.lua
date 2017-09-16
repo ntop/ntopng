@@ -883,6 +883,7 @@ local  en = {
       probe_zmq_num_endpoints = "Active Probe ZMQ Endpoints",
       family = "Family",
       in_path_interface = "In-Path Interface (Bump in the Wire)",
+      has_traffic_directions = "with RX/TX Directions",
       packet_dumper = "Packet Dumper",
       dumped_packets = "Dumped Packets",
       dumped_files = "Dumped Files",

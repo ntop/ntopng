@@ -69,9 +69,18 @@ void EthStats::lua(lua_State *vm) {
   eth_other.lua(vm, "other_");
   lua_push_int_table_entry(vm, "bytes",   getNumBytes());
   lua_push_int_table_entry(vm, "packets", getNumPackets());
-  lua_pushstring(vm, "eth");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "bytes",   getNumIngressBytes());
+  lua_push_int_table_entry(vm, "packets", getNumIngressPackets());
+  lua_pushstring(vm, "ingress"); lua_insert(vm, -2); lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "bytes",   getNumEgressBytes());
+  lua_push_int_table_entry(vm, "packets", getNumEgressPackets());
+  lua_pushstring(vm, "egress"); lua_insert(vm, -2); lua_settable(vm, -3);
+
+  lua_pushstring(vm, "eth"); lua_insert(vm, -2); lua_settable(vm, -3);
 }
 
 /* *************************************** */

@@ -533,6 +533,7 @@ class NetworkInterface {
 
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
+  inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
   bool setMacDeviceType(char *strmac, u_int16_t vlanId, DeviceType dtype, bool alwaysOverwrite);
