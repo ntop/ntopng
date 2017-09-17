@@ -35,10 +35,11 @@ GenericTrafficElement::GenericTrafficElement() {
 
 void GenericTrafficElement::updateStats(struct timeval *tv) {
   if(last_update_time.tv_sec > 0) {
-    float tdiff = (float)((tv->tv_sec-last_update_time.tv_sec)*1000+(tv->tv_usec-last_update_time.tv_usec)/1000);
+    float tdiff = Utils::msTimevalDiff(tv, &last_update_time);
+
     // Calculate bps throughput
     u_int64_t new_bytes = sent.getNumBytes()+rcvd.getNumBytes();
-    float bytes_msec = ((float)((new_bytes-last_bytes)*1000))/tdiff;
+    float bytes_msec = ((float)((new_bytes-last_bytes)*1000))/(1 + tdiff);
 
     if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
     else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
