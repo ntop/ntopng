@@ -163,11 +163,11 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_int_table_entry(vm, "devtype", device_type);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);    
-    lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
   }
 
   ((GenericTrafficElement*)this)->lua(vm, true);
 
+  lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
   lua_push_int_table_entry(vm, "seen.first", first_seen);
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
