@@ -536,7 +536,7 @@ local  en = {
 
    discover = {
       network_discovery = "Network Discovery",
-      network_discovery_datetime = "Network Discovery Date and Time",
+      network_discovery_datetime = "Last Network Discovery",
       err_unable_to_arp_discovery = "Unable to start ARP network discovery",
       device = "Device",
       network_discovery_not_enabled = "A network discovery is in progress. The page will refresh periodically.",

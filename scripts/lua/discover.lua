@@ -37,16 +37,15 @@ local discovered = discover.discover2table(ifname)
 if discovery_requested then
    print('<div class=\"alert alert-info alert-dismissable\"><i class="fa fa-info-circle fa-lg"></i>&nbsp;'..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fa fa-flask\"></i>"})..'</div>')
 
+elseif discovered["status"]["code"] == "NOCACHE" then
+   -- nothing to show and nothing has been requested
+   print('<div class=\"alert alert-info alert-dismissable\"><i class="fa fa-info-circle fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
 end
 
+if discovered["status"]["code"] == "ERROR" then
+   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
 
-if discovered["status"]["code"] == "NOCACHE" then
-   -- nothing to show, just wait for the cache to become ready
-
-elseif discovered["status"]["code"] ~= "OK" then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..discovered["status"]["message"]..'</div>')
-
-else -- everything is ok
+elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print("<table class=\"table table-bordered table-striped\">")
 
    print("<tr><th>"..i18n("discover.network_discovery_datetime").."</th><td colspan=5>"..formatEpoch(discovered["discovery_timestamp"]).."</td></tr>")
