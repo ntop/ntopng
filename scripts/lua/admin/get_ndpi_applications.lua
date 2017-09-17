@@ -59,6 +59,10 @@ local applications = interface.getnDPIProtocols()
 local sorter = {}
 local num_apps = 0
 for app_name, app_id in pairs(applications) do
+   if app_name == "Unknown" then
+      goto continue -- prevent the Unknown category from being re-assigned
+   end
+
    local cat = interface.getnDPIProtoCategory(tonumber(app_id))
 
    applications[app_name] = {app_name = app_name, app_id = app_id, cat = cat}
@@ -69,6 +73,8 @@ for app_name, app_id in pairs(applications) do
    elseif sortColumn == "column_ndpi_application_category" then
       sorter[app_name] = cat["name"]
    end
+
+   ::continue::
 end
 
 local res_formatted = {}
