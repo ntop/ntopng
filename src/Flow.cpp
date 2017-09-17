@@ -422,7 +422,7 @@ void Flow::processDetectedProtocol() {
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL) {
-      setBittorrentHash((char*)ndpiFlow->bittorent_hash);
+      setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash);
       protocol_processed = true;
     }
     break;
@@ -537,8 +537,8 @@ void Flow::processDetectedProtocol() {
       if((doublecol = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
 	doublecol[0] = '\0';
 
-      if(srv_host && (ndpiFlow->detected_os[0] != '\0') && cli_host)
-	cli_host->setOS((char*)ndpiFlow->detected_os);
+      if(srv_host && (ndpiFlow->protos.http.detected_os[0] != '\0') && cli_host)
+	cli_host->setOS((char*)ndpiFlow->protos.http.detected_os);
 
       if(cli_host && cli_host->isLocalHost())
 	cli_host->incrVisitedWebSite(host_server_name);
