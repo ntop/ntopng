@@ -68,6 +68,7 @@ static void* divertPacketPollLoop(void* ptr) {
     h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
 #endif /* __OpenBSD__ */
     iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+			 true /* ingress packet */,
 			 NULL, &h, packet, &c, &srcHost, &dstHost, &flow);
 
     /* Enable the row below to specify the firewall rule corresponding to the protocol */

@@ -139,7 +139,6 @@ if((page == "overview") or (page == nil)) then
 
    print("</td></tr>")
 
-
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
    print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
@@ -165,17 +164,13 @@ if((page == "overview") or (page == nil)) then
 
    print("</td></tr>")
 
-   if isAdministrator() then
-
-
-   end
-
    if(mac_info.devtype ~= 0) then
       -- This is a known device type
       print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " ")
       print(discover.devtype2string(mac_info.devtype) .. "</td><td></td></tr>\n")
    end
 
+   print("<tr><th><A HREF=https://en.wikipedia.org/wiki/Device_fingerprint>DHCP Fingerprint</A></th><td colspan=2>"..mac_info.fingerprint.."</td></tr>\n")
    print("<tr><th>".. i18n("details.first_last_seen") .. "</th><td nowrap><span id=first_seen>" .. formatEpoch(mac_info["seen.first"]) ..  " [" .. secondsToTime(os.time()-mac_info["seen.first"]) .. " " .. i18n("details.ago").."]" .. "</span></td>\n")
    print("<td  width='35%'><span id=last_seen>" .. formatEpoch(mac_info["seen.last"]) .. " [" .. secondsToTime(os.time()-mac_info["seen.last"]) .. " " .. i18n("details.ago").."]" .. "</span></td></tr>\n")
 

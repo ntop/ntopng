@@ -28,7 +28,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
-  source_mac = false;
+  source_mac = false, fingerprint = NULL;
   bridge_seen_iface_id = 0;
   device_type = device_unknown;
 
@@ -101,6 +101,9 @@ Mac::~Mac() {
     ndpiStats = NULL;
   }
 
+  if(fingerprint)
+    free(fingerprint);
+  
 #ifdef DEBUG
   char buf[32];
 
@@ -159,7 +162,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_int_table_entry(vm, "devtype", device_type);
-    if(ndpiStats) ndpiStats->lua(iface, vm, true);
+    if(ndpiStats) ndpiStats->lua(iface, vm, true);    
+    lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
   }
 
   ((GenericTrafficElement*)this)->lua(vm, true);

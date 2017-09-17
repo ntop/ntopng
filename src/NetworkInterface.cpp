@@ -1631,6 +1631,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
+      /* TODO case NDPI_PROTOCOL_DHCPV6: */
+
       if(payload_len > 240) {
 	for(int i = 240; i<payload_len; ) {
 	  u_int8_t id  = payload[i], len = payload[i+1];
@@ -1651,6 +1653,22 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
 	    ntop->getRedis()->hashSet(key, client_mac, name);
 	    break;
+	  } else if(id == 55 /* Parameters List (Fingerprint) */) {
+	    if(*srcHost && (*srcHost)->getMac()) {
+	      char fingerprint[64], buf[32];
+	      Mac *mac = (*srcHost)->getMac();
+	      u_int idx, offset = 0;
+
+	      len = ndpi_min(len, sizeof(buf)/2);
+	      
+	      for(idx=0; idx<len; idx++) {
+		snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
+		offset += 2;
+	      }
+	      
+	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+	      mac->setFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	    }
 	  } else if(id == 0xFF)
 	    break; /* End of options */
 
@@ -1658,7 +1676,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	}
       }
       break;
-
+      
     case NDPI_PROTOCOL_NETBIOS:
       if(*srcHost) {
 	if(! (*srcHost)->is_label_set()) {

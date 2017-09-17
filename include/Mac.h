@@ -28,7 +28,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
-  const char * manuf;
+  char *fingerprint;
+  const char *manuf;
   bool source_mac:1, special_mac:1 /* , notused:6 */;
   ArpStats arp_stats;
   DeviceType device_type;
@@ -91,12 +92,14 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
 
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
-  inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
+  inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); };
   inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };
-
+  inline char* print(char *str, u_int str_len)          { return(Utils::formatMac(mac, str, str_len)); };
   char* serialize();
   void deserialize(char *key, char *json_str);
   json_object* getJSONObject();
+  inline char* getFingerprint()       { return(fingerprint); }
+  inline void setFingerprint(char *f) { if(f) { if(fingerprint) free(fingerprint); fingerprint = strdup(f); } }
 };
 
 #endif /* _MAC_H_ */
