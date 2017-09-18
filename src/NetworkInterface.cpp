@@ -1634,8 +1634,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       {
 	Mac *mac = (*srcHost)->getMac();
 
-	if(mac) mac->setDhcpHost();
 	if(payload_len > 240) {
+	  if(mac && (payload[0] == 0x01)) /* Request */
+	    mac->setDhcpHost();
+		
 	  for(int i = 240; i<payload_len; ) {
 	    u_int8_t id  = payload[i], len = payload[i+1];
 
