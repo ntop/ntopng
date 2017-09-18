@@ -2393,3 +2393,37 @@ u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
 #endif
     return(0);
 }
+
+/* ******************************* */
+
+void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) {
+  int i, rcv_buffsize_base, rcv_buffsize, max_buf_size = 1024 * max_buf_mb * 1024, debug = 0;
+  socklen_t len = sizeof(rcv_buffsize_base);
+  int buf_type = rx_buffer ? SO_RCVBUF /* RX */ : SO_SNDBUF /* TX */;
+    
+  if(getsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize_base, &len) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read socket receiver buffer size [%s]",
+				 strerror(errno));
+    return;
+  } else {
+    if(debug) ntop->getTrace()->traceEvent(TRACE_INFO, "Default socket %s buffer size is %d",
+				buf_type == SO_RCVBUF ? "receive" : "send",
+				rcv_buffsize_base);
+  }
+
+  for(i=2;; i++) {
+    rcv_buffsize = i * rcv_buffsize_base;
+    if(rcv_buffsize > max_buf_size) break;
+
+    if(setsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize, sizeof(rcv_buffsize)) < 0) {
+      if(debug) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set socket %s buffer size [%s]",
+					     buf_type == SO_RCVBUF ? "receive" : "send",
+					     strerror(errno));
+      break;
+    } else
+      if(debug) ntop->getTrace()->traceEvent(TRACE_INFO, "%s socket buffer size set %d",
+					     buf_type == SO_RCVBUF ? "Receive" : "Send",
+					     rcv_buffsize);
+  }
+}
+

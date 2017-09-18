@@ -32,9 +32,9 @@ if discovery_enabled or requests then
          if interface.isDiscoverableInterface() and discover_utils.interfaceNetworkDiscoveryEnabled(ifstats.id) then
 	    local res
 
-	    io.write("[Discover] Started interface "..ifname.." discovery\n")
+	    io.write("[Discover] Started periodic discovery on interface "..ifname.."\n")
 	    res = discover_utils.discover2table(ifname, true --[[ recache --]])
-	    io.write("[Discover] Completed interface "..ifname.." discovery\n")
+	    io.write("[Discover] Completed periodic discovery on interface "..ifname.."\n")
 	    discover_utils.clearNetworkDiscovery(ifstats.id)
 	 end
       end)
@@ -44,9 +44,9 @@ if discovery_enabled or requests then
          if discover_utils.networkDiscoveryRequested(ifstats.id) then
 	    local res
 
-	    io.write("[Discover] Started interface "..ifname.." discovery\n")
+	    io.write("[Discover] Started triggered discovery on interface "..ifname.."\n")
 	    res = discover_utils.discover2table(ifname, true --[[ recache --]])
-	    io.write("[Discover] Completed interface "..ifname.." discovery\n")
+	    io.write("[Discover] Completed triggered discovery on interface "..ifname.."\n")
 	    discover_utils.clearNetworkDiscovery(ifstats.id)
 	 end
 

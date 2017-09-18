@@ -32,6 +32,8 @@ extern "C" {
 SNMP::SNMP() {
   if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     throw("Unable to start network discovery");
+
+  Utils::maximizeSocketBuffer(udp_sock, true /* RX */, 2 /* MB */);
 }
 
 /* ******************************* */
@@ -170,7 +172,7 @@ void SNMP::snmp_fetch_responses(lua_State* vm) {
       i = 0;
       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
 	if(value_str && (value_str[0] != '\0'))
-	  lua_push_str_table_entry(vm, sender_host, value_str);
+	  lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
 	
 	i++;
       }

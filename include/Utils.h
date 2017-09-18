@@ -108,14 +108,16 @@ class Utils {
   static bool maskHost(bool isLocalIP);
   static char* getInterfaceDescription(char *ifname, char *buf, int buf_len);
   static int bindSockToDevice(int sock, int family, const char* devicename);
-  
-  /* System Host Montiring and Diagnose Functions */
+  static void maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb);
+    
+  /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
   static void luaMeminfo(lua_State* vm);
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();
   static int dropWriteCapabilities();
   static u_int32_t findInterfaceGatewayIPv4(const char* ifname);
+
 };
 
 #endif /* _UTILS_H_ */
