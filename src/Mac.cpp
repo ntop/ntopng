@@ -28,7 +28,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
-  source_mac = false, fingerprint = NULL;
+  source_mac = false, fingerprint = NULL, dhcpHost = false;
   bridge_seen_iface_id = 0;
   device_type = device_unknown;
 
@@ -167,6 +167,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   ((GenericTrafficElement*)this)->lua(vm, true);
 
+  lua_push_bool_table_entry(vm, "dhcpHost", dhcpHost);
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
   lua_push_int_table_entry(vm, "seen.first", first_seen);
   lua_push_int_table_entry(vm, "seen.last", last_seen);
@@ -221,9 +222,11 @@ void Mac::deserialize(char *key, char *json_str) {
     return;
   }
 
-  if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "seen.last", &obj)) last_seen = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "devtype", &obj)) device_type = (DeviceType)json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "seen.first", &obj))  first_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
   if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
 
   json_object_put(o);
@@ -241,6 +244,8 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
+  json_object_object_add(my_object, "dhcpHost", json_object_new_boolean(dhcpHost));
+  if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
   if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
 
   if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));

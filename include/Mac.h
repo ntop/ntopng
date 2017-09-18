@@ -26,11 +26,11 @@
 
 class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
-  u_int8_t mac[6];
+  u_int8_t mac[6];  
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
   char *fingerprint;
   const char *manuf;
-  bool source_mac:1, special_mac:1 /* , notused:6 */;
+  bool source_mac:1, special_mac:1, dhcpHost:1 /* , notused:5 */;
   ArpStats arp_stats;
   DeviceType device_type;
 
@@ -42,6 +42,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incUses()          { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
   inline void decUses()          { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
   inline bool isSpecialMac()     { return(special_mac);         }
+  inline bool isDhcpHost()       { return(dhcpHost);            }
+  inline void setDhcpHost()      { dhcpHost = true;             }
   inline bool isSourceMac()      { return(source_mac);          }
   inline void setSourceMac() {
     if(!source_mac && !special_mac) {

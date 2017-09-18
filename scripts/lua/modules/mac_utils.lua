@@ -32,10 +32,15 @@ function mac2record(mac)
    record["column_mac"] = mac2link(mac)
 
    if(mac.fingerprint ~= "") then
-      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-hand-o-up fa-lg" aria-hidden="true"></i>'
+      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
       -- io.write(mac.fingerprint.."\n")
    end
 
+   if(mac.dhcpHost) then
+      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-flash fa-lg" aria-hidden="true" title="DHCP Host"></i>'
+   end
+   
+   
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end
    record["column_manufacturer"] = manufacturer

@@ -125,6 +125,10 @@ if((page == "overview") or (page == nil)) then
       print(" [ <A HREF=\"".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac.."\">"..i18n("details.show_hosts").."</A> ]")
    end
 
+   if(mac_info.dhcpHost) then
+      print('  <i class="fa fa-flash fa-lg" aria-hidden="true" title="DHCP Host"></i>')
+   end
+   
    print("</td>")
 
    print("<td>")
