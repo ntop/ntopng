@@ -1376,6 +1376,8 @@ end
 
 -- #################################
 
+-- #################################
+
 -- Aggregates items below some edge
 -- edge: minimum percentage value to create collision
 -- min_col: minimum collision groups to aggregate
@@ -1467,6 +1469,20 @@ function getOSIcon(name)
 
   return(icon)
 end
+
+-- #################################
+
+function getOperatingSystemIcon(id)
+   if(id == 1) then return('<i class=\'fa fa-linux fa-lg\'></i>')
+   elseif(id == 2) then return('<i class=\'fa fa-windows fa-lg\'></i>')
+   elseif(id == 3) then return('<i class=\'fa fa-apple fa-lg\'></i>')
+   elseif(id == 4) then return('<i class=\'fa fa-apple fa-lg\'></i>')
+   elseif(id == 5) then return('<i class=\'fa fa-android fa-lg\'></i>')
+   else return("")
+   end
+end
+
+-- #################################
 
 function getApplicationLabel(name)
   icon = ""

@@ -46,7 +46,7 @@ Lua::Lua() {
   L = luaL_newstate();
 
   if (L) G(L)->userdata = NULL;
-  
+
   if(L) G(L)->userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
   if((L == NULL) || (G(L)->userdata == NULL)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
@@ -753,7 +753,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if(lua_type(vm, 10) == LUA_TNUMBER) devtype_filter = (u_int8_t)lua_tonumber(vm, 10);
   if(lua_type(vm, 11) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 11));
   if(lua_type(vm, 12) == LUA_TBOOLEAN) dhcpMacsOnly = lua_toboolean(vm, 12);
-  
+
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
 				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
@@ -784,6 +784,28 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
   if((!ntop_interface)
      || (!mac)
      || (!ntop_interface->getMacInfo(vm, mac, vlan_id)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_set_mac_operating_system(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac = NULL;
+  OperatingSystem os = os_unknown;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  mac = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  os = (OperatingSystem)lua_tonumber(vm, 2);
+  if(os >= os_max_os) return(CONST_LUA_ERROR);
+
+  if((!ntop_interface)
+     || (!mac)
+     || (!ntop_interface->setMacOperatingSystem(vm, mac, os)))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -1050,9 +1072,9 @@ static int ntop_get_site_categories(lua_State* vm) {
 
 static int ntop_shutdown(lua_State* vm) {
   extern bool rebootAfterShutdown;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  
+
   if(getLuaVMUservalue(vm,conn) && !Utils::isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
@@ -2073,7 +2095,7 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
 
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
-      
+
       d = new NetworkDiscovery(ntop_interface);
 
       Utils::dropWriteCapabilities();
@@ -3019,7 +3041,7 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
     ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(lua_tostring(vm, 1)));
 #endif
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -5920,7 +5942,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
-  { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },  
+  { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
   { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getFlowsStatus",         ntop_get_ndpi_interface_flows_status },
   { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
@@ -5977,6 +5999,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacInfo",                     ntop_get_interface_mac_info },
   { "getMacManufacturers",            ntop_get_interface_macs_manufacturers },
   { "getTopMacsProtos",               ntop_get_top_macs_protos },
+  { "setMacOperatingSystem",          ntop_set_mac_operating_system },
   { "setMacDeviceType",               ntop_set_mac_device_type },
   { "getMacDeviceTypes",              ntop_get_mac_device_types },
 
@@ -6217,7 +6240,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getMacManufacturer", ntop_get_mac_manufacturer },
   { "getSiteCategories",  ntop_get_site_categories  },
   { "shutdown",           ntop_shutdown             },
-  
+
   { NULL,          NULL}
 };
 

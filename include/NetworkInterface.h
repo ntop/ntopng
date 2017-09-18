@@ -541,6 +541,7 @@ class NetworkInterface {
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
   bool setMacDeviceType(char *strmac, u_int16_t vlanId, DeviceType dtype, bool alwaysOverwrite);
+  bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };

@@ -30,6 +30,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
   char *fingerprint;
   const char *manuf;
+  OperatingSystem os;
   bool source_mac:1, special_mac:1, dhcpHost:1 /* , notused:5 */;
   ArpStats arp_stats;
   DeviceType device_type;
@@ -100,8 +101,10 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   char* serialize();
   void deserialize(char *key, char *json_str);
   json_object* getJSONObject();
-  inline char* getFingerprint()       { return(fingerprint); }
-  inline void setFingerprint(char *f) { if(f) { if(fingerprint) free(fingerprint); fingerprint = strdup(f); } }
+  void updateFingerprint();
+  inline void setOperatingSystem(OperatingSystem _os) { os = _os; }
+  inline char* getFingerprint()          { return(fingerprint); }
+  inline void setFingerprint(char *f) { if(f) { if(fingerprint) free(fingerprint); fingerprint = strdup(f); updateFingerprint(); } }
 };
 
 #endif /* _MAC_H_ */

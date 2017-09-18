@@ -375,10 +375,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       ret = '</i>'..discover.asset_icons[icon]..' ' .. discover.apple_icon
 
       if(osx ~= nil) then ret = ret .. osx end
+      interface.setMacOperatingSystem(mac, 3) -- 3 = OSX
       return icon, ret
    elseif(mdns["_nvstream_dbd._tcp.local"] ~= nil) then
+      interface.setMacOperatingSystem(mac, 2) -- 2 = windows
       return 'workstation', discover.asset_icons['workstation']..' (Windows)'
    elseif(mdns["_workstation._tcp.local"] ~= nil) then
+      interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
       return 'workstation', discover.asset_icons['workstation']..' (Linux)'
    end
 
@@ -428,7 +431,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	  or string.contains(manufacturer, "HUAWEI")
 	  or string.contains(manufacturer, "Xiaomi Communications")
 	  or string.contains(manufacturer, "Mobile Communications") -- LG Electronics (Mobile Communications)
-	) then
+   ) then
+      interface.setMacOperatingSystem(mac, 5) -- 5 = Android
       return 'phone', discover.asset_icons['phone'].. ' ' ..discover.android_icon
    elseif(string.contains(manufacturer, "Hewlett Packard") and (snmpName ~= nil)) then
       local _snmpName  = string.lower(snmpName)
@@ -451,17 +455,21 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    elseif(string.contains(manufacturer, "VMware")
           or string.contains(manufacturer, "QEMU")
-          or string.contains(manufacturer, "Xen")
+	  or string.contains(manufacturer, "Xen")
+	  or string.contains(manufacturer, "Parallel")
           ) then
       return 'workstation', discover.asset_icons['workstation']
    elseif(string.contains(manufacturer, "Xerox") and (snmpName ~= nil)) then
       return 'printer', discover.asset_icons['printer']..' ('..snmpName..')'
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
+	 interface.setMacOperatingSystem(mac, 4) -- 4 = iOS
 	 return 'phone', discover.asset_icons['phone']..' ('  .. discover.apple_icon .. ' iPhone)'
       elseif(string.contains(hostname, "ipad") or string.contains(symName, "ipad")) then
+	 interface.setMacOperatingSystem(mac, 4) -- 4 = iOS
 	 return 'tablet', discover.asset_icons['tablet']..' ('  .. discover.apple_icon .. 'iPad)'
       elseif(string.contains(hostname, "ipod") or string.contains(symName, "ipod")) then
+	 interface.setMacOperatingSystem(mac, 4) -- 4 = iOS
 	 return 'phone', discover.asset_icons['phone']..' ('  .. discover.apple_icon .. 'iPod)'
       else
 	 local ret = '</i> '..discover.asset_icons['workstation']..' ' .. discover.apple_icon
@@ -477,6 +485,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 end
 
 	 if(snmpName ~= nil) then ret = ret .. " ["..snmpName.."]" end
+	 interface.setMacOperatingSystem(mac, 3) -- 3 = OSX
 	 return what, ret
       end
    end
@@ -490,10 +499,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if(string.starts(hostname, "desktop-") or string.starts(symName, "desktop-")) then
+      interface.setMacOperatingSystem(mac, 2) -- 2 = windows
       return 'workstation', discover.asset_icons['workstation']..' (Windows)'
    elseif(string.contains(hostname, "thinkpad") or string.contains(symName, "thinkpad")) then
       return 'laptop', discover.asset_icons['laptop']
    elseif(string.contains(hostname, "android") or string.contains(symName, "android")) then
+      interface.setMacOperatingSystem(mac, 5) -- 5 = Android
       return 'phone', discover.asset_icons['phone']..' ' ..discover.android_icon
    elseif(string.contains(hostname, "%-NAS") or string.contains(symName, "%-NAS")) then
       return 'nas', discover.asset_icons['nas']

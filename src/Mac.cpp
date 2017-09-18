@@ -30,7 +30,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL, dhcpHost = false;
   bridge_seen_iface_id = 0;
-  device_type = device_unknown;
+  device_type = device_unknown, os = os_unknown;
 
   if(ntop->getPrefs()->areMacNdpiStatsEnabled())
     ndpiStats = new nDPIStats();
@@ -169,6 +169,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   lua_push_bool_table_entry(vm, "dhcpHost", dhcpHost);
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
+  lua_push_int_table_entry(vm, "operatingSystem", os);
   lua_push_int_table_entry(vm, "seen.first", first_seen);
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
@@ -226,6 +227,7 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
   if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));  
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
   if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
 
@@ -245,9 +247,10 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
   json_object_object_add(my_object, "dhcpHost", json_object_new_boolean(dhcpHost));
+  json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
   if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-
+  
   if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
 
   return my_object;
@@ -268,3 +271,29 @@ MacLocation Mac::locate() {
 
   return(located_on_unknown_interface);
 }
+
+/* *************************************** */
+
+void Mac::updateFingerprint() {
+  /*
+    Inefficient with many signatures but ok for the
+    time being that we have little data
+  */
+  if(!fingerprint) return;
+  
+  if(!strcmp(fingerprint,      "017903060F77FC"))       setOperatingSystem(os_ios);
+  else if(!strcmp(fingerprint, "017903060F77FC5F2C2E")) setOperatingSystem(os_macos);
+  else if((!strcmp(fingerprint, "0103063633"))
+	  || (!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC")))
+    setOperatingSystem(os_windows);
+  else if((!strcmp(fingerprint, "0103060C0F1C2A"))
+	  || (!strcmp(fingerprint, "011C02030F06770C2C2F1A792A79F921FC2A"))
+	  )
+    setOperatingSystem(os_linux); /* Android is also linux */
+}
+/*
+  Missing OS mapping
+
+  011C02030F06770C2C2F1A792A
+  010F03062C2E2F1F2179F92BFC
+*/

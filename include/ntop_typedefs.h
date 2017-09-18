@@ -419,4 +419,13 @@ typedef enum {
   interface_type_ZC_FLOW  
 } InterfaceType;
 
+typedef enum {
+  os_unknown = 0,
+  os_linux,
+  os_windows,
+  os_macos,
+  os_ios,
+  os_android,
+  os_max_os /* Keep as last element */
+} OperatingSystem;
 #endif /* _NTOP_TYPEDEFS_H_ */
