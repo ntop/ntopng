@@ -1625,8 +1625,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())
-     && flow->get_cli_host()
-     && flow->get_srv_host()) {
+     && flow->get_cli_host() && flow->get_srv_host()) {
     struct ndpi_flow_struct *ndpi_flow;
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
@@ -1639,6 +1638,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 	  if(len == 0) break;
 
+#ifdef DHCP_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
+#endif
+	  
 	  if(id == 12 /* Host Name */) {
 	    char name[64], buf[24], *client_mac, key[64];
 	    int j;
@@ -1647,14 +1650,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    strncpy((char*)name, (char*)&payload[i+2], j);
 	    name[j] = '\0';
 
-	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf)),
-	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
+	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
 
 	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
 	    ntop->getRedis()->hashSet(key, client_mac, name);
-	    break;
 	  } else if(id == 55 /* Parameters List (Fingerprint) */) {
-	    if(*srcHost && (*srcHost)->getMac()) {
+	    if((*srcHost)->getMac()) {
 	      char fingerprint[64], buf[32];
 	      Mac *mac = (*srcHost)->getMac();
 	      u_int idx, offset = 0;
@@ -1665,8 +1667,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
 		offset += 2;
 	      }
-	      
-	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+
+#ifdef DHCP_DEBUG
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+#endif
 	      mac->setFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
 	    }
 	  } else if(id == 0xFF)
