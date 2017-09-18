@@ -55,10 +55,13 @@ end
 
 local source_macs_only = false
 local host_macs_only = false
+local dhcp_macs_only = false
 
 if devices_mode == "host_macs_only" then
    host_macs_only = true
    source_macs_only = true   
+elseif devices_mode == "dhcp_macs_only" then
+   dhcp_macs_only = true   
 end
 
 interface.select(ifname)
@@ -71,7 +74,8 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
 					 tonumber(vlan),
 					 source_macs_only,
-					 host_macs_only, manufacturer, nil, device_type)
+					 host_macs_only, manufacturer,
+					 nil, device_type, "", dhcp_macs_only)
 
 local total_rows = 0
 

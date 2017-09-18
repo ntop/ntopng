@@ -738,7 +738,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_id = 0, pool_filter = (u_int16_t)-1;
   u_int8_t devtype_filter = (u_int8_t)-1;
-  bool a2zSortOrder = true, sourceMacsOnly = false, hostMacsOnly = false;
+  bool a2zSortOrder = true, sourceMacsOnly = false, hostMacsOnly = false, dhcpMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
 
   if(lua_type(vm, 1) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 1);
@@ -752,12 +752,13 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if(lua_type(vm, 9) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 9);
   if(lua_type(vm, 10) == LUA_TNUMBER) devtype_filter = (u_int8_t)lua_tonumber(vm, 10);
   if(lua_type(vm, 11) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 11));
-
+  if(lua_type(vm, 12) == LUA_TBOOLEAN) dhcpMacsOnly = lua_toboolean(vm, 12);
+  
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
 				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
 				      vlan_id, sourceMacsOnly,
-				      hostMacsOnly, manufacturer,
+				      hostMacsOnly, dhcpMacsOnly, manufacturer,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
@@ -822,6 +823,7 @@ static int ntop_get_mac_device_types(lua_State* vm) {
   u_int16_t maxHits = CONST_MAX_NUM_HITS;
   bool sourceMacsOnly = false;
   bool hostMacsOnly = true;
+  bool dhcpMacsOnly = false;
   char *manufacturer = NULL;
   u_int8_t location_filter = (u_int8_t)-1;
 
@@ -842,9 +844,12 @@ static int ntop_get_mac_device_types(lua_State* vm) {
 
   if(lua_type(vm, 6) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 6));
 
+  if(lua_type(vm, 7) == LUA_TBOOLEAN)
+    dhcpMacsOnly = lua_toboolean(vm, 7) ? true : false;
+
   if((!ntop_interface)
      || (ntop_interface->getActiveDeviceTypes(vm, vlan_id, sourceMacsOnly,
-                 hostMacsOnly, 0 /* bridge_iface_idx - TODO */,
+					      hostMacsOnly, dhcpMacsOnly, 0 /* bridge_iface_idx - TODO */,
                  maxHits, manufacturer, location_filter) < 0))
     return(CONST_LUA_ERROR);
 
@@ -982,7 +987,7 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   u_int32_t maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_id = 0;
   u_int8_t devtype_filter = (u_int8_t)-1;
-  bool sourceMacsOnly = false, hostMacsOnly = false;
+  bool sourceMacsOnly = false, hostMacsOnly = false, dhcpMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
 
   if(lua_type(vm, 1) == LUA_TNUMBER)
@@ -1002,11 +1007,15 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
   if(lua_type(vm, 6) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 6));
 
+  if(lua_type(vm, 7) == LUA_TBOOLEAN)
+    dhcpMacsOnly = lua_toboolean(vm, 7) ? true : false;
+
   if(!ntop_interface ||
      ntop_interface->getActiveMacManufacturers(vm,
 					       0, /* bridge_iface_idx - TODO */
 					       vlan_id, sourceMacsOnly,
-					       hostMacsOnly, maxHits, devtype_filter, location_filter) < 0)
+					       hostMacsOnly, dhcpMacsOnly, maxHits,
+					       devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

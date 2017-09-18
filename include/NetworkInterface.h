@@ -178,8 +178,9 @@ class NetworkInterface {
 		char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
 	       u_int8_t bridge_iface_idx,
-	       u_int16_t vlan_id, bool sourceMacsOnly,
-	       bool hostMacsOnly, const char *manufacturer,
+	       u_int16_t vlan_id, bool sourceMacsOnly,	       
+	       bool hostMacsOnly, bool dhcpMacsOnly,
+	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter);
 
@@ -380,7 +381,8 @@ class NetworkInterface {
 		       u_int8_t bridge_iface_idx,
 		       u_int16_t vlan_id,
 		       bool sourceMacsOnly,
-		       bool hostMacsOnly, const char *manufacturer,
+		       bool hostMacsOnly, bool dhcpMacsOnly,
+		       const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder,
 		       u_int16_t pool_filter, u_int8_t devtype_filter,
@@ -389,14 +391,16 @@ class NetworkInterface {
 				u_int8_t bridge_iface_idx,
 				u_int16_t vlan_id,
 				bool sourceMacsOnly,
-				bool hostMacsOnly, u_int32_t maxHits, u_int8_t devtype_filter,
+				bool hostMacsOnly, bool dhcpMacsOnly,
+				u_int32_t maxHits, u_int8_t devtype_filter,
 			        u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
-        u_int8_t bridge_iface_idx,
-        u_int16_t vlan_id,
-        bool sourceMacsOnly,
-        bool hostMacsOnly, u_int32_t maxHits, const char *manufacturer,
-        u_int8_t location_filter);
+			   u_int8_t bridge_iface_idx,
+			   u_int16_t vlan_id,
+			   bool sourceMacsOnly,
+			   bool hostMacsOnly, bool dhcpMacsOnly,
+			   u_int32_t maxHits, const char *manufacturer,
+			   u_int8_t location_filter);
   int getMacsIpAddresses(lua_State *vm, int idx);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);

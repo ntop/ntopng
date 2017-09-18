@@ -1205,7 +1205,7 @@ local  en = {
    },
 
    mac_stats = {
-      layer_2_host_devices = "Layer 2 Host Devices",
+      layer_2_host_devices = "Layer 2 %{device_type} Host Devices",
       layer_2_dev_devices = "Layer 2 %{device_type} Devices",
       all_layer_2_devices = "All Layer 2 Devices",
       dev_layer_2_devices = "%{device_type} Layer 2 Devices",
@@ -1214,6 +1214,7 @@ local  en = {
       manufacturer = "Manufacturer",
       all_devices = "All Devices",
       hosts_only = "Hosts Only",
+      dhcp_only = "DHCP Only",
       all_manufacturers = "All Manufacturers",
       arp_sent = "ARP Sent",
       arp_received = "ARP Received",

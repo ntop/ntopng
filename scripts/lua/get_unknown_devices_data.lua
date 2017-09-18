@@ -88,7 +88,8 @@ end
 local macs_stats = interface.getMacsInfo(nil, nil, nil, nil,
          tonumber(vlan),
          true --[[ sourceMacsOnly ]],
-         true --[[ hostMacsOnly ]], nil--[[manufacturer]], tonumber(host_pools_utils.DEFAULT_POOL_ID))
+         true --[[ hostMacsOnly ]], nil--[[manufacturer]],
+	 tonumber(host_pools_utils.DEFAULT_POOL_ID), false)
 
 if (macs_stats ~= nil) then
    macs_stats = macs_stats.macs
