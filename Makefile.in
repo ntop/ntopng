@@ -255,11 +255,12 @@ uninstall:
 Makefile: configure Makefile.in
 	./configure
 
-configure: @GIT_INDEX@
-	@echo ""
-	@echo "Re-running autogen as the git release has changed"
-	@echo ""
-	./autogen.sh
+# Disabled to avoid too many recompilations
+#configure: @GIT_INDEX@
+#	@echo ""
+#	@echo "Re-running autogen as the git release has changed"
+#	@echo ""
+#	./autogen.sh
 
 cppcheck:
 	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=all --force -I include/ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp
