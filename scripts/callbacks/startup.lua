@@ -90,6 +90,21 @@ for _, timespan in ipairs(alerts_granularity) do
    end
 end
 
+-- Use a specific bridging_policy_target_type default for previous user installations
+if isEmptyString(ntop.getPref("ntopng.prefs.bridging_policy_target_type")) then
+   for _, ifname in pairs(interface.getIfNames()) do
+      local ifid = getInterfaceId(ifname)
+      interface.select(ifname)
+
+      local stats = interface.getStats()
+      if stats.inline then
+         -- Override the default
+         ntop.setPref("ntopng.prefs.bridging_policy_target_type", "both")
+         break
+      end
+   end
+end
+
 -- convert suppressed alerts to include interfaces and vlans
 local hash_name = "ntopng.prefs.alerts"
 -- grab the old hosts

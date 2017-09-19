@@ -1744,37 +1744,46 @@ for k,v in pairs(protos_in_use) do
    end
 end
 
+local policy_target_type = ntop.getPref("ntopng.prefs.bridging_policy_target_type")
+if isEmptyString(policy_target_type) then policy_target_type = "per_category" end
+
 function print_ndpi_families(categories, protos, categories_disabled, protos_disabled, terminator)
    local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
-   --local show_groups = (not table.empty(categories)) and (not table.empty(protos))
-   local show_groups = false
 
+   local show_groups = (policy_target_type == "both")
    if show_groups then print('<optgroup label="'..i18n("shaping.protocol_families")..'">') end
-   for k,category in pairsByKeys(categories, asc_insensitive) do
-      print('<option value="cat_'..category.id..'"')
-      if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
-      print('>' .. shaper_utils.formatCategory(k, category.count) ..'</option>'..terminator)
+
+   if (policy_target_type == "per_category") or (policy_target_type == "both") then
+      for k,category in pairsByKeys(categories, asc_insensitive) do
+         print('<option value="cat_'..category.id..'"')
+         if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
+         print('>' .. shaper_utils.formatCategory(k, category.count) ..'</option>'..terminator)
+      end
    end
+
    if show_groups then print('</optgroup>') end
 
    if show_groups then print('<optgroup label="'..i18n("shaping.protocols")..'">') end
-   --for protoName,protoId in pairsByKeys(protos, asc_insensitive) do
-      --if not protos_excluded[protoName] then
-          --find protocol category
-         --for _,category in pairs(categories) do
-            --for _,catProto in pairs(category.protos) do
-               --if catProto == protoId then
-                  --print('<option value="'..protoId..'" data-category="'..category.id..'"')
-                  --if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
-                     --print(' disabled="disabled"')
-                  --end
-                  --print(">"..protoName.."</option>"..terminator)
-                  --break
-               --end
-            --end
-         --end
-      --end
-   --end
+
+   if (policy_target_type == "per_protocol") or (policy_target_type == "both") then
+      for protoName,protoId in pairsByKeys(protos, asc_insensitive) do
+         if not protos_excluded[protoName] then
+            -- find protocol category
+            for _,category in pairs(categories) do
+               for _,catProto in pairs(category.protos) do
+                  if catProto == protoId then
+                     print('<option value="'..protoId..'" data-category="'..category.id..'"')
+                     if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
+                        print(' disabled="disabled"')
+                     end
+                     print(">"..protoName.."</option>"..terminator)
+                     break
+                  end
+               end
+            end
+         end
+      end
+   end
 
    if show_groups then print('</optgroup>') else print(' ') end
 end
@@ -1827,6 +1836,7 @@ print([[
 <li>]]..i18n("shaping.note_drop_core")..[[</li>
 <li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
 <li>]]..i18n("shaping.see_quotas_here", {url=ntop.getHttpPrefix().."/lua/pool_details.lua?page=quotas&pool="..selected_pool.id})..[[</li>
+<li>]]..i18n("shaping.note_target_type", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=bridging"})..[[</li>
 <li>]]..i18n("shaping.note_traffic_categories", {url=ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua"})..[[</li>]])
 
 print[[
@@ -2151,13 +2161,18 @@ print[[
 
    function makeProtocolNameDropdown(tr_obj, selected_proto) {
       var name = selected_proto || "new_protocol_id";
+      var input = null;
+      var is_category = selected_proto && selected_proto.startsWith("cat_");
 
-      var input = $('<select class="form-control"></select>')
-         .attr("name", name)
-         .html(']] print_ndpi_families(protocol_categories, protos, {}, {}, "\\") print[[')
-         .change(refreshQuotas);
+      /* Only allow input modification if it's supported by the current target_type mode */
+      if (! ((is_category && ]] print(policy_target_type == "per_protocol") print[[) || (!is_category && ]] print(policy_target_type == "per_category") print[[))) {
+         input = $('<select class="form-control"></select>')
+            .attr("name", name)
+            .html(']] print_ndpi_families(protocol_categories, protos, {}, {}, "\\") print[[')
+            .change(refreshQuotas);
 
-      $("td:first", tr_obj).html(input);
+         $("td:first", tr_obj).html(input);
+      }
 
       datatableMakeSelectUnique(tr_obj, rowid_prefix, {
          on_change: function(select, old_val, new_val, others, change_fn) {
@@ -2234,7 +2249,7 @@ print[[
          }
       });
 
-      if (name !== "new_protocol_id")
+      if ((name !== "new_protocol_id") && input)
          $("option[value='"+name+"']", input).prop('selected', true);
    }
 
@@ -2270,7 +2285,7 @@ print[[
          '<a id="addNewShapedProtoBtn" onclick="addNewShapedProto()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "]] print(i18n("categories_page.traffic_category")) print[[",
+            title: "]] print(i18n("categories_page.target")) print[[",
             field: "column_proto",
             css: {
               width: '12%',

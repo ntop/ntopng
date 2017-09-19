@@ -247,6 +247,9 @@ local menu_subpages = {
     }, captive_portal_url = {
       title       = i18n("prefs.captive_portal_url_title"),
       description = i18n("prefs.captive_portal_url_description"),
+    }, policy_target_type = {
+      title       = i18n("prefs.policy_target_type"),
+      description = i18n("prefs.policy_target_type_description"),
     }
   }},
 }
