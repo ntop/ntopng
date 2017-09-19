@@ -724,15 +724,15 @@ function printStatsTimeseries()
   print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
 
   -- TODO: make also per-category interface RRDs
-  local labels = {i18n("prefs.none"),
+  local l7_rrd_labels = {i18n("prefs.none"),
 		  i18n("prefs.per_protocol"),
 --		  i18n("prefs.per_category"),
 --		  i18n("prefs.both")
                   }
-  local values = {"i_none",
-		  "i_per_protocol",
-		  "i_per_category",
-		  "i_both"}
+  local l7_rrd_values = {"none",
+		  "per_protocol",
+		  "per_category",
+		  "both"}
 
   local elementToSwitch = { }
   local showElementArray = nil -- { true, false, false }
@@ -747,8 +747,8 @@ function printStatsTimeseries()
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
-				    labels, values,
-				    "i_per_protocol",
+				    l7_rrd_labels, l7_rrd_values,
+				    "per_protocol",
 				    "primary",
 				    "interfaces_ndpi_timeseries_creation",
 				    "ntopng.prefs.interface_ndpi_timeseries_creation", nil,
@@ -757,16 +757,12 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
 
-  local labels = {i18n("prefs.none"),
+  -- TODO remove after implementing the missing fields
+  local l7_rrd_labels = {i18n("prefs.none"),
 		  i18n("prefs.per_protocol"),
 		  i18n("prefs.per_category"),
 		  i18n("prefs.both")
                   }
-
-  local values = {"h_none",
-		  "h_per_protocol",
-		  "h_per_category",
-		  "h_both"}
 
   prefsToggleButton({
     field = "toggle_local_hosts_traffic_rrd_creation",
@@ -777,8 +773,8 @@ function printStatsTimeseries()
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
-				    labels, values,
-				    "h_none",
+				    l7_rrd_labels, l7_rrd_values,
+				    "none",
 				    "primary",
 				    "hosts_ndpi_timeseries_creation",
 				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,

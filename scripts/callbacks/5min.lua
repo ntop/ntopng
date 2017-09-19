@@ -51,11 +51,11 @@ end
 
 -- Interface RRD creation is on, with per-protocol nDPI
 if isEmptyString(interface_rrd_creation) then interface_rrd_creation = "1" end
-if isEmptyString(interface_ndpi_timeseries_creation) then interface_ndpi_timeseries_creation = "i_per_protocol" end
+if isEmptyString(interface_ndpi_timeseries_creation) then interface_ndpi_timeseries_creation = "per_protocol" end
 
 -- Local hosts RRD creation is on, with no nDPI rrd creation
 if isEmptyString(host_rrd_creation) then host_rrd_creation = "1" end
-if isEmptyString(host_ndpi_timeseries_creation) then host_ndpi_timeseries_creation = "h_none" end
+if isEmptyString(host_ndpi_timeseries_creation) then host_ndpi_timeseries_creation = "none" end
 
 -- tprint({interface_rrd_creation=interface_rrd_creation, interface_ndpi_timeseries_creation=interface_ndpi_timeseries_creation,host_rrd_creation=host_rrd_creation,host_ndpi_timeseries_creation=host_ndpi_timeseries_creation})
 
@@ -75,7 +75,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
   if interface_rrd_creation == "1" then
 
-     if interface_ndpi_timeseries_creation == "i_per_protocol" or interface_ndpi_timeseries_creation == "i_both" then
+     if interface_ndpi_timeseries_creation == "per_protocol" or interface_ndpi_timeseries_creation == "both" then
 	for k in pairs(ifstats["ndpi"]) do
 	   local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
 	   if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
@@ -108,7 +108,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
   end
 
   -- Save hosts stats (if enabled from the preferences)
-  if host_rrd_creation ~= "0" or host_ndpi_timeseries_creation ~= "h_none" or host_categories_rrd_creation ~= "0" then
+  if host_rrd_creation ~= "0" or host_ndpi_timeseries_creation ~= "none" or host_categories_rrd_creation ~= "0" then
 
    local localHostsOnly = true -- stats only for local hosts
 
@@ -145,7 +145,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	  end
        end
 
-       if(host_ndpi_timeseries_creation == "h_per_protocol" or host_ndpi_timeseries_creation == "h_both") then
+       if(host_ndpi_timeseries_creation == "per_protocol" or host_ndpi_timeseries_creation == "both") then
 	  -- nDPI Protocols
 	  for k in pairs(host["ndpi"] or {}) do
 	     name = fixPath(hostbase .. "/".. k .. ".rrd")
@@ -159,7 +159,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	  if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
        end
 
-       if(host_ndpi_timeseries_creation == "h_per_category" or host_ndpi_timeseries_creation == "h_both") then
+       if(host_ndpi_timeseries_creation == "per_category" or host_ndpi_timeseries_creation == "both") then
 	  -- nDPI Protocol CATEGORIES
 	  name = fixPath(hostbase .. "/ndpi_categories/")
 	  if(not(ntop.exists(name))) then

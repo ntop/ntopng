@@ -882,8 +882,8 @@ local known_parameters = {
 
    -- Multiple Choice
    ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "ingress_iface_idx", "ingress_vrf_id"}),
-   ["hosts_ndpi_timeseries_creation"]              =  validateChoiceInline({"h_none", "h_per_protocol", "h_per_category", "h_both"}),
-   ["interfaces_ndpi_timeseries_creation"]         =  validateChoiceInline({"i_none", "i_per_protocol", "i_per_category", "i_both"}),
+   ["hosts_ndpi_timeseries_creation"]              =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
+   ["interfaces_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),

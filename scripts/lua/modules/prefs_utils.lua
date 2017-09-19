@@ -476,13 +476,13 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
         type_button = "btn-"..color.."  active"
       end
-      print('<button id="id_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..'" data-toggle="button">'..array_labels[nameCount]..'</button>\n')
+      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..'" data-toggle="button">'..array_labels[nameCount]..'</button>\n')
     end
     print('</div>\n')
     print('<input type="hidden" id="id-toggle-'..submit_field..'" name="'..submit_field..'" value="'..value..'" />\n')
     print('<script>\n')
     for nameCount = 1, #array_labels do
-      print('$("#id_'..array_values[nameCount]..'").click(function() {\n')
+      print('$("#id_'..submit_field..'_'..array_values[nameCount]..'").click(function() {\n')
       print(' var field = $(\'#id-toggle-'..submit_field..'\');\n')
       print(' var oldval = field.val(); ')
       print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
@@ -495,7 +495,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
           color = selected_color
         end
 
-        print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(array_values[indexLabel]) print [[");
+        print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(submit_field..'_') print(array_values[indexLabel]) print [[");
         class_]] print(array_values[indexLabel]) print[[.removeAttribute("class");]]
         if(array_values[indexLabel] == array_values[nameCount]) then
           print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(color) print[[ active");]]
