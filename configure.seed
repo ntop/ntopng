@@ -231,6 +231,13 @@ else
   fi
 fi
 
+AC_CHECK_LIB([netfilter_conntrack], [nfct_open], nfct=true)
+if test x$nfct != x
+then
+   AC_DEFINE([HAVE_CONNTRACK],[1],[Support for Linux conntrack])
+   LDFLAGS="${LDFLAGS} -lnetfilter_conntrack"
+fi
+
 AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
 if test x$cap != x
 then
