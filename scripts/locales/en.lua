@@ -634,14 +634,14 @@ local  en = {
             "Larger values are less computationally intensive and tend to average out minor variations. "..
             "Smaller values are more computationally intensive and tend to highlight minor variations. "..
             "Values in the order of few seconds are safe. " ..
-            "Default: 5 seconds.",
-      timeseries = "Timeseries",
-      toggle_local_title = "Traffic",
-      toggle_local_description = "Toggle the creation of bytes and packets timeseries for local hosts and defined local networks.<br>"..
-            "Turn it off to save storage space.",
-      toggle_local_ndpi_title = "Layer-7 Application",
-      toggle_local_ndpi_description = "Toggle the creation of application protocols timeseries for local hosts and defined local networks.<br>"..
-            "Turn it off to save storage space.",
+	 "Default: 5 seconds.",
+      interfaces_timeseries = "Interfaces Timeseries",
+      local_hosts_timeseries = "Local Hosts Timeseries",
+      other_timeseries = "Other Timeseries",
+      toggle_traffic_rrd_creation_title = "Traffic",
+      toggle_traffic_rrd_creation_description = "Toggle the creation of bytes and packets timeseries.",
+      toggle_ndpi_timeseries_creation_title = "Layer-7 Applications",
+      toggle_ndpi_timeseries_creation_description = "Toggle the creation of Layer-7 application timeseries. Creating a timeseries per protocol requires more disk space and extra I/O and, in general, it is not needed.",
       toggle_flow_rrds_title = "Flow Devices",
       toggle_flow_rrds_description = "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
             "For non sFlow devices, %%INPUT_SNMP and %%OUTPUT_SNMP must appear into the nprobe template.",
@@ -803,6 +803,9 @@ local  en = {
       probe_ip_address = "Probe IP",
       vlan = "VLAN Id",
       none = "None",
+      per_protocol = "Per Protocol",
+      per_category = "Per Category",
+      both = "Both",
       errors = "Errors",
       errors_and_warnings = "Errors and Warnings",
       all = "All",

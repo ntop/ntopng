@@ -721,26 +721,70 @@ end
 function printStatsTimeseries()
   print('<form method="post">')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n('prefs.timeseries')..'</th></tr>')
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
+
+  -- TODO: make also per-category interface RRDs
+  local labels = {i18n("prefs.none"),
+		  i18n("prefs.per_protocol"),
+--		  i18n("prefs.per_category"),
+--		  i18n("prefs.both")
+                  }
+  local values = {"i_none",
+		  "i_per_protocol",
+		  "i_per_category",
+		  "i_both"}
+
+  local elementToSwitch = { }
+  local showElementArray = nil -- { true, false, false }
+  local javascriptAfterSwitch = "";
 
   prefsToggleButton({
-    field = "toggle_local",
+	field = "toggle_interface_traffic_rrd_creation",
+	default = "1",
+	pref = "interface_rrd_creation",
+	to_switch = elementToSwitch,
+  })
+
+  retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
+				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
+				    labels, values,
+				    "i_per_protocol",
+				    "primary",
+				    "interfaces_ndpi_timeseries_creation",
+				    "ntopng.prefs.interface_ndpi_timeseries_creation", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+
+
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
+
+  local labels = {i18n("prefs.none"),
+		  i18n("prefs.per_protocol"),
+		  i18n("prefs.per_category"),
+		  i18n("prefs.both")
+                  }
+
+  local values = {"h_none",
+		  "h_per_protocol",
+		  "h_per_category",
+		  "h_both"}
+
+  prefsToggleButton({
+    field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
     pref = "host_rrd_creation",
-    to_switch = elementToSwitchLocalCache,
+    to_switch = elementToSwitch,
   })
 
-  prefsToggleButton({
-    field = "toggle_local_ndpi",
-    default = "0",
-    pref = "host_ndpi_rrd_creation",
-    to_switch = elementToSwitchLocalCache,
-  })
+  retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
+				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
+				    labels, values,
+				    "h_none",
+				    "primary",
+				    "hosts_ndpi_timeseries_creation",
+				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch)
 
-  local activityPrefsToSwitch = {"local_activity_prefs",
-    "host_activity_rrd_raw_hours", "id_input_host_activity_rrd_raw_hours",
-    "host_activity_rrd_1h_days", "id_input_host_activity_rrd_1h_days",
-    "host_activity_rrd_1d_days", "id_input_host_activity_rrd_1d_days"}
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
   local info = ntop.getInfo()
 

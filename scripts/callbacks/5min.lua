@@ -28,8 +28,10 @@ local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 
 -- ########################################################
 
+local interface_rrd_creation = ntop.getPref("ntopng.prefs.interface_rrd_creation")
+local interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
 local host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
-local host_ndpi_rrd_creation = ntop.getPref("ntopng.prefs.host_ndpi_rrd_creation")
+local host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
 local host_categories_rrd_creation = ntop.getPref("ntopng.prefs.host_categories_rrd_creation")
 local flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
 local host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
@@ -38,6 +40,7 @@ local asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
 local vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
+-- Populate some defaults
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
    flow_devices_rrd_creation = "0"
 end
@@ -45,6 +48,16 @@ end
 if(tostring(snmp_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
    snmp_devices_rrd_creation = "0"
 end
+
+-- Interface RRD creation is on, with per-protocol nDPI
+if isEmptyString(interface_rrd_creation) then interface_rrd_creation = "1" end
+if isEmptyString(interface_ndpi_timeseries_creation) then interface_ndpi_timeseries_creation = "i_per_protocol" end
+
+-- Local hosts RRD creation is on, with no nDPI rrd creation
+if isEmptyString(host_rrd_creation) then host_rrd_creation = "1" end
+if isEmptyString(host_ndpi_timeseries_creation) then host_ndpi_timeseries_creation = "h_none" end
+
+-- tprint({interface_rrd_creation=interface_rrd_creation, interface_ndpi_timeseries_creation=interface_ndpi_timeseries_creation,host_rrd_creation=host_rrd_creation,host_ndpi_timeseries_creation=host_ndpi_timeseries_creation})
 
 local ifnames = interface.getIfNames()
 local prefs = ntop.getPrefs()
@@ -59,37 +72,43 @@ end)
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
   basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
-  for k in pairs(ifstats["ndpi"]) do
-    v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
-      if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    name = fixPath(basedir .. "/"..k..".rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, "N:".. tolongint(v))
-  end
+  if interface_rrd_creation == "1" then
 
-  if (not ntop.exists(fixPath(basedir.."/localstats/"))) then
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating localstats directory ", fixPath(basedir.."/localstats"), '\n') end
-    ntop.mkdir(fixPath(basedir.."/localstats/"))
-  end
+     if interface_ndpi_timeseries_creation == "i_per_protocol" or interface_ndpi_timeseries_creation == "i_both" then
+	for k in pairs(ifstats["ndpi"]) do
+	   local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
+	   if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-  -- IN/OUT counters
-  if (ifstats["localstats"]["bytes"]["local2remote"] > 0) then
-    name = fixPath(basedir .. "/localstats/local2remote.rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["local2remote"]))
-    if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
-  end
+	   name = fixPath(basedir .. "/"..k..".rrd")
+	   createSingleRRDcounter(name, 300, verbose)
+	   ntop.rrd_update(name, "N:".. tolongint(v))
+	end
+     end
 
-  if (ifstats["localstats"]["bytes"]["remote2local"] > 0) then
-    name = fixPath(basedir .. "/localstats/remote2local.rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
-    if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+     if (not ntop.exists(fixPath(basedir.."/localstats/"))) then
+	if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating localstats directory ", fixPath(basedir.."/localstats"), '\n') end
+	ntop.mkdir(fixPath(basedir.."/localstats/"))
+     end
+
+     -- IN/OUT counters
+     if (ifstats["localstats"]["bytes"]["local2remote"] > 0) then
+	name = fixPath(basedir .. "/localstats/local2remote.rrd")
+	createSingleRRDcounter(name, 300, verbose)
+	ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["local2remote"]))
+	if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+     end
+
+     if (ifstats["localstats"]["bytes"]["remote2local"] > 0) then
+	name = fixPath(basedir .. "/localstats/remote2local.rrd")
+	createSingleRRDcounter(name, 300, verbose)
+	ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
+	if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+     end
   end
 
   -- Save hosts stats (if enabled from the preferences)
-  if host_rrd_creation ~= "0" or host_ndpi_rrd_creation ~= "0" or host_categories_rrd_creation ~= "0" then
+  if host_rrd_creation ~= "0" or host_ndpi_timeseries_creation ~= "h_none" or host_categories_rrd_creation ~= "0" then
 
    local localHostsOnly = true -- stats only for local hosts
 
@@ -126,18 +145,34 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	  end
        end
 
-       if(host_ndpi_rrd_creation == "1") then
-          -- nDPI Protocols
-          for k in pairs(host["ndpi"]) do
+       if(host_ndpi_timeseries_creation == "h_per_protocol" or host_ndpi_timeseries_creation == "h_both") then
+	  -- nDPI Protocols
+	  for k in pairs(host["ndpi"] or {}) do
 	     name = fixPath(hostbase .. "/".. k .. ".rrd")
 	     createRRDcounter(name, 300, verbose)
 	     ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
 	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
-          end
+	  end
 
 	  if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
 	  if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
+       end
+
+       if(host_ndpi_timeseries_creation == "h_per_category" or host_ndpi_timeseries_creation == "h_both") then
+	  -- nDPI Protocol CATEGORIES
+	  name = fixPath(hostbase .. "/ndpi_categories/")
+	  if(not(ntop.exists(name))) then
+	     ntop.mkdir(name)
+	  end
+
+	  for k, cat in pairs(host["ndpi_categories"] or {}) do
+	     name = fixPath(hostbase .. "/".. k .. ".rrd")
+	     createSingleRRDcounter(name, 300, verbose)
+	     ntop.rrd_update(name, "N:".. tolongint(cat["bytes"]))
+
+	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+	  end
        end
 
        if(host_categories_rrd_creation ~= "0") then

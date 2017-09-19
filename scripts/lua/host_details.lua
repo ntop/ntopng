@@ -22,29 +22,29 @@ local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 
-debug_hosts = false
-page        = _GET["page"]
-protocol_id = _GET["protocol"]
-application = _GET["application"]
-host_info   = url2hostinfo(_GET)
-host_ip     = host_info["host"]
-host_name   = hostinfo2hostkey(host_info)
-host_vlan   = host_info["vlan"] or 0
-always_show_hist = _GET["always_show_hist"]
+local debug_hosts = false
+local page        = _GET["page"]
+local protocol_id = _GET["protocol"]
+local application = _GET["application"]
+local host_info   = url2hostinfo(_GET)
+local host_ip     = host_info["host"]
+local host_name   = hostinfo2hostkey(host_info)
+local host_vlan   = host_info["vlan"] or 0
+local always_show_hist = _GET["always_show_hist"]
 
-ntopinfo    = ntop.getInfo()
-active_page = "hosts"
+local ntopinfo    = ntop.getInfo()
+local active_page = "hosts"
 
 interface.select(ifname)
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 
-ifId = ifstats.id
+local ifId = ifstats.id
 
-is_packetdump_enabled = isLocalPacketdumpEnabled()
-host = nil
-family = nil
+local is_packetdump_enabled = isLocalPacketdumpEnabled()
+local host = nil
+local family = nil
 
-prefs = ntop.getPrefs()
+local prefs = ntop.getPrefs()
 
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local labelKey = host_info["host"].."@"..host_info["vlan"]
@@ -62,8 +62,9 @@ if(protocol_id == nil) then protocol_id = "" end
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
 
-host = interface.getHostInfo(host_info["host"], host_vlan)
-restoreFailed = false
+local host = interface.getHostInfo(host_info["host"], host_vlan)
+
+local restoreFailed = false
 
 if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) then
    if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_restored_host_info").."\n") end
@@ -72,7 +73,7 @@ if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) t
    restoreFailed = true
 end
 
-only_historical = false
+local only_historical = false
 
 local host_pool_id = nil
 

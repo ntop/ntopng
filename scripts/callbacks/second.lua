@@ -13,7 +13,7 @@ require "lua_utils"
 require "graph_utils"
 require "rrd_utils"
 local callback_utils = require "callback_utils"
-
+--dofile(dirs.installdir .. "/scripts/callbacks/5min.lua")
 -- Toggle debug
 local enable_second_debug = false
 

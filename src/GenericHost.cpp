@@ -49,8 +49,13 @@ void GenericHost::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
   if(sent_packets || rcvd_packets) {
     sent.incStats(sent_packets, sent_bytes), rcvd.incStats(rcvd_packets, rcvd_bytes);
 
-    if(ndpiStats)
-      ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+    if(ndpiStats) {
+      ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
+	ndpiStats->incCategoryStats(when,
+				    getInterface()->get_ndpi_proto_category(ndpi_proto),
+				    sent_bytes + rcvd_bytes);
+      
+    }
 
     if((when != 0) && (last_epoch_update != when))
       total_activity_time += ntop->getPrefs()->get_housekeeping_frequency(), last_epoch_update = when;

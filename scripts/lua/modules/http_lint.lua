@@ -824,8 +824,8 @@ local known_parameters = {
    ["toggle_local_host_cache_enabled"]             =  validateBool,
    ["toggle_active_local_host_cache_enabled"]      =  validateBool,
    ["toggle_network_discovery"]                    =  validateBool,
-   ["toggle_local"]                                =  validateBool,
-   ["toggle_local_ndpi"]                           =  validateBool,
+   ["toggle_interface_traffic_rrd_creation"]       =  validateBool,
+   ["toggle_local_hosts_traffic_rrd_creation"]     =  validateBool,
    ["toggle_flow_rrds"]                            =  validateBool,
    ["toggle_pools_rrds"]                           =  validateBool,
    ["toggle_local_categorization"]                 =  validateBool,
@@ -881,6 +881,8 @@ local known_parameters = {
 
    -- Multiple Choice
    ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "ingress_iface_idx", "ingress_vrf_id"}),
+   ["hosts_ndpi_timeseries_creation"]              =  validateChoiceInline({"h_none", "h_per_protocol", "h_per_category", "h_both"}),
+   ["interfaces_ndpi_timeseries_creation"]         =  validateChoiceInline({"i_none", "i_per_protocol", "i_per_category", "i_both"}),
    ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),

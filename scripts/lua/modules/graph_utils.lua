@@ -97,7 +97,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 
    for k,v in pairsByKeys(rrds, asc) do
       if(v ~= nil) then
-	 p = fixPath(path .. "/" .. v)
+	 local p = fixPath(path .. "/" .. v)
 
 	 if(ntop.isdir(p)) then
 	    if(go_deep) then
@@ -109,10 +109,13 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 	    end
 	 else
 	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
+
 	    if last_update ~= nil and last_update >= start_time then
+
 	       -- only show if there has been an update within the specified time frame
 
 	       if(not isTopRRD(v)) then
+
 		  if(label == "*") then
 		     to_skip = true
 		  else
@@ -197,8 +200,10 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
       host_or_network = string.gsub(host_or_network, 'profile:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'ndpi_category:') then
+      host_or_network = string.gsub(host_or_network, 'ndpi_category:', '')
+      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/ndpicategorystats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
-
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
@@ -589,16 +594,18 @@ if(show_timeseries == 1) then
   <ul class="dropdown-menu">
 ]]
 
-printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+   printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
 
-dirs = ntop.getDirs()
-p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
-if(host ~= nil) then
-   p = p .. getPathFromKey(host)
-end
-d = fixPath(p)
+   local dirs = ntop.getDirs()
+   local p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
 
-   go_deep = false
+   if(host ~= nil) then
+      p = p .. getPathFromKey(host)
+   end
+
+   local d = fixPath(p)
+
+   local go_deep = false
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
 	       "*", d, d, go_deep, true, ifid, host, start_time, end_time)
 
@@ -1187,6 +1194,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    end
    
    -- prepare rrd labels
+   local protocol_categories = interface.getnDPICategories()
    for i, n in ipairs(fnames) do
       -- handle duplicates
       if (names_cache[n] == nil) then
@@ -1195,7 +1203,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 if append_ifname_to_labels then
 	     extra_info = getInterfaceName(ifid)
 	 end
-	 if host ~= nil and not string.starts(host, 'profile:') and not string.starts(rrdFile, 'categories/') then
+	 if host ~= nil and not string.starts(host, 'profile:')
+	    and protocol_categories[prefixLabel] == nil
+            and not string.starts(rrdFile, 'categories/') then
 	     extra_info = extra_info.." ".. firstToUpper(n)
 	 end
 
@@ -1509,9 +1519,9 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 
    if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
 
-   if(rrdFile == "all") then
+   if(rrdFile == "all") then -- all means all l-7 applications
        -- disable expand interface views for rrdFile == all
-       expand_interface_views=false
+       local expand_interface_views = false
        local dirs = ntop.getDirs()
        local p = dirs.workingdir .. "/" .. ifid .. "/rrd/"
        if(debug_metric) then io.write("Navigating: "..p.."\n") end
@@ -1523,7 +1533,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 	   go_deep = false
        end
 
-       d = fixPath(p)
+       local d = fixPath(p)
        rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time)
 
        for key, value in pairs(rrds) do
@@ -1532,15 +1542,23 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 	  end
        end
 
+       local ndpi_protocols = interface.getnDPIProtocols()
        local traffic_array = {}
-       for key, value in pairs(rrds) do
-	   rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json, expand_interface_views)
-	   if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
 
-	   if(total > 0) then
-	       traffic_array[total] = rsp
-	       if(debug_metric) then io.write("Analyzing: "..value.." [total "..total.."]\n") end
-	   end
+       for key, value in pairs(rrds) do
+	  if rrdFile == "all" and ndpi_protocols[key] == nil then
+	     goto continue
+	  end
+
+	  local rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json, expand_interface_views)
+	  if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
+
+	  if(total > 0) then
+	     traffic_array[total] = rsp
+	     if(debug_metric) then io.write("Analyzing: "..value.." [total "..total.."]\n") end
+	  end
+
+	  ::continue::
        end
 
        for key, value in pairsByKeys(traffic_array, rev) do

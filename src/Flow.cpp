@@ -1023,8 +1023,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       NetworkStats *srv_network_stats;
 
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-      srv_host->incStats(tv->tv_sec, protocol, ndpiDetectedProtocol.app_protocol,
-			 NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+      srv_host->incStats(tv->tv_sec, protocol,
+			 ndpiDetectedProtocol.app_protocol,
+			 NULL,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
       if(srv_network_stats) {

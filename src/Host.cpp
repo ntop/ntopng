@@ -675,7 +675,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     char *rsp = serialize();
 
     if(categoryStats) categoryStats->lua(vm);
-    if(ndpiStats) ndpiStats->lua(iface, vm);
+    if(ndpiStats) ndpiStats->lua(iface, vm, true);
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
 

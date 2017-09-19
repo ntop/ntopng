@@ -71,12 +71,15 @@ local menu_subpages = {
       description = i18n("prefs.local_host_cache_duration_description"),
     },
   }}, {id="on_disk_ts",    label=i18n("prefs.data_retention"),       advanced=false, pro_only=false,  disabled=false, entries={
-    toggle_local = {
-      title       = i18n("prefs.toggle_local_title"),
-      description = i18n("prefs.toggle_local_description"),
-    }, toggle_local_ndpi = {
-      title       = i18n("prefs.toggle_local_ndpi_title"),
-      description = i18n("prefs.toggle_local_ndpi_description"),
+    toggle_interface_traffic_rrd_creation = {
+      title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
+      description = i18n("prefs.toggle_traffic_rrd_creation_description"),
+    }, toggle_local_hosts_traffic_rrd_creation = {
+      title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
+      description = i18n("prefs.toggle_traffic_rrd_creation_description"),
+    }, toggle_ndpi_timeseries_creation = {
+      title       = i18n("prefs.toggle_ndpi_timeseries_creation_title"),
+      description = i18n("prefs.toggle_ndpi_timeseries_creation_description"),
     }, toggle_flow_rrds = {
       title       = i18n("prefs.toggle_flow_rrds_title"),
       description = i18n("prefs.toggle_flow_rrds_description"),
