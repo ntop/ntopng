@@ -18,6 +18,8 @@ print [[
   <div id="table-edit-ndpi-applications"></div>
   <script type="text/javascript">
 
+  var change_cat_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
   var select_data = {
 ]]
 
@@ -33,6 +35,7 @@ print[[
 
   $("#table-edit-ndpi-applications").datatable({
     url: url_update ,
+    class: "table table-striped table-bordered table-condensed",
 ]]
 
 print('title: "' .. i18n("applications") .. '",')
@@ -59,18 +62,22 @@ print [[
 
                  /* ADD AN HIDDEN DROPDOWN */
                  var selectList = document.createElement("select");
+                 $(selectList)
+                  .width("280px")
+                  .addClass("form-control");
                  $(selectList).change(function(){
                    var new_cat_id = $(this).val();
 
                    $.ajax({
-                     type: 'GET',]] print("url: '"..ntop.getHttpPrefix().."/lua/admin/change_ndpi_category.lua',") print [[
-                     data: { l7proto: app_id, ndpi_new_cat_id: new_cat_id, ndpi_old_cat_id: cat_id},
+                     type: 'POST',]] print("url: '"..ntop.getHttpPrefix().."/lua/admin/change_ndpi_category.lua',") print [[
+                     data: { l7proto: app_id, ndpi_new_cat_id: new_cat_id, ndpi_old_cat_id: cat_id, csrf: change_cat_csrf},
                      error: function(content) { console.log(content); },
                      success: function(content) {
                        $('#' + app_cat_name_span_id).text(select_data[new_cat_id]).show();
                        $(selectList).hide();
                        $(edit_category).show();
                        $(undo_edit).hide();
+                       change_cat_csrf = content.new_csrf;
                      }
                    });
                  }).hide();
