@@ -953,14 +953,13 @@ local  en = {
    },
 
    ndpi_page = {
-      cumulative_protocol_stats = "Cumulative Protocol Stats",
       live_flows_count = "Live Flows Count",
       note = "NOTE",
       note_live_flows_chart = "This chart depicts only TCP connections.",
       application_protocol = "Application Protocol",
       application_protocol_category = "Application Protocol Category",
       total_since_startup = "Total (Since Startup)",
-      protocol_overview = "Protocol Overview",
+      overview = "%{what} Overview",
       sent_only = "Sent only",
       received_only = "Received only",
       note = "NOTE",

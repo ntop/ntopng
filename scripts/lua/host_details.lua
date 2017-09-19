@@ -933,18 +933,19 @@ elseif((page == "ndpi")) then
       print [[
 
   <table class="table table-bordered table-striped">
-    <tr><th class="text-left" colspan=2>]] print(i18n("ndpi_page.protocol_overview")) print[[</th></tr>
     <tr>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print[[</th>
       <td>
         <div class="pie-chart" id="topApplicationProtocols"></div>
       </td>
       <td colspan=2>
-        <div class="pie-chart" id="topApplicationCategories"></div>
+        <div class="pie-chart" id="topApplicationBreeds"></div>
       </td>
     </tr>
     <tr>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
       <td colspan=2>
-        <div class="pie-chart" id="topApplicationBreeds"></div>
+        <div class="pie-chart" id="topApplicationCategories"></div>
       </td>
     </tr>
   </table>

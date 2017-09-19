@@ -30,42 +30,12 @@ else
    json_format = false
 end
 
--- Add ARP to stats
-if(ifstats.stats ~= nil) then
-  local arp = { }
-
-  arp["bytes.sent"] = 0
-  arp["bytes.rcvd"] = ifstats.eth["ARP_bytes"]
-  arp["packets.sent"] = 0
-  arp["packets.rcvd"] = ifstats.eth["ARP_packets"]
-  arp.breed = "Unrated"
-
-  ifstats["ndpi"]["ARP"] = arp
-
-  if(ifstats["ndpi"]["Unknown"] ~= nil) then
-    ifstats["ndpi"]["Unknown"]["bytes.rcvd"] = ifstats["ndpi"]["Unknown"]["bytes.rcvd"] - ifstats.eth["ARP_bytes"]
-    ifstats["ndpi"]["Unknown"]["packets.rcvd"] = ifstats["ndpi"]["Unknown"]["packets.rcvd"] - ifstats.eth["ARP_packets"]
-  end
-end   
-
 local total = ifstats.stats.bytes
-
-local vals = {}
-
-for k, v in pairs(ifstats["ndpi"]) do
-   -- io.write("->"..k.."\n")
-   if v["bytes.rcvd"] > 0 or v["bytes.sent"] > 0 then
-    vals[k] = k
-   end
-end
-
-table.sort(vals)
 
 if(json_format) then print('[\n') end
 
 local num = 0
-for _k in pairsByKeys(vals, asc) do
-  k = vals[_k]
+for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
 
   if(not(json_format)) then
      print('<tr id="t_protocol_'..k..'">')
@@ -79,22 +49,21 @@ for _k in pairsByKeys(vals, asc) do
   fname = getRRDName(ifstats.id, nil, k..".rrd")
   if(ntop.exists(fname)) then
      if(not(json_format)) then
-	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&rrd_file=".. k ..".rrd\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
+	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&rrd_file=".. k ..".rrd\">".. k .." </A>")
      else
-	print('{ "proto": "'..k..'", "breed": "'..ifstats["ndpi"][k]["breed"]..'", ')
+	print('{ "proto": "'..k..'", ')
      end
   else
      if(not(json_format)) then
-	print(k.." "..formatBreed(ifstats["ndpi"][k]["breed"]))
+	print(k)
      else
 	print('{ "proto": "'..k..'", ')
      end
   end
 
-  t = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
+  local t = v["bytes"]
 
   if(not(json_format)) then
-     if(k ~= "ARP") then print(" <A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fa fa-search-plus\"></i></A>") end
      print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      percentageBar(total, t, "") -- k

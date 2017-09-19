@@ -55,7 +55,7 @@ nDPIStats::~nDPIStats() {
 /* *************************************** */
 
 void nDPIStats::sum(nDPIStats *stats) {
-  for(int i=0; i<MAX_NDPI_PROTOS; i++) {
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(stats->counters[i] == NULL) {
 	if((stats->counters[i] = (ProtoCounter*)calloc(1, sizeof(ProtoCounter))) == NULL) {
@@ -77,6 +77,14 @@ void nDPIStats::sum(nDPIStats *stats) {
       stats->counters[i]->duration      += counters[i]->duration;
     }
   }
+
+  for (int i = 0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+    if(cat_counters[i].bytes > 0) {
+      stats->cat_counters[i].bytes  += cat_counters[i].bytes,
+	stats->cat_counters[i].duration += cat_counters[i].duration;
+    }
+  }
+
 }
 
 /* *************************************** */

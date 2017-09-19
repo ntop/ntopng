@@ -4558,7 +4558,7 @@ void NetworkInterface::lua(lua_State *vm) {
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
-  _ndpiStats.lua(this, vm);
+  _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
 
