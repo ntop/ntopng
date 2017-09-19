@@ -1,7 +1,7 @@
 [Unit]
-Description=Start/stop ntopng program
-After=network-online.target syslog.target redis.service pf_ring.service cluster.service
-Requires=pf_ring.service cluster.service
+Description=Start/stop ntopng program without pfring support
+After=network-online.target syslog.target redis.service
+Requires=redis.service
 
 [Service]
 Type=forking
