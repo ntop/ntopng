@@ -80,7 +80,18 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	   local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
 	   if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-	   name = fixPath(basedir .. "/"..k..".rrd")
+	   local name = fixPath(basedir .. "/"..k..".rrd")
+	   createSingleRRDcounter(name, 300, verbose)
+	   ntop.rrd_update(name, "N:".. tolongint(v))
+	end
+     end
+
+     if interface_ndpi_timeseries_creation == "per_category" or interface_ndpi_timeseries_creation == "both" then
+	for k, v in pairs(ifstats["ndpi_categories"]) do
+	   v = v["bytes"]
+	   if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
+
+	   local name = fixPath(basedir .. "/"..k..".rrd")
 	   createSingleRRDcounter(name, 300, verbose)
 	   ntop.rrd_update(name, "N:".. tolongint(v))
 	end

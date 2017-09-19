@@ -726,8 +726,8 @@ function printStatsTimeseries()
   -- TODO: make also per-category interface RRDs
   local l7_rrd_labels = {i18n("prefs.none"),
 		  i18n("prefs.per_protocol"),
---		  i18n("prefs.per_category"),
---		  i18n("prefs.both")
+		  i18n("prefs.per_category"),
+		  i18n("prefs.both")
                   }
   local l7_rrd_values = {"none",
 		  "per_protocol",
