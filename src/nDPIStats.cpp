@@ -208,17 +208,19 @@ char* nDPIStats::serialize(NetworkInterface *iface) {
 /* *************************************** */
 
 void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
+  json_object *obj;
+
   if(!o) return;
 
   /* Reset all */
   for(int i=0; i<MAX_NDPI_PROTOS; i++) if(counters[i] != NULL) free(counters[i]);
   memset(counters, 0, sizeof(counters));
+  memset(cat_counters, 0, sizeof(cat_counters));
 
-  for(int proto_id=0; proto_id<MAX_NDPI_PROTOS; proto_id++) {
+  for(int proto_id = 0; proto_id < MAX_NDPI_PROTOS; proto_id++) {
     char *name = iface->get_ndpi_proto_name(proto_id);
 
     if(name != NULL) {
-      json_object *obj;
 
       if(json_object_object_get_ex(o, name, &obj)) {
 	json_object *bytes, *packets;
@@ -252,6 +254,26 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
       }
     }
   }
+
+  if(json_object_object_get_ex(o, "categories", &obj)) {
+    json_object *cat_o;
+
+    for (int i = 0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+      const char *name = ndpi_category_str((ndpi_protocol_category_t)i);
+
+      if(name != NULL) {
+
+	if(json_object_object_get_ex(obj, name, &cat_o)) {
+	  json_object *data_o;
+
+	  if(json_object_object_get_ex(cat_o, "bytes", &data_o))
+	    cat_counters[i].bytes = json_object_get_int64(data_o);
+	  if(json_object_object_get_ex(cat_o, "duration", &data_o))
+	    cat_counters[i].duration = json_object_get_int(data_o);
+	}
+      }
+    }
+  }
 }
 
 /* *************************************** */
@@ -259,18 +281,17 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   char *unknown = iface->get_ndpi_proto_name(NDPI_PROTOCOL_UNKNOWN);
   json_object *my_object;
-  
+  json_object *inner, *inner1;  
+
   my_object = json_object_new_object();
 
-  for(int proto_id=0; proto_id<MAX_NDPI_PROTOS; proto_id++) {
+  for(int proto_id = 0; proto_id < MAX_NDPI_PROTOS; proto_id++) {
     if(counters[proto_id] != NULL) {
       char *name = iface->get_ndpi_proto_name(proto_id);
       
       if((proto_id > 0) && (name == unknown)) break;
 
       if(name != NULL) {
-	json_object *inner, *inner1;
-
 	inner = json_object_new_object();
 	json_object_object_add(inner, "duration", json_object_new_int64(counters[proto_id]->duration));
 	
@@ -288,6 +309,20 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
       }
     }
   }
+
+  inner = json_object_new_object();
+  for (int i = 0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+    if(cat_counters[i].bytes > 0) {
+      inner1 = json_object_new_object();
+
+      json_object_object_add(inner1, "id",      json_object_new_int64(i));
+      json_object_object_add(inner1, "bytes",   json_object_new_int64(cat_counters[i].bytes));
+      json_object_object_add(inner1, "duration",json_object_new_int64(cat_counters[i].duration));
+
+      json_object_object_add(inner, ndpi_category_str((ndpi_protocol_category_t)i), inner1);
+    }
+  }
+  json_object_object_add(my_object, "categories", inner);
 
   return(my_object);
 }

@@ -989,7 +989,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
      <table class="table table-bordered table-striped">
      ]]
 
-     print("<thead><tr><th>"..i18n("ndpi_page.application_protocol").."</th><th>"..i18n("duration").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
+  print("<thead><tr><th>"..i18n("ndpi_page.application_protocol").."</th><th>"..i18n("duration").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
 
   print ('<tbody id="host_details_ndpi_applications_tbody">\n')
   print ("</tbody>")
@@ -1004,8 +1004,8 @@ function update_ndpi_table() {
   print(ntop.getHttpPrefix())
   print [[/lua/host_details_ndpi.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
-    if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
-    print [[ },
+  if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
+  print [[ },
     success: function(content) {
       $('#host_details_ndpi_applications_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
@@ -1014,16 +1014,60 @@ function update_ndpi_table() {
   });
 }
 update_ndpi_table();
-]]
-
---  Update interval ndpi table
-print("setInterval(update_ndpi_table, 5000);")
-
-print [[
-
+setInterval(update_ndpi_table, 5000);
 </script>
 
 ]]
+
+  print [[
+     <table class="table table-bordered table-striped">
+     ]]
+
+  print("<thead><tr><th>"..i18n("ndpi_page.application_protocol_category").."</th><th>"..i18n("duration").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
+
+  print ('<tbody id="host_details_ndpi_categories_tbody">\n')
+  print ("</tbody>")
+  print("</table>\n")
+
+  print [[
+<script>
+function update_ndpi_categories_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/host_details_ndpi_categories.lua',
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ },
+    success: function(content) {
+      $('#host_details_ndpi_categories_tbody').html(content);
+      // Let the TableSorter plugin know that we updated the table
+      $('#h_ndpi_tbody').trigger("update");
+    }
+  });
+}
+update_ndpi_categories_table();
+setInterval(update_ndpi_categories_table, 5000);
+
+</script>
+]]
+  
+  local host_ndpi_timeseries_creation = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+
+  print("<b>"..i18n("notes").."</b>")
+
+  if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol" then
+     print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+  end
+
+  if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category" then
+     print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol_category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+  end
+
+  print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
+  print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
+  print("</ul>")
+
+
    end
 
    elseif(page == "dns") then
