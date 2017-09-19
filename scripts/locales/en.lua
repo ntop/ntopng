@@ -271,7 +271,8 @@ local  en = {
       note_drop_core = "Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.",
       note_default_pool_config = "Policies and quotas only apply to user-defined host pools. Select a different pool or create a new one <a href='%{url}'>here</a>.",
       note_quota_unlimited = "Set Traffic and Time Quota to 0 for unlimited traffic.",
-      note_traffic_categories = "You can configure the Traffic Categories from the <a href=\"%{url}\">applications page</a>",
+      note_target_type = "You can modify what to show into the Target column via the Policy Target Type field in the <a href=\"%{url}\">Traffic Briding preferences</a> expert view.",
+      note_traffic_categories = "You can configure the Traffic Categories from the <a href=\"%{url}\">applications page</a>.",
       see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas.",
       no_quota_traffic = "No quota related traffic so far",
       delete_all_policies = "Delete all Policies",
@@ -843,6 +844,8 @@ local  en = {
       transparent_bridge = "Transparent Bridge",
       network_mode_router = "<b>Router:</b> you need to <u>disable the DHCP on your router</u> and let this box dynamically assign IP addresses (DHCP) to local hosts and become their gateway. This box will use your router as gateway to the Internet, and thus it must have a static IP address configured in order to reach your router.",
       network_mode_bridge = "<b>Transparent Bridge</b>: your hosts will be connected to this box either using the embedded access point or through the optional ethernet interface and won't notice any change in IP address configuration.",
+      policy_target_type = "Policy Target Type",
+      policy_target_type_description = "Specify if you wish to set the policies on single protocols or on traffic categories",
    },
 
    entity_thresholds = {
@@ -1065,6 +1068,7 @@ local  en = {
       note_historical_per_category_traffic = "Historical per-category traffic data can be enabled via ntopng <a href='%{url}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
       note_rrd_samples = "When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category.",
       note_category_label = "Category labels can be clicked to browse historical data.",
+      target = "Target",
    },
 
    snmp_page = {

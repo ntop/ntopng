@@ -891,6 +891,7 @@ local known_parameters = {
    ["toggle_thpt_content"]                         =  validateChoiceInline({"bps", "pps"}),
    ["toggle_host_mask"]                            =  validateChoiceInline({"0", "1", "2"}),
    ["topk_heuristic_precision"]                    =  validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
+   ["bridging_policy_target_type"]                 =  validateChoiceInline({"per_protocol", "per_category", "both"}),
 
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,

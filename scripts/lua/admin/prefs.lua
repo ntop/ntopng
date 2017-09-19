@@ -356,13 +356,33 @@ function printBridgingPrefs()
   print('<table class="table">')
 
   if show_advanced_prefs then
-    print('<tr><th colspan=2 class="info">'..i18n("prefs.traffic_shaping")..'</th></tr>')
+    print('<tr><th colspan=2 class="info">'..i18n("traffic_policy")..'</th></tr>')
 
     prefsToggleButton({
       field = "toggle_shaping_directions",
       pref = "split_shaping_directions",
       default = "0",
     })
+
+    local labels = {
+      i18n("prefs.per_protocol"),
+      i18n("prefs.per_category"),
+      i18n("prefs.both"),
+    }
+
+    local values = {
+      "per_protocol",
+      "per_category",
+      "both",
+    }
+
+    multipleTableButtonPrefs(subpage_active.entries["policy_target_type"].title,
+				    subpage_active.entries["policy_target_type"].description,
+				    labels, values,
+				    "per_category",
+				    "primary",
+				    "bridging_policy_target_type",
+				    "ntopng.prefs.bridging_policy_target_type")
   end
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
