@@ -48,10 +48,10 @@ if discovered["status"]["code"] == "ERROR" then
 elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print("<table class=\"table table-bordered table-striped\">")
 
-   print("<tr><th>"..i18n("discover.network_discovery_datetime").."</th><td colspan=5>"..formatEpoch(discovered["discovery_timestamp"]).."</td></tr>")
+   print("<tr><th>"..i18n("discover.network_discovery_datetime").."</th><td colspan=6>"..formatEpoch(discovered["discovery_timestamp"]).."</td></tr>")
 
    print("<tr><th>"..i18n("ip_address").."</th><th>"..i18n("name").."</th><th>"..i18n("mac_stats.manufacturer").."</th><th>"..i18n("mac_address").."</th>")
-   print("<th>"..i18n("info").."</th><th>"..i18n("discover.device").."</th></tr>")
+   print("<th>"..i18n("os").."</th><th>"..i18n("info").."</th><th>"..i18n("discover.device").."</th></tr>")
 
    for _, el in ipairs(discovered["devices"] or {}) do
       print("<tr>")
@@ -60,7 +60,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       print("<a href='" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..tostring(el["ip"]).."'>"..tostring(el["ip"]).."</A>")
       if el["icon"] then print(el["icon"] .. "&nbsp;") end
       if el["ghost"] then print(' <font color=red>'..discover.ghost_icon..'</font>') end
-      print("</td>")
+      print("</td>\n")
 
       -- Name
       print("<td>")
@@ -72,7 +72,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 	    print(el["symIP"])
 	 end
       end
-      print("</td>")
+      print("</td>\n")
 
       -- Manufacturer
       print("<td>")
@@ -82,13 +82,19 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 	 print(get_manufacturer_mac(el["mac"]))
       end
       if el["modelName"] then print(" ["..el["modelName"].."]") end
-      print("</td>")
+      print("</td>\n")
 
       -- Mac
-      print("<td>")
-      print("<A HREF='"..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..el["mac"].."'>"..el["mac"].."</A>")
-      print("</td>")
+      print("<td align=\"center\">")
+      print("<A HREF='"..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..el["mac"].."'>"..el["mac"].."</A> ")
+      print("</td>\n")
 
+      -- OS
+      print("<td>")
+      local mac_info = interface.getMacInfo(el.mac, 0) -- 0 = vlanId
+      if(mac_info ~= nil) then print(getOperatingSystemIcon(mac_info.operatingSystem)) else print("&nbsp;") end
+      print("</td>\n")
+      
       -- Information
       print("<td>")
       if el["information"] then print(table.concat(el["information"], "<br>")) end
@@ -99,12 +105,12 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 	    print(el["url"])
 	 end
       end
-      print("</td>")
+      print("</td>\n")
 
       -- Device
       print("<td>")
       if el["device_label"] then print(el["device_label"]) end
-      print("</td>")
+      print("</td>\n")
 
       print("</tr>")
    end

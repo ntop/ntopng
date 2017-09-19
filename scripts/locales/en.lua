@@ -50,6 +50,7 @@ local  en = {
    interface_ifname = "Interface %{ifname}",
    ip_address = "IP Address",
    info = "Info",
+   os = "Operating System",
    ipv4 = "IPv4",
    ipv6 = "IPv6",
    application = "Application",
