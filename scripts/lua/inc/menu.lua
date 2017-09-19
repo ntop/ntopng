@@ -446,12 +446,13 @@ print(
   template.gen("typeahead_input.html", {
     typeahead={
       base_id     = "host_search",
-      action      = "/lua/host_details.lua",
+      action      = "", -- see makeFindHostBeforeSubmitCallback
       json_key    = "ip",
       query_field = "host",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
       query_title = "Search Host",
       style       = "width:16em;",
+      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
     }
   })
 )

@@ -35,13 +35,18 @@ print [[
 
       if(res ~= nil) then
 	 for k, v in pairs(res) do
-	    if isIPv6(k) and (not string.contains(v, "%[IPv6%]")) then
+	    if isIPv6(v) and (not string.contains(v, "%[IPv6%]")) then
 	      v = v.." [IPv6]"
 	    end
 
 	    if((v ~= "") and (already_printed[v] == nil)) then
 	       if(num > 0) then print(",\n") end
-	       print('\t{"name": "'..v..'", "ip": "'..k..'"}')
+	       print('\t{"name": "'..v..'", ')
+	       if(isMacAddress(v)) then
+	          print('"ip": "'..v..'", "isMac": true}')
+	       else
+	          print('"ip": "'..k..'"}')
+	       end
 	       num = num + 1
 	       already_printed[v] = true
 	    end -- if
