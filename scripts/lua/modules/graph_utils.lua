@@ -200,9 +200,6 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
       host_or_network = string.gsub(host_or_network, 'profile:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'ndpi_category:') then
-      host_or_network = string.gsub(host_or_network, 'ndpi_category:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/ndpicategorystats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")

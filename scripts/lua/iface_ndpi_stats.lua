@@ -10,13 +10,13 @@ require "lua_utils"
 sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifname)
-host_info = url2hostinfo(_GET)
+local host_info = url2hostinfo(_GET)
 
-if(_GET["breed"] == "true") then
-   show_breed = true
-else
-   show_breed = false
-end
+local show_ndpi_category = false
+local show_breed = false
+
+if(_GET["breed"] == "true") then show_breed = true end
+if(_GET["ndpi_category"] == "true") then show_ndpi_category = true end
 
 local tot = 0
 local _ifstats = {}
@@ -87,6 +87,25 @@ if(stats ~= nil) then
 	 --print(key.."="..value.."<p>\n")
 	 _ifstats[key] = value
       end
+
+   elseif(show_ndpi_category) then
+      local ndpi_category_stats = {}
+
+      for key, value in pairs(stats["ndpi_categories"]) do
+	 local traffic = value["bytes"]
+
+	 if(ndpi_category_stats[key] == nil) then
+	    ndpi_category_stats[key] = traffic
+	 else
+	    ndpi_category_stats[key] = ndpi_category_stats[key] + traffic
+	 end
+      end
+
+      for key, value in pairs(ndpi_category_stats) do
+	 --print(key.."="..value.."<p>\n")
+	 _ifstats[key] = value
+      end
+
    else
       -- Add ARP to stats
       if(stats["eth"] ~= nil) then
@@ -127,6 +146,7 @@ if(stats ~= nil) then
 
    local num = 0
    local accumulate = 0
+
    for key, value in pairsByValues(_ifstats, rev) do
       -- print("["..value.."/"..key.."]\n")
       if(value < threshold) then

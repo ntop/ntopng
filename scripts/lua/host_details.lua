@@ -932,16 +932,22 @@ elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
 
-      <table class="table table-bordered table-striped">
-      	<tr><th class="text-left">]] print(i18n("ndpi_page.protocol_overview")) print[[</th>
-	       <td colspan=3>
-	       <div class="pie-chart" id="topApplicationProtocols"></div>
-	       </td>
-	       <td colspan=2>
-	       <div class="pie-chart" id="topApplicationBreeds"></div>
-	       </td>
-	       </tr>
-	</div>
+  <table class="table table-bordered table-striped">
+    <tr><th class="text-left" colspan=2>]] print(i18n("ndpi_page.protocol_overview")) print[[</th></tr>
+    <tr>
+      <td>
+        <div class="pie-chart" id="topApplicationProtocols"></div>
+      </td>
+      <td colspan=2>
+        <div class="pie-chart" id="topApplicationCategories"></div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan=2>
+        <div class="pie-chart" id="topApplicationBreeds"></div>
+      </td>
+    </tr>
+  </table>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -950,10 +956,13 @@ elseif((page == "ndpi")) then
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ndpi_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
+				   do_pie("#topApplicationCategories", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/iface_ndpi_stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+
 				   do_pie("#topApplicationBreeds", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
-
 
 
 				}
@@ -961,8 +970,6 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
 	    </script>
            <p>
 	]]
-
-      print("</table>\n")
 
   local direction_filter = ""
   local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
@@ -984,7 +991,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
 
      print("<thead><tr><th>"..i18n("ndpi_page.application_protocol").."</th><th>"..i18n("duration").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
 
-  print ('<tbody id="host_details_ndpi_tbody">\n')
+  print ('<tbody id="host_details_ndpi_applications_tbody">\n')
   print ("</tbody>")
   print("</table>\n")
 
@@ -1000,7 +1007,7 @@ function update_ndpi_table() {
     if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
     print [[ },
     success: function(content) {
-      $('#host_details_ndpi_tbody').html(content);
+      $('#host_details_ndpi_applications_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
       $('#h_ndpi_tbody').trigger("update");
     }

@@ -691,6 +691,7 @@ local known_parameters = {
 -- NDPI
    ["application"]             =  validateApplication,           -- An nDPI application protocol name
    ["breed"]                   =  validateBool,                  -- True if nDPI breed should be shown
+   ["ndpi_category"]           =  validateBool,                  -- True if nDPI category should be shown
    ["ndpistats_mode"]          =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
    ["l4_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
    ["l7_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
