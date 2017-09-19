@@ -144,7 +144,7 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
         lua_push_int_table_entry(vm, "bytes", cat_counters[i].bytes);
         lua_push_int_table_entry(vm, "duration", cat_counters[i].duration);
 
-        lua_pushstring(vm, ndpi_category_str((ndpi_protocol_category_t)i));
+        lua_pushstring(vm, iface->get_ndpi_category_name((ndpi_protocol_category_t)i));
         lua_insert(vm, -2);
         lua_settable(vm, -3);
       }
@@ -267,7 +267,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
     json_object *cat_o;
 
     for (int i = 0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
-      const char *name = ndpi_category_str((ndpi_protocol_category_t)i);
+      const char *name = iface->get_ndpi_category_name((ndpi_protocol_category_t)i);
 
       if(name != NULL) {
 
@@ -327,7 +327,7 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
       json_object_object_add(inner1, "bytes",   json_object_new_int64(cat_counters[i].bytes));
       json_object_object_add(inner1, "duration",json_object_new_int64(cat_counters[i].duration));
 
-      json_object_object_add(inner, ndpi_category_str((ndpi_protocol_category_t)i), inner1);
+      json_object_object_add(inner, iface->get_ndpi_category_name((ndpi_protocol_category_t)i), inner1);
     }
   }
   json_object_object_add(my_object, "categories", inner);

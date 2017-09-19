@@ -122,6 +122,8 @@ class Redis {
   u_int32_t incrKey(char *key);
   int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
   void lua(lua_State *vm);
+  char* dump(char *key);
+  int restore(char *key, char *buf);
 };
 
 #endif /* _REDIS_H_ */

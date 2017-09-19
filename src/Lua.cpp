@@ -529,7 +529,7 @@ static int ntop_get_ndpi_protocol_category(lua_State* vm) {
 
     lua_newtable(vm);
     lua_push_int32_table_entry(vm, "id", category);
-    lua_push_str_table_entry(vm, "name", (char*)ndpi_category_str(category));
+    lua_push_str_table_entry(vm, "name", (char*)ntop_interface->get_ndpi_category_name(category));
   } else
     lua_pushnil(vm);
 
@@ -2966,6 +2966,8 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_ndpi_categories(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
@@ -2974,7 +2976,10 @@ static int ntop_get_ndpi_categories(lua_State* vm) {
     char buf[8];
 
     snprintf(buf, sizeof(buf), "%d", i);
-    lua_push_str_table_entry(vm, ndpi_category_str((ndpi_protocol_category_t)i), buf);
+    if(ntop_interface)
+      lua_push_str_table_entry(vm, ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i), buf);
+    else
+      lua_pushnil(vm);
   }
 
   return(CONST_LUA_OK);
@@ -5181,6 +5186,45 @@ static int ntop_get_redis_set_pop(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_redis_dump(lua_State* vm) {
+  char *key, *dump;
+  Redis *redis = ntop->getRedis();
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  dump = redis->dump(key);
+
+  if(dump) {
+    lua_pushfstring(vm, "%s", dump);
+    free(dump);
+  } else
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_redis_restore(lua_State* vm) {
+  char *key, *dump;
+  Redis *redis = ntop->getRedis();
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((dump = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  return((redis->restore(key, dump) != 0) ? CONST_LUA_ERROR : CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_list_index_redis(lua_State* vm) {
   char *index_name, rsp[CONST_MAX_LEN_REDIS_VALUE];
   Redis *redis = ntop->getRedis();
@@ -6101,6 +6145,8 @@ static const luaL_Reg ntop_reg[] = {
   { "getKeysCache",    ntop_get_keys_redis },
   { "delHashCache",    ntop_delete_hash_redis_key },
   { "setPopCache",     ntop_get_redis_set_pop },
+  { "dumpCache",       ntop_redis_dump },
+  { "restoreCache",    ntop_redis_restore },
   { "getHostId",       ntop_redis_get_host_id },
   { "getIdToHost",     ntop_redis_get_id_to_host },
 

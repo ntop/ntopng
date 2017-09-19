@@ -247,6 +247,7 @@ class NetworkInterface {
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(ndpi_struct, proto)); };
+  inline const char* get_ndpi_category_name(ndpi_protocol_category_t category) { return(ndpi_category_get_name(ndpi_struct, category)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };

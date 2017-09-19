@@ -5208,22 +5208,10 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid) {
   ndpi_protocol proto;
+  
   proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
   return get_ndpi_proto_category(proto);
-}
-
-/* **************************************** */
-
-static int lua_flow_get_ndpi_category(lua_State* vm) {
-  Flow *f;
-
-  lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, ndpi_category_str(f->get_detected_protocol_category()));
-  return(CONST_LUA_OK);
 }
 
 /* **************************************** */
@@ -5343,7 +5331,6 @@ static int lua_flow_dump(lua_State* vm) {
 
 /* These callbacks operate on the global flow of user scripts */
 static const luaL_Reg flow_reg[] = {
-  { "getNdpiCategory",   lua_flow_get_ndpi_category },
   { "getNdpiProto",      lua_flow_get_ndpi_proto },
   { "getNdpiProtoId",    lua_flow_get_ndpi_proto_id },
   { "getFirstSeen",      lua_flow_get_first_seen },
