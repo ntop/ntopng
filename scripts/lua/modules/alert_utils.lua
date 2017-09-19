@@ -607,7 +607,7 @@ local global_redis_thresholds_key = "thresholds"
 
 -- #################################
 
-function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
+function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
 
@@ -633,7 +633,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local flow_rate_alert_thresh, syn_alert_thresh
 
    if entity_type == "host" then
-      anomaly_config_key = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.alerts_config'
+      anomaly_config_key = 'ntopng.prefs.'..(options.host_ip)..':'..tostring(options.host_vlan)..'.alerts_config'
    end
 
    print('<ul class="nav nav-tabs">')

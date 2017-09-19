@@ -968,6 +968,7 @@ local known_parameters = {
    ["unassigned_devices"]      =  validateUnassignedDevicesMode, -- unknown_device.lua
    ["create_guests_pool"]      =  validateOnOff,                 -- bridge wizard
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
+   ["delete_all_policies"]     =  validateEmpty,                 -- traffic policies
 
    -- ntopng Box
    ["nbox_network_mode"]       =  validateNetworkMode,           -- bridge wizard

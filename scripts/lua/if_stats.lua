@@ -1546,6 +1546,8 @@ end
       if (_POST["del_l7_proto"] ~= nil) then
          local protocol_id = _POST["del_l7_proto"]
          shaper_utils.deleteProtocol(ifid, target_pool, protocol_id)
+      elseif (_POST["delete_all_policies"] ~= nil) then
+         shaper_utils.flushPoolRules(ifid, target_pool)
       else
          -- first remove the rules which have changed protocol
          local rules_to_delete = {}
@@ -1632,6 +1634,17 @@ print(
   })
 )
 
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "deleteAllPolicies",
+      action  = "deleteAllPoliciesConfig()",
+      title   = i18n("shaping.delete_all_policies"),
+      message = i18n("shaping.confirm_delete_all_policies", {pool_name = selected_pool.name}).."?",
+      confirm = i18n("delete"),
+    }
+  })
+)
 
 -- ******************************************
 
@@ -1643,6 +1656,12 @@ print [[<div id="protocols" class="tab-pane"><br>
    <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">
    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <input type="hidden" name="del_l7_proto" value="">
+</form>
+
+<form id="deleteAllPoliciesForm" method="post">
+   <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   <input type="hidden" name="delete_all_policies" value="">
 </form>
 
 ]] print(i18n("host_pools.pool")..":") print[[ <select id="target_pool" class="form-control pool-selector" name="pool" style="display:inline;">
@@ -1689,9 +1708,10 @@ for k,v in pairs(protos_in_use) do
    end
 end
 
-function print_ndpi_families_and_protocols(categories, protos, categories_disabled, protos_disabled, terminator)
+function print_ndpi_families(categories, protos, categories_disabled, protos_disabled, terminator)
    local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
-   local show_groups = (not table.empty(categories)) and (not table.empty(protos))
+   --local show_groups = (not table.empty(categories)) and (not table.empty(protos))
+   local show_groups = false
 
    if show_groups then print('<optgroup label="'..i18n("shaping.protocol_families")..'">') end
    for k,category in pairsByKeys(categories, asc_insensitive) do
@@ -1702,24 +1722,25 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
    if show_groups then print('</optgroup>') end
 
    if show_groups then print('<optgroup label="'..i18n("shaping.protocols")..'">') end
-   for protoName,protoId in pairsByKeys(protos, asc_insensitive) do
-      if not protos_excluded[protoName] then
-         -- find protocol category
-         for _,category in pairs(categories) do
-            for _,catProto in pairs(category.protos) do
-               if catProto == protoId then
-                  print('<option value="'..protoId..'" data-category="'..category.id..'"')
-                  if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
-                     print(' disabled="disabled"')
-                  end
-                  print(">"..protoName.."</option>"..terminator)
-                  break
-               end
-            end
-         end
-      end
-   end
-   if show_groups then print('</optgroup>') end
+   --for protoName,protoId in pairsByKeys(protos, asc_insensitive) do
+      --if not protos_excluded[protoName] then
+          --find protocol category
+         --for _,category in pairs(categories) do
+            --for _,catProto in pairs(category.protos) do
+               --if catProto == protoId then
+                  --print('<option value="'..protoId..'" data-category="'..category.id..'"')
+                  --if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
+                     --print(' disabled="disabled"')
+                  --end
+                  --print(">"..protoName.."</option>"..terminator)
+                  --break
+               --end
+            --end
+         --end
+      --end
+   --end
+
+   if show_groups then print('</optgroup>') else print(' ') end
 end
 
 local sites_categories = ntop.getSiteCategories()
@@ -1756,10 +1777,11 @@ end
 
 local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_directions") == "1")
 
-   print ([[<div id="table-protos"></div>
-<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]]..i18n("save_settings")..[[</button>
+   print [[<div id="table-protos"></div>
+<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+<button type="button" class="btn btn-default" onclick="$('#deleteAllPolicies').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("shaping.delete_all_policies")) print[[</button>
 </form>
-]])
+]]
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
 print([[<b>]]..i18n("shaping.notes")..[[</b>:]])
@@ -1769,14 +1791,9 @@ print([[
 <li>]]..i18n("shaping.note_drop_core")..[[</li>
 <li>]]..i18n("shaping.note_quota_unlimited")..[[</li>
 <li>]]..i18n("shaping.see_quotas_here", {url=ntop.getHttpPrefix().."/lua/pool_details.lua?page=quotas&pool="..selected_pool.id})..[[</li>
-<li>]]..i18n("shaping.note_families")..[[
-   <select id="family_info_sel" class="form-control input-sm" style="width:16em; display:inline; margin: 0 1em;">
-      <option disabled selected value></option>
-   ]])
+<li>]]..i18n("shaping.note_traffic_categories", {url=ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua"})..[[</li>]])
 
-   print_ndpi_families_and_protocols(protocol_categories, {}, {}, {}, "\n")
-   print[[
-   </select>
+print[[
 </li>
 </ul>
 <div id="family_info_protos"></div>
@@ -2092,12 +2109,16 @@ print[[
       form.submit();
    }
 
+   function deleteAllPoliciesConfig() {
+      $("#deleteAllPoliciesForm").submit();
+   }
+
    function makeProtocolNameDropdown(tr_obj, selected_proto) {
       var name = selected_proto || "new_protocol_id";
 
       var input = $('<select class="form-control"></select>')
          .attr("name", name)
-         .html(']] print_ndpi_families_and_protocols(protocol_categories, protos, {}, {}, "\\") print[[')
+         .html(']] print_ndpi_families(protocol_categories, protos, {}, {}, "\\") print[[')
          .change(refreshQuotas);
 
       $("td:first", tr_obj).html(input);
@@ -2213,7 +2234,7 @@ print[[
          '<a id="addNewShapedProtoBtn" onclick="addNewShapedProto()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "]] print(i18n("protocol")) print[[",
+            title: "]] print(i18n("categories_page.traffic_category")) print[[",
             field: "column_proto",
             css: {
               width: '12%',
