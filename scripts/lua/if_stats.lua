@@ -2165,14 +2165,15 @@ print[[
       var is_category = selected_proto && selected_proto.startsWith("cat_");
 
       /* Only allow input modification if it's supported by the current target_type mode */
-      if (! ((is_category && ]] print(policy_target_type == "per_protocol") print[[) || (!is_category && ]] print(policy_target_type == "per_category") print[[))) {
-         input = $('<select class="form-control"></select>')
-            .attr("name", name)
-            .html(']] print_ndpi_families(protocol_categories, protos, {}, {}, "\\") print[[')
-            .change(refreshQuotas);
+      if (selected_proto && ((is_category && ]] print(policy_target_type == "per_protocol") print[[) || (!is_category && ]] print(policy_target_type == "per_category") print[[)))
+         return;
 
-         $("td:first", tr_obj).html(input);
-      }
+      var input = $('<select class="form-control"></select>')
+         .attr("name", name)
+         .html(']] print_ndpi_families(protocol_categories, protos, {}, {}, "\\") print[[')
+         .change(refreshQuotas);
+
+      $("td:first", tr_obj).html(input);
 
       datatableMakeSelectUnique(tr_obj, rowid_prefix, {
          on_change: function(select, old_val, new_val, others, change_fn) {
@@ -2249,7 +2250,7 @@ print[[
          }
       });
 
-      if ((name !== "new_protocol_id") && input)
+      if ((name !== "new_protocol_id"))
          $("option[value='"+name+"']", input).prop('selected', true);
    }
 
