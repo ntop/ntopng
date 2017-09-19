@@ -742,8 +742,10 @@ function printStatsTimeseries()
 	field = "toggle_interface_traffic_rrd_creation",
 	default = "1",
 	pref = "interface_rrd_creation",
-	to_switch = elementToSwitch,
+	to_switch = {"row_interfaces_ndpi_timeseries_creation"},
   })
+
+  local showElement = ntop.getPref("ntopng.prefs.interface_rrd_creation") == "1"
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
@@ -752,7 +754,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "interfaces_ndpi_timeseries_creation",
 				    "ntopng.prefs.interface_ndpi_timeseries_creation", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
@@ -768,8 +770,10 @@ function printStatsTimeseries()
     field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
     pref = "host_rrd_creation",
-    to_switch = elementToSwitch,
+    to_switch = {"row_hosts_ndpi_timeseries_creation"},
   })
+
+  local showElement = ntop.getPref("ntopng.prefs.host_rrd_creation") == "1"
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
@@ -778,7 +782,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "hosts_ndpi_timeseries_creation",
 				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
