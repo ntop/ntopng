@@ -141,6 +141,14 @@ bool Mac::idle() {
 
 /* *************************************** */
 
+static const char* location2str(MacLocation location) {
+  switch(location) {
+    case located_on_lan_interface: return "lan";
+    case located_on_wan_interface: return "wan";
+    default: return "unknown";
+  }
+}
+
 void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   char buf[32], *m;
   u_int16_t host_pool = 0;
@@ -161,6 +169,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
+    lua_push_bool_table_entry(vm, "location", location2str(locate()));
     lua_push_int_table_entry(vm, "devtype", device_type);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);    
   }

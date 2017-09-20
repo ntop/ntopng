@@ -1484,9 +1484,8 @@ end
 
 -- #################################
 
-function getApplicationLabel(name)
-  icon = ""
-
+function getApplicationIcon(name)
+  local icon = ""
   if(name == nil) then name = "" end
 
   if(findString(name, "Skype")) then icon = '<i class=\'fa fa-skype fa-lg\'></i>'
@@ -1501,6 +1500,14 @@ function getApplicationLabel(name)
   elseif(findString(name, "Youtube")) then icon = '<i class=\'fa fa-youtube-square fa-lg\'></i>'
   elseif(findString(name, "thunderbird")) then icon = '<i class=\'fa fa-paper-plane fa-lg\'></i>'
   end
+
+  return(icon)
+end
+
+-- #################################
+
+function getApplicationLabel(name)
+  local icon = getApplicationIcon(name)
 
   name = name:gsub("^%l", string.upper)
   return(icon.." "..name)
