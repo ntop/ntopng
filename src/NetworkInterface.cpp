@@ -2979,8 +2979,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   int ndpi_proto;
   u_int16_t port;
   int16_t local_network_id;
-  u_int16_t vlan_id;
+  u_int16_t vlan_id = 0, pool_filter;
   u_int8_t ip_version;
+  u_int8_t *mac_filter;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   bool unicast, unidirectional, alerted_flows;
@@ -3082,6 +3083,20 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 			|| (f->get_srv_host() && (f->get_srv_host()->get_ip()->isMulticastAddress() || f->get_srv_host()->get_ip()->isBroadcastAddress()))))
 	   || (!unicast && ((f->get_cli_host() && (!f->get_cli_host()->get_ip()->isMulticastAddress() && !f->get_cli_host()->get_ip()->isBroadcastAddress()))
 			    && (f->get_srv_host() && (!f->get_srv_host()->get_ip()->isMulticastAddress() && !f->get_srv_host()->get_ip()->isBroadcastAddress()))))))
+      return(false); /* false = keep on walking */
+
+    /* Pool filter */
+    if(retriever->pag
+       && retriever->pag->poolFilter(&pool_filter)
+       && !((f->get_cli_host() && f->get_cli_host()->get_host_pool() == pool_filter)
+	      || (f->get_srv_host() && f->get_srv_host()->get_host_pool() == pool_filter)))
+      return(false); /* false = keep on walking */
+
+    /* Mac filter - NOTE: must stay below the vlan_id filter */
+    if(retriever->pag
+       && retriever->pag->macFilter(&mac_filter)
+       && !((f->get_cli_host() && f->get_cli_host()->getMac() && f->get_cli_host()->getMac()->equal(vlan_id, mac_filter))
+	      || (f->get_srv_host() && f->get_srv_host()->getMac() && f->get_srv_host()->getMac()->equal(vlan_id, mac_filter))))
       return(false); /* false = keep on walking */
 
     retriever->elems[retriever->actNumEntries].flow = f;

@@ -47,6 +47,8 @@ Paginator::Paginator() {
   unidirectional_traffic = -1;
   alerted_flows = -1;
   filtered_flows = -1;
+  pool_filter = ((u_int16_t)-1);
+  mac_filter = NULL;
 
   deviceIP = inIndex = outIndex = 0;
 
@@ -68,6 +70,7 @@ Paginator::~Paginator() {
   if(sort_column)    free(sort_column);
   if(country_filter) free(country_filter);
   if(host_filter)    free(host_filter);
+  if(mac_filter)     free(mac_filter);
 }
 
 /* **************************************************** */
@@ -131,6 +134,11 @@ void Paginator::readOptions(lua_State *L, int index) {
 	    details_level = details_max;
 	    details_level_set = true;
 	  }
+	} else if(!strcmp(key, "macFilter")) {
+	  const char* value = lua_tostring(L, -1);
+	  if(mac_filter) free(mac_filter);
+	  mac_filter = (u_int8_t *) malloc(6);
+	  Utils::parseMac(mac_filter, value);
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;
@@ -154,6 +162,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  outIndex = lua_tointeger(L, -1);
 	else if(!strcmp(key, "ipVersion"))
 	  ip_version = lua_tointeger(L, -1);
+	else if(!strcmp(key, "poolFilter"))
+	  pool_filter = lua_tointeger(L, -1);
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;

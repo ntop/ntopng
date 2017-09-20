@@ -37,7 +37,9 @@ class Paginator {
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   u_int32_t deviceIP;
-  u_int16_t inIndex, outIndex; 
+  u_int16_t inIndex, outIndex;
+  u_int16_t pool_filter;
+  u_int8_t *mac_filter;
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -96,6 +98,14 @@ class Paginator {
 
   inline bool outIndexFilter(u_int16_t *f) const {
     if(outIndex) { (*f) = outIndex; return true; } return false;
+  }
+
+  inline bool poolFilter(u_int16_t *f) const {
+    if(pool_filter != ((u_int16_t)-1)) { (*f) = pool_filter; return true; } return false;
+  }
+
+  inline bool macFilter(u_int8_t **f) const {
+    if(mac_filter) { (*f) = mac_filter; return true; } return false;
   }
 
   inline bool clientMode(LocationPolicy *f) const {
