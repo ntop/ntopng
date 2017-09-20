@@ -5997,3 +5997,20 @@ void NetworkInterface::topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t byte
   }
 }
 
+/* *************************************** */
+
+void NetworkInterface::updateFlowStats(u_int8_t protocol,
+				       u_int32_t srcHost, u_int16_t sport,
+				       u_int32_t dstHost, u_int16_t dport,
+				       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
+				       u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
+  bool src2dst_direction;
+  IpAddress src_ip, dst_ip;  
+  Flow *f;
+
+  src_ip.set(srcHost), dst_ip.set(dstHost);
+  f = flows_hash->find(&src_ip, &dst_ip, sport, dport, 0 /* vlanId */, protocol, &src2dst_direction);
+  
+  if(f)
+    f->setPacketsBytes(s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);  
+}

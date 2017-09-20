@@ -594,6 +594,11 @@ class NetworkInterface {
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
   inline void incPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->incPoolNumMembers(id); }
   inline void decPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->decPoolNumMembers(id); }  
+  void updateFlowStats(u_int8_t protocol,
+		       u_int32_t srcHost, u_int16_t sport,
+		       u_int32_t dstHost, u_int16_t dport,
+		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
+		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

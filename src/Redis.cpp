@@ -1483,7 +1483,7 @@ void Redis::flushCache() {
 
 /* https://github.com/nullptr-cc/redis-extra-tools */
 static void bin2hex(char * in, int len, char * out) {
-  int unsigned i;
+  int i;
 
   char table[] = "0123456789ABCDEF";
 

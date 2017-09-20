@@ -428,7 +428,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
-  
+  void setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int32_t s2d_bytes, u_int32_t d2s_bytes);  
 #ifdef NTOPNG_PRO
   void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {
     if(src2dst_direction)
