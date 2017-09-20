@@ -3038,7 +3038,7 @@ static int ntop_load_mac_ndpi_stats_prefs(lua_State* vm) {
 #ifdef NTOPNG_PRO
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
-#ifdef linux
+#ifdef HAVE_NETFILTER
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);

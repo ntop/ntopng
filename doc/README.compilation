@@ -32,7 +32,7 @@ On Debian/Ubuntu if you plan to build packages you should also install
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
-- yum install git autoconf automake autogen bison flex libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter-queue-devel zlib-devel which
+- yum install git autoconf automake autogen bison flex libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which
 
 On MacOSX (using http://brew.sh)
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql
