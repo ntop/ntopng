@@ -2866,14 +2866,17 @@ static int ntop_interface_is_bridge_interface(lua_State* vm) {
 static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *interface_type;
+  bool rv = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface
      || ((interface_type = ntop_interface->get_type()) == NULL))
-    return(CONST_LUA_ERROR);
+    rv = false;
+  else
+    rv = (strcmp(interface_type, CONST_INTERFACE_TYPE_PCAP_DUMP) == 0);
 
-  lua_pushboolean(vm, strcmp(interface_type, CONST_INTERFACE_TYPE_PCAP_DUMP) == 0);
+  lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
 
@@ -2881,21 +2884,26 @@ static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
 
 static int ntop_interface_is_running(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(ntop_interface) rv = ntop_interface->isRunning();
 
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-  return(ntop_interface->isRunning());
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
 static int ntop_interface_is_idle(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-  return(ntop_interface->idle());
+  if(ntop_interface) rv = ntop_interface->idle();
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
