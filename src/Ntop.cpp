@@ -166,7 +166,8 @@ void Ntop::initTimezone() {
 /* ******************************************* */
 
 Ntop::~Ntop() {
-  if(httpd)      delete httpd; /* Stop the http server before tearing down network interfaces */
+  if(httpd)
+    delete httpd; /* Stop the http server before tearing down network interfaces */
 
   /* Views are deleted first as they require access to the underlying sub-interfaces */
   for(int i = 0; i < num_defined_interfaces; i++) {
@@ -1565,8 +1566,6 @@ void Ntop::runHousekeepingTasks() {
     gettimeofday(&tv, NULL);
     ntop->getLogstash()->updateStats(&tv);
   }
-
-  ntop->getPrefs()->dumpIfRefreshed();
 
   ntop->rotateLogs();
 }

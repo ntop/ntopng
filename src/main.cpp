@@ -37,7 +37,8 @@ void sighup(int sig) {
 
 void sigproc(int sig) {
   static int called = 0;
-
+  ThreadedActivity *shutdown_activity;
+  
   if(called) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Ok I am leaving now");
     _exit(0);
@@ -45,6 +46,12 @@ void sigproc(int sig) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutting down...");
     called = 1;
   }
+
+  /* Exec shutdown script before shutting down ntopng */
+  if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
+    shutdown_activity->run();
+    delete shutdown_activity;
+  }    
 
   ntop->getGlobals()->shutdown();
   sleep(2); /* Wait until all threads know that we're shutting down... */

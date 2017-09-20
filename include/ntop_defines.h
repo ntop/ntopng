@@ -166,6 +166,7 @@
 #define MAX_NUM_NTOPNG_TRACES   32
 #define TRAFFIC_FILTERING_CACHE            "ntopng.trafficfiltering.cache"
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
+#define PREFS_CHANGED           "ntopng.prefs_changed"
 #define DROP_HOST_TRAFFIC       "ntopng.prefs.drop_host_traffic"
 #define DUMP_HOST_TRAFFIC       "ntopng.prefs.dump_host_traffic"
 #define HOST_TRAFFIC_QUOTA      "ntopng.prefs.hosts_quota"
@@ -344,7 +345,6 @@
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
-#define CONST_DEFAULT_PREFS_FILE     "runtimeprefs.json"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
@@ -678,6 +678,7 @@
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */
+#define SHUTDOWN_SCRIPT_PATH       "shutdown.lua"
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
 #define DISCOVER_SCRIPT_PATH       "discover.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"

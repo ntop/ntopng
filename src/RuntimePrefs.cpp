@@ -208,8 +208,6 @@ int RuntimePrefs::hashGet(char *key, char *rsp, u_int rsp_len) {
 RuntimePrefs::~RuntimePrefs() {
   prefscache_t *cur, *tmp;
 
-  writeDump();
-
   HASH_ITER(hh, prefscache, cur, tmp) {
     if(cur->value_ptr == str)
       free(cur->value);
@@ -367,63 +365,6 @@ bool RuntimePrefs::deserialize(char *json_str) {
 
 /* *************************************** */
 
-void RuntimePrefs::setDumpPath(char *_path) {
-  path[0] = tmp_path[0] = '\0';
-
-  if(_path) {
-    Utils::mkdir_tree(_path);
-    snprintf(path, sizeof(path), "%s/%s",
-	     _path, CONST_DEFAULT_PREFS_FILE);
-    snprintf(tmp_path, sizeof(tmp_path), "%s/%s.temp",
-	     _path, CONST_DEFAULT_PREFS_FILE);
-  }
-}
-
-/* *************************************** */
-
-bool RuntimePrefs::writeDump() {
-  bool ret = true;
-  char *rsp = serialize();
-  size_t tmp_w = 0, w = 0;
-
-  if(rsp) {
-    if((tmp_w = Utils::file_write(tmp_path, rsp, strlen(rsp))))
-      if((w = Utils::file_write(path, rsp, strlen(rsp))) == tmp_w)
-	unlink(tmp_path), prefscache_refreshed = false;
-
-    free(rsp);
-  }
-
-  return ret;
-}
-
-/* *************************************** */
-
-bool RuntimePrefs::readDump() {
-  size_t tmp_r = 0, r = 0;
-  char *buffer = NULL;
-
-  if((r = Utils::file_read(path, &buffer))
-     && deserialize(buffer)) {
-    free(buffer);
-    return true;
-  }
-  
-  if(buffer) free(buffer);
-
-  if((tmp_r = Utils::file_read(tmp_path, &buffer))
-     && deserialize(buffer)) {
-    free(buffer);
-    return true;
-  }
-
-  if(buffer) free(buffer);
-
-  return false;
-}
-
-/* *************************************** */
-
 void RuntimePrefs::lua(lua_State* vm) {
   char buf[32];
 
@@ -539,6 +480,8 @@ int RuntimePrefs::refresh(const char *pref_name, const char *pref_value) {
   } else
     return -1;
 
-  prefscache_refreshed = true;
+  /* Tell housekeeping.lua to dump prefs to disk */
+  ntop->getRedis()->set((char*)PREFS_CHANGED, (char*)"true");
+
   return 0;
 }

@@ -13,4 +13,8 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
--- Nothing to do so far
+require "lua_utils"
+
+readPrefsFromDisk()
+
+

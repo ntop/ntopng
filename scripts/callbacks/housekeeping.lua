@@ -15,3 +15,10 @@ require "alert_utils"
 require "slack_utils"
 
 sendSlackMessages()
+
+local prefs_changed = ntop.getCache("ntopng.prefs_changed")
+if(prefs_changed == "true") then
+   -- First delete prefs_changed then dump data
+   ntop.delCache("ntopng.prefs_changed")
+   savePrefsToDisk()
+end

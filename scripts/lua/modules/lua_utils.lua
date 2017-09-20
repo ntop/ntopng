@@ -18,7 +18,7 @@ function string.contains(String,Start)
    end
 
    local i,j = string.find(String, Start, 1)
-   
+
    return(i ~= nil)
 end
 
@@ -26,13 +26,13 @@ end
 
 function shortenString(name, max_len)
    if(name == nil) then return("") end
-   
+
    if max_len == nil then
       max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
       max_len = tonumber(max_len)
       if(max_len == nil) then max_len = 24 end
    end
-   
+
    if(string.len(name) < max_len) then
       return(name)
    else
@@ -434,7 +434,7 @@ function shortHostName(name)
     local max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
     max_len = tonumber(max_len)
     if(max_len == nil) then max_len = 24 end
-    
+
     chunks = {name:match("%w+:%w+:%w+:%w+:%w+:%w+")}
     --io.write(#chunks.."\n")
     if(#chunks == 1) then
@@ -756,13 +756,13 @@ end
 
 function bitsToSizeMultiplier(bits, multiplier)
    if(bits == nil) then return(0) end
-   
+
    precision = 2
    kilobit = 1000;
    megabit = kilobit * multiplier;
    gigabit = megabit * multiplier;
    terabit = gigabit * multiplier;
-   
+
    if((bits >= kilobit) and (bits < megabit)) then
       return round(bits / kilobit, precision) .. ' kbit/s';
    elseif((bits >= megabit) and (bits < gigabit)) then
@@ -3572,7 +3572,7 @@ function printntopngRelease(info)
    if(info["version.embedded_edition"] == true) then
       print("/Embedded")
    end
-   
+
    print(" Edition</td></tr>\n")
 end
 
@@ -3592,6 +3592,48 @@ function path_get_page(path)
    end
 
    return path
+end
+
+-- ###########################################
+
+function savePrefsToDisk()
+   local dirs = ntop.getDirs()
+   local where = dirs.workingdir.."/runtimeprefs.json"
+   local keys = ntop.getKeysCache("*prefs*")
+
+   local out = {}
+   for k in pairs(keys or {}) do
+      out[k] = ntop.dumpCache(k)
+   end
+
+   local json = require("dkjson")
+   local dump = json.encode(out, nil, 1)
+
+   local file = io.open(where, "w")
+   file:write(dump)
+   file:close()
+end
+
+-- ###########################################
+
+function readPrefsFromDisk()
+   local dirs = ntop.getDirs()
+   local where = dirs.workingdir.."/runtimeprefs.json"
+   local file = io.open(where, "r")
+
+   if(file ~= nil) then
+      local dump = file:read()
+      file:close()
+
+      local json = require("dkjson")
+      local restore = json.decode(dump, 1, nil)
+
+      for k,v in pairs(restore or {}) do
+	 -- print(k.."\n")
+	 ntop.delCache(k)
+	 ntop.restoreCache(k,v)
+      end
+   end
 end
 
 -- ###########################################

@@ -185,7 +185,7 @@ void usage() {
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
 	 "                                    | Default: %s\n"
 	 "[--prefs-dir|-4] <path>             | Preferences directory used to serialize\n"
-	 "                                    | and deserialize file %s\n"
+	 "                                    | and deserialize file\n"
 	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
@@ -326,7 +326,7 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR,
-	 CONST_DEFAULT_PREFS_FILE, CONST_DEFAULT_DATA_DIR,
+	 CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
 	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
@@ -1114,9 +1114,6 @@ int Prefs::checkOptions() {
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
   ntop->removeTrailingSlash(prefs_dir);
-
-  setDumpPath(prefs_dir);
-  readDump();
 
   if(http_binding_address == NULL)
     http_binding_address = strdup((char*)CONST_ANY_ADDRESS);
