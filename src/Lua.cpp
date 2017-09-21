@@ -5738,6 +5738,8 @@ static int ntop_set_preference(lua_State* vm) {
   if(ntop->getPrefs()->refresh(key, value) == -1)
     return(CONST_LUA_ERROR);
 
+  ntop->getRedis()->set(key, value, 0 /* expire_secs */);
+    
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }

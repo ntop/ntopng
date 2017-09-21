@@ -3599,7 +3599,7 @@ end
 function savePrefsToDisk()
    local dirs = ntop.getDirs()
    local where = dirs.workingdir.."/runtimeprefs.json"
-   local keys = ntop.getKeysCache("*prefs*")
+   local keys = ntop.getKeysCache("ntopng.prefs.*")
 
    local out = {}
    for k in pairs(keys or {}) do
