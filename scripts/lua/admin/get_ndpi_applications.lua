@@ -52,7 +52,7 @@ interface.select(ifname)
 
 local to_skip = (currentPage-1) * perPage
 
-if(sortOrder == "desc") then sOrder = rev else sOrder = asc end
+if(sortOrder == "desc") then sOrder = rev_insensitive else sOrder = asc_insensitive end
 
 local applications = interface.getnDPIProtocols()
 
