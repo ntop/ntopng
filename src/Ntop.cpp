@@ -367,6 +367,11 @@ void Ntop::start() {
 
   sleep(2);
 
+  for(int i=0; i<num_defined_interfaces; i++) {
+    iface[i]->checkPointCounters(true); /* Reset drop counters */
+  }
+
+
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     struct timeval begin, end;
     u_long usec_diff;

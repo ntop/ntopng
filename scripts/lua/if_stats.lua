@@ -312,7 +312,12 @@ if isAdministrator() and (not ifstats.isView) then
       num_pool_hosts = num_pool_hosts + v
    end
 
-   label = "<span class='badge badge-top-right'>".. num_pool_hosts .."</span>"
+   if(num_pool_hosts > 0) then
+      label = "<span class='badge badge-top-right'>".. num_pool_hosts .."</span>"
+   else
+      label = ""
+   end
+
    if(page == "pools") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
    else
@@ -831,7 +836,7 @@ elseif(page == "ICMP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th style='text-align:right;'>]] print(i18n("traffic")) print[[</th></tr></thead>
+     <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
      <tbody id="iface_details_icmp_tbody">
      </tbody>
      </table>
@@ -860,7 +865,7 @@ elseif(page == "ARP") then
 
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("traffic")) print[[</th></tr></thead>
+     <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
      <tbody id="iface_details_arp_tbody">
      </tbody>
      </table>

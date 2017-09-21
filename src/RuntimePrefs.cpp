@@ -144,6 +144,7 @@ prefscache_t *RuntimePrefs::addToCache(const char *key, prefsptr_t value_ptr, vo
 
 /* ******************************************* */
 
+#if 0
 int RuntimePrefs::hashGet(char *key, char *rsp, u_int rsp_len) {
   int ret = -1;
   prefscache_t *m = NULL;
@@ -202,6 +203,7 @@ int RuntimePrefs::hashGet(char *key, char *rsp, u_int rsp_len) {
 
   return ret;
 }
+#endif
 
 /* ******************************************* */
 

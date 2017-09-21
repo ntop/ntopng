@@ -90,7 +90,7 @@ class RuntimePrefs {
   RuntimePrefs();
   virtual ~RuntimePrefs();
 
-  int hashGet(char *key, char *rsp, u_int rsp_len);
+  // int hashGet(char *key, char *rsp, u_int rsp_len);
   int refresh(const char *pref_name, const char *pref_value);
 
   virtual void lua(lua_State* vm);

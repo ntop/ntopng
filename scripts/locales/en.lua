@@ -26,6 +26,7 @@ local  en = {
    max_rate = "Max Rate",
    duration = "Duration",
    traffic = "Traffic",
+   packets = "Packets",
    broadcast_traffic = "Broadcast Traffic",
    save = "Save",
    close = "Close",

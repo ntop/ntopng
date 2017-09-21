@@ -100,7 +100,11 @@ NetworkInterface::NetworkInterface(const char *name,
 
   pkt_dumper_tap = NULL;
   ifname = strdup(name);
-  ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
+  if(custom_interface_type)
+    ifDescription = strdup(custom_interface_type);
+  else
+    ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
+  
   snmp = new SNMP();
 
   if(strchr(name, ':')
@@ -371,13 +375,13 @@ void NetworkInterface::checkAggregationMode() {
   if(!customIftype) {
     char rsp[32];
 
-    if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0 && rsp[0] != '\0') {
-
+    if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)))
+       && (rsp[0] != '\0')) {
       if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
 	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
-	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID)) flowHashingMode = flowhashing_vrfid;
-	else if(!strcmp(rsp, DISAGGREGATION_VLAN)) flowHashingMode = flowhashing_vlan;
+	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
+	else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
 	else if(strcmp(rsp,  DISAGGREGATION_NONE))
 	  ntop->getTrace()->traceEvent(TRACE_ERROR,
 				       "Unknown aggregation value for interface %s [rsp: %s]",
@@ -5354,7 +5358,7 @@ static const luaL_Reg flow_reg[] = {
   { "getHTTPUrl",        lua_flow_get_http_url },
   { "getHTTPContentType",lua_flow_get_http_content_type },
   { "dump",              lua_flow_dump },
-  { NULL,         NULL }
+  { NULL,                NULL }
 };
 
 static const ntop_class_reg ntop_lua_reg[] = {
