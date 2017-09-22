@@ -459,7 +459,9 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if(ifstats.vlan and (host["vlan"] ~= nil)) then
+   local show_vlan = (ifstats.vlan and ntop.getPref("ntopng.prefs.dynamic_flow_collection_mode") ~= "vlan" and host["vlan"] ~= 0)
+
+   if(show_vlan) then
       print("<tr><th>")
 
       if(ifstats.sprobe) then
