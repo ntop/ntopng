@@ -173,7 +173,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       v_s = ntop.getPref(k)
     end
     value = v_s
-    if((v_s==nil) or (v_s=="")) then
+    if((v_s==nil) or (v_s=="") or (v_s=="nil")) then
       value = default_value
       if not isEmptyString(prekey) then
         ntop.setPref(k, tostring(default_value))

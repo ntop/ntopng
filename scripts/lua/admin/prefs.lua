@@ -662,15 +662,22 @@ function printInMemory()
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
+    to_switch = {"local_host_cache_duration"},
   })
 
-  local elementToSwitchLocalCache = {"active_local_host_cache_interval"}
+  local showLocalHostCacheInterval = false
+  if ntop.getPref("ntopng.prefs.is_local_host_cache_enabled") == "1" then
+    showLocalHostCacheInterval = true
+  end
+
+  prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
+    "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", showLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
   prefsToggleButton({
     field = "toggle_active_local_host_cache_enabled",
     default = "0",
     pref = "is_active_local_host_cache_enabled",
-    to_switch = elementToSwitchLocalCache,
+    to_switch = {"active_local_host_cache_interval"},
   })
 
   local showActiveLocalHostCacheInterval = false
@@ -679,10 +686,8 @@ function printInMemory()
   end
 
   prefsInputFieldPrefs(subpage_active.entries["active_local_host_cache_interval"].title, subpage_active.entries["active_local_host_cache_interval"].description,
-    "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
+    "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval or 3600, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
-  prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
-    "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="mhd"})
   print('</table>')
   
   print('<table class="table">')
