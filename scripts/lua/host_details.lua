@@ -38,7 +38,7 @@ local active_page = "hosts"
 interface.select(ifname)
 local ifstats = interface.getStats()
 
-local ifId = ifstats.id
+ifId = ifstats.id
 
 local is_packetdump_enabled = isLocalPacketdumpEnabled()
 local host = nil

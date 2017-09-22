@@ -65,3 +65,73 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
   }
 }
 
+/* **************************************************** */
+
+bool ViewInterface::walker(WalkerType wtype,
+			   bool (*walker)(GenericHashEntry *h, void *user_data),
+			   void *user_data) {
+  bool ret = false;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "VIEW: Iterating on subinterface %s [walker_flows: %u]",
+    // 				 subInterfaces[s]->get_name(),
+    // 				 wtype == walker_flows ? 1 : 0);
+    ret |= subInterfaces[s]->walker(wtype, walker, user_data);
+  }
+
+  return(ret);
+}
+
+
+/* **************************************************** */
+
+u_int32_t ViewInterface::getFlowsHashSize() {
+  u_int32_t tot = 0;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++)
+    tot += subInterfaces[s]->getFlowsHashSize();
+
+  return(tot);
+}
+
+/* **************************************************** */
+
+u_int32_t ViewInterface::getHostsHashSize() {
+  u_int32_t tot = 0;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "VIEW: Iterating subInterface [%s][size: %u]",
+    // 				 subInterfaces[s]->get_name(),
+    // 				 subInterfaces[s]->getHostsHashSize());
+    tot += subInterfaces[s]->getHostsHashSize();
+  }
+
+  return(tot);
+}
+
+/* **************************************************** */
+
+Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id) {
+  Host *h = NULL;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    if((h = subInterfaces[s]->getHost(host_ip, vlan_id)))
+      break;
+  }
+
+  return(h);
+}
+
+/* **************************************************** */
+
+Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
+  Flow *f = NULL;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    if((f = (Flow*)subInterfaces[s]->findFlowByKey(key, allowed_hosts)))
+      break;
+  }
+
+  return(f);
+}
+

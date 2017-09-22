@@ -256,7 +256,7 @@ void NetworkInterface::init() {
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, numSubInterfaces = 0,
+    running = false,
     numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -275,7 +275,9 @@ void NetworkInterface::init() {
   else
     pkt_dumper_tap = NULL;
 
+  numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
+
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL;
@@ -763,16 +765,15 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getHostsHashSize() {
-  if(!isView())
-    return(hosts_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
+  u_int32_t tot = hosts_hash->getNumEntries();
 
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_hosts_hash()->getNumEntries();
-
-    return(tot);
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      tot += current->iface->getHostsHashSize();
   }
+
+  return(tot);
 }
 
 /* **************************************************** */
@@ -808,16 +809,15 @@ u_int32_t NetworkInterface::getVLANsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getFlowsHashSize() {
-  if(!isView())
-    return(flows_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
+  u_int32_t tot = flows_hash->getNumEntries();
 
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_flows_hash()->getNumEntries();
-
-    return(tot);
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      tot += current->iface->getFlowsHashSize();
   }
+
+  return(tot);
 }
 
 /* **************************************************** */
@@ -844,52 +844,30 @@ bool NetworkInterface::walker(WalkerType wtype,
 
   switch(wtype) {
   case walker_hosts:
-    if(!isView())
-      ret = hosts_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_hosts_hash()->walk(walker, user_data);
-    }
+    ret = hosts_hash->walk(walker, user_data);
     break;
 
   case walker_flows:
-    if(!isView())
-      ret = flows_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_flows_hash()->walk(walker, user_data);
-    }
+    ret = flows_hash->walk(walker, user_data);
     break;
 
   case walker_macs:
-    if(!isView())
-      ret = macs_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_macs_hash()->walk(walker, user_data);
-    }
-
+    ret = macs_hash->walk(walker, user_data);
     break;
 
   case walker_ases:
-    if(!isView())
-      ret = ases_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_ases_hash()->walk(walker, user_data);
-    }
-
+    ret = ases_hash->walk(walker, user_data);
     break;
 
   case walker_vlans:
-    if(!isView())
-      ret = vlans_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_vlans_hash()->walk(walker, user_data);
-    }
-
+    ret = vlans_hash->walk(walker, user_data);
     break;
+  }
+
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      ret |= current->iface->walker(wtype, walker, user_data);
   }
 
   return(ret);
@@ -2843,12 +2821,13 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
     if(ip) {
       ip->set(host_ip);
 
-      if(!isView())
-	h = hosts_hash->get(vlan_id, ip);
-      else {
-	for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-	  h = subInterfaces[s]->get_hosts_hash()->get(vlan_id, ip);
-	  if(h) break;
+      h = hosts_hash->get(vlan_id, ip);
+
+      if(!h && flowHashing) {
+	FlowHashing *current, *tmp;
+	HASH_ITER(hh, flowHashing, current, tmp) {
+	  if((h = current->iface->getHost(host_ip, vlan_id)))
+	    break;
 	}
       }
 
@@ -4717,18 +4696,20 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa,
 
 Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 				      AddressTree *allowed_hosts) {
-  Flow *f;
+  Flow *f = NULL;
 
-  if(!isView())
-    f = (Flow*)(flows_hash->findByKey(key));
-  else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      f = (Flow*)subInterfaces[s]->get_flows_hash()->findByKey(key);
-      if(f) break;
+  f = (Flow*)(flows_hash->findByKey(key));
+
+  if(!f && flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp) {
+      if((f = current->iface->findFlowByKey(key, allowed_hosts)))
+	 break;
     }
   }
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
+
   return(f);
 }
 

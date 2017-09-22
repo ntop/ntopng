@@ -191,16 +191,11 @@ class NetworkInterface {
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   virtual u_int32_t getNumDroppedPackets() { return 0; };
-  bool walker(WalkerType wtype,
-	      bool (*walker)(GenericHashEntry *h, void *user_data),
-	      void *user_data);
 
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
-  u_int32_t getHostsHashSize();
   u_int32_t getASesHashSize();
   u_int32_t getVLANsHashSize();
-  u_int32_t getFlowsHashSize();
   u_int32_t getMacsHashSize();
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
@@ -223,6 +218,9 @@ class NetworkInterface {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
+  virtual u_int32_t getHostsHashSize();
+  virtual u_int32_t getFlowsHashSize();
+  virtual bool walker(WalkerType wtype, bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
   void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   virtual void startPacketPolling();
@@ -305,7 +303,7 @@ class NetworkInterface {
   void findFlowHosts(u_int16_t vlan_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
-  Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
+  virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool findHostsByMac(lua_State* vm, u_int8_t *mac);
   bool dissectPacket(u_int32_t bridge_iface_idx,
@@ -433,7 +431,7 @@ class NetworkInterface {
   Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
-  Host* getHost(char *host_ip, u_int16_t vlan_id);
+  virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);

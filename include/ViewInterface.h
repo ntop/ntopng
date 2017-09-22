@@ -36,6 +36,14 @@ class ViewInterface : public NetworkInterface {
   inline void startPacketPolling()      { ; };
   inline void shutdown()                { ; };
   bool set_packet_filter(char *filter)  { return(false); };
+
+  virtual u_int32_t getHostsHashSize();
+  virtual u_int32_t getFlowsHashSize();
+  virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
+  virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
+
+  virtual bool walker(WalkerType wtype, bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+
 };
 
 #endif /* _VIEW_INTERFACE_H_ */
