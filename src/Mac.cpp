@@ -169,7 +169,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
-    lua_push_bool_table_entry(vm, "location", location2str(locate()));
+    lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
     lua_push_int_table_entry(vm, "devtype", device_type);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);    
   }
