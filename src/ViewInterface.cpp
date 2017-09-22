@@ -96,6 +96,17 @@ u_int32_t ViewInterface::getFlowsHashSize() {
 
 /* **************************************************** */
 
+u_int32_t ViewInterface::getMacsHashSize() {
+  u_int32_t tot = 0;
+
+  for(u_int8_t s = 0; s<numSubInterfaces; s++)
+    tot += subInterfaces[s]->getMacsHashSize();
+
+  return(tot);
+}
+
+/* **************************************************** */
+
 u_int32_t ViewInterface::getHostsHashSize() {
   u_int32_t tot = 0;
 
@@ -105,6 +116,28 @@ u_int32_t ViewInterface::getHostsHashSize() {
     // 				 subInterfaces[s]->getHostsHashSize());
     tot += subInterfaces[s]->getHostsHashSize();
   }
+
+  return(tot);
+}
+
+/* **************************************************** */
+
+u_int32_t ViewInterface::getASesHashSize() {
+  u_int32_t tot = 0;
+
+  for(u_int8_t s = 0; s<numSubInterfaces; s++)
+    tot += subInterfaces[s]->getASesHashSize();
+
+  return(tot);
+}
+
+/* **************************************************** */
+
+u_int32_t ViewInterface::getVLANsHashSize() {
+  u_int32_t tot = 0;
+
+  for(u_int8_t s = 0; s<numSubInterfaces; s++)
+    tot += subInterfaces[s]->getVLANsHashSize();
 
   return(tot);
 }

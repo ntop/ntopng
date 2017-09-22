@@ -779,31 +779,29 @@ u_int32_t NetworkInterface::getHostsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getASesHashSize() {
-  if(!isView())
-    return(ases_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
+  u_int32_t tot = ases_hash->getNumEntries();
 
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_ases_hash()->getNumEntries();
-
-    return(tot);
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      tot += current->iface->getASesHashSize();
   }
+
+  return(tot);
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getVLANsHashSize() {
-  if(!isView())
-    return(vlans_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
+  u_int32_t tot = vlans_hash->getNumEntries();
 
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_vlans_hash()->getNumEntries();
-
-    return(tot);
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      tot += current->iface->getVLANsHashSize();
   }
+
+  return(tot);
 }
 
 /* **************************************************** */
@@ -823,16 +821,15 @@ u_int32_t NetworkInterface::getFlowsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getMacsHashSize() {
-  if(!isView())
-    return(macs_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
+  u_int32_t tot = macs_hash->getNumEntries();
 
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_macs_hash()->getNumEntries();
-
-    return(tot);
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      tot += current->iface->getMacsHashSize();
   }
+
+  return(tot);
 }
 
 /* **************************************************** */

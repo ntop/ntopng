@@ -194,9 +194,6 @@ class NetworkInterface {
 
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
-  u_int32_t getASesHashSize();
-  u_int32_t getVLANsHashSize();
-  u_int32_t getMacsHashSize();
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
@@ -218,9 +215,14 @@ class NetworkInterface {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
+  virtual u_int32_t getASesHashSize();
+  virtual u_int32_t getVLANsHashSize();
+  virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
+
   virtual bool walker(WalkerType wtype, bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+
   void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   virtual void startPacketPolling();

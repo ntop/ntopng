@@ -37,6 +37,9 @@ class ViewInterface : public NetworkInterface {
   inline void shutdown()                { ; };
   bool set_packet_filter(char *filter)  { return(false); };
 
+  virtual u_int32_t getASesHashSize();
+  virtual u_int32_t getVLANsHashSize();
+  virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
