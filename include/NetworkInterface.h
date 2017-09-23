@@ -183,6 +183,11 @@ class NetworkInterface {
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter);
+  int sortFlows(struct flowHostRetriever *retriever,
+	       AddressTree *allowed_hosts,
+	       Host *host,
+	       Paginator *p,
+	       const char *sortColumn);
 
   bool isNumber(const char *str);
   bool validInterface(char *name);
@@ -412,9 +417,13 @@ class NetworkInterface {
 		char *sortColumn, u_int32_t maxHits,
 		u_int32_t toSkip, bool a2zSortOrder);
 #endif
-  int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
+  int getFlows(lua_State* vm, AddressTree *allowed_hosts,
 		Host *host,
 		Paginator *p);
+  int getFlowsGroup(lua_State* vm,
+		AddressTree *allowed_hosts,
+		Paginator *p,
+		const char *groupColumn);
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();

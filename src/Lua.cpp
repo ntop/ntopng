@@ -1925,6 +1925,35 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  Paginator *p = NULL;
+  int numGroups = -1;
+  const char *group_col;
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if((p = new(std::nothrow) Paginator()) == NULL)
+    return(CONST_LUA_ERROR);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  group_col = lua_tostring(vm, 1);
+
+  if(lua_type(vm, 2) == LUA_TTABLE)
+    p->readOptions(vm, 2);
+  
+  if(ntop_interface)
+    numGroups = ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
+
+  if(p) delete p;
+  return numGroups < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 /**
  * @brief Get nDPI stats for flows
  * @details Compute nDPI flow statistics
@@ -1940,6 +1969,7 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
 /* ****************************************** */
 
 /**
@@ -6002,6 +6032,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "restoreHost",            ntop_restore_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
+  { "getGroupedFlows",        ntop_get_interface_get_grouped_flows },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowKey",             ntop_get_interface_flow_key   },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

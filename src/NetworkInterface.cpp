@@ -2921,6 +2921,8 @@ struct flowHostRetrieveList {
   Vlan *vlanValue;
   AutonomousSystem *asValue;
   u_int64_t numericValue;
+  u_int64_t sourceMacValue;
+  u_int64_t destMacValue; /* NOTE: this is used in combination with sourceMacValue and numericValue, see column_ndpi_peers */
   char *stringValue;
   IpAddress *ipValue;
 };
@@ -3115,6 +3117,13 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	else if(f->getHTTPURL())        retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPURL();
 	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumEntries++].stringValue = f->getSSLCertificate();
 	else retriever->elems[retriever->actNumEntries++].stringValue = (char*)"";
+	break;
+      case column_ndpi_peers:
+	/* we need these 3 fields */
+	retriever->elems[retriever->actNumEntries].numericValue = f->get_detected_protocol().app_protocol;
+	retriever->elems[retriever->actNumEntries].sourceMacValue = f->get_cli_host() ? Utils::macaddr_int(f->get_cli_host()->get_mac()) : 0;
+	retriever->elems[retriever->actNumEntries].destMacValue = f->get_srv_host() ? Utils::macaddr_int(f->get_srv_host()->get_mac()) : 0;
+	retriever->actNumEntries++;
 	break;
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
@@ -3438,6 +3447,31 @@ int stringSorter(const void *_a, const void *_b) {
   return(strcmp(a->stringValue, b->stringValue));
 }
 
+int ndpiPeersSorter(const void *_a, const void *_b) {
+  u_int64_t a_value, b_value;
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
+
+  /* try with ndpi protocol first */
+  if(a->numericValue < b->numericValue)	return(-1);
+  if(a->numericValue > b->numericValue) return(1);
+
+  /* protocols match, try with the smaller MACs */
+  a_value = (a->sourceMacValue < a->destMacValue) ? a->sourceMacValue : a->destMacValue;
+  b_value = (b->sourceMacValue < b->destMacValue) ? b->sourceMacValue : b->destMacValue;
+  if(a_value < b_value)                 return(-1);
+  if(a_value > b_value)                 return(1);
+
+  /* smaller MACs match, try with the bigger MACs */
+  a_value = (a->sourceMacValue < a->destMacValue) ? a->destMacValue : a->sourceMacValue;
+  b_value = (b->sourceMacValue < b->destMacValue) ? b->destMacValue : b->sourceMacValue;
+  if(a_value < b_value)                 return(-1);
+  if(a_value > b_value)                 return(1);
+
+  /* they match */
+  return(0);
+}
+
 /* **************************************************** */
 
 void NetworkInterface::disablePurge(bool on_flows) {
@@ -3572,12 +3606,57 @@ int NetworkInterface::getFlows(lua_State* vm,
 
 /* **************************************************** */
 
+int NetworkInterface::sortFlows(struct flowHostRetriever *retriever,
+				AddressTree *allowed_hosts,
+				Host *host,
+				Paginator *p,
+				const char *sortColumn) {
+  int (*sorter)(const void *_a, const void *_b);
+
+  if(retriever == NULL)
+    return -1;
+
+  retriever->pag = p;
+  retriever->host = host, retriever->location = location_all;
+  retriever->ndpi_proto = -1;
+  retriever->actNumEntries = 0, retriever->maxNumEntries = getFlowsHashSize(), retriever->allowed_hosts = allowed_hosts;
+  retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
+
+  if(retriever->elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_info")) retriever->sorter = column_info, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_ndpi_peers")) retriever->sorter = column_ndpi_peers, sorter = ndpiPeersSorter;
+  else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
+    retriever->sorter = column_bytes, sorter = numericSorter;
+  }
+
+  // make sure the caller has disabled the purge!!
+  walker(walker_flows, flow_search_walker, (void*)retriever);
+
+  qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  return(retriever->actNumEntries);
+}
+
+/* **************************************************** */
+
 int NetworkInterface::getFlows(lua_State* vm,
 			       AddressTree *allowed_hosts,
 			       Host *host,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
-  int (*sorter)(const void *_a, const void *_b);
   char sortColumn[32];
   DetailsLevel highDetails;
 
@@ -3592,41 +3671,16 @@ int NetworkInterface::getFlows(lua_State* vm,
   p->serverMode(&server_mode);
   bool local_hosts = ((client_mode == location_local_only) && (server_mode == location_local_only));
 
+  snprintf(sortColumn, sizeof(sortColumn), "%s", p->sortColumn());
   if (! p->getDetailsLevel(&highDetails))
     highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
-  retriever.pag = p;
-  retriever.host = host, retriever.location = location_all;
-  retriever.ndpi_proto = -1;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize(), retriever.allowed_hosts = allowed_hosts;
-  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
-
-  if(retriever.elems == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
-    return(-1);
-  }
-
-  snprintf(sortColumn, sizeof(sortColumn), "%s", p->sortColumn());
-  if(!strcmp(sortColumn, "column_client")) retriever.sorter = column_client, sorter = hostSorter;
-  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_server")) retriever.sorter = column_server, sorter = hostSorter;
-  else if(!strcmp(sortColumn, "column_proto_l4")) retriever.sorter = column_proto_l4, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_ndpi")) retriever.sorter = column_ndpi, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_duration")) retriever.sorter = column_duration, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_thpt")) retriever.sorter = column_thpt, sorter = numericSorter;
-  else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever.sorter = column_bytes, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_info")) retriever.sorter = column_info, sorter = stringSorter;
-  else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
-    retriever.sorter = column_bytes, sorter = numericSorter;
-  }
-
-  /* ******************************* */
-
   disablePurge(true);
-  walker(walker_flows, flow_search_walker, (void*)&retriever);
 
-  qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+  if(sortFlows(&retriever, allowed_hosts, host, p, sortColumn) < 0) {
+    enablePurge(true);
+    return -1;
+  }
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
@@ -3665,7 +3719,64 @@ int NetworkInterface::getFlows(lua_State* vm,
   lua_settable(vm, -3);
 
   enablePurge(true);
-  free(retriever.elems);
+
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
+
+int NetworkInterface::getFlowsGroup(lua_State* vm,
+			       AddressTree *allowed_hosts,
+			       Paginator *p,
+			       const char *groupColumn) {
+  struct flowHostRetriever retriever;
+  FlowGrouper *gper;
+
+  if(p == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
+    return(-1);
+  }
+
+  disablePurge(true);
+
+  if(sortFlows(&retriever, allowed_hosts, NULL, p, groupColumn) < 0) {
+    enablePurge(true);
+    return -1;
+  }
+
+  // build a new grouper that will help in aggregating stats
+  if((gper = new(std::nothrow) FlowGrouper(retriever.sorter)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to allocate memory for a Grouper.");
+    enablePurge(true);
+    return -1;
+  }
+
+  lua_newtable(vm);
+
+  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+    Flow *flow = retriever.elems[i].flow;
+
+    if(flow) {
+      if(gper->inGroup(flow) == false) {
+	if(gper->getNumEntries() > 0)
+	  gper->lua(vm);
+	gper->newGroup(flow);
+      }
+
+      gper->incStats(flow);
+    }
+  }
+
+  if(gper->getNumEntries() > 0)
+    gper->lua(vm);
+
+  delete gper;
+  enablePurge(true);
+
+  if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
 }

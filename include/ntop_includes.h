@@ -193,6 +193,7 @@ using namespace std;
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"
+#include "FlowGrouper.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
 #include "TcpPacketStats.h"
