@@ -27,7 +27,6 @@
 class Ntop;
 class Flow;
 class Flashstart;
-class RuntimePrefs;
 
 extern void usage();
 extern void nDPIusage();
@@ -36,7 +35,7 @@ typedef struct {
   char *name, *description;
 } InterfaceInfo;
 
-class Prefs : public RuntimePrefs {
+class Prefs {
  private:
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
@@ -52,6 +51,23 @@ class Prefs : public RuntimePrefs {
     enable_access_log,
     flow_aggregation_enabled,
     enable_mac_ndpi_stats;
+
+  u_int32_t non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
+  u_int32_t active_local_hosts_cache_interval;
+  u_int32_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
+  u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
+  u_int32_t housekeeping_frequency;
+  bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache, enable_active_local_hosts_cache;
+  bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation, enable_probing_alerts, enable_ssl_alerts;
+  bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
+  bool dump_flow_alerts_when_iface_alerted, prefscache_refreshed;
+  bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
+  int32_t max_num_alerts_per_entity, max_num_flow_alerts;
+  u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
+  char *redirection_url, *redirection_url_shadow;
+  u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
+  u_int32_t max_ui_strlen;
+  HostMask hostMask;
 
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   bool enable_user_scripts;
@@ -105,7 +121,7 @@ class Prefs : public RuntimePrefs {
 
  public:
   Prefs(Ntop *_ntop);
-  ~Prefs();
+  virtual ~Prefs();
 
   bool is_pro_edition();
   bool is_enterprise_edition();
@@ -150,7 +166,7 @@ class Prefs : public RuntimePrefs {
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
-  u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
+  int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
   inline char* get_if_descr(u_int id)                   { return((id < MAX_NUM_INTERFACES) ? ifNames[id].description : NULL); };
@@ -237,6 +253,43 @@ class Prefs : public RuntimePrefs {
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
   inline bool hasCmdlDisableAlerts()   { return has_cmdl_disable_alerts; }
 
+  inline u_int32_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
+  inline u_int32_t flow_aggregation_frequency()         { return(get_housekeeping_frequency() * FLOW_AGGREGATION_DURATION); };
+
+  inline u_int32_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
+  inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);          };
+  inline u_int32_t get_flow_max_idle()                  { return(flow_max_idle);          };
+  inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
+  inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
+  inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
+  inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
+  inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
+
+  inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);  };
+  inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation); };
+
+  inline bool  are_probing_alerts_enabled()              { return(enable_probing_alerts);            };
+  inline bool  are_ssl_alerts_enabled()                  { return(enable_ssl_alerts);                };
+  inline bool  are_alerts_syslog_enabled()               { return(enable_syslog_alerts);             };
+  inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);  };
+  inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
+
+  inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };
+  inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
+
+  inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);  }
+
+  inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
+  inline int32_t   get_max_num_flow_alerts()             { return(max_num_flow_alerts); };
+
+  inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); }
+  inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); }
+
+  inline u_int32_t get_safe_search_dns_ip()      { return(safe_search_dns_ip);                          };
+  inline u_int32_t get_global_primary_dns_ip()   { return(global_primary_dns_ip);                       };
+  inline u_int32_t get_global_secondary_dns_ip() { return(global_secondary_dns_ip);                     };
+  inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
+  inline HostMask getHostMask()                  { return(hostMask);                                    };
 };
 
 #endif /* _PREFS_H_ */

@@ -5716,32 +5716,20 @@ static int ntop_set_redis(lua_State* vm) {
     expire_secs = (u_int)lua_tonumber(vm, 3);
 
   if(redis->set(key, value, expire_secs) == 0) {
+    if(!strncmp(key, "ntopng.prefs.", 13))
+      ntop->getPrefs()->reloadPrefsFromRedis();
+
     lua_pushnil(vm);
     return(CONST_LUA_OK);
-  }else
-    return(CONST_LUA_ERROR);
+  }
+
+  return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */
 
 static int ntop_set_preference(lua_State* vm) {
-  char *key, *value;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((value = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop->getPrefs()->refresh(key, value) == -1)
-    return(CONST_LUA_ERROR);
-
-  ntop->getRedis()->set(key, value, 0 /* expire_secs */);
-    
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
+  return ntop_set_redis(vm);
 }
 
 /* ****************************************** */

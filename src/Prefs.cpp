@@ -23,7 +23,7 @@
 
 /* ******************************************* */
 
-Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
+Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
@@ -84,6 +84,7 @@ Prefs::Prefs(Ntop *_ntop) : RuntimePrefs() {
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
+  redirection_url = redirection_url_shadow = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
   ls_host = NULL;
   ls_port = NULL;
@@ -135,6 +136,8 @@ Prefs::~Prefs() {
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
   /* NOTE: flashstart is deleted by the Ntop class */
+  if(redirection_url)        free(redirection_url);
+  if(redirection_url_shadow) free(redirection_url_shadow);
 }
 
 /* ******************************************* */
@@ -342,20 +345,6 @@ void usage() {
 
 /* ******************************************* */
 
-u_int32_t Prefs::getDefaultPrefsValue(const char *pref_key, u_int32_t default_value) {
-  char rsp[32];
-
-  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
-    return(atoi(rsp));
-  else {
-    snprintf(rsp, sizeof(rsp), "%u", default_value);
-    ntop->getRedis()->set((char*)pref_key, rsp);
-    return(default_value);
-  }
-}
-
-/* ******************************************* */
-
 void Prefs::setTraceLevelFromRedis(){
   char lvlStr[CONST_MAX_LEN_REDIS_VALUE];
   if(!hasCmdlTraceLevel()
@@ -415,21 +404,132 @@ bool Prefs::getDefaultBoolPrefsValue(const char *pref_key, const bool default_va
   else
     return(default_value);
 }
+
+/* ******************************************* */
+
+int32_t Prefs::getDefaultPrefsValue(const char *pref_key, int32_t default_value) {
+  char rsp[32];
+
+  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
+    return(atoi(rsp));
+  else {
+    snprintf(rsp, sizeof(rsp), "%i", default_value);
+    ntop->getRedis()->set((char*)pref_key, rsp);
+    return(default_value);
+  }
+}
   
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
+  char *aux;
   // sets to the default value in redis if no key is found
+#ifdef PREFS_RELOAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "A preference has changed, reloading...");
+#endif
+
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
   // alert preferences
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
+
+  /* Runtime Preferences */
+  housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, HOUSEKEEPING_FREQUENCY),
+    local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION),
+    local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE),
+    non_local_host_max_idle   = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE),
+    flow_max_idle             = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE),
+    active_local_hosts_cache_interval = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL, CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL),
+
+    intf_rrd_raw_days   = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS),
+    intf_rrd_1min_days  = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS),
+    intf_rrd_1h_days    = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS),
+    intf_rrd_1d_days    = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS),
+    other_rrd_raw_days  = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS),
+    other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS),
+    other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS),
+    other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS),
+
+    enable_top_talkers              = getDefaultBoolPrefsValue(CONST_TOP_TALKERS_ENABLED,
+							       CONST_DEFAULT_TOP_TALKERS_ENABLED),
+    enable_idle_local_hosts_cache   = getDefaultBoolPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
+							       CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED),
+    enable_active_local_hosts_cache = getDefaultBoolPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
+							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
+    enable_tiny_flows_export        = getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
+							       CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
+
+    max_num_alerts_per_entity = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY, ALERTS_MANAGER_MAX_ENTITY_ALERTS),
+    max_num_flow_alerts = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS, ALERTS_MANAGER_MAX_FLOW_ALERTS),
+
+    enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
+
+    disable_alerts        = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
+    enable_probing_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING, CONST_DEFAULT_ALERT_PROBING_ENABLED),
+    enable_ssl_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL, CONST_DEFAULT_ALERT_SSL_ENABLED),
+    enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
+    slack_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false),
+    dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
+
+    override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
+    override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
+
+    max_num_packets_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
+							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
+    max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
+							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
+
+    enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
+
+    max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
+    hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask);
+
+  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux, DEFAULT_SAFE_SEARCH_DNS);
+  if(aux) {
+    safe_search_dns_ip = Utils::inet_addr(aux);
+    free(aux);
+  }
+
+  getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &aux, DEFAULT_GLOBAL_DNS);
+  if(aux) {
+    global_primary_dns_ip = Utils::inet_addr(aux);
+    free(aux);
+  }
+
+  getDefaultStringPrefsValue(CONST_SECONDARY_DNS, &aux, DEFAULT_GLOBAL_DNS);
+  if(aux) {
+    global_secondary_dns_ip = Utils::inet_addr(aux);
+    free(aux);
+  }
+
+  if(redirection_url_shadow) free(redirection_url_shadow);
+  redirection_url_shadow = redirection_url;
+  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
   refreshLanWanInterfaces();
   refreshMacNdpiStatsPrefs();
+
+#ifdef PREFS_RELOAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
+			       "[global_primary_dns_ip: %u]"
+			       "[global_secondary_dns_ip: %u]"
+			       "[safe_search_dns_ip: %u]",
+			       global_primary_dns_ip,
+			       global_secondary_dns_ip,
+			       safe_search_dns_ip
+			       );
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Masked hosts"
+			       "[no_host_mask: %u]"
+			       "[mask_local_hosts: %u]"
+			       "[mask_remote_hosts: %u]",
+			       hostMask == no_host_mask ? 1 : 0,
+			       hostMask == mask_local_hosts ? 1 : 0,
+			       hostMask == mask_remote_hosts ? 1 : 0);
+#endif
+
 }
 
 /* ******************************************* */
@@ -1226,6 +1326,7 @@ void Prefs::add_default_interfaces() {
 /* *************************************** */
 
 void Prefs::lua(lua_State* vm) {
+  char buf[32], *red_url;
 #ifdef NTOPNG_PRO
   char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
@@ -1284,7 +1385,51 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
 
-  RuntimePrefs::lua(vm);
+  lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
+  lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
+  lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
+  lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
+  lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
+  if(enable_active_local_hosts_cache)
+    lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
+
+  lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
+  lua_push_int_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
+  lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
+  lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
+  lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+
+  lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
+  lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
+
+  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",  enable_tiny_flows_export);
+  lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
+  lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
+
+  lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
+
+  lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
+  lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
+
+  lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
+  lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+
+  lua_push_str_table_entry(vm, "safe_search_dns",
+			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "global_dns",
+			   global_primary_dns_ip ? Utils::intoaV4(ntohl(global_primary_dns_ip), buf, sizeof(buf)) : (char*)"");
+  lua_push_str_table_entry(vm, "secondary_dns",
+			   global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
+
+  lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
+
+  if((red_url = redirection_url))
+    lua_push_str_table_entry(vm, "redirection_url", red_url);
+
+  lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 }
 
 /* *************************************** */

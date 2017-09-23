@@ -185,7 +185,6 @@ using namespace std;
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"
 #include "HostPools.h"
-#include "RuntimePrefs.h"
 #include "Prefs.h"
 #include "Utils.h"
 #include "DnsStats.h"
