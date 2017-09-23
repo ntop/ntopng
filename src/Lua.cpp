@@ -5716,8 +5716,11 @@ static int ntop_set_redis(lua_State* vm) {
     expire_secs = (u_int)lua_tonumber(vm, 3);
 
   if(redis->set(key, value, expire_secs) == 0) {
-    if(!strncmp(key, "ntopng.prefs.", 13))
+    if(!strncmp(key, "ntopng.prefs.", 13)) {
       ntop->getPrefs()->reloadPrefsFromRedis();
+      /* Tell housekeeping.lua to dump prefs to disk */
+      ntop->getRedis()->set((char*)PREFS_CHANGED, (char*)"true");
+    }
 
     lua_pushnil(vm);
     return(CONST_LUA_OK);
