@@ -298,6 +298,8 @@ local drops = {}
 local packetinterfaces = {}
 local ifnames = {}
 local ifdescr = {}
+local ifHdescr = {}
+local ifCustom = {}
 
 for v,k in pairs(iface_names) do
    interface.select(k)
@@ -310,52 +312,68 @@ for v,k in pairs(iface_names) do
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
       drops[k] = true
    end
-
+   ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
+   ifCustom[_ifstats.id] = _ifstats.customIftype
 end
 
-for k,v in pairsByKeys(ifnames, asc) do
-   local descr
-   
-   print("      <li>")
+-- First round: only physical interfaces
+-- Second round: only virtual interfaces
 
-   if(v == ifname) then
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..k.."\">")
-   else
-      print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(tostring(k)) print[[">]]
-      print[[<input name="switch_interface" type="hidden" value="1" />]]
-      print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-      print[[</form>]]
-      print[[<a href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
-   end
+local found = false
+for round = 1, 2 do
 
-   if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
-   if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+   if(found) then print('      <li class="divider"></li>\n') end 
+   for k,_ in pairsByValues(ifHdescr, asc) do
+      local descr
+      
+      if((round == 1) and (ifCustom[k] ~= nil)) then
+   	 -- do nothing
+      elseif((round == 2) and (ifCustom[k] == nil)) then
+      	 -- do nothing
+      else
+         found = true
+	 v = ifnames[k]
+	 print("      <li>")
 
-   descr = getHumanReadableInterfaceName(v.."")
+	 if(v == ifname) then
+	    print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..k.."\">")
+	 else
+	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(tostring(k)) print[[">]]
+	    print[[<input name="switch_interface" type="hidden" value="1" />]]
+	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+	    print[[</form>]]
+	    print[[<a href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+	 end
 
-   if(string.contains(descr, "{")) then -- Windows
-      descr = ifdescr[k]      
-   else
-      if(v ~= ifdescr[k]) then
-	 descr = descr .. " (".. ifdescr[k] ..")"
-      elseif(v ~= descr) then
-	 descr = descr .. " (".. v ..")"
+	 if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
+	 if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+
+	 descr = getHumanReadableInterfaceName(v.."")
+
+	 if(string.contains(descr, "{")) then -- Windows
+	    descr = ifdescr[k]      
+	 else
+	    if(v ~= ifdescr[k]) then
+	       descr = descr .. " (".. ifdescr[k] ..")"
+	    elseif(v ~= descr) then
+	       descr = descr .. " (".. v ..")"
+	    end
+	 end
+
+	 print(descr)
+	 if(views[v] == true) then
+	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
+	 end
+
+	 if(drops[v] == true) then
+	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
+	 end
+
+	 print("</a>")
+	 print("</li>\n")
       end
    end
-
-   print(descr)
-   if(views[v] == true) then
-      print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
-   end
-
-   if(drops[v] == true) then
-      print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
-   end
-
-   print("</a>")
-   print("</li>\n")
 end
-
 
 print [[
 

@@ -46,8 +46,8 @@ NetworkInterface::NetworkInterface(const char *name,
   char _ifname[64], buf[64];
   bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0; /* We need to do it as isView() is not yet initialized */
 
-  customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
   init();
+  customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -100,9 +100,9 @@ NetworkInterface::NetworkInterface(const char *name,
 
   pkt_dumper_tap = NULL;
   ifname = strdup(name);
-  if(custom_interface_type)
-    ifDescription = strdup(custom_interface_type);
-  else
+  if(custom_interface_type) {
+    ifDescription = strdup(name);
+  } else
     ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
   
   snmp = new SNMP();
@@ -256,7 +256,7 @@ void NetworkInterface::init() {
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false,
+    running = false, customIftype = NULL,
     numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -670,9 +670,9 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     return(dumpDBFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()){
     return(dumpEsFlow(when, f));
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
     return(dumpLsFlow(when,f));
-  }else {
+  } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
     return(-1);
   }
@@ -1004,23 +1004,26 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	switch(flowHashingMode) {
 	case flowhashing_vlan:
 	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
-	  snprintf(buf, sizeof(buf), "%s [vlanId: %u]", ifname, criteria);
+	  // snprintf(buf, sizeof(buf), "%s [vlanId: %u]", ifname, criteria);
+	  snprintf(buf, sizeof(buf), "VLAN Id %u", criteria);
 	  break;
 
 	case flowhashing_probe_ip:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [probeIP: %s]", ifname,
-		   Utils::intoaV4(criteria, buf1, sizeof(buf1)));
+	  // snprintf(buf, sizeof(buf), "%s [probeIP: %s]", ifname, Utils::intoaV4(criteria, buf1, sizeof(buf1)));
+	  snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4(criteria, buf1, sizeof(buf1)));
 	  break;
 
 	case flowhashing_ingress_iface_idx:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
+	  // snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
+	  snprintf(buf, sizeof(buf), "If Idx %u", criteria);
 	  break;
 
 	case flowhashing_vrfid:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, criteria);
+	  // snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, criteria);
+	  snprintf(buf, sizeof(buf), "VRF Id %u", criteria);
 	  break;
 
 	default:
@@ -4477,6 +4480,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "description", get_description());
   lua_push_int_table_entry(vm, "scalingFactor", scalingFactor);
   lua_push_int_table_entry(vm,  "id", id);
+  if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
@@ -4501,7 +4505,7 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, false /* Overall */);
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
     ntop->getLogstash()->lua(vm, false /* Overall */);
   }
   lua_pushstring(vm, "stats");
@@ -4516,7 +4520,7 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, true /* Since last checkpoint */);
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
     ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
   }
   lua_pushstring(vm, "stats_since_reset");
@@ -5155,7 +5159,7 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->checkPointCounters(drops_only);
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
     ntop->getLogstash()->checkPointCounters(drops_only);
   }
 }
