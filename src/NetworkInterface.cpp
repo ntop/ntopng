@@ -256,7 +256,7 @@ void NetworkInterface::init() {
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, customIftype = NULL,
+    running = false, customIftype = NULL, isThisASubinteface = false,
     numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -1041,6 +1041,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
+	  h->iface->setSubinterface();
 	}
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
@@ -1093,7 +1094,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 #endif
   }
 
-  if(flowHashingMode != flowhashing_none) {
+  if((!isThisASubinteface) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL;
 
     switch(flowHashingMode) {
@@ -1359,9 +1360,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
 
   /* VLAN disaggregation */
-  if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
+  if((!isThisASubinteface)
+     && (flowHashingMode == flowhashing_vlan)
+     && (vlan_id > 0)) {
     NetworkInterface *vIface;
-
+    
     if((vIface = getSubInterface((u_int32_t)vlan_id, false)) != NULL) {
       bool ret;
 

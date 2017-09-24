@@ -80,7 +80,7 @@ class NetworkInterface {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, forcePoolReload;
+  bool bridge_interface, forcePoolReload, isThisASubinteface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
@@ -597,6 +597,8 @@ class NetworkInterface {
   void topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes);
   inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
   void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
+  inline bool isSubinterface()                { return(isThisASubinteface);            }
+  inline void setSubinterface()               { isThisASubinteface = true;             }
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
