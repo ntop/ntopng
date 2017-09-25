@@ -1937,6 +1937,7 @@ end
 
 local function check_hosts_alerts(ifid, working_status)
    local hosts = interface.getLocalHostsInfo(false)
+   local warning_shown = false
 
    if hosts ~= nil then
       for host, hoststats in pairs(hosts["hosts"] or {}) do
@@ -1946,6 +1947,20 @@ local function check_hosts_alerts(ifid, working_status)
             local old_entity_info = host_threshold_status_rw(working_status.granularity, ifid, hostinfo)  -- read old json
             local new_entity_info_json = hostinfo["json"]
             local new_entity_info = j.decode(new_entity_info_json, 1, nil)
+
+	    if (new_entity_info == nil) then
+	       if warning_shown == false then
+		  print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+		  tprint({hostinfo_json = hostinfo["json"],
+			  old_entity_info = old_entity_info,
+			  new_entity_info_json = new_entity_info_json,
+			  granularity = working_status.granularity,
+			  entity_value = entity_value, host = host,
+			  ifname=getInterfaceName(ifid)})
+		  warning_shown = true
+	       end
+	       goto continue
+	    end
 
             -- TODO this is little hack to make anomalies apper into the json
             new_entity_info["anomalies"] = hostinfo.anomalies
@@ -1967,6 +1982,7 @@ local function check_hosts_alerts(ifid, working_status)
 
             host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
          end
+	 ::continue::
       end
    end
 end
