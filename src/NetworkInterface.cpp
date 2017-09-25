@@ -1350,9 +1350,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     /* When captive portal is disabled, use the auto_assigned_pool_id as the default MAC pool */
     if (host_pools
-          && ntop->getPrefs()->get_auto_assigned_pool_id()
-          && !ntop->getPrefs()->isCaptivePortalEnabled()
-          && srcMac->locate() == located_on_lan_interface) {
+          && (ntop->getPrefs()->get_auto_assigned_pool_id() != NO_HOST_POOL_ID)
+          && (!ntop->getPrefs()->isCaptivePortalEnabled())
+          && (srcMac->locate() == located_on_lan_interface)) {
       if (!host_pools->findMacPool(srcMac->get_mac(), vlan_id, &mac_pool) || (mac_pool == 0)) {
         mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
         host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
