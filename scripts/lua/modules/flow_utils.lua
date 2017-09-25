@@ -1130,16 +1130,11 @@ end
 
 -- #######################
 
-function getFlowLabel(flow, show_macs, add_hyperlinks, show_vlans)
+function getFlowLabel(flow, show_macs, add_hyperlinks)
    if flow == nil then return "" end
 
    local cli_name = shortenString(flowinfo2hostname(flow, "cli"))
    local srv_name = shortenString(flowinfo2hostname(flow, "srv"))
-
-   if show_vlans == false then
-      cli_name = stripVlan(cli_name)
-      srv_name = stripVlan(srv_name)
-   end
 
    local cli_port
    local srv_port
@@ -1158,26 +1153,14 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, show_vlans)
 
    if add_hyperlinks then
       cli_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">"
-
-      if show_vlans then
-	 cli_name = cli_name..shortenString(flowinfo2hostname(flow,"cli"))
-      else
-	 cli_name = cli_name..shortenString(stripVlan(flowinfo2hostname(flow,"cli")))
-      end
-
+      cli_name = cli_name..shortenString(flowinfo2hostname(flow,"cli"))
       if(flow["cli.systemhost"] == true) then
 	 cli_name = cli_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
       end
       cli_name = cli_name.."</A>"
 
       srv_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"srv") .. "\">"
-
-      if show_vlans then
-	 srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
-      else
-	 srv_name = srv_name..shortenString(stripVlan(flowinfo2hostname(flow,"srv")))
-      end
-
+      srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
       if(flow["srv.systemhost"] == true) then
 	 srv_name = srv_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
       end

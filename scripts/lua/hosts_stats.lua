@@ -120,9 +120,7 @@ print [[
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
 
-if (ifstats.vlan and ntop.getPref("ntopng.prefs.dynamic_flow_collection_mode") ~= "vlan") then
-   show_vlan = true else show_vlan = false
-end
+if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
 
 -- Set the host table option
 if(prefs.is_categorization_enabled) then print ('host_rows_option["categorization"] = true;\n') end

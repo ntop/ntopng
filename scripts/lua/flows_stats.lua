@@ -355,7 +355,7 @@ print[[
       },
 ]]
 
-if(ifstats.vlan and ntop.getPref("ntopng.prefs.dynamic_flow_collection_mode") ~= "vlan") then
+if(ifstats.vlan) then
    print [[
       {
         title: "]] print(i18n("vlan")) print[[",

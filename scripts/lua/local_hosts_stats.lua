@@ -32,8 +32,7 @@ end
 
 prefs = ntop.getPrefs()
 
-local ifstats = interface.getStats()
-local show_vlan = (ifstats.vlan and ntop.getPref("ntopng.prefs.dynamic_flow_collection_mode") ~= "vlan" and flow["vlan"] ~= 0)
+ifstats = interface.getStats()
 
 print [[
       <hr>
@@ -199,7 +198,6 @@ print [[
 			     title: "]] print(i18n("vlan")) print [[",
 				 field: "column_vlan",
 				 sortable: true,
-				 hidden: ]] print(tostring(not show_vlan)) print[[,
 			     css: {
 				textAlign: 'center'
 			     }

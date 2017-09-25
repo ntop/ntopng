@@ -203,7 +203,7 @@ end
   end
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">Operating Systems</a></li>')
 
-  if(ntop.hasVLANs() and ntop.getPref("ntopng.prefs.dynamic_flow_collection_mode") ~= "vlan") then
+  if(ntop.hasVLANs()) then
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">VLANs</a></li>')
   end
 

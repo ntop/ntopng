@@ -92,14 +92,8 @@ else
 end
 
 local ifid = interface.name2id(ifname)
-local ifstats = interface.getStats()
-local show_vlan = (ifstats.vlan and ntop.getPref("ntopng.prefs.dynamic_flow_collection_mode") ~= "vlan")
-local label = getFlowLabel(flow, false, false, show_vlan)
+local label = getFlowLabel(flow)
 
-
-if(flow == nil) then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
-else
 print [[
 
 <div class="bs-docs-example">
@@ -114,6 +108,10 @@ print [[
 </nav>
 ]]
 
+if(flow == nil) then
+   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
+else
+
    if isAdministrator() then
       if(_POST["drop_flow_policy"] == "true") then
 	 interface.dropFlowTraffic(tonumber(flow_key))
@@ -125,9 +123,9 @@ print [[
       end
    end
 
+   ifstats = interface.getStats()
    print("<table class=\"table table-bordered table-striped\">\n")
-
-   if(show_vlan) then
+   if (ifstats.vlan and (flow["vlan"] ~= nil)) then
       print("<tr><th width=30%>")
       if(ifstats.sprobe) then
 	 print(i18n("details.source_id"))
@@ -138,7 +136,7 @@ print [[
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
 
-   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true, show_vlan).."</td></tr>\n")
+   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
 
    print("<tr><th width=30%>"..i18n("protocol").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
