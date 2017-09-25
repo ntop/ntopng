@@ -38,6 +38,7 @@ Prefs::Prefs(Ntop *_ntop) {
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
   enable_mac_ndpi_stats = false;
+  auto_assigned_pool_id = 0;
 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -482,7 +483,9 @@ void Prefs::reloadPrefsFromRedis() {
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
-    hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask);
+    hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
+    enable_mac_ndpi_stats = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, false),
+    auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, 0);
 
   getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux, DEFAULT_SAFE_SEARCH_DNS);
   if(aux) {
@@ -510,7 +513,6 @@ void Prefs::reloadPrefsFromRedis() {
   setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
   refreshLanWanInterfaces();
-  refreshMacNdpiStatsPrefs();
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
@@ -1481,18 +1483,6 @@ void Prefs::refreshLanWanInterfaces() {
     wan_interface = strdup(rsp);
   else
     wan_interface = NULL;
-}
-
-/* *************************************** */
-
-void Prefs::refreshMacNdpiStatsPrefs() {
-  char rsp[32];
-
-  if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS,
-      rsp, sizeof(rsp)) == 0) && (rsp[0] == '1'))
-    enable_mac_ndpi_stats = true;
-  else
-    enable_mac_ndpi_stats = false;
 }
 
 /* *************************************** */

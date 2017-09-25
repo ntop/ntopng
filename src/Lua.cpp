@@ -3061,18 +3061,6 @@ static int ntop_load_network_interfaces_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_load_mac_ndpi_stats_prefs(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  lua_newtable(vm);
-  ntop->getPrefs()->refreshMacNdpiStatsPrefs();
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 #ifdef NTOPNG_PRO
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
@@ -3691,7 +3679,8 @@ static int ntop_add_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+      !Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -6201,7 +6190,6 @@ static const luaL_Reg ntop_reg[] = {
   { "reloadPreferences", ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
   { "loadNetworkInteracesPrefs",      ntop_load_network_interfaces_prefs },
-  { "loadMacNdpiStatsPrefs",      ntop_load_mac_ndpi_stats_prefs },
 
 #ifdef NTOPNG_PRO
 #ifndef WIN32

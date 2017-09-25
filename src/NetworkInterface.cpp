@@ -1342,6 +1342,23 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if((srcMac = getMac(eth->h_source, vlan_id, true))) {
     srcMac->incSentStats(1, rawsize);
     srcMac->setSeenIface(bridge_iface_idx);
+
+#ifdef NTOPNG_PRO
+    u_int16_t mac_pool = 0;
+    char bufMac[24];
+    char *mac_str;
+
+    /* When captive portal is disabled, use the auto_assigned_pool_id as the default MAC pool */
+    if (host_pools
+          && ntop->getPrefs()->get_auto_assigned_pool_id()
+          && !ntop->getPrefs()->isCaptivePortalEnabled()
+          && srcMac->locate() == located_on_lan_interface) {
+      if (!host_pools->findMacPool(srcMac->get_mac(), vlan_id, &mac_pool) || (mac_pool == 0)) {
+        mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
+        host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
+      }
+    }
+#endif
   }
 
   if((dstMac = getMac(eth->h_dest, vlan_id, true)))

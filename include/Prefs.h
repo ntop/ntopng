@@ -76,6 +76,7 @@ class Prefs {
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
+  u_int16_t auto_assigned_pool_id;
   bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
   bool read_flows_from_mysql;
   bool enable_taps;
@@ -219,7 +220,6 @@ class Prefs {
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
   void refreshLanWanInterfaces();
-  void refreshMacNdpiStatsPrefs();
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
@@ -290,6 +290,7 @@ class Prefs {
   inline u_int32_t get_global_secondary_dns_ip() { return(global_secondary_dns_ip);                     };
   inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
   inline HostMask getHostMask()                  { return(hostMask);                                    };
+  inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
 };
 
 #endif /* _PREFS_H_ */
