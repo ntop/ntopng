@@ -319,10 +319,8 @@ end
 -- First round: only physical interfaces
 -- Second round: only virtual interfaces
 
-local found = false
 for round = 1, 2 do
 
-   if(found) then print('      <li class="divider"></li>\n') end 
    for k,_ in pairsByValues(ifHdescr, asc) do
       local descr
       
@@ -331,7 +329,6 @@ for round = 1, 2 do
       elseif((round == 2) and (ifCustom[k] == nil)) then
       	 -- do nothing
       else
-         found = true
 	 v = ifnames[k]
 	 print("      <li>")
 

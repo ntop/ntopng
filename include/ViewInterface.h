@@ -37,6 +37,20 @@ class ViewInterface : public NetworkInterface {
   inline void shutdown()                { ; };
   bool set_packet_filter(char *filter)  { return(false); };
 
+  virtual u_int64_t getNumPackets();
+  virtual u_int64_t getNumBytes();
+  virtual u_int     getNumPacketDrops();
+  virtual u_int     getNumFlows();
+  virtual u_int     getNumL2Devices();
+  virtual u_int     getNumHosts();
+  virtual u_int     getNumLocalHosts();
+  virtual u_int     getNumMacs();
+  virtual u_int     getNumHTTPHosts();
+
+  virtual u_int64_t getCheckPointNumPackets();
+  virtual u_int64_t getCheckPointNumBytes();
+  virtual u_int32_t getCheckPointNumPacketDrops();
+
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getVLANsHashSize();
   virtual u_int32_t getMacsHashSize();

@@ -80,7 +80,7 @@ class NetworkInterface {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, forcePoolReload, isThisASubinteface;
+  bool bridge_interface, forcePoolReload, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
@@ -195,7 +195,6 @@ class NetworkInterface {
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
-  virtual u_int32_t getNumDroppedPackets() { return 0; };
 
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
@@ -285,9 +284,11 @@ class NetworkInterface {
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   void checkPointCounters(bool drops_only);
-  u_int64_t getCheckPointNumPackets();
-  u_int64_t getCheckPointNumBytes();
-  u_int32_t getCheckPointNumPacketDrops();
+
+  virtual u_int64_t getCheckPointNumPackets();
+  virtual u_int64_t getCheckPointNumBytes();
+  virtual u_int32_t getCheckPointNumPacketDrops();
+
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
@@ -429,14 +430,16 @@ class NetworkInterface {
   u_int purgeIdleFlows();
   u_int purgeIdleHostsMacsASesVlans();
 
-  u_int64_t getNumPackets();
-  u_int64_t getNumBytes();
-  u_int getNumPacketDrops();
-  u_int getNumFlows();
-  u_int getNumHosts();
-  u_int getNumLocalHosts();
-  u_int getNumMacs();
-  u_int getNumHTTPHosts();
+  virtual u_int64_t getNumPackets();
+  virtual u_int64_t getNumBytes();
+  virtual u_int32_t getNumDroppedPackets() { return 0; };
+  virtual u_int     getNumPacketDrops();
+  virtual u_int     getNumFlows();
+  virtual u_int     getNumL2Devices();
+  virtual u_int     getNumHosts();
+  virtual u_int     getNumLocalHosts();
+  virtual u_int     getNumMacs();
+  virtual u_int     getNumHTTPHosts();
 
   void runHousekeepingTasks();
   Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
@@ -559,7 +562,6 @@ class NetworkInterface {
   inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }
   inline void decNumL2Devices()       { numL2Devices--; }
-  inline u_int32_t getNumL2Devices() { return(numL2Devices); }
   inline u_int32_t getScalingFactor()       { return(scalingFactor); }
   inline void setScalingFactor(u_int32_t f) { scalingFactor = f;     }
   inline bool isSampledTraffic()            { return((scalingFactor == 1) ? false : true); }
@@ -597,8 +599,8 @@ class NetworkInterface {
   void topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes);
   inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
   void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
-  inline bool isSubinterface()                { return(isThisASubinteface);            }
-  inline void setSubinterface()               { isThisASubinteface = true;             }
+  inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
+  inline void setDynamicInterface()               { is_dynamic_interface = true;             };
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }

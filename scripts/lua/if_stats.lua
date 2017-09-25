@@ -537,37 +537,35 @@ print("</script>\n")
    print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
    print("<span id=pkts_trend></span></td>")
 
-   print("<th width=20%><span id='if_packet_drops_drop'><i class='fa fa-tint' aria-hidden='true'></i></span> ")
+   if ifstats.isDynamic == false then
+      print("<th width=20%><span id='if_packet_drops_drop'><i class='fa fa-tint' aria-hidden='true'></i></span> ")
 
-   print(i18n("if_stats_overview.dropped_packets").."</th>")
+      print(i18n("if_stats_overview.dropped_packets").."</th>")
 
-   print("<td width=20%><span id=if_drops>")
+      print("<td width=20% colspan=2><span id=if_drops>")
 
-   if(ifstats.stats.drops > 0) then
-      print('<span class="label label-danger">')
-   end
-
-   print(formatValue(ifstats.stats.drops).. " " .. label)
-
-   if ifstats.stats.packets == null or ifstats.stats.drops == null then
-
-   
-   elseif((ifstats.stats.packets+ifstats.stats.drops) > 0) then
-      local pctg = round((ifstats.stats.drops*100)/(ifstats.stats.packets+ifstats.stats.drops), 2)
-      if(pctg > 0) then print(" [ " .. pctg .. " % ] ") end
-   end
-
-   if(ifstats.stats.drops > 0) then print('</span>') end
-   print("</span>&nbsp;<span id=drops_trend></span>")
-   if(ntop.getCache("ntopng.prefs.dynamic_iface_vlan_creation") == "1") then
-      if(ifstats.type == "Dynamic VLAN") then
-	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic_vlan").."</small>")
-      else
-	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_not_dynamic_vlan").."</small>")
+      if(ifstats.stats.drops > 0) then
+	 print('<span class="label label-danger">')
       end
-   end
-   print("</td><td colspan=3>")
-   print("</td></tr>\n")
+
+      print(formatValue(ifstats.stats.drops).. " " .. label)
+
+      if((ifstats.stats.packets+ifstats.stats.drops) > 0) then
+	 local pctg = round((ifstats.stats.drops*100)/(ifstats.stats.packets+ifstats.stats.drops), 2)
+	 if(pctg > 0) then print(" [ " .. pctg .. " % ] ") end
+      end
+
+      if(ifstats.stats.drops > 0) then print('</span>') end
+
+      print("</span>&nbsp;<span id=drops_trend></span></td>")
+
+   else
+      print("<td width=20% colspan=3>")
+      print("<small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic").."</small>")
+      print("</td>")
+   end      
+
+   print("</tr>")
 
    if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
       local dump_to = "MySQL"
@@ -615,7 +613,7 @@ print("</script>\n")
       print("</tr>")
    end
 
-   if (isAdministrator() and ifstats.isView == false) then
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
       print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 

@@ -256,7 +256,7 @@ void NetworkInterface::init() {
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, customIftype = NULL, isThisASubinteface = false,
+    running = false, customIftype = NULL, is_dynamic_interface = false,
     numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -765,71 +765,31 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getHostsHashSize() {
-  u_int32_t tot = hosts_hash->getNumEntries();
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      tot += current->iface->getHostsHashSize();
-  }
-
-  return(tot);
+  return(hosts_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getASesHashSize() {
-  u_int32_t tot = ases_hash->getNumEntries();
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      tot += current->iface->getASesHashSize();
-  }
-
-  return(tot);
+  return(ases_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getVLANsHashSize() {
-  u_int32_t tot = vlans_hash->getNumEntries();
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      tot += current->iface->getVLANsHashSize();
-  }
-
-  return(tot);
+  return(vlans_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getFlowsHashSize() {
-  u_int32_t tot = flows_hash->getNumEntries();
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      tot += current->iface->getFlowsHashSize();
-  }
-
-  return(tot);
+  return(flows_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getMacsHashSize() {
-  u_int32_t tot = macs_hash->getNumEntries();
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      tot += current->iface->getMacsHashSize();
-  }
-
-  return(tot);
+  return(macs_hash->getNumEntries());
 }
 
 /* **************************************************** */
@@ -859,12 +819,6 @@ bool NetworkInterface::walker(WalkerType wtype,
   case walker_vlans:
     ret = vlans_hash->walk(walker, user_data);
     break;
-  }
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      ret |= current->iface->walker(wtype, walker, user_data);
   }
 
   return(ret);
@@ -1041,7 +995,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
-	  h->iface->setSubinterface();
+	  h->iface->setDynamicInterface();
 	}
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
@@ -1094,7 +1048,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 #endif
   }
 
-  if((!isThisASubinteface) && (flowHashingMode != flowhashing_none)) {
+  if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL;
 
     switch(flowHashingMode) {
@@ -1360,7 +1314,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
 
   /* VLAN disaggregation */
-  if((!isThisASubinteface)
+  if((!isDynamicInterface())
      && (flowHashingMode == flowhashing_vlan)
      && (vlan_id > 0)) {
     NetworkInterface *vIface;
@@ -2825,14 +2779,6 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
       ip->set(host_ip);
 
       h = hosts_hash->get(vlan_id, ip);
-
-      if(!h && flowHashing) {
-	FlowHashing *current, *tmp;
-	HASH_ITER(hh, flowHashing, current, tmp) {
-	  if((h = current->iface->getHost(host_ip, vlan_id)))
-	    break;
-	}
-      }
 
       delete ip;
     }
@@ -4355,66 +4301,55 @@ u_int NetworkInterface::purgeIdleFlows() {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getNumPackets() {  
-  u_int64_t tot = ethStats.getNumPackets();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumPackets();
-
-  return(tot);
+  return(ethStats.getNumPackets());
 };
 
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getNumBytes() {
-  u_int64_t tot = ethStats.getNumBytes();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumBytes();
-  return(tot);
+  return(ethStats.getNumBytes());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getNumPacketDrops() {
-  u_int32_t tot = getNumDroppedPackets();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets();
-  return(tot);
+  return(!isDynamicInterface() ? getNumDroppedPackets() : 0);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumFlows()        {
-  u_int tot = flows_hash ? flows_hash->getNumEntries() : 0;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumFlows();
-  return(tot);
+u_int NetworkInterface::getNumFlows() {
+  return(flows_hash ? flows_hash->getNumEntries() : 0);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumHosts()        {
-  u_int tot = numHosts;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHosts();
-  return(tot);
+u_int NetworkInterface::getNumL2Devices() {
+  return(numL2Devices);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumLocalHosts()    {
-  u_int tot = numLocalHosts;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumLocalHosts();
-  return(tot);
+u_int NetworkInterface::getNumHosts() {
+  return(numHosts);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumHTTPHosts()    {
-  u_int tot = hosts_hash ? hosts_hash->getNumHTTPEntries() : 0;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHTTPHosts();
-  return(tot);
+u_int NetworkInterface::getNumLocalHosts() {
+  return(numLocalHosts);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumMacs()        {
-  u_int tot = macs_hash ? macs_hash->getNumEntries() : 0;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumMacs();
-  return(tot);
+u_int NetworkInterface::getNumHTTPHosts() {
+  return(hosts_hash ? hosts_hash->getNumHTTPEntries() : 0);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumMacs() {
+  return(macs_hash ? macs_hash->getNumEntries() : 0);
 };
 
 /* **************************************************** */
@@ -4597,6 +4532,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm,  "id", id);
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
+  lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
@@ -4612,7 +4548,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "local_hosts", getNumLocalHosts());
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
-  lua_push_int_table_entry(vm, "devices",     numL2Devices);
+  lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
   */
@@ -4815,14 +4751,6 @@ Flow* NetworkInterface::findFlowByKey(u_int32_t key,
   Flow *f = NULL;
 
   f = (Flow*)(flows_hash->findByKey(key));
-
-  if(!f && flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp) {
-      if((f = current->iface->findFlowByKey(key, allowed_hosts)))
-	 break;
-    }
-  }
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
 
@@ -5282,25 +5210,19 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getCheckPointNumPackets() {
-  u_int64_t tot = checkpointPktCount;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPackets();
-  return(tot);
+  return(checkpointPktCount);
 };
 
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getCheckPointNumBytes() {
-  u_int64_t tot = checkpointBytesCount;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumBytes();
-  return(tot);
+  return(checkpointBytesCount);
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
-  u_int32_t tot = checkpointPktDropCount;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPacketDrops();
-  return(tot);
+  return(checkpointPktDropCount);
 };
 
 /* **************************************** */
