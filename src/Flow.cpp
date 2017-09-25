@@ -2597,7 +2597,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     struct mdns_rsp_entry rsp;
     u_int j;
 
-    for(j=0; (i < payload_len) && (j < sizeof(name)); i++) {
+    for(j=0; (i < payload_len) && (j < (sizeof(name)-1)); i++) {
       if(payload[i] == 0x0) {
 	i++;
 	break;
@@ -2622,7 +2622,10 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	else {
 	  /* Pointer back */
 	  
-	  while((payload[offset] != 0) && (offset < payload_len) && (offset < 255)) {
+	  while((payload[offset] != 0)
+		&& (offset < payload_len)
+		&& (offset < 255)
+		&& (j < (sizeof(name)-1))) {
 	    if(payload[offset] == 0)
 	      break;
 	    else if(payload[offset] == 0xC0) {
