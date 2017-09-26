@@ -39,7 +39,7 @@ void GenericTrafficElement::updateStats(struct timeval *tv) {
 
     // Calculate bps throughput
     u_int64_t new_bytes = sent.getNumBytes()+rcvd.getNumBytes();
-    float bytes_msec = ((float)((new_bytes-last_bytes)*1000))/(1 + tdiff);
+    float bytes_msec = ((float)((new_bytes - last_bytes)*1000))/(1 + tdiff);
 
     if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
     else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
@@ -51,7 +51,7 @@ void GenericTrafficElement::updateStats(struct timeval *tv) {
     // Calculate pps throughput
     u_int64_t new_packets = sent.getNumPkts()+ rcvd.getNumPkts();
 
-    float pkts_msec = ((float)((new_packets-last_packets)*1000))/tdiff;
+    float pkts_msec = ((float)((new_packets - last_packets)*1000))/(1 + tdiff);
 
     if(pkts_thpt < pkts_msec)      pkts_thpt_trend = trend_up;
     else if(pkts_thpt > pkts_msec) pkts_thpt_trend = trend_down;

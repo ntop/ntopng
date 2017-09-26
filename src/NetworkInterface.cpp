@@ -1837,11 +1837,11 @@ void NetworkInterface::purgeIdle(time_t when) {
     last_pkt_rcvd = when;
 
     if((n = purgeIdleFlows()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Purged %u/%u idle flows on %s",
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
     if((m = purgeIdleHostsMacsASesVlans()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Purged %u/%u idle hosts/macs on %s",
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
 				   n, getNumHosts()+getNumMacs(), ifname);
   }
 

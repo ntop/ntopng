@@ -1135,16 +1135,6 @@ bool Host::deserialize(char *json_str, char *key) {
 
   json_object_put(o);
 
-  /* We need to update too the stats for traffic */
-  last_update_time.tv_sec = (long)time(NULL), last_update_time.tv_usec = 0;
-  // Update bps throughput
-  bytes_thpt = 0, last_bytes = sent.getNumBytes()+rcvd.getNumBytes(),
-    bytes_thpt_trend = trend_unknown;
-
-  // Update pps throughput
-  pkts_thpt = 0, last_packets = sent.getNumPkts()+rcvd.getNumPkts(),
-    pkts_thpt_trend = trend_unknown;
-
   return(true);
 }
 
@@ -1353,7 +1343,7 @@ void Host::luaUsedQuotas(lua_State* vm) {
 /* *************************************** */
 
 void Host::updateStats(struct timeval *tv) {
-  ((GenericHost*)this)->updateStats(tv);
+  GenericTrafficElement::updateStats(tv);
   if(http) http->updateStats(tv);
 
   if(!localHost) return;

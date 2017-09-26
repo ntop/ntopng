@@ -90,7 +90,7 @@ class Host : public GenericHost {
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   ~Host();
 
-  void updateStats(struct timeval *tv);
+  virtual void updateStats(struct timeval *tv);
   void incLowGoodputFlows(bool asClient);
   void decLowGoodputFlows(bool asClient);
 
