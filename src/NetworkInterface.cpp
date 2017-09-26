@@ -1323,6 +1323,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
+      vIface->purgeIdle(h->ts.tv_sec);
+
       ret = vIface->processPacket(bridge_iface_idx,
 				  ingressPacket, when, time,
 				  eth,
@@ -1843,13 +1845,6 @@ void NetworkInterface::purgeIdle(time_t when) {
     if((m = purgeIdleHostsMacsASesVlans()) > 0)
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
 				   n, getNumHosts()+getNumMacs(), ifname);
-  }
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-
-    HASH_ITER(hh, flowHashing, current, tmp)
-      current->iface->purgeIdle(when);
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);

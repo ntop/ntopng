@@ -426,7 +426,7 @@ class NetworkInterface {
 		Paginator *p,
 		const char *groupColumn);
 
-  void purgeIdle(time_t when);
+  virtual void purgeIdle(time_t when);
   u_int purgeIdleFlows();
   u_int purgeIdleHostsMacsASesVlans();
 

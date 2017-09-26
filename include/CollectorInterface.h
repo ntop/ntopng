@@ -53,6 +53,8 @@ class CollectorInterface : public ParserInterface {
   inline bool isPacketInterface()       { return(false);      };
   void collect_flows();
 
+  virtual void purgeIdle(time_t when);
+
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);

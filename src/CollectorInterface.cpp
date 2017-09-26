@@ -297,3 +297,15 @@ void CollectorInterface::lua(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+
+/* **************************************************** */
+
+void CollectorInterface::purgeIdle(time_t when) {
+  NetworkInterface::purgeIdle(when);
+
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      static_cast<NetworkInterface*>(current->iface)->purgeIdle(when);
+  }
+}
