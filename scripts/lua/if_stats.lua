@@ -617,24 +617,14 @@ print("</script>\n")
       print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 
-      local cls = ""
       local tot	= ifstats.stats.bytes + ifstats.stats.packets + ifstats.stats.drops
       if(ifstats.stats.flow_export_count ~= nil) then
       	tot = tot + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops
       end
       
-      if tot == 0 then
-	 cls = " disabled"
-      end
-      print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
+      print('<button id="btn_reset_all" type="button" class="btn btn-default" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
 
-      cls = ""
-      if(ifstats.stats.flow_export_count ~= nil) then
-        if ifstats.stats.drops + ifstats.stats.flow_export_drops == 0 then
-	 cls = " disabled"
-	end
-      end
-      print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
+      print('<button id="btn_reset_drops" type="button" class="btn btn-default" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
       print("</td>")
 
       print("</tr>\n")
@@ -2727,20 +2717,6 @@ print [[";
           $('#exported_flows_drops').removeClass().html("0");
           $('#exported_flows_drops_pct').removeClass().html("[0%]");
         }
-
-        var btn_disabled = true;
-	if(rsp.drops + rsp.bytes + rsp.packets + rsp.flow_export_count + rsp.flow_export_drops > 0) {
-          btn_disabled = false;
-          $('#btn_reset_all').removeClass("disabled");
-        }
-        $('#btn_reset_all').disable(btn_disabled);
-
-        btn_disabled = true;
-	if(rsp.drops + rsp.flow_export_drops != 0) {
-          btn_disabled = false;
-          $('#btn_reset_drops').removeClass("disabled");
-        }
-        $('#btn_reset_drops').disable(btn_disabled);
 
 ]]
 
