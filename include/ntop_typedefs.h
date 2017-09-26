@@ -391,6 +391,10 @@ typedef enum {
   device_max_type /* Leave it at the end */
 } DeviceType;
 
+typedef struct {
+  NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
+} DeviceProtocolBitmask;
+
 struct ntopngLuaContext {
   char *ifname, *user;
   void *zmq_context, *zmq_subscriber;

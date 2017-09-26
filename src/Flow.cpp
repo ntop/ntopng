@@ -74,7 +74,7 @@ Flow::Flow(NetworkInterface *_iface,
 
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();
-  
+
   routing_table_id = DEFAULT_ROUTING_TABLE_ID;
 
   if(hp) {
@@ -82,7 +82,7 @@ Flow::Flow(NetworkInterface *_iface,
     if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
 #endif
-  
+
   passVerdict = true, quota_exceeded = false, categorization.categorized_requested = false;
   cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
@@ -1640,7 +1640,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if((!mask_flow) && (details_level >= details_higher)) {
       float latitude, longitude;
       char buf[32];
-      
+
       lua_push_int_table_entry(vm, "cli2srv.goodput_bytes.last", get_current_goodput_bytes_cli2srv());
       lua_push_int_table_entry(vm, "srv2cli.goodput_bytes.last", get_current_goodput_bytes_srv2cli());
 
@@ -1919,7 +1919,7 @@ json_object* Flow::flow2json() {
     if(location) {
       float latitude, longitude;
 
-      cli_host->get_geocoordinates(&latitude, &longitude);      
+      cli_host->get_geocoordinates(&latitude, &longitude);
       json_object_array_add(location, json_object_new_double(longitude));
       json_object_array_add(location, json_object_new_double(latitude));
       json_object_object_add(my_object, "SRC_IP_LOCATION", location);
@@ -2599,7 +2599,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
   answers = ntohs(*((u_int16_t*)&payload[6]))
     + ntohs(*((u_int16_t*)&payload[8]))
     + ntohs(*((u_int16_t*)&payload[10]));
-  
+
   payload = &payload[12], payload_len -= 12;
 
   i = 0;
@@ -2624,7 +2624,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       } else if(payload[i] == 0xC0) {
 	u_int8_t offset;
 	u_int16_t i_save = 0;
-	
+
       nested_dns_definition:
 	offset = payload[i+1] - 12;
 
@@ -2632,7 +2632,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  return; /* Invalid packet */
 	else {
 	  /* Pointer back */
-	  
+
 	  while((payload[offset] != 0)
 		&& (offset < payload_len)
 		&& (offset < 255)
@@ -2678,7 +2678,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
       if(cli_host) cli_host->setName(name);
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, ntohs(rsp.rsp_type), name);      
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, ntohs(rsp.rsp_type), name);
       break;
     }
 
@@ -2838,11 +2838,30 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shap
 void Flow::updateFlowShapers() {
   bool cli2srv_verdict, srv2cli_verdict;
 
-  cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
-  srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
+  /* Check if this application protocol is allowd for the specified device type */
+  if(cli_host && srv_host) {
+    DeviceProtocolBitmask *cli = ntop->getDeviceAllowedProtocols(cli_host->getMac()->getDeviceType());
+    DeviceProtocolBitmask *srv = ntop->getDeviceAllowedProtocols(srv_host->getMac()->getDeviceType());
 
-  passVerdict = (cli2srv_verdict && srv2cli_verdict);
-
+    if(
+       ((ndpiDetectedProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN)
+	&& ((!NDPI_ISSET(&cli->clientAllowed, ndpiDetectedProtocol.master_protocol))
+	    || (!NDPI_ISSET(&srv->serverAllowed, ndpiDetectedProtocol.master_protocol))))
+       ||
+       /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
+       (((!NDPI_ISSET(&cli->clientAllowed, ndpiDetectedProtocol.app_protocol))
+	 || (!NDPI_ISSET(&srv->serverAllowed, ndpiDetectedProtocol.app_protocol))))
+       )
+      passVerdict = false;    
+  }
+  
+  if(passVerdict) {
+    cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
+    srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
+    
+    passVerdict = (cli2srv_verdict && srv2cli_verdict);
+  }
+  
 #ifdef SHAPER_DEBUG
   {
     char buf[1024];
@@ -3102,9 +3121,9 @@ void Flow::fixAggregatedFlowFields() {
 
 /* ***************************************************** */
 
-void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts, 
+void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
-  
+
   if(cli2srv_packets < s2d_pkts) cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes;
   if(srv2cli_packets < d2s_pkts) srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
 }

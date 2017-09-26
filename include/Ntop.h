@@ -65,6 +65,8 @@ class Ntop {
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
   NtopPro *pro;
+  DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
+  
 #ifdef NTOPNG_PRO
 #ifndef WIN32
   NagiosManager *nagios_manager;
@@ -74,7 +76,8 @@ class Ntop {
   AddressTree *hostBlacklist, *hostBlacklistShadow;
 
   void loadLocalInterfaceAddress();
-
+  void initAllowedProtocolPresets();
+  
  public:
   /**
    * @brief A Constructor
@@ -452,8 +455,8 @@ class Ntop {
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
 #endif
+  DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
 };
-
 
 extern Ntop *ntop;
 

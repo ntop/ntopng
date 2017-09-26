@@ -66,22 +66,24 @@ Ntop::Ntop(char *appName) {
     hostBlacklistShadow = hostBlacklist = NULL;
 
 #ifdef WIN32
-  if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
-	  strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen
+  if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
+    strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen
   } else {
-	  int l = strlen(working_dir);
-
-	  snprintf(&working_dir[l], sizeof(working_dir), "%s", "\\ntopng");
+    int l = strlen(working_dir);
+    
+    snprintf(&working_dir[l], sizeof(working_dir), "%s", "\\ntopng");
   }
+  
   // Get the full path and filename of this program
   if(GetModuleFileName(NULL, startup_dir, sizeof(startup_dir)) == 0) {
     startup_dir[0] = '\0';
   } else {
-    for(int i=(int)strlen(startup_dir)-1; i>0; i--)
+    for(int i=(int)strlen(startup_dir)-1; i>0; i--) {
       if(startup_dir[i] == '\\') {
 	startup_dir[i] = '\0';
 	break;
       }
+    }
   }
 
   snprintf(install_dir, sizeof(install_dir), "%s", startup_dir);
@@ -136,12 +138,13 @@ Ntop::Ntop(char *appName) {
   initTimezone();
   ntop->getTrace()->traceEvent(TRACE_INFO, "System Timezone offset: %+ld", time_offset);
 
+  initAllowedProtocolPresets();
+  
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
 #ifndef WIN32
   setservent(1);
 #endif
-
 }
 
 /* ******************************************* */
@@ -1655,6 +1658,17 @@ void Ntop::loadTrackers() {
 
 bool Ntop::isATrackerHost(char *host) {
   return((trackers_automa && (!ndpi_match_string(trackers_automa, host))) ? true : false);
+}
+
+/* ******************************************* */
+
+void Ntop::initAllowedProtocolPresets() {
+  /* TODO define per-device protocol bitmask */
+
+  for(u_int i=0; i<device_max_type; i++) {
+    NDPI_BITMASK_SET_ALL(deviceProtocolPresets[i].clientAllowed);
+    NDPI_BITMASK_SET_ALL(deviceProtocolPresets[i].serverAllowed);
+  }
 }
 
 /* ******************************************* */
