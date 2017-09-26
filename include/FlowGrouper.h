@@ -40,6 +40,7 @@ class FlowGrouper {
     sortField sorter;
     flowGroupStats stats;
     int table_index;
+    bool pass_verdict;
 
     /* group id */
     u_int16_t app_protocol;
