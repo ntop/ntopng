@@ -1356,7 +1356,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
           && (srcMac->locate() == located_on_lan_interface)) {
       if (!host_pools->findMacPool(srcMac->get_mac(), vlan_id, &mac_pool) || (mac_pool == NO_HOST_POOL_ID)) {
         mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
-        host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), NO_HOST_POOL_ID);
+        host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
       }
     }
 #endif
@@ -2924,9 +2924,7 @@ struct flowHostRetriever {
 
 /* **************************************************** */
 
-static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
-  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
-  Flow *f = (Flow*)h;
+static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int ndpi_proto;
   u_int16_t port;
   int16_t local_network_id;
@@ -2942,14 +2940,11 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   bool filtered_flows;
 #endif
 
-  if(retriever->actNumEntries >= retriever->maxNumEntries)
-    return(true); /* Limit reached */
-
   if(f && (!f->idle())) {
     if(retriever->host
        && (retriever->host != f->get_cli_host())
        && (retriever->host != f->get_srv_host()))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->l7protoFilter(&ndpi_proto)
@@ -2960,72 +2955,72 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	   (ndpi_proto != NDPI_PROTOCOL_UNKNOWN
 	    && (f->get_detected_protocol().app_protocol != ndpi_proto
 		&& f->get_detected_protocol().master_protocol != ndpi_proto))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->ipVersion(&ip_version)
        && (((ip_version == 4) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv4()))
 	   || ((ip_version == 6) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv6()))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->deviceIpFilter(&deviceIP)) {
 	if(f->getFlowDeviceIp() != deviceIP
 	   || (retriever->pag->inIndexFilter(&inIndex) && f->getFlowDeviceInIndex() != inIndex)
 	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
-	  return(false); /* false = keep on walking */
+	  return(false);
     }
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)
        && f->get_cli_port() != port
        && f->get_srv_port() != port)
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->localNetworkFilter(&local_network_id)
        && f->get_cli_host() && f->get_srv_host()
        && f->get_cli_host()->get_local_network_id() != local_network_id
        && f->get_srv_host()->get_local_network_id() != local_network_id)
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->vlanIdFilter(&vlan_id)
        && f->get_vlan_id() != vlan_id)
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->clientMode(&client_policy)
        && f->get_cli_host()
        && (((client_policy == location_local_only) && (!f->get_cli_host()->isLocalHost()))
 	   || ((client_policy == location_remote_only) && (f->get_cli_host()->isLocalHost()))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->serverMode(&server_policy)
        && (((server_policy == location_local_only) && (!f->get_srv_host()->isLocalHost()))
 	   || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->alertedFlows(&alerted_flows)
        && ((alerted_flows && f->getFlowStatus() == status_normal)
 	   || (!alerted_flows && f->getFlowStatus() != status_normal)))
-      return(false); /* false = keep on walking */
+      return(false);
 
 #ifdef NTOPNG_PRO
     if(retriever->pag
        && retriever->pag->filteredFlows(&filtered_flows)
        && ((filtered_flows && f->isPassVerdict())
        || (!filtered_flows && !f->isPassVerdict())))
-      return(false); /* false = keep on walking */
+      return(false);
 #endif
 
     if(retriever->pag
        && retriever->pag->unidirectionalTraffic(&unidirectional)
        && ((unidirectional && (f->get_packets() > 0) && (f->get_packets_cli2srv() > 0) && (f->get_packets_srv2cli() > 0))
 	   || (!unidirectional && (f->get_packets() > 0) && ((f->get_packets_cli2srv() == 0) || (f->get_packets_srv2cli() == 0)))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     /* Unicast: at least one between client and server is unicast address */
     if(retriever->pag
@@ -3034,26 +3029,42 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 			|| (f->get_srv_host() && (f->get_srv_host()->get_ip()->isMulticastAddress() || f->get_srv_host()->get_ip()->isBroadcastAddress()))))
 	   || (!unicast && ((f->get_cli_host() && (!f->get_cli_host()->get_ip()->isMulticastAddress() && !f->get_cli_host()->get_ip()->isBroadcastAddress()))
 			    && (f->get_srv_host() && (!f->get_srv_host()->get_ip()->isMulticastAddress() && !f->get_srv_host()->get_ip()->isBroadcastAddress()))))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     /* Pool filter */
     if(retriever->pag
        && retriever->pag->poolFilter(&pool_filter)
        && !((f->get_cli_host() && f->get_cli_host()->get_host_pool() == pool_filter)
 	      || (f->get_srv_host() && f->get_srv_host()->get_host_pool() == pool_filter)))
-      return(false); /* false = keep on walking */
+      return(false);
 
     /* Mac filter - NOTE: must stay below the vlan_id filter */
     if(retriever->pag
        && retriever->pag->macFilter(&mac_filter)
        && !((f->get_cli_host() && f->get_cli_host()->getMac() && f->get_cli_host()->getMac()->equal(vlan_id, mac_filter))
 	      || (f->get_srv_host() && f->get_srv_host()->getMac() && f->get_srv_host()->getMac()->equal(vlan_id, mac_filter))))
-      return(false); /* false = keep on walking */
+      return(false);
 
+    if(f->match(retriever->allowed_hosts))
+      return(true); /* match */
+  }
+
+  return(false);
+}
+
+/* **************************************************** */
+
+static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
+  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  Flow *f = (Flow*)h;
+
+  if(retriever->actNumEntries >= retriever->maxNumEntries)
+    return(true); /* Limit reached - stop iterating */
+
+  if(flow_matches(f, retriever)) {
     retriever->elems[retriever->actNumEntries].flow = f;
 
-    if(f->match(retriever->allowed_hosts)) {
-      switch(retriever->sorter) {
+    switch(retriever->sorter) {
       case column_client:
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
@@ -3089,14 +3100,14 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	retriever->elems[retriever->actNumEntries].numericValue = f->get_detected_protocol().app_protocol;
 	retriever->elems[retriever->actNumEntries].sourceMacValue = f->get_cli_host() ? Utils::macaddr_int(f->get_cli_host()->get_mac()) : 0;
 	retriever->elems[retriever->actNumEntries].destMacValue = f->get_srv_host() ? Utils::macaddr_int(f->get_srv_host()->get_mac()) : 0;
-	retriever->actNumEntries++;
+	retriever->actNumEntries++; /* Finally update the counter */
 	break;
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
 	break;
-      }
     }
   }
+
   return(false); /* false = keep on walking */
 }
 
@@ -3745,6 +3756,37 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
   if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
+
+static bool flow_drop_walker(GenericHashEntry *h, void *user_data) {
+  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  Flow *f = (Flow*)h;
+
+  if(flow_matches(f, retriever))
+    f->setDropVerdict();
+
+  return(false); /* Keep on walking */
+}
+
+/* **************************************************** */
+
+int NetworkInterface::dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p) {
+  struct flowHostRetriever retriever;
+
+  memset(&retriever, 0, sizeof(retriever));
+
+  retriever.allowed_hosts = allowed_hosts;
+  retriever.pag = p;
+
+  disablePurge(true);
+
+  walker(walker_flows, flow_drop_walker, (void*)&retriever);
+
+  enablePurge(true);
+
+  return(0);
 }
 
 /* **************************************************** */
