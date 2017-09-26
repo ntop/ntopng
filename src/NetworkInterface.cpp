@@ -1330,7 +1330,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
-      vIface->purgeIdle(h->ts.tv_sec);
 
       incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1838,12 +1837,19 @@ void NetworkInterface::purgeIdle(time_t when) {
     last_pkt_rcvd = when;
 
     if((n = purgeIdleFlows()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle flows on %s",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
     if((m = purgeIdleHostsMacsASesVlans()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts/macs on %s",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Purged %u/%u idle hosts/macs on %s",
 				   n, getNumHosts()+getNumMacs(), ifname);
+  }
+
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+
+    HASH_ITER(hh, flowHashing, current, tmp)
+      current->iface->purgeIdle(when);
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
@@ -1890,6 +1896,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   }
 
   setTimeLastPktRcvd(h->ts.tv_sec);
+  purgeIdle(h->ts.tv_sec);
 
   time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
 
@@ -2251,8 +2258,6 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
   }
-
-  purgeIdle(h->ts.tv_sec);
 
   return(pass_verdict);
 }
@@ -4285,6 +4290,7 @@ void NetworkInterface::getNetworksStats(lua_State* vm) {
 /* **************************************************** */
 
 u_int NetworkInterface::purgeIdleFlows() {
+  u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!purge_idle_flows_hosts) return(0);
@@ -4296,19 +4302,12 @@ u_int NetworkInterface::purgeIdleFlows() {
     return(0); /* Too early */
   else {
     /* Time to purge flows */
-    u_int n;
+
 
     ntop->getTrace()->traceEvent(TRACE_INFO,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, flows_hash->getCurrentSize());
     n = flows_hash->purgeIdle();
-
-    if(flowHashing) {
-      FlowHashing *current, *tmp;
-
-      HASH_ITER(hh, flowHashing, current, tmp)
-	current->iface->purgeIdleFlows();
-    }
 
     next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
     return(n);
@@ -4390,13 +4389,6 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
       + macs_hash->purgeIdle()
       + ases_hash->purgeIdle()
       + vlans_hash->purgeIdle();
-
-    if(flowHashing) {
-      FlowHashing *current, *tmp;
-
-      HASH_ITER(hh, flowHashing, current, tmp)
-	current->iface->purgeIdleHostsMacsASesVlans();
-    }
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
