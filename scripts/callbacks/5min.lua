@@ -165,9 +165,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
 	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 	  end
-
-	  if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
-	  if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
        end
 
        if(host_ndpi_timeseries_creation == "per_category" or host_ndpi_timeseries_creation == "both") then
