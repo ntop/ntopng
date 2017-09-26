@@ -282,6 +282,18 @@ Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
   return(h);
 }
+/* **************************************************** */
+
+Mac* ViewInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent) {
+  Mac *ret = NULL;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    if((ret = subInterfaces[s]->getMac(_mac, vlanId, false)))
+      break;
+  }
+
+  return(ret);
+}
 
 /* **************************************************** */
 
@@ -296,3 +308,18 @@ Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
   return(f);
 }
 
+
+/* *************************************** */
+
+void ViewInterface::lua(lua_State *vm) {
+  bool has_macs = false;
+
+  NetworkInterface::lua(vm);
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    if(subInterfaces[s]->hasSeenMacAddresses()) {
+      has_macs = true;
+      break;
+    }
+  }
+  lua_push_bool_table_entry(vm, "has_macs", has_macs);
+}

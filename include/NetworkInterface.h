@@ -442,9 +442,9 @@ class NetworkInterface {
   virtual u_int     getNumHTTPHosts();
 
   void runHousekeepingTasks();
-  Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
+  virtual Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
