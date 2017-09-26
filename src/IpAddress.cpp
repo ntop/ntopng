@@ -171,6 +171,7 @@ void IpAddress::compute_key() {
 /* ******************************************* */
 
 char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) {
+  str[0] = '\0';
   return(intoa(str, str_len, bitmask));
 }
 

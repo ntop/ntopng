@@ -34,10 +34,11 @@ class HostPools {
   volatile time_t latest_swap;
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
-  bool *children_safe;
   u_int16_t max_num_pools;
   u_int16_t *num_active_pool_members;
 #ifdef NTOPNG_PRO
+  bool *children_safe;
+  u_int8_t *routing_policy_id;
   bool *enforce_quotas_per_pool_member; /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
@@ -73,7 +74,10 @@ public:
   bool findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
   void lua(lua_State *vm);
-  
+
+  inline void incPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]++; }
+  inline void decPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]--; }
+ 
 #ifdef NTOPNG_PRO
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
@@ -98,9 +102,7 @@ public:
   }
 
   void resetPoolsStats();
-  inline bool isChildrenSafePool(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? children_safe[pool_id] : false);
-  }
+
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_quotas_per_pool_member[pool_id] : false);
   }
@@ -108,9 +110,15 @@ public:
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
   void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);
   void purgeExpiredVolatileMembers();
+
+  inline bool isChildrenSafePool(u_int16_t pool_id) {
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? children_safe[pool_id] : false);
+  }
+  
+  inline u_int8_t getRoutingPolicy(u_int16_t pool_id) {
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? routing_policy_id[pool_id] : 0);
+  }
 #endif
-  inline void incPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]++; }
-  inline void decPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]--; }
 };
 
 #endif /* _HOST_POOLS_H_ */

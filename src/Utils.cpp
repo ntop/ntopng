@@ -23,6 +23,7 @@
 
 #if defined(__APPLE__)
 #include <net/if_dl.h>
+#include <ifaddrs.h>
 #endif
 
 #include <curl/curl.h>

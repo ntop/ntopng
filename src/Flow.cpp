@@ -72,6 +72,17 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
 
+#ifdef NTOPNG_PRO
+  HostPools *hp = iface->getHostPools();
+  
+  routing_table_id = DEFAULT_ROUTING_TABLE_ID;
+
+  if(hp) {
+    if(cli_host) routing_table_id = hp->getRoutingPolicy(cli_host->get_host_pool());
+    if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
+  }
+#endif
+  
   passVerdict = true, quota_exceeded = false, categorization.categorized_requested = false;
   cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;

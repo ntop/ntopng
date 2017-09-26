@@ -60,7 +60,7 @@ class Prefs {
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache, enable_active_local_hosts_cache;
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation, enable_probing_alerts, enable_ssl_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
-  bool dump_flow_alerts_when_iface_alerted, prefscache_refreshed;
+  bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;

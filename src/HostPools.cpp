@@ -30,13 +30,16 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   if((num_active_pool_members = (u_int16_t*)calloc(sizeof(u_int16_t), MAX_NUM_HOST_POOLS)) == NULL)
     throw 1;
-  
-  if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
-    throw 1;
 
 #ifdef NTOPNG_PRO
-  stats = stats_shadow = NULL;
+  if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
+    throw 1;
+  
+  if((routing_policy_id = (u_int8_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int8_t))) == NULL)
+    throw 1;
 
+  stats = stats_shadow = NULL;
+  
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
      || (volatile_members_lock = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
      || (enforce_quotas_per_pool_member = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
@@ -101,15 +104,15 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
 /* *************************************** */
 
 HostPools::~HostPools() {
-  int i;
-
   if(num_active_pool_members) free(num_active_pool_members);
   if(tree_shadow)   deleteTree(&tree_shadow);
   if(tree)          deleteTree(&tree);
-  if(children_safe) free(children_safe);
   if(swap_lock)     delete swap_lock;
 
 #ifdef NTOPNG_PRO
+  if(children_safe)     free(children_safe);
+  if(routing_policy_id) free(routing_policy_id);
+  
   dumpToRedis();
 
   if(enforce_quotas_per_pool_member)
@@ -119,7 +122,7 @@ HostPools::~HostPools() {
   if(stats_shadow) deleteStats(&stats_shadow);
 
   if(volatile_members_lock) {
-    for(i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if(volatile_members_lock[i])
 	delete volatile_members_lock[i];
     }
@@ -308,7 +311,8 @@ void HostPools::loadFromRedis() {
 
   snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
 
-  if((!redis) || (! stats) || (! iface)) return;
+  if((!redis) || (!stats) || (!iface)) return;
+  
   if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
     return;
@@ -616,10 +620,15 @@ void HostPools::reloadPools() {
 
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
     rsp[0] = '\0';
-    children_safe[i] = ((redis->hashGet(kname, (char*)"children_safe", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));
 
 #ifdef NTOPNG_PRO
-    enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)"enforce_quotas_per_pool_member", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));;
+    children_safe[i] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
+			&& (!strcmp(rsp, "true")));
+
+    routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
+
+    enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+					 && (!strcmp(rsp, "true")));;
 
 #ifdef HOST_POOLS_DEBUG
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));

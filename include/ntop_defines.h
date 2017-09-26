@@ -298,6 +298,7 @@
 #define PASS_ALL_SHAPER_ID             0
 #define DROP_ALL_SHAPER_ID             1
 #define DEFAULT_SHAPER_ID              PASS_ALL_SHAPER_ID
+#define DEFAULT_ROUTING_TABLE_ID       0
 #define NUM_TRAFFIC_SHAPERS           16
 #define NUM_TC_TRAFFIC_SHAPERS         8
 #define MAX_SHAPER_RATE_KBPS       10240
@@ -759,6 +760,10 @@
 #define HTTP_MAX_POST_DATA_LEN          8192
 #define HTTP_CONTENT_TYPE_HEADER        "Content-Type: "
 #define CONST_HELLO_HOST                "hello"
+
+#define CONST_CHILDREN_SAFE                   "children_safe"
+#define CONST_ROUTING_POLICY_ID               "routing_policy_id"
+#define CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER  "enforce_quotas_per_pool_member"
 
 #define CACHED_ENTRIES_THRESHOLD        1024
 #define MAX_CATEGORY_CACHE_DURATION     300 /* Purge entries more than 5 mins old */
