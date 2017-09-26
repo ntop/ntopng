@@ -67,6 +67,15 @@ int send_error(struct mg_connection *conn, int status, const char *reason, const
 
 /* ****************************************** */
 
+static inline const char * get_secure_cookie_attributes(const struct mg_request_info *request_info) {
+  if(request_info->is_ssl)
+    return " HttpOnly; Secure";
+  else
+    return " HttpOnly";
+}
+
+/* ****************************************** */
+
 static void redirect_to_ssl(struct mg_connection *conn,
                             const struct mg_request_info *request_info) {
   const char *host = mg_get_header(conn, "Host");
@@ -130,11 +139,11 @@ static void set_cookie(const struct mg_connection *conn,
 
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
-	    "Set-Cookie: session=%s; path=/; max-age=%u; HttpOnly\r\n"  // Session ID
-	    "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by JavaScript code
+	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
+	    "Set-Cookie: user=%s; path=/; max-age=%u;%s\r\n"  // Set user, needed by JavaScript code
 	    "Location: %s%s\r\n\r\n",
-	    session_id, HTTP_SESSION_DURATION,
-	    user, HTTP_SESSION_DURATION,
+	    session_id, HTTP_SESSION_DURATION, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
+	    user, HTTP_SESSION_DURATION, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
 	    ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
 
   /* Save session in redis */
@@ -363,16 +372,18 @@ static void redirect_to_login(struct mg_connection *conn,
     if(referer)
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 		"Location: %s%s?referer=%s\r\n\r\n", /* FIX */
 		session_id,
+		get_secure_cookie_attributes(request_info),
 		ntop->getPrefs()->get_http_prefix(), CAPTIVE_PORTAL_URL, referer);
     else
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 		"Location: %s%s\r\n\r\n", /* FIX */
 		session_id,
+		get_secure_cookie_attributes(request_info),
 		ntop->getPrefs()->get_http_prefix(), CAPTIVE_PORTAL_URL);
   } else {
 #ifdef DEBUG
@@ -386,9 +397,10 @@ static void redirect_to_login(struct mg_connection *conn,
 
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
-	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 	      "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
 	      session_id,
+	      get_secure_cookie_attributes(request_info),
 	      ntop->getPrefs()->get_http_prefix(),
 	      Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
@@ -415,9 +427,10 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
-	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 	    "Location: %s%s?referer=%s%s%s\r\n\r\n",
 	    session_id,
+	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(),
 	    Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
 	    conn->request_info.uri,
@@ -436,9 +449,10 @@ static void redirect_to_password_change(struct mg_connection *conn,
 
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
-	      "Set-Cookie: session=%s; path=/; HttpOnly\r\n"  // Session ID
+	      "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
 	      "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
 	      session_id,
+	      get_secure_cookie_attributes(request_info),
 	      ntop->getPrefs()->get_http_prefix(),
 	      Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
