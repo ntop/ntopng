@@ -31,6 +31,7 @@ FlowGrouper::FlowGrouper(sortField sf){
   table_index = 1;
 
   memset(&stats, 0, sizeof(stats));
+  pass_verdict = false;
 }
 
 /* *************************************** */
@@ -58,6 +59,7 @@ int FlowGrouper::newGroup(Flow *flow) {
     return -1;
 
   memset(&stats, 0, sizeof(stats));
+  pass_verdict = false;
 
   switch(sorter) {
     case column_ndpi_peers:
@@ -87,6 +89,9 @@ int FlowGrouper::incStats(Flow *flow) {
   if(flow->get_last_seen() > stats.last_seen)
     stats.last_seen = flow->get_last_seen();
 
+  if(flow->isPassVerdict())
+    pass_verdict = true;
+
   stats.num_flows++;
   return 0;
 }
@@ -100,6 +105,7 @@ void FlowGrouper::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "client", Utils::formatMac(client->get_mac(), buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "server", Utils::formatMac(server->get_mac(), buf, sizeof(buf)));
   lua_push_int_table_entry(vm, "proto", app_protocol);
+  lua_push_bool_table_entry(vm, "verdict.pass", pass_verdict);
 
   lua_push_int_table_entry(vm, "cli2srv.bytes", stats.bytes_cli2srv);
   lua_push_int_table_entry(vm, "srv2cli.bytes", stats.bytes_srv2cli);

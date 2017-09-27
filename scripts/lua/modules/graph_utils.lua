@@ -1046,47 +1046,6 @@ function createTripleRRDcounter(path, step, verbose)
    end
 end
 
--- ########################################################
-
-function dumpSingleTreeCounters(basedir, label, host, verbose)
-   what = host[label]
-
-   if(what ~= nil) then
-      for k,v in pairs(what) do
-	 for k1,v1 in pairs(v) do
-	    -- print("-->"..k1.."/".. type(v1).."<--\n")
-
-	    if(type(v1) == "table") then
-	       for k2,v2 in pairs(v1) do
-
-		  dname = fixPath(basedir.."/"..label.."/"..k.."/"..k1)
-
-		  if(not(ntop.exists(dname))) then
-		     ntop.mkdir(dname)
-		  end
-
-		  fname = dname..fixPath("/"..k2..".rrd")
-		  createSingleRRDcounter(fname, 300, verbose)
-		  ntop.rrd_update(fname, "N:"..toint(v2))
-		  if(verbose) then print("\t"..fname.."\n") end
-	       end
-	    else
-	       dname = fixPath(basedir.."/"..label.."/"..k)
-
-	       if(not(ntop.exists(dname))) then
-		  ntop.mkdir(dname)
-	       end
-
-	       fname = dname..fixPath("/"..k1..".rrd")
-	       createSingleRRDcounter(fname, 300, verbose)
-	       ntop.rrd_update(fname, "N:"..toint(v1))
-	       if(verbose) then print("\t"..fname.."\n") end
-	    end
-	 end
-      end
-   end
-end
-
 function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto, vlan)
    -- Check if the DB is enabled
    rsp = interface.execSQLQuery("show tables")

@@ -93,7 +93,7 @@
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
 #include <ifaddrs.h>
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__APPLE__)
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif

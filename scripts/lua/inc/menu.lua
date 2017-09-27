@@ -246,7 +246,7 @@ print("</ul> </li>")
 -- Devices
 info = ntop.getInfo()
 
-if((ifs["has_macs"] == true) or ntop.isPro()) then
+if((ifs["has_macs"] == true) or ntop.isEnterprise()) then
 if active_page == "devices_stats" then
   print [[ <li class="dropdown active"> ]]
 else

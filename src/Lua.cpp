@@ -2416,7 +2416,8 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   key = (u_int32_t)lua_tonumber(vm, 1);
 
-  if(!ntop_interface) return(false);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   f = ntop_interface->findFlowByKey(key, ptree);
 
@@ -2427,6 +2428,30 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
     lua_pushnil(vm);
     return(CONST_LUA_OK);
   }
+}
+
+/* ****************************************** */
+
+static int ntop_drop_multiple_flows_traffic(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  Paginator *p = NULL;
+  AddressTree *ptree = get_allowed_nets(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TTABLE)) return(CONST_LUA_ERROR);
+  if((p = new(std::nothrow) Paginator()) == NULL) return(CONST_LUA_ERROR);
+  p->readOptions(vm, 1);
+
+  if (ntop_interface->dropFlowsTraffic(ptree, p) < 0)
+    lua_pushboolean(vm, false);
+  else
+    lua_pushboolean(vm, true);
+
+  if(p) delete p;
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -6028,6 +6053,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "dropFlowTraffic",        ntop_drop_flow_traffic },
   { "dumpFlowTraffic",        ntop_dump_flow_traffic },
   { "dumpLocalHosts2redis",   ntop_dump_local_hosts_2_redis },
+  { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic },
   { "findUserFlows",          ntop_get_interface_find_user_flows },
   { "findPidFlows",           ntop_get_interface_find_pid_flows },
   { "findFatherPidFlows",     ntop_get_interface_find_father_pid_flows },

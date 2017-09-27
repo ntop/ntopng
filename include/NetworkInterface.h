@@ -425,6 +425,7 @@ class NetworkInterface {
 		AddressTree *allowed_hosts,
 		Paginator *p,
 		const char *groupColumn);
+  int dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p);
 
   virtual void purgeIdle(time_t when);
   u_int purgeIdleFlows();

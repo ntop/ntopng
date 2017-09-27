@@ -176,7 +176,7 @@ clean:
 	-rm -f $(TARGET)
 
 cert:
-	openssl req -new -x509 -sha1 -extensions v3_ca -nodes -days 365 -out cert.pem
+	openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
 	cat privkey.pem cert.pem > httpdocs/ssl/ntopng-cert.pem
 	/bin/rm -f privkey.pem cert.pem
 
