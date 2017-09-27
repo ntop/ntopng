@@ -89,7 +89,9 @@ int FlowGrouper::incStats(Flow *flow) {
   if(flow->get_last_seen() > stats.last_seen)
     stats.last_seen = flow->get_last_seen();
 
+#ifdef NTOPNG_PRO
   if(flow->isPassVerdict())
+#endif
     pass_verdict = true;
 
   stats.num_flows++;
