@@ -60,7 +60,9 @@ local sorter = {}
 local num_apps = 0
 for app_name, app_id in pairs(applications) do
    if app_name == "Unknown" then
-      goto continue -- prevent the Unknown category from being re-assigned
+      -- prevent the Unknown protocol from being re-assigned
+      -- nDPI bug?
+      goto continue
    end
 
    local cat = interface.getnDPIProtoCategory(tonumber(app_id))
@@ -91,14 +93,12 @@ for app, _ in pairsByValues(sorter, sOrder) do
    end
 
    local record = {}
-   record["column_ndpi_application_id"] = app["app_id"]
-   record["column_ndpi_application_category_id"] = app["cat"]["id"]
+   record["column_ndpi_application_id"] = tostring(app["app_id"])
+   record["column_ndpi_application_category_id"] = tostring(app["cat"]["id"])
    record["column_ndpi_application"] = app["app_name"]
    record["column_ndpi_application_category"] = app["cat"]["name"]
 
-   --local record = as2record(as)
    res_formatted[#res_formatted + 1] = record
-
    ::continue::
 end
 
