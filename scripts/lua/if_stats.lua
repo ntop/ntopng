@@ -1160,7 +1160,7 @@ elseif(page == "config") then
       local label = getInterfaceNameAlias(ifstats.name)
       inline_input_form("custom_name", "Custom Name",
          i18n("if_stats_config.custom_name_popup_msg"),
-         label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9\\. ]*$"')
+         label, isAdministrator(), 'autocorrect="off" spellcheck="false"')
       print[[
          </td>
       </tr>]]
