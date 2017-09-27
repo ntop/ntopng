@@ -140,7 +140,7 @@ class NetworkInterface {
   HostPools *host_pools;
   bool has_vlan_packets, has_mac_addresses;
   struct ndpi_detection_module_struct *ndpi_struct;
-  time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
+  time_t last_pkt_rcvd, last_idle_check, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
   PacketDumper *pkt_dumper;

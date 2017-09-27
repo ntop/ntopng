@@ -156,7 +156,7 @@ NetworkInterface::NetworkInterface(const char *name,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false, pkt_dumper = NULL;
-    arp_requests = arp_replies = 0;
+    arp_requests = arp_replies = 0, last_idle_check = 0;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
@@ -1314,21 +1314,16 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
 
   /* VLAN disaggregation */
-  if((!isDynamicInterface())
-     && (flowHashingMode == flowhashing_vlan)
-     && (vlan_id > 0)) {
+  if((!isDynamicInterface()) && (flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
     NetworkInterface *vIface;
     
     if((vIface = getSubInterface((u_int32_t)vlan_id, false)) != NULL) {
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-      vIface->purgeIdle(h->ts.tv_sec);
-
       ret = vIface->processPacket(bridge_iface_idx,
 				  ingressPacket, when, time,
-				  eth,
-				  vlan_id,
+				  eth, vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
@@ -1833,6 +1828,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 /* **************************************************** */
 
 void NetworkInterface::purgeIdle(time_t when) {
+  /* Avoid purging too often */
+  if(last_idle_check == when) return; else last_idle_check = when;
+ 
   if(purge_idle_flows_hosts) {
     u_int n, m;
 
@@ -1852,6 +1850,11 @@ void NetworkInterface::purgeIdle(time_t when) {
   if(forcePoolReload) {
     doRefreshHostPools();
     forcePoolReload = false;
+  }
+
+  if(!isDynamicInterface()) {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++)
+      subInterfaces[s]->purgeIdle(when);
   }
 }
 
@@ -2290,7 +2293,6 @@ void NetworkInterface::cleanup() {
   running = false, sprobe_interface = false, inline_interface = false;
 
   getStats()->cleanup();
-
   flows_hash->cleanup();
   hosts_hash->cleanup();
   ases_hash->cleanup();
@@ -4339,7 +4341,6 @@ u_int NetworkInterface::purgeIdleFlows() {
     return(0); /* Too early */
   else {
     /* Time to purge flows */
-
 
     ntop->getTrace()->traceEvent(TRACE_INFO,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
