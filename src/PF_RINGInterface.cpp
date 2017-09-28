@@ -57,7 +57,6 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
   pcap_datalink_type = DLT_EN10MB;
 
-  pfring_set_direction(pfring_handle, rx_only_direction);
   pfring_set_poll_watermark(pfring_handle, 8);
   pfring_set_application_name(pfring_handle, (char*)"ntopng");
   pfring_enable_rss_rehash(pfring_handle);
@@ -71,6 +70,9 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   if(pfring_set_direction(pfring_handle, direction) != 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 
+  if(pfring_set_socket_mode(pfring_handle, recv_only_mode) != 0)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set socket mode");
+  
   memset(&last_pfring_stat, 0, sizeof(last_pfring_stat));
 
   /* 
