@@ -36,11 +36,11 @@ class GenericHashEntry {
   GenericHashEntry *hash_next; /**< Pointer of next hash entry.*/
 
  protected:
-  u_int16_t num_uses;
-  bool will_be_purged; /**< Mark this host as candidate for purging.*/
-  time_t first_seen;   /**< Time of first seen.*/
-  time_t last_seen;    /**< Time of last seen.*/
-  NetworkInterface *iface; /**< Pointer of network interface.*/
+  u_int32_t num_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
+  bool will_be_purged; /**< Mark this host as candidate for purging. */
+  time_t first_seen;   /**< Time of first seen. */
+  time_t last_seen;    /**< Time of last seen. */
+  NetworkInterface *iface; /**< Pointer of network interface. */
 
   virtual bool isIdle(u_int max_idleness);
  public:
