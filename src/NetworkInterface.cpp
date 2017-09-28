@@ -110,7 +110,10 @@ NetworkInterface::NetworkInterface(const char *name,
   if(strchr(name, ':')
      || strchr(name, '@')
      || (!strncmp(name, "lo", 2))
-     || (Utils::readIPv4((char*)name) == 0))
+#ifndef __APPLE__
+     || (Utils::readIPv4((char*)name) == 0)
+#endif
+     )
     ; /* Don't setup MDNS on ZC or RSS interfaces */
   else 
     mdns = new MDNS(this), discovery = new NetworkDiscovery(this);

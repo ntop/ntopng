@@ -2323,6 +2323,7 @@ return(rc);
 
 /* ****************************************************** */
 
+#ifndef __APPLE__
 static int _setWriteCapabilities(int enable) {
   int rc = 0;
 
@@ -2342,6 +2343,7 @@ static int _setWriteCapabilities(int enable) {
 
   return(rc);
 }
+#endif
 
 /* ****************************************************** */
 
@@ -2364,13 +2366,21 @@ static int _setWriteCapabilities(int enable) {
 */
 
 int Utils::gainWriteCapabilities() {
+#ifndef __APPLE__
   return(_setWriteCapabilities(true));
+#else
+  return(0);
+#endif
 }
 
 /* ****************************************************** */
 
 int Utils::dropWriteCapabilities() {
+#ifndef __APPLE__
   return(_setWriteCapabilities(false));
+#else
+  return(0);
+#endif
 }
 
 /* ******************************* */

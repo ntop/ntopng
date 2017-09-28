@@ -2123,13 +2123,17 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
     try {
       NetworkDiscovery *d;
 
+#ifndef __APPLE__
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
-
+#endif
+      
       d = new NetworkDiscovery(ntop_interface);
 
+#ifndef __APPLE__
       Utils::dropWriteCapabilities();
-
+#endif
+      
       if(d) {
 	d->arpScan(vm);
 	delete d;
