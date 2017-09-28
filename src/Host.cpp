@@ -592,15 +592,15 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   }
 
   if(host_details) {
-    char *continent, *country, *city = NULL;
-    float latitude, longitude;
+    char *continent = NULL, *country = NULL, *city = NULL;
+    float latitude = 0, longitude = 0;
     
     ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
     
     if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
 
-    lua_push_str_table_entry(vm, "continent", continent);
-    lua_push_str_table_entry(vm, "country", country);
+    lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
+    lua_push_str_table_entry(vm, "country", country ? country  : (char*)"");
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
