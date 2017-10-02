@@ -2045,6 +2045,7 @@ function flushAlertsData()
    local selected_interface = ifname
    local ifnames = interface.getIfNames()
    local force_query = true
+   local generation_toggle_backup = ntop.getPref("ntopng.prefs.disable_alerts_generation")
 
    if(verbose) then io.write("[Alerts] Temporary disabling alerts generation...\n") end
    ntop.setAlertsTemporaryDisabled(true);
@@ -2077,6 +2078,8 @@ function flushAlertsData()
       -- Reload hosts status
       interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
    end)
+
+   ntop.setPref("ntopng.prefs.disable_alerts_generation", generation_toggle_backup)
 
    if(verbose) then io.write("[Alerts] Flush done\n") end
    interface.select(selected_interface)
