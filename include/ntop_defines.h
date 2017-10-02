@@ -220,7 +220,7 @@
 
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
 #define CONST_MAX_DUMP_DURATION        300 /* 5 min */
-#define CONST_DUMP_SAMPLING_RATE       1000 /* 1/ */
+#define CONST_DUMP_SAMPLING_RATE       1   /* sampling disabled by default */
 #define CONST_MAX_NUM_PACKETS_PER_DUMP 1000000
 #define CONST_MAX_DUMP                 500000000
 

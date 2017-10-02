@@ -1343,89 +1343,107 @@ ticks Utils::getticks() {
 
 /* **************************************** */
 
-bool scan_dir(const char * dir_name, list<dirent *> *dirlist,
+bool scan_dir(const char * dir_name, list<pair<struct dirent *, char * > > *dirlist,
               unsigned long *total) {
+  int path_length;
+  char path[MAX_PATH];
   DIR *d;
   struct stat file_stats;
 
-  d = opendir (dir_name);
+  d = opendir(dir_name);
   if(!d) return false;
 
   while (1) {
     struct dirent *entry;
     const char *d_name;
 
-    entry = readdir (d);
+    entry = readdir(d);
     if(!entry) break;
     d_name = entry->d_name;
-    if(!(entry->d_type & DT_DIR)) {
-      if(!stat(entry->d_name, &file_stats)) {
+
+    if(entry->d_type & DT_REG) {
+      snprintf(path, MAX_PATH, "%s/%s", dir_name, entry->d_name);
+      if(!stat(path, &file_stats)) {
         struct dirent *temp = (struct dirent *)malloc(sizeof(struct dirent));
         memcpy(temp, entry, sizeof(struct dirent));
-        dirlist->push_back(entry);
-        total += file_stats.st_size;
+        dirlist->push_back(make_pair(temp, strndup(path, MAX_PATH)));
+	if(total)
+	  *total += file_stats.st_size;
       }
-    }
 
-    if(entry->d_type & DT_DIR) {
+    } else if(entry->d_type & DT_DIR) {
       if(strncmp (d_name, "..", 2) != 0 &&
           strncmp (d_name, ".", 1) != 0) {
-        int path_length;
-        char path[MAX_PATH];
-
         path_length = snprintf (path, MAX_PATH,
                                 "%s/%s", dir_name, d_name);
+
         if(path_length >= MAX_PATH)
           return false;
+
         scan_dir(path, dirlist, total);
       }
     }
   }
-  if(closedir (d)) return false;
+
+  if(closedir(d)) return false;
 
   return true;
 }
 
 /* **************************************** */
 
-bool dir_size_compare(const struct dirent *d1, const struct dirent *d2) {
+bool file_mtime_compare(const pair<struct dirent *, char * > &d1, const pair<struct dirent *, char * > &d2) {
   struct stat sa, sb;
-  if(stat(d1->d_name, &sa) || stat(d2->d_name, &sb)) return false;
-  if(S_ISDIR(sa.st_mode) && S_ISDIR(sb.st_mode)) {
-    if(sa.st_mtime < sb.st_mtime) return false;
-    else return true;
-  }
-  return false;
+  if(!d1.second || !d2.second)
+    return false;
+
+  if(stat(d1.second, &sa) || stat(d2.second, &sb))
+    return false;
+
+  return difftime(sa.st_mtime, sb.st_mtime) <= 0;
 }
 
 /* **************************************** */
 
 bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_size) {
   unsigned long total = 0;
-  list<struct dirent *> dirlist;
-  list<struct dirent *>::iterator it;
+  list<pair<struct dirent *, char * > > fileslist;
+  list<pair<struct dirent *, char * > >::iterator it;
   struct stat st;
 
   if(path == NULL || !strncmp(path, "", MAX_PATH))
     return false;
 
   /* First, get a list of all non-dir dirents and compute total size */
-  if(!scan_dir(path, &dirlist, &total)) return false;
+  if(!scan_dir(path, &fileslist, &total)) return false;
+
+  //printf("path: %s, total: %u, max_size: %u\n", path, total, max_size);
 
   if(total < max_size) return true;
 
   /* Second, sort the list by file size */
-  dirlist.sort(dir_size_compare);
+  fileslist.sort(file_mtime_compare);
 
   /* Third, traverse list and delete until we go below quota */
-  for (it = dirlist.begin(); it != dirlist.end(); ++it) {
-    stat((*it)->d_name, &st);
-    unlink((*it)->d_name);
+  for (it = fileslist.begin(); it != fileslist.end(); ++it) {
+    //printf("[file: %s][path: %s]\n", it->first->d_name, it->second);
+    if(!it->second) continue;
+
+    stat(it->second, &st);
+    unlink(it->second);
+
     total -= st.st_size;
-    if(total < max_size) break;
+    if(total < max_size)
+      break;
   }
-  for (it = dirlist.begin(); it != dirlist.end(); ++it)
-    free(*it);
+
+  for (it = fileslist.begin(); it != fileslist.end(); ++it) {
+    if(it->first)
+      free(it->first);
+    if(it->second)
+      free(it->second);
+  }
+  
 
   return true;
 }

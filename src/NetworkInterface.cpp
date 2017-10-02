@@ -301,7 +301,7 @@ void NetworkInterface::init() {
   host_pools = NULL;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic
-    = dump_security_packets = dump_to_tap = false;
+    = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
@@ -474,7 +474,7 @@ bool NetworkInterface::updateDumpAllTrafficPolicy(void) {
 /* **************************************************** */
 
 bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
-  bool retval = false, retval_u = false, retval_s = false;
+  bool retval = false, retval_u = false;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
@@ -482,30 +482,26 @@ bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_disk", ifname);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval = !strncmp(rsp, "true", 5);
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_unknown_disk", ifname);
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_unknown_traffic", ifname);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval_u = !strncmp(rsp, "true", 5);
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_security_disk", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval_s = !strncmp(rsp, "true", 5);
   }
 
   dump_to_disk = retval;
   dump_unknown_traffic = retval_u;
-  dump_security_packets = retval_s;
   return retval;
 }
 
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficSamplingRate(void) {
-  int retval = 1;
+  int retval = CONST_DUMP_SAMPLING_RATE;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_sampling_rate", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
       retval = atoi(rsp);
   }
 
@@ -516,13 +512,13 @@ int NetworkInterface::updateDumpTrafficSamplingRate(void) {
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficMaxPktsPerFile(void) {
-  int retval = 0;
+  int retval = CONST_MAX_NUM_PACKETS_PER_DUMP;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_pkts_file", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
       retval = atoi(rsp);
   }
 
@@ -555,13 +551,13 @@ int NetworkInterface::updateDumpTrafficMaxSecPerFile(void) {
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficMaxFiles(void) {
-  int retval = 0;
+  int retval = CONST_MAX_DUMP;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_files", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
       retval = atoi(rsp);
   }
 
@@ -1815,7 +1811,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     if(dump_if_unknown
        || dump_all_traffic
-       || dump_security_packets
        || flow->dumpFlowTraffic()) {
       if(dump_to_disk) dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
       if(dump_to_tap)  dumpPacketTap(h, packet, GUI);

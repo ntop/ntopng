@@ -132,7 +132,7 @@ class NetworkInterface {
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
-    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic, dump_security_packets;
+    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic;
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager  *statsManager;

@@ -29,11 +29,13 @@ class PacketDumper {
   NetworkInterface *iface;
   time_t dump_end;
   pcap_dumper_t *dumper;
-  u_int32_t num_dumped_packets, file_id;
+  u_int64_t num_sampled_packets, num_dumped_packets;
+  u_int32_t file_id;
   u_int16_t iface_type;
   time_t sec_start;
   int sampling_rate;
   unsigned int max_pkts_per_file, max_sec_per_file;
+  unsigned int num_pkts_cur_file;
 
  public:
   PacketDumper(NetworkInterface *i);
@@ -47,8 +49,8 @@ class PacketDumper {
   void dumpPacket(const struct pcap_pkthdr *h, const u_char *packet,
                   dump_reason reason, int sampling_rate,
                   unsigned int max_pkts_per_file, unsigned int max_sec_per_file);
-  inline u_int32_t get_num_dumped_packets() { return(num_dumped_packets); }
-  inline u_int32_t get_num_dumped_files()   { return(file_id); }
+  inline u_int64_t get_num_dumped_packets() { return(num_dumped_packets); }
+  inline u_int64_t get_num_dumped_files()   { return(file_id); }
   void lua(lua_State *vm);
 };
 

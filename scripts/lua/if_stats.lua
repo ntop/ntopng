@@ -88,8 +88,8 @@ interface.select(ifname)
 -- if the user is not an administrator or if the interface:
 -- is a view
 -- is not a packet interface (i.e., it is zmq)
-is_packetdump_enabled = isLocalPacketdumpEnabled()
-is_packet_interface = interface.isPacketInterface()
+local is_packetdump_enabled = isLocalPacketdumpEnabled()
+local is_packet_interface = interface.isPacketInterface()
 
 ifstats = interface.getStats()
 
@@ -143,39 +143,29 @@ if (isAdministrator()) then
       end
       if(_POST["dump_unknown_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_POST["dump_unknown_to_disk"])
-      end
-      if(_POST["dump_security_to_disk"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_POST["dump_security_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic',_POST["dump_unknown_to_disk"])
       end
 
       if(_POST["sampling_rate"] ~= nil) then
-	 if(tonumber(_POST["sampling_rate"]) ~= nil) then
-	    page = "packetdump"
-	    val = ternary(_POST["sampling_rate"] ~= "0", _POST["sampling_rate"], "1")
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
-	 end
+	 page = "packetdump"
+	 local val = ternary(not isEmptyString(_POST["sampling_rate"]), _POST["sampling_rate"], "1")
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
       end
       if(_POST["max_pkts_file"] ~= nil) then
-	 if(tonumber(_POST["max_pkts_file"]) ~= nil) then
-	    page = "packetdump"
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_POST["max_pkts_file"])
-	 end
+	 page = "packetdump"
+	 local val = ternary(not isEmptyString(_POST["max_pkts_file"]), _POST["max_pkts_file"], "1000000")
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file', val)
       end
       if(_POST["max_sec_file"] ~= nil) then
-	 if(tonumber(_POST["max_sec_file"]) ~= nil) then
-	    page = "packetdump"
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
-	 end
+	 page = "packetdump"
+	 local val = ternary(not isEmptyString(_POST["max_sec_file"]), _POST["max_sec_file"], "300")
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
       end
       if(_POST["max_files"] ~= nil) then
-	 if(tonumber(_POST["max_files"]) ~= nil) then
-	    page = "packetdump"
-	    local max_files_size = tonumber(_POST["max_files"])
-	    max_files_size = max_files_size * 1000000
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
-	 end
+	 page = "packetdump"
+	 local max_files = ternary(not isEmptyString(_POST["max_files"]), _POST["max_files"], 500)
+	 max_files = tonumber(max_files) * 1e6
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files))
       end
       interface.loadDumpPrefs()
    end
@@ -957,11 +947,10 @@ print [[
 elseif(page == "packetdump") then
 
 if is_packetdump_enabled then
-  dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
-  dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
-  dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
-  dump_unknown_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk')
-  dump_security_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk')
+  local dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
+  local dump_unknown_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic')
+  local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
+  local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
 
   if(dump_all_traffic == "true") then
     dump_all_traffic_checked = 'checked="checked"'
@@ -977,19 +966,12 @@ if is_packetdump_enabled then
     dump_traffic_checked = ""
     dump_traffic_value = "true" -- Opposite
   end
-  if(dump_unknown_disk == "true") then
+  if(dump_unknown_traffic == "true") then
     dump_unknown_checked = 'checked="checked"'
     dump_unknown_value = "false" -- Opposite
   else
     dump_unknown_checked = ""
     dump_unknown_value = "true" -- Opposite
-  end
-  if(dump_security_disk == "true") then
-    dump_security_checked = 'checked="checked"'
-    dump_security_value = "false" -- Opposite
-  else
-    dump_security_checked = ""
-    dump_security_value = "true" -- Opposite
   end
   if(dump_status_tap == "true") then
     dump_traffic_tap_checked = 'checked="checked"'
@@ -1001,11 +983,19 @@ if is_packetdump_enabled then
 
    print("<table class=\"table table-striped table-bordered\">\n")
 
-   print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
+   print("<tr><th rowspan=2 width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
 	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">'..' '..i18n("packetdump_page.dump_all_traffic"))
 	       print('</input>')
+	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	       print('</form>')
+   print("</td></tr>\n")
+
+   print("<tr><td>")
+   print [[
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> '..i18n("packetdump_page.dump_unknown_traffic")..' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
@@ -1015,26 +1005,10 @@ if is_packetdump_enabled then
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
 	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
 	       if(dump_traffic_checked ~= "") then
-		 dumped = interface.getInterfacePacketsDumpedFile()
+		 local dumped = interface.getInterfacePacketsDumpedFile()
 	         print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print('</input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
-   print("</td></tr>\n")
-
-   print("<tr><th width=30%></th><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_unknown_traffic_to_disk")..' </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
-   print("</td></tr>\n")
-
-   print("<tr><th width=30%></th><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk_on_security_alert")..' </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
@@ -1059,22 +1033,15 @@ end
    print("</td></tr>\n")
    print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
    print [[<td>]]
-   if(dump_security_checked ~= "") then
+
    print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
-	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
-	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
-	 print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print [[<input type="number" class="form-control" name="sampling_rate" placeholder="" min="1" step="1" max="100000000" value="]]
+   local srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
+   if not isEmptyString(srate) then print(srate) else print("1") end
+   print [["></input>
+      &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
     </form>
-<small> ]]
-    print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_sampling_rate"))
-print[[</small>]]
-  else
-    print(i18n("packetdump_page.sampling_rate_disabled_message"))
-  end
-  print[[
     </td></tr>
        ]]
 
@@ -1086,14 +1053,14 @@ print[[</small>]]
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="max_pkts_file" placeholder="" min="0" step="1000" max="100000" value="]]
-	 max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
-	 if(max_pkts_file ~= nil and max_pkts_file ~= "") then
-	   print(max_pkts_file.."")
-	 else
-	   print(interface.getInterfaceDumpMaxPkts().."")
-	 end
-	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
+      print [[<input type="number" class="form-control" name="max_pkts_file" placeholder="" min="1" step="1" max="100000000" value="]]
+      local max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
+      if(max_pkts_file ~= nil and max_pkts_file ~= "") then
+	 print(max_pkts_file.."")
+      else
+	 print(interface.getInterfaceDumpMaxPkts().."")
+      end
+      print [["></input> pkts &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
     </form>
     <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
     </td></tr>
@@ -1102,32 +1069,32 @@ print[[</small>]]
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="max_sec_file" placeholder="" min="0" step="60" max="100000" value="]]
-	 max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
-	 if(max_sec_file ~= nil and max_sec_file ~= "") then
-	   print(max_sec_file.."")
-	 else
-	   print(interface.getInterfaceDumpMaxSec().."")
-	 end
-	 print [["></input>
-		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
+      print [[<input type="number" class="form-control" name="max_sec_file" placeholder="" min="60" step="60" max="100000000" value="]]
+      local max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
+      if not isEmptyString(max_sec_file) then
+	 print(max_sec_file.."")
+      else
+	 print(interface.getInterfaceDumpMaxSec().."")
+      end
+      print [["></input>
+		  &nbsp;sec &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
     </form>
     <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
     </td></tr>
        ]]
-   print("<tr><th width=250>" .. i18n("packetdump_page.max_size_dump_files") .. "</th>\n")
+   print("<tr><th width=250>" .. i18n("packetdump_page.max_dump_files") .. "</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
-	 max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
-	 if(max_files ~= nil and max_files ~= "") then
-	   print(tostring(tonumber(max_files)/1000000).."")
-	 else
-	   print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
-	 end
-	 print [["></input>
-		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("save")) print[[</button>
+      print [[<input type="number" class="form-control" name="max_files" placeholder="" min="1" step="1" max="10000" value="]]
+      local max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
+      if not isEmptyString(max_files) then
+	 print((max_files / 1e6).."")
+      else
+	 print(interface.getInterfaceDumpMaxFiles().."")
+      end
+      print [["></input>
+		  &nbsp; MB &nbsp; <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
     </form>
     <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
     </td></tr>

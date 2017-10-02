@@ -27,8 +27,10 @@ PacketDumper::PacketDumper(NetworkInterface *i) {
   char *name = i->get_name();
 
   iface = i, file_id = 1, sampling_rate = 1;
-  dump_end = 0, dumper = NULL, num_dumped_packets = 0;
+  dump_end = 0, dumper = NULL;
+  num_sampled_packets = num_dumped_packets = 0;
   sec_start = 0, max_pkts_per_file = 0, max_sec_per_file = 0;
+  num_pkts_cur_file = 0;
 
   if((name[0] == 'l') && (name[1] == 'o'))
     iface_type = DLT_NULL;
@@ -60,7 +62,7 @@ void PacketDumper::idle(time_t when) {
 /* ********************************************* */
 
 bool PacketDumper::checkClose(time_t when) {
-  if((num_dumped_packets > max_pkts_per_file)
+  if((num_pkts_cur_file > max_pkts_per_file)
      || (when > dump_end)) {
     closeDump();
     return(true);
@@ -98,7 +100,8 @@ void PacketDumper::openDump(time_t when, int sampling_rate,
   if((dumper = pcap_dump_open(pcap_open_dead(iface_type, 16384 /* MTU */), pcap_path)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s", pcap_path);  
   else {
-    dump_end = _when + this->max_sec_per_file, num_dumped_packets = 0, file_id++;
+    dump_end = _when + this->max_sec_per_file;
+    num_pkts_cur_file = 0, file_id++;
     ntop->getTrace()->traceEvent(TRACE_INFO, "Created pcap dump %s [max pkts=%u][max duration=%u sec]", \
 				 pcap_path, this->max_pkts_per_file, this->max_sec_per_file);
   }
@@ -113,11 +116,11 @@ void PacketDumper::dumpPacket(const struct pcap_pkthdr *h, const u_char *packet,
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(len=%u)", __FUNCTION__, h->len);
   if(!dumper) openDump(h->ts.tv_sec, sampling_rate, max_pkts_per_file, max_sec_per_file);
 
-  int rate_dump_ok = reason != ATTACK || num_dumped_packets % sampling_rate == 0;
+  int rate_dump_ok = /* reason != ATTACK || TODO: not yet supported */ (num_sampled_packets++ % sampling_rate) == 0;
 
   if(dumper && rate_dump_ok) {
     pcap_dump((u_char*)dumper, h, packet);
-    num_dumped_packets++;
+    num_dumped_packets++, num_pkts_cur_file++;
     checkClose(h->ts.tv_sec);
   }
 }

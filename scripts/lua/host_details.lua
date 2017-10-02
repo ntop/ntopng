@@ -1784,7 +1784,6 @@ elseif (page == "config") then
          else
             dump_status = false
          end
-         interface.select(ifname) -- if we submitted a form, nothing is select()ed
          interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
       end
 
@@ -1857,6 +1856,7 @@ elseif (page == "config") then
       </tr>]]
    end
 
+   if(host["localhost"] == true and is_packetdump_enabled) then
       print [[<tr>
          <th>]] print(i18n("host_config.dump_host_traffic")) print[[</th>
          <td>
@@ -1870,6 +1870,7 @@ elseif (page == "config") then
             </form>
          </td>
       </tr>]]
+   end
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy

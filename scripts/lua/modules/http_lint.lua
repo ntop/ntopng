@@ -747,10 +747,9 @@ local known_parameters = {
    ["dump_traffic_to_tap"]     =  validateBool,                  --
    ["dump_traffic_to_disk"]    =  validateBool,                  --
    ["dump_unknown_to_disk"]    =  validateBool,                  --
-   ["dump_security_to_disk"]   =  validateBool,                  --
-   ["max_pkts_file"]           =  validateNumber,                --
-   ["max_sec_file"]            =  validateNumber,                --
-   ["max_files"]               =  validateNumber,                --
+   ["max_pkts_file"]           =  validateEmptyOr(validateNumber), --
+   ["max_sec_file"]            =  validateEmptyOr(validateNumber), --
+   ["max_files"]               =  validateEmptyOr(validateNumber), --
 
 -- OTHER
    ["_"]                       =  validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
@@ -939,7 +938,7 @@ local known_parameters = {
    ["pool_to_delete"]          =  validateNumber,                -- host_pools.lua, pool ID to delete
    ["edit_pools"]              =  validateEmpty,                 -- host_pools.lua, set if pools are being edited
    ["member_to_delete"]        =  validateMember,                -- host_pools.lua, member to delete from pool
-   ["sampling_rate"]           =  validateNumber,                -- if_stats.lua
+   ["sampling_rate"]           =  validateEmptyOr(validateNumber),            -- if_stats.lua
    ["resetstats_mode"]         =  validateResetStatsMode,        -- reset_stats.lua
    ["snmp_action"]             =  validateSnmpAction,            -- snmp specific
    ["iftype_filter"]           =  validateSingleWord,            -- SNMP iftype filter name

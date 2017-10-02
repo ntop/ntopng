@@ -987,11 +987,11 @@ local  en = {
    },
 
    packetdump_page = {
-      packet_dump = "Packet Dump",
-      dump_all_traffic = "Dump All Traffic",
+      packet_dump = "Packets Eligible for Dump",
+      dump_all_traffic = "All Packets",
+      dump_unknown_traffic = "Unknown Layer-7 Flows Packets",
       packet_dump_to_disk = "Packet Dump To Disk",
       dump_traffic_to_disk = "Dump Traffic To Disk",
-      dump_unknown_traffic_to_disk = "Dump Unknown Traffic To Disk",
       dump_traffic_to_disk_on_security_alert = "Dump Traffic To Disk On Security Alert",
       packet_dump_to_tap = "Packet Dump To Tap",
       dump_traffic_to_tap = "Dump Traffic To Tap",
@@ -999,9 +999,6 @@ local  en = {
       packet_dump_to_tap_disabled_message = "Disabled. Please restart ntopng with --enable-taps",
       sampling_rate = "Sampling Rate",
       note = "NOTE",
-      note_sampling_rate = "Sampling rate is applied only when dumping packets caused by a security alert<br>"..
-            "(e.g. a volumetric DDoS attack) and not to those hosts/flows that have been marked explicitly for dump.",
-      sampling_rate_disabled_message = "Disabled. Enable packet dump on security alert.",
       dump_to_disk_parameters = "Dump To Disk Parameters",
       pcap_dump_directory = "Pcap Dump Directory",
       max_packets_per_file = "Max Packets per File",
@@ -1009,9 +1006,9 @@ local  en = {
       max_duration_file = "Max Duration of File",
       max_duration_file_description = "Maximum pcap file duration before creating a new file.",
       note_max_duration_file = "a dump file is closed when it reaches first the maximum size or duration specified.",
-      max_size_dump_files = "Max Size of Dump Files",
-      max_size_dump_files_description = "Maximum size of created pcap files.",
-      note_max_size_dump_files = "total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.",
+      max_dump_files = "Max Total Size of Dump Files",
+      max_size_dump_files_description = "Maximum total size of created pcap files, computed as the sum of the size of every pcap file.",
+      note_max_size_dump_files = "Maximum total size is checked daily. Older dump files are deleted untile the current total size is below the configured threshold.",
    },
 
    activities_page = {
