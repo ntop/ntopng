@@ -1867,7 +1867,20 @@ elseif (page == "config") then
                   <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">]] print(i18n("host_config.dump_traffic")) print[[</a>
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
+            </form>]]
+
+      local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
+      local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
+      if dump_status_tap ~= "true" and dump_status_disk ~= "true" then
+	 print[[<small>]]
+	 print(i18n("host_config.dump_host_traffic_description",
+		    {to_disk = i18n("packetdump_page.packet_dump_to_disk"),
+		     to_tap = i18n("packetdump_page.dump_traffic_to_tap"),
+		     url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=packetdump"}))
+	 print[[</small>]]
+      end
+
+      print[[
          </td>
       </tr>]]
    end
