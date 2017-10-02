@@ -641,14 +641,11 @@ function alertEntityRaw(entity_idx)
 end
 
 function areAlertsEnabled()
-  return ((not ntop.getPrefs().has_cmdl_disable_alerts) and
-          (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1"))
+  return (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
 end
 
 function hasAlertsDisabled()
-  local prefs = ntop.getPrefs()
-  return (prefs.has_cmdl_disable_alerts == true) or
-      ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
+  return ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
 

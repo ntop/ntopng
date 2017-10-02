@@ -105,7 +105,6 @@ class Prefs {
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
-  bool has_cmdl_disable_alerts;	/**< Indicate whether alerts were forcefully disabled from the command line */
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -113,7 +112,6 @@ class Prefs {
   int checkOptions();
 
   void setTraceLevelFromRedis();
-  void setAlertsEnabledFromRedis();
   void parseHTTPPort(char *arg);
   void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS);  };
   void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS); };
@@ -251,7 +249,6 @@ class Prefs {
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
-  inline bool hasCmdlDisableAlerts()   { return has_cmdl_disable_alerts; }
 
   inline u_int32_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
   inline u_int32_t flow_aggregation_frequency()         { return(get_housekeeping_frequency() * FLOW_AGGREGATION_DURATION); };
@@ -259,7 +256,7 @@ class Prefs {
   inline u_int32_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
   inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);          };
   inline u_int32_t get_flow_max_idle()                  { return(flow_max_idle);          };
-  inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
+  inline bool  are_alerts_disabled()                    { return(disable_alerts);         };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };

@@ -91,7 +91,6 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_port = NULL;
   ls_proto = NULL;
   has_cmdl_trace_lvl      = false;
-  has_cmdl_disable_alerts = false;
 }
 
 /* ******************************************* */
@@ -373,19 +372,6 @@ void Prefs::setTraceLevelFromRedis(){
 
 /* ******************************************* */
 
-void Prefs::setAlertsEnabledFromRedis(){
-  char resp[CONST_MAX_LEN_REDIS_VALUE];
-  if(!hasCmdlDisableAlerts()
-     && ntop->getRedis()->get((char *)CONST_ALERT_DISABLED_PREFS, resp, sizeof(resp)) == 0){
-    if(resp[0] == '1')
-      set_alerts_status(false /* disable */);
-    else
-      set_alerts_status(true  /* enable */);
-  }
-}
-
-/* ******************************************* */
-
 void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value) {
   char rsp[MAX_PATH];
 
@@ -510,7 +496,6 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
 
   setTraceLevelFromRedis();
-  setAlertsEnabledFromRedis();
   refreshHostsAlertsPrefs();
   refreshLanWanInterfaces();
 
@@ -523,6 +508,7 @@ void Prefs::reloadPrefsFromRedis() {
 			       global_secondary_dns_ip,
 			       safe_search_dns_ip
 			       );
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Masked hosts"
 			       "[no_host_mask: %u]"
 			       "[mask_local_hosts: %u]"
@@ -530,6 +516,9 @@ void Prefs::reloadPrefsFromRedis() {
 			       hostMask == no_host_mask ? 1 : 0,
 			       hostMask == mask_local_hosts ? 1 : 0,
 			       hostMask == mask_remote_hosts ? 1 : 0);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[disable_alerts: %u]",
+			       disable_alerts ? 1 : 0);
 #endif
 
 }
@@ -580,7 +569,6 @@ static const struct option long_options[] = {
 #ifndef WIN32
   { "pid",                               required_argument, NULL, 'G' },
 #endif
-  { "disable-alerts",                    no_argument,       NULL, 'H' },
   { "export-flows",                      required_argument, NULL, 'I' },
   { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
@@ -1054,11 +1042,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 #endif
 
-  case 'H':
-    has_cmdl_disable_alerts = true;
-    set_alerts_status(false);
-    break;
-
   case 'I':
     export_endpoint = strdup(optarg);
     break;
@@ -1374,7 +1357,6 @@ void Prefs::lua(lua_State* vm) {
   
   /* Command line options */
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
-  lua_push_bool_table_entry(vm, "has_cmdl_disable_alerts", has_cmdl_disable_alerts);
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
   if(ntop->getNagios()) ntop->getNagios()->lua(vm);

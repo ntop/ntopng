@@ -1813,7 +1813,6 @@ static int ntop_reload_preferences(lua_State* vm) {
 static int ntop_temporary_disable_alerts(lua_State* vm) {
   bool to_disable;
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  if(ntop->getPrefs()->hasCmdlDisableAlerts()) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN)) return(CONST_LUA_PARAM_ERROR);
   to_disable = lua_toboolean(vm, 1);
