@@ -627,8 +627,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
     /* Reset data */
     memset(&flow, 0, sizeof(flow));
     flow.additional_fields = json_object_new_object();
-    flow.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
-    flow.source_id = source_id, flow.vlan_id = 0;
+    flow.core.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
+    flow.core.source_id = source_id, flow.core.vlan_id = 0;
 
     while(!json_object_iter_equal(&it, &itEnd)) {
       const char *key   = json_object_iter_peek_name(&it);
@@ -656,7 +656,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
               const char *additional_value = json_object_get_string(additional_v);
 
               if((additional_key != NULL) && (additional_value != NULL)) {
-		json_object_object_add(flow.additional_fields, additional_key, json_object_new_string(additional_value));
+		json_object_object_add(flow.additional_fields, additional_key,
+				       json_object_new_string(additional_value));
 	     }
 	      json_object_iter_next(&additional_it);
             }
@@ -665,11 +666,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case IN_SRC_MAC:
 	case OUT_SRC_MAC:
           /* Format 00:00:00:00:00:00 */
-	  Utils::parseMac(flow.src_mac, value);
+	  Utils::parseMac(flow.core.src_mac, value);
           break;
 	case IN_DST_MAC:
         case OUT_DST_MAC:
-	  Utils::parseMac(flow.dst_mac, value);
+	  Utils::parseMac(flow.core.dst_mac, value);
           break;
         case IPV4_SRC_ADDR:
         case IPV6_SRC_ADDR:
@@ -681,8 +682,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	     export a valid ipv4 and an empty ipv6. Without the check, the empty
 	     v6 address may overwrite the non empty v4.
 	   */
-	  if(flow.src_ip.isEmpty()) {
-	    flow.src_ip.set((char*)value);
+	  if(flow.core.src_ip.ipVersion == 0) {
+	    IpAddress ip;
+
+	    ip.set((char*)value);	  
+	    memcpy(&flow.core.src_ip, ip.getIP(), sizeof(flow.core.src_ip));
 	  } else {
 	    ip_aux.set((char*)value);
 	    if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_src_with_post_nat_src())
@@ -694,8 +698,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           break;
         case IPV4_DST_ADDR:
         case IPV6_DST_ADDR:
-	  if(flow.dst_ip.isEmpty()) {
-	    flow.dst_ip.set((char*)value);
+	  if(flow.core.dst_ip.ipVersion == 0) {
+	    IpAddress ip;
+	    
+	    ip.set((char*)value);	  
+	    memcpy(&flow.core.dst_ip, ip.getIP(), sizeof(flow.core.dst_ip));
 	  } else {
 	    ip_aux.set((char*)value);
 	    if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
@@ -705,113 +712,125 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  }
           break;
         case L4_SRC_PORT:
-	  if(!flow.src_port) flow.src_port = htons(atoi(value));
+	  if(!flow.core.src_port) flow.core.src_port = htons(atoi(value));
           break;
         case L4_DST_PORT:
-	  if(!flow.dst_port) flow.dst_port = htons(atoi(value));
+	  if(!flow.core.dst_port) flow.core.dst_port = htons(atoi(value));
           break;
         case SRC_VLAN:
         case DST_VLAN:
-          flow.vlan_id = atoi(value);
+          flow.core.vlan_id = atoi(value);
           break;
 	case DOT1Q_SRC_VLAN:
         case DOT1Q_DST_VLAN:
-	  if (flow.vlan_id == 0)
+	  if (flow.core.vlan_id == 0)
 	    /* as those fields are the outer vlans in q-in-q
 	       we set the vlan_id only if there is no inner vlan
 	       value set
 	    */
-	    flow.vlan_id = atoi(value);
+	    flow.core.vlan_id = atoi(value);
           break;
         case L7_PROTO:
-          flow.l7_proto = atoi(value);
+          flow.core.l7_proto = atoi(value);
           break;
         case PROTOCOL:
-          flow.l4_proto = atoi(value);
+          flow.core.l4_proto = atoi(value);
           break;
         case TCP_FLAGS:
-          flow.tcp_flags = atoi(value);
+          flow.core.tcp_flags = atoi(value);
           break;
 	case INITIATOR_PKTS:
-	  flow.absolute_packet_octet_counters = true;
+	  flow.core.absolute_packet_octet_counters = true;
 	  /* Don't break */
         case IN_PKTS:
-          flow.in_pkts = atol(value);
+          flow.core.in_pkts = atol(value);
           break;
 	case INITIATOR_OCTETS:
-	  flow.absolute_packet_octet_counters = true;
+	  flow.core.absolute_packet_octet_counters = true;
 	  /* Don't break */
         case IN_BYTES:
-          flow.in_bytes = atol(value);
+          flow.core.in_bytes = atol(value);
           break;
 	case RESPONDER_PKTS:
-	  flow.absolute_packet_octet_counters = true;
+	  flow.core.absolute_packet_octet_counters = true;
 	  /* Don't break */
         case OUT_PKTS:
-          flow.out_pkts = atol(value);
+          flow.core.out_pkts = atol(value);
           break;
 	case RESPONDER_OCTETS:
-	  flow.absolute_packet_octet_counters = true;
+	  flow.core.absolute_packet_octet_counters = true;
 	  /* Don't break */
         case OUT_BYTES:
-          flow.out_bytes = atol(value);
+          flow.core.out_bytes = atol(value);
           break;
 	case OOORDER_IN_PKTS:
-	  flow.tcp.ooo_in_pkts = atol(value);
+	  flow.core.tcp.ooo_in_pkts = atol(value);
 	  break;
 	case OOORDER_OUT_PKTS:
-	  flow.tcp.ooo_out_pkts = atol(value);
+	  flow.core.tcp.ooo_out_pkts = atol(value);
 	  break;
 	case RETRANSMITTED_IN_PKTS:
-	  flow.tcp.retr_in_pkts = atol(value);
+	  flow.core.tcp.retr_in_pkts = atol(value);
 	  break;
 	case RETRANSMITTED_OUT_PKTS:
-	  flow.tcp.retr_out_pkts = atol(value);
+	  flow.core.tcp.retr_out_pkts = atol(value);
 	  break;
 	/* TODO add lost in/out to nProbe and here */
         case FIRST_SWITCHED:
-          flow.first_switched = atol(value);
+          flow.core.first_switched = atol(value);
           break;
         case LAST_SWITCHED:
-          flow.last_switched = atol(value);
+          flow.core.last_switched = atol(value);
           break;
         case SAMPLING_INTERVAL:
-          flow.pkt_sampling_rate = atoi(value);
+          flow.core.pkt_sampling_rate = atoi(value);
           break;
         case DIRECTION:
-          flow.direction = atoi(value);
+          flow.core.direction = atoi(value);
           break;
 	case NPROBE_IPV4_ADDRESS:
 	  /* Do not override EXPORTER_IPV4_ADDRESS */
-	  if(flow.deviceIP == 0 && (flow.deviceIP = ntohl(inet_addr(value)))) 
+	  if(flow.core.deviceIP == 0 && (flow.core.deviceIP = ntohl(inet_addr(value)))) 
 	    add_to_additional_fields = true;
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.core.deviceIP, value);
 	  break;
 	case EXPORTER_IPV4_ADDRESS:
 	  /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-	  if((flow.deviceIP = ntohl(inet_addr(value))))
+	  if((flow.core.deviceIP = ntohl(inet_addr(value))))
 	     add_to_additional_fields = true;
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.core.deviceIP, value);
 	  break;
 	case INPUT_SNMP:
-	  flow.inIndex = atoi(value);
+	  flow.core.inIndex = atoi(value);
 	  add_to_additional_fields = true;
 	  break;
 	case OUTPUT_SNMP:
-	  flow.outIndex = atoi(value);
+	  flow.core.outIndex = atoi(value);
 	  add_to_additional_fields = true;
 	  break;
 	case POST_NAT_SRC_IPV4_ADDR:
-	  if(ntop->getPrefs()->do_override_src_with_post_nat_src()) flow.src_ip.set((char*)value);
+	  if(ntop->getPrefs()->do_override_src_with_post_nat_src()) {
+	    IpAddress ip;
+	    
+	    ip.set((char*)value);	  
+	    memcpy(&flow.core.src_ip, ip.getIP(), sizeof(flow.core.src_ip));
+	  }
 	  break;
 	case POST_NAT_DST_IPV4_ADDR:
-	  if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) flow.dst_ip.set((char*)value);
+	  if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
+	    IpAddress ip;
+	    
+	    ip.set((char*)value);	  
+	    memcpy(&flow.core.dst_ip, ip.getIP(), sizeof(flow.core.dst_ip));
+	  }
 	  break;
 	case POST_NAPT_SRC_TRANSPORT_PORT:
-	  if(ntop->getPrefs()->do_override_src_with_post_nat_src()) flow.src_port = htons(atoi(value));
+	  if(ntop->getPrefs()->do_override_src_with_post_nat_src())
+	    flow.core.src_port = htons(atoi(value));
 	  break;
 	case POST_NAPT_DST_TRANSPORT_PORT:
-	  if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) flow.dst_port = htons(atoi(value));
+	  if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
+	    flow.core.dst_port = htons(atoi(value));
 	  break;
         case SRC_PROC_PID:
           iface->enable_sprobe(); /* We're collecting system flows */
@@ -900,7 +919,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  if(strcmp(value, "0")) add_to_additional_fields = true;
 	  break;
 	case INGRESS_VRFID:
-	  flow.vrfId = atoi(value);
+	  flow.core.vrfId = atoi(value);
 	  break;
         default:
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
@@ -909,7 +928,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         } /* switch */
 
 	if(add_to_additional_fields)
-	  json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
+	  json_object_object_add(flow.additional_fields,
+				 key, json_object_new_string(value));
 
 	if(additional_o) json_object_put(additional_o);
       } /* if */

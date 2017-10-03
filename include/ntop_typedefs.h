@@ -155,8 +155,9 @@ typedef struct {
   u_int32_t num_vm_page_faults;
 } ProcessInfo;
 
-typedef struct zmq_flow {
-  IpAddress src_ip, dst_ip;
+typedef struct zmq_flow_core {
+  u_int8_t version; /* 0 so far */
+  struct ipAddress src_ip, dst_ip;
   u_int32_t deviceIP;
   u_int16_t src_port, dst_port, l7_proto, inIndex, outIndex;
   u_int16_t vlan_id, pkt_sampling_rate;
@@ -169,12 +170,23 @@ typedef struct zmq_flow {
     u_int32_t lost_in_pkts, lost_out_pkts;
   } tcp;
   u_int32_t first_switched, last_switched;
-  json_object *additional_fields;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
+
+  /* Extensions used only during serialization */
+  u_int16_t extn_len;
+  char extn[];
+} ZMQ_FlowCore;
+
+typedef struct zmq_flow {
+  ZMQ_FlowCore core;
+  json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
+
+/* IMPORTANT: whenever the ZMQ_FlowSerial is changed, nProbe must be updated too */
+
 
 typedef struct zmq_remote_stats {
   char remote_ifname[32], remote_ifaddress[64];
