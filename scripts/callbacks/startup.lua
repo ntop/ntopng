@@ -15,9 +15,8 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "alert_utils"
 require "blacklist_utils"
-require "db_utils"
+
 local host_pools_utils = require "host_pools_utils"
 local http_bridge_conf_utils = require "http_bridge_conf_utils"
 
@@ -55,41 +54,6 @@ if(ntop.isPro()) then
    shaper_utils.initShapers()
 end
 
--- old host alerts were global and did not consider vlans
--- this part of the script aims at converting old global alerts to per-interface, vlan aware alerts
-
--- convert host alert to include interfaces and vlans
-for _, timespan in ipairs(alerts_granularity) do
-   granularity = timespan[1]
-   -- this is the old hash table that didn't include interfaces or vlans
-   local hash_name = "ntopng.prefs.alerts_"..granularity
-   -- grab the old hosts
-   local hosts = ntop.getHashKeysCache(hash_name)
-   if hosts ~= nil then
-      for h in pairs(hosts) do
-	 local hash_val = ntop.getHashCache(hash_name, h)
-	 -- if here, we need to migrate the old hosts. Assumptions are that hosts
-	 -- will be set for _all_ interfaces and for vlan 0
-
-	 -- h can be iface_2 or a subnet such as 192.168.2.0/24 or an host such as 192.168.2.2
-	 if not string.starts(h, "iface_") then
-	    if not string.match(h,  "/") then
-	       -- this is an host so we want to add the vlan
-	       h = h.."@0"
-	    end
-	 end
-
-	 for _, ifname in pairs(interface.getIfNames()) do
-	    local ifid = getInterfaceId(ifname)
-	    local new_hash_name = get_alerts_hash_name(granularity, ifname)
-	    ntop.setHashCache(new_hash_name, h, hash_val)
-	 end
-      end
-      -- remember to delete the hash with named hash_name
-      ntop.delCache(hash_name)
-   end
-end
-
 -- Use a specific bridging_policy_target_type default for previous user installations
 if isEmptyString(ntop.getPref("ntopng.prefs.bridging_policy_target_type")) then
    for _, ifname in pairs(interface.getIfNames()) do
@@ -105,34 +69,11 @@ if isEmptyString(ntop.getPref("ntopng.prefs.bridging_policy_target_type")) then
    end
 end
 
--- convert suppressed alerts to include interfaces and vlans
-local hash_name = "ntopng.prefs.alerts"
--- grab the old hosts
-local suppressed_alerts = ntop.getHashKeysCache(hash_name)
-if suppressed_alerts ~= nil then
-   for h in pairs(suppressed_alerts) do
-      -- h can be iface_2 or a subnet such as 192.168.2.0/24 or an host such as 192.168.2.2
-      if not string.starts(h, "iface_") then
-	 if not string.match(h,  "/") then
-	    -- this is an host so we want to add the vlan
-	    h = h.."@0"
-	 end
-      end
-      for _, ifname in pairs(interface.getIfNames()) do
-	 local ifid = getInterfaceId(ifname)
-	 local new_hash_name = "ntopng.prefs.alerts.ifid_"..tostring(ifid)
-	 ntop.setHashCache(new_hash_name, h, "false")
-      end
-   end
-end
--- remember to delete the hash with named hash_name
-ntop.delCache(hash_name)
-
 -- ##################################################################
 
 initCustomnDPIProtoCategories()
 loadHostBlackList()
-checkOpenFiles()
+
 -- TODO: migrate custom re-arm settings
 
 -- this will retrieve host pools and policers configurtions via HTTP if enabled

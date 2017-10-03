@@ -211,14 +211,10 @@ NetworkInterface::NetworkInterface(const char *name,
   loadDumpPrefs();
   loadScalingFactorPrefs();
 
-  if(((statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME)) == NULL)
-     || ((alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME)) == NULL))
-    throw "Not enough memory";
+  statsManager = NULL, alertsManager = NULL;
 
   if((host_pools = new HostPools(this)) == NULL)
     throw "Not enough memory";
-
-  alertLevel = alertsManager->getNumAlerts(true);
 
 #ifdef linux
   /*
@@ -5205,6 +5201,8 @@ void NetworkInterface::allocateNetworkStats() {
 
   try {
     networkStats = new NetworkStats[numNetworks];
+    statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
+    alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
@@ -5212,9 +5210,13 @@ void NetworkInterface::allocateNetworkStats() {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
       oom_warning_sent = true;
     }
-
-    networkStats = NULL;
   }
+
+  if(alertsManager)
+    alertLevel = alertsManager->getNumAlerts(true);
+  else
+    alertLevel = 0;
+  
 }
 
 /* **************************************** */

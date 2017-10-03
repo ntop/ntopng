@@ -94,7 +94,7 @@ Ntop::Ntop(char *appName) {
   /* Folder will be created lazily, avoid creating it now */
   snprintf(working_dir, sizeof(working_dir), "%s/ntopng", CONST_DEFAULT_WRITABLE_DIR);
 
-  umask(0);
+  //umask(0);
 
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -1384,7 +1384,7 @@ void Ntop::daemonize() {
       /*
        * clear any inherited file mode creation mask
        */
-      umask(0);
+      //umask(0);
 
       /*
        * Use line buffered stdout

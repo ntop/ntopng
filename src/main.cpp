@@ -361,6 +361,20 @@ int main(int argc, char *argv[])
     unlink(path);
   }
   
+#ifndef WIN32
+  if(prefs->daemonize_ntopng())
+#endif
+    {
+      char path[MAX_PATH];
+
+      Utils::mkdir_tree(ntop->get_data_dir());
+      Utils::mkdir_tree(ntop->get_working_dir());
+      snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
+      ntop->fixPath(path);
+      ntop->registerLogFile(path);
+      ntop->rotateLogs(true /* Force rotation to start clean */);
+    }
+
   if(prefs->get_httpbl_key() != NULL)
     ntop->setHTTPBL(new HTTPBL(prefs->get_httpbl_key()));
 

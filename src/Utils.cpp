@@ -310,7 +310,7 @@ bool Utils::mkdir_tree(char *path) {
   ntop->fixPath(path);
 
   if(stat(path, &s) != 0) {
-    int permission = 0777;
+    int permission = 0700;
 
     /* Start at 1 to skip the root */
     for(int i=1; path[i] != '\0'; i++)
@@ -448,7 +448,7 @@ int Utils::dropPrivileges() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate user %s", username);
     return -1;
   }
-  umask(0);
+  // umask(0);
 #endif
   return 0;
 }
