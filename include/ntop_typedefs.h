@@ -174,7 +174,7 @@ typedef struct zmq_flow_core {
 
   /* Extensions used only during serialization */
   u_int16_t extn_len;
-  char extn[];
+  //char extn[];
 } ZMQ_FlowCore;
 
 typedef struct zmq_flow {
