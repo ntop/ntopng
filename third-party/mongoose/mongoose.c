@@ -4754,6 +4754,12 @@ static int set_ssl_option(struct mg_context *ctx) {
 #ifndef SSL_OP_NO_TLSv1
 #define SSL_OP_NO_TLSv1 0x04000000L
 #endif
+#ifndef SSL_OP_NO_SSLv2
+#define SSL_OP_NO_SSLv2 0x01000000L
+#endif
+#ifndef SSL_OP_NO_SSLv3
+#define SSL_OP_NO_SSLv3 0x02000000L
+#endif
  
     long opts = SSL_CTX_get_options(ctx->ssl_ctx);
     
