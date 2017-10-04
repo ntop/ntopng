@@ -87,6 +87,7 @@ Prefs::Prefs(Ntop *_ntop) {
 
   redirection_url = redirection_url_shadow = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
+  mysql_port = 3306;
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
@@ -269,7 +270,7 @@ void usage() {
 	 "                                    |\n"
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
-	 "                                    |   mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |   mysql;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
 	 "                                    |   mysql;localhost;ntopng;flows;root;\n"
 	 "                                    |\n"
 	 "                                    | mysql-nprobe  Read from an nProbe-generated MySQL database\n"
