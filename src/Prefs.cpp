@@ -1017,6 +1017,20 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
+    /* Check for non-default SQL port on -F line */
+    if (strchr(mysql_host, '@')) {
+        char* mysql_port_str = Utils::tokenizer(mysql_host, '@', &mysql_host);
+        if (mysql_port_str == NULL) {
+            mysql_port = 3306;
+        } else {
+            try {
+                mysql_port = std::stoi(mysql_port_str, NULL, 10);
+            } catch (std::invalid_argument e) {
+                ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port for -F, using default (3306)");
+                mysql_port = 3306;
+            }
+        }
+    }
 
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
