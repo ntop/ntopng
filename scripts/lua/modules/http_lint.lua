@@ -845,6 +845,7 @@ local known_parameters = {
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["mysql_retention"]                             =  validateNumber,
+   ["rrd_files_retention"]                         =  validateNumber,
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["max_num_alerts_per_entity"]                   =  validateNumber,
    ["max_num_flow_alerts"]                         =  validateNumber,

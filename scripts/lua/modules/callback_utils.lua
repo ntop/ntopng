@@ -136,4 +136,14 @@ end
 
 -- ########################################################
 
+function callback_utils.harverstOldRRDFiles(ifname)
+   -- currently this is only implemented for old devices files. It should actually be implemented for other rrds as well
+   local rrd_max_days = ntop.getPref("ntopng.prefs.rrd_files_retention")
+   if isEmptyString(rrd_max_days) then rrd_max_days = 30 end
+
+   ntop.deleteOldRRDs(getInterfaceId(ifname), tonumber(rrd_max_days) * 60 * 60 * 24)
+end
+
+-- ########################################################
+
 return callback_utils

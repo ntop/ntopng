@@ -2116,7 +2116,7 @@ function getPathFromMac(addr)
    local nic = {mac[4], mac[5], mac[6]}
 
    -- each manufacturer has its own directory
-   local res = table.concat(manufacturer, "_")
+   local res = fixPath("macs/"..table.concat(manufacturer, "_"))
    -- the nic identifier goes as-is because it is non structured
    res = fixPath(res.."/"..table.concat(nic, "/"))
    -- finally the vlan

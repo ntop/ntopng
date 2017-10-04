@@ -808,7 +808,7 @@ function printStatsTimeseries()
     field = "toggle_l2_devices_traffic_rrd_creation",
     default = "0",
     pref = "l2_device_rrd_creation",
-    to_switch = {"row_l2_devices_ndpi_timeseries_creation"},
+    to_switch = {"row_l2_devices_ndpi_timeseries_creation", "rrd_files_retention"},
   })
 
   local l7_rrd_labels = {i18n("prefs.none"),
@@ -826,6 +826,9 @@ function printStatsTimeseries()
 				    "l2_devices_ndpi_timeseries_creation",
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
+      "ntopng.prefs.", "rrd_files_retention", 30, "number", nil, nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 

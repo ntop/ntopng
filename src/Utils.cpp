@@ -28,6 +28,7 @@
 
 #include <curl/curl.h>
 #include <string.h>
+#include <libgen.h>
 
 // A simple struct for strings.
 typedef struct {
@@ -1421,7 +1422,6 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
   if(total < max_size) return true;
 
-  /* Second, sort the list by file size */
   fileslist.sort(file_mtime_compare);
 
   /* Third, traverse list and delete until we go below quota */
@@ -1446,6 +1446,66 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   
 
   return true;
+}
+
+/* **************************************** */
+
+bool ntop_delete_old_files(const char * dir_name, time_t now, int older_than_seconds) {
+  int path_length;
+  char path[MAX_PATH], *deepest_dir = path;
+  DIR *d;
+  struct stat file_stats;
+
+  d = opendir(dir_name);
+  if(!d) return false;
+
+  while (1) {
+    struct dirent *entry;
+    const char *d_name;
+
+    entry = readdir(d);
+    if(!entry) break;
+    d_name = entry->d_name;
+
+    if(entry->d_type & DT_REG) {
+      snprintf(path, MAX_PATH, "%s/%s", dir_name, entry->d_name);
+      if(!stat(path, &file_stats)) {
+	if(file_stats.st_mtime <= now - older_than_seconds) {
+	  unlink(path);
+	  do deepest_dir = dirname(deepest_dir); while(rmdir(deepest_dir) == 0);
+	}
+      }
+
+    } else if(entry->d_type & DT_DIR) {
+      if(strncmp (d_name, "..", 2) != 0 &&
+          strncmp (d_name, ".", 1) != 0) {
+        path_length = snprintf (path, MAX_PATH,
+                                "%s/%s", dir_name, d_name);
+
+        if(path_length >= MAX_PATH)
+          return false;
+
+        ntop_delete_old_files(path, now, older_than_seconds);
+      }
+    }
+  }
+
+  if(closedir(d)) return false;
+
+  return true;
+}
+
+/* **************************************** */
+
+bool Utils::discardOldFiles(const char *path, int older_than_seconds) {
+  // time_t now = time(NULL);
+
+  if(path == NULL || !strncmp(path, "", MAX_PATH))
+    return false;
+
+  return true; /* TODO: test recursive deletion */
+
+  /* return ntop_delete_old_files(path, now, older_than_seconds); */
 }
 
 /* **************************************** */
