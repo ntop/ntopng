@@ -784,13 +784,6 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
 
-  -- TODO remove after implementing the missing fields
-  local l7_rrd_labels = {i18n("prefs.none"),
-		  i18n("prefs.per_protocol"),
-		  i18n("prefs.per_category"),
-		  i18n("prefs.both")
-                  }
-
   prefsToggleButton({
     field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
@@ -808,6 +801,34 @@ function printStatsTimeseries()
 				    "hosts_ndpi_timeseries_creation",
 				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.l2_devices_timeseries')..'</th></tr>')
+
+  prefsToggleButton({
+    field = "toggle_l2_devices_traffic_rrd_creation",
+    default = "0",
+    pref = "l2_device_rrd_creation",
+    to_switch = {"row_l2_devices_ndpi_timeseries_creation", "rrd_files_retention"},
+  })
+
+  local l7_rrd_labels = {i18n("prefs.none"),
+			 i18n("prefs.per_category")}
+  local l7_rrd_values = {"none",
+			 "per_category"}
+
+  local showElement = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"
+
+  retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
+				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
+				    l7_rrd_labels, l7_rrd_values,
+				    "none",
+				    "primary",
+				    "l2_devices_ndpi_timeseries_creation",
+				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
+      "ntopng.prefs.", "rrd_files_retention", 30, "number", nil, nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 

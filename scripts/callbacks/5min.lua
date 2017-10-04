@@ -32,6 +32,8 @@ local interface_rrd_creation = ntop.getPref("ntopng.prefs.interface_rrd_creation
 local interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
 local host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
 local host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+local l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
+local l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.l2_device_ndpi_timeseries_creation")
 local host_categories_rrd_creation = ntop.getPref("ntopng.prefs.host_categories_rrd_creation")
 local flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
 local host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
@@ -40,6 +42,7 @@ local asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
 local vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
+-- ########################################################
 -- Populate some defaults
 if(tostring(flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
    flow_devices_rrd_creation = "0"
@@ -56,6 +59,10 @@ if isEmptyString(interface_ndpi_timeseries_creation) then interface_ndpi_timeser
 -- Local hosts RRD creation is on, with no nDPI rrd creation
 if isEmptyString(host_rrd_creation) then host_rrd_creation = "1" end
 if isEmptyString(host_ndpi_timeseries_creation) then host_ndpi_timeseries_creation = "none" end
+
+-- Devices RRD creation is OFF, as OFF is the nDPI rrd creation
+if isEmptyString(l2_device_rrd_creation) then l2_device_rrd_creation = "0" end
+if isEmptyString(l2_device_ndpi_timeseries_creation) then l2_device_ndpi_timeseries_creation = "none" end
 
 -- tprint({interface_rrd_creation=interface_rrd_creation, interface_ndpi_timeseries_creation=interface_ndpi_timeseries_creation,host_rrd_creation=host_rrd_creation,host_ndpi_timeseries_creation=host_ndpi_timeseries_creation})
 
@@ -119,11 +126,9 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
   end
 
   -- Save hosts stats (if enabled from the preferences)
-  if host_rrd_creation ~= "0" or host_ndpi_timeseries_creation ~= "none" or host_categories_rrd_creation ~= "0" then
+  if host_rrd_creation ~= "0" or host_categories_rrd_creation ~= "0" then
 
-   local localHostsOnly = true -- stats only for local hosts
-
-   local in_time = callback_utils.foreachHost(_ifname, verbose, localHostsOnly, function (hostname, host, hostbase)
+   local in_time = callback_utils.foreachLocalHost(_ifname, time_threshold, function (hostname, host, hostbase)
      -- Crunch additional stats for local hosts only
      if(host.localhost) then
        -- Traffic stats
@@ -169,11 +174,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
        if(host_ndpi_timeseries_creation == "per_category" or host_ndpi_timeseries_creation == "both") then
 	  -- nDPI Protocol CATEGORIES
-	  name = fixPath(hostbase .. "/ndpi_categories/")
-	  if(not(ntop.exists(name))) then
-	     ntop.mkdir(name)
-	  end
-
 	  for k, cat in pairs(host["ndpi_categories"] or {}) do
 	     name = fixPath(hostbase .. "/".. k .. ".rrd")
 	     createSingleRRDcounter(name, 300, verbose)
@@ -199,12 +199,37 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	  end
        end
      end -- ends if host.localhost
-   end, time_threshold) -- end foreeachHost
-
+   end) -- end foreeachHost
    if not in_time then
       callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
       return false
    end
+
+   if l2_device_rrd_creation ~= "0" then
+     local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device, devicebase)
+       local name = fixPath(devicebase .. "/bytes.rrd")
+
+       createRRDcounter(name, 300, verbose)
+       ntop.rrd_update(name, "N:"..tolongint(device["bytes.sent"]) .. ":" .. tolongint(device["bytes.rcvd"]))
+
+       if l2_device_ndpi_timeseries_creation == "per_category" then
+	  -- nDPI Protocol CATEGORIES
+	  for k, cat in pairs(device["ndpi_categories"] or {}) do
+	     name = fixPath(devicebase .. "/".. k .. ".rrd")
+	     createSingleRRDcounter(name, 300, verbose)
+	     ntop.rrd_update(name, "N:".. tolongint(cat["bytes"]))
+
+	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+	  end
+       end
+
+     end)
+
+     if not in_time then
+      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
+      return false
+   end
+  end
 
   end
 

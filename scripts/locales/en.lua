@@ -642,6 +642,7 @@ local  en = {
 	 "Default: 5 seconds.",
       interfaces_timeseries = "Interfaces Timeseries",
       local_hosts_timeseries = "Local Hosts Timeseries",
+      l2_devices_timeseries = "Devices Timeseries",
       other_timeseries = "Other Timeseries",
       toggle_traffic_rrd_creation_title = "Traffic",
       toggle_traffic_rrd_creation_description = "Toggle the creation of bytes and packets timeseries.",
@@ -682,6 +683,8 @@ local  en = {
       databases = "Databases",
       minute_top_talkers_retention_title = "Top Talkers Storage",
       minute_top_talkers_retention_description = "Number of days to keep one minute resolution top talkers statistics. Default: 365 days.",
+      rrd_files_retention_title = "Timeseries Retention",
+      rrd_files_retention_description = "The maximum number of days non-updated timeseries are preserved before being deleted.",
       mysql_retention_title = "MySQL storage",
       mysql_retention_description = "Duration in days of data retention for the MySQL database. Default: 7 days.<br>MySQL is used to store exported flows data.<br>"..
             "Flows dump is only possible if the ntopng instance has been launched with option ",

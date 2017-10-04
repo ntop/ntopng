@@ -72,7 +72,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incnDPIStats(u_int32_t when, const ndpi_protocol protocol,
             u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
             u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
-    if(ndpiStats) {
+    if(ndpiStats || (ndpiStats = new nDPIStats())) {
       //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
       //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
       ndpiStats->incCategoryStats(when,

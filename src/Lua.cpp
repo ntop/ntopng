@@ -4986,6 +4986,35 @@ static int ntop_delete_dump_files(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_delete_old_rrd_files(lua_State *vm) {
+  int ifid;
+  char path[MAX_PATH];
+  NetworkInterface *iface;
+  int older_than_seconds;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if((older_than_seconds = lua_tointeger(vm, 2)) < 0) return(CONST_LUA_ERROR);
+
+  if(!(iface = ntop->getNetworkInterface(ifid))) return(CONST_LUA_ERROR);
+
+  snprintf(path, sizeof(path), "%s/%d/rrd/macs/",
+	   ntop->get_working_dir(), ifid);
+  ntop->fixPath(path);
+
+  if(Utils::discardOldFiles(path, older_than_seconds))
+    return(CONST_LUA_ERROR);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_mkdir_tree(lua_State* vm) {
   char *dir;
 
@@ -6247,7 +6276,8 @@ static const luaL_Reg ntop_reg[] = {
   { "getDaySamplingsFromEpoch",    ntop_stats_get_samplings_of_days_from_epoch },
   { "getMinuteSamplingsInterval",  ntop_stats_get_minute_samplings_interval },
 
-  { "deleteDumpFiles", ntop_delete_dump_files },
+  { "deleteDumpFiles", ntop_delete_dump_files    },
+  { "deleteOldRRDs",   ntop_delete_old_rrd_files },
 
   /* Time */
   { "gettimemsec",    ntop_gettimemsec },

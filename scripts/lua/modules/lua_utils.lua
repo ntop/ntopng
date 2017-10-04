@@ -174,7 +174,8 @@ end
 -- ##############################################
 
 function isMacAddress(address)
-   if(string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil) then
+   if(string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil)  or
+     (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x%@%d+$") ~= nil) then
       return true
    end
    return false
@@ -2101,11 +2102,36 @@ function getPathFromIPv6(addr)
    return res
 end
 
+function getPathFromMac(addr)
+   if not isMacAddress(addr) then return end
+
+   local mac = {}
+   local vlan = addr:match("@%d+$") or ''
+
+   for i, p in ipairs(addr:split(":")) do
+      mac[i] = string.format('%.2x', tonumber(p, 16) or 0)
+   end
+
+   local manufacturer = {mac[1], mac[2], mac[3]}
+   local nic = {mac[4], mac[5], mac[6]}
+
+   -- each manufacturer has its own directory
+   local res = fixPath("macs/"..table.concat(manufacturer, "_"))
+   -- the nic identifier goes as-is because it is non structured
+   res = fixPath(res.."/"..table.concat(nic, "/"))
+   -- finally the vlan
+   res = res..vlan
+
+   return res
+end
+
 function getPathFromKey(key)
    if key == nil then key = "" end
 
    if isIPv6(key) then
       return getPathFromIPv6(key)
+   elseif isMacAddress(key) then
+      return getPathFromMac(key)
    end
 
    key = tostring(key):gsub("[%.:]", "/")

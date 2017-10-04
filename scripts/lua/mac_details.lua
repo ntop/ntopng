@@ -64,6 +64,10 @@ end
 local vlanId      = host_info["vlan"]
 local label       = getHostAltName(mac)
 
+local devicekey = hostinfo2hostkey(host_info)
+local devicebase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(devicekey)
+local rrdfile = "bytes.rrd"
+
 if(vlanId == nil) then vlanId = 0 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -95,16 +99,26 @@ print [[
 
 print("<li><a href=\"#\">"..i18n("mac_details.mac")..": "..mac.."</A> </li>")
 
+local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
+
 if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info).."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
+   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
+end
+
+if(ntop.exists(fixPath(devicebase.."/"..rrdfile))) then
+   if(page == "historical") then
+     print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+   end
 end
 
 if(page == "config") then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i>\n")
 else
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info).."&page=config\"><i class=\"fa fa-cog fa-lg\"></i>\n")
+   print("<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i>\n")
 end
 
 print("<li><a href='javascript:history.go(-1)'><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
@@ -234,6 +248,16 @@ var host_details_interval = window.setInterval(function() {
 
 ]]
    print('</script>')
+
+elseif(page == "historical") then
+
+   if not isEmptyString(_GET["rrd_file"]) then
+      rrdfile = _GET["rrd_file"]
+   end
+
+   drawRRD(ifId, devicekey, rrdfile, _GET["zoom"],
+	   url..'&page=historical',
+	   1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 elseif(page == "config") then
    

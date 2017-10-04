@@ -56,8 +56,7 @@ callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
 
    callback_utils.harverstExpiredMySQLFlows(_ifname, mysql_retention, verbose)
 
-   local hosts_stats = interface.getHostsInfo(false --[[ don't show details --]])
-   hosts_stats = hosts_stats["hosts"]
+   callback_utils.harverstOldRRDFiles(_ifname)
 
    if(interface.getInterfaceDumpDiskPolicy() == true) then
       ntop.deleteDumpFiles(interface_id)

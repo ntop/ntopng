@@ -32,8 +32,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
   bridge_seen_iface_id = 0;
   device_type = device_unknown, os = os_unknown;
 
-  if(ntop->getPrefs()->areMacNdpiStatsEnabled())
-    ndpiStats = new nDPIStats();
+  ndpiStats = NULL;
 
   if(ntop->getMacManufacturers())
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
