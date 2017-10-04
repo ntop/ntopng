@@ -642,6 +642,7 @@ local  en = {
 	 "Default: 5 seconds.",
       interfaces_timeseries = "Interfaces Timeseries",
       local_hosts_timeseries = "Local Hosts Timeseries",
+      l2_devices_timeseries = "Devices Timeseries",
       other_timeseries = "Other Timeseries",
       toggle_traffic_rrd_creation_title = "Traffic",
       toggle_traffic_rrd_creation_description = "Toggle the creation of bytes and packets timeseries.",
