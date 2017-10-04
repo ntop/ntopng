@@ -702,7 +702,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
-                ntop->getPrefs()->get_mysql_port(),
+			    ntop->getPrefs()->get_mysql_port(),
 			    NULL /* socket */, flags);
 
   if(rc == NULL) {
@@ -721,7 +721,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s@%s:%i] for interface %s",
 			       ntop->getPrefs()->get_mysql_user(),
 			       ntop->getPrefs()->get_mysql_host(),
-                   ntop->getPrefs()->get_mysql_port(),
+			       ntop->getPrefs()->get_mysql_port(),
 			       iface->get_name());
 
   if(m) m->unlock(__FILE__, __LINE__);
