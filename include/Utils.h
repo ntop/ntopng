@@ -74,7 +74,7 @@ class Utils {
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
-  static bool discardOldFiles(const char *path, int older_than_seconds);
+  static bool discardOldFiles(char *path, int older_than_seconds);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t readIPv4(char *ifname);

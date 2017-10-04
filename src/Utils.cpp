@@ -28,7 +28,6 @@
 
 #include <curl/curl.h>
 #include <string.h>
-#include <libgen.h>
 
 // A simple struct for strings.
 typedef struct {
@@ -1450,62 +1449,56 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-bool ntop_delete_old_files(const char * dir_name, time_t now, int older_than_seconds) {
-  int path_length;
-  char path[MAX_PATH], *deepest_dir = path;
+bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seconds) {
+  struct dirent entry, *result = NULL;
+  int path_length, ret;
+  char path[MAX_PATH];
   DIR *d;
   struct stat file_stats;
+
+  if(!dir_name || strlen(dir_name) > MAX_PATH)
+    return false;
 
   d = opendir(dir_name);
   if(!d) return false;
 
-  while (1) {
-    struct dirent *entry;
-    const char *d_name;
+  for (ret = readdir_r(d, &entry, &result); result && !ret; ret = readdir_r(d, &entry, &result)) {
+    if(entry.d_type & DT_REG) {
+      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, entry.d_name)) <= MAX_PATH) {
+	ntop->fixPath(path);
 
-    entry = readdir(d);
-    if(!entry) break;
-    d_name = entry->d_name;
-
-    if(entry->d_type & DT_REG) {
-      snprintf(path, MAX_PATH, "%s/%s", dir_name, entry->d_name);
-      if(!stat(path, &file_stats)) {
-	if(file_stats.st_mtime <= now - older_than_seconds) {
-	  unlink(path);
-	  do deepest_dir = dirname(deepest_dir); while(rmdir(deepest_dir) == 0);
+	if(!stat(path, &file_stats)) {
+	  if(file_stats.st_mtime <= now - older_than_seconds)
+	    unlink(path);
 	}
       }
+    } else if(entry.d_type & DT_DIR) {
+      if(strncmp(entry.d_name, "..", 2) && strncmp(entry.d_name, ".", 1)) {
+        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, entry.d_name)) <= MAX_PATH) {
+	  ntop->fixPath(path);
 
-    } else if(entry->d_type & DT_DIR) {
-      if(strncmp (d_name, "..", 2) != 0 &&
-          strncmp (d_name, ".", 1) != 0) {
-        path_length = snprintf (path, MAX_PATH,
-                                "%s/%s", dir_name, d_name);
-
-        if(path_length >= MAX_PATH)
-          return false;
-
-        ntop_delete_old_files(path, now, older_than_seconds);
+	  ntop_delete_old_files(path, now, older_than_seconds);
+	}
       }
     }
   }
 
-  if(closedir(d)) return false;
+  rmdir(dir_name); /* Remove the directory, if empty */
+  closedir(d);
 
   return true;
 }
 
 /* **************************************** */
 
-bool Utils::discardOldFiles(const char *path, int older_than_seconds) {
-  // time_t now = time(NULL);
+bool Utils::discardOldFiles(char *path, int older_than_seconds) {
+  time_t now = time(NULL);
 
-  if(path == NULL || !strncmp(path, "", MAX_PATH))
+  if(!path || strlen(path) > MAX_PATH)
     return false;
 
-  return true; /* TODO: test recursive deletion */
-
-  /* return ntop_delete_old_files(path, now, older_than_seconds); */
+  ntop->fixPath(path);
+  return ntop_delete_old_files(path, now, older_than_seconds);
 }
 
 /* **************************************** */
