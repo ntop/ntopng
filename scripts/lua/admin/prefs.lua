@@ -811,6 +811,11 @@ function printStatsTimeseries()
     to_switch = {"row_l2_devices_ndpi_timeseries_creation"},
   })
 
+  local l7_rrd_labels = {i18n("prefs.none"),
+			 i18n("prefs.per_category")}
+  local l7_rrd_values = {"none",
+			 "per_category"}
+
   local showElement = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,

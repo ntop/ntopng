@@ -972,14 +972,15 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
     if(diff_sent_packets || diff_rcvd_packets) {
       /* Update L2 Device stats */
-      if (ntop->getPrefs()->areMacNdpiStatsEnabled() && cli_host->get_mac() && srv_host->getMac()) {
-	srv_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
-	  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-	  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
-
-	cli_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
-	  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-	  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+      if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
+	if(cli_host->get_mac())
+	  srv_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
+					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+	if(srv_host->getMac())
+	  cli_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
+					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
       }
 
 #ifdef NTOPNG_PRO

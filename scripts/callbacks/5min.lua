@@ -174,11 +174,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
        if(host_ndpi_timeseries_creation == "per_category" or host_ndpi_timeseries_creation == "both") then
 	  -- nDPI Protocol CATEGORIES
-	  name = fixPath(hostbase .. "/ndpi_categories/")
-	  if(not(ntop.exists(name))) then
-	     ntop.mkdir(name)
-	  end
-
 	  for k, cat in pairs(host["ndpi_categories"] or {}) do
 	     name = fixPath(hostbase .. "/".. k .. ".rrd")
 	     createSingleRRDcounter(name, 300, verbose)
@@ -216,6 +211,17 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
        createRRDcounter(name, 300, verbose)
        ntop.rrd_update(name, "N:"..tolongint(device["bytes.sent"]) .. ":" .. tolongint(device["bytes.rcvd"]))
+
+       if l2_device_ndpi_timeseries_creation == "per_category" then
+	  -- nDPI Protocol CATEGORIES
+	  for k, cat in pairs(device["ndpi_categories"] or {}) do
+	     name = fixPath(devicebase .. "/".. k .. ".rrd")
+	     createSingleRRDcounter(name, 300, verbose)
+	     ntop.rrd_update(name, "N:".. tolongint(cat["bytes"]))
+
+	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+	  end
+       end
 
      end)
 

@@ -14,6 +14,7 @@ require "graph_utils"
 require "rrd_utils"
 local callback_utils = require "callback_utils"
 
+-- tprint(interface.getMacInfo("68:5B:35:A7:DE:85"))
 -- tprint(getPathFromMac("0C:C4:7A:CC:BD:40"))
 -- dofile(dirs.installdir .. "/scripts/callbacks/5min.lua")
 

@@ -409,7 +409,7 @@ int32_t Prefs::getDefaultPrefsValue(const char *pref_key, int32_t default_value)
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
-  char *aux;
+  char *aux = NULL;
   // sets to the default value in redis if no key is found
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "A preference has changed, reloading...");
@@ -470,8 +470,13 @@ void Prefs::reloadPrefsFromRedis() {
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
     hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
-    enable_mac_ndpi_stats = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, false),
     auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+
+  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, &aux, (char*)"none");
+  if(aux) {
+    enable_mac_ndpi_stats = strncmp(aux, (char*)"none", 4);
+    free(aux);
+  }
 
   getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux, DEFAULT_SAFE_SEARCH_DNS);
   if(aux) {
@@ -519,6 +524,9 @@ void Prefs::reloadPrefsFromRedis() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[disable_alerts: %u]",
 			       disable_alerts ? 1 : 0);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[mac_ndpi_stats: %u]",
+			       enable_mac_ndpi_stats ? 1 : 0);
 #endif
 
 }
