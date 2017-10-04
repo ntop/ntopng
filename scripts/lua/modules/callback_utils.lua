@@ -41,17 +41,12 @@ end
 
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachHost(ifname, verbose, localHostsOnly, callback, deadline)
+function callback_utils.foreachLocalHost(ifname, deadline, callback)
    local hostbase
-   local hosts_stats
 
    interface.select(ifname)
 
-   if(localHostsOnly) then
-      hosts_stats = interface.getLocalHostsInfo(false)
-   else
-      hosts_stats = interface.getHostsInfo(false)
-   end
+   local hosts_stats = interface.getLocalHostsInfo(false)
 
    if hosts_stats == nil then
       hosts_stats = {hosts = {}}
@@ -67,30 +62,52 @@ function callback_utils.foreachHost(ifname, verbose, localHostsOnly, callback, d
          return false
       end
 
-      if(host == nil) then
-         if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..hostname.." !!!!\n") end
-      else
-         if(verbose) then
-            print ("["..__FILE__()..":"..__LINE__().."] [" .. hostname .. "][local: ")
-            print(tostring(host["localhost"]))
-            print("]" .. (hoststats["bytes.sent"]+hoststats["bytes.rcvd"]) .. "]\n")
-         end
-	 
+      if host ~= nil then
          if(host.localhost) then
             local keypath = getPathFromKey(hostname)
             hostbase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
 
             if(not(ntop.exists(hostbase))) then
-               if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", hostbase, '\n') end
                ntop.mkdir(hostbase)
             end
-         else
-            hostbase = nil
          end
 
-         if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]], verbose) == false then
+         if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
             return false
          end
+      end
+   end
+
+   return true
+end
+
+-- Iterates each device on the ifname interface.
+-- Each device is passed to the callback with some more information.
+function callback_utils.foreachDevice(ifname, deadline, callback)
+   interface.select(ifname)
+
+   local devices_stats = interface.getMacsInfo()
+   if devices_stats == nil or devices_stats["macs"] == nil then
+      devices_stats = {macs = {}}
+   end
+
+   for devicename, devicestats in pairs(devices_stats["macs"]) do
+      devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
+
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+         -- Out of time
+         return false
+      end
+
+      local keypath = getPathFromKey(devicename)
+      local devicebase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+
+      if(not(ntop.exists(devicebase))) then
+	 ntop.mkdir(devicebase)
+      end
+
+      if callback(devicename, devicestats, devicebase) == false then
+	 return false
       end
    end
 
