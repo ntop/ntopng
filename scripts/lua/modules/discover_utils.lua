@@ -829,7 +829,9 @@ function discover.discover2table(interface_name, recache)
 
       if isEmptyString(device_label) then
 	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
-	 device_label = device_label .. discover.devtype2icon(mac_info.devtype)
+	 if mac_info ~= nil then
+	    device_label = device_label .. discover.devtype2icon(mac_info.devtype)
+	 end
       end
       interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
 
