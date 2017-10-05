@@ -46,10 +46,6 @@ prefs = ntop.getPrefs()
 
 ifstats = interface.getStats()
 
-print [[
-      <hr>
-]]
-
 if (_GET["page"] ~= "historical") then
 if(asn ~= nil) then
 print [[

@@ -230,7 +230,7 @@ function getRRDName(ifid, host_or_network, rrdFile)
       rrdname = rrdname .. getPathFromKey(host_or_network) .. "/"
    end
 
-   return(rrdname..(rrdFile or ''))
+   return fixPath(rrdname..(rrdFile or ''))
 end
 
 -- ########################################################
@@ -1486,22 +1486,16 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
        -- disable expand interface views for rrdFile == all
        local expand_interface_views = false
        local dirs = ntop.getDirs()
-       local p = dirs.workingdir .. "/" .. ifid .. "/rrd/"
+       local d = getRRDName(ifid, host)
+
        if(debug_metric) then io.write("Navigating: "..p.."\n") end
 
-       if(host ~= nil) then
-	   p = p .. getPathFromKey(host)
-	   go_deep = true
-       else
-	   go_deep = false
-       end
-
+       local go_deep = true
        local ndpi_protocols = interface.getnDPIProtocols()
        local ndpi_categories = interface.getnDPICategories()
        local filter = ndpi_protocols
        if rrdFile == "all_ndpi_categories" then filter = ndpi_categories end
 
-       local d = fixPath(p)
        local rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time, filter)
 
        local traffic_array = {}
