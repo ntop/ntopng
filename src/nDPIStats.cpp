@@ -78,10 +78,11 @@ void nDPIStats::sum(nDPIStats *stats) {
     }
   }
 
-  for (int i = 0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
-    if(cat_counters[i].bytes > 0) {
-      stats->cat_counters[i].bytes  += cat_counters[i].bytes,
-	stats->cat_counters[i].duration += cat_counters[i].duration;
+  for (int i = 0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+    if(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0) {
+      stats->cat_counters[i].bytes.sent += cat_counters[i].bytes.sent;
+      stats->cat_counters[i].bytes.rcvd += cat_counters[i].bytes.rcvd;
+      stats->cat_counters[i].duration += cat_counters[i].duration;
     }
   }
 
@@ -137,11 +138,13 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
     lua_newtable(vm);
 
     for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
-      if(cat_counters[i].bytes > 0) {
+      if(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0) {
         lua_newtable(vm);
 
         lua_push_int_table_entry(vm, "category", i);
-        lua_push_int_table_entry(vm, "bytes", cat_counters[i].bytes);
+        lua_push_int_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
+        lua_push_int_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
+        lua_push_int_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
         lua_push_int_table_entry(vm, "duration", cat_counters[i].duration);
 
         lua_pushstring(vm, iface->get_ndpi_category_name((ndpi_protocol_category_t)i));
@@ -189,9 +192,11 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 
 /* *************************************** */
 
-void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes) {
+void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id,
+          u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
   if(category_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
-    cat_counters[category_id].bytes += bytes;
+    cat_counters[category_id].bytes.sent += sent_bytes;
+    cat_counters[category_id].bytes.rcvd += rcvd_bytes;
 
     if((when != 0)
        && (when - cat_counters[category_id].last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())) {
@@ -274,8 +279,10 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	if(json_object_object_get_ex(obj, name, &cat_o)) {
 	  json_object *data_o;
 
-	  if(json_object_object_get_ex(cat_o, "bytes", &data_o))
-	    cat_counters[i].bytes = json_object_get_int64(data_o);
+	  if(json_object_object_get_ex(cat_o, "bytes_sent", &data_o))
+	    cat_counters[i].bytes.sent = json_object_get_int64(data_o);
+	  if(json_object_object_get_ex(cat_o, "bytes_rcvd", &data_o))
+	    cat_counters[i].bytes.rcvd = json_object_get_int64(data_o);
 	  if(json_object_object_get_ex(cat_o, "duration", &data_o))
 	    cat_counters[i].duration = json_object_get_int(data_o);
 	}
@@ -320,11 +327,12 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
 
   inner = json_object_new_object();
   for (int i = 0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
-    if(cat_counters[i].bytes > 0) {
+    if(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0) {
       inner1 = json_object_new_object();
 
       json_object_object_add(inner1, "id",      json_object_new_int64(i));
-      json_object_object_add(inner1, "bytes",   json_object_new_int64(cat_counters[i].bytes));
+      json_object_object_add(inner1, "bytes_sent",   json_object_new_int64(cat_counters[i].bytes.sent));
+      json_object_object_add(inner1, "bytes_rcvd",   json_object_new_int64(cat_counters[i].bytes.rcvd));
       json_object_object_add(inner1, "duration",json_object_new_int64(cat_counters[i].duration));
 
       json_object_object_add(inner, iface->get_ndpi_category_name((ndpi_protocol_category_t)i), inner1);

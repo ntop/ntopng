@@ -38,7 +38,7 @@ typedef struct {
 } ProtoCounter;
 
 typedef struct {
-  u_int64_t bytes;
+  TrafficCounter bytes;
   u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
 } CategoryCounter;
 
@@ -61,7 +61,8 @@ class nDPIStats {
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
 
-  void incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id, u_int64_t bytes);
+  void incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id,
+          u_int64_t sent_bytes, u_int64_t rcvd_bytes);
 
   void print(NetworkInterface *iface);
   void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false);
@@ -88,7 +89,7 @@ class nDPIStats {
 
   inline u_int64_t getCategoryBytes(ndpi_protocol_category_t category_id) {
     if (category_id < NDPI_PROTOCOL_NUM_CATEGORIES)
-      return(cat_counters[category_id].bytes);
+      return(cat_counters[category_id].bytes.sent + cat_counters[category_id].bytes.rcvd);
     else
       return(0);
   }

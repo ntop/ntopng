@@ -53,7 +53,7 @@ void GenericHost::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
       ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
 	ndpiStats->incCategoryStats(when,
 				    getInterface()->get_ndpi_proto_category(ndpi_proto),
-				    sent_bytes + rcvd_bytes);
+				    sent_bytes, rcvd_bytes);
       
     }
 

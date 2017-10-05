@@ -77,10 +77,10 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
       //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
       if (protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
         ndpiStats->incCategoryStats(when,
-          getInterface()->get_ndpi_proto_category(protocol.app_protocol), sent_bytes + rcvd_bytes);
+          getInterface()->get_ndpi_proto_category(protocol.app_protocol), sent_bytes, rcvd_bytes);
       else
         ndpiStats->incCategoryStats(when,
-          getInterface()->get_ndpi_proto_category(protocol.master_protocol), sent_bytes + rcvd_bytes);
+          getInterface()->get_ndpi_proto_category(protocol.master_protocol), sent_bytes, rcvd_bytes);
     }
   }
 
