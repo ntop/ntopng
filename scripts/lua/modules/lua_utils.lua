@@ -3621,7 +3621,7 @@ end
 
 function savePrefsToDisk()
    local dirs = ntop.getDirs()
-   local where = dirs.workingdir.."/runtimeprefs.json"
+   local where = fixPath(dirs.workingdir.."/runtimeprefs.json")
    local keys = ntop.getKeysCache("ntopng.prefs.*")
 
    local out = {}
@@ -3641,7 +3641,7 @@ end
 
 function readPrefsFromDisk()
    local dirs = ntop.getDirs()
-   local where = dirs.workingdir.."/runtimeprefs.json"
+   local where = fixPath(dirs.workingdir.."/runtimeprefs.json")
    local file = io.open(where, "r")
 
    if(file ~= nil) then
