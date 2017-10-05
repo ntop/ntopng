@@ -1246,9 +1246,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
       cli_host_pool_id = cli_host->get_host_pool();
 
       /* Overall host pool stats */
-      hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
+      if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
+	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-      hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
+      else
+	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       /* Per host quota-enforcement stats */
