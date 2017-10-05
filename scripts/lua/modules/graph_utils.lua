@@ -84,7 +84,7 @@ end
 
 -- ########################################################
 
-function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, start_time, end_time)
+function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, start_time, end_time, filter)
    local shown = false
    local to_skip = false
    local ret = { }
@@ -101,7 +101,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 
 	 if(ntop.isdir(p)) then
 	    if(go_deep) then
-	       r = navigatedir(url, label.."/"..v, base, p, go_deep, print_html, ifid, host, start_time, end_time)
+	       r = navigatedir(url, label.."/"..v, base, p, go_deep, print_html, ifid, host, start_time, end_time, filter)
 	       for k,v in pairs(r) do
 		  ret[k] = v
 		  if(do_debug) then print(v.."<br>\n") end
@@ -114,7 +114,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 
 	       -- only show if there has been an update within the specified time frame
 
-	       if(not isTopRRD(v)) then
+	       if not isTopRRD(v) and (not filter or filter[k:gsub('.rrd','')]) then
 
 		  if(label == "*") then
 		     to_skip = true
@@ -603,8 +603,14 @@ if(show_timeseries == 1) then
    local d = fixPath(p)
 
    local go_deep = false
+
+   -- nDPI protocols
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, go_deep, true, ifid, host, start_time, end_time)
+	       "*", d, d, go_deep, true, ifid, host, start_time, end_time, interface.getnDPIProtocols())
+
+   -- nDPI categories
+   navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
+	       "*", d, d, go_deep, true, ifid, host, start_time, end_time, interface.getnDPICategories())
 
    print [[
   </ul>
@@ -1475,7 +1481,8 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 
    if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
 
-   if(rrdFile == "all") then -- all means all l-7 applications
+   -- the following code is used to compute stacked charts of top protocols and applications
+   if(rrdFile == "all" or rrdFile == "all_ndpi_categories") then -- all means all l-7 applications
        -- disable expand interface views for rrdFile == all
        local expand_interface_views = false
        local dirs = ntop.getDirs()
@@ -1489,23 +1496,17 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 	   go_deep = false
        end
 
-       local d = fixPath(p)
-       rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time)
-
-       for key, value in pairs(rrds) do
-	  if isLayer4RRD(key) then
-	     rrds[key] = nil
-	  end
-       end
-
        local ndpi_protocols = interface.getnDPIProtocols()
+       local ndpi_categories = interface.getnDPICategories()
+       local filter = ndpi_protocols
+       if rrdFile == "all_ndpi_categories" then filter = ndpi_categories end
+
+       local d = fixPath(p)
+       local rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time, filter)
+
        local traffic_array = {}
 
        for key, value in pairs(rrds) do
-	  if rrdFile == "all" and ndpi_protocols[key] == nil then
-	     goto continue
-	  end
-
 	  local rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json, expand_interface_views)
 	  if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
 
