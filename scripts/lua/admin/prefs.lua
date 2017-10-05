@@ -828,7 +828,9 @@ function printStatsTimeseries()
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
   prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
-      "ntopng.prefs.", "rrd_files_retention", 30, "number", nil, nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
+		       "ntopng.prefs.", "rrd_files_retention", 30, "number",
+		       showElement,
+		       nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
