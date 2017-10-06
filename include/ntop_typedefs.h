@@ -256,7 +256,6 @@ typedef enum {
   column_thpt,
   column_bytes,
   column_info,
-  column_ndpi_peers,
   /* Hosts */
   column_ip,
   column_alerts,

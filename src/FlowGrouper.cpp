@@ -26,12 +26,9 @@
 FlowGrouper::FlowGrouper(sortField sf){
   sorter = sf;
   app_protocol = 0;
-  client = NULL;
-  server = NULL;
   table_index = 1;
 
   memset(&stats, 0, sizeof(stats));
-  pass_verdict = false;
 }
 
 /* *************************************** */
@@ -42,11 +39,8 @@ FlowGrouper::~FlowGrouper() {}
 
 bool FlowGrouper::inGroup(Flow *flow) {
   switch(sorter) {
-    case column_ndpi_peers:
-      return ((flow->get_detected_protocol().app_protocol == app_protocol) &&
-          (flow->get_cli_host() && flow->get_srv_host()) &&
-          (((flow->get_cli_host()->getMac() == client) && (flow->get_srv_host()->getMac() == server)) ||
-            ((flow->get_cli_host()->getMac() == server) && (flow->get_srv_host()->getMac() == client))));
+    case column_ndpi:
+      return (flow->get_detected_protocol().app_protocol == app_protocol);
     default:
       return false;
   }
@@ -59,13 +53,10 @@ int FlowGrouper::newGroup(Flow *flow) {
     return -1;
 
   memset(&stats, 0, sizeof(stats));
-  pass_verdict = false;
 
   switch(sorter) {
-    case column_ndpi_peers:
+    case column_ndpi:
       app_protocol = flow->get_detected_protocol().app_protocol;
-      client = flow->get_cli_host()->getMac(); // TODO handle NULL
-      server = flow->get_srv_host()->getMac(); // TODO handle NULL
       break;
     default:
       return -1;
@@ -80,8 +71,7 @@ int FlowGrouper::incStats(Flow *flow) {
   if(flow == NULL || !inGroup(flow))
     return -1;
 
-  stats.bytes_cli2srv += flow->get_bytes_cli2srv();
-  stats.bytes_srv2cli += flow->get_bytes_srv2cli();
+  stats.bytes += flow->get_bytes();
   stats.bytes_thpt += flow->get_bytes_thpt();
 
   if(stats.first_seen == 0 || flow->get_first_seen() < stats.first_seen)
@@ -90,9 +80,9 @@ int FlowGrouper::incStats(Flow *flow) {
     stats.last_seen = flow->get_last_seen();
 
 #ifdef NTOPNG_PRO
-  if(flow->isPassVerdict())
+  if(! flow->isPassVerdict())
 #endif
-    pass_verdict = true;
+    stats.num_blocked_flows++;
 
   stats.num_flows++;
   return 0;
@@ -102,18 +92,14 @@ int FlowGrouper::incStats(Flow *flow) {
 
 void FlowGrouper::lua(lua_State* vm) {
   lua_newtable(vm);
-  char buf[32];
 
-  lua_push_str_table_entry(vm, "client", Utils::formatMac(client->get_mac(), buf, sizeof(buf)));
-  lua_push_str_table_entry(vm, "server", Utils::formatMac(server->get_mac(), buf, sizeof(buf)));
   lua_push_int_table_entry(vm, "proto", app_protocol);
-  lua_push_bool_table_entry(vm, "verdict.pass", pass_verdict);
 
-  lua_push_int_table_entry(vm, "cli2srv.bytes", stats.bytes_cli2srv);
-  lua_push_int_table_entry(vm, "srv2cli.bytes", stats.bytes_srv2cli);
+  lua_push_int_table_entry(vm, "bytes", stats.bytes);
   lua_push_int_table_entry(vm, "seen.first", stats.first_seen);
   lua_push_int_table_entry(vm, "seen.last", stats.last_seen);
   lua_push_int_table_entry(vm, "num_flows", stats.num_flows);
+  lua_push_int_table_entry(vm, "num_blocked_flows", stats.num_blocked_flows);
   lua_push_float_table_entry(vm, "throughput_bps", max_val(stats.bytes_thpt, 0));
 
   lua_rawseti(vm, -2, table_index++);

@@ -27,9 +27,9 @@
 class Flow;
 
 struct flowGroupStats {
-  u_int64_t bytes_srv2cli;
-  u_int64_t bytes_cli2srv;
+  u_int64_t bytes;
   u_int32_t num_flows;
+  u_int32_t num_blocked_flows;
   time_t first_seen;
   time_t last_seen;
   float bytes_thpt;
@@ -40,12 +40,9 @@ class FlowGrouper {
     sortField sorter;
     flowGroupStats stats;
     int table_index;
-    bool pass_verdict;
 
     /* group id */
     u_int16_t app_protocol;
-    Mac *client;
-    Mac *server;
 
   public:
     FlowGrouper(sortField sf);

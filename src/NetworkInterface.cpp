@@ -2883,8 +2883,6 @@ struct flowHostRetrieveList {
   Vlan *vlanValue;
   AutonomousSystem *asValue;
   u_int64_t numericValue;
-  u_int64_t sourceMacValue;
-  u_int64_t destMacValue; /* NOTE: this is used in combination with sourceMacValue and numericValue, see column_ndpi_peers */
   char *stringValue;
   IpAddress *ipValue;
 };
@@ -3090,13 +3088,6 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	else if(f->getHTTPURL())        retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPURL();
 	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumEntries++].stringValue = f->getSSLCertificate();
 	else retriever->elems[retriever->actNumEntries++].stringValue = (char*)"";
-	break;
-      case column_ndpi_peers:
-	/* we need these 3 fields */
-	retriever->elems[retriever->actNumEntries].numericValue = f->get_detected_protocol().app_protocol;
-	retriever->elems[retriever->actNumEntries].sourceMacValue = f->get_cli_host() ? Utils::macaddr_int(f->get_cli_host()->get_mac()) : 0;
-	retriever->elems[retriever->actNumEntries].destMacValue = f->get_srv_host() ? Utils::macaddr_int(f->get_srv_host()->get_mac()) : 0;
-	retriever->actNumEntries++; /* Finally update the counter */
 	break;
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
@@ -3420,31 +3411,6 @@ int stringSorter(const void *_a, const void *_b) {
   return(strcmp(a->stringValue, b->stringValue));
 }
 
-int ndpiPeersSorter(const void *_a, const void *_b) {
-  u_int64_t a_value, b_value;
-  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
-  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
-
-  /* try with ndpi protocol first */
-  if(a->numericValue < b->numericValue)	return(-1);
-  if(a->numericValue > b->numericValue) return(1);
-
-  /* protocols match, try with the smaller MACs */
-  a_value = (a->sourceMacValue < a->destMacValue) ? a->sourceMacValue : a->destMacValue;
-  b_value = (b->sourceMacValue < b->destMacValue) ? b->sourceMacValue : b->destMacValue;
-  if(a_value < b_value)                 return(-1);
-  if(a_value > b_value)                 return(1);
-
-  /* smaller MACs match, try with the bigger MACs */
-  a_value = (a->sourceMacValue < a->destMacValue) ? a->destMacValue : a->sourceMacValue;
-  b_value = (b->sourceMacValue < b->destMacValue) ? b->destMacValue : b->sourceMacValue;
-  if(a_value < b_value)                 return(-1);
-  if(a_value > b_value)                 return(1);
-
-  /* they match */
-  return(0);
-}
-
 /* **************************************************** */
 
 void NetworkInterface::disablePurge(bool on_flows) {
@@ -3609,7 +3575,6 @@ int NetworkInterface::sortFlows(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
   else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_info")) retriever->sorter = column_info, sorter = stringSorter;
-  else if(!strcmp(sortColumn, "column_ndpi_peers")) retriever->sorter = column_ndpi_peers, sorter = ndpiPeersSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
     retriever->sorter = column_bytes, sorter = numericSorter;
