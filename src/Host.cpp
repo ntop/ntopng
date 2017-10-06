@@ -967,6 +967,8 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+  if(total_num_dropped_flows)
+    json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
 
   /* Generic Host */
   json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
@@ -1087,6 +1089,7 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "flows.dropped", &obj))    total_num_dropped_flows   = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "is_blacklisted", &obj)) blacklisted_host     = json_object_get_boolean(obj);
 

@@ -77,8 +77,10 @@ public:
 
   inline void incPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]++; }
   inline void decPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]--; }
+
  
 #ifdef NTOPNG_PRO
+  void incPoolNumDroppedFlows(u_int16_t pool_id);
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);

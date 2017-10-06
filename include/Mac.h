@@ -39,13 +39,13 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
-  inline u_int16_t getNumHosts() { return getUses();            }
-  inline void incUses()          { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
-  inline void decUses()          { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
-  inline bool isSpecialMac()     { return(special_mac);         }
-  inline bool isDhcpHost()       { return(dhcpHost);            }
-  inline void setDhcpHost()      { dhcpHost = true;             }
-  inline bool isSourceMac()      { return(source_mac);          }
+  inline u_int16_t getNumHosts()   { return getUses();            }
+  inline void incUses()            { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
+  inline void decUses()            { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
+  inline bool isSpecialMac()       { return(special_mac);         }
+  inline bool isDhcpHost()         { return(dhcpHost);            }
+  inline void setDhcpHost()        { dhcpHost = true;             }
+  inline bool isSourceMac()        { return(source_mac);          }
   inline void setSourceMac() {
     if(!source_mac && !special_mac) {
       source_mac = true;

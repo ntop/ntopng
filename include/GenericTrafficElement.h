@@ -29,6 +29,7 @@ class GenericTrafficElement {
   u_int16_t vlan_id;
   TrafficStats sent, rcvd;
   nDPIStats *ndpiStats;
+  u_int32_t total_num_dropped_flows;
 
   float bytes_thpt, pkts_thpt;
   float last_bytes_thpt, last_pkts_thpt;
@@ -39,11 +40,17 @@ class GenericTrafficElement {
 
  public:
   GenericTrafficElement();
+  
+  GenericTrafficElement(const GenericTrafficElement &gte) {
+    ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
+  };
+
   virtual ~GenericTrafficElement() {
     if(ndpiStats) delete ndpiStats;
   };
 
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
+  inline void incNumDroppedFlows() { total_num_dropped_flows++;      };
   virtual void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 

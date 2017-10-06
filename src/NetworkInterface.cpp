@@ -1770,7 +1770,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
     if(is_bridge_interface()) {
-      pass_verdict = flow->isPassVerdict();
+      pass_verdict = flow->checkPassVerdict();
 
       if(pass_verdict) {
 	u_int8_t shaper_ingress, shaper_egress;
@@ -1804,6 +1804,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				       1, rawsize /* received-only */);
 	  }
 	}
+      } else {
+	flow->incFlowDroppedCounters();
       }
     }
 #endif

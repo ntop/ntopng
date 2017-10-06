@@ -71,7 +71,7 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
-    check_tor, l7_protocol_guessed, flow_alerted,
+    check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
     quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
   u_int16_t diff_num_http_requests;
@@ -239,9 +239,11 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
 #ifdef NTOPNG_PRO
-  bool isPassVerdict();
+  bool checkPassVerdict();
+  inline bool isPassVerdict()            { return passVerdict;  };
 #endif
-  void setDropVerdict()         { passVerdict = false; };
+  inline void setDropVerdict()           { passVerdict = false; };
+  void incFlowDroppedCounters();
 
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);

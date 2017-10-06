@@ -238,6 +238,7 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));  
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
   if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
+  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
 
   json_object_put(o);
 }
@@ -258,7 +259,7 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
   if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  
+  if(total_num_dropped_flows) json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
   if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
 
   return my_object;

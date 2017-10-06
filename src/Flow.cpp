@@ -35,7 +35,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
-    flow_alerted = false, vrfId = 0;
+    flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false,
@@ -911,6 +911,34 @@ bool Flow::dumpFlow(bool idle_flow) {
 
 /* *************************************** */
 
+void Flow::incFlowDroppedCounters() {
+  if(!flow_dropped_counts_increased) {
+    if(cli_host) {
+      cli_host->incNumDroppedFlows();
+      if(cli_host->getMac()) cli_host->getMac()->incNumDroppedFlows();
+    }
+
+#ifdef NTOPNG_PRO
+    HostPools *h = iface ? iface->getHostPools() : NULL;
+    u_int16_t cli_pool = NO_HOST_POOL_ID;
+
+    if(h) {
+      cli_pool = cli_host ? cli_host->get_host_pool() : NO_HOST_POOL_ID;
+
+      if(cli_pool != NO_HOST_POOL_ID)
+	h->incPoolNumDroppedFlows(cli_pool);
+    }
+#endif
+
+    /* Increasing stats on the server is pointless.
+     If a flow is dropped, the server doesn't even see it,
+     it is just the client that gets a drop. */
+    flow_dropped_counts_increased = true;
+  }
+}
+
+/* *************************************** */
+
 void Flow::update_hosts_stats(struct timeval *tv) {
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
@@ -997,7 +1025,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
       }
 #endif
-
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
 	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
 	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
@@ -2724,7 +2751,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 #ifdef NTOPNG_PRO
 
-bool Flow::isPassVerdict() {
+bool Flow::checkPassVerdict() {
   if(!passVerdict)
     return(false);
 
@@ -2735,8 +2762,8 @@ bool Flow::isPassVerdict() {
 
   if(cli_host && srv_host)
     return((!quota_exceeded)
-        && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
-        && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
+	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
+	   && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
   else
     return(true);
 }
