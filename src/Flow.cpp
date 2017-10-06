@@ -1268,9 +1268,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
       /* Update server pool stats only if the pool is not equal to the client pool */
       if(!cli_host || srv_host_pool_id != cli_host_pool_id) {
-	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
+	if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
+	  hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
-	hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
+	else
+	  hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.master_protocol, master_category_id,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
       }
 
