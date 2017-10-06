@@ -598,9 +598,9 @@ class NetworkInterface {
     if(mdns) mdns->fetchResolveResponses(vm, timeout_sec);
   }
 
-  void topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes);
+  void topProtocolsAdd(u_int16_t pool_id, u_int16_t protocol, u_int32_t bytes);
   inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
-  void topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes);
+  void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }

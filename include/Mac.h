@@ -69,18 +69,15 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(num_pkts, num_bytes);
   }
-  inline void incnDPIStats(u_int32_t when, const ndpi_protocol protocol,
+  inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
             u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
             u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
     if(ndpiStats || (ndpiStats = new nDPIStats())) {
       //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
       //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-      if (protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
-        ndpiStats->incCategoryStats(when,
-          getInterface()->get_ndpi_proto_category(protocol.app_protocol), sent_bytes, rcvd_bytes);
-      else
-        ndpiStats->incCategoryStats(when,
-          getInterface()->get_ndpi_proto_category(protocol.master_protocol), sent_bytes, rcvd_bytes);
+      ndpiStats->incCategoryStats(when,
+				  getInterface()->get_ndpi_proto_category(protocol),
+				  sent_bytes, rcvd_bytes);
     }
   }
 

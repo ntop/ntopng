@@ -1196,10 +1196,15 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 				 */
 
   if(policy) {
-    int protocol = ndpiProtocol.app_protocol;
+    int protocol;
+
+    if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
+      protocol = ndpiProtocol.app_protocol;
+    else
+      protocol = ndpiProtocol.master_protocol;
 
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
-    if(!sd) {
+    if(!sd && protocol != ndpiProtocol.master_protocol) {
       protocol = ndpiProtocol.master_protocol;
       HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
     }

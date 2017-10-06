@@ -6025,19 +6025,19 @@ void NetworkInterface::topItemsCommit(const struct timeval *tv) {
 
 /* *************************************** */
 
-void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, ndpi_protocol *proto, u_int32_t bytes) {
+void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, u_int16_t protocol, u_int32_t bytes) {
   if ((bytes > 0) && (pool_id != 0)) {
     // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
-    frequentProtocols->addPoolProtocol(pool_id, proto->app_protocol, bytes);
+    frequentProtocols->addPoolProtocol(pool_id, protocol, bytes);
   }
 }
 
 /* *************************************** */
 
-void NetworkInterface::topMacsAdd(Mac *mac, ndpi_protocol *proto, u_int32_t bytes) {
+void NetworkInterface::topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes) {
   if ((bytes > 0) && (! mac->isSpecialMac()) && (mac->locate() == located_on_lan_interface)) {
     // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
-    frequentMacs->addMacProtocol(mac->get_mac(), proto->app_protocol, bytes);
+    frequentMacs->addMacProtocol(mac->get_mac(), protocol, bytes);
   }
 }
 

@@ -947,6 +947,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   bool cli_and_srv_in_same_subnet = false;
   bool is_idle_flow;
   int16_t cli_network_id, srv_network_id;
+  int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
@@ -968,6 +969,12 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       }
     }
   }
+
+  if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+      && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
+    stats_protocol = ndpiDetectedProtocol.app_protocol;
+  else
+    stats_protocol = ndpiDetectedProtocol.master_protocol;
 
   sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes, sent_goodput_bytes = cli2srv_goodput_bytes;
   diff_sent_packets = sent_packets - cli2srv_last_packets,
@@ -1002,11 +1009,11 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       /* Update L2 Device stats */
       if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
 	if(cli_host->get_mac())
-	  srv_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
+	  srv_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 	if(srv_host->getMac())
-	  cli_host->getMac()->incnDPIStats(tv->tv_sec, ndpiDetectedProtocol,
+	  cli_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
       }
@@ -1032,14 +1039,14 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 #ifdef VLAN_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
 #endif
-	vl->incStats(tv->tv_sec, ndpiDetectedProtocol.app_protocol,
+	vl->incStats(tv->tv_sec, stats_protocol,
 		     diff_sent_packets, diff_sent_bytes,
 		     diff_rcvd_packets, diff_rcvd_bytes);
       }
 
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(tv->tv_sec, protocol,
-			 ndpiDetectedProtocol.app_protocol,
+			 stats_protocol,
 			 &categorization.category,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
@@ -1063,7 +1070,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
       srv_host->incStats(tv->tv_sec, protocol,
-			 ndpiDetectedProtocol.app_protocol,
+			 stats_protocol,
 			 NULL,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
@@ -1114,14 +1121,14 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
 
       if(isDetectionCompleted() && cli_host && srv_host) {
-	iface->topProtocolsAdd(cli_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
+	iface->topProtocolsAdd(cli_host->get_host_pool(), stats_protocol, diff_bytes);
 
 	if (cli_host->get_host_pool() != srv_host->get_host_pool())
-	  iface->topProtocolsAdd(srv_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
+	  iface->topProtocolsAdd(srv_host->get_host_pool(), stats_protocol, diff_bytes);
 
 	if (cli_host->get_mac() && srv_host->getMac()) {
-	  iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
-	  iface->topMacsAdd(srv_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
+	  iface->topMacsAdd(cli_host->getMac(), stats_protocol, diff_bytes);
+	  iface->topMacsAdd(srv_host->getMac(), stats_protocol, diff_bytes);
 	}
       }
 
@@ -1273,7 +1280,8 @@ void Flow::update_pools_stats(const struct timeval *tv,
       cli_host_pool_id = cli_host->get_host_pool();
 
       /* Overall host pool stats */
-      if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
+      if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+	  && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
 	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       else
@@ -1295,7 +1303,8 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
       /* Update server pool stats only if the pool is not equal to the client pool */
       if(!cli_host || srv_host_pool_id != cli_host_pool_id) {
-	if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
+	if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+	    && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
 	  hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, app_category_id,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
 	else

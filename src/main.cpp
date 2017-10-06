@@ -256,10 +256,11 @@ int main(int argc, char *argv[])
 		 prefs->get_packet_filter() ? " and " : "", vlan_id);
 
 	iface->set_packet_filter(filter);	  
-      } else if(prefs->get_packet_filter())
-	iface->set_packet_filter(prefs->get_packet_filter());
+      } else
 #endif
-      
+      if(prefs->get_packet_filter())
+	iface->set_packet_filter(prefs->get_packet_filter());
+
       ntop->registerInterface(iface);
     }
   } /* for */
