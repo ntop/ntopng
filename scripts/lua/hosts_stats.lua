@@ -480,6 +480,21 @@ else
 
    if asn ~= nil then
       drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
+      print[[
+
+<br>
+
+<div>
+  <b>]] print(i18n('notes')) print[[</b>
+  <ul>
+    <li>]] print(i18n('graphs.note_ases_traffic')) print[[</li>
+    <li>]] print(i18n('graphs.note_ases_sent')) print[[</li>
+    <li>]] print(i18n('graphs.note_ases_rcvd')) print[[</li>
+  </ul>
+</div>
+
+]]
+
    elseif vlan ~= nil then
       drawRRD(ifstats.id, 'vlan:'..vlan, rrdfile, _GET["zoom"], base_url.."?vlan="..vlan.."&page=historical", 1, _GET["epoch"])
    end

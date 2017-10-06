@@ -133,6 +133,9 @@ local  en = {
       all_ndpi_categories = "All Categories",
       note_click_to_zoom = "Left-click on the chart to zoom in, right-click to zoom out.",
       note_protocols_shown = "Protocols not seen in the selected timeframe are not listed in the dropdown.",
+      note_ases_traffic = "Traffic shown is sent and received by the autonomous system.",
+      note_ases_sent = "Traffic sent is the traffic sent by the autonomous system.",
+      note_ases_rcvd = "Traffic received the traffic received by the autonomous system.",
    },
 
    flows_page = {

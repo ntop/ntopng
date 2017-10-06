@@ -963,7 +963,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes,
     srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
 
-    if(cli_host && srv_host) {
+  if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
     srv_network_id = srv_host->get_local_network_id();
 
@@ -986,14 +986,14 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 #ifdef NTOPNG_PRO
       if(ntop->getPro()->has_valid_license()) {
 
-      if(trafficProfile)
-	trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
+	if(trafficProfile)
+	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 
-      /* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
-	 pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp
-      */
-      if(iface && !iface->is_bridge_interface())
-	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+	/* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
+	   pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp
+	*/
+	if(iface && !iface->is_bridge_interface())
+	  update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
       }
 #endif
@@ -1087,15 +1087,15 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
 
       if(isDetectionCompleted() && cli_host && srv_host) {
-        iface->topProtocolsAdd(cli_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
+	iface->topProtocolsAdd(cli_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
 
-        if (cli_host->get_host_pool() != srv_host->get_host_pool())
-          iface->topProtocolsAdd(srv_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
+	if (cli_host->get_host_pool() != srv_host->get_host_pool())
+	  iface->topProtocolsAdd(srv_host->get_host_pool(), &ndpiDetectedProtocol, diff_bytes);
 
-        if (cli_host->get_mac() && srv_host->getMac()) {
-          iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
-          iface->topMacsAdd(srv_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
-        }
+	if (cli_host->get_mac() && srv_host->getMac()) {
+	  iface->topMacsAdd(cli_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
+	  iface->topMacsAdd(srv_host->getMac(), &ndpiDetectedProtocol, diff_bytes);
+	}
       }
 
       /* Just to be safe */
