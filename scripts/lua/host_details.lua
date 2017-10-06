@@ -585,6 +585,16 @@ end
    end
    print("</td></tr>")
 
+   if interface.isBridgeInterface(ifstats) then
+      print("<tr id=bridge_dropped_flows_tr ") if not host["flows.dropped"] then print("style='display:none;'") end print(">")
+
+      print("<th><i class=\"fa fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
+      print("<td colspan=2><span id=bridge_dropped_flows>" .. formatValue((host["flows.dropped"] or 0)) .. "</span>  <span id=trend_bridge_dropped_flows></span>")
+
+      print("</tr>")
+   end
+
+
    if host["tcp.packets.seq_problems"] == true then
       print("<tr><th width=30% rowspan=3>"..i18n("details.tcp_packets_sent_analysis").."</th><th>"..i18n("details.retransmissions").."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
       print("<tr></th><th>"..i18n("details.out_of_order").."</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
@@ -2228,6 +2238,10 @@ if (host ~= nil) then
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
 
+   if isBridgeInterface(ifstats) then
+      print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
+   end
+
    if(host["dns"] ~= nil) then
       print("var last_dns_sent_num_queries = " .. host["dns"]["sent"]["num_queries"] .. ";\n")
       print("var last_dns_sent_num_replies_ok = " .. host["dns"]["sent"]["num_replies_ok"] .. ";\n")
@@ -2284,6 +2298,25 @@ if (host ~= nil) then
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
    		  ]]
+
+   if isBridgeInterface(ifstats) then
+print [[
+                        if(host["flows.dropped"] > 0) {
+                          if(host["flows.dropped"] == last_dropped_flows) {
+                            $('#trend_bridge_dropped_flows').html("<i class=\"fa fa-minus\"></i>");
+                          } else {
+                            $('#trend_bridge_dropped_flows').html("<i class=\"fa fa-arrow-up\"></i>");
+                          }
+
+                          $('#bridge_dropped_flows').html(addCommas(host["flows.dropped"]));
+
+                          $('#bridge_dropped_flows_tr').show();
+                          last_dropped_flows = host["flows.dropped"];
+                        } else {
+                          $('#bridge_dropped_flows_tr').hide();
+                        }
+]]
+   end
 
    if(host["dns"] ~= nil) then
    print [[

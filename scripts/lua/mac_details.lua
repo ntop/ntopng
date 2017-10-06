@@ -202,14 +202,23 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
 
+   if interface.isBridgeInterface(ifstats) then
+      print("<tr id=bridge_dropped_flows_tr ") if not mac_info["flows.dropped"] then print("style='display:none;'") end print(">")
+
+      print("<th><i class=\"fa fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
+      print("<td colspan=2><span id=bridge_dropped_flows>" .. formatValue((mac_info["flows.dropped"] or 0)) .. "</span>")
+
+      print("</tr>")
+   end
+
    print("<tr><th>" .. i18n("details.traffic_sent_received") .. "</th><td><span id=pkts_sent>" .. formatPackets(mac_info["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(mac_info["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(mac_info["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(mac_info["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
    print([[
 <tr>
    <th rowspan="2"><A HREF=https://en.wikipedia.org/wiki/Address_Resolution_Protocol>]]) print(i18n("details.address_resolution_protocol")) print[[</A></th>
    <th>]] print(i18n("details.arp_requests")) print[[</th>
-   <th>]] print(i18n("details.arp_replies")) print([[</th>
-</tr>
-<tr>
+   <th>]] print(i18n("details.arp_replies")) print([[</th></tr>]])
+
+print([[<tr>
    <td><span id="arp_requests_sent">]]..formatValue(mac_info["arp_requests.sent"])..[[</span> ]]..i18n("sent")..[[ / <span id="arp_requests_rcvd">]]..formatValue(mac_info["arp_requests.rcvd"])..[[</span> ]]..i18n("received")..[[</td>
    <td><span id="arp_replies_sent">]]..formatValue(mac_info["arp_replies.sent"])..[[</span> ]]..i18n("sent")..[[ / <span id="arp_replies_rcvd">]]..formatValue(mac_info["arp_replies.rcvd"])..[[</span> ]]..i18n("received")..[[</td>
 </tr>]])
@@ -242,6 +251,20 @@ var host_details_interval = window.setInterval(function() {
       $('#arp_requests_rcvd').html(addCommas(host["arp_requests.rcvd"]));
       $('#arp_replies_sent').html(addCommas(host["arp_replies.sent"]));
       $('#arp_replies_rcvd').html(addCommas(host["arp_replies.rcvd"]));
+]]
+   if interface.isBridgeInterface(ifstats) then
+print[[
+      if(host["flows.dropped"] > 0) {
+        $('#bridge_dropped_flows').html(addCommas(host["flows.dropped"]));
+
+        $('#bridge_dropped_flows_tr').show();
+      } else {
+        $('#bridge_dropped_flows_tr').hide();
+      }
+]]
+   end
+
+print[[
     },
   });
 }, 3000);

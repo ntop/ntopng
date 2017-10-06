@@ -1266,6 +1266,7 @@ local  en = {
       flows_non_packet_iface = "Recently Active Flows / Total",
       flows_packet_iface = "Active Flows / Total Active / Low Goodput",
       flows_packet_pcap_dump_iface = "Flows / Total Active / Low Goodput",
+      flows_dropped_by_bridge = "Flows Blocked due to Traffic Policies",
       as_client = "As Client",
       as_server = "As Server",
       tcp_packets_sent_analysis = "TCP Packets Sent Analysis",
