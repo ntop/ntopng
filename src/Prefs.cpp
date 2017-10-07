@@ -1031,11 +1031,13 @@ int Prefs::setOption(int optkey, char *optarg) {
         if (mysql_port_str == NULL) {
             mysql_port = 3306;
         } else {
-            try {
-                mysql_port = std::stoi(mysql_port_str, NULL, 10);
-            } catch (std::invalid_argument e) {
+            errno = 0;
+            long l = strtol(mysql_port_str, NULL, 10);
+            if ((errno != 0) || (l == 0)) {
                 ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port for -F, using default (3306)");
                 mysql_port = 3306;
+            } else {
+                mysql_port = (int)l;
             }
         }
     }
