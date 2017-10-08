@@ -237,7 +237,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
   if asn_rrd_creation == "1" then
      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
 
-     local asn_info = interface.getASesInfo()
+     local asn_info = interface.getASesInfo({detailsLevel = "higher"})
      for _, asn_stats in ipairs(asn_info["ASes"]) do
 	local asn = asn_stats["asn"]
 

@@ -42,6 +42,9 @@ local port = _GET["port"]
 
 local network_id = _GET["network"]
 
+local client_asn = _GET["client_asn"]
+local server_asn = _GET["server_asn"]
+
 local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
@@ -151,6 +154,14 @@ if(network_id ~= nil) then
   page_params["network"] = network_id
 end
 
+if(client_asn ~= nil) then
+   page_params["client_asn"] = client_asn
+end
+
+if(server_asn ~= nil) then
+   page_params["server_asn"] = server_asn
+end
+
 if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
   flowhosts_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
@@ -217,7 +228,6 @@ local function printDropdownEntries(entries, param_arr, param_filter, curr_filte
       print[[><a href="]] print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
    end
 end
-
 print[['\
    <div class="btn-group">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
@@ -319,6 +329,11 @@ end
 if ntop.isPro() and interface.isPacketInterface() == false then
    printFlowDevicesFilterDropdown(base_url, vlan_params)
 end
+
+if ntop.isEnterprise() then
+   printFlowASesFilterDropdown(base_url, table.clone(page_params))
+end
+
 -- end buttons
 
 print(" ],\n")

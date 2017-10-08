@@ -2930,6 +2930,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   bool unicast, unidirectional, alerted_flows;
+  u_int32_t client_asn, server_asn;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
 #ifdef NTOPNG_PRO
@@ -2966,6 +2967,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
 	  return(false);
     }
+
+    if(retriever->pag
+       && retriever->pag->clientASN(&client_asn)
+       && (!f->get_cli_host() || f->get_cli_host()->get_asn() != client_asn))
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->serverASN(&server_asn)
+       && (!f->get_srv_host() || f->get_srv_host()->get_asn() != server_asn))
+      return(false);
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)
@@ -5601,33 +5612,37 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 
 /* **************************************** */
 
-int NetworkInterface::getActiveASList(lua_State* vm,
-				      char *sortColumn, u_int32_t maxHits,
-				      u_int32_t toSkip, bool a2zSortOrder,
-				      DetailsLevel details_level) {
+int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   struct flowHostRetriever retriever;
+  DetailsLevel details_level;
+
+  if(!p)
+    return -1;
 
   disablePurge(false);
 
-  if(sortASes(&retriever, sortColumn) < 0) {
+  if(sortASes(&retriever, p->sortColumn()) < 0) {
     enablePurge(false);
     return -1;
   }
+
+  if(!p->getDetailsLevel(&details_level))
+    details_level = details_normal;
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numASes", retriever.actNumEntries);
 
   lua_newtable(vm);
 
-  if(a2zSortOrder) {
-    for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
+  if(p->a2zSortOrder()) {
+    for(int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries && num < (int)p->maxHits(); i++, num++) {
       AutonomousSystem *as = retriever.elems[i].asValue;
 
       as->lua(vm, details_level, false);
       lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
     }
   } else {
-    for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
+    for(int i = (retriever.actNumEntries - 1 - p->toSkip()), num = 0; i >= 0 && num < (int)p->maxHits(); i--, num++) {
       AutonomousSystem *as = retriever.elems[i].asValue;
 
       as->lua(vm, details_level, false);

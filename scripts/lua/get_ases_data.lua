@@ -55,8 +55,9 @@ to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
-local ases_stats = interface.getASesInfo(sortColumn, perPage, to_skip, sOrder,
-					 false --[[high, but not higher details as there's no need for nDPI here --]])
+local ases_stats = interface.getASesInfo({sortColumn = sortColumn,
+					  maxHits = perPage, toSkip = to_skip,
+					  a2zSortOrder = sOrder, detailsLevel = "high"})
 
 local total_rows = 0
 

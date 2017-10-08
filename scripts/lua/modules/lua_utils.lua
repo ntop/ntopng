@@ -402,6 +402,59 @@ end
 
 -- ##############################################
 
+function printFlowASesFilterDropdown(base_url, page_params)
+   if(ntop.isEnterprise()) then
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   end
+
+   local ases = interface.getASesInfo({sortColumn = "column_asn", detailsLevel = "normal"})
+
+   if ases == nil then ases = {ASes = {}} end
+
+   for _, p in ipairs({
+	 {side = "server_asn", title = i18n("flows_page.server_as")},
+	 {side = "client_asn", title = i18n("flows_page.client_as")}}
+   ) do
+
+      local side = p["side"]
+      local title = p["title"]
+
+      local cur_as = _GET[side]
+      local cur_as_filter = ''
+      if not isEmptyString(cur_as) then
+	 cur_as_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      end
+
+      local as_params = table.clone(page_params)
+      as_params[side] = nil
+
+      print[[, '<div class="btn-group pull-right">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(title) print[[]] print(cur_as_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, as_params)) print[[">]] print(i18n("flows_page.all_ases")) print[[</a></li>\]]
+
+      for _, as in ipairs(ases["ASes"]) do
+	 as_params[side] = as["asn"]
+
+	 local label = as["asn"]
+	 if not isEmptyString(as["asname"]) then
+	    label = label.." ["..shortenString(as["asname"]).."]"
+	 end
+
+	 print[[
+         <li>\
+           <a href="]] print(getPageUrl(base_url, as_params)) print[[">]] print(i18n("as").." "..label) print[[</a></li>\]]
+      end
+      print[[
+      </ul>\
+</div>']]
+
+   end
+
+end
+
+-- ##############################################
+
 --
 -- Returns indexes to be used for string shortening. The portion of to_shorten between
 -- middle_start and middle_end will be inside the bounds.

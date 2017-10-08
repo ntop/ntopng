@@ -32,6 +32,9 @@ local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
 local outIfIdx    = _GET["outIfIdx"]
 
+local client_asn  = _GET["client_asn"]
+local server_asn  = _GET["server_asn"]
+
 local vhost       = _GET["vhost"]
 local flowhosts_type  = _GET["flowhosts_type"]
 local ipversion       = _GET["version"]
@@ -165,6 +168,14 @@ if not isEmptyString(deviceIP) then
    if not isEmptyString(outIfIdx) then
       pageinfo["outIndexFilter"] = tonumber(outIfIdx)
    end
+end
+
+if not isEmptyString(client_asn) then
+   pageinfo["clientASNFilter"] = tonumber(client_asn)
+end
+
+if not isEmptyString(server_asn) then
+   pageinfo["serverASNFilter"] = tonumber(server_asn)
 end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)

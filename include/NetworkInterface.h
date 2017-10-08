@@ -378,10 +378,7 @@ class NetworkInterface {
 			  u_int32_t asnFilter, int16_t networkFilter,
 			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
 			  bool hostsOnly, char *groupColumn);
-  int getActiveASList(lua_State* vm,
-		      char *sortColumn, u_int32_t maxHits,
-		      u_int32_t toSkip, bool a2zSortOrder,
-		      DetailsLevel details_level);
+  int getActiveASList(lua_State* vm, const Paginator *p);
   int getActiveVLANList(lua_State* vm,
 			char *sortColumn, u_int32_t maxHits,
 			u_int32_t toSkip, bool a2zSortOrder,
