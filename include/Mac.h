@@ -31,7 +31,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   char *fingerprint;
   const char *manuf;
   OperatingSystem os;
-  bool source_mac:1, special_mac:1, dhcpHost:1 /* , notused:5 */;
+  bool source_mac, special_mac, dhcpHost, lockDeviceTypeChanges;
   ArpStats arp_stats;
   DeviceType device_type;
 
@@ -40,7 +40,16 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   ~Mac();
 
   inline u_int16_t getNumHosts()   { return getUses();            }
-  inline void incUses()            { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
+  inline void incUses() {
+    GenericHashEntry::incUses();
+    if(source_mac && (getUses() == 1))
+      iface->incNumL2Devices();
+    
+    if(getUses() > CONST_MAX_NUM_HOST_USES) {
+      setDeviceType(device_networking);
+      lockDeviceTypeChanges = true;
+    }
+  }
   inline void decUses()            { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
   inline bool isSpecialMac()       { return(special_mac);         }
   inline bool isDhcpHost()         { return(dhcpHost);            }
@@ -87,7 +96,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
   inline void setSeenIface(u_int32_t idx)  { bridge_seen_iface_id = idx; setSourceMac(); }
   inline u_int32_t getSeenIface()     { return(bridge_seen_iface_id); }
-  inline void setDeviceType(DeviceType devtype) { device_type = devtype; }
+  inline void setDeviceType(DeviceType devtype) { if(!lockDeviceTypeChanges) device_type = devtype; }
   inline DeviceType getDeviceType()        { return (device_type); }
   inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
   inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }

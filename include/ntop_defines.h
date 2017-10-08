@@ -780,4 +780,10 @@
 #define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
 #define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)G(a)->userdata)->b
 
+/* 
+   We assume that a host with more than CONST_MAX_NUM_HOST_USES
+   MACs associated is a router
+*/
+#define CONST_MAX_NUM_HOST_USES   8
+
 #endif /* _NTOP_DEFINES_H_ */

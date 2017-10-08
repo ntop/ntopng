@@ -29,7 +29,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL, dhcpHost = false;
-  bridge_seen_iface_id = 0;
+  bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
   device_type = device_unknown, os = os_unknown;
 
   ndpiStats = NULL;
