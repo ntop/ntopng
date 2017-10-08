@@ -48,7 +48,7 @@ function http_bridge_conf_utils.configureBridge()
 	 ["drop_all"] = {["bw"] = 0}, ["pass_all"] = {["bw"] = -1},
 	 ["10Mbps"] = {["bw"] = 10000}, ["20Mbps"] = {["bw"] = 20000}},
 	 ["groups"] = {
-	 ["maina"] = {["shaping_profiles"] = {["default"]="pass_all", [10] = "10Mbps"}},
+	 ["maina"] = {["shaping_profiles"] = {["default"]="pass_all", [10] = "10Mbps", ["Facebook"] = "dropAll"}},
 	 ["simon"] = {["shaping_profiles"] = {["default"]="drop_all", [20] = "20Mbps", [22] = "10Mbps"}}}
 	 }
       --]]
@@ -122,10 +122,23 @@ function http_bridge_conf_utils.configureBridge()
 	    end
 
 	    -- SETUP POLICIES
+	    local ndpi_protocols = {}
+	    for proto_name, proto_id in pairs(interface.getnDPIProtocols()) do
+	       -- case-insensitive
+	       ndpi_protocols[string.lower(proto_name)] = proto_id
+	    end
+
 	    for _, pool in pairs(host_pools) do
 	       for proto, shaper in pairs(pool["shaping_profiles"]) do
 		  local proto_shaper = shapers[shaper] or {}
 		  print(ifname..": setting shaper "..shaper.." for protocol "..proto)
+
+		  -- if proto is a protocol string, e.g., DNS or Google,
+		  -- we want to map it to the corresponding nDPI protocol id
+		  if proto ~= "default" and tonumber(proto) == nil then 
+		     proto = ndpi_protocols[string.lower(proto)]
+		     -- tprint({t = type(proto), v = proto})
+		  end
 
 		  if proto == "default" or tonumber(proto) ~= nil then
 		     shaper_utils.setProtocolShapers(ifid, pool["id"], proto,

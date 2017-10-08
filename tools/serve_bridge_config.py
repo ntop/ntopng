@@ -5,14 +5,31 @@ import json
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 FORMATS = ('json')
+'''
+Config groups allows both nDPI ids as well as protocol names.
+
+Custom protocol names are supported as well. Custom protocol names
+are defined in a text file. To tell ntopng to use that custom file
+use option --ndpi-protocols, e.g., --ndpi-protocols /tmp/custom.txt
+
+'''
 
 sample_bridge_config = {
     "shaping_profiles" : {
         "dropAll" : {"bw" : 0}, "passAll" : {"bw" : -1},
         "10Mbps" : {"bw" : 10000}, "20Mbps" : {"bw" : 20000}},
     "groups":{
-        "maina" : {"shaping_profiles" : {"default" : "passAll", 10 :  "10Mbps"}},
-        "simon" : {"shaping_profiles" : {"default" : "dropAll", 20 :  "20Mbps", 22 : "10Mbps"}}
+        "maina" : {"shaping_profiles" :
+                   {"default" : "passAll",
+                    10 : "10Mbps",
+                    "DNS" : "dropAll",
+                    "Facebook": "10Mbps",
+                    "MyCustomProtocol": "20Mbps",
+                    "YouTube": "dropAll"}},
+        "simon" : {"shaping_profiles" :
+                   {"default" : "dropAll",
+                    20 :  "20Mbps",
+                    22 : "10Mbps"}}
     }}
 
 class Handler(BaseHTTPRequestHandler):
