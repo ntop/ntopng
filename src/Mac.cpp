@@ -34,9 +34,10 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
 
   ndpiStats = NULL;
 
-  if(ntop->getMacManufacturers())
+  if(ntop->getMacManufacturers()) {
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
-  else
+    if(manuf) checkDeviceTypeFromManufacturer();
+  } else
     manuf = NULL;
 
 #ifdef MANUF_DEBUG
@@ -79,7 +80,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
     // Load the user defined device type, if available
     snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
     if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
-      device_type = (DeviceType) atoi(rsp);
+      setDeviceType((DeviceType) atoi(rsp));
   }
 }
 
@@ -89,7 +90,7 @@ Mac::~Mac() {
   if(!special_mac) {
     char key[64], buf1[64];
     char *json = serialize();
-    
+
     snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     free(json);
@@ -102,7 +103,7 @@ Mac::~Mac() {
 
   if(fingerprint)
     free(fingerprint);
-  
+
 #ifdef DEBUG
   char buf[32];
 
@@ -117,7 +118,7 @@ Mac::~Mac() {
 
 bool Mac::idle() {
   bool rc;
-  
+
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
@@ -126,7 +127,7 @@ bool Mac::idle() {
 #ifdef DEBUG
   if(true) {
     char buf[32];
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s/%u [uses %u][%s][last: %u][diff: %d]",
 				 Utils::formatMac(mac, buf, sizeof(buf)),
 				 vlan_id, num_uses,
@@ -134,7 +135,7 @@ bool Mac::idle() {
 				 last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
   }
 #endif
-  
+
   return(rc);
 }
 
@@ -170,7 +171,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
     lua_push_int_table_entry(vm, "devtype", device_type);
-    if(ndpiStats) ndpiStats->lua(iface, vm, true);    
+    if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }
 
   ((GenericTrafficElement*)this)->lua(vm, true);
@@ -235,7 +236,7 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
   if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
-  if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));  
+  if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
   if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
   if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
@@ -272,7 +273,7 @@ MacLocation Mac::locate() {
     if(bridge_seen_iface_id == iface->getBridgeLanInterfaceId())
       return(located_on_lan_interface);
     else if(bridge_seen_iface_id == iface->getBridgeWanInterfaceId())
-      return(located_on_wan_interface);    
+      return(located_on_wan_interface);
   } else {
     if(bridge_seen_iface_id == DUMMY_BRIDGE_INTERFACE_ID)
       return(located_on_lan_interface);
@@ -289,9 +290,11 @@ void Mac::updateFingerprint() {
     time being that we have little data
   */
   if(!fingerprint) return;
-  
-  if(!strcmp(fingerprint,      "017903060F77FC"))       setOperatingSystem(os_ios);
-  else if(!strcmp(fingerprint, "017903060F77FC5F2C2E")) setOperatingSystem(os_macos);
+
+  if(!strcmp(fingerprint,      "017903060F77FC"))
+    setOperatingSystem(os_ios);
+  else if(!strcmp(fingerprint, "017903060F77FC5F2C2E"))
+    setOperatingSystem(os_macos);
   else if((!strcmp(fingerprint, "0103063633"))
 	  || (!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC")))
     setOperatingSystem(os_windows);
@@ -306,3 +309,15 @@ void Mac::updateFingerprint() {
   011C02030F06770C2C2F1A792A
   010F03062C2E2F1F2179F92BFC
 */
+
+/* *************************************** */
+
+void Mac::checkDeviceTypeFromManufacturer() {
+  if(strstr(manuf, "Networks") /* Arista, Juniper... */
+     || strstr(manuf, "Brocade")
+     || strstr(manuf, "Routerboard")
+     || strstr(manuf, "Alcatel-Lucent")
+     || strstr(manuf, "AVM")
+     )
+    setDeviceType(device_networking);
+}

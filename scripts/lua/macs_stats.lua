@@ -72,7 +72,7 @@ if devices_mode == "host_macs_only" then
    if device_type then
       title = i18n("mac_stats.layer_2_dev_devices", {device_type=discover.devtype2string(device_type)})
    else
-      title = i18n("mac_stats.layer_2_host_devices")
+      title = i18n("mac_stats.layer_2_host_devices", {device_type=""})
    end
 elseif devices_mode == "dhcp_macs_only" then
    dhcp_macs_only = true
@@ -85,7 +85,7 @@ else
    if device_type then
       title = i18n("mac_stats.dev_layer_2_devices", {device_type=discover.devtype2string(device_type)})
    else
-      title = i18n("mac_stats.all_layer_2_devices")
+      title = i18n("mac_stats.all_layer_2_devices", {device_type=""})
    end
 end
 

@@ -35,6 +35,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   ArpStats arp_stats;
   DeviceType device_type;
 
+  void checkDeviceTypeFromManufacturer();
+  
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
