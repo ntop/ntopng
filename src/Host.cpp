@@ -1750,9 +1750,17 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
 /* *************************************** */
 
 void Host::setOS(char *_os) {
-  if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os);
-
-  if(!localHost || (mac == NULL)) return;
+  if((!localHost)
+     || (mac == NULL)
+     /*
+       When this happens then this is a (NAT+)router and
+       the OS would be misleading
+     */
+     || (mac->getDeviceType() == device_networking)
+     ) return;
+  
+  if(os[0] == '\0')
+    snprintf(os, sizeof(os), "%s", _os);
 
   if(strcasestr(os, "iPhone")
      || strcasestr(os, "Android")
