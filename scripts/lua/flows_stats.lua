@@ -330,10 +330,6 @@ if ntop.isPro() and interface.isPacketInterface() == false then
    printFlowDevicesFilterDropdown(base_url, vlan_params)
 end
 
-if ntop.isEnterprise() then
-   printFlowASesFilterDropdown(base_url, table.clone(page_params))
-end
-
 -- end buttons
 
 print(" ],\n")
