@@ -1106,7 +1106,6 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local scaling_factor = 8
 
    touchRRD(rrdname)
-
    --io.write(prefixLabel.."\n")
 
    if(prefixLabel == "Bytes") then
@@ -1165,13 +1164,17 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 if append_ifname_to_labels then
 	     extra_info = getInterfaceName(ifid)
 	 end
+
 	 if host ~= nil and not string.starts(host, 'profile:')
 	    and protocol_categories[prefixLabel] == nil
             and not string.starts(rrdFile, 'categories/') then
-	     extra_info = extra_info.." ".. firstToUpper(n)
+	     extra_info = extra_info..firstToUpper(n)
 	 end
 
-	 extra_info = trimSpace(extra_info)
+	 if string.starts(host, 'asn:') then
+	    extra_info = extra_info.." by AS"
+	 end
+
 	 if extra_info ~= "" and extra_info ~= prefixLabel then
 	    if(port_mode) then
 	       if(#names == 0) then
