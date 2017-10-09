@@ -1234,8 +1234,7 @@ local  en = {
       hosts_only = "Hosts Only",
       dhcp_only = "DHCP Only",
       all_manufacturers = "All Manufacturers",
-      arp_sent = "ARP Sent",
-      arp_received = "ARP Received",
+      arp_total = "ARP",
    },
 
    details = {

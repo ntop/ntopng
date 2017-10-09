@@ -21,8 +21,7 @@ end
 
 function mac2link(mac)
    local macaddress = mac["mac"]
-   local link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..macaddress.."'>"..macaddress..'</A>'
-   return macAddIcon(mac, link)
+   return "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..macaddress.."'>"..macaddress..'</A>'
 end
 
 function mac2record(mac)
@@ -45,8 +44,12 @@ function mac2record(mac)
    if(manufacturer == nil) then manufacturer = "" end
    record["column_manufacturer"] = manufacturer
 
-   record["column_arp_sent"] = formatValue(mac["arp_requests.sent"] + mac["arp_replies.sent"])
-   record["column_arp_rcvd"] = formatValue(mac["arp_requests.rcvd"] + mac["arp_replies.rcvd"])
+   record["column_arp_total"] = formatValue(mac["arp_requests.sent"]
+					       + mac["arp_replies.sent"]
+					       + mac["arp_requests.rcvd"]
+					       + mac["arp_replies.rcvd"])
+
+   record["column_device_type"] = discover.devtype2icon(mac["devtype"]).." "..discover.devtype2string(mac["devtype"])
 
    record["column_hosts"] = mac["num_hosts"]..""
    record["column_since"] = secondsToTime(now - mac["seen.first"]+1)

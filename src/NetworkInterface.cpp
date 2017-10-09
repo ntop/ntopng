@@ -3277,6 +3277,10 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].numericValue = m->getDeviceType();
     break;
 
+  case column_arp_total:
+    r->elems[r->actNumEntries++].numericValue = m->getNumSentArp() + m->getNumRcvdArp();
+    break;
+
   case column_arp_sent:
     r->elems[r->actNumEntries++].numericValue = m->getNumSentArp();
     break;
@@ -3940,8 +3944,9 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_manufacturer")) retriever->sorter = column_manufacturer, sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_device_type"))  retriever->sorter = column_device_type, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_total"))    retriever->sorter = column_arp_total, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent,  sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd,  sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
