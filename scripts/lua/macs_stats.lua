@@ -201,10 +201,11 @@ print [[
 			        textAlign: 'left'
 			     }
 				 },
-			  ]]
-
-
-print [[
+			     {
+			     title: "]] print(i18n("details.device_type")) print[[",
+				 field: "column_device_type",
+				 sortable: false,
+				 },
 			     {
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
@@ -218,15 +219,6 @@ print [[
 			     title: "]] print(i18n("mac_stats.arp_total")) print[[",
 				 field: "column_arp_total",
 				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
-			     title: "]] print(i18n("details.device_type")) print[[",
-				 field: "column_device_type",
-				 sortable: false,
                              css: {
 			        textAlign: 'center'
 			     }

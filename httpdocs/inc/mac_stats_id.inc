@@ -12,14 +12,12 @@ function mac_table_setID (row) {
   row.find("td").eq(index++).attr('id', mac_key+"_key");
   row.find("td").eq(index++).attr('id', mac_key+"_mac");
   row.find("td").eq(index++).attr('id', mac_key+"_manufacturer");
+  row.find("td").eq(index++).attr('id', mac_key+"_device_type");
 
-  // mac_stats_top
   row.find("td").eq(index++).attr('id', mac_key+"_hosts");
-  row.find("td").eq(index++).attr('id', mac_key+"_arpsent");
-  row.find("td").eq(index++).attr('id', mac_key+"_arprcvd");
-  row.find("td").eq(index++).attr('id', mac_key+"_since");
+  row.find("td").eq(index++).attr('id', mac_key+"_arp_total");
 
-  // mac_stats_bottom
+  row.find("td").eq(index++).attr('id', mac_key+"_since");
   row.find("td").eq(index++).attr('id', mac_key+"_breakdown");
   row.find("td").eq(index++).attr('id', mac_key+"_throughput");
   row.find("td").eq(index++).attr('id', mac_key+"_traffic");
@@ -40,10 +38,11 @@ function mac_row_update(mac_key) {
     cache: false,
     success: function(content) {
       var data = jQuery.parseJSON(content);
+
       $("#"+mac_key+'_hosts').html(data.column_hosts);
-      $("#"+mac_key+'_arpsent').html(data.column_arp_sent);
-      $("#"+mac_key+'_arprcvd').html(data.column_arp_rcvd);
-      $("#"+mac_key+'_alerts').html(data.column_alerts);
+      $("#"+mac_key+'_arp_total').html(data.column_arp_total);
+      $("#"+mac_key+'_device_type').html(data.column_device_type);
+
       $("#"+mac_key+'_since').html(data.column_since);
       $("#"+mac_key+'_breakdown').html(data.column_breakdown);
       $("#"+mac_key+'_throughput').html(data.column_thpt);
