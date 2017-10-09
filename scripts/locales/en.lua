@@ -1309,8 +1309,15 @@ local  en = {
 
    network_details = {
       network = "Network",
-      network_parameter_missing_message = "Network parameter is missing (internal error ?)",
+      network_parameter_missing_message = "Network parameter is missing (internal error?)",
       no_available_stats_for_network = "No available stats for network %{network}",
+   },
+
+   as_details = {
+      as = "Autonomous System",
+      as_parameter_missing_message = "Autonomous System parameter is missing (internal error?)",
+      no_available_data_for_as = "No available data for AS %{asn}.",
+      as_timeseries_enable_message = "AS timeseries can be enabled from the <A HREF=\"%{url}\">%{icon_flask} Preferences</A>. Few minutes are necessary to see the first data points.",
    },
 
    port_details = {

@@ -36,7 +36,7 @@ class Paginator {
   u_int16_t vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
-  u_int32_t client_asn, server_asn;
+  u_int32_t asn_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int16_t pool_filter;
@@ -117,12 +117,8 @@ class Paginator {
     if(server_mode) { (*f) = server_mode; return true; } return false;
   }
 
-  inline bool clientASN(u_int32_t *f) const {
-    if(client_asn != (u_int32_t)-1) { (*f) = client_asn; return true; } return false;
-  }
-
-  inline bool serverASN(u_int32_t *f) const {
-    if(server_asn != (u_int32_t)-1) { (*f) = server_asn; return true; } return false;
+  inline bool asnFilter(u_int32_t *f) const {
+    if(asn_filter != (u_int32_t)-1) { (*f) = asn_filter; return true; } return false;
   }
 
   inline bool unidirectionalTraffic(bool *f) const {

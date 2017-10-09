@@ -51,7 +51,7 @@ Paginator::Paginator() {
   mac_filter = NULL;
 
   deviceIP = inIndex = outIndex = 0;
-  client_asn = server_asn = (u_int32_t)-1;
+  asn_filter = (u_int32_t)-1;
 
   details_level = details_normal;
   details_level_set = false;
@@ -61,7 +61,6 @@ Paginator::Paginator() {
 
     osFilter
     vlanFilter
-    asnFilter
   */
 };
 
@@ -165,10 +164,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  ip_version = lua_tointeger(L, -1);
 	else if(!strcmp(key, "poolFilter"))
 	  pool_filter = lua_tointeger(L, -1);
-	else if(!strcmp(key, "clientASNFilter"))
-	  client_asn = lua_tointeger(L, -1);
-	else if(!strcmp(key, "serverASNFilter"))
-	  server_asn = lua_tointeger(L, -1);
+	else if(!strcmp(key, "asnFilter"))
+	  asn_filter = lua_tointeger(L, -1);
 
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);

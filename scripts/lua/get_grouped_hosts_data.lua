@@ -167,9 +167,9 @@ function print_single_group(value)
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
-      local asnstats_rrd = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats/'..value["id"]..'/bytes.rrd')
+      local asnstats_rrd = getRRDName(ifstats.id, 'asn:'..value["id"], 'bytes.rrd')
       if ntop.exists(asnstats_rrd) then
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
          print('')
       end

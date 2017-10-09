@@ -2930,7 +2930,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   bool unicast, unidirectional, alerted_flows;
-  u_int32_t client_asn, server_asn;
+  u_int32_t asn_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
 #ifdef NTOPNG_PRO
@@ -2969,13 +2969,10 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
 
     if(retriever->pag
-       && retriever->pag->clientASN(&client_asn)
-       && (!f->get_cli_host() || f->get_cli_host()->get_asn() != client_asn))
-      return(false);
-
-    if(retriever->pag
-       && retriever->pag->serverASN(&server_asn)
-       && (!f->get_srv_host() || f->get_srv_host()->get_asn() != server_asn))
+       && retriever->pag->asnFilter(&asn_filter)
+       && f->get_cli_host() && f->get_srv_host()
+       && f->get_cli_host()->get_asn() != asn_filter
+       && f->get_srv_host()->get_asn() != asn_filter)
       return(false);
 
     if(retriever->pag
