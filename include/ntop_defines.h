@@ -786,4 +786,7 @@
 */
 #define CONST_MAX_NUM_HOST_USES   8
 
+/* Keep in sync with nProbe */
+#define MAX_ZMQ_FLOW_BUF          2048
+
 #endif /* _NTOP_DEFINES_H_ */

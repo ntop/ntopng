@@ -163,7 +163,7 @@ typedef struct zmq_flow_core {
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int8_t l4_proto, tcp_flags;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
-  bool absolute_packet_octet_counters;
+  u_int8_t absolute_packet_octet_counters;
   struct {
     u_int32_t ooo_in_pkts, ooo_out_pkts;
     u_int32_t retr_in_pkts, retr_out_pkts;
@@ -445,4 +445,5 @@ typedef enum {
   os_android,
   os_max_os /* Keep as last element */
 } OperatingSystem;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

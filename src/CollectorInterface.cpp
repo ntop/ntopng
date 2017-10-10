@@ -189,11 +189,11 @@ void CollectorInterface::collect_flows() {
 	    int err;
 	    uLongf uLen;
 
-	    uLen = uncompressed_len = 3*size;
+	    uLen = uncompressed_len = max(3*size, MAX_ZMQ_FLOW_BUF);
 	    uncompressed = (char*)malloc(uncompressed_len+1);
 	    if((err = uncompress((Bytef*)uncompressed, &uLen, (Bytef*)&payload[1], size-1)) != Z_OK) {
-	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d]", err);
-	      return;
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d][len: %u]", err, size);
+	      continue;
 	    }
 
 	    uncompressed_len = uLen, uncompressed[uLen] = '\0';
@@ -203,7 +203,7 @@ void CollectorInterface::collect_flows() {
 	    if(!once)
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to uncompress ZMQ traffic: ntopng compiled without zlib"), once = true;
 
-	    return;
+	    continue;
 #endif
 	  } else
 	    uncompressed = payload, uncompressed_len = size;

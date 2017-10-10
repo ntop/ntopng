@@ -40,7 +40,8 @@ class ParserInterface : public NetworkInterface {
 
   int getKeyId(char *sym);
   void addMapping(const char *sym, int num);
-
+  void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
+    
  public:
   ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();
