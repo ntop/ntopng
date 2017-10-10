@@ -87,7 +87,7 @@ Prefs::Prefs(Ntop *_ntop) {
 
   redirection_url = redirection_url_shadow = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
-  mysql_port = 3306;
+  mysql_port = CONST_DEFAULT_MYSQL_PORT;
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
@@ -1025,23 +1025,21 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
-    /* Check for non-default SQL port on -F line */
-    if (strchr(mysql_host, '@')) {
-        char* mysql_port_str = Utils::tokenizer(mysql_host, '@', &mysql_host);
-        if (mysql_port_str == NULL) {
-            mysql_port = 3306;
-        } else {
-            errno = 0;
-            long l = strtol(mysql_port_str, NULL, 10);
-            if ((errno != 0) || (l == 0)) {
-                ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port for -F, using default (3306)");
-                mysql_port = 3306;
-            } else {
-                mysql_port = (int)l;
-            }
-        }
-    }
+	/* Check for non-default SQL port on -F line */
+	char* mysql_port_str;
+	if ((mysql_port_str = strchr(mysql_host, '@'))) {
+	  *(mysql_port_str++) = '\0';
 
+	  errno = 0;
+	  long l = strtol(mysql_port_str, NULL, 10);
+
+	  if (errno || !l)
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
+					 CONST_DEFAULT_MYSQL_PORT,
+					 strerror(errno));
+	  else
+	    mysql_port = (int)l;
+	}
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
