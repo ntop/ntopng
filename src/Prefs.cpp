@@ -251,7 +251,6 @@ void usage() {
 	 "[--pid|-G] <path>                   | Pid file path\n"
 #endif
 
-	 "[--disable-alerts|-H]               | Disable alerts generation\n"
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    | es            Dump in ElasticSearch database\n"
