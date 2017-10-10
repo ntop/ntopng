@@ -87,6 +87,7 @@ Prefs::Prefs(Ntop *_ntop) {
 
   redirection_url = redirection_url_shadow = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
+  mysql_port = CONST_DEFAULT_MYSQL_PORT;
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
@@ -250,7 +251,6 @@ void usage() {
 	 "[--pid|-G] <path>                   | Pid file path\n"
 #endif
 
-	 "[--disable-alerts|-H]               | Disable alerts generation\n"
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    | es            Dump in ElasticSearch database\n"
@@ -269,7 +269,7 @@ void usage() {
 	 "                                    |\n"
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
-	 "                                    |   mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |   mysql;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
 	 "                                    |   mysql;localhost;ntopng;flows;root;\n"
 	 "                                    |\n"
 	 "                                    | mysql-nprobe  Read from an nProbe-generated MySQL database\n"
@@ -1024,7 +1024,21 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
+	/* Check for non-default SQL port on -F line */
+	char* mysql_port_str;
+	if ((mysql_port_str = strchr(mysql_host, '@'))) {
+	  *(mysql_port_str++) = '\0';
 
+	  errno = 0;
+	  long l = strtol(mysql_port_str, NULL, 10);
+
+	  if (errno || !l)
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
+					 CONST_DEFAULT_MYSQL_PORT,
+					 strerror(errno));
+	  else
+	    mysql_port = (int)l;
+	}
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {

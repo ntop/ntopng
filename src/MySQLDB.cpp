@@ -702,14 +702,15 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
-			    3306 /* port */,
+			    ntop->getPrefs()->get_mysql_port(),
 			    NULL /* socket */, flags);
 
   if(rc == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s:%s]\n",
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s@%s:%i]\n",
 				 mysql_error(conn),
+				 ntop->getPrefs()->get_mysql_user(),
 				 ntop->getPrefs()->get_mysql_host(),
-				 ntop->getPrefs()->get_mysql_user());
+                 ntop->getPrefs()->get_mysql_port());
 
     if(m) m->unlock(__FILE__, __LINE__);
     return(false);
@@ -717,9 +718,10 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s:%s] for interface %s",
-			       ntop->getPrefs()->get_mysql_host(),
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s@%s:%i] for interface %s",
 			       ntop->getPrefs()->get_mysql_user(),
+			       ntop->getPrefs()->get_mysql_host(),
+			       ntop->getPrefs()->get_mysql_port(),
 			       iface->get_name());
 
   if(m) m->unlock(__FILE__, __LINE__);
