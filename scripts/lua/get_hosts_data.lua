@@ -271,7 +271,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if(value["ip"] ~= nil) then
-      label = getHostAltName(value["ip"])
+      local label = getHostAltName(value["ip"], value["mac"])
       if(label ~= value["ip"]) then
 	 print (" ["..label.."]")
       end
