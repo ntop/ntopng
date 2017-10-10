@@ -445,8 +445,36 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
+      bool invalid_query = false;
+      
       if(protos.dns.last_query) free(protos.dns.last_query);
       protos.dns.last_query = strdup((const char*)ndpiFlow->host_server_name);
+
+      for(int i=0; protos.dns.last_query[i] != '\0'; i++) {
+	if(!isprint(protos.dns.last_query[i])) {
+	  protos.dns.last_query[i] = '?';
+	  invalid_query = true;
+	}
+      }
+
+      if(!invalid_query)
+	invalid_query = (strlen(protos.dns.last_query) > MAX_VALID_DNS_QUERY_LEN) ? true : false;
+      
+      if(invalid_query) {
+	char alert_msg[1024], c_buf[64], cli_name[64];
+	
+	snprintf(alert_msg, sizeof(alert_msg),
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> sent suspicious DNS query [%s]",
+		 ntop->getPrefs()->get_http_prefix(),
+		 cli_host->get_hostkey(c_buf, sizeof(c_buf)), iface->get_id(),
+		 cli_host->get_visual_name(cli_name, sizeof(cli_name)),
+		 protos.dns.last_query);
+	
+	iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection, alert_level_error, alert_msg);
+	setFlowAlerted();
+
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid DNS query detected [%s]", protos.dns.last_query);
+      }
     }
 
     if(ntop->getPrefs()->decode_dns_responses()) {

@@ -785,7 +785,9 @@
    We assume that a host with more than CONST_MAX_NUM_HOST_USES
    MACs associated is a router
 */
-#define CONST_MAX_NUM_HOST_USES   8
+#define CONST_MAX_NUM_HOST_USES    8
+
+#define MAX_VALID_DNS_QUERY_LEN   64
 
 /* Keep in sync with nProbe */
 #define MAX_ZMQ_FLOW_BUF          2048
