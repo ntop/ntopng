@@ -103,6 +103,7 @@ class Prefs {
   bool json_labels_string_format;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
+  int mysql_port;
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
 
@@ -232,6 +233,7 @@ class Prefs {
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()         { return(use_promiscuous_mode);  };
   inline char* get_mysql_host()         { return(mysql_host);            };
+  inline int get_mysql_port()         { return(mysql_port);            };
   inline char* get_mysql_dbname()       { return(mysql_dbname);          };
   inline char* get_mysql_tablename()    { return(mysql_tablename);       };
   inline char* get_mysql_user()         { return(mysql_user);            };
