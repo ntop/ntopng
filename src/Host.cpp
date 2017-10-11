@@ -64,7 +64,8 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  if(host_pool_id != NO_HOST_POOL_ID) iface->decPoolNumMembers(host_pool_id);
+  if(host_pool_id != NO_HOST_POOL_ID)
+    iface->decPoolNumMembers(host_pool_id, false);
   
   if(mac)           mac->decUses();
   if(as)            as->decUses();
@@ -253,7 +254,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   refreshHostAlertPrefs();
   
   if(!host_serial) computeHostSerial();
-  updateHostPool();
+  updateHostPool(true);
   updateHostL7Policy();
 }
 
@@ -360,13 +361,13 @@ void Host::updateHostL7Policy() {
 
 /* *************************************** */
 
-void Host::updateHostPool() {
+void Host::updateHostPool(bool isInlineCall) {
   if(!iface)
     return;
 
-  if(host_pool_id != NO_HOST_POOL_ID) iface->decPoolNumMembers(host_pool_id);
+  if(host_pool_id != NO_HOST_POOL_ID) iface->decPoolNumMembers(host_pool_id, isInlineCall);
   host_pool_id = iface->getHostPool(this);
-  if(host_pool_id != NO_HOST_POOL_ID) iface->incPoolNumMembers(host_pool_id);
+  if(host_pool_id != NO_HOST_POOL_ID) iface->incPoolNumMembers(host_pool_id, isInlineCall);
   
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();

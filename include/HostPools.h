@@ -35,7 +35,7 @@ class HostPools {
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
   u_int16_t max_num_pools;
-  u_int16_t *num_active_pool_members;
+  int32_t *num_active_pool_members_inline, *num_active_pool_members_offline;
 #ifdef NTOPNG_PRO
   bool *children_safe;
   u_int8_t *routing_policy_id;
@@ -74,10 +74,28 @@ public:
   bool findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
   void lua(lua_State *vm);
+  
+  inline int32_t numPoolMembers(u_int16_t pool_id) {
+    return(num_active_pool_members_inline[pool_id] + num_active_pool_members_offline[pool_id]);
+  }
+  
+  inline void incPoolNumMembers(u_int16_t pool_id, bool isInlineCall) {
+    if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) {
+      if(isInlineCall)
+	num_active_pool_members_inline[pool_id]++;
+      else
+	num_active_pool_members_offline[pool_id]++;
+    }
+  }
 
-  inline void incPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]++; }
-  inline void decPoolNumMembers(u_int16_t pool_id) { if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) num_active_pool_members[pool_id]--; }
-
+  inline void decPoolNumMembers(u_int16_t pool_id, bool isInlineCall) {
+    if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) {
+      if(isInlineCall)
+	num_active_pool_members_inline[pool_id]--;
+      else
+	num_active_pool_members_offline[pool_id]--;
+    }
+  }
  
 #ifdef NTOPNG_PRO
   void incPoolNumDroppedFlows(u_int16_t pool_id);

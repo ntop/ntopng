@@ -28,7 +28,9 @@
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
 
-  if((num_active_pool_members = (u_int16_t*)calloc(sizeof(u_int16_t), MAX_NUM_HOST_POOLS)) == NULL)
+  if((num_active_pool_members_inline = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
+    throw 1;
+  if((num_active_pool_members_offline = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
     throw 1;
 
 #ifdef NTOPNG_PRO
@@ -104,7 +106,12 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
 /* *************************************** */
 
 HostPools::~HostPools() {
-  if(num_active_pool_members) free(num_active_pool_members);
+  if(num_active_pool_members_inline)
+    free(num_active_pool_members_inline);
+  
+  if(num_active_pool_members_offline)
+    free(num_active_pool_members_offline);
+  
   if(tree_shadow)   deleteTree(&tree_shadow);
   if(tree)          deleteTree(&tree);
   if(swap_lock)     delete swap_lock;
@@ -550,11 +557,11 @@ void HostPools::lua(lua_State *vm) {
   lua_newtable(vm);
   
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if(num_active_pool_members[i] > 0) {
+    if(numPoolMembers(i) > 0) {
       char buf[8];
       
       snprintf(buf, sizeof(buf), "%u", i);
-      lua_push_int_table_entry(vm, buf, num_active_pool_members[i]);
+      lua_push_int_table_entry(vm, buf, numPoolMembers(i));
     }      
   }
   

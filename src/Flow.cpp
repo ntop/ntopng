@@ -979,9 +979,11 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
-  if((is_idle_flow = isReadyToPurge()))
-    set_to_purge(); /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-
+  if((is_idle_flow = isReadyToPurge())) {
+    /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
+    set_to_purge();
+  }
+  
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 

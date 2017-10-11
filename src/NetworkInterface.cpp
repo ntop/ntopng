@@ -2521,7 +2521,7 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 #endif
 
   if(up->update_pool_id)
-    h->updateHostPool();
+    h->updateHostPool(false /* Not inline with traffic processing */);
 
   if(up->update_l7policy)
     h->updateHostL7Policy();

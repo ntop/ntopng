@@ -193,7 +193,7 @@ class Host : public GenericHost {
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostL7Policy();
-  void updateHostPool();
+  void updateHostPool(bool isInlineCall);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);

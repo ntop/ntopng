@@ -604,8 +604,8 @@ class NetworkInterface {
   inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
-  inline void incPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->incPoolNumMembers(id); }
-  inline void decPoolNumMembers(u_int16_t id) { if (host_pools) host_pools->decPoolNumMembers(id); }  
+  inline void incPoolNumMembers(u_int16_t id, bool isInlineCall) { if (host_pools) host_pools->incPoolNumMembers(id, isInlineCall); }
+  inline void decPoolNumMembers(u_int16_t id, bool isInlineCall) { if (host_pools) host_pools->decPoolNumMembers(id, isInlineCall); }  
   void updateFlowStats(u_int8_t protocol,
 		       u_int32_t srcHost, u_int16_t sport,
 		       u_int32_t dstHost, u_int16_t dport,
