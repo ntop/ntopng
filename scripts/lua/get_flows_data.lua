@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
+local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 local debug = false
@@ -17,7 +18,6 @@ local ifstats = interface.getStats()
 -- printGETParameters(_GET)
 
 -- Table parameters
-local all = _GET["all"]
 local currentPage = _GET["currentPage"]
 local perPage     = _GET["perPage"]
 local sortColumn  = _GET["sortColumn"]
@@ -85,12 +85,7 @@ end
 
 if(port ~= nil) then port = tonumber(port) end
 
-to_skip = (currentPage-1) * perPage
-
-if(all ~= nil) then
-   perPage = 0
-   currentPage = 0
-end
+local to_skip = (currentPage - 1) * perPage
 
 -- io.write("->"..sortColumn.."/"..perPage.."/"..sortOrder.."/"..sortColumn.."\n")
 interface.select(ifname)
@@ -107,7 +102,6 @@ local pageinfo = {
 
 if application ~= nil and application ~= "" then
    pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
-   --print(pageinfo["l7protoFilter"].." / "..application)
 end
 
 if not isEmptyString(flowhosts_type) then
@@ -175,14 +169,12 @@ end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)
 local total = flows_stats["numFlows"]
-flows_stats = flows_stats["flows"]
+local flows_stats = flows_stats["flows"]
 
-print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
--- tprint(flows_stats)
 -- Prepare host
-host_list = {}
-num_host_list = 0
-single_host = 0
+local host_list = {}
+local num_host_list = 0
+local single_host = 0
 
 if(hosts ~= nil) then host_list, num_host_list = getHostCommaSeparatedList(hosts) end
 if(host ~= nil) then
@@ -190,151 +182,9 @@ if(host ~= nil) then
    num_host_list = 1
 end
 
-vals = {}
-num = 0
-
 if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
-   -- io.write(">>>> "..key.."\n")
-   if(debug) then io.write("==================\n") end
-
-   process = true
-   client_process = 0
-   server_process = 0
-
-   if(debug) then io.write("Cli:"..flows_stats[key]["cli.ip"].."\t") end
-   if(debug) then io.write("Srv:"..flows_stats[key]["srv.ip"].."\n") end
-
-   if(vhost ~= nil) then
-      if((flows_stats[key]["cli.host"] ~= vhost)
-      and (flows_stats[key]["srv.host"] ~= vhost)
-   and (flows_stats[key]["protos.http.server_name"] ~= vhost)
-   and (flows_stats[key]["protos.dns.last_query"] ~= vhost)) then
-	 process = false
-      end
-   end
-
-   if(network_id ~= nil) then
-      process = process and ((flows_stats[key]["cli.network_id"] == network_id) or (flows_stats[key]["srv.network_id"] == network_id))
-   end
-
-   ---------------- L4 PROTO ----------------
-   if(l4proto ~= nil) then
-      process = process and (flows_stats[key]["proto.l4"] == l4proto)
-   end
-   if(debug and (not process)) then io.write("Stop L4\n") end
-
-   ---------------- USER ----------------
-   if(user ~= nil) then
-      if(debug) then io.write("User:"..user.."\n") end
-
-      if(flows_stats[key]["client_process"] ~= nil) then
-         if(debug) then io.write("Client user:"..flows_stats[key]["client_process"]["user_name"].."\n") end
-         if((flows_stats[key]["client_process"]["user_name"] == user)) then
-            client_process = 1
-         end
-         if(debug) then io.write("USER: => ClientProcess -\t"..client_process.."\n") end
-      end
-
-      if(flows_stats[key]["server_process"] ~= nil) then
-         if(debug) then io.write("Server user:"..flows_stats[key]["server_process"]["user_name"].."\n") end
-         if((flows_stats[key]["server_process"]["user_name"] == user)) then
-            server_process = 1
-            if(debug) then io.write("USER: => 1ServerProcess -\t"..server_process.."\n") end
-         end
-         if(debug) then io.write("USER: => ServerProcess -\t"..server_process.."\n") end
-      end
-
-      process = process and ((client_process == 1) or (server_process == 1))
-
-   end
-   if(debug and (not process)) then io.write("Stop user\n") end
-
-   ---------------- PID ----------------
-   if(pid ~= nil) then
-      if(debug) then io.write("Pid:"..pid.."\n") end
-
-      if(flows_stats[key]["client_process"] ~= nil) then
-         if(debug) then io.write("Client pid:"..flows_stats[key]["client_process"]["pid"].."\n") end
-         if((flows_stats[key]["client_process"]["pid"] == pid)) then
-            client_process = 1
-         end
-         if(debug) then io.write("PID: => ClientProcess -\t"..client_process.."\n") end
-      end
-
-      if(flows_stats[key]["server_process"] ~= nil) then
-         if(debug) then io.write("Server pid:"..flows_stats[key]["server_process"]["pid"].."\n") end
-         if((flows_stats[key]["server_process"]["pid"] == pid)) then
-            server_process = 1
-         end
-         if(debug) then io.write("PID: => ServerProcess -\t"..server_process.."\n") end
-      end
-
-       process = process and  ((client_process == 1) or (server_process == 1))
-
-   end
-   if(debug and (not process)) then io.write("Stop Pid\n") end
-
-   ---------------- NAME ----------------
-   if(name ~= nil) then
-      if(debug) then io.write("Name:"..name.."\n") end
-
-      if(flows_stats[key]["client_process"] ~= nil) then
-         if(debug) then io.write("Client name:"..flows_stats[key]["client_process"]["name"].."\n") end
-         if((flows_stats[key]["client_process"]["name"] == name)) then
-            client_process = 1
-         end
-         if(debug) then io.write("ClientProcess -\t"..client_process.."\n") end
-      end
-
-      if(flows_stats[key]["server_process"] ~= nil) then
-         if(debug) then io.write("Server name:"..flows_stats[key]["server_process"]["name"].."\n") end
-         if((flows_stats[key]["server_process"]["name"] == name)) then
-            server_process = 1
-         end
-         if(debug) then io.write("ServerProcess -\t"..server_process.."\n") end
-      end
-      process = process and ((client_process == 1) or (server_process == 1))
-
-   end
-   if(debug and (not process)) then io.write("Stop name\n") end
-
-   ---------------- PORT ----------------
-   if(port ~= nil) then
-      process = process and ((flows_stats[key]["cli.port"] == port) or (flows_stats[key]["srv.port"] == port))
-   end
-   if(debug and (not process)) then io.write("Stop port\n") end
-
-   ---------------- HOST ----------------
-   if((num_host_list > 0) and process) then
-      if(single_host == 1) then
-      if(debug) then io.write("Host:"..host_info["host"].."\n") end
-      if(debug) then io.write("Cli:"..flows_stats[key]["cli.ip"].."\n") end
-      if(debug) then io.write("Srv:"..flows_stats[key]["srv.ip"].."\n") end
-      if(debug) then io.write("vlan:"..flows_stats[key]["vlan"].."  ".. host_info["vlan"].."\n") end
-
-      process = process and ((flows_stats[key]["cli.ip"] == host_info["host"]) or (flows_stats[key]["srv.ip"] == host_info["host"]))
-      process = process and (flows_stats[key]["vlan"] == host_info["vlan"])
-
-      else
-      cli_num = findStringArray(flows_stats[key]["cli.ip"],host_list)
-      srv_num = findStringArray(flows_stats[key]["srv.ip"],host_list)
-
-      if( (cli_num ~= nil) and (srv_num ~= nil) ) then
-         if(cli_num and srv_num) then
-            process = process and (flows_stats[key]["cli.ip"] ~= flows_stats[key]["srv.ip"])
-         else
-            process = process and false
-         end
-      else
-         process = process and false
-      end
-      end
-   end
-
-   if(debug and (not process)) then io.write("Stop Host\n") end
-
    local info = ""
    if(flows_stats[key]["info"] ~= nil) then
       info = shortenString(flows_stats[key]["info"])
@@ -350,81 +200,13 @@ for key, value in ipairs(flows_stats) do
    if(flows_stats[key]["profile"] ~= nil) then
       flows_stats[key]["info"] = "<span class='label label-primary'>"..flows_stats[key]["profile"].."</span> "..info
    end
-
-   ---------------- TABLE SORTING ----------------
-   -- TODO: as flows are returned already ordered via getFlowsInfo
-   -- this table sorting shall be removed. However, there are special
-   -- sort columns that I am not aware of, e.g., column_server_process
-   if(process) then
-      if(debug_process) then io.write("Flow Processing\n") end
-      if(debug_process) then io.write("Cli: "..flows_stats[key]["cli.ip"].."\t") end
-      if(debug_process) then io.write("Srv: "..flows_stats[key]["srv.ip"].."\n") end
-      -- postfix is used to create a unique key otherwise entries with the same key will disappear
-      num = num + 1
-      if(sortColumn == "column_client") then
-	 vkey = flows_stats[key]["cli.ip"]
-      elseif(sortColumn == "column_server") then
-	 vkey = flows_stats[key]["srv.ip"]
-      elseif(sortColumn == "column_bytes") then
-	 vkey = flows_stats[key]["bytes"]
-      elseif(sortColumn == "column_vlan") then
-	 vkey = flows_stats[key]["vlan"]
-      elseif(sortColumn == "column_info") then
-	 -- add spaces before postfix as we sort for string
-	 vkey = flows_stats[key]["info"]
-      elseif(sortColumn == "column_ndpi") then
-	 vkey = flows_stats[key]["proto.ndpi"]
-      elseif(sortColumn == "column_server_process") then
-	 if(flows_stats[key]["server_process"] ~= nil) then
-	    vkey = flows_stats[key]["server_process"]["name"]
-	 else
-	    vkey = ""
-	 end
-      elseif(sortColumn == "column_client_process") then
-	 if(flows_stats[key]["client_process"] ~= nil) then
-	    vkey = flows_stats[key]["client_process"]["name"]
-	 else
-	    vkey = ""
-	 end
-      elseif(sortColumn == "column_duration") then
-	 vkey = flows_stats[key]["duration"]
-      elseif(sortColumn == "column_thpt") then
-	 vkey = flows_stats[key]["throughput_"..throughput_type]
-      elseif(sortColumn == "column_proto_l4") then
-	 vkey = flows_stats[key]["proto.l4"]
-      else
-	 -- By default sort by bytes
-	 vkey = flows_stats[key]["bytes"]
-      end
-
-      --io.write("-->"..key.."="..vkey.."\n")
-      -- vals[vkey] = key
-      vals[key] = vkey
-   end
 end
 
-num = 0
+local formatted_res = {}
 
-if(sortOrder == "asc") then
-   funct = asc
-else
-   funct = rev
-end
-
---[[ TODO: check that actually vals is no longer needed
-for _key, _value in pairsByKeys(vals, funct) do
-   key = vals[_key]
-   value = flows_stats[key]
---]]
-for _key, _value in pairsByValues(vals, funct) do
-   value = flows_stats[_key]
-   key = value["ntopng.key"]
-
-     if(key ~= nil) then
-      if((num < perPage) or (all ~= nil))then
-   if(num > 0) then
-      print ",\n"
-   end
+for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
+   local record = {}
+   local key = value["ntopng.key"]
 
    local srv_name = flowinfo2hostname(value, "srv")
    local cli_name = flowinfo2hostname(value, "cli")
@@ -447,78 +229,80 @@ for _key, _value in pairsByValues(vals, funct) do
       src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. shortenString(stripVlan(cli_name))
       if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fa fa-flag'></i>" end
 
-   -- Flow username
-   i, j = nil
-   if(value["moreinfo.json"] ~= nil) then
-      i, j = string.find(value["moreinfo.json"], '"57593":')
-   end
-   if(i ~= nil) then
-      has_user = string.sub(value["moreinfo.json"], j+2, j+3)
-      if(has_user == '""') then has_user = nil end
-   end
-   if(has_user ~= nil) then src_key = src_key .. " <i class='fa fa-user'></i>" end
-   src_key = src_key .. "</A>"
+      -- Flow username
+      local i, j
+      if(value["moreinfo.json"] ~= nil) then
+	 i, j = string.find(value["moreinfo.json"], '"57593":')
+      end
+      if(i ~= nil) then
+	 has_user = string.sub(value["moreinfo.json"], j+2, j+3)
+	 if(has_user == '""') then has_user = nil end
+      end
+      if(has_user ~= nil) then src_key = src_key .. " <i class='fa fa-user'></i>" end
+      src_key = src_key .. "</A>"
 
-   if(value["cli.port"] > 0) then
-      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
-         else
-      src_port=""
-         end
+      if(value["cli.port"] > 0) then
+	 src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
+      else
+	 src_port=""
+      end
    else
-     src_key = shortenString(stripVlan(cli_name))
-     src_port=":"..value["cli.port"]
+      src_key = shortenString(stripVlan(cli_name))
+      src_port=":"..value["cli.port"]
    end
 
    if(value["srv.allowed_host"]) then
-   dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. shortenString(stripVlan(srv_name))
-   if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fa fa-flag'></i>" end
-   dst_key = dst_key .. "</A>"
+      dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. shortenString(stripVlan(srv_name))
+      if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fa fa-flag'></i>" end
+      dst_key = dst_key .. "</A>"
 
-   if(value["srv.port"] > 0) then
-      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
-         else
-      dst_port=""
-         end
-  else
-     dst_key = shortenString(stripVlan(srv_name))
-     dst_port=":"..value["srv.port"]
-   end
-
-   print ("{ \"key\" : \"" .. value["ntopng.key"]..'\"')
-   print (", \"column_key\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key=" .. value["ntopng.key"])
-   print ("'><span class='label label-info'>Info</span></A>")
-   print ("\", \"column_client\" : \"" .. src_key)
-
-   info = interface.getHostInfo(value["cli.ip"])
-   if(info ~= nil) then
-      print(getFlag(info["country"]))
-   end
-
-   print(src_port)
-
-   print ("\", \"column_server\" : \"" .. dst_key)
-
-   info = interface.getHostInfo(value["srv.ip"])
-   if(info ~= nil) then
-      print(getFlag(info["country"]))
-   end
-
-   print(dst_port)
-
-   if((value["vlan"] ~= nil)) then
-      print("\", \"column_vlan\" : \""..value["vlan"].."\"")
+      if(value["srv.port"] > 0) then
+	 dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
+      else
+	 dst_port=""
+      end
    else
-      print("\", \"column_vlan\" : \"\"")
+      dst_key = shortenString(stripVlan(srv_name))
+      dst_port=":"..value["srv.port"]
    end
 
-   -- if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. value["category"] .. "\", ") else print (",") end
-   print (", \"column_proto_l4\" : \"")
+   record["column_key"] = "<A HREF='"
+      ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="
+      ..value["ntopng.key"]
+      .."'><span class='label label-info'>Info</span></A>"
+   record["key"] = value["ntopng.key"]
+
+   local column_client = src_key
+   local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
+
+   if(info ~= nil) then
+      column_client = column_client..getFlag(info["country"])
+   end
+
+   column_client = column_client..src_port
+   record["column_client"] = column_client
+
+   local column_server = dst_key
+   info = interface.getHostInfo(value["srv.ip"], value["srv.vlan"])
+   if(info ~= nil) then
+      column_server = column_server..getFlag(info["country"])
+   end
+
+   column_server = column_server..dst_port
+   record["column_server"] = column_server
+
+   record["column_vlan"] = ''
+   if((value["vlan"] ~= nil)) then
+      record["column_vlan"] = value["vlan"]
+   end
+
+   local column_proto_l4 = ''
 
    if(interface.isPacketInterface()) then
       if(value["flow.status"] ~= 0) then
-	 print("<i class='fa fa-warning fa-lg' style='color: orange;'"
-		  .." title='"..string.gsub(getFlowStatus(value["flow.status"]), "<[^>]*>([^<]+)<.*", "%1")
-		  .."'></i> ")
+	 column_proto_l4 = "<i class='fa fa-warning fa-lg' style='color: orange;'"
+	    .." title='"..string.gsub(getFlowStatus(value["flow.status"]), "<[^>]*>([^<]+)<.*", "%1")
+	    .."'></i> "
       end
    end
 
@@ -534,79 +318,68 @@ for _key, _value in pairsByValues(vals, funct) do
 	 if value["cli2srv.lost"] > 0 or value["srv2cli.lost"] > 0 then
 	    tcp_issues = tcp_issues.." Loss"
 	 end
-	 print('<span title=\'Issues detected:'..tcp_issues..'\'><font color=#B94A48>'..value["proto.l4"].."</font></span>")
+
+	 column_proto_l4 = column_proto_l4..'<span title=\'Issues detected:'..tcp_issues..'\'><font color=#B94A48>'..value["proto.l4"].."</font></span>"
       elseif value["flow_goodput.low"] == true then
-	 print("<font color=#B94A48><span title='Low Goodput'>"..value["proto.l4"].."</span></font>")
+	 column_proto_l4 = column_proto_l4.."<font color=#B94A48><span title='Low Goodput'>"..value["proto.l4"].."</span></font>"
       else
-	 print(value["proto.l4"])
+	 column_proto_l4 = column_proto_l4..value["proto.l4"]
       end
    else
-      print(value["proto.l4"])
+      column_proto_l4 = column_proto_l4..value["proto.l4"]
    end
+   record["column_proto_l4"] = column_proto_l4
 
-   app = getApplicationLabel(value["proto.ndpi"])
+   local app = getApplicationLabel(value["proto.ndpi"])
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
    end
-   print ("\", \"column_ndpi\" : \"<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>")
 
-   if(value["client_process"] ~= nil) then
-      print ("\", \"column_client_process\" : \"")
-      print("<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["client_process"]["pid"] .."&pid_name="..value["client_process"]["name"].."&host="..value["cli.ip"].."'>" .. processColor(value["client_process"]).."</A>")
-      print ("\", \"column_client_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=" .. value["client_process"]["user_name"] .."&host="..value["cli.ip"].."'>" .. value["client_process"]["user_name"].."</A>")
-   end
-   if(value["server_process"] ~= nil) then
-      print ("\", \"column_server_process\" : \"")
-      print("<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["server_process"]["pid"] .."&pid_name="..value["server_process"]["name"].."&host="..value["srv.ip"].."'>" .. processColor(value["server_process"]).."</A>")
-      print ("\", \"column_server_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=" .. value["server_process"]["user_name"] .."&host="..value["srv.ip"].."'>" .. value["server_process"]["user_name"].."</A>")
-   end
+   record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>"
+   record["column_duration"] = secondsToTime(value["duration"])
+   record["column_bytes"] = bytesToSize(value["bytes"])..""
 
-   print ("\", \"column_duration\" : \"" .. secondsToTime(value["duration"]))
-   print ("\", \"column_bytes\" : \"" .. bytesToSize(value["bytes"]) .. "")
-
-   if(debug) then io.write ("throughput_type: "..throughput_type.."\n") end
+   local column_thpt = ''
    if((value["throughput_trend_"..throughput_type] ~= nil)
-       and (value["throughput_trend_"..throughput_type] > 0)) then
+      and (value["throughput_trend_"..throughput_type] > 0)) then
       if(throughput_type == "pps") then
-         print ("\", \"column_thpt\" : \"" .. pktsToSize(value["throughput_pps"]).. " ")
+	 column_thpt = column_thpt..pktsToSize(value["throughput_pps"]).. " "
       else
-         print ("\", \"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
+	 column_thpt = column_thpt..bitsToSize(8*value["throughput_bps"]).. " "
       end
 
       if(value["throughput_trend_"..throughput_type] == 1) then
-         print("<i class='fa fa-arrow-up'></i>")
-         elseif(value["throughput_trend_"..throughput_type] == 2) then
-         print("<i class='fa fa-arrow-down'></i>")
-         elseif(value["throughput_trend_"..throughput_type] == 3) then
-         print("<i class='fa fa-minus'></i>")
+	 column_thpt = column_thpt.."<i class='fa fa-arrow-up'></i>"
+      elseif(value["throughput_trend_"..throughput_type] == 2) then
+	 column_thpt = column_thpt.."<i class='fa fa-arrow-down'></i>"
+      elseif(value["throughput_trend_"..throughput_type] == 3) then
+	 column_thpt = column_thpt.."<i class='fa fa-minus'></i>"
       end
 
-      print("\"")
    else
-      print ("\", \"column_thpt\" : \"0 "..throughput_type.." \"")
+      column_thpt = "0 "..throughput_type
    end
+   record["column_thpt"] = column_thpt
 
-   cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
-   print (", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar progress-bar-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>")
+   local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
 
-   print ("\", \"column_info\" : \"".. value["info"])
+   record["column_breakdown"] = "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar progress-bar-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>"
+   record["column_info"] = "ciao"
 
+   local info = value["info"]
    if(prefs.is_categorization_enabled and (value["info"] ~= "") and (key ~= nil)) then
-      flow = interface.findFlowByKey(tonumber(key))
+      local flow = interface.findFlowByKey(tonumber(key))
       if(flow ~= nil) then value["category"] = flow["category"] end
       if(value["category"] ~= "") then
-	 print(" ".. getCategoryIcon(value["info"], value["category"]))
+	 info = info..getCategoryIcon(value["info"], value["category"])
       end
    end
 
-   print(" \" }\n")
+   record["column_info"] = info
 
-   num = num + 1
-   end
-end
+   formatted_res[#formatted_res + 1] = record
+
 end -- for
-
-print ("\n], \"perPage\" : " .. perPage.. ",\n")
 
 if(sortColumn == nil) then
    sortColumn = ""
@@ -616,5 +389,12 @@ if(sortOrder == nil) then
    sortOrder = ""
 end
 
-print ("\"sort\" : [ [ \"" .. sortColumn .. "\", \"" .. sortOrder .."\" ] ],\n")
-print ("\"totalRows\" : " .. total .. " \n}")
+local result = {}
+
+result["perPage"] = perPage
+result["currentPage"] = currentPage
+result["totalRows"] = total
+result["data"] = formatted_res
+result["sort"] = {{sortColumn, sortOrder}}
+
+print(json.encode(result))

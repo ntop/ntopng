@@ -1483,6 +1483,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_str_table_entry(vm, "cli.ip",
 			     src->get_ip()->printMask(buf, sizeof(buf),
 						      src->isLocalHost()));
+    if(src->get_vlan_id())
+      lua_push_int_table_entry(vm, "cli.vlan", src->get_vlan_id());
+
     lua_push_int_table_entry(vm, "cli.key", mask_cli_host ? 0 : src->key());
   } else {
     lua_push_nil_table_entry(vm, "cli.ip");
@@ -1496,6 +1499,10 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_str_table_entry(vm, "srv.ip",
 			     dst->get_ip()->printMask(buf, sizeof(buf),
 						      dst->isLocalHost()));
+
+    if(dst->get_vlan_id())
+      lua_push_int_table_entry(vm, "srv.vlan", dst->get_vlan_id());
+    
     lua_push_int_table_entry(vm, "srv.key", mask_dst_host ? 0 : dst->key());
   } else {
     lua_push_nil_table_entry(vm, "srv.ip");
