@@ -7,12 +7,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "alert_utils"
+local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 
-status          = _GET["status"]
+local status          = _GET["status"]
 
-engaged = false
+local engaged = false
 if status == "engaged" then
    engaged = true
 end
@@ -44,15 +45,20 @@ end
 
 local alerts = getAlerts(status, alert_options)
 
-print ("{ \"currentPage\" : " .. alert_options.currentPage .. ",\n \"data\" : [\n")
-total = 0
-
 if alerts == nil then alerts = {} end
 
-for _key,_value in ipairs(alerts) do
-   if(total > 0) then print(",\n") end
+local res_formatted = {}
 
-   alert_id        = _value["rowid"]
+for _key,_value in ipairs(alerts) do
+   local record = {}
+   local alert_entity
+   local alert_entity_val
+   local column_duration = "-"
+   local tdiff = os.time()-_value["alert_tstamp"]
+   local column_date = os.date("%c", _value["alert_tstamp"])
+
+   local alert_id        = _value["rowid"]
+
    if _value["alert_entity"] ~= nil then
       alert_entity    = alertEntityLabel(_value["alert_entity"])
    else
@@ -64,28 +70,22 @@ for _key,_value in ipairs(alerts) do
    else
       alert_entity_val = ""
    end
---   tprint(alert_entity)
-   --   tprint(alert_entity_val)
-   local tdiff = os.time()-_value["alert_tstamp"]
 
    if(tdiff < 60) then
       column_date  = secondsToTime(tdiff).." ago"
-   else
-      column_date = os.date("%c", _value["alert_tstamp"])
    end
 
-   column_duration = "-"
    if engaged == true then
       column_duration = secondsToTime(os.time() - tonumber(_value["alert_tstamp"]))
    elseif tonumber(_value["alert_tstamp_end"]) ~= nil then
       column_duration = secondsToTime(tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"]))
    end
 
-   column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
-   column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
-   column_msg      = string.gsub(_value["alert_json"], '"', "'")
+   local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
+   local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
+   local column_msg      = string.gsub(_value["alert_json"], '"', "'")
 
-   column_id = tostring(alert_id)
+   local column_id = tostring(alert_id)
 
    if ntop.isEnterprise() and (status == "historical-flows") then
       local explore = function()
@@ -107,14 +107,26 @@ for _key,_value in ipairs(alerts) do
       column_id = column_id.."|"..explore()
 
    end
-   
-   print('{ "column_key" : "'..column_id..'", "column_date" : "'..column_date..'", "column_duration" : "'..column_duration..'", "column_severity" : "'..column_severity..'", "column_type" : "'..column_type..'", "column_msg" : "'..column_msg..'", "column_entity":"'..alert_entity..'", "column_entity_val":"'..alert_entity_val..'" }')
 
-   total = total + 1
+   record["column_key"] = column_id
+   record["column_date"] = column_date
+   record["column_duration"] = column_duration
+   record["column_severity"] = column_severity
+   record["column_type"] = column_type
+   record["column_msg"] = column_msg
+   record["column_entity"] = alert_entity
+   record["column_entity_val"] = alert_entity_val
+
+   res_formatted[#res_formatted + 1] = record
+	  
 end -- for
 
-print ("\n], \"perPage\" : " .. alert_options.perPage .. ",\n")
+local result = {}
+result["perPage"] = alert_options.perPage
+result["currentPage"] = alert_options.currentPage
+result["totalRows"] = num_alerts
+result["data"] = res_formatted
+result["sort"] = {{alert_options.sortColumn, alert_options.sortOrder}}
 
-print ("\"sort\" : [ [ \""..alert_options.sortColumn .."\", \""..alert_options.sortOrder.."\" ] ],\n")
-print ("\"totalRows\" : " ..num_alerts .. " \n}")
+print(json.encode(result))
 
