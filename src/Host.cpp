@@ -65,7 +65,7 @@ Host::~Host() {
   serialize2redis(); /* possibly dumps counters and data to redis */
 
   if(host_pool_id != NO_HOST_POOL_ID)
-    iface->decPoolNumMembers(host_pool_id, false);
+    iface->decPoolNumMembers(host_pool_id, true /* Host is deleted inline */);
   
   if(mac)           mac->decUses();
   if(as)            as->decUses();
@@ -254,7 +254,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   refreshHostAlertPrefs();
   
   if(!host_serial) computeHostSerial();
-  updateHostPool(true);
+  updateHostPool(true /* inline with packet processing */);
   updateHostL7Policy();
 }
 
