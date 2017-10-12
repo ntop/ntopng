@@ -231,6 +231,7 @@ static int isWhitelistedURI(char *uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
+     || (!strcmp(uri, BANNED_SITE_URL))
      || (!strcmp(uri, PLEASE_WAIT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
@@ -640,7 +641,16 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!is_authorized(conn, request_info, username, sizeof(username)))) {
-    redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? mg_get_header(conn, "Host"): (char*)"");
+    redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? 
+		      mg_get_header(conn, "Host"): (char*)"");
+    return(1);
+  } else if(strcmp(request_info->uri, BANNED_SITE_URL)
+	    && (mg_get_header(conn, "Upgrade-Insecure-Requests") != NULL /* Banned page */)) {
+    mg_printf(conn,
+	      "HTTP/1.1 302 Found\r\n"
+	      "Location: %s%s?referer=%s\r\n\r\n",
+	      ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
+	      mg_get_header(conn, "Host"));
     return(1);
   } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
       && (strcmp(request_info->uri, LOGOUT_URL) != 0)
@@ -689,7 +699,9 @@ static int handle_lua_request(struct mg_connection *conn) {
 			"Enterprise edition license required"));
     }
 
-    if(isCaptiveConnection(conn) && (!isCaptiveURL(request_info->uri))) {
+    if((!whitelisted)
+       && isCaptiveConnection(conn)
+       && (!isCaptiveURL(request_info->uri))) {
       redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
       return(0);
     } else {

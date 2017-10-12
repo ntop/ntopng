@@ -99,6 +99,7 @@
 #define CAPTIVE_PORTAL_URL        "/lua/captive_portal.lua"
 #define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"
+#define BANNED_SITE_URL           "/lua/banned_site.lua"
 #define AUTHORIZE_CAPTIVE_LUA_URL "/lua/authorize_captive.lua"
 #define HOTSPOT_DETECT_URL        "/hotspot-detect.html"       /* iOS    */
 #define KINDLE_WIFISTUB_URL       "/kindle-wifi/wifistub.html" /* Kindle */
