@@ -977,7 +977,9 @@ function secondsToTime(seconds)
 end
 
 function compactTime(seconds)
-   if seconds >= 60 then
+   if seconds == 0 then
+      return "< 1 sec"
+   elseif seconds >= 60 then
       seconds = seconds - seconds % 60
    end
 

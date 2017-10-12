@@ -787,7 +787,7 @@
 */
 #define CONST_MAX_NUM_HOST_USES    8
 
-#define MAX_VALID_DNS_QUERY_LEN   64
+#define MAX_VALID_DNS_QUERY_LEN   96
 
 /* Keep in sync with nProbe */
 #define MAX_ZMQ_FLOW_BUF          2048
