@@ -33,7 +33,8 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
   u_int32_t host_serial;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
   u_int32_t total_activity_time /* sec */, last_epoch_update; /* useful to avoid multiple updates */
-  
+  u_int16_t host_pool_id;
+
   /* Throughput */
   float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
   ValueTrend bytes_goodput_thpt_trend;
@@ -49,6 +50,7 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
   inline void setSystemHost()              { systemHost = true;               };
 
   inline nDPIStats* get_ndpi_stats()       { return(ndpiStats);               };
+  inline u_int16_t get_host_pool()         { return(host_pool_id);            };
 
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets,
 		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
@@ -58,9 +60,19 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
 
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
   virtual bool match(AddressTree *ptree)             { return(true);       };
-  virtual void set_to_purge() {
+
+  virtual void set_to_purge() { /* Saves 1 extra-step of purge idle */
     iface->decNumHosts(isLocalHost());
+    iface->decPoolNumMembers(get_host_pool(), true /* Host is deleted inline */);
     GenericHashEntry::set_to_purge();
+  };
+
+  inline bool isChildSafe() {
+#ifdef NTOPNG_PRO
+    return(iface->getHostPools()->isChildrenSafePool(host_pool_id));
+#else
+    return(false);
+#endif
   };
 };
 

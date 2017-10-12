@@ -66,7 +66,6 @@ class Host : public GenericHost {
   bool has_blocking_quota, has_blocking_shaper;
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
 #endif
-  u_int16_t host_pool_id;
 
   struct {
     u_int32_t pktRetr, pktOOO, pktLost;
@@ -135,7 +134,7 @@ class Host : public GenericHost {
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); }
   void luaUsedQuotas(lua_State* vm);
 #endif
-  inline u_int16_t get_host_pool()             { return(host_pool_id);     }
+
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
@@ -210,13 +209,6 @@ class Host : public GenericHost {
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
   bool IsAllowedTrafficCategory(struct site_categories *category);
-  inline bool isChildSafe() {
-#ifdef NTOPNG_PRO
-    return(iface->getHostPools()->isChildrenSafePool(host_pool_id));
-#else
-    return(false);
-#endif
-  }
 
   inline void setSSDPLocation(char *url) {
      if(url) {

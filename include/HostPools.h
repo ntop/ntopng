@@ -80,7 +80,7 @@ public:
   }
   
   inline void incPoolNumMembers(u_int16_t pool_id, bool isInlineCall) {
-    if((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) {
+    if(pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools) {
       if(isInlineCall)
 	num_active_pool_members_inline[pool_id]++;
       else

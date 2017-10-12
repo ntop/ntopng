@@ -64,9 +64,7 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  if(host_pool_id != NO_HOST_POOL_ID)
-    iface->decPoolNumMembers(host_pool_id, true /* Host is deleted inline */);
-  
+
   if(mac)           mac->decUses();
   if(as)            as->decUses();
   if(vlan)          vlan->decUses();
@@ -136,7 +134,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   has_blocking_quota = has_blocking_shaper = false;
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
 #endif
-  host_pool_id = NO_HOST_POOL_ID;
 
   if((mac = _mac))
     mac->incUses();
@@ -365,9 +362,9 @@ void Host::updateHostPool(bool isInlineCall) {
   if(!iface)
     return;
 
-  if(host_pool_id != NO_HOST_POOL_ID) iface->decPoolNumMembers(host_pool_id, isInlineCall);
+  iface->decPoolNumMembers(get_host_pool(), isInlineCall);
   host_pool_id = iface->getHostPool(this);
-  if(host_pool_id != NO_HOST_POOL_ID) iface->incPoolNumMembers(host_pool_id, isInlineCall);
+  iface->incPoolNumMembers(get_host_pool(), isInlineCall);
   
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();
