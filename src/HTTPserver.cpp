@@ -562,7 +562,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   u_int len;
   char username[33] = { 0 };
   char *referer = (char*)mg_get_header(conn, "Referer");
-  u_int8_t whitelisted;
+  u_int8_t whitelisted, authorized;
 
   if(referer == NULL)
     referer = (char*)"";
@@ -635,17 +635,22 @@ static int handle_lua_request(struct mg_connection *conn) {
 #endif
 
   whitelisted = isWhitelistedURI(request_info->uri);
+  authorized = is_authorized(conn, request_info, username, sizeof(username));
 
   if((len > 4)
      && ((strcmp(&request_info->uri[len-4], ".css") == 0)
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
-  else if((!whitelisted) && (!is_authorized(conn, request_info, username, sizeof(username)))) {
+  else if((!whitelisted) && (!authorized)) {
     redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? 
 		      mg_get_header(conn, "Host"): (char*)"");
     return(1);
-  } else if(strcmp(request_info->uri, BANNED_SITE_URL)
-	    && (mg_get_header(conn, "Upgrade-Insecure-Requests") != NULL /* Banned page */)) {
+  } else if((!whitelisted)
+	    && (!authorized)
+	    && strcmp(request_info->uri, BANNED_SITE_URL)
+	    && strcmp(request_info->uri, CAPTIVE_PORTAL_URL)
+	    && strcmp(request_info->uri, AUTHORIZE_URL)
+	    ) {
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Location: %s%s?referer=%s\r\n\r\n",
