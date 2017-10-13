@@ -556,6 +556,14 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 
 /* ****************************************** */
 
+static int isIpAddress(const char *str) {
+  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+  
+  return((sscanf(str, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) ? 1 : 0);
+}
+
+/* ****************************************** */
+
 static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
   char *crlf;
@@ -642,20 +650,18 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!authorized)) {
-    redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? 
-		      mg_get_header(conn, "Host"): (char*)"");
-    return(1);
-  } else if((!whitelisted)
-	    && (!authorized)
-	    && strcmp(request_info->uri, BANNED_SITE_URL)
-	    && strcmp(request_info->uri, CAPTIVE_PORTAL_URL)
-	    && strcmp(request_info->uri, AUTHORIZE_URL)
-	    ) {
-    mg_printf(conn,
-	      "HTTP/1.1 302 Found\r\n"
-	      "Location: %s%s?referer=%s\r\n\r\n",
-	      ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
-	      mg_get_header(conn, "Host"));
+    if((conn->ctx->queue[0].lsa.sin.sin_port != htons(80))
+       && (conn->ctx->queue[0].lsa.sin.sin_port != htons(443))
+       && (!isIpAddress(mg_get_header(conn, "Host")))
+       ) {
+      mg_printf(conn,
+		"HTTP/1.1 302 Found\r\n"
+		"Location: %s%s?referer=%s\r\n\r\n",
+		ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
+		mg_get_header(conn, "Host"));
+    } else
+      redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? 
+			mg_get_header(conn, "Host"): (char*)"");
     return(1);
   } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
       && (strcmp(request_info->uri, LOGOUT_URL) != 0)
