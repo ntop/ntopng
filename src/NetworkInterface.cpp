@@ -1536,7 +1536,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    src2dst_direction = false;
         }
 
-        flow->setICMP(src2dst_direction, icmp_type, icmp_code);
+        flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
 	else
