@@ -2567,8 +2567,9 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
     h = srv_host->getHTTPstats(); if(h) h->incRequestAsReceiver(payload); /* Rcvd */
     dissect_next_http_packet = true;
 
-    if(payload && ((space = strchr(payload, ' ')) != NULL)) {
-      u_int l = space-payload;
+    /* use memchr to prevent possibly non-NULL terminated HTTP requests */
+    if(payload && ((space = (char*)memchr(payload, ' ', payload_len)) != NULL)) {
+      u_int l = space - payload;
 
       if((!strncmp(payload, "GET", 3))
 	 || (!strncmp(payload, "POST", 4))
@@ -2578,17 +2579,18 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	diff_num_http_requests++; /* One new request found */
 
 	if(protos.http.last_method) free(protos.http.last_method);
-	if((protos.http.last_method = (char*)malloc(l+1)) != NULL) {
+	if((protos.http.last_method = (char*)malloc(l + 1)) != NULL) {
 	  strncpy(protos.http.last_method, payload, l);
 	  protos.http.last_method[l] = '\0';
 	}
 
+	payload_len -= (l + 1);
 	payload = &space[1];
-	if((space = strchr(payload, ' ')) != NULL) {
-	  u_int l = min_val(space-payload, 512); /* Avoid jumbo URLs */
+	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
+	  l = min_val(space - payload, 512); /* Avoid jumbo URLs */
 
 	  /* Stop at the first non-printable char of the HTTP URL */
-	  for(u_int i=0; i<l; i++) {
+	  for(u_int i = 0; i < l; i++) {
 	    if(!isprint(payload[i])) {
 	      l = i;
 	      break;
@@ -2596,7 +2598,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  }
 
 	  if(protos.http.last_url) free(protos.http.last_url);
-	  if((protos.http.last_url = (char*)malloc(l+1)) != NULL) {
+	  if((protos.http.last_url = (char*)malloc(l + 1)) != NULL) {
 	    strncpy(protos.http.last_url, payload, l);
 	    protos.http.last_url[l] = '\0';
 	  }
@@ -2612,11 +2614,14 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       h = srv_host->getHTTPstats(); if(h) h->incResponseAsSender(payload); /* Sent */
       dissect_next_http_packet = false;
 
-      if((space = strchr(payload, ' ')) != NULL) {
+      if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
+	u_int l = space - payload;
+
+	payload_len -= (l + 1);
 	payload = &space[1];
-	if((space = strchr(payload, ' ')) != NULL) {
+	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
 	  char tmp[32];
-	  int l = min_val((int)(space-payload), (int)(sizeof(tmp)-1));
+	  l = min_val(space - payload, (int)(sizeof(tmp) - 1));
 
 	  strncpy(tmp, payload, l);
 	  tmp[l] = 0;
@@ -2647,6 +2652,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
             if(protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "LAST CONTENT TYPE: '%s'", protos.http.last_content_type);
 	    iface->luaEvalFlow(this, callback_flow_proto_callback);
             break;
           }
