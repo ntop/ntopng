@@ -652,6 +652,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   else if((!whitelisted) && (!authorized)) {
     if((conn->ctx->queue[0].lsa.sin.sin_port != htons(80))
        && (conn->ctx->queue[0].lsa.sin.sin_port != htons(443))
+       && (!request_info->is_ssl)
        && (!isIpAddress(mg_get_header(conn, "Host")))
        ) {
       mg_printf(conn,

@@ -2568,6 +2568,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	 || (!strncmp(payload, "HEAD", 4))
 	 || (!strncmp(payload, "PUT", 3))
 	 ) {
+	char *ua;
+	
 	diff_num_http_requests++; /* One new request found */
 
 	if(protos.http.last_method) free(protos.http.last_method);
@@ -2594,6 +2596,21 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	    strncpy(protos.http.last_url, payload, l);
 	    protos.http.last_url[l] = '\0';
 	  }
+	}
+
+	ua = strstr(payload, "User-Agent:");
+	if(ua) {
+	  char buf[128];
+	  int i;
+	  
+	  ua = &ua[11];
+	  while(ua[0] == ' ') ua++;
+
+	  for(i=0; (ua[i] != '\r') && (i < payload_len) && (i < (sizeof(buf)-1)); i++)
+	    buf[i] = ua[i];
+
+	  buf[i] = '\0';
+	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", buf); */
 	}
       }
     }
