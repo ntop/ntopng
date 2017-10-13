@@ -793,6 +793,6 @@
 #define MAX_VALID_DNS_QUERY_LEN   96
 
 /* Keep in sync with nProbe */
-#define MAX_ZMQ_FLOW_BUF          2048
+#define MAX_ZMQ_FLOW_BUF          4096
 
 #endif /* _NTOP_DEFINES_H_ */
