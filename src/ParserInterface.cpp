@@ -963,8 +963,12 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
       
       for(id = 0; id < num_elements; id++)
 	parseSingleFlow(json_object_array_get_idx(f, id), source_id, iface);
-    } else
+
+      return(num_elements);
+    } else {
       parseSingleFlow(f, source_id, iface);
+      return(1);
+    }
   } else {
     // if o != NULL
     if(!once){
@@ -977,7 +981,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
     }
     
     once = true;
-    return -1;
+    return 0;
   }
 
   return 0;

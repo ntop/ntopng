@@ -181,7 +181,7 @@ void CollectorInterface::collect_flows() {
 	if(size > 0) {
 	  char *uncompressed = NULL;
 	  u_int uncompressed_len;
-
+	  
 	  payload[size] = '\0';
 
 	  if(payload[0] == 0 /* Compressed traffic */) {
@@ -220,8 +220,7 @@ void CollectorInterface::collect_flows() {
 	    break;
 
 	  case 'f': /* flow */
-	    recvStats.num_flows++;
-	    parseFlow(uncompressed, uncompressed_len, source_id, this);
+	    recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
 	    break;
 
 	  case 'c': /* counter */
