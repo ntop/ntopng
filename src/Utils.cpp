@@ -381,6 +381,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
   case status_ssl_certificate_mismatch:
     *aType = alert_suspicious_activity;
     return("SSL certificate mismatch");
+  case status_dns_invalid_query:
+    *aType = alert_suspicious_activity;
+    return("Invalid DNS query");
   default:
     return("Unknown status");
     break;

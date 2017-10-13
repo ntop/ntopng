@@ -139,7 +139,8 @@ function printAlerts()
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
   "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
-  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header", "row_toggle_ssl_alerts"}
+  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
+  "row_toggle_ssl_alerts", "row_toggle_dns_alerts"}
 
   prefsToggleButton({
     field = "disable_alerts_generation",
@@ -183,6 +184,13 @@ function printAlerts()
   prefsToggleButton({
     field = "toggle_ssl_alerts",
     pref = "ssl_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  prefsToggleButton({
+    field = "toggle_dns_alerts",
+    pref = "dns_alerts",
     default = "0",
     hidden = not showElements,
   })

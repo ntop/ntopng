@@ -813,6 +813,7 @@ local known_parameters = {
    ["toggle_alert_probing"]                        =  validateBool,
    ["toggle_flow_alerts_iface"]                    =  validateBool,
    ["toggle_ssl_alerts"]                           =  validateBool,
+   ["toggle_dns_alerts"]                           =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,
    ["toggle_flow_db_dump_export"]                  =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,

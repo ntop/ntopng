@@ -59,6 +59,7 @@ class Prefs {
   u_int32_t housekeeping_frequency;
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache, enable_active_local_hosts_cache;
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation, enable_probing_alerts, enable_ssl_alerts;
+  bool enable_dns_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
@@ -269,6 +270,7 @@ class Prefs {
 
   inline bool  are_probing_alerts_enabled()              { return(enable_probing_alerts);            };
   inline bool  are_ssl_alerts_enabled()                  { return(enable_ssl_alerts);                };
+  inline bool  are_dns_alerts_enabled()                  { return(enable_dns_alerts);                };
   inline bool  are_alerts_syslog_enabled()               { return(enable_syslog_alerts);             };
   inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);  };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
