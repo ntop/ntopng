@@ -4019,9 +4019,9 @@ static int ntop_find_member_pool(lua_State *vm) {
     if(is_mac) {
       u_int8_t mac_bytes[6];
       Utils::parseMac(mac_bytes, address);
-      Mac mac(ntop_interface, mac_bytes, vlan_id);
-
-      pool_found = ntop_interface->getHostPools()->findMacPool(&mac, &pool_id);
+      pool_found = ntop_interface->getHostPools()->findMacPool(mac_bytes,
+							       0 /* vlan_id TODO: support vlan for mac pools */,
+							       &pool_id);
     } else {
       IpAddress ip;
       ip.set(address);

@@ -362,9 +362,9 @@ void Host::updateHostPool(bool isInlineCall) {
   if(!iface)
     return;
 
-  iface->decPoolNumMembers(get_host_pool(), isInlineCall);
+  iface->decPoolNumHosts(get_host_pool(), isInlineCall);
   host_pool_id = iface->getHostPool(this);
-  iface->incPoolNumMembers(get_host_pool(), isInlineCall);
+  iface->incPoolNumHosts(get_host_pool(), isInlineCall);
   
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();

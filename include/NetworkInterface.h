@@ -477,6 +477,7 @@ class NetworkInterface {
 #endif
   inline void refreshHostPools() { forcePoolReload = true; }
   inline u_int16_t getHostPool(Host *h) { if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID; };
+  inline u_int16_t getHostPool(Mac *m)  { if(m && host_pools) return host_pools->getPool(m); return NO_HOST_POOL_ID; };
 
   bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();
@@ -604,8 +605,18 @@ class NetworkInterface {
   inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
-  inline void incPoolNumMembers(u_int16_t id, bool isInlineCall) { if (host_pools) host_pools->incPoolNumMembers(id, isInlineCall); }
-  inline void decPoolNumMembers(u_int16_t id, bool isInlineCall) { if (host_pools) host_pools->decPoolNumMembers(id, isInlineCall); }  
+  inline void incPoolNumHosts(u_int16_t id, bool isInlineCall) {
+    if (host_pools) host_pools->incNumHosts(id, isInlineCall);
+  };
+  inline void decPoolNumHosts(u_int16_t id, bool isInlineCall) {
+    if (host_pools) host_pools->decNumHosts(id, isInlineCall);
+  };
+  inline void incPoolNumL2Devices(u_int16_t id, bool isInlineCall) {
+    if (host_pools) host_pools->incNumL2Devices(id, isInlineCall);
+  };
+  inline void decPoolNumL2Devices(u_int16_t id, bool isInlineCall) {
+    if (host_pools) host_pools->decNumL2Devices(id, isInlineCall);
+  };
   void updateFlowStats(u_int8_t protocol,
 		       u_int32_t srcHost, u_int16_t sport,
 		       u_int32_t dstHost, u_int16_t dport,

@@ -295,12 +295,8 @@ if(isAdministrator()) then
 end
 
 if isAdministrator() and (not ifstats.isView) then
-   local num_pool_hosts = 0
+   local num_pool_hosts = ifstats.num_members.num_hosts
    local label
-   
-   for k,v in pairs(ifstats.num_pool_members) do
-      num_pool_hosts = num_pool_hosts + v
-   end
 
    if(num_pool_hosts > 0) then
       label = "<span class='badge badge-top-right'>".. num_pool_hosts .."</span>"

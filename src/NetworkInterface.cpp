@@ -903,6 +903,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       }
       
       srcHost->set_mac(srcMac);
+      srcHost->updateHostPool(true /* Inline */);
     }
   }
 
@@ -927,6 +928,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
       dstHost->set_mac(dstMac);
+      dstHost->updateHostPool(true /* Inline */);
     }
   }
 
@@ -2543,6 +2545,29 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
   return(false); /* false = keep on walking */
 }
 
+static bool update_l2_device_host_pool(GenericHashEntry *node, void *user_data) {
+  Mac *m = (Mac*)node;
+
+#ifdef HOST_POOLS_DEBUG
+  u_int16_t cur_pool_id = m->get_host_pool();
+#endif
+
+  m->updateHostPool(false /* Not inline with traffic processing */);
+
+#ifdef HOST_POOLS_DEBUG
+  char buf[24];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Going to refresh pool for %s "
+			       "[host pool id before refresh: %i] "
+			       "[host pool id after refresh: %i] ",
+			       Utils::formatMac(m->get_mac(), buf, sizeof(buf)),
+			       cur_pool_id,
+			       m->get_host_pool());
+#endif
+
+  return(false); /* false = keep on walking */
+}
+
 /* **************************************************** */
 
 void NetworkInterface::doRefreshHostPools() {
@@ -2564,6 +2589,7 @@ void NetworkInterface::doRefreshHostPools() {
 #endif
 
   hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
+  macs_hash->walk(update_l2_device_host_pool, NULL);
 
 #ifdef NTOPNG_PRO
   if(update_host.update_l7policy)
@@ -2596,6 +2622,8 @@ void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
   update_host.update_pool_id = false;
   update_host.update_l7policy = true;
 
+  /* Pool id didn't change here so there's no need to walk on the macs
+   as policies are set on the hosts */
   hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
 }
 
@@ -4189,7 +4217,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 
   lua_newtable(vm);
 
-  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+  for(int i = 0; i < (int)retriever.actNumEntries; i++) {
     Host *h = retriever.elems[i].hostValue;
 
     if(h) {

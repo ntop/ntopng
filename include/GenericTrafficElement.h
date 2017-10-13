@@ -38,6 +38,8 @@ class GenericTrafficElement {
   u_int64_t last_bytes, last_packets;
   struct timeval last_update_time;
 
+  u_int16_t host_pool_id;
+
  public:
   GenericTrafficElement();
   
@@ -48,7 +50,7 @@ class GenericTrafficElement {
   virtual ~GenericTrafficElement() {
     if(ndpiStats) delete ndpiStats;
   };
-
+  inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   inline void incNumDroppedFlows() { total_num_dropped_flows++;      };
   virtual void updateStats(struct timeval *tv);

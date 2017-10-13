@@ -28,11 +28,6 @@
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
 
-  if((num_active_pool_members_inline = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
-    throw 1;
-  if((num_active_pool_members_offline = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
-    throw 1;
-
 #ifdef NTOPNG_PRO
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
@@ -43,8 +38,12 @@ HostPools::HostPools(NetworkInterface *_iface) {
   stats = stats_shadow = NULL;
   
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
-     || (volatile_members_lock = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
-     || (enforce_quotas_per_pool_member = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
+     || (volatile_members_lock          = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
+     || (enforce_quotas_per_pool_member = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
+     || (num_active_hosts_inline        = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_hosts_offline       = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_inline   = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_offline  = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
@@ -106,11 +105,14 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
 /* *************************************** */
 
 HostPools::~HostPools() {
-  if(num_active_pool_members_inline)
-    free(num_active_pool_members_inline);
-  
-  if(num_active_pool_members_offline)
-    free(num_active_pool_members_offline);
+  if(num_active_hosts_inline)
+    free(num_active_hosts_inline);
+  if(num_active_hosts_offline)
+    free(num_active_hosts_offline);
+  if(num_active_l2_devices_inline)
+    free(num_active_l2_devices_inline);
+  if(num_active_l2_devices_offline)
+    free(num_active_l2_devices_offline);
   
   if(tree_shadow)   deleteTree(&tree_shadow);
   if(tree)          deleteTree(&tree);
@@ -554,18 +556,18 @@ void HostPools::removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_p
 /* *************************************** */
 
 void HostPools::lua(lua_State *vm) {
-  lua_newtable(vm);
-  
+  u_int32_t hosts = 0, l2_devices = 0;
+
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if(numPoolMembers(i) > 0) {
-      char buf[8];
-      
-      snprintf(buf, sizeof(buf), "%u", i);
-      lua_push_int_table_entry(vm, buf, numPoolMembers(i));
-    }      
+    if(getNumPoolHosts(i))     hosts      += getNumPoolHosts(i);
+    if(getNumPoolL2Devices(i)) l2_devices += getNumPoolL2Devices(i);
   }
-  
-  lua_pushstring(vm, "num_pool_members");
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "num_hosts", hosts);
+  lua_push_int_table_entry(vm, "num_l2_devices", l2_devices);
+
+  lua_pushstring(vm, "num_members");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -786,6 +788,21 @@ u_int16_t HostPools::getPool(Host *h) {
       found = findIpPool(h->get_ip(), h->get_vlan_id(), &pool_id, &node);
     }
   }
+
+  if(!found)
+    return NO_HOST_POOL_ID;
+
+  return pool_id;
+}
+
+/* *************************************** */
+
+ u_int16_t HostPools::getPool(Mac *m) {
+  u_int16_t pool_id;
+  bool found = false;
+
+  if(m)
+    found = findMacPool(m, &pool_id);
 
   if(!found)
     return NO_HOST_POOL_ID;

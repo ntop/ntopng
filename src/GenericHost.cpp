@@ -39,6 +39,7 @@ GenericHost::GenericHost(NetworkInterface *_iface) : GenericHashEntry(_iface) {
   // readStats(); - Commented as if put here it's too early and the key is not yet set
   goodput_bytes_thpt = last_goodput_bytes_thpt = bytes_goodput_thpt_diff = 0;
   bytes_goodput_thpt_trend = trend_unknown;
+
 }
 
 /* *************************************** */

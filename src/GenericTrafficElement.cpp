@@ -30,6 +30,8 @@ GenericTrafficElement::GenericTrafficElement() {
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
   total_num_dropped_flows = 0;
+
+  host_pool_id = NO_HOST_POOL_ID;
 }
 
 /* *************************************** */

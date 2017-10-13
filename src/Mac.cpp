@@ -82,6 +82,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
     if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
       setDeviceType((DeviceType) atoi(rsp));
   }
+
+  updateHostPool(true /* Inline */);
 }
 
 /* *************************************** */
@@ -96,6 +98,27 @@ Mac::~Mac() {
     free(json);
   }
 
+  /* Pool counters are updated both in and outside the datapath.
+     So decPoolNumHosts must stay in the destructor to preserve counters
+     consistency (no thread outside the datapath will change the last pool id) */
+#ifdef HOST_POOLS_DEBUG
+  char buf[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Going to decrease the number of pool l2 devices for %s "
+			       "[num pool l2 devices: %u]...",
+			       Utils::formatMac(mac, buf, sizeof(buf)),
+			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
+#endif
+
+  iface->decPoolNumL2Devices(get_host_pool(), true /* Mac is deleted inline */);
+
+#ifdef HOST_POOLS_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Number of pool l2 devices decreased."
+			       "[num pool l2 devices: %u]",
+			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
+#endif
+
   if(ndpiStats) {
     delete ndpiStats;
     ndpiStats = NULL;
@@ -105,8 +128,6 @@ Mac::~Mac() {
     free(fingerprint);
 
 #ifdef DEBUG
-  char buf[32];
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s/%u [total %u][%s]",
 			       Utils::formatMac(mac, buf, sizeof(buf)),
 			       vlan_id, iface->getNumL2Devices(),
@@ -151,7 +172,6 @@ static const char* location2str(MacLocation location) {
 
 void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   char buf[32], *m;
-  u_int16_t host_pool = 0;
 
   lua_newtable(vm);
 
@@ -185,8 +205,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   lua_push_int_table_entry(vm, "num_hosts", getNumHosts());
 
-  getInterface()->getHostPools()->findMacPool(this, &host_pool);
-  lua_push_int_table_entry(vm, "pool", host_pool);
+  lua_push_int_table_entry(vm, "pool", get_host_pool());
 
   if(asListElement) {
     lua_pushstring(vm, m);
@@ -280,6 +299,43 @@ MacLocation Mac::locate() {
   }
 
   return(located_on_unknown_interface);
+}
+
+/* *************************************** */
+
+void Mac::updateHostPool(bool isInlineCall) {
+  if(!iface)
+    return;
+
+#ifdef HOST_POOLS_DEBUG
+  char buf[24];
+  u_int16_t cur_pool_id = get_host_pool();
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Going to refresh pool for %s "
+			       "[pool id: %u]"
+			       "[pool num devices: %u]...",
+			       Utils::formatMac(get_mac(), buf, sizeof(buf)),
+			       cur_pool_id,
+			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
+#endif
+
+  iface->decPoolNumL2Devices(get_host_pool(), isInlineCall);
+  host_pool_id = iface->getHostPool(this);
+  iface->incPoolNumL2Devices(get_host_pool(), isInlineCall);
+
+#ifdef HOST_POOLS_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Refresh done. "
+			       "[old pool id: %u]"
+			       "[new pool id: %u]"
+			       "[old pool num devices: %u]"
+			       "[new pool num devices: %u]",
+			       cur_pool_id,
+			       get_host_pool(),
+			       iface->getHostPools()->getNumPoolL2Devices(cur_pool_id),
+			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
+#endif
 }
 
 /* *************************************** */
