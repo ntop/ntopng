@@ -341,6 +341,7 @@
 #define CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED   1
 #define CONST_DEFAULT_ALERT_PROBING_ENABLED               0
 #define CONST_DEFAULT_ALERT_SSL_ENABLED                   0
+#define CONST_DEFAULT_ALERT_DNS_ENABLED                   0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
@@ -450,6 +451,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG               "ntopng.prefs.alerts_syslog"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_PROBING              "ntopng.prefs.probing_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"   /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_DNS                  "ntopng.prefs.dns_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        "ntopng.prefs.alerts_global.min.local_hosts"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
 #define CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY      "syn_victim_threshold"
@@ -791,6 +793,6 @@
 #define MAX_VALID_DNS_QUERY_LEN   96
 
 /* Keep in sync with nProbe */
-#define MAX_ZMQ_FLOW_BUF          2048
+#define MAX_ZMQ_FLOW_BUF          4096
 
 #endif /* _NTOP_DEFINES_H_ */

@@ -83,7 +83,7 @@ class Flow : public GenericHashEntry {
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
-  bool dump_flow_traffic, badFlow;
+  bool dump_flow_traffic;
 
   union {
     struct {
@@ -94,6 +94,7 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *last_query;
+      bool invalid_query;
     } dns;
 
     struct {
@@ -364,7 +365,6 @@ class Flow : public GenericHashEntry {
   bool match(AddressTree *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
-  inline bool isBadFlow()        { return(badFlow); }
   inline bool isSuspiciousFlowThpt();
   void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);

@@ -33,7 +33,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
+    cli_host = srv_host = NULL, good_low_flow_detected = false, state = flow_state_other,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
@@ -291,6 +291,10 @@ void Flow::dumpFlowAlert() {
     case status_ssl_certificate_mismatch: /* 10 */
       do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
       break;
+
+    case status_dns_invalid_query:
+      do_dump = ntop->getPrefs()->are_dns_alerts_enabled();
+      break;
     }
 
     if(do_dump && cli_host && srv_host) {
@@ -445,36 +449,22 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
-      bool invalid_query = false;
-      
-      if(protos.dns.last_query) free(protos.dns.last_query);
+
+      if(protos.dns.last_query) {
+	free(protos.dns.last_query);
+	protos.dns.invalid_query = false;
+      }
       protos.dns.last_query = strdup((const char*)ndpiFlow->host_server_name);
 
-      for(int i=0; protos.dns.last_query[i] != '\0'; i++) {
+      for(int i = 0; protos.dns.last_query[i] != '\0'; i++) {
 	if(!isprint(protos.dns.last_query[i])) {
 	  protos.dns.last_query[i] = '?';
-	  invalid_query = true;
+	  protos.dns.invalid_query = true;
 	}
       }
 
-      if(!invalid_query)
-	invalid_query = (strlen(protos.dns.last_query) > MAX_VALID_DNS_QUERY_LEN) ? true : false;
-      
-      if(invalid_query) {
-	char alert_msg[1024], c_buf[64], cli_name[64];
-	
-	snprintf(alert_msg, sizeof(alert_msg),
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> sent suspicious DNS query [%s]",
-		 ntop->getPrefs()->get_http_prefix(),
-		 cli_host->get_hostkey(c_buf, sizeof(c_buf)), iface->get_id(),
-		 cli_host->get_visual_name(cli_name, sizeof(cli_name)),
-		 protos.dns.last_query);
-	
-	iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection, alert_level_error, alert_msg);
-	setFlowAlerted();
-
-	// ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid DNS query detected [%s]", protos.dns.last_query);
-      }
+      if(!protos.dns.invalid_query)
+	protos.dns.invalid_query = (strlen(protos.dns.last_query) > MAX_VALID_DNS_QUERY_LEN) ? true : false;
     }
 
     if(ntop->getPrefs()->decode_dns_responses()) {
@@ -837,11 +827,9 @@ char* Flow::print(char *buf, u_int buf_len) {
 		      tcp_stats_s2d.pktRetr, tcp_stats_d2s.pktRetr);
   }
 
-  if(ndpiDetectedProtocol.master_protocol == 0)
-    ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.app_protocol;
-
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
+	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
+	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
 #endif
@@ -862,6 +850,10 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   , shapers
 #endif
 	   );
+
+  if(getFlowStatus() == status_dns_invalid_query && protos.dns.last_query) {
+    snprintf(&buf[strlen(buf)], buf_len - strlen(buf), "[query: %s]", protos.dns.last_query);
+  }
 
   return(buf);
 }
@@ -2567,8 +2559,9 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
     h = srv_host->getHTTPstats(); if(h) h->incRequestAsReceiver(payload); /* Rcvd */
     dissect_next_http_packet = true;
 
-    if(payload && ((space = strchr(payload, ' ')) != NULL)) {
-      u_int l = space-payload;
+    /* use memchr to prevent possibly non-NULL terminated HTTP requests */
+    if(payload && ((space = (char*)memchr(payload, ' ', payload_len)) != NULL)) {
+      u_int l = space - payload;
 
       if((!strncmp(payload, "GET", 3))
 	 || (!strncmp(payload, "POST", 4))
@@ -2578,17 +2571,18 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	diff_num_http_requests++; /* One new request found */
 
 	if(protos.http.last_method) free(protos.http.last_method);
-	if((protos.http.last_method = (char*)malloc(l+1)) != NULL) {
+	if((protos.http.last_method = (char*)malloc(l + 1)) != NULL) {
 	  strncpy(protos.http.last_method, payload, l);
 	  protos.http.last_method[l] = '\0';
 	}
 
+	payload_len -= (l + 1);
 	payload = &space[1];
-	if((space = strchr(payload, ' ')) != NULL) {
-	  u_int l = min_val(space-payload, 512); /* Avoid jumbo URLs */
+	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
+	  l = min_val(space - payload, 512); /* Avoid jumbo URLs */
 
 	  /* Stop at the first non-printable char of the HTTP URL */
-	  for(u_int i=0; i<l; i++) {
+	  for(u_int i = 0; i < l; i++) {
 	    if(!isprint(payload[i])) {
 	      l = i;
 	      break;
@@ -2596,7 +2590,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  }
 
 	  if(protos.http.last_url) free(protos.http.last_url);
-	  if((protos.http.last_url = (char*)malloc(l+1)) != NULL) {
+	  if((protos.http.last_url = (char*)malloc(l + 1)) != NULL) {
 	    strncpy(protos.http.last_url, payload, l);
 	    protos.http.last_url[l] = '\0';
 	  }
@@ -2612,11 +2606,14 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       h = srv_host->getHTTPstats(); if(h) h->incResponseAsSender(payload); /* Sent */
       dissect_next_http_packet = false;
 
-      if((space = strchr(payload, ' ')) != NULL) {
+      if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
+	u_int l = space - payload;
+
+	payload_len -= (l + 1);
 	payload = &space[1];
-	if((space = strchr(payload, ' ')) != NULL) {
+	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
 	  char tmp[32];
-	  int l = min_val((int)(space-payload), (int)(sizeof(tmp)-1));
+	  l = min_val(space - payload, (int)(sizeof(tmp) - 1));
 
 	  strncpy(tmp, payload, l);
 	  tmp[l] = 0;
@@ -2647,6 +2644,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
             if(protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "LAST CONTENT TYPE: '%s'", protos.http.last_content_type);
 	    iface->luaEvalFlow(this, callback_flow_proto_callback);
             break;
           }
@@ -2872,7 +2870,7 @@ void Flow::checkFlowCategory() {
     /* TODO: see if it is meaningful to add source and target to the alert */
     iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection,
 					      alert_level_warning, alert_msg);
-    badFlow = true, setDropVerdict();
+    setDropVerdict();
   }
 #endif
 }
@@ -3109,6 +3107,7 @@ FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
 
 FlowStatus Flow::getFlowStatus() {
   u_int32_t threshold;
+  u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   /* All flows */
   threshold = cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO;
@@ -3127,8 +3126,6 @@ FlowStatus Flow::getFlowStatus() {
     bool lowGoodput = isLowGoodput();
 
     if(protocol == IPPROTO_TCP) {
-      u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
-
       if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > CONST_ALERT_PROBING_TIME))
 	return status_suspicious_tcp_probing;
 
@@ -3169,6 +3166,12 @@ FlowStatus Flow::getFlowStatus() {
 	    return status_low_goodput;
 	}
       }
+    }
+    /* If here is either UDP or TCP */
+    switch(l7proto) {
+    case NDPI_PROTOCOL_DNS:
+      if(protos.dns.invalid_query)
+	return status_dns_invalid_query;
     }
   }
 

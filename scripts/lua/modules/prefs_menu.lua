@@ -128,6 +128,9 @@ local menu_subpages = {
     }, toggle_ssl_alerts = {
       title       = i18n("prefs.toggle_ssl_alerts_title"),
       description = i18n("prefs.toggle_ssl_alerts_description"),
+    }, toggle_dns_alerts = {
+      title       = i18n("prefs.toggle_dns_alerts_title"),
+      description = i18n("prefs.toggle_dns_alerts_description"),
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
       description = i18n("prefs.toggle_malware_probing_description", {url="https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"}),

@@ -236,6 +236,7 @@ typedef enum {
   status_flow_when_interface_alerted /* 8 */,
   status_tcp_connection_refused /* 9 */,
   status_ssl_certificate_mismatch /* 10 */,
+  status_dns_invalid_query /* 11 */,
 } FlowStatus;
 
 typedef enum {
