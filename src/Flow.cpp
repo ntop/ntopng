@@ -2601,7 +2601,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	ua = strstr(payload, "User-Agent:");
 	if(ua) {
 	  char buf[128];
-	  int i;
+	  u_int i;
 	  
 	  ua = &ua[11];
 	  while(ua[0] == ' ') ua++;

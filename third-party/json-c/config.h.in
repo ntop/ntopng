@@ -104,8 +104,7 @@
 /* Public define for json_inttypes.h */
 #undef JSON_C_HAVE_INTTYPES_H
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Name of package */

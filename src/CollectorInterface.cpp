@@ -38,7 +38,7 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
   
   e = strtok_r(tmp, ",", &t);
   while(e != NULL) {
-    int l = strlen(e)-1;
+    int l = strlen(e)-1, val;
     char last_char = e[l];
 
     if(num_subscribers == MAX_ZMQ_SUBSCRIBERS) {
@@ -49,6 +49,10 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     }
 
     subscriber[num_subscribers].socket = zmq_socket(context, ZMQ_SUB);
+
+    val = 131072;
+    if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");
 
     if(last_char == 'c')
       is_collector = true, e[l] = '\0';
