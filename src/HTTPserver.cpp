@@ -556,11 +556,13 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 
 /* ****************************************** */
 
+#ifdef CHECK_BANNED_PATH
 static int isIpAddress(const char *str) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
   
   return((sscanf(str, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) ? 1 : 0);
 }
+#endif
 
 /* ****************************************** */
 
@@ -650,10 +652,12 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!authorized)) {
+#if CHECK_BANNED_PATH
+    /* Ambiguous redirect: working on a multiport implementation and restoring it */
     if((conn->ctx->queue[0].lsa.sin.sin_port != htons(80))
        && (conn->ctx->queue[0].lsa.sin.sin_port != htons(443))
        && (!request_info->is_ssl)
-       && (!isIpAddress(mg_get_header(conn, "Host")))
+       && (!isIpAddress(mg_get_header(conn, "Host")))       
        ) {
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
@@ -661,6 +665,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 		ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
 		mg_get_header(conn, "Host"));
     } else
+#endif
       redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? 
 			mg_get_header(conn, "Host"): (char*)"");
     return(1);

@@ -349,15 +349,28 @@ void Mac::updateFingerprint() {
 
   if(!strcmp(fingerprint,      "017903060F77FC"))
     setOperatingSystem(os_ios);
-  else if(!strcmp(fingerprint, "017903060F77FC5F2C2E"))
+  else if((!strcmp(fingerprint, "017903060F77FC5F2C2E"))
+	  || !strcmp(fingerprint, "0103060F775FFC2C2E2F")
+	  || !strcmp(fingerprint, "0103060F775FFC2C2E")
+	  )
     setOperatingSystem(os_macos);
   else if((!strcmp(fingerprint, "0103063633"))
-	  || (!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC")))
+	  || (!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC"))
+	  || (!strcmp(fingerprint, "010F03062C2E2F1F2179F92B"))
+	  )
     setOperatingSystem(os_windows);
   else if((!strcmp(fingerprint, "0103060C0F1C2A"))
 	  || (!strcmp(fingerprint, "011C02030F06770C2C2F1A792A79F921FC2A"))
 	  )
     setOperatingSystem(os_linux); /* Android is also linux */
+  else if((!strcmp(fingerprint, "0603010F0C2C51452B1242439607"))
+	  || (!strcmp(fingerprint, "01032C06070C0F16363A3B45122B7751999A"))
+	  )
+    setOperatingSystem(os_laserjet);
+  else if(!strcmp(fingerprint, "0102030F060C2C"))
+    setOperatingSystem(os_apple_airport);
+  else if(!strcmp(fingerprint, "01792103060F1C333A3B77"))
+    setOperatingSystem(os_android);
 }
 /*
   Missing OS mapping

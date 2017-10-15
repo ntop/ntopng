@@ -444,6 +444,8 @@ typedef enum {
   os_macos,
   os_ios,
   os_android,
+  os_laserjet,
+  os_apple_airport,
   os_max_os /* Keep as last element */
 } OperatingSystem;
 
