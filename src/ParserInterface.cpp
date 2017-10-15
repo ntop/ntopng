@@ -940,7 +940,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
   if(flow.ssl_server_name) free(flow.ssl_server_name);
   if(flow.bittorrent_hash) free(flow.bittorrent_hash);
 
-  json_object_put(o);
+  // json_object_put(o);
   json_object_put(flow.additional_fields);
 }
 
