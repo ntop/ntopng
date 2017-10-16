@@ -6,7 +6,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          ntopng
-# Required-Start:    $local_fs $remote_fs $network $syslog pf_ring
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Should-Start:      pf_ring
 # Required-Stop:     
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
