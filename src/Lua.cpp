@@ -320,6 +320,19 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_host_pools_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface && ntop_interface->getHostPools()) {
+    lua_newtable(vm);
+    ntop_interface->getHostPools()->lua(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 #ifdef NTOPNG_PRO
 /**
  * @brief Get the Host Pool statistics of interface.
@@ -6132,6 +6145,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "findMemberPool",                 ntop_find_member_pool                 },
   { "findMacPool",                    ntop_find_mac_pool                    },
   { "getTopPoolsProtos",              ntop_get_top_pools_protos             },
+  { "getHostPoolsInfo",               ntop_get_host_pools_info              },
 
 #ifdef NTOPNG_PRO
   { "resetPoolsStats",                ntop_reset_pools_stats                },

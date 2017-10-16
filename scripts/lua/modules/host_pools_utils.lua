@@ -5,12 +5,11 @@ dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
-require "lua_utils"
-
 local ntop_info = ntop.getInfo()
 
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
+host_pools_utils.DEFAULT_ROUTING_POLICY_ID = "0"
 host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
@@ -319,6 +318,16 @@ end
 
 function host_pools_utils.getChildrenSafe(ifid, pool_id)
   return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "children_safe"))
+end
+
+function host_pools_utils.getRoutingPolicyId(ifid, pool_id)
+  local routing_policy_id = host_pools_utils.getPoolDetail(ifid, pool_id, "routing_policy_id")
+  if isEmptyString(routing_policy_id) then routing_policy_id = "0" end
+  return routing_policy_id
+end
+
+function host_pools_utils.setRoutingPolicyId(ifid, pool_id, routing_policy_id)
+  return host_pools_utils.setPoolDetail(ifid, pool_id, "routing_policy_id", routing_policy_id)
 end
 
 function host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id)

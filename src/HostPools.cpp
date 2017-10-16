@@ -556,16 +556,35 @@ void HostPools::removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_p
 /* *************************************** */
 
 void HostPools::lua(lua_State *vm) {
-  u_int32_t hosts = 0, l2_devices = 0;
+  u_int32_t hosts = 0, l2_devices = 0, active_pools = 0;
+  char buf[8];
+
+  lua_newtable(vm);
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
     if(getNumPoolHosts(i))     hosts      += getNumPoolHosts(i);
     if(getNumPoolL2Devices(i)) l2_devices += getNumPoolL2Devices(i);
+    if(getNumPoolHosts(i) > 0) {
+      lua_newtable(vm);
+      lua_push_int_table_entry(vm, "num_hosts", getNumPoolHosts(i));
+      lua_push_int_table_entry(vm, "num_l2_devices", getNumPoolL2Devices(i));
+      snprintf(buf, sizeof(buf), "%d", i);
+
+      lua_pushstring(vm, buf);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+      active_pools++;
+    }
   }
+
+  lua_pushstring(vm, "num_members_per_pool");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "num_hosts", hosts);
   lua_push_int_table_entry(vm, "num_l2_devices", l2_devices);
+  lua_push_int_table_entry(vm, "num_active_pools", active_pools);
 
   lua_pushstring(vm, "num_members");
   lua_insert(vm, -2);
