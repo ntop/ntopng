@@ -358,7 +358,7 @@ static int is_authorized(const struct mg_connection *conn,
 
 static int isCaptiveConnection(struct mg_connection *conn) {
   char *host = (char*)mg_get_header(conn, "Host");
-  
+
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == 80
 	     || ntohs(conn->client.lsa.sin.sin_port) == 443)
@@ -556,16 +556,6 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 
 /* ****************************************** */
 
-#ifdef CHECK_BANNED_PATH
-static int isIpAddress(const char *str) {
-  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
-  
-  return((sscanf(str, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) ? 1 : 0);
-}
-#endif
-
-/* ****************************************** */
-
 static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
   char *crlf;
@@ -601,13 +591,13 @@ static int handle_lua_request(struct mg_connection *conn) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
 			       request_info->uri, referer);
 #endif
-  
+
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      && !MySQLDB::isDbCreated()
      && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
     redirect_to_please_wait(conn, request_info);
   } else if(ntop->get_HTTPserver()->is_ssl_enabled()
-	    && (!request_info->is_ssl)	     
+	    && (!request_info->is_ssl)
 	    && isCaptiveURL(request_info->uri)
 	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
 	    && (!strstr(referer, CAPTIVE_PORTAL_URL))
@@ -652,22 +642,17 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!authorized)) {
-#if CHECK_BANNED_PATH
     /* Ambiguous redirect: working on a multiport implementation and restoring it */
-    if((conn->ctx->queue[0].lsa.sin.sin_port != htons(80))
-       && (conn->ctx->queue[0].lsa.sin.sin_port != htons(443))
-       && (!request_info->is_ssl)
-       && (!isIpAddress(mg_get_header(conn, "Host")))       
-       ) {
+    if(conn->ctx->queue[0].lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
 		"Location: %s%s?referer=%s\r\n\r\n",
 		ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
 		mg_get_header(conn, "Host"));
-    } else
-#endif
-      redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ? 
+    else
+      redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ?
 			mg_get_header(conn, "Host"): (char*)"");
+
     return(1);
   } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
       && (strcmp(request_info->uri, LOGOUT_URL) != 0)
@@ -778,9 +763,10 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   static char ports[256], ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
   const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
   const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
+  char tmpBuf[8];
   bool use_ssl = false;
   bool use_http = true;
-  struct stat buf;
+  struct stat statsBuf;
   int stat_rc;
 
   static char *http_options[] = {
@@ -807,7 +793,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s",
 	   docs_dir, CONST_HTTPS_CERT_NAME);
 
-  stat_rc = stat(ssl_cert_path, &buf);
+  stat_rc = stat(ssl_cert_path, &statsBuf);
 
   if((ntop->getPrefs()->get_https_port() > 0) && (stat_rc == 0)) {
     int i;
@@ -852,20 +838,37 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   if((!use_http) && (!use_ssl) & (!ssl_enabled)) {
     if(stat_rc != 0)
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Unable to start HTTP server: HTTP is disabled and the SSL certificate is missing.");
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Starting the HTTP server on the default port");   
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Starting the HTTP server on the default port");
     snprintf(ports, sizeof(ports), "%d", ntop->getPrefs()->get_http_port());
     use_http = true;
   }
-  
+
+  ntop->getRedis()->get((char*)SPLASH_HTTP_PORT, tmpBuf, sizeof(tmpBuf), true);
+  if(tmpBuf[0] != '\0') {
+    http_splash_port = atoi(tmpBuf);
+
+    if(http_splash_port > 0) {
+      snprintf(&ports[strlen(ports)], sizeof(ports) - strlen(ports) - 1, ",%s%s%d",
+	       http_binding_addr,
+	       (http_binding_addr[0] == '\0') ? "" : ":",
+	       http_splash_port);
+
+      /* Mongoose uses network byte order */
+      http_splash_port = ntohs(http_splash_port);
+    } else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignoring HTTP splash port (%s)", tmpBuf);
+  } else
+    http_splash_port = 0;
+
   if(ntop->getPrefs()->is_access_log_enabled()) {
     int i;
-    
-    snprintf(access_log_path, sizeof(access_log_path), "%s/ntopng_access.log", 
+
+    snprintf(access_log_path, sizeof(access_log_path), "%s/ntopng_access.log",
 	     ntop->get_working_dir());
-    
+
     for(i=0; http_options[i] != NULL; i++)
       ;
 
@@ -894,7 +897,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
 
   if(use_http)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on port(s) %s", 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on port(s) %s",
 				 ports);
 
   if(use_ssl & ssl_enabled)

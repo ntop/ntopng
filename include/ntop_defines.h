@@ -172,6 +172,7 @@
 #define DUMP_HOST_TRAFFIC       "ntopng.prefs.dump_host_traffic"
 #define HOST_TRAFFIC_QUOTA      "ntopng.prefs.hosts_quota"
 #define LAN_INTERFACE_NAME      "ntopng.prefs.network.lan_if"
+#define SPLASH_HTTP_PORT        "ntopng.prefs.http_splash_port"
 #define TRAFFIC_FILTERING_CACHE_DURATION  43200 /* 12 h */
 #define DNS_CACHE_DURATION                 3600  /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION         3600  /*  1 h */
@@ -796,3 +797,4 @@
 #define MAX_ZMQ_FLOW_BUF          4096
 
 #endif /* _NTOP_DEFINES_H_ */
+

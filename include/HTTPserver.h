@@ -32,16 +32,18 @@ class HTTPserver {
   char *docs_dir, *scripts_dir;
   struct mg_context *httpd_v4;
   bool ssl_enabled;
-
+  u_int16_t http_splash_port;
+  
  public:
   HTTPserver(const char *_docs_dir, const char *_scripts_dir);
   ~HTTPserver();
 
   bool valid_user_pwd(char *user, char *pass);
-
-  inline char*     get_docs_dir()    { return(docs_dir);    };
-  inline char*     get_scripts_dir() { return(scripts_dir); };
-  inline bool      is_ssl_enabled()  { return(ssl_enabled); };
+  
+  inline char*     get_docs_dir()    { return(docs_dir);         };
+  inline char*     get_scripts_dir() { return(scripts_dir);      };
+  inline bool      is_ssl_enabled()  { return(ssl_enabled);      };
+  inline u_int16_t getSplashPort()   { return(http_splash_port); };
 };
 
 extern int send_error(struct mg_connection *conn, int status, const char *reason, const char *fmt, ...);
