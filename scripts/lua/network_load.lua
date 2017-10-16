@@ -43,9 +43,9 @@ function dumpInterfaceStats(interface_name)
       end
 
       if prefs.are_alerts_enabled == true then
-	 local alert_cache = interface.getCachedNumAlerts()
-	 res["engaged_alerts"]     = alert_cache["num_alerts_engaged"]
-	 res["alerts_stored"]      = alert_cache["alerts_stored"]
+	 local alert_cache = interface.getCachedNumAlerts() or {}
+	 res["engaged_alerts"]     = alert_cache["num_alerts_engaged"] or 0
+	 res["alerts_stored"]      = alert_cache["alerts_stored"] or 0
       end
 
       res["num_flows"]        = ifstats.stats.flows
@@ -116,12 +116,9 @@ end
 
 local res = {}
 if(_GET["iffilter"] == "all") then
-   local names = interface.getIfNames()
-   local n = 1
-   local sortedKeys = getKeysSortedByValue(names, function(a, b) return a < b end)
-   for k,v in ipairs(sortedKeys) do
-      res[n] = dumpInterfaceStats(names[v])
-      n = n + 1
+   for _, ifname in pairs(interface.getIfNames()) do
+      local ifid = getInterfaceId(ifname)
+      res[ifid] = dumpInterfaceStats(ifname)
    end
 else
    res = dumpInterfaceStats(ifname)
