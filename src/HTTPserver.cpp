@@ -642,7 +642,6 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!authorized)) {
-    /* Ambiguous redirect: working on a multiport implementation and restoring it */
     if(conn->ctx->queue[0].lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
@@ -656,6 +655,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(1);
   } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
       && (strcmp(request_info->uri, LOGOUT_URL) != 0)
+	     && authorized
       && ntop->mustChangePassword(username)) {
     redirect_to_password_change(conn, request_info);
     return(1);
