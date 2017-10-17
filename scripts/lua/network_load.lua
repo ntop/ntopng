@@ -118,9 +118,11 @@ local res = {}
 if(_GET["iffilter"] == "all") then
    for _, ifname in pairs(interface.getIfNames()) do
       local ifid = getInterfaceId(ifname)
-      res[ifid] = dumpInterfaceStats(ifname)
+      -- ifid in the key must be a string or json.encode will think
+      -- its a lua array and will look for integers starting at one
+      res[ifid..""] = dumpInterfaceStats(ifname)
    end
 else
    res = dumpInterfaceStats(ifname)
 end
-print(json.encode(res, nil, 1))
+print(json.encode(res))
