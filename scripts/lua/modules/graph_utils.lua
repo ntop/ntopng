@@ -84,7 +84,7 @@ end
 
 -- ########################################################
 
-function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, start_time, end_time, filter)
+function navigatedir(url, label, base, path, print_html, ifid, host, start_time, end_time, filter)
    local shown = false
    local to_skip = false
    local ret = { }
@@ -99,15 +99,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
       if(v ~= nil) then
 	 local p = fixPath(path .. "/" .. v)
 
-	 if(ntop.isdir(p)) then
-	    if(go_deep) then
-	       r = navigatedir(url, label.."/"..v, base, p, go_deep, print_html, ifid, host, start_time, end_time, filter)
-	       for k,v in pairs(r) do
-		  ret[k] = v
-		  if(do_debug) then print(v.."<br>\n") end
-	       end
-	    end
-	 else
+	 if not ntop.isdir(p) then
 	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
 
 	    if last_update ~= nil and last_update >= start_time then
@@ -602,15 +594,13 @@ if(show_timeseries == 1) then
 
    local d = fixPath(p)
 
-   local go_deep = false
-
    -- nDPI protocols
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, go_deep, true, ifid, host, start_time, end_time, interface.getnDPIProtocols())
+	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPIProtocols())
 
    -- nDPI categories
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, go_deep, true, ifid, host, start_time, end_time, interface.getnDPICategories())
+	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPICategories())
 
    print [[
   </ul>
@@ -1493,13 +1483,12 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
 
        if(debug_metric) then io.write("Navigating: "..p.."\n") end
 
-       local go_deep = true
        local ndpi_protocols = interface.getnDPIProtocols()
        local ndpi_categories = interface.getnDPICategories()
        local filter = ndpi_protocols
        if rrdFile == "all_ndpi_categories" then filter = ndpi_categories end
 
-       local rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time, filter)
+       local rrds = navigatedir("", "*", d, d, false, ifid, host, start_time, end_time, filter)
 
        local traffic_array = {}
 
