@@ -779,7 +779,7 @@ setInterval(update_ndpi_table, 5000);
      <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
      ]]
 
-   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
+   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol_category") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
 
    print ('<tbody id="if_stats_ndpi_categories_tbody">\n')
    print ("</tbody>")
@@ -809,7 +809,7 @@ setInterval(update_ndpi_categories_table, 5000);
 elseif(page == "ICMP") then
 
   print [[
-     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <table id="icmp_table" class="table table-bordered table-striped tablesorter">
      <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
      <tbody id="iface_details_icmp_tbody">
      </tbody>
@@ -825,7 +825,7 @@ function update_icmp_table() {
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
       $('#iface_details_icmp_tbody').html(content);
-      $('#myTable').trigger("update");
+      $('#icmp_table').trigger("update");
     }
   });
 }
@@ -838,7 +838,7 @@ setInterval(update_icmp_table, 5000);
 elseif(page == "ARP") then
 
   print [[
-     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <table id="arp_table" class="table table-bordered table-striped tablesorter">
      <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
      <tbody id="iface_details_arp_tbody">
      </tbody>
@@ -854,7 +854,7 @@ function update_arp_table() {
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
       $('#iface_details_arp_tbody').html(content);
-      $('#myTable').trigger("update");
+      $('#arp_table').trigger("update");
     }
   });
 }
@@ -2752,7 +2752,10 @@ print [[
 <script>
 $(document).ready(function()
     {
-	$("#myTable").tablesorter();
+	$("#icmp_table").tablesorter();
+	$("#arp_table").tablesorter();
+	$("#if_stats_ndpi").tablesorter();
+	$("#if_stats_ndpi_categories").tablesorter();
     }
 );
 </script>
