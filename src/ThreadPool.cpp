@@ -21,30 +21,96 @@
 
 #include "ntop_includes.h"
 
+// #define THREAD_DEBUG 1
+
+/* **************************************************** */
+
+static void* doRun(void* ptr)  {
+  ((ThreadPool*)ptr)->run();
+  return(NULL);
+}
+
 /* **************************************************** */
 
 ThreadPool::ThreadPool(u_int8_t _pool_size) {
   pool_size = _pool_size, queue_len = 0;
   m = new Mutex();
   c = new ConditionalVariable();
+  terminating = false;
+  
+  if((threadsState = (pthread_t*)malloc(sizeof(pthread_t)*pool_size)) == NULL)
+    throw("Not enough memory");
+  
+  for(int i=0; i<pool_size; i++)
+    pthread_create(&threadsState[i], NULL, doRun, (void*)this);
 }
 
 /* **************************************************** */
 
 ThreadPool::~ThreadPool() {
+  void *res;
+
+  shutdown();
+  
+  for(int i=0; i<pool_size; i++) {
+#ifdef THREAD_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Threads still running %d", pool_size-i);
+#endif
+    pthread_join(threadsState[i], &res);    
+  }
+  
   delete m;
   delete c;
 }
 
 /* **************************************************** */
 
+void ThreadPool::run() {
+#ifdef THREAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Starting thread [%u]", pthread_self());
+#endif
+  
+  while(!terminating) {
+    ThreadedActivity *t;
+
+    
+#ifdef THREAD_DEBUG  
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** About to dequeue job [%u][terminating=%d]",
+				 pthread_self(), terminating);
+#endif
+    
+    t = dequeueJob(true);
+
+#ifdef THREAD_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Dequeued job [%u][t=%p][terminating=%d]",
+				 pthread_self(), t, terminating);
+#endif
+    
+    if((t == NULL) || terminating)
+      break;
+    else {
+      t->runScript();
+    }
+  }
+
+#ifdef THREAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Terminating thread [%u]", pthread_self());
+#endif
+}
+
+/* **************************************************** */
+
 bool ThreadPool::queueJob(ThreadedActivity *j) {
+  if(terminating)
+    return(false);
+
   m->lock(__FILE__, __LINE__);  
   threads.push(j);
   queue_len++;
   m->unlock(__FILE__, __LINE__);
 
   c->signal(false);
+  return(true); /*  TODO: add a max queue len and return false */
 }
 
 /* **************************************************** */
@@ -53,11 +119,12 @@ ThreadedActivity* ThreadPool::dequeueJob(bool waitIfEmpty) {
   ThreadedActivity *t;
 
   if(waitIfEmpty) {
-    while(queue_len == 0)
-      c->wait();
+    while((queue_len == 0) && (!terminating))
+      c->wait();    
   }
   
-  if(queue_len == 0) return(NULL);
+  if((queue_len == 0) || terminating)
+    return(NULL);
 
   m->lock(__FILE__, __LINE__);
   t = threads.front();
@@ -68,6 +135,14 @@ ThreadedActivity* ThreadPool::dequeueJob(bool waitIfEmpty) {
   return(t);
 }
 
+/* **************************************************** */
 
 
-
+void ThreadPool::shutdown() {
+#ifdef THREAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** %s() ***", __FUNCTION__);
+#endif
+  
+  terminating = true;
+  c->signal(true /* Broadcast */);
+}

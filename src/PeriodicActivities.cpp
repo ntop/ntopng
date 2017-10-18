@@ -60,7 +60,8 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   }
 
   if((startup_activity = new ThreadedActivity(STARTUP_SCRIPT_PATH))) {
-    startup_activity->run();
+    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    startup_activity->runScript();
     delete startup_activity;
     startup_activity = NULL;
   }
@@ -93,5 +94,4 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
     d++;
   }
-
 }

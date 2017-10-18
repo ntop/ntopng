@@ -61,7 +61,10 @@ Ntop::Ntop(char *appName) {
   iface = NULL;
   export_interface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
+  periodicTaskPool = new ThreadPool(PERIODIC_TASK_POOL_SIZE);
 
+  assert(periodicTaskPool != NULL);
+  
   httpd = NULL, geo = NULL, mac_manufacturers = NULL,
     hostBlacklistShadow = hostBlacklist = NULL;
 
@@ -202,6 +205,7 @@ Ntop::~Ntop() {
   if(hostBlacklist)       delete hostBlacklist;
   if(hostBlacklistShadow) delete hostBlacklistShadow;
 
+  delete periodicTaskPool;
   delete address;
   delete pa;
   if(geo)   delete geo;
@@ -1581,6 +1585,8 @@ void Ntop::runHousekeepingTasks() {
 /* ******************************************* */
 
 void Ntop::shutdown() {
+  periodicTaskPool->shutdown();
+  
   for(int i=0; i<num_defined_interfaces; i++) {
     EthStats *stats = iface[i]->getStats();
 

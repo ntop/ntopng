@@ -24,7 +24,8 @@
 /* **************************************************** */
 
 static void* startActivity(void* ptr)  {
-  ((ThreadedActivity*)ptr)->activityBody(); return(NULL);
+  ((ThreadedActivity*)ptr)->activityBody();
+  return(NULL);
 }
 
 /* ******************************************* */
@@ -35,9 +36,11 @@ ThreadedActivity::ThreadedActivity(const char* _path, NetworkInterface *_iface,
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
 
-  snprintf(path, sizeof(path), "%s/%s",
-	   ntop->get_callbacks_dir(), _path);
+  snprintf(path, sizeof(path), "%s/%s", ntop->get_callbacks_dir(), _path);
 
+#ifdef THREADED_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Creating ThreadedActivity '%s'", this, path);
+#endif
 }
 
 /* ******************************************* */
@@ -51,7 +54,7 @@ ThreadedActivity::~ThreadedActivity() {
 /* ******************************************* */
 
 void ThreadedActivity::activityBody() {
-  if(periodicity == 0) /* The script is not periodic */
+  if(periodicity == 0)       /* The script is not periodic */
     aperiodicActivityBody();
   else if(periodicity <= 10) /* Accurate time computation with micro-second-accurate sleep */
     uSecDiffPeriodicActivityBody();
@@ -67,10 +70,14 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
-void ThreadedActivity::runScript(char *script, u_int32_t when) {
+void ThreadedActivity::runScript() {
   struct stat statbuf;
 
-  if(stat(script, &statbuf) == 0) {
+#ifdef THREADED_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
+#endif
+  
+  if(stat(path, &statbuf) == 0) {
     Lua *l;
 
     try {
@@ -86,17 +93,17 @@ void ThreadedActivity::runScript(char *script, u_int32_t when) {
       return;
     }
 
-    l->run_script(script);
+    l->run_script(path);
     delete l;
   } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Missing script %s", script);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "[%p] Missing script %s", this, path);
 }
 
 /* ******************************************* */
 
 void ThreadedActivity::aperiodicActivityBody() {
   if(!ntop->getGlobals()->isShutdown())
-    runScript(path, 0);
+    ntop->getPeriodicTaskPool()->scheduleJob(this);
 }
 
 /* ******************************************* */
@@ -107,7 +114,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 
   while(!ntop->getGlobals()->isShutdown()) {
     gettimeofday(&begin, NULL);
-    runScript(path, begin.tv_sec);
+    ntop->getPeriodicTaskPool()->scheduleJob(this);
     gettimeofday(&end, NULL);
 
     usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
@@ -148,7 +155,7 @@ void ThreadedActivity::periodicActivityBody() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      runScript(path, next_run);
+      ntop->getPeriodicTaskPool()->scheduleJob(this);
       next_run = roundTime(now, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
     }
 

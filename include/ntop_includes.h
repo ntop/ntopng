@@ -145,6 +145,7 @@ extern "C" {
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <queue>
 
 using namespace std;
 
@@ -276,6 +277,7 @@ using namespace std;
 #include "AggregatedFlowHash.h"
 #endif
 #include "ThreadedActivity.h"
+#include "ThreadPool.h"
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "MacManufacturers.h"

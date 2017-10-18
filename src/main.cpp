@@ -49,7 +49,8 @@ void sigproc(int sig) {
 
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
-    shutdown_activity->run();
+    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    shutdown_activity->runScript();
     delete shutdown_activity;
   }    
 
@@ -134,7 +135,8 @@ int main(int argc, char *argv[])
   ntop->registerPrefs(prefs, false);
 
   if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
-    boot_activity->run();
+    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    boot_activity->runScript();
     delete boot_activity;
   }
   

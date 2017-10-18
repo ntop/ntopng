@@ -30,7 +30,6 @@ class ConditionalVariable {
  private:
   pthread_mutex_t mutex;
   pthread_cond_t  condvar;
-  int predicate;
 
  public:
   ConditionalVariable();

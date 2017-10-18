@@ -796,5 +796,7 @@
 /* Keep in sync with nProbe */
 #define MAX_ZMQ_FLOW_BUF          4096
 
+#define PERIODIC_TASK_POOL_SIZE   8 /* Threads */
+
 #endif /* _NTOP_DEFINES_H_ */
 

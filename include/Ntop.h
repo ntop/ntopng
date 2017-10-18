@@ -29,6 +29,7 @@
  */
 
 class NtopPro;
+class ThreadPool;
 
 /** @class Ntop
  *  @brief Main class of ntopng.
@@ -59,6 +60,7 @@ class Ntop {
   MacManufacturers *mac_manufacturers;
   void *trackers_automa;
   HTTPBL *httpbl;
+  ThreadPool *periodicTaskPool;
   Flashstart *flashstart;
   ExportInterface *export_interface;
   long time_offset;
@@ -449,8 +451,8 @@ class Ntop {
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(char *name);
-  inline NetworkInterface* getFirstInterface() { return(iface[0]); }
-
+  inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
+  inline ThreadPool* getPeriodicTaskPool()     { return(periodicTaskPool); }
 #ifdef NTOPNG_PRO
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);

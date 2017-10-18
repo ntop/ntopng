@@ -32,8 +32,7 @@ class ThreadedActivity {
   u_int32_t periodicity;
   bool align_to_localtime;
 
-  static void runScript(char *path, u_int32_t when);
-  static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
+  u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
 
   void periodicActivityBody();
   void aperiodicActivityBody();
@@ -43,8 +42,9 @@ class ThreadedActivity {
   ThreadedActivity(const char* _path, NetworkInterface *_iface = NULL,
 		   u_int32_t _periodicity_seconds = 0, bool _align_to_localtime = false);
   ~ThreadedActivity();
-  void activityBody();
 
+  void activityBody();
+  void runScript();
   void run();
 };
 

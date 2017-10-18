@@ -26,7 +26,6 @@
 ConditionalVariable::ConditionalVariable() {
   pthread_mutex_init(&mutex, NULL);
   pthread_cond_init(&condvar, NULL);
-  predicate = 0;
 }
 
 /* ************************************ */
@@ -41,27 +40,24 @@ ConditionalVariable::~ConditionalVariable() {
 int ConditionalVariable::wait() {
   int rc;
 
-  if((rc = pthread_mutex_lock(&mutex)) != 0)
+  if((rc = pthread_mutex_lock(&mutex)) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "lock failed %d/%s", rc, strerror(rc));
     return rc;
-
-  while(predicate <= 0)
-    pthread_cond_wait(&condvar, &mutex);
-
-  predicate--;
-
-  rc = pthread_mutex_unlock(&mutex);
-
-  return rc;
+  }
+  
+  pthread_cond_wait(&condvar, &mutex);
+  return(pthread_mutex_unlock(&mutex));
 }
+
 /* ************************************ */
 
 int ConditionalVariable::signal(bool broadcast) {
   int rc;
 
-  pthread_mutex_lock(&mutex);
-  predicate++;
-  pthread_mutex_unlock(&mutex);
-
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s)", __FUNCTION__, broadcast ? "broadcast" : "");
+#endif
+  
   if(broadcast)
     rc = pthread_cond_broadcast(&condvar);
   else

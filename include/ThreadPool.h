@@ -26,10 +26,12 @@
 
 class ThreadPool {
  private:
+  bool terminating;
   u_int8_t pool_size;
   u_int16_t queue_len;
   ConditionalVariable *c;
   Mutex *m;
+  pthread_t *threadsState;
   std::queue <ThreadedActivity*> threads;
 
   bool queueJob(ThreadedActivity *j);
@@ -39,7 +41,10 @@ class ThreadPool {
   ThreadPool(u_int8_t _pool_size);
   ~ThreadPool();
 
+  void shutdown();
+
   inline bool scheduleJob(ThreadedActivity *j) { return(queueJob(j)); }
+  void run();
 }
 ;
 
