@@ -449,4 +449,11 @@ typedef enum {
   os_max_os /* Keep as last element */
 } OperatingSystem;
 
+/* Action to be performed after ntopng shutdown*/
+typedef enum {
+  after_shutdown_nop = 0,
+  after_shutdown_reboot = 1,
+  after_shutdown_poweroff = 2,
+} AfterShutdownAction;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

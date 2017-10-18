@@ -25,7 +25,7 @@ extern "C" {
   extern char* rrd_strversion(void);
 };
 
-bool rebootAfterShutdown = false;
+AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 
 /* ******************************** */
 
@@ -68,8 +68,12 @@ void sigproc(int sig) {
   delete ntop;
 
 #ifdef linux
-  if(rebootAfterShutdown)
-    system("/sbin/reboot &");
+  switch(afterShutdownAction) {
+    case after_shutdown_nop: break;
+    case after_shutdown_reboot: system("/sbin/reboot &"); break;
+    case after_shutdown_poweroff: system("/sbin/shutdown -h now &"); break;
+    default: break;
+  }
 #endif
   
   _exit(0);
