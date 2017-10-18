@@ -1338,6 +1338,31 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
 
 /* *************************************** */
 
+bool Host::checkCrossApplicationQuota() {
+  HostPools *pools = getInterface()->getHostPools();
+  L7Policy_t *policy = l7Policy; /* Cache it! */
+  u_int64_t cur_bytes = 0;
+  u_int32_t cur_duration = 0;
+  bool is_above = false;
+
+  if(pools && policy
+     && (policy->cross_application_quotas.bytes_quota > 0
+	 || policy->cross_application_quotas.secs_quota > 0)) {
+    pools->getStats(get_host_pool(), &cur_bytes, &cur_duration);
+
+    if((policy->cross_application_quotas.bytes_quota > 0
+	&& cur_bytes >= policy->cross_application_quotas.bytes_quota)
+      || (policy->cross_application_quotas.secs_quota > 0
+	  && cur_duration >= policy->cross_application_quotas.secs_quota))
+      is_above = true;
+  }
+
+  has_blocking_quota |= is_above;
+  return is_above;
+}
+
+/* *************************************** */
+
 void Host::luaUsedQuotas(lua_State* vm) {
   if(quota_enforcement_stats)
     quota_enforcement_stats->lua(vm, iface);

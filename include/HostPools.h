@@ -40,7 +40,7 @@ class HostPools {
 #ifdef NTOPNG_PRO
   bool *children_safe;
   u_int8_t *routing_policy_id;
-  bool *enforce_quotas_per_pool_member; /* quotas can be pool-wide or per pool member */
+  bool *enforce_quotas_per_pool_member;   /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
   Mutex **volatile_members_lock;
@@ -129,6 +129,14 @@ class HostPools {
     if (!(hps = getPoolStats(host_pool_id))) return false;
 
     hps->getCategoryStats(category_id, bytes, duration);
+    return true;
+  }
+
+  inline bool getStats(u_int16_t host_pool_id, u_int64_t *bytes, u_int32_t *duration) {
+    HostPoolStats *hps;
+    if (!(hps = getPoolStats(host_pool_id))) return false;
+
+    hps->getStats(bytes, duration);
     return true;
   }
 

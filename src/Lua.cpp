@@ -1072,16 +1072,21 @@ static int ntop_get_site_categories(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_shutdown(lua_State* vm) {
-  extern bool rebootAfterShutdown;
+  char *action;
+  extern AfterShutdownAction afterShutdownAction;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(getLuaVMUservalue(vm,conn) && !Utils::isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) {
-    if(lua_toboolean(vm, 1))
-      rebootAfterShutdown = true;
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    action = (char*)lua_tostring(vm, 1);
+
+    if(!strcmp(action, "poweroff"))
+      afterShutdownAction = after_shutdown_poweroff;
+    else if(!strcmp(action, "reboot"))
+      afterShutdownAction = after_shutdown_reboot;
   }
 
   ntop->getGlobals()->requestShutdown();

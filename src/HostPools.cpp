@@ -38,12 +38,12 @@ HostPools::HostPools(NetworkInterface *_iface) {
   stats = stats_shadow = NULL;
   
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
-     || (volatile_members_lock          = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
-     || (enforce_quotas_per_pool_member = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
-     || (num_active_hosts_inline        = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
-     || (num_active_hosts_offline       = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
-     || (num_active_l2_devices_inline   = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
-     || (num_active_l2_devices_offline  = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
+     || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
+     || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
+     || (num_active_hosts_inline          = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_hosts_offline         = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_inline     = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_offline    = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
@@ -665,7 +665,7 @@ void HostPools::reloadPools() {
 
     routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
 
-    enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+    enforce_quotas_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
 
 #ifdef HOST_POOLS_DEBUG
