@@ -2947,13 +2947,11 @@ void Flow::updateFlowShapers() {
        )
       passVerdict = false;    
   }
-  
-  if(passVerdict) {
-    cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
-    srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
-    
-    passVerdict = (cli2srv_verdict && srv2cli_verdict);
-  }
+
+  /* Re-compute the verdict */
+  cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
+  srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
+  passVerdict = (cli2srv_verdict && srv2cli_verdict);
   
 #ifdef SHAPER_DEBUG
   {
