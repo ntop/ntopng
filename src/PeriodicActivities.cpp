@@ -47,7 +47,7 @@ PeriodicActivities::~PeriodicActivities() {
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
   if(stat(ntop->get_callbacks_dir(), &buf) != 0) {
@@ -71,14 +71,14 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     bool align_to_localtime;
   } activity_descr;
 
-  static activity_descr ad[] = { 
-    { SECOND_SCRIPT_PATH,       1,     false},
-    { MINUTE_SCRIPT_PATH,       60,    false},
-    { FIVE_MINUTES_SCRIPT_PATH, 300,   false},
-    { HOURLY_SCRIPT_PATH,       3600,  false},
-    { DAILY_SCRIPT_PATH,        86400, true },
-    { HOUSEKEEPING_SCRIPT_PATH, 3,     false},
-    { DISCOVER_SCRIPT_PATH,     60,    false},
+  static activity_descr ad[] = {
+    { SECOND_SCRIPT_PATH,       1,     false },
+    { MINUTE_SCRIPT_PATH,       60,    false },
+    { FIVE_MINUTES_SCRIPT_PATH, 300,   false },
+    { HOURLY_SCRIPT_PATH,       3600,  false },
+    { DAILY_SCRIPT_PATH,        86400, true  },
+    { HOUSEKEEPING_SCRIPT_PATH, 3,     false },
+    { DISCOVER_SCRIPT_PATH,     5,     false },
     { NULL, 0, false}
   };
 
@@ -90,7 +90,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
       activities[num_activities++] = ta;
       ta->run();
     }
-    
+
     d++;
   }
 

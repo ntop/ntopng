@@ -30,11 +30,10 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;</H2><br>')
 print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;'..refresh_button..'</H2><br>')
 
-print("<script>setTimeout(function(){window.location.href='"..ntop.getHttpPrefix().."/lua/discover.lua'}, 30000);</script>")
-
 local discovered = discover.discover2table(ifname)
 
 if discovery_requested then
+   print("<script>setTimeout(function(){window.location.href='"..ntop.getHttpPrefix().."/lua/discover.lua'}, 5000);</script>")
    print('<div class=\"alert alert-info alert-dismissable\"><i class="fa fa-info-circle fa-lg"></i>&nbsp;'..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fa fa-flask\"></i>"})..'</div>')
 
 elseif discovered["status"]["code"] == "NOCACHE" then
@@ -85,12 +84,12 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       print("</td>\n")
 
       -- Mac
-      print("<td align=\"center\">")
+      print("<td align=\"left\">")
       print("<A HREF='"..ntop.getHttpPrefix().. "/lua/mac_details.lua?host="..el["mac"].."'>"..el["mac"].."</A> ")
       print("</td>\n")
 
       -- OS
-      print("<td>")
+      print("<td align=\"center\">")
       local mac_info = interface.getMacInfo(el.mac, 0) -- 0 = vlanId
       if(mac_info ~= nil) then print(getOperatingSystemIcon(mac_info.operatingSystem)) else print("&nbsp;") end
       print("</td>\n")
