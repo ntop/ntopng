@@ -122,7 +122,8 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
   inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
-  bool checkQuota(u_int16_t protocol, bool *is_category);
+  bool checkQuota(u_int16_t protocol, bool *is_category); /* Per-protocol quota check */
+  bool checkCrossApplicationQuota(); /* Overall quota check (e.g., total traffic per host pool) */
   inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
 				       ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {

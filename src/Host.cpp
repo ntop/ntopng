@@ -1338,6 +1338,17 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
 
 /* *************************************** */
 
+bool Host::checkCrossApplicationQuota() {
+  HostPools *pools = getInterface()->getHostPools();
+
+  if(!pools->enforceCrossApplicationQuotas(get_host_pool())) {
+  }
+
+  return false; /* quota not exceeded */
+}
+
+/* *************************************** */
+
 void Host::luaUsedQuotas(lua_State* vm) {
   if(quota_enforcement_stats)
     quota_enforcement_stats->lua(vm, iface);
