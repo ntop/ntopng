@@ -2970,30 +2970,28 @@ void Flow::recheckQuota() {
 
   if(cli_host && srv_host) {
     /* Client quota check */
-    above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category);
-    if (above_quota)
+    if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category)))
       cli_quota_app_proto = true;
-    else
-      above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category);
-
-    if (above_quota) {
+    else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category)))
       cli_quota_app_proto = false;
-    } else {
-      /* Server quota check */
-      above_quota = srv_host->checkQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category);
-
-      if (above_quota)
-        srv_quota_app_proto = true;
-      else
-        srv_host->checkQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category);
-
-      if (above_quota)
-        srv_quota_app_proto = false;
-    }
+    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category)))
+      srv_quota_app_proto = true;
+    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category)))
+      srv_quota_app_proto = false;
   }
 
-  quota_exceeded = above_quota;
-}
+#ifdef SHAPER_DEBUG
+    char buf[256];
+    if(above_quota) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "AFTER: [cli_quota_app_proto: %u][srv_quota_app_proto: %u] %s",
+      cli_quota_app_proto ? 1 : 0,
+      srv_quota_app_proto  ? 1 : 0,
+      print(buf, sizeof(buf)));
+  }
+#endif
+
+    quota_exceeded = above_quota;
+  }
 
 #endif
 
