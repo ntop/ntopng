@@ -106,7 +106,6 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   u_long usec_diff;
 
   while(!ntop->getGlobals()->isShutdown()) {
-
     gettimeofday(&begin, NULL);
     runScript(path, begin.tv_sec);
     gettimeofday(&end, NULL);

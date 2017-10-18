@@ -6052,6 +6052,22 @@ static int ntop_set_logging_level(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_trace_event(lua_State* vm) {
+  char *msg;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((msg = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", msg);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static const luaL_Reg ntop_interface_reg[] = {
   { "getDefaultIfName",       ntop_get_default_interface_name },
   { "setActiveInterfaceId",   ntop_set_active_interface_id },
@@ -6338,8 +6354,9 @@ static const luaL_Reg ntop_reg[] = {
   { "getResolvedName", ntop_get_resolved_address },  /* Note: you should use getResolvedAddress() to call from Lua */
 
   /* Logging */
-  { "syslog",         ntop_syslog },
-  { "setLoggingLevel",ntop_set_logging_level },
+  { "syslog",          ntop_syslog },
+  { "setLoggingLevel", ntop_set_logging_level },
+  { "traceEvent",      ntop_trace_event },
 
   /* SNMP */
   { "snmpget",        ntop_snmpget },
