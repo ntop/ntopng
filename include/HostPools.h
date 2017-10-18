@@ -40,7 +40,6 @@ class HostPools {
 #ifdef NTOPNG_PRO
   bool *children_safe;
   u_int8_t *routing_policy_id;
-  bool *enforce_cross_application_quotas; /* enforce quotas on total traffic/time and not on single protocols */
   bool *enforce_quotas_per_pool_member;   /* quotas can be pool-wide or per pool member */
   HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
@@ -145,9 +144,6 @@ class HostPools {
 
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_quotas_per_pool_member[pool_id] : false);
-  }
-  inline bool enforceCrossApplicationQuotas(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_cross_application_quotas[pool_id] : false);
   }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
