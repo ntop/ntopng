@@ -31,6 +31,7 @@ class ThreadedActivity {
   NetworkInterface *iface;
   u_int32_t periodicity;
   bool align_to_localtime;
+  bool thread_started;
 
   u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
 

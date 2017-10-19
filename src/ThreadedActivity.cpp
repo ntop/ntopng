@@ -35,6 +35,7 @@ ThreadedActivity::ThreadedActivity(const char* _path, NetworkInterface *_iface,
   iface = _iface;
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
+  thread_started = false;
 
   snprintf(path, sizeof(path), "%s/%s", ntop->get_callbacks_dir(), _path);
 
@@ -48,7 +49,8 @@ ThreadedActivity::ThreadedActivity(const char* _path, NetworkInterface *_iface,
 ThreadedActivity::~ThreadedActivity() {
   void *res;
 
-  pthread_join(pthreadLoop, &res);
+  if(thread_started)
+    pthread_join(pthreadLoop, &res);
 }
 
 /* ******************************************* */
@@ -65,7 +67,8 @@ void ThreadedActivity::activityBody() {
 /* ******************************************* */
 
 void ThreadedActivity::run() {
-  pthread_create(&pthreadLoop, NULL, startActivity, (void*)this);
+  if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0)
+    thread_started = true;
 }
 
 /* ******************************************* */
