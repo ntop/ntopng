@@ -642,7 +642,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!authorized)) {
-    if(conn->ctx->queue[0].lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
+    if(conn->client.lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
 		"Location: %s%s?referer=%s\r\n\r\n",
