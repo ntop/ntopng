@@ -12,12 +12,13 @@ locales_utils = require "locales_utils"
 
 -- ##############################################
 
-function string.contains(String,Start)
+-- Note: Regexs are applied by default. Pass plain=true to disable them.
+function string.contains(String,Start,plain)
    if type(String) ~= 'string' or type(Start) ~= 'string' then
       return false
    end
 
-   local i,j = string.find(String, Start, 1)
+   local i,j = string.find(String, Start, 1, plain)
 
    return(i ~= nil)
 end
