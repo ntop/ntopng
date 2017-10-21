@@ -58,8 +58,8 @@ nedge:
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8/ntopng.8
 	cp -Lr $(NTOPNG_HOME)/nedge/gui/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
 	cp -Lr $(NTOPNG_HOME)/nedge/gui/scripts ${NTOPNG_BUILD}/usr/share/ntopng  # L to dereference symlinks
+	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl ${NTOPNG_BUILD}/etc/ntopng
 	cp  $(NTOPNG_HOME)/nedge/gui/ntopng.conf ${NTOPNG_BUILD}/etc/ntopng
-	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl
 	cp $(NTOPNG_HOME)/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*.lua" -type f -exec /bin/rm  {} ';'; \
