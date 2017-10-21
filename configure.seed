@@ -15,6 +15,14 @@ NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
 
+AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
+
+
+if test "${with_nedge+set}" = set; then
+   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
+fi
+	    
+
 #
 # On CentOS 6 `git rev-list HEAD --count` does not work
 #
@@ -103,7 +111,8 @@ if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
-if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
+if test "${with_nedge+set}" != set; then
+ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
    cd ../PF_RING/userland; ./configure; cd -
    cd ../PF_RING/userland/nbpf; make; cd -
 
@@ -111,6 +120,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7
    if test $SYSTEM != "FreeBSD"; then
       LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
    fi
+ fi
 fi
 
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
@@ -175,12 +185,13 @@ else
  HIREDIS_INC="-I ${PWD}/third-party/hiredis"
 fi
 
-PF_RING_HOME=${HOME}/PF_RING
-if test -d ${PF_RING_HOME}; then
-  AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
-fi
+if test "${with_nedge+set}" != set; then
+ PF_RING_HOME=${HOME}/PF_RING
+ if test -d ${PF_RING_HOME}; then
+   AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
+ fi
 
-if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a" || test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
+ if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a" || test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
   AC_DEFINE_UNQUOTED(HAVE_PF_RING, 1, [Native PF_RING support])
   if test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
      echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
@@ -229,6 +240,7 @@ else
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
     exit
   fi
+ fi
 fi
 
 AC_CHECK_LIB([netfilter_conntrack], [nfct_open], nfct=true)
@@ -238,21 +250,16 @@ then
    LDFLAGS="${LDFLAGS} -lnetfilter_conntrack"
 fi
 
-AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
-if test x$cap != x
-then
-   LDFLAGS="${LDFLAGS} -lcap"
-   AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
-fi
-  
-PFRING_GIT_RELEASE=""
-if test -d $HOME/PF_RING; then
-  PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
-fi
+if test "${with_nedge+set}" != set; then
+ PFRING_GIT_RELEASE=""
+ if test -d $HOME/PF_RING; then
+   PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+ fi
 
-PFRING_VERSION=""
-if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
- PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+ PFRING_VERSION=""
+ if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
+  PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+ fi
 fi
 
 AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
@@ -265,9 +272,11 @@ if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" = xyes; then
   LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink"
 fi
 
-AC_CHECK_LIB([cap], [cap_get_proc])
-if test "x$ac_cv_lib_cap_cap_get_proc" = xyes; then
+AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
+if test x$cap != x
+then
    LDFLAGS="${LDFLAGS} -lcap"
+   AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
 fi
 
 AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
@@ -350,10 +359,11 @@ else
   exit
 fi
 
-AC_CHECK_TOOL(MARIADB, mariadb_config)
-if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
+if test "${with_nedge+set}" != set; then
+ AC_CHECK_TOOL(MARIADB, mariadb_config)
+ if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
    MYSQLTOOL="mariadb_config"
-else
+ else
    PATH=$PATH:/usr/local/mysql/bin
    AC_CHECK_TOOL(MYSQL, mysql_config)
    if test "x$ac_cv_prog_ac_ct_MYSQL" = "xmysql_config"; then
@@ -361,7 +371,7 @@ else
    else
      MYSQLTOOL=""
    fi
-fi
+ fi
 
 if test -n "$MYSQLTOOL"; then
    MYSQLLIBS="`$MYSQLTOOL --libs_r`"
@@ -374,9 +384,10 @@ if test -n "$MYSQLTOOL"; then
    MYSQL_INC="`$MYSQLTOOL --include`"
    AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
    AC_CHECK_LIB([wrap], [main])
-else
+ else
    echo "MySQL libraries not found. Please install them as specified in README.compilation"
    exit 0
+ fi
 fi
 
 if test -f /usr/bin/lsb_release; then
@@ -385,10 +396,12 @@ else
   LINUX_OS_RELEASE=0
 fi
 
-if test $LINUX_OS_RELEASE -eq 7; then
- MYSQL_DEP="mariadb-libs >= 5.5 tcp_wrappers-libs >= 7.6"
-else
- MYSQL_DEP="mysql-libs >= 5.1.0 tcp_wrappers-libs >= 7.6"
+if test "${with_nedge+set}" != set; then
+ if test $LINUX_OS_RELEASE -eq 7; then
+  MYSQL_DEP="mariadb-libs >= 5.5 tcp_wrappers-libs >= 7.6"
+ else
+  MYSQL_DEP="mysql-libs >= 5.1.0 tcp_wrappers-libs >= 7.6"
+ fi
 fi
 
 AC_DEFINE_UNQUOTED(_CRT_SECURE_NO_WARNINGS, 1, [Disable warning on windows])

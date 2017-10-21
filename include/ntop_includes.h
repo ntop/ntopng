@@ -130,8 +130,12 @@ extern "C" {
 #endif
 
 #include "third-party/uthash.h"
+
+#ifdef HAVE_MYSQL
 #include <mysql.h>
 #include <errmsg.h>
+#endif
+
 #ifdef HAVE_LIBCAP
 #include <sys/capability.h>
 #include <sys/prctl.h>
@@ -209,7 +213,9 @@ using namespace std;
 #include "StatsManager.h"
 #include "AlertsManager.h"
 #include "DB.h"
+#ifdef HAVE_MYSQL
 #include "MySQLDB.h"
+#endif
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
 #include "NetworkInterface.h"
@@ -235,8 +241,10 @@ using namespace std;
 #endif
 #include "TrafficShaper.h"
 #include "L7Policer.h"
+#ifdef HAVE_MYSQL
 #include "BatchedMySQLDB.h"
 #include "BatchedMySQLDBEntry.h"
+#endif
 #include "SPSCQueue.h"
 #include "LuaHandler.h"
 #ifndef WIN32

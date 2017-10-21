@@ -169,8 +169,9 @@ NetworkInterface::NetworkInterface(const char *name,
        && (ntop->getPrefs()->do_dump_flows_on_mysql() || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
 #ifdef NTOPNG_PRO
       if(ntop->getPrefs()->is_enterprise_edition() && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()){
+#ifdef HAVE_MYSQL
 	db = new BatchedMySQLDB(this);
-
+#endif
 	ntop->getPrefs()->enable_flow_aggregation();
 	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
@@ -178,9 +179,13 @@ NetworkInterface::NetworkInterface(const char *name,
 	aggregated_flows_hash = NULL;
 #endif
 
+#ifdef HAVE_MYSQL
       if(db == NULL)
 	db = new MySQLDB(this);
-
+#else
+      db = NULL;
+#endif
+      
       if(!db) throw "Not enough memory";
     }
 
@@ -721,6 +726,7 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 #ifdef NTOPNG_PRO
 
 int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
+#ifdef HAVE_MYSQL
   if(ntop->getPrefs()->is_enterprise_edition() && db && f && (f->get_packets() > 0)) {
 #ifdef AGGREGATED_FLOW_DEBUG
     char buf[256];
@@ -729,6 +735,8 @@ int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
 #endif
     return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(f));
   }
+#endif
+  
   return(-1);
 }
 
@@ -2496,11 +2504,13 @@ void NetworkInterface::periodicStatsUpdate() {
     vlans_hash->walk(update_vlans_stats, (void*)&tv);
   macs_hash->walk(update_macs_stats, (void*)&tv);
 
+#ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
     db->flush();
   }
-
+#endif
+  
 #ifdef NTOPNG_PRO
   if(host_pools)
     host_pools->updateStats(&tv);

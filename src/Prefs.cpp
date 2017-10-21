@@ -267,6 +267,7 @@ void usage() {
 	 "                                    |   Example:\n"
 	 "                                    |   logstash;localhost;tcp;5510\n"
 	 "                                    |\n"
+#ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   mysql;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
@@ -283,6 +284,7 @@ void usage() {
 	 "                                    |   Example:\n"
 	 "                                    |     ./nprobe ... --mysql=\"localhost:ntopng:nf:root:root\"\n"
 	 "                                    |     ./ntopng ... --dump-flows=\"mysql-nprobe;localhost;ntopng;nf;root;root\"\n"
+#endif	 
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"

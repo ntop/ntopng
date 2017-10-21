@@ -592,11 +592,14 @@ static int handle_lua_request(struct mg_connection *conn) {
 			       request_info->uri, referer);
 #endif
 
+#ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      && !MySQLDB::isDbCreated()
      && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
     redirect_to_please_wait(conn, request_info);
-  } else if(ntop->get_HTTPserver()->is_ssl_enabled()
+  } else
+#endif
+    if(ntop->get_HTTPserver()->is_ssl_enabled()
 	    && (!request_info->is_ssl)
 	    && isCaptiveURL(request_info->uri)
 	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))

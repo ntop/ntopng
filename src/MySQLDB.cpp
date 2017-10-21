@@ -21,6 +21,7 @@
 
 #include "ntop_includes.h"
 
+#ifdef HAVE_MYSQL
 /* **************************************************** */
 
 static void* queryLoop(void* ptr) {
@@ -871,3 +872,5 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
 
   return(0);
 }
+
+#endif
