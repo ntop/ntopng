@@ -34,7 +34,7 @@ function aysHandleForm(form_selector, options) {
 
     $(o.form_selector).on('dirty.areYouSure', function() {
       if (o.handle_submit_buttons)
-        $(o.form_selector).find(o.submit_selector).removeAttr('disabled');
+        $(this).find(o.submit_selector).removeAttr('disabled');
 
       if (o.handle_datatable) {
         // Disable pagination controls
@@ -55,7 +55,7 @@ function aysHandleForm(form_selector, options) {
 
    $(o.form_selector).on('clean.areYouSure', function() {
     if (o.handle_submit_buttons)
-      $(o.form_selector).find(o.submit_selector).attr("disabled", "disabled");
+      $(this).find(o.submit_selector).attr("disabled", "disabled");
 
     if (o.handle_datatable) {
         // Enabled pagination controls
