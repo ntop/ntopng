@@ -219,7 +219,9 @@ using namespace std;
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
 #include "NetworkInterface.h"
+#ifndef HAVE_NEDGE
 #include "PcapInterface.h"
+#endif
 #include "ViewInterface.h"
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
@@ -231,8 +233,10 @@ using namespace std;
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
 #include "Redis.h"
+#ifndef HAVE_NEDGE
 #include "ElasticSearch.h"
 #include "Logstash.h"
+#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "DnsHostMapping.h"
@@ -261,11 +265,14 @@ using namespace std;
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include "DivertInterface.h"
 #endif
+#ifndef HAVE_NEDGE
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
+#endif
+
 #include "Geolocation.h"
 #include "Flashstart.h"
 #include "GenericHost.h"

@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 class DummyInterface : public ParserInterface {
  private:
   inline u_int32_t getNumDroppedPackets()   { return(0); };
@@ -40,6 +42,8 @@ class DummyInterface : public ParserInterface {
   void startPacketPolling();
   void shutdown();
 };
+
+#endif
 
 #endif /* _DUMMY_INTERFACE_H_ */
 

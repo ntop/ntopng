@@ -21,6 +21,7 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
 
 /* **************************************************** */
 
@@ -75,3 +76,5 @@ void ExportInterface::export_data(char *json) {
 }
 
 /* **************************************************** */
+
+#endif

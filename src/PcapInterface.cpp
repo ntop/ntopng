@@ -25,6 +25,8 @@
 #include <uuid/uuid.h>
 #endif
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
@@ -261,3 +263,5 @@ bool PcapInterface::set_packet_filter(char *filter) {
     return(true);
   }
 };
+
+#endif

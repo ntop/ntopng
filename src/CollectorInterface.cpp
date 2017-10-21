@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
@@ -312,3 +314,5 @@ void CollectorInterface::purgeIdle(time_t when) {
       static_cast<NetworkInterface*>(current->iface)->purgeIdle(when);
   }
 }
+
+#endif

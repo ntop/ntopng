@@ -53,13 +53,15 @@ Ntop::Ntop(char *appName) {
   httpbl = NULL, flashstart = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
+#ifndef HAVE_NEDGE
   elastic_search = NULL;
   logstash = NULL;
+  export_interface = NULL;
+#endif
   trackers_automa = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
   iface = NULL;
-  export_interface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   periodicTaskPool = new ThreadPool(PERIODIC_TASK_POOL_SIZE);
 
@@ -200,8 +202,10 @@ Ntop::~Ntop() {
   if(flashstart)          delete flashstart;
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
+#ifndef HAVE_NEDGE
   if(elastic_search)      delete(elastic_search);
   if(logstash)            delete(logstash);
+#endif
   if(hostBlacklist)       delete hostBlacklist;
   if(hostBlacklistShadow) delete hostBlacklistShadow;
 
@@ -310,25 +314,30 @@ void Ntop::initNetworkInterfaces() {
 /* ******************************************* */
 
 void Ntop::initLogstash(){
+#ifndef HAVE_NEDGE
   if(logstash) delete(logstash);
   logstash = new Logstash();
+#endif
 }
 
 /* ******************************************* */
 
 void Ntop::initElasticSearch() {
+#ifndef HAVE_NEDGE
   if(elastic_search) delete(elastic_search);
-
   elastic_search = new ElasticSearch();
+#endif
 }
 
 /* ******************************************* */
 
 void Ntop::createExportInterface() {
+#ifndef HAVE_NEDGE
   if(prefs->get_export_endpoint())
     export_interface = new ExportInterface(prefs->get_export_endpoint());
   else
     export_interface = NULL;
+#endif
 }
 
 /* ******************************************* */
@@ -1567,18 +1576,21 @@ void Ntop::runHousekeepingTasks() {
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
 
+#ifndef HAVE_NEDGE
   /* ES stats are updated once as the present implementation is not per-interface  */
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     ntop->getElasticSearch()->updateStats(&tv);
   }
+  
   if(ntop->getPrefs()->do_dump_flows_on_ls()){
     struct timeval tv;
     gettimeofday(&tv, NULL);
     ntop->getLogstash()->updateStats(&tv);
   }
-
+#endif
+  
   ntop->rotateLogs();
 }
 

@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 #if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
 
 /* **************************************************** */
@@ -174,3 +176,4 @@ u_int32_t ZCCollectorInterface::getNumDroppedPackets() {
 
 #endif
 
+#endif

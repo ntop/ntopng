@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 
     try {
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
+#ifndef HAVE_NEDGE
       if(!strcmp(ifName, "dummy")) {
 	iface = new DummyInterface();
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
@@ -193,7 +194,9 @@ int main(int argc, char *argv[])
       } else if(strstr(ifName, "zcflow:")) {
 	iface = new ZCCollectorInterface(ifName);
 #endif
-      } else {
+      } else
+#endif
+	{
 	iface = NULL;
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
@@ -220,6 +223,7 @@ int main(int argc, char *argv[])
       iface = NULL;
     }
 
+#ifndef HAVE_NEDGE
     if(iface == NULL) {
       try {
 	iface = new PcapInterface(ifName);
@@ -228,6 +232,7 @@ int main(int argc, char *argv[])
 	iface = NULL;
       }
     }
+#endif
 
     if(iface) {
 #if 0
@@ -282,11 +287,12 @@ int main(int argc, char *argv[])
       ntop->registerInterface(iface);
   }
 
+#ifndef HAVE_NEDGE
   ntop->createExportInterface();
-
   ntop->getElasticSearch()->startFlowDump();
   ntop->getLogstash()->startFlowDump();
-
+#endif
+  
   if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
     exit(0);

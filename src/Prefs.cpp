@@ -34,7 +34,7 @@ Prefs::Prefs(Ntop *_ntop) {
   resolve_all_host_ip = false, online_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
-  attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;  
+  attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
   enable_mac_ndpi_stats = false;
@@ -252,6 +252,7 @@ void usage() {
 #endif
 
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
+#ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -284,7 +285,8 @@ void usage() {
 	 "                                    |   Example:\n"
 	 "                                    |     ./nprobe ... --mysql=\"localhost:ntopng:nf:root:root\"\n"
 	 "                                    |     ./ntopng ... --dump-flows=\"mysql-nprobe;localhost;ntopng;nf;root;root\"\n"
-#endif	 
+#endif
+#endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"
@@ -387,7 +389,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 
 bool Prefs::getDefaultBoolPrefsValue(const char *pref_key, const bool default_value) {
   char rsp[8];
-  
+
   if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
     return((rsp[0] == '1') ? true : false);
   else
@@ -407,7 +409,7 @@ int32_t Prefs::getDefaultPrefsValue(const char *pref_key, int32_t default_value)
     return(default_value);
   }
 }
-  
+
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
@@ -618,7 +620,7 @@ void Prefs::parseHTTPPort(char *arg) {
   snprintf(tmp, sizeof(tmp), "%s", arg);
 
   a = strtok_r(tmp, ",", &_t);
-  if(a) {  
+  if(a) {
     http_port = atoi(a);
 
     a = strtok_r(NULL, ",", &_t);
@@ -692,7 +694,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  alt_port = strtok_r(NULL, ":", &tmp);
 	else
 	  alt_port = NULL;
-	   
+
 	if((flashstart = new Flashstart(user, pwd, alt_dns, alt_port ? atoi(alt_port) : 53, false)) != NULL)
 	  ntop->set_flashstart(flashstart);
       } else
@@ -1043,10 +1045,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    mysql_port = (int)l;
 	}
       }  else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");     
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
     } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
       /* logstash;<host[@port]; */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");  
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");
       optarg = Utils::tokenizer(&optarg[9],';',&ls_host);
       optarg = Utils::tokenizer(optarg,';',&ls_proto);
       ls_port = strdup(optarg ? optarg : NULL);
@@ -1148,7 +1150,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 215:
     zmq_encryption_pwd = strdup(optarg);
     break;
-    
+
   case 216:
     enable_user_scripts = true;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "User scripts enabled");
@@ -1359,13 +1361,13 @@ void Prefs::lua(lua_State* vm) {
   /* Sticky hosts preferences */
   if(sticky_hosts != location_none) {
     char *location_string = NULL;
-    
+
     if(sticky_hosts == location_all) location_string = (char*)"all";
     else if(sticky_hosts == location_local_only) location_string = (char*)"local";
     else if(sticky_hosts == location_remote_only) location_string = (char*)"remote";
     if(location_string) lua_push_str_table_entry(vm, "sticky_hosts", location_string);
   }
-  
+
   /* Command line options */
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
 

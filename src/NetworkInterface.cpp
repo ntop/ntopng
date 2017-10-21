@@ -168,7 +168,7 @@ NetworkInterface::NetworkInterface(const char *name,
     if((!isViewInterface)
        && (ntop->getPrefs()->do_dump_flows_on_mysql() || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition() && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()){
+      if(ntop->getPrefs()->is_enterprise_edition() && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef HAVE_MYSQL
 	db = new BatchedMySQLDB(this);
 #endif
@@ -668,9 +668,9 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping flow.");
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, f));
-  } else if(ntop->getPrefs()->do_dump_flows_on_es()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
     return(dumpEsFlow(when, f));
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     return(dumpLsFlow(when,f));
   } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
@@ -680,19 +680,28 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
+int NetworkInterface::dumpLsFlow(time_t when, Flow *f) {
+#ifndef HAVE_NEDGE
   char *json = f->serialize(true);
   int rc;
+  
   if(json && ntop->getLogstash()) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s", json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
   } else
     rc = -1;
+
   return(rc);
+#else
+  return(-1);
+#endif
 }
 
+/* **************************************************** */
+
 int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
+#ifndef HAVE_NEDGE
   char *json = f->serialize(true);
   int rc;
 
@@ -704,6 +713,9 @@ int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
     rc = -1;
 
   return(rc);
+#else
+  return(-1);
+#endif
 }
 
 /* **************************************************** */
@@ -946,6 +958,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 /* **************************************************** */
 
 NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool parser_interface) {
+#ifndef HAVE_NEDGE
   FlowHashing *h = NULL;
 
   HASH_FIND_INT(flowHashing, &criteria, h);
@@ -1008,7 +1021,8 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
   }
 
   if(h) return(h->iface);
-
+#endif
+  
   return(NULL);
 }
 
@@ -4608,6 +4622,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
+
+#ifndef HAVE_NEDGE
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
   */
@@ -4615,9 +4631,11 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, false /* Overall */);
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->lua(vm, false /* Overall */);
   }
+#endif
+  
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -4626,13 +4644,17 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "packets",     getNumPackets() - getCheckPointNumPackets());
   lua_push_int_table_entry(vm, "bytes",       getNumBytes() - getCheckPointNumBytes());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops() - getCheckPointNumPacketDrops());
+
+#ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, true /* Since last checkpoint */);
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
   }
+#endif
+  
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -5255,13 +5277,15 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
   }
   checkpointPktDropCount = getNumPacketDrops();
 
+#ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->checkPointCounters(drops_only);
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->checkPointCounters(drops_only);
   }
+#endif
 }
 
 /* **************************************************** */

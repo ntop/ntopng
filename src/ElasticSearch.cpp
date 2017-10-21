@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
@@ -250,3 +252,5 @@ void ElasticSearch::pushEStemplate() {
   if(max_attempts == 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ntopng template (%s) to ES", template_path);
 }
+
+#endif

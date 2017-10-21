@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
@@ -1112,3 +1114,5 @@ void ParserInterface::lua(lua_State* vm) {
 }
 
 /* **************************************************** */
+
+#endif

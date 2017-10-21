@@ -871,7 +871,10 @@ bool Flow::dumpFlow(bool idle_flow) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->getPrefs()->do_dump_flows_on_ls()
-     || ntop->get_export_interface()) {
+#ifndef HAVE_NEDGE
+     || ntop->get_export_interface()
+#endif
+     ) {
 #ifdef NTOPNG_PRO
     if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
       /* force profile detection even if the L7 Protocol has not been detected */
@@ -914,6 +917,7 @@ bool Flow::dumpFlow(bool idle_flow) {
         cli_host->getInterface()->dumpLsFlow(last_seen, this);
     }
 
+#ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {
       char *json = serialize(false);
 
@@ -922,6 +926,7 @@ bool Flow::dumpFlow(bool idle_flow) {
 	free(json);
       }
     }
+#endif
 
     rc = true;
   }

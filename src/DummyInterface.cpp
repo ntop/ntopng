@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 DummyInterface::DummyInterface() : ParserInterface("dummy") {
@@ -109,3 +111,5 @@ void DummyInterface::shutdown() {
     pthread_join(pollLoop, &res);
   }
 }
+
+#endif

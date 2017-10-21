@@ -51,8 +51,11 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
+#ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
+  ExportInterface *export_interface;
+#endif
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
@@ -62,7 +65,6 @@ class Ntop {
   HTTPBL *httpbl;
   ThreadPool *periodicTaskPool;
   Flashstart *flashstart;
-  ExportInterface *export_interface;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
@@ -378,11 +380,14 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
+#ifndef HAVE_NEDGE
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Logstash*         getLogstash()             { return(logstash);            };
-  inline Prefs*            getPrefs()                { return(prefs);               };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
+#endif
 
+  inline Prefs*            getPrefs()                { return(prefs);               };
+  
 #ifdef NTOPNG_PRO
 #ifdef WIN32
   char* getIfName(int if_id, char *name, u_int name_len);
