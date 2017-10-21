@@ -4,7 +4,7 @@
 NTOPNG_HOME=$(PWD)/../..
 NTOPNG_BUILD=${NTOPNG_HOME}/packages/ubuntu
 
-all: clean ntopng ntopng-data
+all: clean @DEFAULT_TARGET@ ntopng-data
 
 ntopng:
 	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
@@ -47,6 +47,46 @@ ntopng:
 	@echo "-------------------------------"
 	-dpkg -I ntopng_*deb
 	-dpkg --contents ntopng_*deb
+	@echo "-------------------------------"
+
+nedge:
+	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
+	ln -s ./debian.ntopng ./debian
+	@SUDO@ /bin/rm -rf ./usr ./debian/ntopng
+	\mkdir -p ${NTOPNG_BUILD}/usr/bin ${NTOPNG_BUILD}/usr/share/man/man8 ${NTOPNG_BUILD}/usr/share/ntopng ./debian/ntopng
+	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/ntopng
+	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8/ntopng.8
+	cp -Lr $(NTOPNG_HOME)/nedge/gui/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
+	cp -Lr $(NTOPNG_HOME)/nedge/gui/scripts ${NTOPNG_BUILD}/usr/share/ntopng  # L to dereference symlinks
+	cp  $(NTOPNG_HOME)/nedge/gui/ntopng.conf ${NTOPNG_BUILD}/etc/ntopng
+	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl
+	cp $(NTOPNG_HOME)/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*.lua" -type f -exec /bin/rm  {} ';'; \
+	find ${NTOPNG_BUILD}/usr/share/ntopng/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
+
+	if test -d "/etc/systemd"; then \
+		mkdir -p ${NTOPNG_BUILD}/etc/systemd/system/; \
+		cp -r $(NTOPNG_HOME)/packages/etc/systemd/system/ntopng.service ${NTOPNG_BUILD}/etc/systemd/system/; \
+	fi
+	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".git" | xargs /bin/rm -rf
+	@echo
+	@find . -name "*~" -exec /bin/rm {} ';'
+	@/bin/rm -f ../nedge_*deb
+	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b
+	@CHOWN@
+	dpkg-sig --sign builder -k D1EB60BE ../nedge_*deb
+	@\rm -f ../nedge_*dsc ../nedge_*.gz ../nedge_*changes
+	@/bin/mv ../nedge_*deb .
+	@echo
+	@echo "Package built."
+	@/bin/ls nedge_*deb
+	@echo "-------------------------------"
+	-dpkg -I nedge_*deb
+	-dpkg --contents nedge_*deb
 	@echo "-------------------------------"
 
 ntopng-data:

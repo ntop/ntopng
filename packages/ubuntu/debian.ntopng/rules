@@ -12,7 +12,7 @@
 # http://www.tin.org/bin/man.cgi?section=7&topic=debhelper
 #
 
-package=ntopng
+package=nedge
 
 build: build-stamp
 build-stamp:
@@ -46,16 +46,16 @@ binary-arch: build install
 	dh_compress
 #	dh_fixperms
 	dh_installdeb
-# install the files into debian/ntopng.
-	mkdir -p ./debian/ntopng
-	cp -r ../etc/ ./usr/ ./debian/ntopng
-	-rm ./debian/ntopng/usr/share/ntopng/httpdocs/geoip/*.dat
-	-find ./debian/ntopng -name .svn -exec /bin/rm -rf {} ';'
-	\rm -rf ./debian/ntopng/etc/init.d/nprobe ./debian/ntopng/etc/ld.so.conf.d
-	if ! test -d "/etc/systemd"; then \rm -rf ./debian/ntopng/etc/systemd; fi
+# install the files into debian/nedge.
+	mkdir -p ./debian/nedge
+	cp -r ../etc/ ./usr/ ./debian/nedge
+	-rm ./debian/nedge/usr/share/ntopng/httpdocs/geoip/*.dat
+	-find ./debian/nedge -name .svn -exec /bin/rm -rf {} ';'
+	\rm -rf ./debian/nedge/etc/init.d/nprobe ./debian/nedge/etc/ld.so.conf.d
+	if ! test -d "/etc/systemd"; then \rm -rf ./debian/nedge/etc/systemd; fi
 	# Don't use upstart
-	\rm -rf ./debian/ntopng/etc/init
-	#\rm ./debian/ntopng/etc/init/nprobe.conf
+	\rm -rf ./debian/nedge/etc/init
+	#\rm ./debian/nedge/etc/init/nprobe.conf
 	dh_link
 	dh_gencontrol
 	dh_md5sums

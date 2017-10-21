@@ -279,9 +279,11 @@ then
    AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
 fi
 
-AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
-if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
-  AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
+if test "${with_nedge+set}" != set; then
+ AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
+ if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
+   AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
+ fi
 fi
 
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
