@@ -157,7 +157,7 @@ void nDPIusage() {
 
 /* C-binding needed by Win32 service call */
 void usage() {
-  printf("ntopng %s v.%s - " NTOP_COPYRIGHT "\n\n"
+  printf("ntopng %s%s v.%s - " NTOP_COPYRIGHT "\n\n"
 	 "Usage:\n"
 	 "  ntopng <configuration file path>\n"
 	 "  or\n"
@@ -326,7 +326,12 @@ void usage() {
 	 "[--version|-V]                      | Print version and quit\n"
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
-	 "[--help|-h]                         | Help\n"
+	 "[--help|-h]                         | Help\n",
+#ifdef HAVE_NEDGE
+	 "edge "
+#else
+	 ""
+#endif
 	 , PACKAGE_MACHINE, PACKAGE_VERSION,
 #ifndef WIN32
 	 ntop->get_working_dir(),

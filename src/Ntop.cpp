@@ -348,7 +348,12 @@ void Ntop::start() {
   int i = 0;
 
   getTrace()->traceEvent(TRACE_NORMAL,
-			 "Welcome to ntopng %s v.%s - (C) 1998-17 ntop.org",
+			 "Welcome to %s %s v.%s - (C) 1998-17 ntop.org",
+#ifdef HAVE_NEDGE
+			 "ntopng edge",
+#else
+			 "ntopng",
+#endif
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
 
   if(PACKAGE_OS[0] != '\0')

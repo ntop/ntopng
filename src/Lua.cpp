@@ -4257,7 +4257,13 @@ static int ntop_get_info(lua_State* vm) {
     verbose = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
-  lua_push_str_table_entry(vm, "product",   (char*)"ntopng");
+  lua_push_str_table_entry(vm, "product",
+#ifdef HAVE_NEDGE
+			   (char*)"ntopng edge"
+#else
+			   (char*)"ntopng"
+#endif
+			   );
   lua_push_str_table_entry(vm, "copyright", (char*)"&copy; 1998-17 - ntop.org");
   lua_push_str_table_entry(vm, "authors",   (char*)"The ntop.org team");
   lua_push_str_table_entry(vm, "license",   (char*)"GNU GPLv3");
