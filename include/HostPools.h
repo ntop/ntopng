@@ -93,8 +93,9 @@ class HostPools {
   }
   
   inline int32_t getNumPoolL2Devices(u_int16_t pool_id) {
-    if(pool_id == NO_HOST_POOL_ID || pool_id >= max_num_pools);
+    if((pool_id == NO_HOST_POOL_ID) || (pool_id >= max_num_pools))
       return 0;
+    
     return num_active_l2_devices_inline[pool_id] + num_active_l2_devices_offline[pool_id];
   }
   
