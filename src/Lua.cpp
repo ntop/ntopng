@@ -5929,9 +5929,9 @@ int ntop_lua_cli_print(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef NTOPNG_PRO
-static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex)
-{
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
+
+static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex) {
   int rc;
   LuaHandler *lh = new LuaHandler(L, script_path);
 
@@ -5940,14 +5940,17 @@ static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex)
   return rc;
 }
 
+/* ****************************************** */
+
 /* This function is called by Lua scripts when the call require(...) */
-static int ntop_lua_require(lua_State* L)
-{
+static int ntop_lua_require(lua_State* L) {
   char *script_name;
 
   if(lua_type(L, 1) != LUA_TSTRING ||
      (script_name = (char*)lua_tostring(L, 1)) == NULL)
     return 0;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
 
   lua_getglobal( L, "package" );
   lua_getfield( L, -1, "path" );
@@ -5959,8 +5962,25 @@ static int ntop_lua_require(lua_State* L)
     unsigned found = parsed.find_last_of("?");
     if(found) {
       string s = parsed.substr(0, found) + script_name + ".lua";
+      size_t first_dot = s.find("."), last_dot  = s.rfind(".");
+      
+      /*
+	Lua transforms file names when directories are used.
+	Example:  i18n/version.lua -> i18n.version.lua
+
+	So we need to revert this logic back and the code
+	below is doing exactly this
+       */
+      if((first_dot != string::npos)
+	 && (last_dot != string::npos)
+	 && (first_dot != last_dot))
+	s.replace(first_dot, 1, "/");
+
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] Searching %s", __FUNCTION__, s.c_str());
+
       if(Utils::file_exists(s.c_str())) {
 	script_path = s;
+	ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] Found %s", __FUNCTION__, s.c_str());
 	break;
       }
     }
@@ -5973,8 +5993,9 @@ static int ntop_lua_require(lua_State* L)
   return 1;
 }
 
-static int ntop_lua_dofile(lua_State* L)
-{
+/* ****************************************** */
+
+static int ntop_lua_dofile(lua_State* L) {
   char *script_path;
 
   if(lua_type(L, 1) != LUA_TSTRING ||
@@ -5984,6 +6005,22 @@ static int ntop_lua_dofile(lua_State* L)
 
   return 1;
 }
+
+/* ****************************************** */
+
+static int ntop_lua_loadfile(lua_State* L) {
+  char *script_path;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s()", __FUNCTION__);
+
+  if(lua_type(L, 1) != LUA_TSTRING ||
+     ((script_path = (char*)lua_tostring(L, 1)) == NULL)
+     ||  __ntop_lua_handlefile(L, script_path, false))
+    return 0;
+
+  return 1;
+}
+
 #endif
 
 /* ****************************************** */
@@ -6457,11 +6494,12 @@ void Lua::lua_register_classes(lua_State *L, bool http_mode) {
   } else
     lua_register(L, "print", ntop_lua_cli_print);
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
   if(ntop->getPro()->has_valid_license()) {
     lua_register(L, "ntopRequire", ntop_lua_require);
     luaL_dostring(L, "table.insert(package.loaders, 1, ntopRequire)");
     lua_register(L, "dofile", ntop_lua_dofile);
+    lua_register(L, "loadfile", ntop_lua_loadfile);
   }
 #endif
 }

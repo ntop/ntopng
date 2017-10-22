@@ -4,7 +4,9 @@
 
 dirs = ntop.getDirs()
 
-package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+--package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
 require "lua_trace"
 locales_utils = require "locales_utils"

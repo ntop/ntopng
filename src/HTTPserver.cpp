@@ -435,6 +435,7 @@ static void redirect_to_login(struct mg_connection *conn,
 
 /* ****************************************** */
 
+#ifdef HAVE_MYSQL
 /* Redirect user to a courtesy page that is used when database schema is being updated.
    In the cookie, store the original URL we came from, so that after the authorization
    we could redirect back.
@@ -460,6 +461,7 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 	    conn->request_info.query_string ? "%3F" /* ? */: "",
 	    conn->request_info.query_string ? conn->request_info.query_string : "");
 }
+#endif
 
 /* ****************************************** */
 
