@@ -36,14 +36,10 @@ HostPools::HostPools(NetworkInterface *_iface) {
     throw 1;
 
   stats = stats_shadow = NULL;
-  
+
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
      || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
-     || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
-     || (num_active_hosts_inline          = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
-     || (num_active_hosts_offline         = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
-     || (num_active_l2_devices_inline     = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
-     || (num_active_l2_devices_offline    = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
+     || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
@@ -51,6 +47,12 @@ HostPools::HostPools(NetworkInterface *_iface) {
       throw 2;
   }
 #endif
+
+  if((num_active_hosts_inline          = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_hosts_offline      = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_inline  = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_offline = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
+    throw 1;
 
   latest_swap = 0;
   if((swap_lock = new Mutex()) == NULL)
@@ -644,7 +646,7 @@ void HostPools::reloadPools() {
   num_pools = redis->smembers(kname, &pools);
 
   for(int i = 0; i < num_pools; i++) {
-    char rsp[8];
+
 
     if(!pools[i])
       continue;
@@ -663,9 +665,10 @@ void HostPools::reloadPools() {
 #endif
 
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
-    rsp[0] = '\0';
 
 #ifdef NTOPNG_PRO
+    char rsp[8] = { 0 };
+
     children_safe[i] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
 			&& (!strcmp(rsp, "true")));
 
