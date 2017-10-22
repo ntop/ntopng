@@ -174,8 +174,10 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "CountMinSketch.h"
+#ifndef HAVE_NEDGE
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
+#endif
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
 #include "FlowInterfacesStats.h"

@@ -206,10 +206,12 @@ NetworkInterface::NetworkInterface(const char *name,
 
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
+#ifndef HAVE_NEDGE
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
-
+#endif
+  
   flow_interfaces_stats = NULL; /* Lazy, instantiated on demand */
 #endif
 
@@ -309,7 +311,9 @@ void NetworkInterface::init() {
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
   flow_profiles = shadow_flow_profiles = NULL;
+#endif
 #endif
 }
 
@@ -654,8 +658,10 @@ NetworkInterface::~NetworkInterface() {
   
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
+#ifndef HAVE_NEDGE
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
+#endif
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
 
@@ -2631,8 +2637,9 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
   Flow *f = (Flow*)node;
 
   f->updateFlowShapers();
+#ifndef HAVE_NEDGE
   f->updateProfile();
-
+#endif
   return(false); /* false = keep on walking */
 }
 
@@ -2858,6 +2865,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
 #ifdef NTOPNG_PRO
 
+#ifndef HAVE_NEDGE
 static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
@@ -2887,6 +2895,7 @@ void NetworkInterface::updateFlowProfiles() {
     flows_hash->walk(update_flow_profile, NULL);
   }
 }
+#endif
 
 #endif
 
@@ -4696,7 +4705,9 @@ void NetworkInterface::lua(lua_State *vm) {
   if(!isView()) {
     if(pkt_dumper)    pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     if(flow_profiles) flow_profiles->lua(vm);
+#endif
 #endif
   }
 
@@ -4902,6 +4913,9 @@ bool NetworkInterface::findHostsByName(lua_State* vm,
 /* **************************************************** */
 
 bool NetworkInterface::validInterface(char *name) {
+#ifdef HAVE_NEDGE
+  return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
+#else
   if(name &&
      (strstr(name, "PPP")            /* Avoid to use the PPP interface              */
       || strstr(name, "dialup")      /* Avoid to use the dialup interface           */
@@ -4911,6 +4925,7 @@ bool NetworkInterface::validInterface(char *name) {
   }
 
   return(true);
+#endif
 }
 
 /* **************************************************** */

@@ -104,7 +104,9 @@ Flow::Flow(NetworkInterface *_iface,
     last_update_time.tv_sec = (long)first_seen;
 
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
   trafficProfile = NULL;
+#endif
   flowShaperIds.cli2srv.ingress = flowShaperIds.cli2srv.egress = flowShaperIds.srv2cli.ingress = flowShaperIds.srv2cli.egress = DEFAULT_SHAPER_ID;
 #endif
 
@@ -640,7 +642,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   // Indeed, even if the L7 detection is not yet completed
   // the flow already carries information on all the other fields,
   // e.g., IP src and DST, vlan, L4 proto, etc
+#ifndef HAVE_NEDGE
   updateProfile();
+#endif
 #endif
 }
 
@@ -876,9 +880,11 @@ bool Flow::dumpFlow(bool idle_flow) {
 #endif
      ) {
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
       /* force profile detection even if the L7 Protocol has not been detected */
-      updateProfile();
+     updateProfile();
+#endif
 #endif
 
     now = time(NULL);
@@ -1048,15 +1054,16 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 #ifdef NTOPNG_PRO
       if(ntop->getPro()->has_valid_license()) {
 
+#ifndef HAVE_NEDGE
 	if(trafficProfile)
 	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
-
+#endif
+	
 	/* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
 	   pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp
 	*/
 	if(iface && !iface->is_bridge_interface())
 	  update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-
       }
 #endif
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {
@@ -1562,8 +1569,10 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     if((!mask_flow) && trafficProfile && ntop->getPro()->has_valid_license())
       lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
+#endif
 #endif
 
     lua_push_int_table_entry(vm, "bytes.last",
@@ -2025,9 +2034,11 @@ json_object* Flow::flow2json() {
   }
 
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
   // Traffic profile information, if any
   if(trafficProfile && trafficProfile->getName())
     json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
+#endif
 #endif
   if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
     json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME",

@@ -83,7 +83,9 @@ class NetworkInterface {
   bool bridge_interface, forcePoolReload, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
+#ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
+#endif
   FlowInterfacesStats *flow_interfaces_stats;
   AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
 #endif
@@ -516,9 +518,12 @@ class NetworkInterface {
   void getsDPIStats(lua_State *vm);
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
+
+#ifndef HAVE_NEDGE
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
-
+#endif
+  
   bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
   void initL7Policer();
 #endif

@@ -1085,10 +1085,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
+#ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
 	   "Enterprise/Professional"
 #else
 	   "Community"
+#endif
+#else
+	   "Edge"
 #endif
 	   ,
 #ifdef NTOPNG_EMBEDDED_EDITION
