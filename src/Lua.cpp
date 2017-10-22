@@ -43,6 +43,14 @@ struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 /* ******************************* */
 
 Lua::Lua() {
+#ifdef HAVE_NEDGE
+  if(!ntop->getPro()->has_valid_license()) {
+      ntop->getGlobals()->shutdown();
+      ntop->shutdown();
+      exit(0);
+  }
+#endif
+
   L = luaL_newstate();
 
   if (L) G(L)->userdata = NULL;

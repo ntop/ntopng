@@ -574,6 +574,14 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   len = (u_int)strlen(request_info->uri);
 
+#ifdef HAVE_NEDGE
+  if(!ntop->getPro()->has_valid_license()) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutting down...");
+    ntop->getGlobals()->shutdown();
+    ntop->shutdown();
+  }
+#endif
+
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s][%s][Referer: %s]",
 			       mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",

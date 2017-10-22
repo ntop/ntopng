@@ -8,7 +8,9 @@ upgrade)
 	;;
 *)
          if [ `pidof ntopng|wc -l` -gt 0 ]; then
-            /etc/init.d/ntopng stop
+	     if [ ! -f /bin/systemctl ] ; then
+              /etc/init.d/ntopng stop
+	     fi
          fi
 	;;
 esac
