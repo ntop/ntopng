@@ -12,6 +12,7 @@ else
   if test $SHORT_MACHINE = "arm"; then
      EXTN="armhf"
      EXTRA_DEPS=""
+     LIBRRD="librrd8, "
   else
      if test $SHORT_MACHINE = "mip"; then
        EXTN="mips"
