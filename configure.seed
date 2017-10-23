@@ -109,6 +109,14 @@ PRO_OBJECTS=
 PRO_HEADERS=
 PRO_LIBS=
 
+if test $MACHINE = "armv7l" ; then
+SERVICE_AFTER="network.target syslog.target redis.service"
+SERVICE_REQUIRES=
+else
+SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluster.service"
+SERVICE_REQUIRES="pf_ring.service cluster.service"
+fi
+
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
@@ -491,11 +499,14 @@ AC_SUBST(MYSQL_DEP)
 AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
 AC_SUBST(NEDGE)
+AC_SUBST(SERVICE_AFTER)
+AC_SUBST(SERVICE_REQUIRES)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)
+AC_CONFIG_FILES(packages/etc/systemd/system/ntopng.service)
 
 AC_OUTPUT
 
