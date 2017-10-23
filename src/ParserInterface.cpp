@@ -676,33 +676,27 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	  export a valid ipv4 and an empty ipv6. Without the check, the empty
 	  v6 address may overwrite the non empty v4.
 	*/
-	if(flow.core.src_ip.ipVersion == 0) {
-	  IpAddress ip;
-
-	  ip.set((char*)value);	  
-	  memcpy(&flow.core.src_ip, ip.getIP(), sizeof(flow.core.src_ip));
+	if(flow.core.src_ip.isEmpty()) {
+	  flow.core.src_ip.set((char*)value);
 	} else {
 	  ip_aux.set((char*)value);
-	  if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_src_with_post_nat_src())
+	  if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_src_with_post_nat_src())
 	    /* tried to overwrite a non-empty IP with another non-empty IP */
 	    ntop->getTrace()->traceEvent(TRACE_WARNING,
 					 "Attempt to set source ip multiple times. "
-					 "Check exported fields in flow");
+					 "Check exported fields");
 	}
 	break;
       case IPV4_DST_ADDR:
       case IPV6_DST_ADDR:
-	if(flow.core.dst_ip.ipVersion == 0) {
-	  IpAddress ip;
-	    
-	  ip.set((char*)value);	  
-	  memcpy(&flow.core.dst_ip, ip.getIP(), sizeof(flow.core.dst_ip));
+	if(flow.core.dst_ip.isEmpty()) {
+	  flow.core.dst_ip.set((char*)value);
 	} else {
 	  ip_aux.set((char*)value);
-	  if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
+	  if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
 	    ntop->getTrace()->traceEvent(TRACE_WARNING,
 					 "Attempt to set destination ip multiple times. "
-					 "Check exported fields in flow");
+					 "Check exported fields");
 	}
 	break;
       case L4_SRC_PORT:

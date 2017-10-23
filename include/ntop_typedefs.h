@@ -157,7 +157,7 @@ typedef struct {
 
 typedef struct zmq_flow_core {
   u_int8_t version; /* 0 so far */
-  struct ipAddress src_ip, dst_ip;
+  IpAddress src_ip, dst_ip;
   u_int32_t deviceIP;
   u_int16_t src_port, dst_port, l7_proto, inIndex, outIndex;
   u_int16_t vlan_id, pkt_sampling_rate;
