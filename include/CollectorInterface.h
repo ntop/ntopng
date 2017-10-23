@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 class Lua;
 
 typedef struct {
@@ -60,6 +62,8 @@ class CollectorInterface : public ParserInterface {
   bool set_packet_filter(char *filter);
   virtual void lua(lua_State* vm);
 };
+
+#endif /* HAVE_NEDGE */
 
 #endif /* _COLLECTOR_INTERFACE_H_ */
 

@@ -25,6 +25,7 @@
 #include "ntop_includes.h"
 
 #ifndef HAVE_NEDGE
+
 class ExportInterface {
  private:
   char *endpoint, *topic;

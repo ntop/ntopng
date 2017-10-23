@@ -1558,6 +1558,7 @@ static int ntop_network_prefix(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 static int ntop_zmq_connect(lua_State* vm) {
   char *endpoint, *topic;
   void *context, *subscriber;
@@ -1590,6 +1591,7 @@ static int ntop_zmq_connect(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -1722,6 +1724,7 @@ static int ntop_delete_hash_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 static int ntop_zmq_disconnect(lua_State* vm) {
   void *context = getLuaVMUserdata(vm,zmq_context);
   void *subscriber = getLuaVMUserdata(vm,zmq_subscriber);
@@ -1734,9 +1737,11 @@ static int ntop_zmq_disconnect(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 static int ntop_zmq_receive(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   void *subscriber = getLuaVMUserdata(vm,zmq_subscriber);
@@ -1803,6 +1808,7 @@ static int ntop_zmq_receive(lua_State* vm) {
   } else
     return(CONST_LUA_PARAM_ERROR);
 }
+#endif
 
 /* ****************************************** */
 
@@ -4256,7 +4262,9 @@ static int ntop_check_license(lua_State* vm) {
 
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
+#ifndef HAVE_NEDGE
   int major, minor, patch;
+#endif
   bool verbose = true;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4318,9 +4326,11 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_int_table_entry(vm, "constants.max_num_pool_members",    MAX_NUM_POOL_MEMBERS);
     lua_push_int_table_entry(vm, "constants.max_num_profiles",    MAX_NUM_PROFILES);
 
+#ifndef HAVE_NEDGE
     zmq_version(&major, &minor, &patch);
     snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
     lua_push_str_table_entry(vm, "version.zmq", rsp);
+#endif
   }
 
   return(CONST_LUA_OK);
@@ -6319,9 +6329,11 @@ static const luaL_Reg ntop_reg[] = {
   { "fileLastChange", ntop_get_file_last_change },
   { "readdir",        ntop_list_dir_files },
   { "rmdir",          ntop_remove_dir_recursively },
+#ifndef HAVE_NEDGE
   { "zmq_connect",    ntop_zmq_connect },
   { "zmq_disconnect", ntop_zmq_disconnect },
   { "zmq_receive",    ntop_zmq_receive },
+#endif
   { "getLocalNetworks",  ntop_get_local_networks },
   { "reloadPreferences", ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },

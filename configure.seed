@@ -18,8 +18,10 @@ SYSTEM=`uname -s`
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
 
 
+NEDGE=0
 if test "${with_nedge+set}" = set; then
    AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
+   NEDGE=1
 fi
 	    
 
@@ -488,6 +490,7 @@ AC_SUBST(MYSQL_INC)
 AC_SUBST(MYSQL_DEP)
 AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
+AC_SUBST(NEDGE)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
