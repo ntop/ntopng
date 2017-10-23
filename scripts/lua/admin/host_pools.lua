@@ -37,8 +37,14 @@ if _POST["edit_pools"] ~= nil then
         enforce_quotas_per_pool_member = config["_qts_per_member_"..pool_id]
       end
 
+      local enforce_shapers_per_pool_member = nil
+      if config["_shp_per_member_"..pool_id] ~= nil then
+        enforce_shapers_per_pool_member = config["_shp_per_member_"..pool_id]
+      end
+
       -- create or rename
-      host_pools_utils.createPool(ifId, pool_id, pool_name, children_safe, enforce_quotas_per_pool_member)
+      host_pools_utils.createPool(ifId, pool_id, pool_name, children_safe,
+				  enforce_quotas_per_pool_member, enforce_shapers_per_pool_member)
 
       if(interface.isBridgeInterface(ifId) == true) then
         -- create default shapers
@@ -400,6 +406,7 @@ print[[
 
 if is_bridge_iface and ntop.isEnterprise() then
    print[[<li>]] print(i18n("host_pools.per_member_quotas")) print[[.</li>]]
+   print[[<li>]] print(i18n("host_pools.per_member_shapers")) print[[.</li>]]
 end
 
 if isCaptivePortalActive() then
@@ -768,8 +775,8 @@ print[[            css : {
             var vlan = $("td:nth-child(2)", $(this));
             var alias = $("td:nth-child(3)", $(this));
             var icon = $("td:nth-child(4)", $(this));
-            var link_value = $("td:nth-child(7)", $(this)).html().replace(/&nbsp;/gi,'');
-            var editable = $("td:nth-child(8)", $(this)).html() == "true";
+            var link_value = $("td:nth-child(8)", $(this)).html().replace(/&nbsp;/gi,'');
+            var editable = $("td:nth-child(9)", $(this)).html() == "true";
 
             var member_id = addedMemberCtr++;
             curDisplayedMembers++;
@@ -820,13 +827,13 @@ print[[            css : {
 ]]
 
 if #available_pools > 2 then
-  print[[   datatableAddActionButtonCallback.bind(this)(6, "change_member_id ='" + member_id + "'; $('#change_member_pool_dialog_member').html('" + value +"'); $('#change_member_pool_dialog').modal('show');", "]] print(i18n("host_pools.change_pool")) print[[");]]
+  print[[   datatableAddActionButtonCallback.bind(this)(7, "change_member_id ='" + member_id + "'; $('#change_member_pool_dialog_member').html('" + value +"'); $('#change_member_pool_dialog').modal('show');", "]] print(i18n("host_pools.change_pool")) print[[");]]
 end
 
 print[[
-            datatableAddLinkButtonCallback.bind(this)(6, link_value, "]] print(i18n("host_pools.view")) print[[");
+            datatableAddLinkButtonCallback.bind(this)(7, link_value, "]] print(i18n("host_pools.view")) print[[");
             if (!link_value) $("td:nth(5) a:nth(1)", this).css("visibility", "hidden");
-            datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            datatableAddDeleteButtonCallback.bind(this)(7, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           if(numPoolMembers === 0)
@@ -950,6 +957,10 @@ print [[
       return $('<input name="enforce_quotas_per_pool_member" type="checkbox"' + ((value == true) ? " checked" : "") + '/>');
     }
 
+    function makeEnforceShapersPerPoolMemberInput(value) {
+      return $('<input name="enforce_shapers_per_pool_member" type="checkbox"' + ((value == true) ? " checked" : "") + '/>');
+    }
+
     function addPool() {
       var pool_id = nextPoolId();
 
@@ -963,11 +974,17 @@ print [[
         host_pools.splice(pool_id, 0, {id:pool_id});
 
         var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]]
-          printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center]]
-          if not is_bridge_iface then print(" hidden") end
-          print[["></td><td class="text-center]]
-          if not is_bridge_iface or not ntop.isEnterprise() then print(" hidden") end
-          print[["></td><td class="text-center"></td></tr>');
+printPoolNameField('pool_id') print[[</td><td class="hidden"></td>]]
+
+print[[<td class="text-center]]
+if not is_bridge_iface then print(" hidden") end
+print[["></td>]]
+
+print[[<td class="text-center]] if not is_bridge_iface or not ntop.isEnterprise() then print(" hidden") end
+print[["></td>]]
+
+print[[<td class="text-center]] if not is_bridge_iface or not ntop.isEnterprise() then print(" hidden") end
+print[["></td><td class="text-center"></td></tr>');
 
         var children_safe = $("td:nth-child(4)", tr);
         children_safe.html(makeChildrenSafeInput());
@@ -975,7 +992,10 @@ print [[
         var enforce_quotas_per_pool_member = $("td:nth-child(5)", tr);
 	enforce_quotas_per_pool_member.html(makeEnforceQuotasPerPoolMemberInput());
 
-        datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
+        var enforce_shapers_per_pool_member = $("td:nth-child(6)", tr);
+	enforce_shapers_per_pool_member.html(makeEnforceShapersPerPoolMemberInput());
+
+        datatableAddDeleteButtonCallback.bind(tr)(7, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
         $("#table-create table").append(tr);
         $("input", tr).focus();
 
@@ -1051,6 +1071,19 @@ print [[
 	       whiteSpace: 'nowrap',
             }
          }, {
+            title: "]] print(i18n("host_pools.enforce_shapers_per_pool_member")) print[[",
+            field: "column_enforce_shapers_per_pool_member",
+            ]]
+     if not is_bridge_iface or not ntop.isEnterprise() then
+        print("hidden: true,")
+     end
+     print[[
+            css : {
+               width: '7%',
+               textAlign: 'center',
+	       whiteSpace: 'nowrap',
+            }
+         }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
                width: '15%',
@@ -1072,6 +1105,7 @@ print [[
             var pool_undeletable = $("td:nth-child(3)", $(this)).html() === "true";
             var children_safe = $("td:nth-child(4)", $(this));
             var enforce_quotas_per_pool_member = $("td:nth-child(5)", $(this));
+            var enforce_shapers_per_pool_member = $("td:nth-child(6)", $(this));
             var pool_link = $("td:nth-child(7)", $(this)).html();
 
             /* Make pool name editable */
@@ -1083,16 +1117,17 @@ print [[
             /* Make children safe and per-member pool quotas editable */
             children_safe.html(makeChildrenSafeInput(children_safe.html() === "true"));
             enforce_quotas_per_pool_member.html(makeEnforceQuotasPerPoolMemberInput(enforce_quotas_per_pool_member.html() === "true"));
+            enforce_shapers_per_pool_member.html(makeEnforceShapersPerPoolMemberInput(enforce_shapers_per_pool_member.html() === "true"));
 
             if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
               $("input", input).first().attr("disabled", "disabled");
             } else {
-              datatableAddLinkButtonCallback.bind(this)(6, pool_link, "View");
+              datatableAddLinkButtonCallback.bind(this)(7, pool_link, "View");
               value = value.replace("'", "\\'");
-              datatableAddDeleteButtonCallback.bind(this)(6, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+              datatableAddDeleteButtonCallback.bind(this)(7, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
               if (pool_undeletable)
-                $("td:nth-child(6) a", $(this)).last().attr("disabled", "disabled");
+                $("td:nth-child(7) a", $(this)).last().attr("disabled", "disabled");
             }
 
             pools_ctr++;
@@ -1121,10 +1156,12 @@ print [[
 
         var children_safe = $("input[name='children_safe']", $(this).closest("tr")).is(':checked');
 	var enforce_quotas_per_pool_member = $("input[name='enforce_quotas_per_pool_member']", $(this).closest("tr")).is(':checked');
+	var enforce_shapers_per_pool_member = $("input[name='enforce_shapers_per_pool_member']", $(this).closest("tr")).is(':checked');
 
         settings[pool_id] = $(this).val();
         settings["_csafe_" + pool_id] = children_safe;
         settings["_qts_per_member_" + pool_id] = enforce_quotas_per_pool_member;
+        settings["_shp_per_member_" + pool_id] = enforce_shapers_per_pool_member;
       });
 
       // reset ays so that we can submit a custom form

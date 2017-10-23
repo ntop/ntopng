@@ -72,6 +72,15 @@ Host::~Host() {
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
   if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
 
+  if(host_traffic_shapers) {
+    for(int i = 0; i < NUM_TRAFFIC_SHAPERS; i++) {
+      if(host_traffic_shapers[i])
+	delete host_traffic_shapers[i];
+    }
+
+    free(host_traffic_shapers);
+  }
+
   if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
   if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
 #endif
@@ -133,6 +142,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
+  host_traffic_shapers = NULL;
 #endif
 
   if((mac = _mac))
@@ -369,7 +379,7 @@ void Host::updateHostPool(bool isInlineCall) {
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();
 
-  if(hp && hp->enforceQuotasPerPoolMember(host_pool_id)) {
+  if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
     /* must allocate a structure to keep track of used quotas */
     if(!quota_enforcement_stats) {
       quota_enforcement_stats = new HostPoolStats();
@@ -408,6 +418,19 @@ void Host::updateHostPool(bool isInlineCall) {
 				   ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
     }
+  }
+
+  if(hp && hp->enforceShapersPerPoolMember(get_host_pool())) {
+    /* Align with global traffic shapers */
+    iface->getL7Policer()->cloneShapers(&host_traffic_shapers);
+
+#ifdef HOST_POOLS_DEBUG
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Cloned shapers for %s [host pool: %i]",
+				 ip.print(buf, sizeof(buf)), host_pool_id);
+#endif
+
   }
 #endif /* NTOPNG_PRO */
 
@@ -1185,8 +1208,10 @@ void Host::decNumFlows(bool as_client) {
 
 #ifdef NTOPNG_PRO
 
-u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
-  u_int8_t ret = DEFAULT_SHAPER_ID;
+TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
+  HostPools *hp;
+  TrafficShaper *ts = NULL, **shapers = NULL;
+  u_int8_t shaper_id = DEFAULT_SHAPER_ID;
   ShaperDirection_t *sd = NULL;
   L7Policy_t *policy = l7Policy; /*
 				    Cache value so that even if updateHostL7Policy()
@@ -1207,14 +1232,14 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
       HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
     }
 
-    ret = isIngress ? policy->default_shapers.ingress : policy->default_shapers.egress;
+    shaper_id = isIngress ? policy->default_shapers.ingress : policy->default_shapers.egress;
 
     if(sd) {
       /* A protocol shaper has priority over the category shaper */
       if(sd->protocol_shapers.enabled)
-	ret = isIngress ? sd->protocol_shapers.ingress : sd->protocol_shapers.egress;
+	shaper_id = isIngress ? sd->protocol_shapers.ingress : sd->protocol_shapers.egress;
       else if(sd->category_shapers.enabled)
-	ret = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
+	shaper_id = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
     }
   }
 
@@ -1227,18 +1252,40 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 				 ip.print(buf, sizeof(buf)), vlan_id,
 				 ndpiProtocol.app_protocol,
 				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
-				 policy ? policy : NULL, ret, sd ? "" : " [DEFAULT]");
+				 policy ? policy : NULL, shaper_id, sd ? "" : " [DEFAULT]");
   }
 #endif
 
-  /* Update blocking status */
-  if(!has_blocking_shaper && getInterface()->getL7Policer()) {
-    TrafficShaper *shaper = getInterface()->getL7Policer()->getShaper(ret);
-    if(shaper->shaping_enabled() && (shaper->get_max_rate_kbit_sec() == 0))
-      has_blocking_shaper = true;
+  if((hp = iface->getHostPools())
+     && hp->enforceShapersPerPoolMember(get_host_pool())
+     && (shapers = host_traffic_shapers)
+     && shaper_id >= 0 && shaper_id < NUM_TRAFFIC_SHAPERS) {
+    ts = shapers[shaper_id];
+
+#ifdef SHAPER_DEBUG
+    char buf[64], bufs[64];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s@%u] PER-HOST Traffic shaper: %s",
+				 ip.print(buf, sizeof(buf)), vlan_id,
+				 ts->print(bufs, sizeof(bufs)));
+#endif
+
+  } else if(iface->getL7Policer()) {
+    ts = iface->getL7Policer()->getShaper(shaper_id);
+
+#ifdef SHAPER_DEBUG
+    char buf[64];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s@%u] SHARED Traffic Shaper", ip.print(buf, sizeof(buf)), vlan_id);
+#endif
+
   }
 
-  return(ret);
+  /* Update blocking status */
+  if(ts && ts->shaping_enabled() && ts->get_max_rate_kbit_sec() == 0)
+    has_blocking_shaper = true;
+  else
+    has_blocking_shaper = false;
+
+  return ts;
 }
 
 /* *************************************** */

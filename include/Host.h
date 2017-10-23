@@ -65,6 +65,7 @@ class Host : public GenericHost {
   L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
+  TrafficShaper **host_traffic_shapers;
 #endif
 
   struct {
@@ -78,7 +79,7 @@ class Host : public GenericHost {
   bool readDHCPCache();
   void updateLocal();
 #ifdef NTOPNG_PRO
-  u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
+  TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category);
 #endif
 
@@ -120,8 +121,8 @@ class Host : public GenericHost {
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
 #ifdef NTOPNG_PRO
-  inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
-  inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
+  inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
+  inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
   bool checkQuota(u_int16_t protocol, bool *is_category); /* Per-protocol quota check */
   bool checkCrossApplicationQuota(); /* Overall quota check (e.g., total traffic per host pool) */
   inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,

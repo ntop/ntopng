@@ -532,6 +532,7 @@ local  en = {
       member_exists = "member \"%{member_name}\" not added. It is already assigned to pool \"%{member_pool}\".",
       children_safe = "Safe Search",
       enforce_quotas_per_pool_member = "Per-Member Quotas",
+      enforce_shapers_per_pool_member = "Per-Member Shapers",
       alias_or_manufacturer = "Alias / Manufacturer",
       manufacturer_filter = "Manufacturer: %{manufacturer}",
       member_filter = "Member: %{member}",
@@ -545,6 +546,7 @@ local  en = {
       members_limit_reached = "members limit reached",
       cannot_delete_cp = "A pool cannot be deleted if there is any Captive Portal user associated",
       per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
+      per_member_shapers = "When the per-member shapers option is set, each host will its own shapers. When unset, all the hosts belonging to the same pool will share the same shapers",
    },
 
    discover = {

@@ -770,6 +770,7 @@
 #define CONST_CHILDREN_SAFE                    "children_safe"
 #define CONST_ROUTING_POLICY_ID                "routing_policy_id"
 #define CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER   "enforce_quotas_per_pool_member"
+#define CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER  "enforce_shapers_per_pool_member"
 #define CONST_ENFORCE_CROSS_APPLICATION_QUOTAS "enforce_cross_application_quotas"
 
 #define CACHED_ENTRIES_THRESHOLD        1024

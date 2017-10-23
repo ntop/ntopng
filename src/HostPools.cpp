@@ -39,7 +39,8 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
      || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
-     || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
+     || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
+     || (enforce_shapers_per_pool_member  = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
@@ -128,6 +129,8 @@ HostPools::~HostPools() {
 
   if(enforce_quotas_per_pool_member)
     free(enforce_quotas_per_pool_member);
+  if(enforce_shapers_per_pool_member)
+    free(enforce_shapers_per_pool_member);
   
   if(stats)        deleteStats(&stats);
   if(stats_shadow) deleteStats(&stats_shadow);
@@ -676,11 +679,18 @@ void HostPools::reloadPools() {
 
     enforce_quotas_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
+    enforce_shapers_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+					 && (!strcmp(rsp, "true")));;
 
 #ifdef HOST_POOLS_DEBUG
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s] [children_safe: %i] [enforce_quotas_per_pool_member: %i]",
-				 rsp, children_safe[i], enforce_quotas_per_pool_member[i]);    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s]"
+				 "[children_safe: %i]"
+				 "[enforce_quotas_per_pool_member: %i]"
+				 "[enforce_shapers_per_pool_member: %i]",
+				 rsp, children_safe[i],
+				 enforce_quotas_per_pool_member[i],
+				 enforce_shapers_per_pool_member[i]);
 #endif
 
 #endif /* NTOPNG_PRO */

@@ -66,7 +66,8 @@ end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, enforce_quotas_per_pool_member)
+function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
+				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member)
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
 
@@ -79,7 +80,8 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, en
   ntop.setMembersCache(ids_key, pool_id)
   ntop.setHashCache(details_key, "name", pool_name)
   ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
-  ntop.setHashCache(details_key, "enforce_quotas_per_pool_member", tostring(enforce_quotas_per_pool_member or false))
+  ntop.setHashCache(details_key, "enforce_quotas_per_pool_member",  tostring(enforce_quotas_per_pool_member  or false))
+  ntop.setHashCache(details_key, "enforce_shapers_per_pool_member", tostring(enforce_shapers_per_pool_member or false))
   return true
 end
 
@@ -246,7 +248,8 @@ function host_pools_utils.getPoolsList(ifid, without_info)
         id = pool_id,
         name = host_pools_utils.getPoolName(ifid, pool_id),
         children_safe = host_pools_utils.getChildrenSafe(ifid, pool_id),
-	enforce_quotas_per_pool_member = host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id),
+	enforce_quotas_per_pool_member  = host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id),
+	enforce_shapers_per_pool_member = host_pools_utils.getEnforceShapersPerPoolMember(ifid, pool_id),
       }
     end
 
@@ -332,6 +335,10 @@ end
 
 function host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id)
   return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "enforce_quotas_per_pool_member"))
+end
+
+function host_pools_utils.getEnforceShapersPerPoolMember(ifid, pool_id)
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "enforce_shapers_per_pool_member"))
 end
 
 function host_pools_utils.clearPools()

@@ -107,7 +107,7 @@ Flow::Flow(NetworkInterface *_iface,
 #ifndef HAVE_NEDGE
   trafficProfile = NULL;
 #endif
-  flowShaperIds.cli2srv.ingress = flowShaperIds.cli2srv.egress = flowShaperIds.srv2cli.ingress = flowShaperIds.srv2cli.egress = DEFAULT_SHAPER_ID;
+  memset(&flowShaperIds, 0, sizeof(flowShaperIds));
 #endif
 
   iface->luaEvalFlow(this, callback_flow_create);
@@ -788,10 +788,10 @@ char* Flow::print(char *buf, u_int buf_len) {
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 
-  TrafficShaper *cli2srv_in  = getInterface()->getL7Policer()->getShaper(flowShaperIds.cli2srv.ingress);
-  TrafficShaper *cli2srv_out = getInterface()->getL7Policer()->getShaper(flowShaperIds.cli2srv.egress);
-  TrafficShaper *srv2cli_in  = getInterface()->getL7Policer()->getShaper(flowShaperIds.srv2cli.ingress);
-  TrafficShaper *srv2cli_out = getInterface()->getL7Policer()->getShaper(flowShaperIds.srv2cli.egress);
+  TrafficShaper *cli2srv_in  = flowShaperIds.cli2srv.ingress;
+  TrafficShaper *cli2srv_out = flowShaperIds.cli2srv.egress;
+  TrafficShaper *srv2cli_in  = flowShaperIds.srv2cli.ingress;
+  TrafficShaper *srv2cli_out = flowShaperIds.srv2cli.egress;
 
   if(iface->is_bridge_interface()) {
     snprintf(shapers, sizeof(shapers),
@@ -802,8 +802,10 @@ char* Flow::print(char *buf, u_int buf_len) {
 	     "[srv2cli_ingress shaping_enabled: %i max_rate: %lu] "
 	     "[srv2cli_egress shaping_enabled: %i max_rate: %lu] ",
 	     passVerdict ? "PASS" : "DROP",
-	     flowShaperIds.cli2srv.ingress, flowShaperIds.cli2srv.egress,
-	     flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress,
+	     flowShaperIds.cli2srv.ingress ? flowShaperIds.cli2srv.ingress->get_shaper_id() : DEFAULT_SHAPER_ID,
+	     flowShaperIds.cli2srv.egress  ? flowShaperIds.cli2srv.egress->get_shaper_id()  : DEFAULT_SHAPER_ID,
+	     flowShaperIds.srv2cli.ingress ? flowShaperIds.srv2cli.ingress->get_shaper_id() : DEFAULT_SHAPER_ID,
+	     flowShaperIds.srv2cli.egress  ? flowShaperIds.srv2cli.egress->get_shaper_id()  : DEFAULT_SHAPER_ID,
 	     cli2srv_in->shaping_enabled(), cli2srv_in->get_max_rate_kbit_sec(),
 	     cli2srv_out->shaping_enabled(), cli2srv_out->get_max_rate_kbit_sec(),
 	     srv2cli_in->shaping_enabled(), srv2cli_in->get_max_rate_kbit_sec(),
@@ -1656,10 +1658,18 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 #ifdef NTOPNG_PRO
     if(cli_host && srv_host) {
       /* Shapers */
-      lua_push_int_table_entry(vm, "shaper.cli2srv_ingress", flowShaperIds.cli2srv.ingress);
-      lua_push_int_table_entry(vm, "shaper.cli2srv_egress", flowShaperIds.cli2srv.egress);
-      lua_push_int_table_entry(vm, "shaper.srv2cli_ingress", flowShaperIds.srv2cli.ingress);
-      lua_push_int_table_entry(vm, "shaper.srv2cli_egress", flowShaperIds.srv2cli.egress);
+      lua_push_int_table_entry(vm,
+			       "shaper.cli2srv_ingress",
+			       flowShaperIds.cli2srv.ingress ? flowShaperIds.cli2srv.ingress->get_shaper_id() : DEFAULT_SHAPER_ID);
+      lua_push_int_table_entry(vm,
+			       "shaper.cli2srv_egress",
+			       flowShaperIds.cli2srv.egress ? flowShaperIds.cli2srv.egress->get_shaper_id() : DEFAULT_SHAPER_ID);
+      lua_push_int_table_entry(vm,
+			       "shaper.srv2cli_ingress",
+			       flowShaperIds.srv2cli.ingress ? flowShaperIds.srv2cli.ingress->get_shaper_id() : DEFAULT_SHAPER_ID);
+      lua_push_int_table_entry(vm,
+			       "shaper.srv2cli_egress",
+			       flowShaperIds.srv2cli.egress ? flowShaperIds.srv2cli.egress->get_shaper_id() : DEFAULT_SHAPER_ID);
 
       /* Quota */
       lua_push_str_table_entry(vm, "cli.quota_applied_proto", (char *)(cli_quota_app_proto ? "app" : "master"));
@@ -2912,30 +2922,24 @@ void Flow::checkFlowCategory() {
 
 #ifdef NTOPNG_PRO
 
-bool Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shaper_id, u_int8_t *egress_shaper_id) {
+bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper) {
   bool verdict = true;
 
   if(cli_host && srv_host) {
-    TrafficShaper *sa, *sb;
-    L7Policer *p = getInterface()->getL7Policer();
-
     if(src2dst_direction) {
-      *ingress_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol),
-	*egress_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol);
+      *ingress_shaper = srv_host->get_ingress_shaper(ndpiDetectedProtocol),
+	*egress_shaper = cli_host->get_egress_shaper(ndpiDetectedProtocol);
 
     } else {
-      *ingress_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol),
-	*egress_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol);
+      *ingress_shaper = cli_host->get_ingress_shaper(ndpiDetectedProtocol),
+	*egress_shaper = srv_host->get_egress_shaper(ndpiDetectedProtocol);
     }
 
-    if(p) {
-      sa = p->getShaper(*ingress_shaper_id), sb = p->getShaper(*egress_shaper_id);
-
-      verdict = ((sa && (sa->shaping_enabled()) && (sa->get_max_rate_kbit_sec() == 0))
-		 || (sb && (sb->shaping_enabled()) && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
-    }
+    if((*ingress_shaper && (*ingress_shaper)->shaping_enabled() && (*ingress_shaper)->get_max_rate_kbit_sec() == 0)
+	|| (*egress_shaper && (*egress_shaper)->shaping_enabled() && (*egress_shaper)->get_max_rate_kbit_sec() == 0))
+      verdict = false;
   } else
-    *ingress_shaper_id = *egress_shaper_id = PASS_ALL_SHAPER_ID;
+    *ingress_shaper = *egress_shaper = NULL;
 
   return verdict;
 }

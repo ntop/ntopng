@@ -106,7 +106,9 @@ function http_bridge_conf_utils.configureBridge()
 	    print(ifname..": creating pool "..pool_name)
 
 	    host_pools_utils.createPool(ifid, tostring(pool["id"]), pool_name,
-					false --[[children_safe--]], false --[[enforce_quotas_per_pool_member--]])
+					false --[[children_safe--]],
+					false --[[enforce_quotas_per_pool_member--]],
+					true  --[[enforce_shapers_per_pool_member--]])
 	    if(interface.isBridgeInterface(ifid) == true) then
 	       -- create default shapers
 	       shaper_utils.initDefaultShapers(ifid, pool["id"])

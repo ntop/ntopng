@@ -46,6 +46,7 @@ class AggregatedFlow;
 class AggregatedFlowHash;
 class L7Policer;
 class FlowInterfacesStats;
+class TrafficShaper;
 #endif
 
 typedef struct {
@@ -523,7 +524,7 @@ class NetworkInterface {
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif
   
-  bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
+  bool passShaperPacket(TrafficShaper *a_shaper, TrafficShaper *b_shaper, struct pcap_pkthdr *h);
   void initL7Policer();
 #endif
 

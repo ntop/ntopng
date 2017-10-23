@@ -167,11 +167,11 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   struct {
     struct {
-      u_int8_t ingress, egress;
+      TrafficShaper *ingress, *egress;
     } cli2srv;
 
     struct {
-      u_int8_t ingress, egress;
+      TrafficShaper *ingress, *egress;
     } srv2cli;
   } flowShaperIds;
 #endif
@@ -209,7 +209,7 @@ class Flow : public GenericHashEntry {
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
-  bool updateDirectionShapers(bool src2dst_direction, u_int8_t *ingress_shaper_id, u_int8_t *egress_shaper_id);
+  bool updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
 #endif
   void dumpFlowAlert();
   bool skipProtocolFamilyCategorization(u_int16_t proto_id);
@@ -443,11 +443,14 @@ class Flow : public GenericHashEntry {
   void setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int32_t s2d_bytes, u_int32_t d2s_bytes);  
 
 #ifdef NTOPNG_PRO
-  void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_egress) {
-    if(src2dst_direction)
-      *shaper_ingress = flowShaperIds.cli2srv.ingress, *shaper_egress = flowShaperIds.cli2srv.egress;
-    else
-      *shaper_ingress = flowShaperIds.srv2cli.ingress, *shaper_egress = flowShaperIds.srv2cli.egress;
+  void getFlowShapers(bool src2dst_direction, TrafficShaper **shaper_ingress, TrafficShaper **shaper_egress) {
+    if(src2dst_direction) {
+      *shaper_ingress = flowShaperIds.cli2srv.ingress,
+	*shaper_egress = flowShaperIds.cli2srv.egress;
+    } else {
+      *shaper_ingress = flowShaperIds.srv2cli.ingress,
+	*shaper_egress = flowShaperIds.srv2cli.egress;
+    }
   }
 
   u_int8_t getFlowRoutingTableId() { return(routing_table_id); }

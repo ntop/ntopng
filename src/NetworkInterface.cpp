@@ -1802,7 +1802,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       pass_verdict = flow->checkPassVerdict();
 
       if(pass_verdict) {
-	u_int8_t shaper_ingress, shaper_egress;
+	TrafficShaper *shaper_ingress, *shaper_egress;
 	char buf[64];
 
 	/*
