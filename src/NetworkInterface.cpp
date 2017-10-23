@@ -256,8 +256,7 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = NULL, flows_hash = NULL,
-    hosts_hash = NULL, forcePoolReload = false,
+  ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL, 
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
@@ -1877,11 +1876,6 @@ void NetworkInterface::purgeIdle(time_t when) {
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
-
-  if(forcePoolReload) {
-    doRefreshHostPools();
-    forcePoolReload = false;
-  }
 }
 
 /* **************************************************** */
@@ -2600,7 +2594,7 @@ static bool update_l2_device_host_pool(GenericHashEntry *node, void *user_data) 
 
 /* **************************************************** */
 
-void NetworkInterface::doRefreshHostPools() {
+void NetworkInterface::refreshHostPools() {
   if(isView()) return;
 
   struct update_host_pool_l7policy update_host;
