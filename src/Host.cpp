@@ -377,60 +377,62 @@ void Host::updateHostPool(bool isInlineCall) {
   iface->incPoolNumHosts(get_host_pool(), isInlineCall);
   
 #ifdef NTOPNG_PRO
-  HostPools *hp = iface->getHostPools();
+  if(iface && iface->is_bridge_interface()) {
+    HostPools *hp = iface->getHostPools();
 
-  if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
-    /* must allocate a structure to keep track of used quotas */
-    if(!quota_enforcement_stats) {
-      quota_enforcement_stats = new HostPoolStats();
+    if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
+      /* must allocate a structure to keep track of used quotas */
+      if(!quota_enforcement_stats) {
+	quota_enforcement_stats = new HostPoolStats();
 
 #ifdef HOST_POOLS_DEBUG
-    char buf[128];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-	"Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
-	ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
+	char buf[128];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
+				     ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
 #endif
 
+      }
+    } else { /* Free the structure that is no longer needed */
+      /* It is ensured by the caller that this method is called no more than 1 time per second.
+	 Therefore, it is safe to delete a previously allocated shadow class */
+      if(quota_enforcement_stats_shadow) {
+	delete quota_enforcement_stats_shadow;
+	quota_enforcement_stats_shadow = NULL;
+
+#ifdef HOST_POOLS_DEBUG
+	char buf[128];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
+				     ip.print(buf, sizeof(buf)), host_pool_id);
+#endif
+
+      }
+      if(quota_enforcement_stats) {
+	quota_enforcement_stats_shadow = quota_enforcement_stats;
+	quota_enforcement_stats = NULL;
+
+#ifdef HOST_POOLS_DEBUG
+	char buf[128];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Moving quota stats to the shadow pointer for %s [host pool: %i]",
+				     ip.print(buf, sizeof(buf)), host_pool_id);
+#endif
+      }
     }
-  } else { /* Free the structure that is no longer needed */
-    /* It is ensured by the caller that this method is called no more than 1 time per second.
-     Therefore, it is safe to delete a previously allocated shadow class */
-    if(quota_enforcement_stats_shadow) {
-      delete quota_enforcement_stats_shadow;
-      quota_enforcement_stats_shadow = NULL;
+
+    if(hp && hp->enforceShapersPerPoolMember(get_host_pool())) {
+      /* Align with global traffic shapers */
+      iface->getL7Policer()->cloneShapers(&host_traffic_shapers);
 
 #ifdef HOST_POOLS_DEBUG
       char buf[128];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
+				   "Cloned shapers for %s [host pool: %i]",
 				   ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
 
     }
-    if(quota_enforcement_stats) {
-      quota_enforcement_stats_shadow = quota_enforcement_stats;
-      quota_enforcement_stats = NULL;
-
-#ifdef HOST_POOLS_DEBUG
-      char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Moving quota stats to the shadow pointer for %s [host pool: %i]",
-				   ip.print(buf, sizeof(buf)), host_pool_id);
-#endif
-    }
-  }
-
-  if(hp && hp->enforceShapersPerPoolMember(get_host_pool())) {
-    /* Align with global traffic shapers */
-    iface->getL7Policer()->cloneShapers(&host_traffic_shapers);
-
-#ifdef HOST_POOLS_DEBUG
-    char buf[128];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Cloned shapers for %s [host pool: %i]",
-				 ip.print(buf, sizeof(buf)), host_pool_id);
-#endif
-
   }
 #endif /* NTOPNG_PRO */
 
