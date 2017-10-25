@@ -52,11 +52,17 @@ binary-arch: build install
 	if test "@APP@" = "nedge"; then cp -r ../../nedge/packages/etc/ ./debian/@APP@; else cp -r ../etc/ ./debian/@APP@; fi
 	-rm ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
 	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
+	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'
+	-find ./debian/@APP@ -name '*#' -exec /bin/rm -rf {} ';'
+	-find ./debian/@APP@ -name '*.in' -exec /bin/rm -rf {} ';'
 	\rm -rf ./debian/@APP@/etc/init.d/nprobe ./debian/@APP@/etc/ld.so.conf.d
-	if ! test -d "/etc/systemd"; then \rm -rf ./debian/@APP@/etc/systemd; fi
-	# Don't use upstart
+	if grep -q init /proc/1/comm; then \
+		rm -rf ./debian/@APP@/etc/systemd; \
+	else \
+		rm -rf ./debian/@APP@/etc/init.d; \
+	fi
+# Don't use upstart
 	\rm -rf ./debian/@APP@/etc/init
-	#\rm ./debian/@APP@/etc/init/nprobe.conf
 	dh_link
 	dh_gencontrol
 	dh_md5sums

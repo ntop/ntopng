@@ -25,15 +25,17 @@ ntopng:
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
 	fi
-	if test -d "/etc/systemd"; then \
+	if grep -q systemd /proc/1/comm; then \
 		mkdir -p ${NTOPNG_BUILD}/etc/systemd/system/; \
 		cp -r $(NTOPNG_HOME)/packages/etc/systemd/system/ntopng.service ${NTOPNG_BUILD}/etc/systemd/system/; \
+		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
 	fi
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".git" | xargs /bin/rm -rf
 	@echo
+	@find . -name "*#" -exec /bin/rm {} ';'
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b

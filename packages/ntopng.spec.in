@@ -55,7 +55,7 @@ if test -d "$HOME/ntopng/pro"; then
 fi
 
 #cp $HOME/ntopng/packages/etc/init/ntopng.conf $RPM_BUILD_ROOT/etc/init
-if test -d "/etc/systemd"; then
+if grep -q systemd /proc/1/comm; then
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
 fi
