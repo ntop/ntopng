@@ -27,7 +27,7 @@ if discovery_enabled or requests then
 
    local diff = now % tonumber(discovery_interval)
 
-   if diff < 60 then
+   if diff < 5 then
       callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
          if interface.isDiscoverableInterface() and discover_utils.interfaceNetworkDiscoveryEnabled(ifstats.id) then
 	    local res
