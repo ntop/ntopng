@@ -21,7 +21,8 @@ endif
 HAS_NDPI=$(shell pkg-config --exists libndpi; echo $$?)
 ifeq ($(HAS_NDPI), 0)
     NDPI_INC = $(shell pkg-config --cflags libndpi | sed -e 's/\(-I[^ \t]*\)/\1\/libndpi/g')
-    NDPI_LIB = $(shell pkg-config --libs libndpi)
+    # Use static libndpi library as building against the dynamic library fails
+    DPI_LIB = -Wl,-Bstatic $(shell pkg-config --libs libndpi) -Wl,-Bdynamic
     NDPI_LIB_DEP =
 else
     NDPI_INC=-I@NDPI_HOME@/src/include
