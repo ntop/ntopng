@@ -35,26 +35,26 @@ local ifnames = interface.getIfNames()
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
-      -- tprint(ifstats)
-      basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
-
-      --io.write(basedir.."\n")
-      if(not(ntop.exists(basedir))) then
-	 if(enable_second_debug) then io.write('Creating base directory ', basedir, '\n') end
-	 ntop.mkdir(basedir)
-      end
-
-      -- Traffic stats
-      makeRRD(basedir, ifname, "bytes", 1, ifstats.stats.bytes)
-      makeRRD(basedir, ifname, "packets", 1, ifstats.stats.packets)
-
-      -- ZMQ stats
-      if ifstats.zmqRecvStats ~= nil then
-            local name = fixPath(basedir .. "/num_zmq_received_flows.rrd")
-            create_rrd(name, 1, "num_flows")
-            ntop.rrd_update(name, "N:".. tolongint(ifstats.zmqRecvStats.flows))
-      else
-	-- Packet interface
-	makeRRD(basedir, ifname, "drops", 1, ifstats.stats.drops)
-      end
+   -- tprint(ifstats)
+   basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
+   
+   --io.write(basedir.."\n")
+   if(not(ntop.exists(basedir))) then
+      if(enable_second_debug) then io.write('Creating base directory ', basedir, '\n') end
+      ntop.mkdir(basedir)
+   end
+   
+   -- Traffic stats
+   makeRRD(basedir, ifname, "bytes", 1, ifstats.stats.bytes)
+   makeRRD(basedir, ifname, "packets", 1, ifstats.stats.packets)
+   
+   -- ZMQ stats
+   if ifstats.zmqRecvStats ~= nil then
+      local name = fixPath(basedir .. "/num_zmq_received_flows.rrd")
+      create_rrd(name, 1, "num_flows")
+      ntop.rrd_update(name, "N:".. tolongint(ifstats.zmqRecvStats.flows))
+   else
+      -- Packet interface
+      makeRRD(basedir, ifname, "drops", 1, ifstats.stats.drops)
+   end
 end)

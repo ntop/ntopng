@@ -3174,11 +3174,12 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 /* ****************************************** */
 
 static int ntop_rrd_create(lua_State* vm) {
+#ifndef USE_NSERIES
   const char *filename;
   unsigned long pdp_step;
   const char **argv;
   int argc, status, offset = 3;
-
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3202,23 +3203,102 @@ static int ntop_rrd_create(lua_State* vm) {
       return(CONST_LUA_ERROR);
     }
   }
-
+#endif
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
+#ifdef USE_NSERIES
+
+void addPointTonSeries(char *a, char *b, char *c, char *d, const char *value) {
+  char key[256];
+
+  if(c) {
+    char *rrd = strstr(c, ".rrd");
+
+    if(rrd) rrd[0] = '\0';
+  } else {
+    char *rrd = strstr(b, ".rrd");
+
+    if(rrd) rrd[0] = '\0';
+  }
+  
+  if(c && d)
+    snprintf(key, sizeof(key), "%s:%s:%s:%s", a, b, c, d);
+  else if(c)
+    snprintf(key, sizeof(key), "%s:%s:%s", a, b, c);
+  else
+    snprintf(key, sizeof(key), "%s:%s", a, b);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s = %s", key, value);
+}
+
+#endif
+
+/* ****************************************** */
+
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *update_arg;
+#ifndef USE_NSERIES
   int status;
-
+#endif
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((update_arg = (const char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
+#ifdef USE_NSERIES
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s", filename, update_arg);
+   
+  if(strchr(filename, ':') == NULL /* No IPv6 */) {
+    /* 
+       /var/tmp/ntopng/2/rrd/AppleiCloud.rrd / N:73426
+       /var/tmp/ntopng/2/rrd/192/168/2/20/Apple.rrd / N:15954:37379     
+       /var/tmp/ntopng/2/rrd/packets.rrd / N:1229       
+    */
+    char *metric = (char*)&filename[16];
+    char *iface = strtok(metric, "/"), key[64];
+    char *item;
+    
+    item = strtok(NULL, "/"); /* rrd */
+   
+    if(!strcmp(item, "rrd")) {
+      item = strtok(NULL, "/");
+
+      if(strstr(item, ".rrd") != NULL) {	
+	//  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s", iface, item, &update_arg[2]);
+	addPointTonSeries(iface, item, NULL, NULL, (char*)&update_arg[2]); 
+      } else if(atoi(item) > 0){
+	/* This is a host */
+	u_int len;
+	char *v, *v1;
+	  
+	snprintf(key, sizeof(key), "%s.", item);
+	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s.", item);
+	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s.", item);
+	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s", item);
+
+	item = strtok(NULL, "/");
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s/ %s", iface, key, item, &update_arg[2]);
+	
+	v = strtok((char*)&update_arg[2],":");
+	if(v) v1 = strtok(NULL, ":"); else v1 = NULL;
+
+	if((v1 == NULL) || (v1[0] == '\0') ) {
+	  addPointTonSeries(iface, key, item, NULL, v);
+	} else {
+	  addPointTonSeries(iface, key, item, (char*)"sent", v);
+	  addPointTonSeries(iface, key, item, (char*)"rcvd", v1);
+	}
+      }
+    }
+  }
+#else
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s) %s", __FUNCTION__, filename, update_arg);
 
   reset_rrd_state();
@@ -3232,7 +3312,8 @@ static int ntop_rrd_update(lua_State* vm) {
       return(CONST_LUA_ERROR);
     }
   }
-
+#endif
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
