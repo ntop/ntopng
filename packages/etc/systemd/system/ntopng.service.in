@@ -1,19 +1,13 @@
 [Unit]
-Description=ntopng high-speed web-based traffic monitoring and analysis tool
+Description=Start/stop ntopng program
 After=@SERVICE_AFTER@
 Requires=@SERVICE_REQUIRES@
 
-ConditionPathExists=/etc/ntopng/ntopng.conf
-
 [Service]
-Type=simple
-
-ExecStartPre=-/bin/sh -c '/bin/sed "/-e.*$\\|-G.*\\|--daemon.*\\|--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /tmp/ntopng.conf'
-
-ExecStart=/usr/local/bin/ntopng /tmp/ntopng.conf
-
-ExecStopPost=-/bin/rm -rf /tmp/ntopng.conf
-
+Type=forking
+RemainAfterExit=yes
+ExecStart=/etc/init.d/ntopng start
+ExecStop=/etc/init.d/ntopng stop
 Restart=on-abnormal
 RestartSec=5
 
