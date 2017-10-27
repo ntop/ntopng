@@ -376,8 +376,9 @@ void Mac::updateFingerprint() {
     if(!strcmp(fingerprint, "0103063633")) {
       if(strstr(manuf, "Apple"))
 	setOperatingSystem(os_macos);
-      else
+      else if(device_type == device_unknown) {
 	setOperatingSystem(os_windows);
+      }
     }
   }
 }
@@ -398,4 +399,7 @@ void Mac::checkDeviceTypeFromManufacturer() {
      || strstr(manuf, "AVM")
      )
     setDeviceType(device_networking);
+  else if (strstr(manuf, "Xerox")
+	   )
+    setDeviceType(device_printer);
 }
