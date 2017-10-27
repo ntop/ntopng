@@ -3237,6 +3237,7 @@ void Flow::fixAggregatedFlowFields() {
 
 void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
+  updateSeen();
 
   if(cli2srv_packets < s2d_pkts) cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes;
   if(srv2cli_packets < d2s_pkts) srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
