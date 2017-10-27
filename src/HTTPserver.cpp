@@ -576,9 +576,11 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 #ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutting down...");
-    ntop->getGlobals()->shutdown();
-    ntop->shutdown();
+    if (! ntop->getGlobals()->isShutdown()) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "License expired, shutting down...");
+      ntop->getGlobals()->shutdown();
+      ntop->shutdown();
+    }
   }
 #endif
 
