@@ -253,7 +253,7 @@ else
  fi
 fi
 
-AC_CHECK_LIB([netfilter_conntrack], [nfct_open], nfct=true)
+AC_CHECK_LIB([netfilter_conntrack], [nfct_filter_dump_create], nfct=true)
 if test x$nfct != x
 then
    AC_DEFINE([HAVE_CONNTRACK],[1],[Support for Linux conntrack])
