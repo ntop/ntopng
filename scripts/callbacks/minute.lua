@@ -71,11 +71,11 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
 	 local bytes_rrd = fixPath(rrdpath .. "/bytes.rrd")
 	 createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
-	 ntop.rrd_update(bytes_rrd, "N:"..tolongint(sstats["ingress"]) .. ":" .. tolongint(sstats["egress"]) .. ":" .. tolongint(sstats["inner"]))
+	 ntop.rrd_update(bytes_rrd, nil, tolongint(sstats["ingress"]), tolongint(sstats["egress"]), tolongint(sstats["inner"]))
 
 	 local bytes_bcast_rrd = fixPath(rrdpath .. "/broadcast_bytes.rrd")
 	 createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
-	 ntop.rrd_update(bytes_bcast_rrd, "N:"..tolongint(sstats["broadcast"]["ingress"]) .. ":" .. tolongint(sstats["broadcast"]["egress"]) .. ":" .. tolongint(sstats["broadcast"]["inner"]))
+	 ntop.rrd_update(bytes_bcast_rrd, nil, tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
       end
 
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
@@ -112,7 +112,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	    end
 	    rrdpath = fixPath(rrdpath .. "/bytes.rrd")
 	    createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
-	    ntop.rrd_update(rrdpath, "N:"..tolongint(ptraffic))
+	    ntop.rrd_update(rrdpath, nil, tolongint(ptraffic))
 	 end
       end
 end) -- foreachInterface

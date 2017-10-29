@@ -426,14 +426,14 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     -- Traffic stats
     local rrdpath = fixPath(pool_base .. "/bytes.rrd")
     createRRDcounter(rrdpath, 300, verbose)
-    ntop.rrd_update(rrdpath, "N:"..tolongint(pool_stats["bytes.sent"]) .. ":" .. tolongint(pool_stats["bytes.rcvd"]))
+    ntop.rrd_update(rrdpath, nil, tolongint(pool_stats["bytes.sent"]), tolongint(pool_stats["bytes.rcvd"]))
 
     -- nDPI stats
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
         local ndpiname = fixPath(pool_base.."/"..proto..".rrd")
         createRRDcounter(ndpiname, 300, verbose)
-        ntop.rrd_update(ndpiname, "N:"..tolongint(v["bytes.sent"])..":"..tolongint(v["bytes.rcvd"]))
+        ntop.rrd_update(ndpiname, nil, tolongint(v["bytes.sent"]), tolongint(v["bytes.rcvd"]))
       end
     end
   end

@@ -978,7 +978,7 @@ function makeRRD(basedir, ifname, rrdname, step, value)
    else
       create_rrd(name, step, rrdname)
    end
-   ntop.rrd_update(name, "N:".. tolongint(value))
+   ntop.rrd_update(name, nil, tolongint(value))
    if(enable_second_debug) then 
       io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n')
    end
@@ -1070,13 +1070,14 @@ function touchRRD(rrdname)
 
    if((last ~= nil) and ((now-last) > 3600)) then
       local tdiff = now - 1800 -- This avoids to set the update continuously
-      local label = tdiff
 
-      for i=1,ds_count do
-         label = label .. ":0"
+      if(ds_count == 1) then
+	 ntop.rrd_update(rrdname, tdiff, 0)
+      elseif(ds_count == 2) then
+	 ntop.rrd_update(rrdname, tdiff, 0, 0)
+      elseif(ds_count == 3) then
+	 ntop.rrd_update(rrdname, tdiff, 0, 0, 0)
       end
-
-      ntop.rrd_update(rrdname, label)
    end
 end
 

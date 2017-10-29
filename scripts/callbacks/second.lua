@@ -52,7 +52,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    if ifstats.zmqRecvStats ~= nil then
       local name = fixPath(basedir .. "/num_zmq_received_flows.rrd")
       create_rrd(name, 1, "num_flows")
-      ntop.rrd_update(name, "N:".. tolongint(ifstats.zmqRecvStats.flows))
+      ntop.rrd_update(name, nil, tolongint(ifstats.zmqRecvStats.flows))
    else
       -- Packet interface
       makeRRD(basedir, ifname, "drops", 1, ifstats.stats.drops)
