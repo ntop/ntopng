@@ -3299,11 +3299,12 @@ static int ntop_rrd_update(lua_State* vm) {
 	     v2 ? ":" : "", v2 ? v2 : "",
 	     v3 ? ":" : "", v3 ? v3 : "");
 
-    /* ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s) %s", __FUNCTION__, filename, buf); */
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__, filename, buf); 
   
     reset_rrd_state();
     status = rrd_update_r(filename, NULL, 1, (const char**)&buf);
-
+    free(buf);
+    
     if(status != 0) {
       char *err = rrd_get_error();
 
@@ -3312,8 +3313,6 @@ static int ntop_rrd_update(lua_State* vm) {
 	return(CONST_LUA_ERROR);
       }
     }
-
-    free(buf);
   }
 #endif
   
@@ -5936,7 +5935,7 @@ static int ntop_lua_http_print(lua_State* vm) {
   char *printtype;
   int t;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  /* ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__); */
 
   /* Handle binary blob */
   if(lua_type(vm, 2) == LUA_TSTRING &&

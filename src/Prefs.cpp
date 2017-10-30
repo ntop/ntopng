@@ -79,7 +79,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-  enable_user_scripts   = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
+  enable_user_scripts    = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
@@ -91,7 +91,12 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
-  has_cmdl_trace_lvl      = false;
+  has_cmdl_trace_lvl = false;
+
+#ifdef HAVE_NEDGE
+  disable_dns_resolution();
+  disable_dns_responses_decoding();
+#endif
 }
 
 /* ******************************************* */
@@ -163,6 +168,7 @@ void usage() {
 	 "  or\n"
 	 "  ntopng <command line options> \n\n"
 	 "Options:\n"
+#ifndef HAVE_NEDGE
 	 "[--dns-mode|-n] <mode>              | DNS address resolution mode\n"
 	 "                                    | 0 - Decode DNS responses and resolve\n"
 	 "                                    |     local numeric IPs only (default)\n"
@@ -172,6 +178,7 @@ void usage() {
 	 "                                    |     resolve numeric IPs\n"
 	 "                                    | 3 - Don't decode DNS responses and don't\n"
 	 "                                    |     resolve numeric IPs\n"
+#endif
 	 "[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),\n"
          "                                    | view or pcap file path\n"
 #ifndef WIN32
@@ -570,7 +577,9 @@ static const struct option long_options[] = {
   { "help",                              no_argument,       NULL, 'h' },
   { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
+#ifndef HAVE_NEDGE
   { "dns-mode",                          required_argument, NULL, 'n' },
+#endif
   { "traffic-filtering",                 required_argument, NULL, 'k' },
   { "disable-login",                     required_argument, NULL, 'l' },
   { "ndpi-protocols",                    required_argument, NULL, 'p' },
@@ -753,6 +762,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     local_networks_set = true;
     break;
 
+#ifndef HAVE_NEDGE
   case 'n':
     dns_mode = atoi(optarg);
     switch(dns_mode) {
@@ -772,7 +782,8 @@ int Prefs::setOption(int optkey, char *optarg) {
       usage();
     }
     break;
-
+#endif
+    
   case 'p':
     ndpi_proto_path = strdup(optarg);
     ntop->setCustomnDPIProtos(ndpi_proto_path);
