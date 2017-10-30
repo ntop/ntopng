@@ -230,6 +230,7 @@ class Flow : public GenericHashEntry {
   inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
   inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isDHCP()                 { return(isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
   inline bool isMaskedFlow() {
