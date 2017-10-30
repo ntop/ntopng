@@ -3142,7 +3142,6 @@ static void reset_rrd_state(void) {
 
 /* ****************************************** */
 
-#ifndef USE_NSERIES
 static const char **make_argv(lua_State * vm, u_int offset) {
   const char **argv;
   int i;
@@ -3171,12 +3170,40 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 
   return(argv);
 }
-#endif
+
+/* ****************************************** */
+
+static int ntop_ts_set(lua_State* vm) {
+  const char *metric;
+  u_int32_t sent = 0, rcvd = 0, other = 0;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((metric = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 2) == LUA_TNUMBER)
+    sent = (unsigned long)lua_tonumber(vm, 2);
+  else if(lua_type(vm, 2) == LUA_TSTRING)
+    sent = atoll((const char*)lua_tostring(vm, 2));
+      
+  if(lua_type(vm, 3) == LUA_TNUMBER)
+    rcvd = (unsigned long)lua_tonumber(vm, 3);
+  else if(lua_type(vm, 3) == LUA_TSTRING)
+    rcvd = atoll((const char*)lua_tostring(vm, 3));
+  
+  if(lua_type(vm, 4) == LUA_TNUMBER)
+    other = (unsigned long)lua_tonumber(vm, 4);
+  else if(lua_type(vm, 4) == LUA_TSTRING)
+    other = atoll((const char*)lua_tostring(vm, 4));
+      
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u:%u:%u]", metric, sent, rcvd, other);
+  
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
 
 /* ****************************************** */
 
 static int ntop_rrd_create(lua_State* vm) {
-#ifndef USE_NSERIES
   const char *filename;
   unsigned long pdp_step;
   const char **argv;
@@ -3205,7 +3232,6 @@ static int ntop_rrd_create(lua_State* vm) {
       return(CONST_LUA_ERROR);
     }
   }
-#endif
   
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -3213,25 +3239,9 @@ static int ntop_rrd_create(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef USE_NSERIES
-
-static void addPointTonSeries(char *iface, char *item, const char *when, char *a, char *b, char *c) {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s %s:%s:%s", iface, item, when ? when : "<now>",
-			       a ? a : "",
-			       b ? b : "",
-			       c ? c : ""
-			       );
-}
-
-#endif
-
-/* ****************************************** */
-
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
-#ifndef USE_NSERIES
   int status;
-#endif
   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
@@ -3246,49 +3256,6 @@ static int ntop_rrd_update(lua_State* vm) {
   if(lua_type(vm, 4) == LUA_TSTRING) v2 = (const char*)lua_tostring(vm, 4);
   if(lua_type(vm, 5) == LUA_TSTRING) v3 = (const char*)lua_tostring(vm, 5);
   
-#ifdef USE_NSERIES
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s:%s:%s:%s", filename,
-			       when ? when : "N", v1 ? v1 : "",
-			       v2 ? v2 : "", v3 ? v3 : "");
-#endif
-  
-  if(strchr(filename, ':') == NULL /* No IPv6 */) {
-    /* 
-       /var/tmp/ntopng/2/rrd/AppleiCloud.rrd / N:73426
-       /var/tmp/ntopng/2/rrd/192/168/2/20/Apple.rrd / N:15954:37379     
-       /var/tmp/ntopng/2/rrd/packets.rrd / N:1229       
-    */
-    char *metric = (char*)&filename[16];
-    char *iface = strtok(metric, "/"), key[64];
-    char *item;
-    
-    item = strtok(NULL, "/"); /* rrd */
-   
-    if(!strcmp(item, "rrd")) {
-      item = strtok(NULL, "/");
-
-      if(strstr(item, ".rrd") != NULL) {	
-	//  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s", iface, item, &update_arg[2]);
-	addPointTonSeries(iface, item, when, (char*)v1, (char*)v2, (char*)v3);
-      } else if(atoi(item) > 0){
-	/* This is a host */
-	u_int len;
-	  
-	snprintf(key, sizeof(key), "%s.", item);
-	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s.", item);
-	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s.", item);
-	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s", item);
-
-	item = strtok(NULL, "/");
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s/ %s", iface, key, item, &update_arg[2]);
-
-	addPointTonSeries(iface, item, when, (char*)v1, (char*)v2, (char*)v3);
-      }
-    }
-  }
-
-#else
   /* Apparently RRD does not like static buffers, so we need to malloc */
   u_int buf_len = 64;
   char *buf = (char*)malloc(buf_len);
@@ -3314,7 +3281,6 @@ static int ntop_rrd_update(lua_State* vm) {
       }
     }
   }
-#endif
   
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -6473,6 +6439,7 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",      ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate", ntop_rrd_lastupdate  },
+  { "tsSet",          ntop_ts_set },
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },

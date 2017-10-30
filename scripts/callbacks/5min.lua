@@ -133,7 +133,8 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
      if(host.localhost) then
        -- Traffic stats
        if(host_rrd_creation == "1") then
-	  local name = fixPath(hostbase .. "/bytes.rrd")
+	  local name = fixPath(hostbase .. "/"..hostname.."/".."bytes.rrd")
+	  io.write("=> "..name.."\n")
 	  createRRDcounter(name, 300, verbose)
 	  ntop.rrd_update(name, nil, tolongint(host["bytes.sent"]), tolongint(host["bytes.rcvd"]))
 	  if(verbose) then
@@ -141,7 +142,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	  end
 
 	  -- Number of flows
-	  makeRRD(hostbase, ifstats.name, "num_flows", 300, host["active_flows.as_client"] + host["active_flows.as_server"])
+	  makeRRD(hostbase, ifstats.id, "num_flows", 300, host["active_flows.as_client"] + host["active_flows.as_server"])
 
 	  -- L4 Protocols
 	  for id, _ in ipairs(l4_keys) do
@@ -249,14 +250,14 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
         -- Save ASN bytes
         local asn_bytes_rrd = fixPath(asnpath .. "/bytes.rrd")
         createRRDcounter(asn_bytes_rrd, 300, false)
-        ntop.rrd_update(asn_bytes_rrd, tolongint(asn_stats["bytes.sent"]), tolongint(asn_stats["bytes.rcvd"]))
+        ntop.rrd_update(asn_bytes_rrd, nil, tolongint(asn_stats["bytes.sent"]), tolongint(asn_stats["bytes.rcvd"]))
 
         -- Save ASN ndpi stats
         if asn_stats["ndpi"] ~= nil then
 	   for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
 	      local asn_ndpi_rrd = fixPath(asnpath.."/"..proto_name..".rrd")
 	      createRRDcounter(asn_ndpi_rrd, 300, verbose)
-	      ntop.rrd_update(asn_ndpi_rrd, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
+	      ntop.rrd_update(asn_ndpi_rrd, nil, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
 	   end
         end
 
@@ -289,14 +290,14 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 
         local vlanbytes = fixPath(vlanpath .. "/bytes.rrd")
         createRRDcounter(vlanbytes, 300, false)
-        ntop.rrd_update(vlanbytes, tolongint(vlan_stats["bytes.sent"]), tolongint(vlan_stats["bytes.rcvd"]))
+        ntop.rrd_update(vlanbytes, nil, tolongint(vlan_stats["bytes.sent"]), tolongint(vlan_stats["bytes.rcvd"]))
 
         -- Save VLAN ndpi stats
         if vlan_stats["ndpi"] ~= nil then
           for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
             local vlan_ndpi_rrd = fixPath(vlanpath.."/"..proto_name..".rrd")
             createRRDcounter(vlan_ndpi_rrd, 300, verbose)
-            ntop.rrd_update(vlan_ndpi_rrd, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
+            ntop.rrd_update(vlan_ndpi_rrd, nil, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
           end
         end
 
