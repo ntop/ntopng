@@ -1963,7 +1963,7 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
 
   if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
-  
+
   if(ntop_interface)
     numGroups = ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
 
@@ -2146,13 +2146,13 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
-      
+
       d = new NetworkDiscovery(ntop_interface);
 
 #ifndef __APPLE__
       Utils::dropWriteCapabilities();
 #endif
-      
+
       if(d) {
 	d->arpScan(vm);
 	delete d;
@@ -3053,7 +3053,7 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 
 static int ntop_get_ndpi_categories(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
@@ -3176,27 +3176,30 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 static int ntop_ts_set(lua_State* vm) {
   const char *metric;
   u_int32_t sent = 0, rcvd = 0, other = 0;
-  
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((metric = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))
+    return(CONST_LUA_PARAM_ERROR);
+
+  if((metric = (const char*)lua_tostring(vm, 1)) == NULL)
+    return(CONST_LUA_PARAM_ERROR);
 
   if(lua_type(vm, 2) == LUA_TNUMBER)
     sent = (unsigned long)lua_tonumber(vm, 2);
   else if(lua_type(vm, 2) == LUA_TSTRING)
     sent = atoll((const char*)lua_tostring(vm, 2));
-      
+
   if(lua_type(vm, 3) == LUA_TNUMBER)
     rcvd = (unsigned long)lua_tonumber(vm, 3);
   else if(lua_type(vm, 3) == LUA_TSTRING)
     rcvd = atoll((const char*)lua_tostring(vm, 3));
-  
+
   if(lua_type(vm, 4) == LUA_TNUMBER)
     other = (unsigned long)lua_tonumber(vm, 4);
   else if(lua_type(vm, 4) == LUA_TSTRING)
     other = atoll((const char*)lua_tostring(vm, 4));
-      
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u:%u:%u]", metric, sent, rcvd, other);
-  
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][%u:%u:%u]", metric, sent, rcvd, other);
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -3208,7 +3211,7 @@ static int ntop_rrd_create(lua_State* vm) {
   unsigned long pdp_step;
   const char **argv;
   int argc, status, offset = 3;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3232,7 +3235,7 @@ static int ntop_rrd_create(lua_State* vm) {
       return(CONST_LUA_ERROR);
     }
   }
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -3242,7 +3245,7 @@ static int ntop_rrd_create(lua_State* vm) {
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3255,7 +3258,7 @@ static int ntop_rrd_update(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TSTRING) v1 = (const char*)lua_tostring(vm, 3);
   if(lua_type(vm, 4) == LUA_TSTRING) v2 = (const char*)lua_tostring(vm, 4);
   if(lua_type(vm, 5) == LUA_TSTRING) v3 = (const char*)lua_tostring(vm, 5);
-  
+
   /* Apparently RRD does not like static buffers, so we need to malloc */
   u_int buf_len = 64;
   char *buf = (char*)malloc(buf_len);
@@ -3266,12 +3269,12 @@ static int ntop_rrd_update(lua_State* vm) {
 	     v2 ? ":" : "", v2 ? v2 : "",
 	     v3 ? ":" : "", v3 ? v3 : "");
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__, filename, buf); 
-  
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__, filename, buf);
+
     reset_rrd_state();
     status = rrd_update_r(filename, NULL, 1, (const char**)&buf);
     free(buf);
-    
+
     if(status != 0) {
       char *err = rrd_get_error();
 
@@ -3281,7 +3284,7 @@ static int ntop_rrd_update(lua_State* vm) {
       }
     }
   }
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -5374,7 +5377,7 @@ static int ntop_redis_dump(lua_State* vm) {
 static int ntop_redis_restore(lua_State* vm) {
   char *key, *dump;
   Redis *redis = ntop->getRedis();
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
@@ -6030,7 +6033,7 @@ static int ntop_lua_require(lua_State* L) {
     if(found) {
       string s = parsed.substr(0, found) + script_name + ".lua";
       size_t first_dot = s.find("."), last_dot  = s.rfind(".");
-      
+
       /*
 	Lua transforms file names when directories are used.
 	Example:  i18n/version.lua -> i18n.version.lua
@@ -6178,7 +6181,7 @@ static int ntop_trace_event(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((msg = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", msg);
 
   lua_pushnil(vm);

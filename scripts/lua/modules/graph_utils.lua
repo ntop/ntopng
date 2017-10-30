@@ -970,7 +970,7 @@ function create_rrd_num(name, ds, step)
    end
 end
 
-function makeRRD(basedir, ifname, rrdname, step, value)
+function makeRRD(basedir, ifname, key, rrdname, step, value)
    local name = fixPath(basedir .. "/" .. rrdname .. ".rrd")
 
    if(string.contains(rrdname, "num_")) then
@@ -980,7 +980,10 @@ function makeRRD(basedir, ifname, rrdname, step, value)
    end
 
    ntop.rrd_update(name, nil, tolongint(value))
-   ntop.tsSet(ifname..":"..rrdname, tonumber(value), 0)
+
+   local tskey = ifname
+   if(key ~= nil) then tskey = tskey ..":"..key end
+   ntop.tsSet(tskey..":"..rrdname, tonumber(value), 0)
    
    if(enable_second_debug) then 
       io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n')
