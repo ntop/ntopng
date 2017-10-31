@@ -131,7 +131,6 @@
 #define MAX_NUM_POOL_MEMBERS        LIMITED_NUM_POOL_MEMBERS
 #endif
 
-#define MAX_NUM_MAPPED_CATEGORIES 64
 #define MAX_INTERFACE_NAME_LEN    256
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
@@ -429,7 +428,6 @@
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
 #define HOST_POOL_DUMP_KEY                  "ntopng.prefs.%u.host_pools.dump"
 #define HOST_POOL_SHAPERS_KEY               "ntopng.prefs.%u.l7_policies.%s"
-#define HOST_POOL_SITE_CATEGORIES_KEY       "ntopng.prefs.%u.blocked_sites_categories.%s"
 #define HOST_POOL_DETAILS_KEY               "ntopng.prefs.%u.host_pools.details.%u"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
@@ -610,8 +608,6 @@
 #endif
 
 #define HTTPBL_STRING              "httpbl:"
-#define FLASHSTART_STRING          "flashstart:"
-#define NUM_FLASHSTART_SERVERS     2
 
 #define MAX_NUM_CATEGORIES         3
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"

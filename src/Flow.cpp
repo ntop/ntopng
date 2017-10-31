@@ -83,11 +83,10 @@ Flow::Flow(NetworkInterface *_iface,
   }
 #endif
 
-  passVerdict = true, quota_exceeded = false, categorization.categorized_requested = false;
+  passVerdict = true, quota_exceeded = false;
   cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
-  memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   //bytes_rate = new TimeSeries<float>(4096);
   protocol_processed = false, blacklist_alarm_emitted = false;
@@ -158,65 +157,6 @@ void Flow::freeDPIMemory() {
   if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL;  }
   if(cli_id)    { free(cli_id);             cli_id = NULL;    }
   if(srv_id)    { free(srv_id);             srv_id = NULL;    }
-}
-
-/* *************************************** */
-
-bool Flow::skipProtocolFamilyCategorization(u_int16_t proto_id) {
-  switch(proto_id) {
-  case NDPI_PROTOCOL_DNS:
-  case NDPI_PROTOCOL_SSL:
-  case NDPI_PROTOCOL_HTTP:
-  case NDPI_PROTOCOL_HTTP_PROXY:
-    return(false);
-    break;
-
-  default:
-    return(true);
-  }
-}
-
-/* *************************************** */
-
-void Flow::categorizeFlow() {
-  bool toQuery = false;
-  char *what;
-  int ip4_0, ip4_1, ip4_2, ip4_3;
-
-  if(skipProtocolFamilyCategorization(ndpiDetectedProtocol.app_protocol)
-     && skipProtocolFamilyCategorization(ndpiDetectedProtocol.master_protocol)) {
-#ifdef DEBUG_CATEGORIZATION
-    if(0) {
-      char pbuf[256];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping categorization for %s",
-				   print(pbuf, sizeof(pbuf)));
-
-    }
-#endif
-
-    return;
-  }
-
-  what = (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : (isDNS() ? protos.dns.last_query : host_server_name);
-
-  if((what == NULL)
-     || (what[0] == '\0')
-     || (!strchr(what, '.'))
-     || strstr(what, ".arpa")
-     || (strlen(what) < 4)
-     || (sscanf(what, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4)
-     )
-    return;
-
-  if(!categorization.categorized_requested)
-    categorization.categorized_requested = true, toQuery = true;
-
-  if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
-					  &categorization.category, toQuery)) {
-    checkFlowCategory();
-    categorization.categorized_requested = false;
-  }
 }
 
 /* *************************************** */
@@ -431,11 +371,6 @@ void Flow::processDetectedProtocol() {
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
   }
 
-  categorizeFlow(); /*
-		      Categorize every flow including DNS so we cache
-		      information before future requests arrive
-		    */
-
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL) {
@@ -494,12 +429,6 @@ void Flow::processDetectedProtocol() {
 	      }
 	    }
 	  }
-
-	  if(ntop->get_flashstart()
-	     && (categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)) /* Cache category */
-	    ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain((char*)ndpiFlow->host_server_name),
-						 &categorization.category,
-						 true);
 	}
       }
     }
@@ -1081,9 +1010,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       }
 
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-      cli_host->incStats(tv->tv_sec, protocol,
-			 stats_protocol,
-			 &categorization.category,
+      cli_host->incStats(tv->tv_sec, protocol, stats_protocol,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
 
@@ -1105,9 +1032,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       NetworkStats *srv_network_stats;
 
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-      srv_host->incStats(tv->tv_sec, protocol,
-			 stats_protocol,
-			 NULL,
+      srv_host->incStats(tv->tv_sec, protocol, stats_protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
@@ -1564,11 +1489,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
-
-    if(ntop->get_flashstart()) {
-      categorizeFlow();
-      ntop->get_flashstart()->dumpCategories(vm, &categorization.category);
-    }
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -2033,14 +1953,6 @@ json_object* Flow::flow2json() {
       json_object_array_add(location, json_object_new_double(latitude));
       json_object_object_add(my_object, "DST_IP_LOCATION", location);
     }
-  }
-
-  if(!categorization.categorized_requested
-     && (categorization.category.categories[0] != NTOP_UNKNOWN_CATEGORY_ID)) {
-    char buf[64];
-
-    ntop->get_flashstart()->dumpCategories(&categorization.category, buf, sizeof(buf));
-    json_object_object_add(my_object, "category", json_object_new_string(buf));
   }
 
 #ifdef NTOPNG_PRO
@@ -2864,58 +2776,6 @@ bool Flow::dumpFlowTraffic() {
   if(cli_host && srv_host)
     return(cli_host->dumpHostTraffic() || srv_host->dumpHostTraffic());
   return(false);
-}
-
-/* *************************************** */
-
-void Flow::checkFlowCategory() {
-  if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID) {
-#ifdef DEBUG_CATEGORIZATION
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "PASS flow with UNKNOWN category");
-#endif
-    return;
-  } else
-    categorization.categorized_requested = false; /* Answer received */
-
-  if((cli_host && (!cli_host->IsAllowedTrafficCategory(&categorization.category)))
-     || (srv_host && (!srv_host->IsAllowedTrafficCategory(&categorization.category)))) {
-#ifdef DEBUG_CATEGORIZATION
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "DROP flow with category %s",
-				 ntop->get_flashstart()->getCategoryName(categorization.category.categories[0]));
-#endif
-    setDropVerdict();
-  } else {
-#ifdef DEBUG_CATEGORIZATION
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "PASS flow with category %s",
-				 ntop->get_flashstart()->getCategoryName(categorization.category.categories[0]));
-#endif
-  }
-
-  /* TODO: use category to emit verdict */
-#if 0
-  {
-    char c_buf[64], s_buf[64], *c, *s, alert_msg[1024];
-
-    /* Emit alarm */
-    c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-    s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Flow <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d'>%s</A>:%u &lt;-&gt; "
-	     "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d'>%s</A>:%u"
-	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
-	     ntop->getPrefs()->get_http_prefix(),
-	     c, iface->get_id(), c, cli_port,
-	     ntop->getPrefs()->get_http_prefix(),
-	     s, iface->get_id(), s, srv_port,
-	     host_server_name, host_server_name);
-
-    /* TODO: see if it is meaningful to add source and target to the alert */
-    iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection,
-					      alert_level_warning, alert_msg);
-    setDropVerdict();
-  }
-#endif
 }
 
 /* *************************************** */

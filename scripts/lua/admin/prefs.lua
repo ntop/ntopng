@@ -883,13 +883,6 @@ function printStatsTimeseries()
     pref = "asn_rrd_creation",
   })
 
-  prefsToggleButton({
-    field = "toggle_local_categorization",
-    default = "0",
-    pref = "host_categories_rrd_creation",
-    disabled = not prefs.is_categorization_enabled,
-  })
-
   print('</table>')
 
   print('<table class="table">')

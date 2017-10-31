@@ -88,7 +88,6 @@ Host::~Host() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(symbolic_name)   free(symbolic_name);
-  if(categoryStats)   delete categoryStats;
   if(ssdpLocation_shadow) free(ssdpLocation_shadow);
   if(ssdpLocation)        free(ssdpLocation);
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
@@ -180,7 +179,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   as = NULL;
   k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-  dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
+  dns = NULL, http = NULL, top_sites = NULL, old_sites = NULL,
     icmp = NULL;
 
   if(init_all) {
@@ -697,7 +696,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(verbose) {
     char *rsp = serialize();
 
-    if(categoryStats) categoryStats->lua(vm);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
@@ -849,12 +847,12 @@ bool Host::idle() {
 /* *************************************** */
 
 void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
-		    struct site_categories *category,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
 
   if(sent_packets || rcvd_packets) {
-    ((GenericHost*)this)->incStats(when, l4_proto, ndpi_proto, sent_packets, sent_bytes, sent_goodput_bytes,
+    ((GenericHost*)this)->incStats(when, l4_proto, ndpi_proto,
+				   sent_packets, sent_bytes, sent_goodput_bytes,
 				   rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
 
     /* Paket stats sent_stats and rcvd_stats are incremented in Flow::incStats */
@@ -883,20 +881,6 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
     if(as) {
       as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-    }
-
-    if(category && localHost && ntop->get_flashstart()) {
-      if(categoryStats == NULL)
-	categoryStats = new CategoryStats();
-
-      if(categoryStats) {
-	for(int i=0; i <MAX_NUM_CATEGORIES; i++)
-	  if(category->categories[i] == NTOP_UNKNOWN_CATEGORY_ID)
-	    break;
-	  else
-	    categoryStats->incStats(category->categories[i],
-				    sent_bytes+rcvd_bytes);
-      }
     }
   }
 }
@@ -1003,7 +987,6 @@ json_object* Host::getJSONObject() {
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 
-  if(categoryStats)  json_object_object_add(my_object, "categories", categoryStats->getJSONObject());
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
   if(city) free(city);
@@ -1126,17 +1109,6 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "http", &obj)) {
     if(http) http->deserialize(obj);
-  }
-
-  if(categoryStats) {
-    delete categoryStats;
-    categoryStats = NULL;
-  }
-
-  // deserialize categories only if flashstart is enabled for the current instance
-  if(json_object_object_get_ex(o, "categories", &obj) && ntop->get_flashstart()) {
-    categoryStats = new CategoryStats();
-    if(categoryStats) categoryStats->deserialize(obj);
   }
 
   if(ndpiStats) {
@@ -1738,36 +1710,6 @@ void Host::setMDSNInfo(char *str) {
       return;
     }
   }  
-}
-
-/* *************************************** */
-
-bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
-#ifdef NTOPNG_PRO
-  if(!ntop->get_flashstart())
-    return(true);
-  
-  L7Policy_t *policy = l7Policy; /*
-				   Cache value so that even if updateHostL7Policy()
-				   runs in the meantime, we're consistent with the policer
-				 */
-  
-  if(policy) {
-    for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
-      if(category->categories[i] == 0) break;
-      
-      u_int8_t cat_id = category->categories[i];
-      
-      if((cat_id < MAX_NUM_MAPPED_CATEGORIES) &&  /* Check if category id is valid */
-         (policy->blocked_categories[cat_id]))    /* Check if the category id is blocked */
-        return(false);
-    }
-  }
-
-  return(true);
-#else
-  return(true);
-#endif
 }
 
 /* *************************************** */

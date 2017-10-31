@@ -495,7 +495,6 @@ end
 
 local ndpi_protos = interface.getnDPIProtocols()
 local ndpi_categories = interface.getnDPICategories()
-local site_categories = ntop.getSiteCategories()
 
 local function validateApplication(app)
    local modes = {"TCP", "UDP"}
@@ -516,10 +515,6 @@ end
 
 local function validateProtocolId(p)
    return validateChoice(ndpi_protos, p)
-end
-
-local function validateCategory(cat)
-   return validateChoiceByKeys(site_categories, cat)
 end
 
 function http_lint.validateTrafficProfile(p)
@@ -832,7 +827,6 @@ local known_parameters = {
    ["toggle_l2_devices_traffic_rrd_creation"]      =  validateBool,
    ["toggle_flow_rrds"]                            =  validateBool,
    ["toggle_pools_rrds"]                           =  validateBool,
-   ["toggle_local_categorization"]                 =  validateBool,
    ["toggle_flow_snmp_ports_rrds"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
@@ -964,7 +958,6 @@ local known_parameters = {
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
-   ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
    ["include_unlimited"]       =  validateBool,                  -- pool_details_ndpi.lua

@@ -343,9 +343,9 @@ print(
       base_id     = "t_member",
       action      = ntop.getHttpPrefix() .. "/lua/if_stats.lua#manage",
       parameters  = {
-                      pool=selected_pool.id,
-                      ifid=tostring(ifId),
-                      page="pools",
+                      pool = selected_pool.id,
+                      ifid = tostring(ifId),
+                      page = "pools",
                     },
       json_key    = "key",
       query_field = "members_filter",

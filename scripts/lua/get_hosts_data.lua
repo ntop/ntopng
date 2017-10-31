@@ -165,9 +165,6 @@ if(hosts_stats ~= nil) then
 	    vals[(now-hosts_stats[key]["family"])+postfix] = key
 	 elseif(sortColumn == "column_last") then
 	    vals[(now-hosts_stats[key]["seen.last"]+1)+postfix] = key
-	 elseif(sortColumn == "column_category") then
-	    if(hosts_stats[key]["category"] == nil) then hosts_stats[key]["category"] = "" end
-	    vals[hosts_stats[key]["category"]..postfix] = key
 	 elseif(sortColumn == "column_httpbl") then
 	    if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
 	    vals[hosts_stats[key]["httpbl"]..postfix] = key

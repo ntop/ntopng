@@ -660,7 +660,7 @@ int Redis::twoOperators(const char *operation, char *op1, char *op2) {
 /* **************************************** */
 
 int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existence, bool localHost) {
-  if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
+  if(ntop->getPrefs()->is_httpbl_enabled()) {
     if(hostname == NULL) return(-1);
     return(pushHost(TRAFFIC_FILTERING_CACHE, TRAFFIC_FILTERING_TO_RESOLVE,
 		    hostname, dont_check_for_existence, localHost));
@@ -770,8 +770,7 @@ char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
   char key[CONST_MAX_LEN_REDIS_KEY];
   redisReply *reply;
 
-  if((!ntop->getPrefs()->is_httpbl_enabled())
-     && (!ntop->getPrefs()->is_flashstart_enabled()))
+  if(!ntop->getPrefs()->is_httpbl_enabled())
     return(NULL);
 
   buf[0] = '\0';

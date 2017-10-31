@@ -1066,19 +1066,6 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_site_categories(lua_State* vm) {
-  Flashstart *flash = ntop->get_flashstart();
-
-  if(!flash)
-    lua_pushnil(vm);
-  else
-    flash->lua(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_shutdown(lua_State* vm) {
   char *action;
   extern AfterShutdownAction afterShutdownAction;
@@ -6509,7 +6496,6 @@ static const luaL_Reg ntop_reg[] = {
   /* Misc */
   { "getservbyport",      ntop_getservbyport        },
   { "getMacManufacturer", ntop_get_mac_manufacturer },
-  { "getSiteCategories",  ntop_get_site_categories  },
   { "shutdown",           ntop_shutdown             },
 
   { NULL,          NULL}

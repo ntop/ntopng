@@ -121,11 +121,6 @@ class Flow : public GenericHashEntry {
   } protos;
 
   struct {
-    struct site_categories category;
-    bool categorized_requested;
-  } categorization;
-
-  struct {
     u_int32_t device_ip;
     u_int16_t in_index, out_index;
   } flow_device;
@@ -197,7 +192,6 @@ class Flow : public GenericHashEntry {
   void checkBlacklistedFlow();
   void allocDPIMemory();
   bool checkTor(char *hostname);
-  void checkFlowCategory();
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
@@ -212,7 +206,6 @@ class Flow : public GenericHashEntry {
   bool updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
 #endif
   void dumpFlowAlert();
-  bool skipProtocolFamilyCategorization(u_int16_t proto_id);
 
  public:
   Flow(NetworkInterface *_iface,
@@ -224,7 +217,6 @@ class Flow : public GenericHashEntry {
 
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
-  void categorizeFlow();
   void freeDPIMemory();
   bool isTiny();
   inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
@@ -317,7 +309,6 @@ class Flow : public GenericHashEntry {
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
   void fixAggregatedFlowFields();
-  inline bool isCategorizationOngoing()           { return(categorization.categorized_requested); };
   inline ndpi_protocol_category_t get_detected_protocol_category() { return ndpi_get_proto_category(iface->get_ndpi_struct(), ndpiDetectedProtocol); };
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };

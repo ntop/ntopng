@@ -119,7 +119,6 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
 if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
 
 -- Set the host table option
-if(prefs.is_categorization_enabled) then print ('host_rows_option["categorization"] = true;\n') end
 if(prefs.is_httpbl_enabled) then print ('host_rows_option["httpbl"] = true;\n') end
 if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
 

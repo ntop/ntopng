@@ -64,7 +64,6 @@ class Ntop {
   void *trackers_automa;
   HTTPBL *httpbl;
   ThreadPool *periodicTaskPool;
-  Flashstart *flashstart;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
@@ -244,9 +243,6 @@ class Ntop {
    * @return Current httpbl instance.
    */
   inline HTTPBL* get_httpbl()                        { return(httpbl);             };
-
-  inline Flashstart* get_flashstart()                { return(flashstart);         };
-  inline void set_flashstart(Flashstart *f)          { flashstart = f;             };
 
   /**
    * @brief Register the network interface.

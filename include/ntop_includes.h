@@ -276,9 +276,7 @@ using namespace std;
 #endif
 
 #include "Geolocation.h"
-#include "Flashstart.h"
 #include "GenericHost.h"
-#include "CategoryStats.h"
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Mac.h"

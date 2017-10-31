@@ -367,13 +367,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["column_info"] = "ciao"
 
    local info = value["info"]
-   if(prefs.is_categorization_enabled and (value["info"] ~= "") and (key ~= nil)) then
-      local flow = interface.findFlowByKey(tonumber(key))
-      if(flow ~= nil) then value["category"] = flow["category"] end
-      if(value["category"] ~= "") then
-	 info = info..getCategoryIcon(value["info"], value["category"])
-      end
-   end
 
    record["column_info"] = info
 

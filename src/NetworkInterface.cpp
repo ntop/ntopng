@@ -1805,34 +1805,24 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	TrafficShaper *shaper_ingress, *shaper_egress;
 	char buf[64];
 
-	/*
-	  In case of uncategorized DNS requests we need to temporarily
-	  drop traffic until a decision is made
-	*/
+	flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_egress);
+	ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
+				     flow->get_detected_protocol_name(buf, sizeof(buf)),
+				     shaper_ingress, shaper_egress);
+	pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
 
-	if(ntop->getPrefs()->is_flashstart_enabled() && flow->isCategorizationOngoing()
-	   && (ndpi_get_lower_proto(flow->get_detected_protocol()) == NDPI_PROTOCOL_DNS)) {
-	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** DROPPING UNCATEGORIZED DNS ***"); */
-	  pass_verdict = false;
-	} else {
-	  flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_egress);
-	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
-				       flow->get_detected_protocol_name(buf, sizeof(buf)),
-				       shaper_ingress, shaper_egress);
-	  pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
-
-	  if(pass_verdict) {
-	    /* Update pools stats inline only for bridge interfaces! */
-	    if(src2dst_direction)
-	      flow->update_pools_stats(when,
-				       1, rawsize, /* sent-only */
-				       0, 0);
-	    else
-	      flow->update_pools_stats(when,
-				       0, 0,
-				       1, rawsize /* received-only */);
-	  }
+	if(pass_verdict) {
+	  /* Update pools stats inline only for bridge interfaces! */
+	  if(src2dst_direction)
+	    flow->update_pools_stats(when,
+				     1, rawsize, /* sent-only */
+				     0, 0);
+	  else
+	    flow->update_pools_stats(when,
+				     0, 0,
+				     1, rawsize /* received-only */);
 	}
+
       } else {
 	flow->incFlowDroppedCounters();
       }

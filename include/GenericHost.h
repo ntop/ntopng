@@ -55,8 +55,8 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
 
   inline nDPIStats* get_ndpi_stats()       { return(ndpiStats);               };
 
-  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets,
-		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
+		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
 
   inline u_int32_t get_host_serial() { return(host_serial);                        };

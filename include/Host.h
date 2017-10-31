@@ -59,7 +59,6 @@ class Host : public GenericHost {
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   NetworkStats *networkStats;
-  CategoryStats *categoryStats;
   char *ssdpLocation, *ssdpLocation_shadow;
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
@@ -158,7 +157,6 @@ class Host : public GenericHost {
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
-		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
@@ -210,7 +208,6 @@ class Host : public GenericHost {
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
-  bool IsAllowedTrafficCategory(struct site_categories *category);
 
   inline void setSSDPLocation(char *url) {
      if(url) {

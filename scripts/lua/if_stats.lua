@@ -1564,11 +1564,6 @@ end
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
             shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
          end)
-
-         if (_POST["blocked_categories"] ~= nil)  then
-            local sites_categories = split(_POST["blocked_categories"], ",")
-            shaper_utils.setBlockedSitesCategories(ifid, target_pool, sites_categories)
-         end
       end
 
       interface.reloadL7Rules(tonumber(selected_pool.id))
@@ -1742,38 +1737,6 @@ function print_ndpi_families(categories, protos, categories_disabled, protos_dis
    end
 
    if show_groups then print('</optgroup>') else print(' ') end
-end
-
-local sites_categories = ntop.getSiteCategories()
-if sites_categories ~= nil then
-   -- flashstart is enabled here
-   local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid, selected_pool.id)
-
-   print[[<br><br>
-      <table>
-         <tr>
-            <td valign=top style="padding-right:1em;">Content categories<br>to <b>block</b>:</td>
-            <td><select id="flashstart_to_block" title="Select a category to block it" name="sites_categories" style="width:25em; height:10em;" multiple>]]
-   for cat_id, cat_name in pairsByValues(sites_categories, asc) do
-      print[[<option value="]] print(cat_id.."") print[["]]
-      if blocked_categories[cat_id] then
-         print(" selected")
-      end
-      print[[>]] print(firstToUpper(cat_name)) print[[</option>]]
-   end
-   print [[</select></td>
-   </tr>
-   <tr>
-      <td></td>
-      <td>
-         <div class="text-center" style="margin-top:0.5em;">
-            <input type="button" value="All" style="margin-right:1em;" onclick="$('#flashstart_to_block option').prop('selected', true); aysRecheckForm('#l7ProtosForm');">
-            <input type="button" value="None" onclick="$('#flashstart_to_block option').prop('selected', false); aysRecheckForm('#l7ProtosForm');">
-         </div>
-      </td>
-   </tr>
-   </table>
-   <br>]]
 end
 
 local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_directions") == "1")
@@ -1979,21 +1942,6 @@ if not split_shaping_directions then
    ]]
 end
 print[[
-
-      /* Possibly handle multiple blocked categories */
-      var sites_categories = $("#l7ProtosForm select[name='sites_categories']");
-      if (sites_categories.length == 1) {
-         var selection = [];
-         $("option:selected", sites_categories).each(function() {
-            selection.push($(this).val());
-         });
-
-         /* Create the joint field */
-         sites_categories.attr('name', '');
-         $('<input name="blocked_categories" type="hidden"/>')
-            .val(selection.join(","))
-            .appendTo($("#l7ProtosForm"));
-      }
 
       return true;
    }
