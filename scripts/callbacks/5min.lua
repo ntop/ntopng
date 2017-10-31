@@ -135,7 +135,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
      if(host.localhost) then
 	-- Traffic stats
 	if(host_rrd_creation == "1") then
-	   local name = fixPath(hostbase .. "/"..hostname.."/".."bytes.rrd")
+	   local name = fixPath(hostbase.."/".."bytes.rrd")
 	   createRRDcounter(name, 300, verbose)
 	   ntop.rrd_update(name, nil, tolongint(host["bytes.sent"]), tolongint(host["bytes.rcvd"]))
 	   ntop.tsSet(ifstats.id..':ip:'..hostname..":bytes", tolongint(host["bytes.sent"]), tolongint(host["bytes.rcvd"]), 0)
