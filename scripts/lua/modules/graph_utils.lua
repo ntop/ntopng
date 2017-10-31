@@ -1108,8 +1108,6 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    if(prefixLabel == "Bytes") then
       prefixLabel = "Traffic"
-   elseif string.starts(rrdFile, "categories/") then
-      prefixLabel = prefixLabel.." Traffic"
    end
 
    if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
@@ -1164,8 +1162,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 end
 
 	 if host ~= nil and not string.starts(host, 'profile:')
-	    and protocol_categories[prefixLabel] == nil
-            and not string.starts(rrdFile, 'categories/') then
+	    and protocol_categories[prefixLabel] == nil then
 	     extra_info = extra_info..firstToUpper(n)
 	 end
 
