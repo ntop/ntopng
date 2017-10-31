@@ -34,7 +34,6 @@ local host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
 local host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
 local l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
 local l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.l2_device_ndpi_timeseries_creation")
-local host_categories_rrd_creation = ntop.getPref("ntopng.prefs.host_categories_rrd_creation")
 local flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
 local host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
 local snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
@@ -129,7 +128,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
   end
 
   -- Save hosts stats (if enabled from the preferences)
-  if host_rrd_creation ~= "0" or host_categories_rrd_creation ~= "0" then
+  if host_rrd_creation ~= "0" then
 
    local in_time = callback_utils.foreachLocalHost(_ifname, time_threshold, function (hostname, host, hostbase)
      -- Crunch additional stats for local hosts only
@@ -188,23 +187,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	     ntop.rrd_update(name, nil, tolongint(cat["bytes"]))
 	     ntop.tsSet(ifstats.id..':ip:'..hostname..":ndpi_categories:"..k, tolongint(cat["bytes"]), 0, 0)
 	     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
-	  end
-       end
-
-       if(host_categories_rrd_creation ~= "0") then
-	  if not ntop.exists(fixPath(hostbase.."/categories")) then
-	     ntop.mkdir(fixPath(hostbase.."/categories"))
-	  end
-
-	  if host["categories"] ~= nil then
-	     for _cat_name, cat_bytes in pairs(host["categories"]) do
-                cat_name = getCategoryLabel(_cat_name)
-                -- io.write('cat_name: '..cat_name..' cat_bytes:'..tostring(cat_bytes)..'\n')
-                name = fixPath(hostbase.."/categories/"..cat_name..".rrd")
-                createSingleRRDcounter(name, 300, verbose)
-                ntop.rrd_update(name, nil, tolongint(cat_bytes))
-		ntop.tsSet(ifstats.id..':ip:'..hostname..":categories:"..k, cat_bytes, 0, 0)
-	     end
 	  end
        end
      end -- ends if host.localhost
