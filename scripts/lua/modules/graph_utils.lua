@@ -979,7 +979,7 @@ function makeRRD(basedir, ifname, key, rrdname, step, value)
       create_rrd(name, step, rrdname)
    end
 
-   ntop.rrd_update(name, tolongint(value))
+   ntop.rrd_update(name, nil, tolongint(value))
 
    local tskey = ifname
    if(key ~= nil) then tskey = tskey ..":"..key end

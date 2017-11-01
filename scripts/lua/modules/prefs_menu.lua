@@ -70,7 +70,7 @@ local menu_subpages = {
       title       = i18n("prefs.local_host_cache_duration_title"),
       description = i18n("prefs.local_host_cache_duration_description"),
     },
-  }}, {id="on_disk_ts",    label=i18n("prefs.data_retention"),       advanced=false, pro_only=false,  disabled=false, entries={
+  }}, {id="on_disk_ts",    label=i18n("prefs.timeseries"),       advanced=false, pro_only=false,  disabled=false, entries={
     toggle_interface_traffic_rrd_creation = {
       title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
       description = i18n("prefs.toggle_traffic_rrd_creation_description"),
