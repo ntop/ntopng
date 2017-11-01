@@ -88,9 +88,7 @@ ifeq (@NEDGE@, 0)
 	SODIUM_LIB=
  endif
 
-######
-
-HAS_ZEROMQ=$(shell pkg-config --exists libzmq; echo $$?)
+ HAS_ZEROMQ=$(shell pkg-config --exists libzmq; echo $$?)
  ifeq ($(HAS_ZEROMQ), 0)
 	ZEROMQ_INC = $(shell pkg-config --cflags libzmq)
 	ZMQ_STATIC=/usr/local/lib/libzmq.a

@@ -14,9 +14,9 @@ host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
-host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
+host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"] or 5
 -- this takes into account the special pools
-host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
+host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"] or 5
 -- this does not take into account the special pools
 host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
 
