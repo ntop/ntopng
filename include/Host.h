@@ -30,6 +30,7 @@ class Host : public GenericHost {
   AutonomousSystem *as;
   Vlan *vlan;
   char *symbolic_name, *asname, os[16], trafficCategory[12], *info;
+  char *checkpoints[CONST_MAX_NUM_CHECKPOINTS]; /* controllable json serializations */
   FrequentStringItems *top_sites;
   char *old_sites;
   bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
@@ -196,7 +197,7 @@ class Host : public GenericHost {
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
-  void getPeerBytes(lua_State* vm, u_int32_t peer_key);
+  void checkpoint(lua_State* vm, u_int8_t checkpoint_id);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   void incrVisitedWebSite(char *hostname);

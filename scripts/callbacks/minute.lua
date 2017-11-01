@@ -33,7 +33,7 @@ local ifnames = interface.getIfNames()
 
 -- Scan "minute" alerts
 callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("min", ifname)
+   scanAlerts("min", ifstats)
 end)
 
 if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then

@@ -20,6 +20,6 @@ local ifnames = interface.getIfNames()
 
 -- Scan "hour" alerts
 callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("hour", ifname)
+   scanAlerts("hour", ifstats)
 end)
 

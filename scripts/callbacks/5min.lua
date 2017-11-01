@@ -70,7 +70,7 @@ local prefs = ntop.getPrefs()
 
 -- Scan "5 minute" alerts
 callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("5mins", ifname)
+   scanAlerts("5mins", ifstats)
    housekeepingAlertsMakeRoom(getInterfaceId(ifname))
 end)
 

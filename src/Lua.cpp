@@ -167,32 +167,6 @@ static int ntop_dump_file(lua_State* vm) {
 /* ****************************************** */
 
 /**
- * @brief Get default interface name.
- * @details Push the default interface name of ntop into the lua stack.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK.
- */
-static int ntop_get_default_interface_name(lua_State* vm) {
-  char ifname[MAX_INTERFACE_NAME_LEN];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop->getInterfaceAllowed(vm, ifname)) {
-    // if there is an allowed interface for the user
-    // we return that interface
-    lua_pushstring(vm, ntop->getNetworkInterface(ifname)->get_name());
-  } else {
-    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constraint */
-					      0)->get_name());
-  }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
  * @brief Set the name of active interface id into lua stack.
  *
  * @param vm The lua stack.
@@ -2340,6 +2314,36 @@ static int ntop_restore_interface_host(lua_State* vm) {
     lua_pushnil(vm);
     return(CONST_LUA_OK);
   }
+}
+
+/* ****************************************** */
+
+static int ntop_checkpoint_interface_host(lua_State* vm) {
+  int ifid;
+  NetworkInterface *iface = NULL;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  u_int8_t checkpoint_id;
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+
+  ifid = (int)lua_tointeger(vm, 1);
+  iface = ntop->getInterfaceById(ifid);
+
+  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
+
+  if(!iface || iface->isView() || !iface->checkPointHostCounters(vm, checkpoint_id, host_ip, vlan_id)){
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  } else
+    return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -6178,7 +6182,6 @@ static int ntop_trace_event(lua_State* vm) {
 /* ****************************************** */
 
 static const luaL_Reg ntop_interface_reg[] = {
-  { "getDefaultIfName",       ntop_get_default_interface_name },
   { "setActiveInterfaceId",   ntop_set_active_interface_id },
   { "getIfNames",             ntop_get_interface_names },
   { "select",                 ntop_select_interface },
@@ -6203,6 +6206,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "addMacsIpAddresses",     ntop_add_macs_ip_addresses },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "restoreHost",            ntop_restore_interface_host },
+  { "checkpointHost",         ntop_checkpoint_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "getGroupedFlows",        ntop_get_interface_get_grouped_flows },
   { "getFlowsStats",          ntop_get_interface_flows_stats },

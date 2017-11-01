@@ -526,12 +526,14 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
+-- Note: make sure the number of alert_engine_keys honours CONST_MAX_NUM_CHECKPOINTS
+-- and make sure engines with these ids are reserved only to handle alert-related
+-- checkpoints
 alert_engine_keys = {
-   {i18n("show_alerts.minute"),  0, "min"    },
+   {i18n("show_alerts.minute"),       0, "min"    },
    {i18n("show_alerts.five_minutes"), 1, "5mins"  },
-   {i18n("show_alerts.hourly"),    2, "hour"   },
-   {i18n("show_alerts.daily"),     3, "day"    },
-   {i18n("show_alerts.startup"),   4, "startup"},
+   {i18n("show_alerts.hourly"),       2, "hour"   },
+   {i18n("show_alerts.daily"),        3, "day"    },
 }
 
 -- Note: keep in sync with alarmable_metrics and alert_functions_infoes

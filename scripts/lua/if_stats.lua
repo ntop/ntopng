@@ -263,7 +263,7 @@ if is_packetdump_enabled then
    end
 end
 
-if(isAdministrator() and areAlertsEnabled()) then
+if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
    elseif interface.isPcapDumpInterface() == false then

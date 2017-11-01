@@ -2908,6 +2908,19 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id,
+					      char *host_ip, u_int16_t vlan_id) {
+  Host *h;
+  bool ret = false;
+
+  if(host_ip && (h = getHost(host_ip, vlan_id)))
+    h->checkpoint(vm, checkpoint_id), ret = true;
+
+  return ret;
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
