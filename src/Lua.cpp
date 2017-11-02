@@ -6470,7 +6470,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 			NetworkInterface *iface = ntop->getFirstInterface();
 
 			ntop->getRedis()->set(key, iface->get_name());
-			lua_pushlightuserdata(L, iface);
+			lua_pushlightuserdata(L, iface->get_name());
 		} else
 			lua_pushlightuserdata(L, ifname);
 
