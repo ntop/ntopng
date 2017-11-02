@@ -1338,7 +1338,7 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     bool ingressPacket,
 				     const struct bpf_timeval *when,
-				     const u_int64_t time,
+				     const u_int64_t packet_time,
 				     struct ndpi_ethhdr *eth,
 				     u_int16_t vlan_id,
 				     struct ndpi_iphdr *iph,
@@ -1374,7 +1374,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
       vIface->purgeIdle(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
-				  ingressPacket, when, time,
+				  ingressPacket, when, packet_time,
 				  eth, vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
@@ -1618,7 +1618,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
 	else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-								  ip, ipsize, (u_int32_t)time,
+								  ip, ipsize, (u_int32_t)packet_time,
 								  cli, srv), false);
       } else {
 	// FIX - only handle unfragmented packets
@@ -1794,7 +1794,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       0, sizeof(ndpi_flow->detected_protocol_stack));
 
 	ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-				      ip, ipsize, (u_int32_t)time,
+				      ip, ipsize, (u_int32_t)packet_time,
 				      src2dst_direction ? cli : srv,
 				      src2dst_direction ? srv : cli);
 
@@ -1820,7 +1820,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #if defined(NTOPNG_PRO) && !defined(WIN32)
     if(is_bridge_interface()) {
       struct tm now;
-      localtime_r(NULL, &now);
+      time_t t_now = time(NULL);
+      localtime_r(&t_now, &now);
       pass_verdict = flow->checkPassVerdict(&now);
 
       if(pass_verdict) {
@@ -2697,7 +2698,8 @@ static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
 
 void NetworkInterface::resetPoolsStats() {
   struct tm now;
-  localtime_r(NULL, &now);
+  time_t t_now = time(NULL);
+  localtime_r(&t_now, &now);
 
   if(host_pools) {
     disablePurge(true);

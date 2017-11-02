@@ -1325,7 +1325,14 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *no
 
   get_quota(protocol, &bytes_quota, &secs_quota, &schedule_bitmap, &category_quota);
 
-  if (schedule_bitmap != 0xFFFFFFFF) {
+#ifdef SCHEDULE_DEBUG
+  printf("Schedule: proto=0x%08X pool=0x%08X final=%08X\n", schedule_bitmap, pools->getPoolSchedule(get_host_pool()), schedule_bitmap & pools->getPoolSchedule(get_host_pool()));
+#endif
+
+  // the actual schedule must honor both the pool schedule and the protocol schedule
+  schedule_bitmap &= pools->getPoolSchedule(get_host_pool());
+
+  if (schedule_bitmap != DEFAULT_TIME_SCHEDULE) {
     // see shaper_utils.lua schedule_to_bitmap for full format
 
     // verify day of the week (bits 1-7), bit 7 is monday
