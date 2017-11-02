@@ -1325,6 +1325,10 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *no
 
   get_quota(protocol, &bytes_quota, &secs_quota, &schedule_bitmap, &category_quota);
 
+#ifdef SCHEDULE_DEBUG
+  printf("Schedule: proto=0x%08X pool=0x%08X final=%08X\n", schedule_bitmap, pools->getPoolSchedule(get_host_pool()), schedule_bitmap & pools->getPoolSchedule(get_host_pool()));
+#endif
+
   // the actual schedule must honor both the pool schedule and the protocol schedule
   schedule_bitmap &= pools->getPoolSchedule(get_host_pool());
 

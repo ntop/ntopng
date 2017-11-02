@@ -676,14 +676,14 @@ void HostPools::reloadPools() {
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
 
 #ifdef NTOPNG_PRO
-    char rsp[8] = { 0 };
+    char rsp[16] = { 0 };
 
     children_safe[i] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
 			&& (!strcmp(rsp, "true")));
 
     routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
     pool_shaper[i] = (redis->hashGet(kname, (char*)CONST_POOL_SHAPER_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_SHAPER_ID;
-    schedule_bitmap[i] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? atol(rsp) : DEFAULT_TIME_SCHEDULE;
+    schedule_bitmap[i] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? strtol(rsp, NULL, 16) : DEFAULT_TIME_SCHEDULE;
 
     enforce_quotas_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
