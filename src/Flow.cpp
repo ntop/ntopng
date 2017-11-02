@@ -2849,8 +2849,13 @@ void Flow::recheckQuota(const struct tm *now) {
   bool above_quota = false;
 
   if(cli_host && srv_host) {
-    /* Client quota check */
-    if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category, now)))
+    /* Make sure the overall cross-application quota is not crossed */
+    if((above_quota = cli_host->checkCrossApplicationQuota()))
+      cli_quota_app_proto = true; /* TODO: make this more invormative, possibly use a struct */
+    else if((above_quota = srv_host->checkCrossApplicationQuota()))
+      srv_quota_app_proto = true;
+    /* Now it is time to check */
+    else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category, now)))
       cli_quota_app_proto = true;
     else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category, now)))
       cli_quota_app_proto = false;
@@ -2861,17 +2866,17 @@ void Flow::recheckQuota(const struct tm *now) {
   }
 
 #ifdef SHAPER_DEBUG
-    char buf[256];
-    if(above_quota) {
+  char buf[256];
+  if(above_quota) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "AFTER: [cli_quota_app_proto: %u][srv_quota_app_proto: %u] %s",
-      cli_quota_app_proto ? 1 : 0,
-      srv_quota_app_proto  ? 1 : 0,
-      print(buf, sizeof(buf)));
+				 cli_quota_app_proto ? 1 : 0,
+				 srv_quota_app_proto  ? 1 : 0,
+				 print(buf, sizeof(buf)));
   }
 #endif
 
-    quota_exceeded = above_quota;
-  }
+  quota_exceeded = above_quota;
+}
 
 #endif
 
