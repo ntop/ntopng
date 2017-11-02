@@ -767,9 +767,12 @@
 #define CONST_CHILDREN_SAFE                    "children_safe"
 #define CONST_ROUTING_POLICY_ID                "routing_policy_id"
 #define CONST_POOL_SHAPER_ID                   "pool_shaper_id"
+#define CONST_SCHEDULE_BITMAP                  "daily_schedule"
 #define CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER   "enforce_quotas_per_pool_member"
 #define CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER  "enforce_shapers_per_pool_member"
 #define CONST_ENFORCE_CROSS_APPLICATION_QUOTAS "enforce_cross_application_quotas"
+
+#define DEFAULT_TIME_SCHEDULE                0xFFFFFFFF
 
 #define CACHED_ENTRIES_THRESHOLD        1024
 #define MAX_CATEGORY_CACHE_DURATION     300 /* Purge entries more than 5 mins old */

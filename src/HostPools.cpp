@@ -40,6 +40,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
      || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
      || (pool_shaper = (u_int16_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int16_t))) == NULL
+     || (schedule_bitmap = (u_int32_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int32_t))) == NULL
      || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
      || (enforce_shapers_per_pool_member  = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
@@ -130,6 +131,8 @@ HostPools::~HostPools() {
 
   if(pool_shaper)
     free(pool_shaper);
+  if(schedule_bitmap)
+    free(schedule_bitmap);
   if(enforce_quotas_per_pool_member)
     free(enforce_quotas_per_pool_member);
   if(enforce_shapers_per_pool_member)
@@ -680,6 +683,7 @@ void HostPools::reloadPools() {
 
     routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
     pool_shaper[i] = (redis->hashGet(kname, (char*)CONST_POOL_SHAPER_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_SHAPER_ID;
+    schedule_bitmap[i] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? atol(rsp) : DEFAULT_TIME_SCHEDULE;
 
     enforce_quotas_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
@@ -691,9 +695,10 @@ void HostPools::reloadPools() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s]"
 				 "[children_safe: %i]"
 				 "[pool_shaper: %i]"
+				 "[schedule_bitmap: %i]"
 				 "[enforce_quotas_per_pool_member: %i]"
 				 "[enforce_shapers_per_pool_member: %i]",
-				 rsp, children_safe[i], pool_shaper[i],
+				 rsp, children_safe[i], pool_shaper[i], schedule_bitmap[i],
 				 enforce_quotas_per_pool_member[i],
 				 enforce_shapers_per_pool_member[i]);
 #endif
