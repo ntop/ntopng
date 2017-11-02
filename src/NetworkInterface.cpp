@@ -251,6 +251,19 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 #endif
+
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  char path[MAX_PATH];
+
+  snprintf(path, sizeof(path), "%s/%u/nseries", ntop->get_working_dir(), id);
+
+  if(!Utils::mkdir_tree(path))
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Unable to create directory %s: nSeries will be disabled", path);
+  else
+    nseries = new Nseries(path, 360 /* days */, true /* readWrite */);
+  
+#endif
 }
 
 /* **************************************************** */
@@ -313,6 +326,11 @@ void NetworkInterface::init() {
 #ifndef HAVE_NEDGE
   flow_profiles = shadow_flow_profiles = NULL;
 #endif
+
+#ifdef HAVE_NDB
+  nseries = NULL;
+#endif
+  
 #endif
 }
 
@@ -330,15 +348,15 @@ void NetworkInterface::initL7Policer() {
 void NetworkInterface::aggregatePartialFlow(Flow *flow) {
   if(flow && aggregated_flows_hash) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
-
+    
     if(aggregatedFlow == NULL) {
-
+      
 #ifdef AGGREGATED_FLOW_DEBUG
       char buf[256];
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
 				   flow->print(buf, sizeof(buf)));
 #endif
-
+      
       try {
 	aggregatedFlow = new AggregatedFlow(this, flow);
 
@@ -372,7 +390,6 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 				 "Aggregated Flows hash table [num items: %i]",
 				 aggregated_flows_hash->getCurrentSize());
 #endif
-
   }
 }
 
@@ -660,6 +677,9 @@ NetworkInterface::~NetworkInterface() {
 #ifndef HAVE_NEDGE
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
+#endif
+#ifdef HAVE_NDB
+  if(nseries) delete nseries;
 #endif
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
@@ -2513,6 +2533,7 @@ void NetworkInterface::periodicStatsUpdate() {
 #ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
+    
     db->flush();
   }
 #endif

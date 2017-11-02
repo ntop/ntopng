@@ -72,12 +72,12 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	 local bytes_rrd = fixPath(rrdpath .. "/bytes.rrd")
 	 createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
 	 ntop.rrd_update(bytes_rrd, nil, tolongint(sstats["ingress"]), tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-	 ntop.tsSet(ifstats.id..':iface:subnetstats:'..subnet..":bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]), 0)
+	 ntop.tsSet(ifstats.id, 60, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]))
 	 
 	 local bytes_bcast_rrd = fixPath(rrdpath .. "/broadcast_bytes.rrd")
 	 createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
 	 ntop.rrd_update(bytes_bcast_rrd, nil, tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
-	 ntop.tsSet(ifstats.id..':iface:subnetstats:'..subnet..":broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
+	 ntop.tsSet(ifstats.id, 60, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
       end
 
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
@@ -115,7 +115,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	    rrdpath = fixPath(rrdpath .. "/bytes.rrd")
 	    createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
 	    ntop.rrd_update(rrdpath, nil, tolongint(ptraffic))
-	    ntop.tsSet(ifstats.id..':profilestats:'..pname..":bytes", tolongint(ptraffic), 0, 0)
+	    ntop.tsSet(ifstats.id, 60, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
 	 end
       end
 end) -- forbeachInterface

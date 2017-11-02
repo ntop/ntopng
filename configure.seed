@@ -102,7 +102,7 @@ fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
 PRO_MAKEFILE_INC=
-PRO_INC=
+PRO_INCS=
 PRO_LIBS=
 ADDITIONAL_PRO_OBJECTS=
 PRO_OBJECTS=
@@ -133,18 +133,34 @@ if test "${with_nedge+set}" != set; then
  fi
 fi
 
+NDB_HOME=
+if test "${with_minimal_nprobe+set}" != "set"; then :
+  if test -d "${HOME}/nDB"; then
+   NDB_HOME=${HOME}/nDB
+  else
+    if test -d "${PWD}/nDB"; then
+     NDB_HOME=${PWD}/nDB
+    fi
+  fi
+fi
+
+if test  -f "${NDB_HOME}/lib/libnDB.a"; then
+  PRO_INCS="${PRO_INCS} -I ${NDB_HOME}/include"
+  PRO_LIBS="${PRO_LIBS} ${NDB_HOME}/lib/libnDB.a ${NDB_HOME}/third-party/zstd/lib/libzstd.a"
+  AC_DEFINE_UNQUOTED(HAVE_NDB, 1, [nDB support is present])
+  echo "checking for nDB... found on ${NDB_HOME}"
+fi
+
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
-CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
 dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
-PRO_LIBS='$(PRO_LIBS)'
-PRO_INC='$(PRO_INC)'
 DUMMY=`cd ./pro; make build`
+PRO_INCS="${PRO_INCS} -I${PWD}/pro -I${PWD}/pro/utils -I${PWD}/pro/third-party/libb64-1.2.1/include"
 
 if test -r "../license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
@@ -491,7 +507,7 @@ AC_SUBST(PRO_OBJECTS)
 AC_SUBST(PRO_HEADERS)
 AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
-AC_SUBST(PRO_INC)
+AC_SUBST(PRO_INCS)
 AC_SUBST(REVISION)
 AC_SUBST(MYSQL_LIB)
 AC_SUBST(MYSQL_INC)
