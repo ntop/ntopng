@@ -40,6 +40,7 @@ class HostPools {
 #ifdef NTOPNG_PRO
   bool *children_safe;
   u_int8_t *routing_policy_id;
+  u_int16_t *pool_shaper;
   bool *enforce_quotas_per_pool_member;   /* quotas can be pool-wide or per pool member */
   bool *enforce_shapers_per_pool_member;
   HostPoolStats **stats, **stats_shadow;
@@ -153,6 +154,9 @@ class HostPools {
   }
   inline bool enforceShapersPerPoolMember(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_shapers_per_pool_member[pool_id] : false);
+  }
+  inline u_int16_t getPoolShaper(u_int16_t pool_id) {
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? pool_shaper[pool_id] : DEFAULT_SHAPER_ID);
   }
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);

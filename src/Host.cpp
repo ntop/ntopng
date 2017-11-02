@@ -1196,7 +1196,11 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 				    runs in the meantime, we're consistent with the policer
 				 */
 
-  if(policy) {
+  hp = iface->getHostPools();
+
+  if(hp && ((shaper_id = hp->getPoolShaper(get_host_pool())) != PASS_ALL_SHAPER_ID)) {
+    /* Use the pool shaper */;
+  } else if (policy) {
     int protocol;
 
     if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
@@ -1234,7 +1238,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 #endif
 
-  if((hp = iface->getHostPools())
+  if(hp
      && hp->enforceShapersPerPoolMember(get_host_pool())
      && (shapers = host_traffic_shapers)
      && shaper_id >= 0 && shaper_id < NUM_TRAFFIC_SHAPERS) {
