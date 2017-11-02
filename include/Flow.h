@@ -236,7 +236,7 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
 #ifdef NTOPNG_PRO
-  bool checkPassVerdict();
+  bool checkPassVerdict(const struct tm *now);
   inline bool isPassVerdict()            { return passVerdict;  };
 #endif
   inline void setDropVerdict()           { passVerdict = false; };
@@ -396,7 +396,7 @@ class Flow : public GenericHashEntry {
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
   void updateFlowShapers();
-  void recheckQuota();
+  void recheckQuota(const struct tm *now);
 #endif
   inline float getFlowRTT() { return(rttSec); }
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */

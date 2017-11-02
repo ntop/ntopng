@@ -1799,7 +1799,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
     if(is_bridge_interface()) {
-      pass_verdict = flow->checkPassVerdict();
+      struct tm now;
+      localtime_r(NULL, &now);
+      pass_verdict = flow->checkPassVerdict(&now);
 
       if(pass_verdict) {
 	TrafficShaper *shaper_ingress, *shaper_egress;
@@ -2654,8 +2656,9 @@ void NetworkInterface::updateFlowsL7Policy() {
 
 static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data) {
   Flow *f = (Flow*)flow;
+  struct tm *now = (struct tm *) user_data;
 
-  f->recheckQuota();
+  f->recheckQuota(now);
   return(false); /* false = keep on walking */
 }
 
@@ -2672,12 +2675,15 @@ static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::resetPoolsStats() {
+  struct tm now;
+  localtime_r(NULL, &now);
+
   if(host_pools) {
     disablePurge(true);
 
     host_pools->resetPoolsStats();
     walker(walker_hosts, host_reset_quotas, NULL);
-    walker(walker_flows, flow_recheck_quota_walker, NULL);
+    walker(walker_flows, flow_recheck_quota_walker, &now);
 
     enablePurge(true);
   }

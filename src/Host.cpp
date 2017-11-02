@@ -1272,7 +1272,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
 /* *************************************** */
 
-void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category) {
+void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category) {
   L7Policy_t *policy = l7Policy; /*
 				    Cache value so that even if updateHostL7Policy()
 				    runs in the meantime, we're consistent with the policer
@@ -1281,6 +1281,7 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
   bool category = false; /* Default: no category */
+  u_int32_t schedule = 0xFFFFFFFF; /* Default: all day */
   int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
 
   if(policy) {
@@ -1291,10 +1292,12 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
       if(sd->protocol_shapers.enabled) {
         bytes = sd->protocol_shapers.bytes_quota;
         secs = sd->protocol_shapers.secs_quota;
+        schedule = sd->protocol_shapers.schedule_bitmap;
         category = false;
       } else if(sd->category_shapers.enabled) {
         bytes = sd->category_shapers.bytes_quota;
         secs = sd->category_shapers.secs_quota;
+        schedule = sd->category_shapers.schedule_bitmap;
         category = true;
       }
     }
@@ -1303,13 +1306,15 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   *bytes_quota = bytes;
   *secs_quota = secs;
   *is_category = category;
+  *schedule_bitmap = schedule;
 }
 
 /* *************************************** */
 
-bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
+bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *now) {
   u_int64_t bytes_quota, bytes;
   u_int32_t secs_quota, secs;
+  u_int32_t schedule_bitmap;
   ndpi_protocol_category_t category;
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
@@ -1318,9 +1323,20 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   if(!pools || get_host_pool() == NO_HOST_POOL_ID) /* Enforce quotas only for custom pools */
     return false;
 
-  get_quota(protocol, &bytes_quota, &secs_quota, &category_quota);
+  get_quota(protocol, &bytes_quota, &secs_quota, &schedule_bitmap, &category_quota);
 
-  if((bytes_quota > 0) || (secs_quota > 0)) {
+  if (schedule_bitmap != 0xFFFFFFFF) {
+    // see shaper_utils.lua schedule_to_bitmap for full format
+
+    // verify day of the week (bits 1-7), bit 7 is monday
+    if(! (schedule_bitmap & (1 << ((6 - now->tm_wday) + 1))))
+      is_above = true;
+    // verify the hour (bits 31-8), bit 31 is midnight
+    else if(! (schedule_bitmap & (1 << ((23 - now->tm_hour) + 8))))
+      is_above = true;
+  }
+
+  if((!is_above) && ((bytes_quota > 0) || (secs_quota > 0))) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
       if(!pools->enforceQuotasPerPoolMember(get_host_pool())) {

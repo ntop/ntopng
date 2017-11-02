@@ -2750,14 +2750,14 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 #ifdef NTOPNG_PRO
 
-bool Flow::checkPassVerdict() {
+bool Flow::checkPassVerdict(const struct tm *now) {
   if(!passVerdict)
     return(false);
 
   if(!isDetectionCompleted())
     return(true); /* Always pass until detection is completed */
 
-  recheckQuota();
+  recheckQuota(now);
 
   if(cli_host && srv_host)
     return((!quota_exceeded)
@@ -2845,18 +2845,18 @@ void Flow::updateFlowShapers() {
 
 /* *************************************** */
 
-void Flow::recheckQuota() {
+void Flow::recheckQuota(const struct tm *now) {
   bool above_quota = false;
 
   if(cli_host && srv_host) {
     /* Client quota check */
-    if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category)))
+    if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category, now)))
       cli_quota_app_proto = true;
-    else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category)))
+    else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category, now)))
       cli_quota_app_proto = false;
-    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category)))
+    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category, now)))
       srv_quota_app_proto = true;
-    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category)))
+    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category, now)))
       srv_quota_app_proto = false;
   }
 
