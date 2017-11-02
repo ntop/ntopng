@@ -632,9 +632,10 @@ class NetworkInterface {
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
 #ifdef HAVE_NDB
-  inline bool tsSet(bool isCounter, u_int8_t ifaceId, u_int16_t step, const char *label,
+  inline void tsSet(u_int32_t tsSec, bool isCounter, u_int8_t ifaceId, u_int16_t step, const char *label,
 		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
-    return(nseries->tsSet(isCounter, ifaceId, step, label, key, metric, sent, rcvd));
+    nseries->set(tsSec, isCounter, ifaceId, step, label ? label : "",
+		 key ? key : "", metric ? metric : "", sent, rcvd);
   }
 #endif
 };

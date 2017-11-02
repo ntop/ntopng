@@ -32,6 +32,7 @@ if(enable_second_debug) then
 end
 
 local ifnames = interface.getIfNames()
+local when = os.time()
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
@@ -45,14 +46,15 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    end
    
    -- Traffic stats
-   makeRRD(basedir, ifstats.id, "iface", "bytes", 1, ifstats.stats.bytes)
-   makeRRD(basedir, ifstats.id, "iface", "packets", 1, ifstats.stats.packets)
+   makeRRD(basedir, when, ifstats.id, "iface", "bytes", 1, ifstats.stats.bytes)
+   makeRRD(basedir, when, ifstats.id, "iface", "packets", 1, ifstats.stats.packets)
    
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
-      makeRRD(basedir, ifstats.id, "iface", "num_zmq_received_flows", 1, tolongint(ifstats.zmqRecvStats.flows))     
+      makeRRD(basedir, when, ifstats.id, "iface", "num_zmq_received_flows",
+	      1, tolongint(ifstats.zmqRecvStats.flows))     
    else
       -- Packet interface
-      makeRRD(basedir, ifstats.id, "iface", "drops", 1, ifstats.stats.drops)
+      makeRRD(basedir, when, ifstats.id, "iface", "drops", 1, ifstats.stats.drops)
    end
 end)

@@ -3169,6 +3169,7 @@ static int ntop_ts_set(lua_State* vm) {
   const char *label = NULL, *metric = NULL, *key = "";
   u_int8_t ifaceId;
   u_int16_t step;
+  u_int32_t ts;
   u_int64_t sent = 0, rcvd = 0;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3176,26 +3177,29 @@ static int ntop_ts_set(lua_State* vm) {
     return(CONST_LUA_ERROR);
   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  ifaceId = (u_int8_t)lua_tonumber(vm, 1);
+  ts = (u_int32_t)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  step = (u_int16_t)lua_tonumber(vm, 2);
+  ifaceId = (u_int8_t)lua_tonumber(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((label = (const char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  step = (u_int16_t)lua_tonumber(vm, 3);
 
-  if(lua_type(vm, 4) == LUA_TSTRING) key = (const char*)lua_tostring(vm, 4);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((label = (const char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 5) == LUA_TSTRING) key = (const char*)lua_tostring(vm, 5);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((metric = (const char*)lua_tostring(vm, 5)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((metric = (const char*)lua_tostring(vm, 6)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(lua_type(vm, 6) == LUA_TNUMBER) sent = (u_int64_t)lua_tonumber(vm, 6);
-  else if(lua_type(vm, 6) == LUA_TSTRING) sent = (u_int64_t)atoll((const char*)lua_tostring(vm, 6));
+  if(lua_type(vm, 7) == LUA_TNUMBER) sent = (u_int64_t)lua_tonumber(vm, 7);
+  else if(lua_type(vm, 7) == LUA_TSTRING) sent = (u_int64_t)atoll((const char*)lua_tostring(vm, 7));
 
-  if(lua_type(vm, 7) == LUA_TNUMBER) rcvd = (u_int64_t)lua_tonumber(vm, 7);
-  else if(lua_type(vm, 7) == LUA_TSTRING) rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, 7));
+  if(lua_type(vm, 8) == LUA_TNUMBER) rcvd = (u_int64_t)lua_tonumber(vm, 8);
+  else if(lua_type(vm, 8) == LUA_TSTRING) rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, 8));
 
-  ntop_interface->tsSet(true /* counter */, ifaceId, step, label, key, metric, sent, rcvd);
+  ntop_interface->tsSet(ts, true /* counter */, ifaceId, step, label, key, metric, sent, rcvd);
 #endif
   
   lua_pushnil(vm);
