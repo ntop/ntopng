@@ -1562,6 +1562,13 @@ end
 
          -- set protocols policy for the pool
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
+            if proto_id == "default" then
+               -- This is not the default protocol quota but the overall quota
+               shaper_utils.setCrossApplicationQuotas(ifid, target_pool, traffic_quota, time_quota)
+               traffic_quota = shaper_utils.NO_QUOTA
+               time_quota = shaper_utils.NO_QUOTA
+            end
+
             shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
          end)
       end
@@ -1964,8 +1971,8 @@ print[[
          success: function(response) {
             var rsp = $("<table>"+response+"</table>");
 
-            $("#table-protos table:first tr").each(function() {
-               var proto_id = $("td:first select", $(this)).val();
+            $("#table-protos > div > table > tbody > tr").each(function() {
+               var proto_id = $("td:first select", $(this)).val() || "default";
 
                if (typeof(proto_id) !== "undefined") {
                   var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
@@ -2159,23 +2166,17 @@ print[[
    }
 
    function makeTrafficQuotaButtons(tr_obj, proto_id) {
-      if (proto_id === "default")
-         $("td:nth-child(4)", tr_obj).html("");
-      else
-         makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
-            max_value: 100*1024*1024*1024 /* 100 GB */,
-            min_value: 0,
-         });
+      makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
+         max_value: 100*1024*1024*1024 /* 100 GB */,
+         min_value: 0,
+      });
    }
 
    function makeTimeQuotaButtons(tr_obj, proto_id) {
-      if (proto_id === "default")
-         $("td:nth-child(5)", tr_obj).html("");
-      else
-         makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
-            max_value: 23*60*60 /* 23 hours */,
-            min_value: 0,
-         });
+      makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
+         max_value: 23*60*60 /* 23 hours */,
+         min_value: 0,
+      });
    }
 
    $("#table-protos").datatable({

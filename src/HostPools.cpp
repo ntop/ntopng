@@ -686,7 +686,7 @@ void HostPools::reloadPools() {
     enforce_shapers_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
 
-#if 1
+#ifdef HOST_POOLS_DEBUG
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s]"
 				 "[children_safe: %i]"
