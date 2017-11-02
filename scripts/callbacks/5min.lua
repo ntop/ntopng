@@ -291,7 +291,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
             local vlan_ndpi_rrd = fixPath(vlanpath.."/"..proto_name..".rrd")
             createRRDcounter(vlan_ndpi_rrd, 300, verbose)
             ntop.rrd_update(vlan_ndpi_rrd, nil, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
-	    ntop.tsSet(ifstats.id..':vlan:'..vlan_id..":ndpi:"..k, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]), 0)	    
+	    ntop.tsSet(ifstats.id..':vlan:'..vlan_id..":ndpi:"..proto_name, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]), 0)	    
           end
         end
 
