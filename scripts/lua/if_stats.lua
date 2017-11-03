@@ -2022,8 +2022,9 @@ print[[
       }
 
       /* Reduced timeout (only once) */
-      quota_update = setTimeout(quotaUpdateCallback, 10);
+      quota_update = setTimeout(quotaUpdateCallback, 100);
    }
+   refreshQuotas();
 
    function addNewShapedProto() {
       var newid = newid_prefix + new_row_ctr;

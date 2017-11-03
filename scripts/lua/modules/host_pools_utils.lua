@@ -446,14 +446,18 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
   local ndpi_stats = pool_stats.ndpi
   local category_stats = pool_stats.ndpi_categories
   local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
+  local cross_traffic_quota, cross_time_quota = shaper_utils.getCrossApplicationQuotas(ifId, pool_id)
 
   -- Empty check
-  local empty = true
-  for _, proto in pairs(quota_and_protos) do
-    if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
-      -- at least a quota is set
-      empty = false
-      break
+  local empty = (cross_traffic_quota == shaper_utils.NO_QUOTA) and (cross_time_quota == shaper_utils.NO_QUOTA)
+
+  if empty then
+    for _, proto in pairs(quota_and_protos) do
+      if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
+        -- at least a quota is set
+        empty = false
+        break
+      end
     end
   end
 
