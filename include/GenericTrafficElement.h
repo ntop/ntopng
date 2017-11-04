@@ -42,10 +42,7 @@ class GenericTrafficElement {
 
  public:
   GenericTrafficElement();
-  
-  GenericTrafficElement(const GenericTrafficElement &gte) {
-    ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
-  };
+  GenericTrafficElement(const GenericTrafficElement &gte);
 
   virtual ~GenericTrafficElement() {
     if(ndpiStats) delete ndpiStats;
