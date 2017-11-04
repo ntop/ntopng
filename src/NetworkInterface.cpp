@@ -942,8 +942,11 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 	     the (destination) MAC. From now on, all flow peers are known
 	  */
 
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
 	  if(ret->get_packets_cli2srv() == 1 /* first packet */)
 	    srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
+#endif
 	}
       }
       
@@ -2264,8 +2267,11 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     Mac *srcMac = getMac(ethernet->h_source, vlan_id, true);
     Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
 
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
     if(srcMac) srcMac->incSentStats(1, rawsize);
     if(dstMac) dstMac->incRcvdStats(1, rawsize);
+#endif
 
     if(srcMac && dstMac) {
       const u_int16_t arp_opcode_offset = ip_offset + 6;

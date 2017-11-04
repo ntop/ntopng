@@ -972,14 +972,24 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     if(diff_sent_packets || diff_rcvd_packets) {
       /* Update L2 Device stats */
       if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-	if(cli_host->get_mac())
+	if(srv_host->get_mac()) {
 	  srv_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
-	if(srv_host->getMac())
+#ifdef HAVE_NEDGE
+          srv_host->getMac()->incSentStats(diff_rcvd_packets, diff_rcvd_bytes);
+          srv_host->getMac()->incRcvdStats(diff_sent_packets, diff_sent_bytes);
+#endif
+        }
+	if(cli_host->getMac()) {
 	  cli_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+#ifdef HAVE_NEDGE
+          cli_host->getMac()->incSentStats(diff_sent_packets, diff_sent_bytes);
+          cli_host->getMac()->incRcvdStats(diff_rcvd_packets, diff_rcvd_bytes);
+#endif
+        }
       }
 
 #ifdef NTOPNG_PRO
@@ -993,7 +1003,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	/* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
 	   pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp
 	*/
-	if(iface && !iface->is_bridge_interface())
+	if(iface && (!iface->is_bridge_interface() || (iface->getIfType() == interface_type_NETFILTER)))
 	  update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       }
 #endif
