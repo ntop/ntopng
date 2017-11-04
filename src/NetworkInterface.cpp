@@ -1391,7 +1391,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   if((srcMac = getMac(eth->h_source, vlan_id, true))) {
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
     srcMac->incSentStats(1, rawsize);
+#endif
     srcMac->setSeenIface(bridge_iface_idx);
 
 #ifdef NTOPNG_PRO
@@ -1412,8 +1415,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
-  if((dstMac = getMac(eth->h_dest, vlan_id, true)))
+  if((dstMac = getMac(eth->h_dest, vlan_id, true))) {
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
     dstMac->incRcvdStats(1, rawsize);
+#endif
+}
 
  decode_ip:
   if(iph != NULL) {
@@ -1837,6 +1844,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     shaper_ingress, shaper_egress);
 	pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
 
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
 	if(pass_verdict) {
 	  /* Update pools stats inline only for bridge interfaces! */
 	  if(src2dst_direction)
@@ -1848,6 +1857,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     0, 0,
 				     1, rawsize /* received-only */);
 	}
+#endif
 
       } else {
 	flow->incFlowDroppedCounters();
