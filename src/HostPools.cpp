@@ -648,7 +648,7 @@ void HostPools::reloadPools() {
   if(stats && stats[0]) /* Duplicate existing statistics */
     new_stats[0] = new HostPoolStats(*stats[0]);
   else /* Brand new statistics */
-    new_stats[0] = new HostPoolStats();
+    new_stats[0] = new HostPoolStats(iface);
 #endif
 
   /* Keys are pool ids */
@@ -669,7 +669,7 @@ void HostPools::reloadPools() {
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
         new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
-        new_stats[_pool_id] = new HostPoolStats();
+        new_stats[_pool_id] = new HostPoolStats(iface);
     }
 #endif
 

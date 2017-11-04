@@ -386,7 +386,7 @@ void Host::updateHostPool(bool isInlineCall) {
     if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
       /* must allocate a structure to keep track of used quotas */
       if(!quota_enforcement_stats) {
-	quota_enforcement_stats = new HostPoolStats();
+	quota_enforcement_stats = new HostPoolStats(iface);
 
 #ifdef HOST_POOLS_DEBUG
 	char buf[128];
