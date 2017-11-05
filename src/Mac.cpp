@@ -402,4 +402,6 @@ void Mac::checkDeviceTypeFromManufacturer() {
   else if (strstr(manuf, "Xerox")
 	   )
     setDeviceType(device_printer);
+  else if (strstr(manuf, "Raspberry Pi"))
+    setDeviceType(device_workstation);
 }
