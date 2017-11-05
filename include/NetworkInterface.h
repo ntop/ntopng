@@ -297,7 +297,11 @@ class NetworkInterface {
 
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
-		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead, bool conntrack_update=false) {
+#ifdef HAVE_NEDGE
+    if(! conntrack_update)
+      return;
+#endif
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive

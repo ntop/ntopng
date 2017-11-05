@@ -1564,6 +1564,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
+#ifdef NTOPNG_PRO
+    if(new_flow)
+      flow->setIngress2EgressDirection(ingressPacket);
+#endif
     *srcHost = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;

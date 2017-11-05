@@ -3112,8 +3112,21 @@ void Flow::fixAggregatedFlowFields() {
 
 void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
+  time_t now = time(0);
+  u_int16_t eth_proto = ETHERTYPE_IP;
+  u_int overhead = 24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */;
+
   updateSeen();
 
-  if(cli2srv_packets < s2d_pkts) cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes;
-  if(srv2cli_packets < d2s_pkts) srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
+  if(cli2srv_packets < s2d_pkts) {
+    iface->incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
+          s2d_bytes - cli2srv_bytes, s2d_pkts - cli2srv_packets, overhead, true);
+    cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes;
+  }
+
+  if(srv2cli_packets < d2s_pkts) {
+    iface->incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
+          d2s_bytes - srv2cli_bytes, d2s_pkts - srv2cli_packets, overhead, true);
+    srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
+  }
 }

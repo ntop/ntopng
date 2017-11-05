@@ -76,6 +76,7 @@ class Flow : public GenericHashEntry {
     quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
+  bool ingress2egress_direction;
   u_int8_t routing_table_id;
 #ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
@@ -445,7 +446,9 @@ class Flow : public GenericHashEntry {
     }
   }
 
-  u_int8_t getFlowRoutingTableId() { return(routing_table_id); }
+  inline u_int8_t getFlowRoutingTableId() { return(routing_table_id); }
+  inline void setIngress2EgressDirection(bool _ingress2egress) { ingress2egress_direction = _ingress2egress; }
+  inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
 };
 
