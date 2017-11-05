@@ -3112,6 +3112,7 @@ void Flow::fixAggregatedFlowFields() {
 
 void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
+#ifdef NTOPNG_PRO
   time_t now = time(0);
   u_int16_t eth_proto = ETHERTYPE_IP;
   u_int overhead = 24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */;
@@ -3129,4 +3130,5 @@ void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
           d2s_bytes - srv2cli_bytes, d2s_pkts - srv2cli_packets, overhead, true);
     srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
   }
+#endif
 }
