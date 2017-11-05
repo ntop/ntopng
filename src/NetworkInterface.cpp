@@ -1602,6 +1602,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
     }
 
+#ifndef HAVE_NEDGE
 #ifdef __OpenBSD__
     struct timeval tv_ts;
     tv_ts.tv_sec  = h->ts.tv_sec;
@@ -1610,6 +1611,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #else
     flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
 #endif
+#endif
+
   }
 
   /* Protocol Detection */
