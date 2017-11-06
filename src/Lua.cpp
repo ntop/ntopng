@@ -6942,14 +6942,13 @@ int Lua::handle_script_request(struct mg_connection *conn,
       }
     }
 
-    if(valid_csrf) {
+    if(valid_csrf)
       setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
-      if(post_data) {
-	free(post_data);
-      }
-    }
     else
       setParamsTable(L, "_POST", NULL /* Empty */);
+
+    if(post_data)
+      free(post_data);
   } else
     setParamsTable(L, "_POST", NULL /* Empty */);
 
