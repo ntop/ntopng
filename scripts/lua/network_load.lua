@@ -73,8 +73,8 @@ function dumpInterfaceStats(interface_name)
 	 res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
 	 res["zmqRecvStats"]["zmq_msg_drops"] = ifstats.zmqRecvStats.zmq_msg_drops
 
-	 res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"]
-	 res["zmq.num_exporters"] = ifstats["zmq.num_exporters"]
+	 res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"] or 0
+	 res["zmq.num_exporters"] = ifstats["zmq.num_exporters"] or 0
       end
       
       res["tcpPacketStats"] = {}

@@ -15,7 +15,7 @@ local top_rrds = {
    {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
    {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
-   {rrd="num_zmq_received_flows.rrd",  label=i18n("graphs.zmq_received_flows")},
+   {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows")},
    {separator=1},
    {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
    {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo")},
