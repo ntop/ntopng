@@ -3115,7 +3115,7 @@ void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 #ifdef NTOPNG_PRO
   time_t now = time(0);
   u_int16_t eth_proto = ETHERTYPE_IP;
-  u_int overhead = 24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */;
+  u_int overhead = 0;
 
   updateSeen();
 
