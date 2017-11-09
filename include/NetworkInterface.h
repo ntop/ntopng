@@ -84,9 +84,6 @@ class NetworkInterface {
   bool bridge_interface, forcePoolReload, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
-#ifdef HAVE_NDB
-  Nseries *nseries;
-#endif
 #ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
 #endif
@@ -635,13 +632,6 @@ class NetworkInterface {
 		       u_int32_t dstHost, u_int16_t dport,
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
-#ifdef HAVE_NDB
-  inline void tsSet(u_int32_t tsSec, bool isCounter, u_int8_t ifaceId, u_int16_t step, const char *label,
-		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
-    nseries->set(tsSec, isCounter, ifaceId, step, label ? label : "",
-		 key ? key : "", metric ? metric : "", sent, rcvd);
-  }
-#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

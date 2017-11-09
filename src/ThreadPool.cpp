@@ -137,7 +137,6 @@ ThreadedActivity* ThreadPool::dequeueJob(bool waitIfEmpty) {
 
 /* **************************************************** */
 
-
 void ThreadPool::shutdown() {
 #ifdef THREAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** %s() ***", __FUNCTION__);

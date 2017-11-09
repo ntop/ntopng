@@ -3164,10 +3164,34 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 
 /* ****************************************** */
 
+#ifdef HAVE_NDB
+static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
+  switch(step) {
+  case 1: /* 1 sec */
+    return(NSERIES_ID_SECOND);
+    break;
+
+  case 60: /* 1 min */
+    return(NSERIES_ID_MINUTE);
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid step set %u",
+				 step);
+    return(-1);
+  }
+
+  return(-1); /* NOTREACHED */
+}
+#endif
+
+/* ****************************************** */
+
 static int ntop_ts_set(lua_State* vm) {
 #ifdef HAVE_NDB
   const char *label = NULL, *metric = NULL, *key = "";
-  u_int8_t ifaceId;
+  u_int8_t ifaceId, id = 1;
+  int8_t series_id;
   u_int16_t step;
   u_int32_t ts;
   u_int64_t sent = 0, rcvd = 0;
@@ -3175,31 +3199,68 @@ static int ntop_ts_set(lua_State* vm) {
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  ts = (u_int32_t)lua_tonumber(vm, id++);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  ts = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  ifaceId = (u_int8_t)lua_tonumber(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  step = (u_int16_t)lua_tonumber(vm, 3);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((label = (const char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 5) == LUA_TSTRING) key = (const char*)lua_tostring(vm, 5);
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  ifaceId = (u_int8_t)lua_tonumber(vm, id++);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((metric = (const char*)lua_tostring(vm, 6)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  step = (u_int32_t)lua_tonumber(vm, id++);
 
-  if(lua_type(vm, 7) == LUA_TNUMBER) sent = (u_int64_t)lua_tonumber(vm, 7);
-  else if(lua_type(vm, 7) == LUA_TSTRING) sent = (u_int64_t)atoll((const char*)lua_tostring(vm, 7));
+  if((series_id = ntop_ts_step_to_series_id(step)) == -1)
+    return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 8) == LUA_TNUMBER) rcvd = (u_int64_t)lua_tonumber(vm, 8);
-  else if(lua_type(vm, 8) == LUA_TSTRING) rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, 8));
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((label = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  ntop_interface->tsSet(ts, true /* counter */, ifaceId, step, label, key, metric, sent, rcvd);
+  if(lua_type(vm, id) != LUA_TNIL) {
+    if(lua_type(vm, id) == LUA_TSTRING)
+      key = (const char*)lua_tostring(vm, id++);
+  } else
+    id++;
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((metric = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  
+  if(lua_type(vm, id) == LUA_TNUMBER)
+    sent = (u_int64_t)lua_tonumber(vm, id++);
+  else if(lua_type(vm, id) == LUA_TSTRING)
+    sent = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
+  
+  if(lua_type(vm, id) == LUA_TNUMBER)
+    rcvd = (u_int64_t)lua_tonumber(vm, id++);
+  else if(lua_type(vm, id) == LUA_TSTRING)
+    rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
+  
+  ntop->tsSet(series_id, ts, true /* counter */, ifaceId,
+	      step, label, key, metric, sent, rcvd);
+#endif
+  
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_ts_flush(lua_State* vm) {
+#ifdef HAVE_NDB
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  int8_t series_id;
+  u_int16_t step;
+  
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 0, LUA_TNUMBER))
+    return(CONST_LUA_PARAM_ERROR);  
+  step = (u_int32_t)lua_tonumber(vm, 0);
+
+  if((series_id = ntop_ts_step_to_series_id(step)) == -1)
+     return(CONST_LUA_ERROR);
+       
+  ntop->tsFlush(series_id);
 #endif
   
   lua_pushnil(vm);
@@ -6444,7 +6505,10 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",      ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate", ntop_rrd_lastupdate  },
-  { "tsSet",          ntop_ts_set },
+
+  /* nSeries */
+  { "tsSet",          ntop_ts_set   },
+  { "tsFlush",        ntop_ts_flush },
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },

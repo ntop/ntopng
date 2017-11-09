@@ -150,6 +150,22 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   setservent(1);
 #endif
+
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  for(int i=0; i<NUM_NSERIES; i++) {
+    char path[MAX_PATH];
+    
+    snprintf(path, sizeof(path), "%s/nseries/%s",
+	     ntop->get_working_dir(),
+	     (i == NSERIES_ID_SECOND) ? "sec" : "min");
+    
+    if(!Utils::mkdir_tree(path))
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Unable to create directory %s: nSeries will be disabled", path);
+    else
+      nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
+  }
+#endif
 }
 
 /* ******************************************* */
@@ -177,6 +193,12 @@ Ntop::~Ntop() {
   if(httpd)
     delete httpd; /* Stop the http server before tearing down network interfaces */
 
+  /* 
+     Stop periodic scripts so that we avoid nasty things happen when
+     memory is being deallocated
+  */
+  delete periodicTaskPool;
+  
   /* Views are deleted first as they require access to the underlying sub-interfaces */
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(iface[i] && iface[i]->isView()) {
@@ -208,7 +230,6 @@ Ntop::~Ntop() {
   if(hostBlacklist)       delete hostBlacklist;
   if(hostBlacklistShadow) delete hostBlacklistShadow;
 
-  delete periodicTaskPool;
   delete address;
   delete pa;
   if(geo)   delete geo;
@@ -223,6 +244,11 @@ Ntop::~Ntop() {
   if(nagios_manager) delete nagios_manager;
 #endif
   if(flow_checker) delete flow_checker;
+#endif
+
+#ifdef HAVE_NDB
+  for(int i=0; i<NUM_NSERIES; i++)
+    if(nseries[i]) delete nseries[i];
 #endif
 }
 

@@ -30,7 +30,8 @@ class Mac;
 
 class HostPools {
  private:
-  Mutex *swap_lock;
+  Mutex *swap_lock, *inc_lock;
+  bool swapRequested, swapInProgress;
   volatile time_t latest_swap;
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
