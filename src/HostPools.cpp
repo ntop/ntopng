@@ -709,7 +709,8 @@ void HostPools::reloadPools() {
 
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
-      num_members = min_val((u_int32_t)num_members, MAX_NUM_POOL_MEMBERS);
+      // NOTE: the auto-assigned host_pool must not be limited as it receives devices assigments automatically
+      num_members = min_val((u_int32_t)num_members, ((i == ntop->getPrefs()->get_auto_assigned_pool_id()) ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
 
       for(int k = 0; k < num_members; k++) {
 	member = pool_members[k];
