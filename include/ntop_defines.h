@@ -131,7 +131,6 @@
 #define MAX_NUM_POOL_MEMBERS        LIMITED_NUM_POOL_MEMBERS
 #endif
 
-#define MAX_NUM_MAPPED_CATEGORIES 64
 #define MAX_INTERFACE_NAME_LEN    256
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
@@ -236,6 +235,7 @@
 #define POOL_MAX_SERIALIZED_LEN        16348 /* bytes */
 
 #define CONST_MAX_NUM_NETWORKS         255
+#define CONST_MAX_NUM_CHECKPOINTS      4
 
 #define BATADV_COMPAT_VERSION_15 15
 #define BATADV_COMPAT_VERSION_14 14
@@ -429,7 +429,6 @@
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
 #define HOST_POOL_DUMP_KEY                  "ntopng.prefs.%u.host_pools.dump"
 #define HOST_POOL_SHAPERS_KEY               "ntopng.prefs.%u.l7_policies.%s"
-#define HOST_POOL_SITE_CATEGORIES_KEY       "ntopng.prefs.%u.blocked_sites_categories.%s"
 #define HOST_POOL_DETAILS_KEY               "ntopng.prefs.%u.host_pools.details.%u"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
@@ -610,8 +609,6 @@
 #endif
 
 #define HTTPBL_STRING              "httpbl:"
-#define FLASHSTART_STRING          "flashstart:"
-#define NUM_FLASHSTART_SERVERS     2
 
 #define MAX_NUM_CATEGORIES         3
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"
@@ -689,6 +686,7 @@
 #define SHUTDOWN_SCRIPT_PATH       "shutdown.lua"
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
 #define DISCOVER_SCRIPT_PATH       "discover.lua"
+#define UPGRADE_SCRIPT_PATH        "upgrade.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
 #define MINUTE_SCRIPT_PATH         "minute.lua"
 #define FIVE_MINUTES_SCRIPT_PATH   "5min.lua"
@@ -769,9 +767,13 @@
 
 #define CONST_CHILDREN_SAFE                    "children_safe"
 #define CONST_ROUTING_POLICY_ID                "routing_policy_id"
+#define CONST_POOL_SHAPER_ID                   "pool_shaper_id"
+#define CONST_SCHEDULE_BITMAP                  "daily_schedule"
 #define CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER   "enforce_quotas_per_pool_member"
 #define CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER  "enforce_shapers_per_pool_member"
 #define CONST_ENFORCE_CROSS_APPLICATION_QUOTAS "enforce_cross_application_quotas"
+
+#define DEFAULT_TIME_SCHEDULE                0xFFFFFFFF
 
 #define CACHED_ENTRIES_THRESHOLD        1024
 #define MAX_CATEGORY_CACHE_DURATION     300 /* Purge entries more than 5 mins old */

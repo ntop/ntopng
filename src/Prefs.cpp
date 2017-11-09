@@ -58,7 +58,7 @@ Prefs::Prefs(Ntop *_ntop) {
   http_binding_address = NULL;
   https_binding_address = NULL; // CONST_ANY_ADDRESS;
   lan_interface = wan_interface = NULL;
-  httpbl_key = NULL, flashstart = NULL;
+  httpbl_key = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
   redis_password = NULL;
@@ -79,7 +79,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-  enable_user_scripts   = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
+  enable_user_scripts    = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
@@ -91,7 +91,12 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
-  has_cmdl_trace_lvl      = false;
+  has_cmdl_trace_lvl = false;
+
+#ifdef HAVE_NEDGE
+  disable_dns_resolution();
+  disable_dns_responses_decoding();
+#endif
 }
 
 /* ******************************************* */
@@ -136,7 +141,6 @@ Prefs::~Prefs() {
   if(https_binding_address) free(https_binding_address);
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
-  /* NOTE: flashstart is deleted by the Ntop class */
   if(redirection_url)        free(redirection_url);
   if(redirection_url_shadow) free(redirection_url_shadow);
 }
@@ -163,6 +167,7 @@ void usage() {
 	 "  or\n"
 	 "  ntopng <command line options> \n\n"
 	 "Options:\n"
+#ifndef HAVE_NEDGE
 	 "[--dns-mode|-n] <mode>              | DNS address resolution mode\n"
 	 "                                    | 0 - Decode DNS responses and resolve\n"
 	 "                                    |     local numeric IPs only (default)\n"
@@ -172,6 +177,7 @@ void usage() {
 	 "                                    |     resolve numeric IPs\n"
 	 "                                    | 3 - Don't decode DNS responses and don't\n"
 	 "                                    |     resolve numeric IPs\n"
+#endif
 	 "[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),\n"
          "                                    | view or pcap file path\n"
 #ifndef WIN32
@@ -196,7 +202,6 @@ void usage() {
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
 	 "                                    | httpbl:<api_key>   See README.httpbl\n"
-	 "                                    | flashstart:<opt>   See README.flashstart\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
 	 "                                    | or IPv6 ([3ffe:2a00:100:7031::1]) addr.\n"
@@ -570,7 +575,9 @@ static const struct option long_options[] = {
   { "help",                              no_argument,       NULL, 'h' },
   { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
+#ifndef HAVE_NEDGE
   { "dns-mode",                          required_argument, NULL, 'n' },
+#endif
   { "traffic-filtering",                 required_argument, NULL, 'k' },
   { "disable-login",                     required_argument, NULL, 'l' },
   { "ndpi-protocols",                    required_argument, NULL, 'p' },
@@ -686,26 +693,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 'k':
     if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
       httpbl_key = strdup(&optarg[strlen(HTTPBL_STRING)]);
-    else if(strncmp(optarg, FLASHSTART_STRING, strlen(FLASHSTART_STRING)) == 0) {
-      char *tmp, *user = strtok_r(&optarg[strlen(FLASHSTART_STRING)], ":", &tmp), *pwd = NULL;
-
-      if(user) pwd = strtok_r(NULL, ":", &tmp);
-
-      if(user && pwd) {
-	char *alt_dns;
-	char *alt_port;
-
-	if((alt_dns = strtok_r(NULL, ":", &tmp)) != NULL)
-	  alt_port = strtok_r(NULL, ":", &tmp);
-	else
-	  alt_port = NULL;
-
-	if((flashstart = new Flashstart(user, pwd, alt_dns, alt_port ? atoi(alt_port) : 53, false)) != NULL)
-	  ntop->set_flashstart(flashstart);
-      } else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for --%s<user>:<pwd>",
-				     FLASHSTART_STRING);
-    } else
+    else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -k", optarg);
     break;
 
@@ -753,6 +741,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     local_networks_set = true;
     break;
 
+#ifndef HAVE_NEDGE
   case 'n':
     dns_mode = atoi(optarg);
     switch(dns_mode) {
@@ -772,7 +761,8 @@ int Prefs::setOption(int optkey, char *optarg) {
       usage();
     }
     break;
-
+#endif
+    
   case 'p':
     ndpi_proto_path = strdup(optarg);
     ntop->setCustomnDPIProtos(ndpi_proto_path);
@@ -1342,7 +1332,6 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
-  lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
   lua_push_int_table_entry(vm, "http_port", http_port);

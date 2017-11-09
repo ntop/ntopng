@@ -376,8 +376,9 @@ void Mac::updateFingerprint() {
     if(!strcmp(fingerprint, "0103063633")) {
       if(strstr(manuf, "Apple"))
 	setOperatingSystem(os_macos);
-      else
+      else if(device_type == device_unknown) {
 	setOperatingSystem(os_windows);
+      }
     }
   }
 }
@@ -398,4 +399,27 @@ void Mac::checkDeviceTypeFromManufacturer() {
      || strstr(manuf, "AVM")
      )
     setDeviceType(device_networking);
+  else if(strstr(manuf, "Xerox")
+	   )
+    setDeviceType(device_printer);
+  else if(strstr(manuf, "Raspberry Pi")
+	  || strstr(manuf, "PCS Computer Systems") /* VirtualBox */
+	  )
+    setDeviceType(device_workstation);
+  else {
+    /* https://www.techrepublic.com/blog/data-center/mac-address-scorecard-for-common-virtual-machine-platforms/ */
+
+    if((!memcmp(mac, "\x00\x50\x56", 3))
+       || (!memcmp(mac, "\x00\x0C\x29", 3))
+       || (!memcmp(mac, "\x00\x05\x69", 3))
+       || (!memcmp(mac, "\x00\x03\xFF", 3))
+       || (!memcmp(mac, "\x00\x1C\x42", 3))
+       || (!memcmp(mac, "\x00\x0F\x4B", 3))
+       || (!memcmp(mac, "\x00\x16\x3E", 3))
+       || (!memcmp(mac, "\x08\x00\x27", 3))
+       )
+      setDeviceType(device_workstation); /* VM */
+  }
+
+
 }

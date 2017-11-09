@@ -220,6 +220,9 @@ using namespace std;
 #endif
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+#include "Nseries.h"
+#endif
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
@@ -276,9 +279,7 @@ using namespace std;
 #endif
 
 #include "Geolocation.h"
-#include "Flashstart.h"
 #include "GenericHost.h"
-#include "CategoryStats.h"
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Mac.h"

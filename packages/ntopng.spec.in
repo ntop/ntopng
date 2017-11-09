@@ -36,7 +36,10 @@ if [ -d $RPM_BUILD_ROOT ]; then
 fi
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
-mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/logrotate.d
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
+%if 0%{?centos_ver} != 7
+mkdir -p $RPM_BUILD_ROOT/etc/init.d 
+%endif
 cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
 cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng  # L to dereference symlinks
@@ -54,13 +57,18 @@ if test -d "$HOME/ntopng/pro"; then
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.luar" | xargs rename .luar .lua
 fi
 
-#cp $HOME/ntopng/packages/etc/init/ntopng.conf $RPM_BUILD_ROOT/etc/init
 if grep -q systemd /proc/1/comm; then
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
+else
+   cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
-cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
+
 cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
+
+mkdir $RPM_BUILD_ROOT/etc/ntopng
+cp $HOME/ntopng/packages/etc/ntopng/ntopng.conf    $RPM_BUILD_ROOT/etc/ntopng
+
 find $RPM_BUILD_ROOT -name ".git" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f
@@ -75,11 +83,13 @@ rm -fr $RPM_BUILD_ROOT
 %files
 /usr/bin/ntopng
 /usr/share/man/man8/ntopng.8.gz
-#/etc/init/ntopng.conf
+%config(noreplace) /etc/ntopng/ntopng.conf
 %if 0%{?centos_ver} == 7
 /etc/systemd/system/ntopng.service
-%endif
+%else
 /etc/init.d/ntopng
+%endif
+
 /etc/logrotate.d/ntopng
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
@@ -102,6 +112,7 @@ rm -fr $RPM_BUILD_ROOT
 # un-install:                          preun       -> (delete)     -> postun
 
 %pre
+%if 0%{?centos_ver} != 7
 case "$1" in
   1)
     # install
@@ -111,6 +122,7 @@ case "$1" in
     /etc/init.d/ntopng stop
   ;;
 esac
+%endif
 
 %post
 echo 'Setting up redis auto startup'
@@ -124,6 +136,8 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 %else
 /sbin/chkconfig --add ntopng
 %endif
+
+%if 0%{?centos_ver} != 7
 case "$1" in
   1)
     # install
@@ -134,8 +148,10 @@ case "$1" in
     /etc/init.d/ntopng start
   ;;
 esac
+%endif
 
 %preun
+%if 0%{?centos_ver} != 7
 case "$1" in
   0)
     # un-install
@@ -145,6 +161,8 @@ case "$1" in
     # upgrade
   ;;
 esac
+%endif
+
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
 %else

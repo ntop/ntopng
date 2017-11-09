@@ -32,8 +32,9 @@ if(enable_second_debug) then
 end
 
 local ifnames = interface.getIfNames()
+local when = os.time()
 
-callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
+callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
    -- tprint(ifstats)
    basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
@@ -45,16 +46,15 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    end
    
    -- Traffic stats
-   makeRRD(basedir, ifname, "bytes", 1, ifstats.stats.bytes)
-   makeRRD(basedir, ifname, "packets", 1, ifstats.stats.packets)
+   makeRRD(basedir, when, ifstats.id, "iface", "bytes", 1, ifstats.stats.bytes)
+   makeRRD(basedir, when, ifstats.id, "iface", "packets", 1, ifstats.stats.packets)
    
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
-      local name = fixPath(basedir .. "/num_zmq_received_flows.rrd")
-      create_rrd(name, 1, "num_flows")
-      ntop.rrd_update(name, "N:".. tolongint(ifstats.zmqRecvStats.flows))
+      makeRRD(basedir, when, ifstats.id, "iface", "num_zmq_rcvd_flows",
+	      1, tolongint(ifstats.zmqRecvStats.flows))
    else
       -- Packet interface
-      makeRRD(basedir, ifname, "drops", 1, ifstats.stats.drops)
+      makeRRD(basedir, when, ifstats.id, "iface", "drops", 1, ifstats.stats.drops)
    end
 end)

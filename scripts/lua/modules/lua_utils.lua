@@ -526,12 +526,14 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
+-- Note: make sure the number of alert_engine_keys honours CONST_MAX_NUM_CHECKPOINTS
+-- and make sure engines with these ids are reserved only to handle alert-related
+-- checkpoints
 alert_engine_keys = {
-   {i18n("show_alerts.minute"),  0, "min"    },
+   {i18n("show_alerts.minute"),       0, "min"    },
    {i18n("show_alerts.five_minutes"), 1, "5mins"  },
-   {i18n("show_alerts.hourly"),    2, "hour"   },
-   {i18n("show_alerts.daily"),     3, "day"    },
-   {i18n("show_alerts.startup"),   4, "startup"},
+   {i18n("show_alerts.hourly"),       2, "hour"   },
+   {i18n("show_alerts.daily"),        3, "day"    },
 }
 
 -- Note: keep in sync with alarmable_metrics and alert_functions_infoes
@@ -1010,98 +1012,6 @@ function ends(String,End)
 end
 
 -- #################################################################
-
--- NOTE keep in sync with Flashstart::initMapping()
-
-host_categories = {
-      ["freetime"] = "FreeTime",
-      ["chat"] = "Chat",
-      ["onlineauctions"] = "Auctions",
-      ["onlinegames"] = "Online Games",
-      ["pets"] = "Animals",
-      ["porn"] = "Porn",
-      ["religion"] = "Religion",
-      ["phishing"] = "Phishing",
-      ["sexuality"] = "Sex",
-      ["games"] = "Games",
-      ["socialnetworking"] = "SocialNetwork",
-      ["jobsearch"] = "JobSearch",
-      ["mail"] = "Webmail",
-      ["news"] = "News",
-      ["proxy"] = "AnonymousProxy",
-      ["publicite"] = "Advertisement",
-      ["sports"] = "Sport",
-      ["vacation"] = "Travel",
-      ["ecommerce"] = "E-commerce",
-      ["instantmessaging"] = "InstantMessaging",
-      ["kidstimewasting"] = "KidGames",
-      ["audio-video"] = "AudioVideo",
-      ["books"] = "Books",
-      ["government"] = "Government",
-      ["malware"] = "Malware",
-      ["medical"] = "Medicine",
-      ["ann"] = "Ads",
-      ["drugs"] = "Drugs",
-      ["dating"] = "OnlineDating",
-      ["desktopsillies"] = "DesktopImages",
-      ["filehosting"] = "FileHosting",
-      ["filesharing"] = "FileSharing",
-      ["gambling"] = "Gambling",
-      ["warez"] = "CracksWarez",
-      ["radio"] = "Radio",
-      ["updatesites"] = "Updates",
-      ["financial"] = "FinanceBanking",
-      ["adult"] = "Adults",
-      ["fashion"] = "Fashion",
-      ["showbiz"] = "Showbiz",
-      ["ict"] = "ICT",
-      ["company"] = "Business",
-      ["education"] = "EducationSchool",
-      ["searchengines"] = "SearchEngines",
-      ["blog"] = "Blog",
-      ["association"] = "Associations",
-      ["music"] = "Musica",
-      ["legal"] = "Legal",
-      ["photo"] = "Photo",
-      ["stats"] = "Webstat",
-      ["content"] = "ContentServer",
-      ["domainforsale"] = "DomainForSale",
-      ["weapons"] = "Guns",
-      ["generic"] = "Generic"
-}
-
--- #################################################################
-
-function getCategoryLabel(cat)
-   if((cat == "") or (cat == nil) or (cat == "???")) then
-      return("")
-   end
-
-  for c,v in pairs(host_categories) do
-   if(c == cat) then
-     return(v)
-   end
-  end
-
-  return(cat)
-end
-
-function getCategoryIcon(what, cat)
-   if((cat == "") or (cat == nil) or (cat == "???")) then
-      return("")
-   end
-
-  ret = ""
-  for c,_ in pairs(cat) do
-   if(host_categories[c] ~= nil) then
-     ret = ret .. " <span class='label label-info'>"..host_categories[c].."</span>"
-   else
-     ret = ret .. " <span class='label label-info'>"..c.."</span>"
-   end
-  end
-
-  return(ret)
-end
 
 function bit(p)
   return 2 ^ (p - 1)  -- 1-based indexing

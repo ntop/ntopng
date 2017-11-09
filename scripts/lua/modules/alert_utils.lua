@@ -240,23 +240,30 @@ end
 
 -- Note: see getConfiguredAlertsThresholds for threshold object format
 local function entity_threshold_crossed(granularity, old_table, new_table, threshold)
-   -- Needed because Lua. loadstring() won't work otherwise.
-   old = old_table
-   new = new_table
-   duration = granularity2sec(granularity)
-
-   local op = op2jsop(threshold.operator)
-
-   -- This is where magic happens: loadstring() evaluates the string
-   local what = "val = "..threshold.metric.."(old, new, duration); if(val ".. op .. " " .. threshold.edge .. ") then return(true) else return(false) end"
-
-   local f = loadstring(what)
-   local rc = f()
-
+   local rc
    local threshold_info = table.clone(threshold)
-   threshold_info.value = val
 
-   return rc, threshold_info
+   if old_table and new_table then -- meaningful checks require both new and old tables
+      -- Needed because Lua. loadstring() won't work otherwise.
+      old = old_table
+      new = new_table
+      duration = granularity2sec(granularity)
+
+      local op = op2jsop(threshold.operator)
+
+      -- This is where magic happens: loadstring() evaluates the string
+      local what = "val = "..threshold.metric.."(old, new, duration); if(val ".. op .. " " .. threshold.edge .. ") then return(true) else return(false) end"
+
+      local f = loadstring(what)
+
+      rc = f()
+      threshold_info.value = val
+   else
+      rc = false
+      threshold_info.value = nil
+   end
+
+return rc, threshold_info
 end
 
 -- #################################
@@ -1828,7 +1835,7 @@ end
 
 -- #################################
 
-local function entity_threshold_status_rw(granularity, ifname_id, fname, use_persistance, to_write --[[nil if it's a read]], additional_path)
+local function entity_threshold_status_rw(granularity, ifname_id, fname, to_write --[[nil if it's a read]], additional_path)
    local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. granularity .. (additional_path and ("/"..additional_path) or ""))
    local fpath = fixPath(basedir.."/"..fname)
 
@@ -1838,48 +1845,25 @@ local function entity_threshold_status_rw(granularity, ifname_id, fname, use_per
       end
 
       -- Write new version
-      if use_persistance then
-         persistence.store(fpath, to_write)
-      else
-         local f = io.open(fpath, "w")
-         if f ~= nil then
-            f:write(to_write)
-            f:close()
-         end
-      end
+      persistence.store(fpath, to_write)
    elseif ntop.exists(fpath) then
       -- Read old version
-      local old_dump = nil
-
-      if use_persistance then
-         old_dump = persistence.load(fpath)
-      else
-         local f = io.open(fpath, "r")
-         if(f ~= nil) then
-            old_dump = f:read("*all")
-            f:close()
-            if not isEmptyString(old_dump) then
-               old_dump = j.decode(old_dump, 1, nil)
-            end
-         end
-      end
-
-      if old_dump ~= nil then
-         return old_dump
-      end
+      return persistence.load(fpath)
    end
 end
 
+-- #################################
+
 local function interface_threshold_status_rw(granularity, ifid,  to_write)
-   return entity_threshold_status_rw(granularity, ifid, "iface_"..ifid.."_lastdump", true, to_write)
+   return entity_threshold_status_rw(granularity, ifid, "iface_"..ifid.."_lastdump", to_write)
 end
 
 local function network_threshold_status_rw(granularity, ifid, network, to_write)
-   return entity_threshold_status_rw(granularity, ifid, "alarmed_subnet_stats_lastdump", true, to_write, getPathFromKey(network))
+   return entity_threshold_status_rw(granularity, ifid, "alarmed_subnet_stats_lastdump", to_write, getPathFromKey(network))
 end
 
-local function host_threshold_status_rw(granularity, ifid, hostinfo, to_write)
-   return entity_threshold_status_rw(granularity, ifid, hostinfo.ip .. ".json", false, to_write)
+local function host_threshold_status_rw(granularity, ifid, to_write)
+   return entity_threshold_status_rw(granularity, ifid, "hosts.json", to_write)
 end
 
 -- #################################
@@ -1922,11 +1906,11 @@ local function check_networks_alerts(ifid, working_status)
           or (old_entity_info["inner"] > new_entity_info["inner"]) then
             -- reset
             if(verbose) then print("entity '"..subnet.."' stats reset("..working_status.granularity..")") end
-            old_entity_info = {}
+            old_entity_info = nil
          end
       else
          -- empty
-         old_entity_info = {}
+         old_entity_info = nil
       end
 
       check_entity_alerts(ifid, "network", subnet, working_status, old_entity_info, new_entity_info)
@@ -1936,61 +1920,55 @@ local function check_networks_alerts(ifid, working_status)
 end
 
 local function check_hosts_alerts(ifid, working_status)
-   local hosts = interface.getLocalHostsInfo(false)
+   local hosts = interface.getLocalHostsInfo(false) or {}
+   hosts = hosts["hosts"] or {}
    local warning_shown = false
 
-   if hosts ~= nil then
-      for host, hoststats in pairs(hosts["hosts"] or {}) do
-         local hostinfo = interface.getHostInfo(host)
-         if hostinfo ~= nil then
-            local entity_value = hostinfo2hostkey({host=host, vlan=hostinfo.vlan}, nil, true --[[force vlan]])
-            local old_entity_info = host_threshold_status_rw(working_status.granularity, ifid, hostinfo)  -- read old json
-            local new_entity_info_json = hostinfo["json"]
-            local new_entity_info = j.decode(new_entity_info_json, 1, nil)
+   for host, _ in pairs(hosts) do
+      local hoststats = interface.getHostInfo(host) or {}
+      -- we only care about anomalies as diffs are retrieved using checkpoints
+      hosts[host] = { anomalies = hoststats["anomalies"] or {} }
 
-	    if (new_entity_info == nil) then
-	       if warning_shown == false then
-		  print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
-		  tprint({hostinfo_json = hostinfo["json"],
-			  old_entity_info = old_entity_info,
-			  new_entity_info_json = new_entity_info_json,
-			  granularity = working_status.granularity,
-			  entity_value = entity_value, host = host,
-			  ifname=getInterfaceName(ifid)})
-		  warning_shown = true
-	       end
-	       goto continue
-	    end
+   end
 
-            -- TODO this is little hack to make anomalies apper into the json
-            new_entity_info["anomalies"] = hostinfo.anomalies
+   for host, new_entity_info in pairs(hosts) do
+      local entity_value = hostinfo2hostkey(hostkey2hostinfo(host), nil, true --[[force vlan]])
 
-            if (old_entity_info ~= nil) and (old_entity_info.sent ~= nil) then
-               -- wrap check
-               if (old_entity_info["sent"]["packets"] > new_entity_info["sent"]["packets"])
-                or (old_entity_info["rcvd"]["packets"] > new_entity_info["rcvd"]["packets"]) then
-                  -- reset
-                  if(verbose) then print("entity '"..entity_value.."' stats reset("..working_status.granularity..")") end
-                  old_entity_info = {}
-               end
-            else
-               -- empty
-               old_entity_info = {}
-            end
+      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.engine) or {}
 
-            check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
+      local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+      local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
 
-            host_threshold_status_rw(working_status.granularity, ifid, hostinfo, new_entity_info_json) -- write new json
-         end
-	 ::continue::
+      -- attach anomalies to the new entity info (no need to attach them to the old)
+      if new_entity_info then
+	 new_entity_info["anomalies"] = hosts[host]["anomalies"]
       end
+
+      if (new_entity_info == nil) then
+	 if warning_shown == false then
+	    print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+	    tprint({new_entity_info = new_entity_info,
+		    old_entity_info = old_entity_info,
+		    granularity = working_status.granularity,
+		    entity_value = entity_value, host = host,
+		    ifname=getInterfaceName(ifid)})
+	    warning_shown = true
+	 end
+	 goto continue
+      end
+
+      check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
+      ::continue::
    end
 end
 
 -- #################################
 
-function scanAlerts(granularity, ifname)
-   if not areAlertsEnabled() then return end
+function scanAlerts(granularity, ifstats)
+   local ifname = ifstats["name"]
+
+   -- can't alert on view interfaces as checkpoints will collide for their underlying real interfaces
+   if not areAlertsEnabled() or ifstats["isView"] then return end
 
    if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
    local ifid = getInterfaceId(ifname)

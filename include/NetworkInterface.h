@@ -84,6 +84,9 @@ class NetworkInterface {
   bool bridge_interface, forcePoolReload, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
+#ifdef HAVE_NDB
+  Nseries *nseries;
+#endif
 #ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
 #endif
@@ -285,6 +288,7 @@ class NetworkInterface {
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
+  bool checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id, char *host_ip, u_int16_t vlan_id);
   void checkPointCounters(bool drops_only);
 
   virtual u_int64_t getCheckPointNumPackets();
@@ -293,7 +297,11 @@ class NetworkInterface {
 
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
-		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead, bool conntrack_update=false) {
+#ifdef HAVE_NEDGE
+    if(! conntrack_update)
+      return;
+#endif
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
@@ -627,6 +635,13 @@ class NetworkInterface {
 		       u_int32_t dstHost, u_int16_t dport,
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
+#ifdef HAVE_NDB
+  inline void tsSet(u_int32_t tsSec, bool isCounter, u_int8_t ifaceId, u_int16_t step, const char *label,
+		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
+    nseries->set(tsSec, isCounter, ifaceId, step, label ? label : "",
+		 key ? key : "", metric ? metric : "", sent, rcvd);
+  }
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

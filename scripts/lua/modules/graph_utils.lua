@@ -15,7 +15,7 @@ local top_rrds = {
    {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
    {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
-   {rrd="num_zmq_received_flows.rrd",  label=i18n("graphs.zmq_received_flows")},
+   {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows")},
    {separator=1},
    {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
    {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo")},
@@ -970,7 +970,7 @@ function create_rrd_num(name, ds, step)
    end
 end
 
-function makeRRD(basedir, ifname, rrdname, step, value)
+function makeRRD(basedir, when, ifname, key, rrdname, step, value)
    local name = fixPath(basedir .. "/" .. rrdname .. ".rrd")
 
    if(string.contains(rrdname, "num_")) then
@@ -978,7 +978,13 @@ function makeRRD(basedir, ifname, rrdname, step, value)
    else
       create_rrd(name, step, rrdname)
    end
-   ntop.rrd_update(name, "N:".. tolongint(value))
+
+   ntop.rrd_update(name, nil, tolongint(value))
+
+   local tskey = ifname
+   if(key ~= nil) then tskey = tskey ..":"..key end
+   ntop.tsSet(when, ifname, tonumber(step), "iface", nil, rrdname, tonumber(value), 0)
+   
    if(enable_second_debug) then 
       io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n')
    end
@@ -1070,13 +1076,15 @@ function touchRRD(rrdname)
 
    if((last ~= nil) and ((now-last) > 3600)) then
       local tdiff = now - 1800 -- This avoids to set the update continuously
-      local label = tdiff
 
-      for i=1,ds_count do
-         label = label .. ":0"
+      if(ds_count == 1) then
+	 ntop.rrd_update(rrdname, tdiff.."", 0)
+      elseif(ds_count == 2) then
+	 ntop.rrd_update(rrdname, tdiff.."", 0, 0)
+      elseif(ds_count == 3) then
+	 ntop.rrd_update(rrdname, tdiff.."", 0, 0, 0)
       end
 
-      ntop.rrd_update(rrdname, label)
    end
 end
 
@@ -1100,8 +1108,6 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    if(prefixLabel == "Bytes") then
       prefixLabel = "Traffic"
-   elseif string.starts(rrdFile, "categories/") then
-      prefixLabel = prefixLabel.." Traffic"
    end
 
    if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
@@ -1156,8 +1162,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 end
 
 	 if host ~= nil and not string.starts(host, 'profile:')
-	    and protocol_categories[prefixLabel] == nil
-            and not string.starts(rrdFile, 'categories/') then
+	    and protocol_categories[prefixLabel] == nil then
 	     extra_info = extra_info..firstToUpper(n)
 	 end
 

@@ -64,6 +64,9 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
+  for(int i = 0; i < CONST_MAX_NUM_CHECKPOINTS; i++) {
+    if(checkpoints[i]) free(checkpoints[i]);
+  }
 
   if(mac)           mac->decUses();
   if(as)            as->decUses();
@@ -88,7 +91,6 @@ Host::~Host() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(symbolic_name)   free(symbolic_name);
-  if(categoryStats)   delete categoryStats;
   if(ssdpLocation_shadow) free(ssdpLocation_shadow);
   if(ssdpLocation)        free(ssdpLocation);
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
@@ -166,6 +168,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   flow_flood_victim_alert = new AlertCounter(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
   host_label_set = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false, blacklisted_alarm_emitted = false;
+  memset(&checkpoints, 0, sizeof(checkpoints));
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
@@ -180,7 +183,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   as = NULL;
   k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-  dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
+  dns = NULL, http = NULL, top_sites = NULL, old_sites = NULL,
     icmp = NULL;
 
   if(init_all) {
@@ -383,7 +386,7 @@ void Host::updateHostPool(bool isInlineCall) {
     if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
       /* must allocate a structure to keep track of used quotas */
       if(!quota_enforcement_stats) {
-	quota_enforcement_stats = new HostPoolStats();
+	quota_enforcement_stats = new HostPoolStats(iface);
 
 #ifdef HOST_POOLS_DEBUG
 	char buf[128];
@@ -697,7 +700,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(verbose) {
     char *rsp = serialize();
 
-    if(categoryStats) categoryStats->lua(vm);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
@@ -849,12 +851,12 @@ bool Host::idle() {
 /* *************************************** */
 
 void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
-		    struct site_categories *category,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
 
   if(sent_packets || rcvd_packets) {
-    ((GenericHost*)this)->incStats(when, l4_proto, ndpi_proto, sent_packets, sent_bytes, sent_goodput_bytes,
+    ((GenericHost*)this)->incStats(when, l4_proto, ndpi_proto,
+				   sent_packets, sent_bytes, sent_goodput_bytes,
 				   rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
 
     /* Paket stats sent_stats and rcvd_stats are incremented in Flow::incStats */
@@ -883,20 +885,6 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
     if(as) {
       as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-    }
-
-    if(category && localHost && ntop->get_flashstart()) {
-      if(categoryStats == NULL)
-	categoryStats = new CategoryStats();
-
-      if(categoryStats) {
-	for(int i=0; i <MAX_NUM_CATEGORIES; i++)
-	  if(category->categories[i] == NTOP_UNKNOWN_CATEGORY_ID)
-	    break;
-	  else
-	    categoryStats->incStats(category->categories[i],
-				    sent_bytes+rcvd_bytes);
-      }
     }
   }
 }
@@ -1003,7 +991,6 @@ json_object* Host::getJSONObject() {
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 
-  if(categoryStats)  json_object_object_add(my_object, "categories", categoryStats->getJSONObject());
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
   if(city) free(city);
@@ -1128,17 +1115,6 @@ bool Host::deserialize(char *json_str, char *key) {
     if(http) http->deserialize(obj);
   }
 
-  if(categoryStats) {
-    delete categoryStats;
-    categoryStats = NULL;
-  }
-
-  // deserialize categories only if flashstart is enabled for the current instance
-  if(json_object_object_get_ex(o, "categories", &obj) && ntop->get_flashstart()) {
-    categoryStats = new CategoryStats();
-    if(categoryStats) categoryStats->deserialize(obj);
-  }
-
   if(ndpiStats) {
     delete ndpiStats;
     ndpiStats = NULL;
@@ -1220,7 +1196,11 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 				    runs in the meantime, we're consistent with the policer
 				 */
 
-  if(policy) {
+  hp = iface->getHostPools();
+
+  if(hp && ((shaper_id = hp->getPoolShaper(get_host_pool())) != PASS_ALL_SHAPER_ID)) {
+    /* Use the pool shaper */;
+  } else if (policy) {
     int protocol;
 
     if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
@@ -1258,7 +1238,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 #endif
 
-  if((hp = iface->getHostPools())
+  if(hp
      && hp->enforceShapersPerPoolMember(get_host_pool())
      && (shapers = host_traffic_shapers)
      && shaper_id >= 0 && shaper_id < NUM_TRAFFIC_SHAPERS) {
@@ -1292,7 +1272,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
 /* *************************************** */
 
-void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category) {
+void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category) {
   L7Policy_t *policy = l7Policy; /*
 				    Cache value so that even if updateHostL7Policy()
 				    runs in the meantime, we're consistent with the policer
@@ -1301,6 +1281,7 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
   bool category = false; /* Default: no category */
+  u_int32_t schedule = 0xFFFFFFFF; /* Default: all day */
   int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
 
   if(policy) {
@@ -1311,10 +1292,12 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
       if(sd->protocol_shapers.enabled) {
         bytes = sd->protocol_shapers.bytes_quota;
         secs = sd->protocol_shapers.secs_quota;
+        schedule = sd->protocol_shapers.schedule_bitmap;
         category = false;
       } else if(sd->category_shapers.enabled) {
         bytes = sd->category_shapers.bytes_quota;
         secs = sd->category_shapers.secs_quota;
+        schedule = sd->category_shapers.schedule_bitmap;
         category = true;
       }
     }
@@ -1323,13 +1306,15 @@ void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs
   *bytes_quota = bytes;
   *secs_quota = secs;
   *is_category = category;
+  *schedule_bitmap = schedule;
 }
 
 /* *************************************** */
 
-bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
+bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *now) {
   u_int64_t bytes_quota, bytes;
   u_int32_t secs_quota, secs;
+  u_int32_t schedule_bitmap;
   ndpi_protocol_category_t category;
   HostPools *pools = getInterface()->getHostPools();
   bool is_above = false;
@@ -1338,9 +1323,27 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category) {
   if(!pools || get_host_pool() == NO_HOST_POOL_ID) /* Enforce quotas only for custom pools */
     return false;
 
-  get_quota(protocol, &bytes_quota, &secs_quota, &category_quota);
+  get_quota(protocol, &bytes_quota, &secs_quota, &schedule_bitmap, &category_quota);
 
-  if((bytes_quota > 0) || (secs_quota > 0)) {
+#ifdef SCHEDULE_DEBUG
+  printf("Schedule: proto=0x%08X pool=0x%08X final=%08X\n", schedule_bitmap, pools->getPoolSchedule(get_host_pool()), schedule_bitmap & pools->getPoolSchedule(get_host_pool()));
+#endif
+
+  // the actual schedule must honor both the pool schedule and the protocol schedule
+  schedule_bitmap &= pools->getPoolSchedule(get_host_pool());
+
+  if (schedule_bitmap != DEFAULT_TIME_SCHEDULE) {
+    // see shaper_utils.lua schedule_to_bitmap for full format
+
+    // verify day of the week (bits 1-7), bit 7 is monday
+    if(! (schedule_bitmap & (1 << ((6 - now->tm_wday) + 1))))
+      is_above = true;
+    // verify the hour (bits 31-8), bit 31 is midnight
+    else if(! (schedule_bitmap & (1 << ((23 - now->tm_hour) + 8))))
+      is_above = true;
+  }
+
+  if((!is_above) && ((bytes_quota > 0) || (secs_quota > 0))) {
       category = getInterface()->get_ndpi_proto_category(protocol);
 
       if(!pools->enforceQuotasPerPoolMember(get_host_pool())) {
@@ -1508,6 +1511,35 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 			    (char*)(dump_host_traffic ? "true" : "false"));
 };
 
+/* *************************************** */
+
+void Host::checkpoint(lua_State* vm, u_int8_t checkpoint_id) {
+  if(checkpoint_id >= CONST_MAX_NUM_CHECKPOINTS) {
+    if(vm) lua_pushnil(vm);
+    return;
+  }
+
+  if(vm) {
+    lua_newtable(vm);
+
+    if(checkpoints[checkpoint_id])
+      lua_push_str_table_entry(vm, (char*)"previous", checkpoints[checkpoint_id]);
+  }
+
+  if(checkpoints[checkpoint_id])
+    free(checkpoints[checkpoint_id]);
+
+  checkpoints[checkpoint_id] = serialize();
+
+  if(vm) {
+    if(checkpoints[checkpoint_id])
+      lua_push_str_table_entry(vm, (char*)"current", checkpoints[checkpoint_id]);
+  }
+
+  // char buf[64];
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "checkpoint for %s [host: %s]",
+  // 			       iface->get_name(), get_string_key(buf, sizeof(buf)));
+}
 
 /* *************************************** */
 
@@ -1738,36 +1770,6 @@ void Host::setMDSNInfo(char *str) {
       return;
     }
   }  
-}
-
-/* *************************************** */
-
-bool Host::IsAllowedTrafficCategory(struct site_categories *category) {
-#ifdef NTOPNG_PRO
-  if(!ntop->get_flashstart())
-    return(true);
-  
-  L7Policy_t *policy = l7Policy; /*
-				   Cache value so that even if updateHostL7Policy()
-				   runs in the meantime, we're consistent with the policer
-				 */
-  
-  if(policy) {
-    for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
-      if(category->categories[i] == 0) break;
-      
-      u_int8_t cat_id = category->categories[i];
-      
-      if((cat_id < MAX_NUM_MAPPED_CATEGORIES) &&  /* Check if category id is valid */
-         (policy->blocked_categories[cat_id]))    /* Check if the category id is blocked */
-        return(false);
-    }
-  }
-
-  return(true);
-#else
-  return(true);
-#endif
 }
 
 /* *************************************** */

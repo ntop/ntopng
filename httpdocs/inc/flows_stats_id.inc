@@ -6,7 +6,6 @@
 var flow_rows_option = {};
 flow_rows_option["type"] = "flow";
 flow_rows_option["vlan"] = false;
-flow_rows_option["categorization"] = false;
 flow_rows_option["sprobe"] = false;
 
 function flow_table_setID (row) {
@@ -29,8 +28,6 @@ function flow_table_setID (row) {
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_client");
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_server");
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_duration");
-    //custom
-    if ((type == 'flow') && (flow_rows_option["categorization"])) row.find("td").eq(index++).attr('id', flow_key+"_category");
     // flows_stats_bottom
     if (type == 'flow') row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_throughput");

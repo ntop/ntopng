@@ -131,11 +131,14 @@ start_ntopng() {
 
           echo "-d=/storage/ntopng" >> /etc/ntopng/ntopng.conf
         fi
+
         CHECK_P4P1=$(grep p4p1 /proc/net/dev|wc -l)
         if [ "$CHECK_P4P1" -eq 1 ]; then
           echo "-i=p4p1" >> /etc/ntopng/ntopng.conf
         fi
 	    touch /etc/ntopng/ntopng.start
+      else
+	  echo "Missing configuration file. Please use the nbox GUI to start it"
       fi
     fi
 

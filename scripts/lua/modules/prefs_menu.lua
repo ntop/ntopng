@@ -70,7 +70,7 @@ local menu_subpages = {
       title       = i18n("prefs.local_host_cache_duration_title"),
       description = i18n("prefs.local_host_cache_duration_description"),
     },
-  }}, {id="on_disk_ts",    label=i18n("prefs.data_retention"),       advanced=false, pro_only=false,  disabled=false, entries={
+  }}, {id="on_disk_ts",    label=i18n("prefs.timeseries"),       advanced=false, pro_only=false,  disabled=false, entries={
     toggle_interface_traffic_rrd_creation = {
       title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
       description = i18n("prefs.toggle_traffic_rrd_creation_description"),
@@ -101,9 +101,6 @@ local menu_subpages = {
     }, toggle_tcp_retr_ooo_lost_rrds = {
       title       = i18n("prefs.toggle_tcp_retr_ooo_lost_rrds_title"),
       description = i18n("prefs.toggle_tcp_retr_ooo_lost_rrds_description"),
-    }, toggle_local_categorization = {
-      title       = i18n("prefs.toggle_local_categorization_title"),
-      description = i18n("prefs.toggle_local_categorization_description"),
     }, minute_top_talkers_retention = {
       title       = i18n("prefs.minute_top_talkers_retention_title"),
       description = i18n("prefs.minute_top_talkers_retention_description"),

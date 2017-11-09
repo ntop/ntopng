@@ -75,9 +75,7 @@ print('<p>This class provides to hook to objects that describe flows and hosts a
 
 print('<hr><h2>Generic information of Network interface</h2>')
 print('<p>By default ntopng set the \"ntop_interface\"  global variable in lua stack, it is the network interface name where ntopng is running.<br>Every time when you want use the interface class, in order to refresh the \"ntop_interface\" global variable , please remember to call the method <b>interface.select(ifname))</b> before to use the interface class.</p>')
-print('<pre><code>print("Default ifname = " .. interface.getDefaultIfName())\nprint("Network interface name = " .. interface.select(ifname))\nprint("Network interface id = " .. interface.name2id(ifname))</code></pre>')
 print('<ul>')
-print('<li>Default ifname = ' .. interface.getDefaultIfName())
 print('<li>Network interface name = ' .. interface.select(ifname))
 print('<li>Network interface id = ' .. interface.name2id(ifname))
 if (interface.isRunning()) then

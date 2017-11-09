@@ -102,8 +102,7 @@ end
 
 -- ##############################################
 
-interface.select(ifname)
-if ntop.getPrefs().are_alerts_enabled == true then
+if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
 
    local alert_cache = interface.getCachedNumAlerts()
    local active = ""

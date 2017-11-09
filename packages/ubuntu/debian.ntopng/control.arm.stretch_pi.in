@@ -6,7 +6,7 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: libsqlite3-0, libgeoip1, redis-server, librrd8, libzmq5,  logrotate, libcurl3, libnetfilter-queue1, libmariadb2, libldap-2.4-2, libssl1.0.0, libpcap0.8, libhiredis0.13, libmariadbclient18, ethtool, bridge-utils, libnetfilter-conntrack3, udev
+Depends: libsqlite3-0, libgeoip1, redis-server, librrd8, libzmq5,  logrotate, libcurl3, libnetfilter-queue1, libmariadb2, libldap-2.4-2, libssl1.1, libpcap0.8, libhiredis0.13, libmariadbclient18, ethtool, bridge-utils, libnetfilter-conntrack3, udev
 Package: ntopng
 Architecture: @EXTN@
 Recommends: ntopng-data

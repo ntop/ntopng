@@ -80,6 +80,9 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { DAILY_SCRIPT_PATH,        86400, true  },
     { HOUSEKEEPING_SCRIPT_PATH, 3,     false },
     { DISCOVER_SCRIPT_PATH,     5,     false },
+#ifdef HAVE_NEDGE
+    { UPGRADE_SCRIPT_PATH,      10,    false },
+#endif
     { NULL, 0, false}
   };
 

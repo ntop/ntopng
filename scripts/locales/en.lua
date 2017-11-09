@@ -609,7 +609,7 @@ local  en = {
       user_authentication = "User Authentication",
       network_interfaces = "Network Interfaces",
       cache_settings = "Cache Settings",
-      data_retention = "Data Retention",
+      timeseries = "Timeseries",
       mysql = "MySQL",
       external_alerts = "External Alerts Report",
       protocols = "Protocols",
@@ -671,11 +671,6 @@ local  en = {
       toggle_tcp_flags_rrds_description = "Toggle the creation of TCP flags SYN, SYN+ACK, FIN+ACK and RST timeseries for network interfaces.",
       toggle_tcp_retr_ooo_lost_rrds_title = "TCP Out of Order, Lost and Retransmitted Segments",
       toggle_tcp_retr_ooo_lost_rrds_description = "Toggle the creation of timeseries for out-of-order, lost and retransmitted TCP segments. Timeseries will be created for network interfaces, autonomous systems, local networks and vlans.",
-      toggle_local_categorization_title = "Categories",
-      toggle_local_categorization_description = "Toggle the creation of categories timeseries for local hosts and defined local networks.<br>"..
-            "Enabling their creation allows you "..
-            "to keep persistent traffic category statistics (e.g. social networks, news) at the cost of using more disk space.<br>"..
-            "Creation is only possible if the ntopng instance has been launched with option ",
       local_hosts_cache_settings = "Local Hosts Cache Settings",
       toggle_local_host_cache_enabled_title = "Idle Local Hosts Cache",
       toggle_local_host_cache_enabled_description = "Toggle the creation of cache entries for idle local hosts. "..
@@ -1070,16 +1065,7 @@ local  en = {
    },
 
    categories_page = {
-      traffic_categories = "Traffic Categories",
-      category_id = "Category Id",
       traffic_category = "Traffic Category",
-      traffic_volume = "Traffic Volume",
-      traffic_percentage = "Traffic %%",
-      note = "NOTE",
-      note_percentages = "Percentages are related only to classified traffic.",
-      note_historical_per_category_traffic = "Historical per-category traffic data can be enabled via ntopng <a href='%{url}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
-      note_rrd_samples = "When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category.",
-      note_category_label = "Category labels can be clicked to browse historical data.",
       target = "Target",
    },
 

@@ -25,7 +25,7 @@ local ifnames = interface.getIfNames()
 
 -- Scan "day" alerts
 callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("day", ifname)
+   scanAlerts("day", ifstats)
 end)
 
 local delete_keys = true

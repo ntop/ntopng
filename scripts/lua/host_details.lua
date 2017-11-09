@@ -279,14 +279,6 @@ else
    end
 end
 
-if(page == "categories") then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>\n")
-else
-   if(host["categories"] ~= nil) then
-      print("<li><a href=\""..url.."&page=categories\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>")
-   end
-end
-
 if host["localhost"] == true then
    if(ntop.isPro()) then
       if(page == "snmp") then
@@ -325,7 +317,7 @@ else
 end
 end
 
-if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() then
+if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifstats.isView then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -1523,91 +1515,6 @@ print [[
    ]]
 
 end
-elseif(page == "categories") then
-print [[
-      <table class="table table-bordered table-striped">
-        <tr><th class="text-left">]] print(i18n("categories_page.traffic_categories")) print[[</th><td><div class="pie-chart" id="topTrafficCategories"></div></td></tr>
-        </div>
-
-        <script type='text/javascript'>
-	     window.onload=function() {
-
-                                   do_pie("#topTrafficCategories", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_category_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-  print [[
-	    }
-
-            </script>
-
-<tr><td colspan=2>
-<div id="table-categories"></div>
-         <script type='text/javascript'>
-           $("#table-categories").datatable({
-                        title: "",
-                        url: "]] print(ntop.getHttpPrefix().."/lua/get_host_categories.lua?"..hostinfo2url(host_info).."&ifid="..ifId) print [[",
-]]
-
--- Set the preference table
-preference = tablePreferences("rows_number",_GET["perPage"])
-if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
-
--- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("host_categories") ..'","' .. getDefaultTableSortOrder("host_categories").. '"] ],')
-
-
-print [[
-               showPagination: true,
-                columns: [
-                         {
-                             title: "]] print(i18n("categories_page.category_id")) print[[",
-                                 field: "column_id",
-                                 hidden: true,
-                                 sortable: true,
-                          },
-                          {
-                             title: "]] print(i18n("categories_page.traffic_category")) print[[",
-                                 field: "column_label",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'left'
-                             }
-                                 },
-                             {
-                             title: "]] print(i18n("categories_page.traffic_volume")) print[[",
-                                 field: "column_bytes",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'right'
-                             }
-                                 },
-                             {
-                             title: "]] print(i18n("categories_page.traffic_percentage")) print[[",
-                                 field: "column_pct",
-                                 sortable: false,
-                             css: {
-                                textAlign: 'right'
-                             }
-                                 }
-                             ]
-               });
-</script>
-<div>
-<small> <b>]] print(i18n("categories_page.note")) print[[</b>:<ul><li>]] print(i18n("categories_page.note_percentages"))
-if ntop.getCache("ntopng.prefs.host_categories_rrd_creation") ~= "1" then
-  print("<li>"..i18n("categories_page.note_historical_per_category_traffic",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua"}))
-  print(" "..i18n("categories_page.note_rrd_samples").."</li>")
-else
-  print("<li>".. i18n("categories_page.note_category_label").."</li>")
-end
-print [[
-</ul>
-</small>
-</div>
-
-</td></tr>
-</table>
-]]
 elseif(page == "snmp" and ntop.isPro()) then
    local sys_object_id = true
    local community = get_snmp_community(host_ip)

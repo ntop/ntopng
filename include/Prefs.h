@@ -26,7 +26,6 @@
 
 class Ntop;
 class Flow;
-class Flashstart;
 
 extern void usage();
 extern void nDPIusage();
@@ -88,7 +87,6 @@ class Prefs {
   char *categorization_key;
   char *httpbl_key;
   char *zmq_encryption_pwd;
-  Flashstart *flashstart;
   char *http_prefix;
   char *instance_name;
   char *config_file_path, *ndpi_proto_path;
@@ -154,7 +152,6 @@ class Prefs {
   inline void enable_flow_aggregation()                 { flow_aggregation_enabled = true;                                  };
   inline bool is_flow_aggregation_enabled()             { return(flow_aggregation_enabled);                                 };
   inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
-  inline bool is_flashstart_enabled()                   { return(flashstart ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
   inline bool is_access_log_enabled()                   { return(enable_access_log);      };

@@ -167,32 +167,6 @@ static int ntop_dump_file(lua_State* vm) {
 /* ****************************************** */
 
 /**
- * @brief Get default interface name.
- * @details Push the default interface name of ntop into the lua stack.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK.
- */
-static int ntop_get_default_interface_name(lua_State* vm) {
-  char ifname[MAX_INTERFACE_NAME_LEN];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop->getInterfaceAllowed(vm, ifname)) {
-    // if there is an allowed interface for the user
-    // we return that interface
-    lua_pushstring(vm, ntop->getNetworkInterface(ifname)->get_name());
-  } else {
-    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constraint */
-					      0)->get_name());
-  }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
  * @brief Set the name of active interface id into lua stack.
  *
  * @param vm The lua stack.
@@ -1061,19 +1035,6 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
   mac = (char*)lua_tostring(vm, 1);
 
   ntop->getMacManufacturer(mac, vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_site_categories(lua_State* vm) {
-  Flashstart *flash = ntop->get_flashstart();
-
-  if(!flash)
-    lua_pushnil(vm);
-  else
-    flash->lua(vm);
-
   return(CONST_LUA_OK);
 }
 
@@ -1963,7 +1924,7 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
 
   if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
-  
+
   if(ntop_interface)
     numGroups = ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
 
@@ -2146,13 +2107,13 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
-      
+
       d = new NetworkDiscovery(ntop_interface);
 
 #ifndef __APPLE__
       Utils::dropWriteCapabilities();
 #endif
-      
+
       if(d) {
 	d->arpScan(vm);
 	delete d;
@@ -2353,6 +2314,36 @@ static int ntop_restore_interface_host(lua_State* vm) {
     lua_pushnil(vm);
     return(CONST_LUA_OK);
   }
+}
+
+/* ****************************************** */
+
+static int ntop_checkpoint_interface_host(lua_State* vm) {
+  int ifid;
+  NetworkInterface *iface = NULL;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  u_int8_t checkpoint_id;
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+
+  ifid = (int)lua_tointeger(vm, 1);
+  iface = ntop->getInterfaceById(ifid);
+
+  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
+
+  if(!iface || iface->isView() || !iface->checkPointHostCounters(vm, checkpoint_id, host_ip, vlan_id)){
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  } else
+    return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -3053,7 +3044,7 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 
 static int ntop_get_ndpi_categories(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
@@ -3173,13 +3164,56 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 
 /* ****************************************** */
 
+static int ntop_ts_set(lua_State* vm) {
+#ifdef HAVE_NDB
+  const char *label = NULL, *metric = NULL, *key = "";
+  u_int8_t ifaceId;
+  u_int16_t step;
+  u_int32_t ts;
+  u_int64_t sent = 0, rcvd = 0;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  ts = (u_int32_t)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  ifaceId = (u_int8_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  step = (u_int16_t)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((label = (const char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 5) == LUA_TSTRING) key = (const char*)lua_tostring(vm, 5);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((metric = (const char*)lua_tostring(vm, 6)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 7) == LUA_TNUMBER) sent = (u_int64_t)lua_tonumber(vm, 7);
+  else if(lua_type(vm, 7) == LUA_TSTRING) sent = (u_int64_t)atoll((const char*)lua_tostring(vm, 7));
+
+  if(lua_type(vm, 8) == LUA_TNUMBER) rcvd = (u_int64_t)lua_tonumber(vm, 8);
+  else if(lua_type(vm, 8) == LUA_TSTRING) rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, 8));
+
+  ntop_interface->tsSet(ts, true /* counter */, ifaceId, step, label, key, metric, sent, rcvd);
+#endif
+  
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_rrd_create(lua_State* vm) {
-#ifndef USE_NSERIES
   const char *filename;
   unsigned long pdp_step;
   const char **argv;
   int argc, status, offset = 3;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3203,117 +3237,56 @@ static int ntop_rrd_create(lua_State* vm) {
       return(CONST_LUA_ERROR);
     }
   }
-#endif
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-#ifdef USE_NSERIES
-
-void addPointTonSeries(char *a, char *b, char *c, char *d, const char *value) {
-  char key[256];
-
-  if(c) {
-    char *rrd = strstr(c, ".rrd");
-
-    if(rrd) rrd[0] = '\0';
-  } else {
-    char *rrd = strstr(b, ".rrd");
-
-    if(rrd) rrd[0] = '\0';
-  }
-  
-  if(c && d)
-    snprintf(key, sizeof(key), "%s:%s:%s:%s", a, b, c, d);
-  else if(c)
-    snprintf(key, sizeof(key), "%s:%s:%s", a, b, c);
-  else
-    snprintf(key, sizeof(key), "%s:%s", a, b);
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s = %s", key, value);
-}
-
-#endif
-
-/* ****************************************** */
-
 static int ntop_rrd_update(lua_State* vm) {
-  const char *filename, *update_arg;
-#ifndef USE_NSERIES
+  const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
-#endif
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((update_arg = (const char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  if(lua_type(vm, 2) == LUA_TSTRING) {
+    if((when = (const char*)lua_tostring(vm, 2)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+  } else if(lua_type(vm, 2) != LUA_TNIL)
+    return(CONST_LUA_PARAM_ERROR);
 
-#ifdef USE_NSERIES
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s", filename, update_arg);
-   
-  if(strchr(filename, ':') == NULL /* No IPv6 */) {
-    /* 
-       /var/tmp/ntopng/2/rrd/AppleiCloud.rrd / N:73426
-       /var/tmp/ntopng/2/rrd/192/168/2/20/Apple.rrd / N:15954:37379     
-       /var/tmp/ntopng/2/rrd/packets.rrd / N:1229       
-    */
-    char *metric = (char*)&filename[16];
-    char *iface = strtok(metric, "/"), key[64];
-    char *item;
-    
-    item = strtok(NULL, "/"); /* rrd */
-   
-    if(!strcmp(item, "rrd")) {
-      item = strtok(NULL, "/");
+  if(lua_type(vm, 3) == LUA_TSTRING) v1 = (const char*)lua_tostring(vm, 3);
+  if(lua_type(vm, 4) == LUA_TSTRING) v2 = (const char*)lua_tostring(vm, 4);
+  if(lua_type(vm, 5) == LUA_TSTRING) v3 = (const char*)lua_tostring(vm, 5);
 
-      if(strstr(item, ".rrd") != NULL) {	
-	//  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s", iface, item, &update_arg[2]);
-	addPointTonSeries(iface, item, NULL, NULL, (char*)&update_arg[2]); 
-      } else if(atoi(item) > 0){
-	/* This is a host */
-	u_int len;
-	char *v, *v1;
-	  
-	snprintf(key, sizeof(key), "%s.", item);
-	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s.", item);
-	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s.", item);
-	item = strtok(NULL, "/"); len = strlen(key); snprintf(&key[len], sizeof(key)-len, "%s", item);
+  /* Apparently RRD does not like static buffers, so we need to malloc */
+  u_int buf_len = 64;
+  char *buf = (char*)malloc(buf_len);
 
-	item = strtok(NULL, "/");
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NSERIES] %s / %s / %s/ %s", iface, key, item, &update_arg[2]);
-	
-	v = strtok((char*)&update_arg[2],":");
-	if(v) v1 = strtok(NULL, ":"); else v1 = NULL;
+  if(buf) {
+    snprintf(buf, buf_len, "%s:%s%s%s%s%s",
+	     when ? when : "N", v1,
+	     v2 ? ":" : "", v2 ? v2 : "",
+	     v3 ? ":" : "", v3 ? v3 : "");
 
-	if((v1 == NULL) || (v1[0] == '\0') ) {
-	  addPointTonSeries(iface, key, item, NULL, v);
-	} else {
-	  addPointTonSeries(iface, key, item, (char*)"sent", v);
-	  addPointTonSeries(iface, key, item, (char*)"rcvd", v1);
-	}
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__, filename, buf);
+
+    reset_rrd_state();
+    status = rrd_update_r(filename, NULL, 1, (const char**)&buf);
+    free(buf);
+
+    if(status != 0) {
+      char *err = rrd_get_error();
+
+      if(err != NULL) {
+	luaL_error(vm, err);
+	return(CONST_LUA_ERROR);
       }
     }
   }
-#else
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s) %s", __FUNCTION__, filename, update_arg);
 
-  reset_rrd_state();
-  status = rrd_update_r(filename, NULL, 1, &update_arg);
-
-  if(status != 0) {
-    char *err = rrd_get_error();
-
-    if(err != NULL) {
-      luaL_error(vm, err);
-      return(CONST_LUA_ERROR);
-    }
-  }
-#endif
-  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -5406,7 +5379,7 @@ static int ntop_redis_dump(lua_State* vm) {
 static int ntop_redis_restore(lua_State* vm) {
   char *key, *dump;
   Redis *redis = ntop->getRedis();
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
@@ -5933,7 +5906,7 @@ static int ntop_lua_http_print(lua_State* vm) {
   char *printtype;
   int t;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  /* ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__); */
 
   /* Handle binary blob */
   if(lua_type(vm, 2) == LUA_TSTRING &&
@@ -6062,7 +6035,7 @@ static int ntop_lua_require(lua_State* L) {
     if(found) {
       string s = parsed.substr(0, found) + script_name + ".lua";
       size_t first_dot = s.find("."), last_dot  = s.rfind(".");
-      
+
       /*
 	Lua transforms file names when directories are used.
 	Example:  i18n/version.lua -> i18n.version.lua
@@ -6210,7 +6183,7 @@ static int ntop_trace_event(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((msg = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", msg);
 
   lua_pushnil(vm);
@@ -6220,7 +6193,6 @@ static int ntop_trace_event(lua_State* vm) {
 /* ****************************************** */
 
 static const luaL_Reg ntop_interface_reg[] = {
-  { "getDefaultIfName",       ntop_get_default_interface_name },
   { "setActiveInterfaceId",   ntop_set_active_interface_id },
   { "getIfNames",             ntop_get_interface_names },
   { "select",                 ntop_select_interface },
@@ -6245,6 +6217,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "addMacsIpAddresses",     ntop_add_macs_ip_addresses },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "restoreHost",            ntop_restore_interface_host },
+  { "checkpointHost",         ntop_checkpoint_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "getGroupedFlows",        ntop_get_interface_get_grouped_flows },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
@@ -6471,6 +6444,7 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",      ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate", ntop_rrd_lastupdate  },
+  { "tsSet",          ntop_ts_set },
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },
@@ -6537,7 +6511,6 @@ static const luaL_Reg ntop_reg[] = {
   /* Misc */
   { "getservbyport",      ntop_getservbyport        },
   { "getMacManufacturer", ntop_get_mac_manufacturer },
-  { "getSiteCategories",  ntop_get_site_categories  },
   { "shutdown",           ntop_shutdown             },
 
   { NULL,          NULL}
@@ -6969,14 +6942,13 @@ int Lua::handle_script_request(struct mg_connection *conn,
       }
     }
 
-    if(valid_csrf) {
+    if(valid_csrf)
       setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
-      if(post_data) {
-	free(post_data);
-      }
-    }
     else
       setParamsTable(L, "_POST", NULL /* Empty */);
+
+    if(post_data)
+      free(post_data);
   } else
     setParamsTable(L, "_POST", NULL /* Empty */);
 

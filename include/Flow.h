@@ -76,6 +76,7 @@ class Flow : public GenericHashEntry {
     quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
+  bool ingress2egress_direction;
   u_int8_t routing_table_id;
 #ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
@@ -119,11 +120,6 @@ class Flow : public GenericHashEntry {
       u_int16_t icmp_echo_id;
     } icmp;
   } protos;
-
-  struct {
-    struct site_categories category;
-    bool categorized_requested;
-  } categorization;
 
   struct {
     u_int32_t device_ip;
@@ -197,7 +193,6 @@ class Flow : public GenericHashEntry {
   void checkBlacklistedFlow();
   void allocDPIMemory();
   bool checkTor(char *hostname);
-  void checkFlowCategory();
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
@@ -212,7 +207,6 @@ class Flow : public GenericHashEntry {
   bool updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
 #endif
   void dumpFlowAlert();
-  bool skipProtocolFamilyCategorization(u_int16_t proto_id);
 
  public:
   Flow(NetworkInterface *_iface,
@@ -224,12 +218,12 @@ class Flow : public GenericHashEntry {
 
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
-  void categorizeFlow();
   void freeDPIMemory();
   bool isTiny();
   inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
   inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isDHCP()                 { return(isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
   inline bool isMaskedFlow() {
@@ -243,7 +237,7 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
 #ifdef NTOPNG_PRO
-  bool checkPassVerdict();
+  bool checkPassVerdict(const struct tm *now);
   inline bool isPassVerdict()            { return passVerdict;  };
 #endif
   inline void setDropVerdict()           { passVerdict = false; };
@@ -316,7 +310,6 @@ class Flow : public GenericHashEntry {
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
   void fixAggregatedFlowFields();
-  inline bool isCategorizationOngoing()           { return(categorization.categorized_requested); };
   inline ndpi_protocol_category_t get_detected_protocol_category() { return ndpi_get_proto_category(iface->get_ndpi_struct(), ndpiDetectedProtocol); };
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
@@ -404,7 +397,7 @@ class Flow : public GenericHashEntry {
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
   void updateFlowShapers();
-  void recheckQuota();
+  void recheckQuota(const struct tm *now);
 #endif
   inline float getFlowRTT() { return(rttSec); }
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
@@ -453,7 +446,9 @@ class Flow : public GenericHashEntry {
     }
   }
 
-  u_int8_t getFlowRoutingTableId() { return(routing_table_id); }
+  inline u_int8_t getFlowRoutingTableId() { return(routing_table_id); }
+  inline void setIngress2EgressDirection(bool _ingress2egress) { ingress2egress_direction = _ingress2egress; }
+  inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
 };
 

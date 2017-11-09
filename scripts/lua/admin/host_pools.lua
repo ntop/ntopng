@@ -343,9 +343,9 @@ print(
       base_id     = "t_member",
       action      = ntop.getHttpPrefix() .. "/lua/if_stats.lua#manage",
       parameters  = {
-                      pool=selected_pool.id,
-                      ifid=tostring(ifId),
-                      page="pools",
+                      pool = selected_pool.id,
+                      ifid = tostring(ifId),
+                      page = "pools",
                     },
       json_key    = "key",
       query_field = "members_filter",
@@ -775,8 +775,8 @@ print[[            css : {
             var vlan = $("td:nth-child(2)", $(this));
             var alias = $("td:nth-child(3)", $(this));
             var icon = $("td:nth-child(4)", $(this));
-            var link_value = $("td:nth-child(8)", $(this)).html().replace(/&nbsp;/gi,'');
-            var editable = $("td:nth-child(9)", $(this)).html() == "true";
+            var link_value = $("td:nth-child(7)", $(this)).html().replace(/&nbsp;/gi,'');
+            var editable = $("td:nth-child(8)", $(this)).html() == "true";
 
             var member_id = addedMemberCtr++;
             curDisplayedMembers++;
@@ -827,13 +827,13 @@ print[[            css : {
 ]]
 
 if #available_pools > 2 then
-  print[[   datatableAddActionButtonCallback.bind(this)(7, "change_member_id ='" + member_id + "'; $('#change_member_pool_dialog_member').html('" + value +"'); $('#change_member_pool_dialog').modal('show');", "]] print(i18n("host_pools.change_pool")) print[[");]]
+  print[[   datatableAddActionButtonCallback.bind(this)(6, "change_member_id ='" + member_id + "'; $('#change_member_pool_dialog_member').html('" + value +"'); $('#change_member_pool_dialog').modal('show');", "]] print(i18n("host_pools.change_pool")) print[[");]]
 end
 
 print[[
-            datatableAddLinkButtonCallback.bind(this)(7, link_value, "]] print(i18n("host_pools.view")) print[[");
+            datatableAddLinkButtonCallback.bind(this)(6, link_value, "]] print(i18n("host_pools.view")) print[[");
             if (!link_value) $("td:nth(5) a:nth(1)", this).css("visibility", "hidden");
-            datatableAddDeleteButtonCallback.bind(this)(7, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           if(numPoolMembers === 0)

@@ -955,7 +955,7 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
   char id_buf[8];
   if(!n) return -1;
 
-  snprintf(id_buf, sizeof(id_buf), "%u", n -> get_id());
+  snprintf(id_buf, sizeof(id_buf), "iface_%u", n -> get_id());
 
   if(engage)
     return engageAlert(alert_engine, alert_entity_interface, id_buf,

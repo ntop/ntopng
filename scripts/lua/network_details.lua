@@ -18,8 +18,8 @@ local network        = _GET["network"]
 local page           = _GET["page"]
 
 interface.select(ifname)
-ifstats = interface.getStats()
-ifId = ifstats.id
+local ifstats = interface.getStats()
+local ifId = ifstats.id
 
 local network_name = ntop.getNetworkNameById(tonumber(network))
 local network_vlan   = tonumber(_GET["vlan"])
@@ -60,7 +60,7 @@ else
     print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 
-if areAlertsEnabled() then
+if areAlertsEnabled() and not ifstats.isView then
     if(page == "alerts") then
         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
     else

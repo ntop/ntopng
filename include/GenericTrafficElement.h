@@ -42,10 +42,7 @@ class GenericTrafficElement {
 
  public:
   GenericTrafficElement();
-  
-  GenericTrafficElement(const GenericTrafficElement &gte) {
-    ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
-  };
+  GenericTrafficElement(const GenericTrafficElement &gte);
 
   virtual ~GenericTrafficElement() {
     if(ndpiStats) delete ndpiStats;
@@ -64,6 +61,7 @@ class GenericTrafficElement {
   inline float getThptTrendDiff()     { return(bytes_thpt_diff);           };
   inline float getBytesThpt()         { return(bytes_thpt);                };
   inline float getPacketsThpt()       { return(pkts_thpt);                 };
+  void resetStats();
 };
 
 #endif /* _GENRIC_TRAFFIC_ELEMENT_H_ */

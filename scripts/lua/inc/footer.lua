@@ -17,10 +17,10 @@ print [[
 	<div class="col-xs-6 col-sm-4">]]
 print(info["product"])
 
-iface_id = interface.name2id(ifname)
+local iface_id = interface.name2id(ifname)
 
 interface.select(ifname)
-_ifstats = interface.getStats()
+local _ifstats = interface.getStats()
 
 printntopngRelease(info)
 
@@ -29,7 +29,7 @@ print(" v."..info["version"])
 print("</br>User ")
 print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> Interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
 
-alias = getInterfaceNameAlias(ifname)
+local alias = getInterfaceNameAlias(ifname)
 print(alias)
 
 print('</span></a>')
@@ -437,7 +437,7 @@ print[[
 
 // hide the possibly shown alerts icon in the header
 ]]
-if ntop.getPrefs().are_alerts_enabled == false then
+if not _ifstats.isView or ntop.getPrefs().are_alerts_enabled == false then
    print("$('#alerts-li').hide();")
 else
    print("$('#alerts-li').show();")
