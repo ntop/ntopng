@@ -64,40 +64,88 @@ GIT_BRANCH="@GIT_BRANCH@"
 PRO_GIT_RELEASE="@PRO_GIT_RELEASE@"
 PRO_GIT_DATE="@PRO_GIT_DATE@"
 
-AC_MSG_CHECKING(for nDPI)
-NDPI_HOME=./nDPI
-if test -d "$NDPI_HOME" ; then :
-   AC_MSG_RESULT(found in $NDPI_HOME)
-else
-   NDPI_HOME=../nDPI
-   if test -d "$NDPI_HOME"; then :
-      AC_MSG_RESULT(found in $NDPI_HOME)
-   else
-      NDPI_HOME=$HOME/nDPI
-      if test -d "$NDPI_HOME"; then :
-        AC_MSG_RESULT(found in $NDPI_HOME)
+dnl start: nDPI handling
+AC_ARG_WITH(ndpi-static-lib,
+   [  --with-ndpi-static-lib=DIR       Search the specified directory for nDPI static library],
+   [
+      if test -d $withval ; then :
+         AC_MSG_CHECKING(your own nDPI library)
+         if test -r $withval/libndpi.a; then
+            AC_MSG_RESULT(ok)
+            NDPI_CUST_LIB=$withval
+         else
+            AC_MSG_RESULT(no)
+            AC_MSG_ERROR(ERROR: Unable to find custom nDPI static library in $withval)
+         fi
       else
-        AC_MSG_RESULT(not found)
-        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
-        echo " and try again"
-        exit
+         AC_MSG_ERROR(ERROR: Can't open custom nDPI static library directory $withval)
       fi
-   fi
+   ])
+AC_ARG_WITH(ndpi-includes,
+   [  --with-ndpi-includes=DIR         Search the specified directory for nDPI header files],
+   [
+      if test ! -d $withval ; then :
+         AC_MSG_ERROR(ERROR: Can't open custom nDPI header files directory $withval)
+      fi
+      if test ! -r $withval/ndpi_main.h ; then :
+         AC_MSG_ERROR(ERROR: Can't read ndpi_main.h in custom nDPI header files directory $withval)
+      fi
+      NDPI_CUST_INC="-I$withval -I$withval/../lib/third_party/include"
+   ])
+
+PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
+   NDPI_INC=$NDPI_CFLAGS/libndpi
+   # Use static libndpi library as building against the dynamic library fails
+   NDPI_LIB="-Wl,-Bstatic $NDPI_LIBS -Wl,-Bdynamic"
+   NDPI_LIB_DEP=
+   ], [
+      AC_MSG_CHECKING(for nDPI source)
+      if test -d "./nDPI" ; then :
+         NDPI_HOME=./nDPI
+      elif test -d "../nDPI" ; then :
+         NDPI_HOME=../nDPI
+      elif test -d "$HOME/nDPI" ; then :
+         NDPI_HOME=$HOME/nDPI
+      fi
+
+      if test -v NDPI_HOME ; then :
+         AC_MSG_RESULT(found in $NDPI_HOME)
+         NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
+         AC_MSG_CHECKING(for $NDPI_LIB)
+         if test -r $NDPI_LIB ; then :
+            AC_MSG_RESULT(found $NDPI_LIB)
+         else
+            AC_MSG_RESULT(not found $NDPI_LIB: compiling)
+            cd $NDPI_HOME; ./autogen.sh; make; cd -
+         fi
+         NDPI_INC="-I$NDPI_HOME/src/include -I$NDPI_HOME/src/lib/third_party/include"
+         NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
+         NDPI_LIB_DEP=$NDPI_LIB
+      else
+         AC_MSG_RESULT(not found)
+      fi
+   ])
+
+if test -v NDPI_CUST_INC ; then :
+   NDPI_INC=$NDPI_CUST_INC
 fi
+
+if test -v NDPI_CUST_LIB ; then :
+   NDPI_LIB=$NDPI_CUST_LIB
+fi
+
+if test ! -v NDPI_INC || test ! -v NDPI_LIB ; then :
+   echo "Could not find nDPI"
+   echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
+   echo " and try again"
+   exit
+fi
+dnl finish: nDPI handling
 
 if test -d "/usr/include/openssl"; then :
  AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
  SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
  SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
-fi
-
-NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
-AC_MSG_CHECKING(for $NDPI_LIB)
-if test -f "$NDPI_LIB" ; then :
-  AC_MSG_RESULT(found $NDPI_LIB)
-else
-  AC_MSG_RESULT(not found $NDPI_LIB: compiling)
-  cd $NDPI_HOME; ./autogen.sh; make; cd -
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
@@ -499,6 +547,9 @@ AC_SUBST(GIT_INDEX)
 AC_SUBST(INSTALL_DIR)
 AC_SUBST(MAN_DIR)
 AC_SUBST(NDPI_HOME)
+AC_SUBST(NDPI_INC)
+AC_SUBST(NDPI_LIB)
+AC_SUBST(NDPI_LIB_DEP)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
 AC_SUBST(SSL_INC)
