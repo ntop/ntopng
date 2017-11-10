@@ -11,16 +11,9 @@ install:
   - sudo apt-get install libglib2.0 libxml2-dev libpcap-dev librrd-dev redis-server libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libzmq3-dev git
 
 before_script:
-  - git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; sudo make install; cd ..
+  - git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ..
   - ./autogen.sh
 
 script:
   - ./configure
   - make
-
-notifications:
-  email:
-    recipients:
-      - packager@ntop.org
-    on_success: never
-    on_failure: always
