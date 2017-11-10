@@ -183,16 +183,18 @@ void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
 #endif
     bool redo;
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
-
     inc_lock->lock(__FILE__, __LINE__);
 
     if(swapRequested) {
       inc_lock->unlock(__FILE__, __LINE__);
+#ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> swapRequested", __FUNCTION__);
+#endif
       return;
     } else if(swapInProgress) {
+#ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> swapInProgress", __FUNCTION__);
+#endif
       swapRequested = true;
       inc_lock->unlock(__FILE__, __LINE__);
       return;
@@ -207,8 +209,10 @@ void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
     swapInProgress = true;
 
   begin_swap:
+#ifdef HOST_POOLS_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> swapping", __FUNCTION__);
-    
+#endif
+
 #ifdef NTOPNG_PRO
     /* Swap statistics */
     if(new_stats) {
@@ -241,7 +245,9 @@ void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
     inc_lock->unlock(__FILE__, __LINE__);
 
     if(redo) {
+#ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> redo swap", __FUNCTION__);
+#endif
       goto begin_swap;
     }
     swapInProgress = false;
