@@ -360,9 +360,14 @@ void usage() {
 /* ******************************************* */
 
 void Prefs::setTraceLevelFromRedis(){
-  char lvlStr[CONST_MAX_LEN_REDIS_VALUE];
+  char *lvlStr;
+
+  if((lvlStr = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    ;
+  
   if(!hasCmdlTraceLevel()
-     && ntop->getRedis()->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL, lvlStr, sizeof(lvlStr)) == 0){
+     && ntop->getRedis()->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL,
+			      lvlStr, CONST_MAX_LEN_REDIS_VALUE) == 0){
     if(!strcmp(lvlStr, "trace")){
       ntop->getTrace()->set_trace_level(TRACE_LEVEL_TRACE);
     }
@@ -382,6 +387,8 @@ void Prefs::setTraceLevelFromRedis(){
       ntop->getTrace()->set_trace_level(TRACE_LEVEL_ERROR);
     }
   }
+
+  free(lvlStr);
 }
 
 /* ******************************************* */

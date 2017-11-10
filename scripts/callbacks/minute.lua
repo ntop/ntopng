@@ -148,3 +148,5 @@ if prefs.is_active_local_hosts_cache_enabled then
 
    end
 end
+
+ntop.tsFlush(tonumber(60))

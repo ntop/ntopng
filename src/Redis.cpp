@@ -823,14 +823,18 @@ int Redis::popDomainToCategorize(char *domainname, u_int domainname_len) {
 
 void Redis::setDefaults() {
   char *admin_md5 = (char*)"21232f297a57a5a743894a0e4a801fc3";
-  char value[CONST_MAX_LEN_REDIS_VALUE];
+  char *value;
 
+  if((value = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    return;
+  
   setResolvedAddress((char*)"127.0.0.1", (char*)"localhost");
   setResolvedAddress((char*)"::1", (char*)"localhostV6");
   setResolvedAddress((char*)"255.255.255.255", (char*)"Broadcast");
   setResolvedAddress((char*)"0.0.0.0", (char*)"NoIP");
 
-  if(get((char*)"ntopng.user.admin.password", value, sizeof(value)) < 0) {
+  if(get((char*)"ntopng.user.admin.password", value,
+	 CONST_MAX_LEN_REDIS_VALUE) < 0) {
     set((char*)"ntopng.user.admin.password", admin_md5);
     set((char*)"ntopng.user.admin.full_name", (char*)"ntopng Administrator");
     set((char*)"ntopng.user.admin.group", (char*)CONST_USER_GROUP_ADMIN);
@@ -838,6 +842,8 @@ void Redis::setDefaults() {
   } else if(strncmp(value, admin_md5, strlen(admin_md5))) {
     set((char*)CONST_DEFAULT_PASSWORD_CHANGED, (char*)"1");
   }
+
+  free(value);
 }
 
 /* **************************************** */
@@ -1159,18 +1165,22 @@ void Redis::setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_
 
 /* *************************************** */
 
-u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf, char *host_name, bool *new_key) {
+u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf,
+			    char *host_name, bool *new_key) {
   u_int32_t id;
   int rc;
-  char buf[32], keybuf[384], rsp[CONST_MAX_LEN_REDIS_VALUE];
+  char buf[32], keybuf[384], *rsp;
 
   if(iface == NULL) return(-1);
 
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    return(CONST_LUA_PARAM_ERROR);
+  
   snprintf(keybuf, sizeof(keybuf), "%s|%s", iface->get_name(), host_name);
 
   /* Add host key if missing */
   snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
-  rc = hashGet(buf, keybuf, rsp, sizeof(rsp));
+  rc = hashGet(buf, keybuf, rsp, CONST_MAX_LEN_REDIS_VALUE);
 
   if(rc == -1) {
     /* Not found */
@@ -1182,6 +1192,8 @@ u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf, char *host_na
   } else
     id = atol(rsp), *new_key = false;
 
+  free(rsp);
+  
   return(id);
 }
 

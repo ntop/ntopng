@@ -5204,7 +5204,7 @@ static int ntop_list_reports(lua_State* vm) {
 
 static int ntop_get_redis(lua_State* vm) {
   char *key, *rsp;
-  u_int rsp_len = 32768;
+  u_int rsp_len = CONST_MAX_LEN_REDIS_VALUE;
   Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -5223,7 +5223,7 @@ static int ntop_get_redis(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_hash_redis(lua_State* vm) {
-  char *key, *member, rsp[CONST_MAX_LEN_REDIS_VALUE];
+  char *key, *member, *rsp;
   Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -5232,8 +5232,10 @@ static int ntop_get_hash_redis(lua_State* vm) {
   if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
   if((member = (char*)lua_tostring(vm, 2)) == NULL)    return(CONST_LUA_PARAM_ERROR);
 
-  lua_pushfstring(vm, "%s", (redis->hashGet(key, member, rsp, sizeof(rsp)) == 0) ? rsp : (char*)"");
-
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  lua_pushfstring(vm, "%s", (redis->hashGet(key, member, rsp, CONST_MAX_LEN_REDIS_VALUE) == 0) ? rsp : (char*)"");
+  free(rsp);
+  
   return(CONST_LUA_OK);
 }
 
@@ -5401,15 +5403,18 @@ static int ntop_lrange_redis(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_redis_set_pop(lua_State* vm) {
-  char *set_name, rsp[CONST_MAX_LEN_REDIS_VALUE];
+  char *set_name, *rsp;
   Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((set_name = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-  lua_pushfstring(vm, "%s", redis->popSet(set_name, rsp, sizeof(rsp)));
 
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  lua_pushfstring(vm, "%s", redis->popSet(set_name, rsp, CONST_MAX_LEN_REDIS_VALUE));
+  free(rsp);
+  
   return(CONST_LUA_OK);
 }
 
@@ -5455,7 +5460,7 @@ static int ntop_redis_restore(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_list_index_redis(lua_State* vm) {
-  char *index_name, rsp[CONST_MAX_LEN_REDIS_VALUE];
+  char *index_name, *rsp;
   Redis *redis = ntop->getRedis();
   int idx;
 
@@ -5467,11 +5472,17 @@ static int ntop_list_index_redis(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   idx = lua_tointeger(vm, 2);
 
-  if(redis->lindex(index_name, idx, rsp, sizeof(rsp)) != 0)
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    return(CONST_LUA_PARAM_ERROR);
+  
+  if(redis->lindex(index_name, idx, rsp, CONST_MAX_LEN_REDIS_VALUE) != 0) {
+    free(rsp);
     return(CONST_LUA_ERROR);
-
+  }
+  
   lua_pushfstring(vm, "%s", rsp);
-
+  free(rsp);
+  
   return(CONST_LUA_OK);
 }
 
@@ -5543,7 +5554,7 @@ static int ntop_redis_get_host_id(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_redis_get_id_to_host(lua_State* vm) {
-  char *host_idx, rsp[CONST_MAX_LEN_REDIS_VALUE];
+  char *host_idx, *rsp;
   Redis *redis = ntop->getRedis();
   char daybuf[32];
   time_t when = time(NULL);
@@ -5554,8 +5565,11 @@ static int ntop_redis_get_id_to_host(lua_State* vm) {
   if((host_idx = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-  lua_pushfstring(vm, "%d", redis->id_to_host(daybuf, host_idx, rsp, sizeof(rsp)));
 
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  lua_pushfstring(vm, "%d", redis->id_to_host(daybuf, host_idx, rsp, CONST_MAX_LEN_REDIS_VALUE));
+  free(rsp);
+  
   return(CONST_LUA_OK);
 }
 

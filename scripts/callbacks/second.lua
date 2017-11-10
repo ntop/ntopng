@@ -58,3 +58,5 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       makeRRD(basedir, when, ifstats.id, "iface", "drops", 1, ifstats.stats.drops)
    end
 end)
+
+ntop.tsFlush(tonumber(1))

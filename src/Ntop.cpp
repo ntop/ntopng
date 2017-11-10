@@ -768,15 +768,21 @@ void Ntop::setCustomnDPIProtos(char *path) {
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username, *holder;
-  char key[CONST_MAX_LEN_REDIS_KEY], val[CONST_MAX_LEN_REDIS_VALUE];
+  char *key, *val;
   int rc, i;
 
   lua_newtable(vm);
 
-  if((rc = ntop->getRedis()->keys("ntopng.user.*.password", &usernames)) <= 0) {
+  if((rc = ntop->getRedis()->keys("ntopng.user.*.password", &usernames)) <= 0)
+    return;  
+
+  if((key = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    return;
+  else if((val = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) {
+    free(val);    
     return;
   }
-
+  
   for(i = 0; i < rc; i++) {
     if(usernames[i] == NULL) continue; /* safety check */
     if(strtok_r(usernames[i], ".", &holder) == NULL) continue;
@@ -785,50 +791,50 @@ void Ntop::getUsers(lua_State* vm) {
 
     lua_newtable(vm);
 
-    snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_FULL_NAME, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, "full_name", val);
     else
       lua_push_str_table_entry(vm, "full_name", (char*) "unknown");
 
-    snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_PASSWORD, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, "password", val);
     else
       lua_push_str_table_entry(vm, "password", (char*) "unknown");
 
-    snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_GROUP, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, "group", val);
     else
       lua_push_str_table_entry(vm, "group", (char*)"unknown");
 
-    snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_LANGUAGE, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, "language", val);
     else
       lua_push_str_table_entry(vm, "language", (char*)"");
 
-    snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_NETS, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, CONST_ALLOWED_NETS, val);
     else
       lua_push_str_table_entry(vm, CONST_ALLOWED_NETS, (char*)"");
 
-    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
-    if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_ALLOWED_IFNAME, username);
+    if((ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
        && val[0] != '\0')
       lua_push_str_table_entry(vm, CONST_ALLOWED_IFNAME, val);
     else
       lua_push_str_table_entry(vm, CONST_ALLOWED_IFNAME, (char*)"");
 
-    snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_HOST_POOL_ID, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_int_table_entry(vm, "host_pool_id", atoi(val));
 
 
-    snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_EXPIRE, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_float_table_entry(vm, "limited_lifetime", atoi(val));
 
     lua_pushstring(vm, username);
@@ -839,6 +845,7 @@ void Ntop::getUsers(lua_State* vm) {
   }
 
   free(usernames);
+  free(key), free(val);
 }
 
 /* ******************************************* */
