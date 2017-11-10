@@ -643,7 +643,7 @@ function printAuthentication()
   -- These two fields are necessary to prevent chrome from filling in LDAP username and password with saved credentials
   -- Chrome, in fact, ignores the autocomplete=off on the input field. The input fill-in triggers un-necessary are-you-sure leave message
   print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
-  print('<input style="display:none;" type="password" name="_" data-ays-ignore="true" />')
+  print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
   --
   prefsInputFieldPrefs(subpage_active.entries["bind_dn"].title, subpage_active.entries["bind_dn"].description .. "\"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}})
   prefsInputFieldPrefs(subpage_active.entries["bind_pwd"].title, subpage_active.entries["bind_pwd"].description, "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
