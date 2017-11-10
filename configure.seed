@@ -94,7 +94,7 @@ AC_ARG_WITH(ndpi-includes,
    ])
 
 PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
-   NDPI_INC=$NDPI_CFLAGS/libndpi
+   NDPI_INC=`echo $NDPI_CFLAGS | sed -e "s/[ ]*$//"`/libndpi
    # Use static libndpi library as building against the dynamic library fails
    NDPI_LIB="-Wl,-Bstatic $NDPI_LIBS -Wl,-Bdynamic"
    NDPI_LIB_DEP=
