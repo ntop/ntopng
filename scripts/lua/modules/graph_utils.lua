@@ -1078,11 +1078,11 @@ function touchRRD(rrdname)
       local tdiff = now - 1800 -- This avoids to set the update continuously
 
       if(ds_count == 1) then
-	 ntop.rrd_update(rrdname, tdiff.."", 0)
+	 ntop.rrd_update(rrdname, tdiff.."", "0")
       elseif(ds_count == 2) then
-	 ntop.rrd_update(rrdname, tdiff.."", 0, 0)
+	 ntop.rrd_update(rrdname, tdiff.."", "0", "0")
       elseif(ds_count == 3) then
-	 ntop.rrd_update(rrdname, tdiff.."", 0, 0, 0)
+	 ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
       end
 
    end
