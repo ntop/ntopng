@@ -3175,6 +3175,10 @@ static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
     return(NSERIES_ID_MINUTE);
     break;
 
+  case 300: /* 5 min */
+    return(NSERIES_ID_5_MINUTES);
+    break;
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid step set %u",
 				 step);

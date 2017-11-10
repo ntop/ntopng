@@ -154,10 +154,17 @@ Ntop::Ntop(char *appName) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
   for(int i=0; i<NUM_NSERIES; i++) {
     char path[MAX_PATH];
+    const char *base;
+
+    switch(i) {
+    case 0: base = "sec"; break;
+    case 1: base = "min"; break;
+    case 2: base = "5min"; break;
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+    }
     
-    snprintf(path, sizeof(path), "%s/nseries/%s",
-	     ntop->get_working_dir(),
-	     (i == NSERIES_ID_SECOND) ? "sec" : "min");
+    snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
     
     if(!Utils::mkdir_tree(path))
       ntop->getTrace()->traceEvent(TRACE_WARNING,

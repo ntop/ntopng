@@ -654,10 +654,12 @@
 #define MYSQL_INSERT_VALUES_V6 "('%u','%u','%s','%u','%s','%u','%u'," \
   "'%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'" MYSQL_PROFILE_VALUE ")"
 
-#define NUM_NSERIES                          2 /* sec + min series */
+
 #define NSERIES_DATA_RETENTION             365 /* 1 year */
 #define NSERIES_ID_SECOND                    0
 #define NSERIES_ID_MINUTE                    1
+#define NSERIES_ID_5_MINUTES                 2
+#define NUM_NSERIES                          (NSERIES_ID_5_MINUTES+1)
 
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY              1024
