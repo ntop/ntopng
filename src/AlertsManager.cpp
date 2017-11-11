@@ -37,6 +37,10 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v4.db");
   unlink(filePath);
+  /* Can't unlink version v5 as it was created with root privileges
+  sprintf(&filePath[base_offset], "%s", "alerts_v5.db");
+  unlink(filePath);
+  */
   filePath[base_offset] = 0;
 
   /* open the newest */
