@@ -2554,7 +2554,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  ua = &ua[11];
 	  while(ua[0] == ' ') ua++;
 
-	  for(i=0; (ua[i] != '\r') && (i < payload_len) && (i < (sizeof(buf)-1)); i++)
+	  for(i=0; (i < payload_len) && (i < (sizeof(buf)-1) && (ua[i] != '\r')); i++)
 	    buf[i] = ua[i];
 
 	  buf[i] = '\0';
@@ -2674,9 +2674,9 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	else {
 	  /* Pointer back */
 
-	  while((payload[offset] != 0)
-		&& (offset < payload_len)
+	  while((offset < payload_len)
 		&& (offset < 255)
+		&& (payload[offset] != 0)
 		&& (j < (sizeof(name)-1))) {
 	    if(payload[offset] == 0)
 	      break;

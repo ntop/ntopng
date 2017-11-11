@@ -889,8 +889,7 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
   if(lua_type(vm, 1) == LUA_TTABLE)
     p->readOptions(vm, 1);
 
-  if(!ntop_interface ||
-     ntop_interface->getActiveASList(vm, p) < 0) {
+  if(ntop_interface->getActiveASList(vm, p) < 0) {
     if(p) delete(p);
     return(CONST_LUA_ERROR);
   }

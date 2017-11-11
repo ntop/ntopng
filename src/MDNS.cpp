@@ -89,8 +89,8 @@ u_int16_t MDNS::buildMDNSRequest(char *query, u_int8_t query_type,
 
   mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header) + 4;
 
-  for(dns_query_len=0; (query[dns_query_len] != '\0')
-	&& (dns_query_len < mdnsbuf_len); dns_query_len++) {
+  for(dns_query_len=0; (dns_query_len < mdnsbuf_len)
+	&& (query[dns_query_len] != '\0'); dns_query_len++) {
     if(query[dns_query_len] == '.') {
       queries[last_dot] = dns_query_len-last_dot;
       last_dot = dns_query_len+1;

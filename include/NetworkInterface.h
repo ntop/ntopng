@@ -81,7 +81,7 @@ class NetworkInterface {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, forcePoolReload, is_dynamic_interface;
+  bool bridge_interface, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE

@@ -37,6 +37,14 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
+  enable_flow_device_port_rrd_creation = false;
+  enable_top_talkers = false, enable_idle_local_hosts_cache = false;
+  enable_active_local_hosts_cache = false, enable_tiny_flows_export = true,
+  enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
+  enable_syslog_alerts = false, enable_captive_portal = false,
+  slack_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
+  override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
+  hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
 
