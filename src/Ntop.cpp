@@ -786,7 +786,7 @@ void Ntop::getUsers(lua_State* vm) {
   if((key = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
     return;
   else if((val = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) {
-    free(val);    
+    free(key);
     return;
   }
   
@@ -1706,7 +1706,7 @@ void Ntop::loadTrackers() {
       return;
     }
 
-    while(fscanf(fd, "%s", line) != EOF)
+    while(fscanf(fd, "%254s", line) != EOF)
       ndpi_add_string_to_automa(trackers_automa, line);
 
     fclose(fd);

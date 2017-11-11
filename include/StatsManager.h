@@ -27,6 +27,8 @@
 struct statsManagerRetrieval {
   vector<string> rows;
   int num_vals;
+
+  statsManagerRetrieval(): num_vals(0) {}
 };
 
 class StatsManager : protected StoreManager {

@@ -274,7 +274,9 @@ void NetworkInterface::init() {
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
-    mdns = NULL, snmp = NULL, discovery = NULL;
+    mdns = NULL, snmp = NULL, discovery = NULL, ifDescription = NULL,
+    flowHashingMode = flowhashing_none,
+    macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
@@ -297,7 +299,7 @@ void NetworkInterface::init() {
 
   db = NULL;
 #ifdef NTOPNG_PRO
-  aggregated_flows_hash = NULL;
+  aggregated_flows_hash = NULL, flow_interfaces_stats = NULL;
   policer = NULL;
 #endif
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
