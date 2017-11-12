@@ -3362,27 +3362,38 @@ static int ntop_rrd_update(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_rrd_get_lastupdate(const char *filename, time_t *last_update, unsigned long *ds_count) {
+  char    **ds_names;
+  char    **last_ds;
+  unsigned long i;
+  int status;
+
+  status = rrd_lastupdate_r(filename, last_update, ds_count, &ds_names, &last_ds);
+
+  if(status != 0) {
+    return(-1);
+  } else {
+    for(i = 0; i < *ds_count; i++)
+      free(last_ds[i]), free(ds_names[i]);
+
+    free(last_ds), free(ds_names);
+    return(0);
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_rrd_lastupdate(lua_State* vm) {
   const char *filename;
   time_t    last_update;
-  char    **ds_names;
-  char    **last_ds;
-  unsigned long ds_count, i;
-  int status;
+  unsigned long ds_count;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  status = rrd_lastupdate_r(filename, &last_update, &ds_count, &ds_names, &last_ds);
-
-  if(status != 0) {
+  if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1)
     return(CONST_LUA_ERROR);
-  } else {
-    for(i = 0; i < ds_count; i++)
-      free(last_ds[i]), free(ds_names[i]);
-
-    free(last_ds), free(ds_names);
-
+  else {
     lua_pushnumber(vm, last_update);
     lua_pushnumber(vm, ds_count);
     return(2 /* 2 values returned */);
@@ -3428,6 +3439,8 @@ static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *s
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf) {
   char * err;
 
@@ -3449,27 +3462,36 @@ static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /* Fetches data from RRD by rows */
 static int ntop_rrd_fetch(lua_State* vm) {
   unsigned long i, j, step = 0, ds_cnt = 0;
   rrd_value_t *data, *p;
   char **names;
   char *filename, *cf;
-  time_t t, start, end;
+  time_t t, start, end, last_update;
   int status;
+  unsigned long ds_count;
 
-  if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) return status;
+  if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK)
+    return status;
+
+  if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1)
+    return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
 
   reset_rrd_state();
 
-  if((status = __ntop_rrd_status(vm, rrd_fetch_r(filename, cf, &start, &end, &step, &ds_cnt, &names, &data), filename, cf)) != CONST_LUA_OK) return status;
+  if((status = __ntop_rrd_status(vm, rrd_fetch_r(filename, cf, &start, &end,
+						 &step, &ds_cnt, &names, &data),
+				 filename, cf)) != CONST_LUA_OK) return status;
 
   lua_pushnumber(vm, (lua_Number) start);
   lua_pushnumber(vm, (lua_Number) step);
   /* fprintf(stderr, "%lu, %lu, %lu, %lu\n", start, end, step, num_points); */
-
+ 
   /* create the ds names array */
   lua_newtable(vm);
   for(i=0; i<ds_cnt; i++) {
@@ -3483,7 +3505,14 @@ static int ntop_rrd_fetch(lua_State* vm) {
   lua_newtable(vm);
   p = data;
   for(t=start+1, i=0; t<end; t+=step, i++) {
+    /* Check for avoid going after the last point set */
+    if(t > last_update) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping %u / %u", t, last_update); 
+      break;
+    }
+    
     lua_newtable(vm);
+    
     for(j=0; j<ds_cnt; j++) {
       rrd_value_t value = *p++;
 
