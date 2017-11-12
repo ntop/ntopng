@@ -1442,7 +1442,13 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    ret.percentile = round(percentile, 0)
    ret.average = round(average, 0)
    ret.json = json_ret
-   ret.duration = last_time - first_time
+
+   if(last_time ~= nil) then
+     ret.duration = last_time - first_time
+   else
+     ret.duration = 1
+   end
+
   return(ret)
 end
 

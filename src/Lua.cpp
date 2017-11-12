@@ -3505,24 +3505,50 @@ static int ntop_rrd_fetch(lua_State* vm) {
   lua_newtable(vm);
   p = data;
   for(t=start+1, i=0; t<end; t+=step, i++) {
+    bool add_point;
+
     /* Check for avoid going after the last point set */
     if(t > last_update) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping %u / %u", t, last_update); 
       break;
     }
-    
-    lua_newtable(vm);
-    
-    for(j=0; j<ds_cnt; j++) {
-      rrd_value_t value = *p++;
 
-      if(value != DNAN /* Skip NaN */) {
-        lua_pushnumber(vm, (lua_Number)value);
-        lua_rawseti(vm, -2, j+1);
-        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.f", t, value);
+    if((t == last_update) && (i > 3)) {
+      /* Add the point only if not zero an dwith at least 3 points or more */
+
+      add_point = false;
+      
+      for(j=0; j<ds_cnt; j++) {
+	rrd_value_t value = *p++;
+
+	if(value != DNAN /* Skip NaN */) {
+	  if(value > 0) {
+	    add_point = true;
+	    break;
+	  }
+	}
       }
-    }
-    lua_rawseti(vm, -2, i+1);
+
+      add_point = true;
+    } else
+      add_point = true;
+
+    if(add_point) {
+      lua_newtable(vm);
+    
+      for(j=0; j<ds_cnt; j++) {
+	rrd_value_t value = *p++;
+
+	if(value != DNAN /* Skip NaN */) {
+	  lua_pushnumber(vm, (lua_Number)value);
+	  lua_rawseti(vm, -2, j+1);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.f", t, value);
+	}
+      }
+      
+      lua_rawseti(vm, -2, i+1);
+    } else
+      break;
   }
   rrd_freemem(data);
 
