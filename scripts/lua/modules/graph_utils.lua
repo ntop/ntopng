@@ -687,6 +687,7 @@ if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or strin
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(rrd.average, 2)) .. '</td></tr>\n')
+   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(rrd.percentile, 2)) .. '</td></tr>\n')
    print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(rrd.totalval)) .. '</td></tr>\n')
 else
    formatter_fctn = "fbits"
@@ -694,6 +695,7 @@ else
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. bitsToSize(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. bitsToSize(rrd.lastval)  .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(rrd.average*8) .. '</td></tr>\n')
+   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(rrd.percentile) .. '</td></tr>\n')
    print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(rrd.totalval) .. '</td></tr>\n')
 end
 
@@ -1090,6 +1092,21 @@ end
 
 -- ########################################################
 
+-- Find the percentile of a list of values
+-- N - A list of values.  N must be sorted.
+-- P - A float value from 0.0 to 1.0
+local function percentile(N, P)
+   local n = math.floor(math.floor(P * #N + 0.5))
+   return(N[n-1])
+end
+
+local function ninetififthPercentile(N)
+   table.sort(N) -- <<== Sort first
+   return(percentile(N, 0.95))
+end
+
+-- ########################################################
+
 -- reads one or more RRDs and returns a json suitable to feed rickshaw
 
 function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels, transform_columns_function)
@@ -1189,7 +1206,8 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
     end
 
    local minval, maxval, lastval = 0, 0, 0
-   local maxval_time, minval_time, lastval_time  = nil, nil, nil
+   local maxval_time, minval_time, lastval_time = nil, nil, nil
+   local first_time, last_time = nil, nil
    local sampling = 1
    local s = {}
    local totalval, avgval = {}, {}
@@ -1206,7 +1224,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    -- This is a NaN
 	    w = 0
 	 else
-	    --io.write(w.."\n")
+	    -- io.write(w.."\n")
 	    w = tonumber(w)
 	    if(w < 0) then
 	       w = 0
@@ -1226,6 +1244,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 elemId = elemId + 1
       end
 
+      last_time = instant
+      if(first_time == nil) then first_time = instant end
+	 
       -- stops every sample_rate samples, or when there are no more points
       if(sampling == sample_rate or num_points_found == i) then
 	 local sample_sum = 0
@@ -1258,13 +1279,28 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    end
 
    local tot = 0
-   for k, v in pairs(totalval) do tot = tot + v end
+   for k, v in pairs(totalval) do
+      tot = tot + v
+   end
+
+   local vals = {}
+   for k, v in pairs(series) do
+      if(v[2] ~= nil) then
+	 -- io.write(v[1]+v[2].."\n")
+	 table.insert(vals, v[1]+v[2])
+      else
+	 -- io.write(v[1].."\n")
+	 table.insert(vals, v[1])
+      end
+   end
+   
    totalval = tot
    tot = 0
    for k, v in pairs(avgval) do tot = tot + v end
    local average = tot / num_points_found
+   local percentile = ninetififthPercentile(vals)
 
-   local percentile = 0.95*maxval
+   -- io.write("percentile="..percentile.."\n")
    local colors = {
       '#1f77b4',
       '#ff7f0e',
@@ -1406,7 +1442,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    ret.percentile = round(percentile, 0)
    ret.average = round(average, 0)
    ret.json = json_ret
-
+   ret.duration = last_time - first_time
   return(ret)
 end
 
