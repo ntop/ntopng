@@ -150,6 +150,7 @@ extern "C" {
 #include <string>
 #include <sstream>
 #include <queue>
+#include <typeinfo>
 
 using namespace std;
 
@@ -221,6 +222,7 @@ using namespace std;
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+#include "ndb_api.h"
 #include "Nseries.h"
 #endif
 #include "NetworkInterface.h"
@@ -293,6 +295,9 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
+#ifdef HAVE_NDB
+#include "NDBFlowDB.h"
+#endif
 #endif
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"

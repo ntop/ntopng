@@ -77,6 +77,9 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  dump_flows_on_ndb = false;
+#endif
   read_flows_from_mysql = false;
   enable_taps = false;
   memset(ifNames, 0, sizeof(ifNames));
@@ -372,7 +375,7 @@ void Prefs::setTraceLevelFromRedis(){
 
   if((lvlStr = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
     ;
-  
+
   if(!hasCmdlTraceLevel()
      && ntop->getRedis()->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL,
 			      lvlStr, CONST_MAX_LEN_REDIS_VALUE) == 0){
@@ -777,7 +780,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
     break;
 #endif
-    
+
   case 'p':
     ndpi_proto_path = strdup(optarg);
     ntop->setCustomnDPIProtos(ndpi_proto_path);
@@ -975,6 +978,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
+#ifndef HAVE_NEDGE
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+    if(strncmp(optarg, "ndb", 2) == 0) {
+	dump_flows_on_ndb = true;
+    } else
+#endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL, *tmp = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
@@ -1070,7 +1079,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F logstash;....");
       }
     } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Discarding -F %s: value out of range", optarg);
+#endif
     break;
 
 #ifndef WIN32
@@ -1538,4 +1549,19 @@ time_t Prefs::pro_edition_demo_ends_at() {
     0
 #endif
     ;
+}
+
+/* *************************************** */
+
+/* Perform here post-initialization validations */
+
+void Prefs::validate() {
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  if(dump_flows_on_ndb) {
+    if(!ntop->getPro()->is_ndb_in_use()) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignored '-F ndb' as nDB is not in use");
+      dump_flows_on_ndb = false;
+    }
+  }
+#endif
 }

@@ -40,10 +40,11 @@ class MySQLDB : public DB {
 
   bool connectToDB(MYSQL *conn, bool select_db);
   char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
-  int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true, bool ignoreErrors = false, bool doLock = true);
+  int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
+		     bool ignoreErrors = false, bool doLock = true);
 
  public:
-  MySQLDB(NetworkInterface *_iface = NULL);
+  MySQLDB(NetworkInterface *_iface);
   virtual ~MySQLDB();
 
   virtual void* queryLoop();
@@ -66,6 +67,10 @@ class MySQLDB : public DB {
   void startDBLoop();
   void updateStats(const struct timeval *tv);
   void lua(lua_State* vm, bool since_last_checkpoint) const;
+#ifdef NTOPNG_PRO
+  bool dumpAggregatedFlow(AggregatedFlow *f) { return(false); };
+#endif
+
 };
 
 #endif /* _MYSQL_DB_CLASS_H_ */

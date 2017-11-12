@@ -24,24 +24,33 @@
 
 #include "ntop_includes.h"
 
+#ifdef NTOPNG_PRO
+class AggregatedFlow;
+#endif
+
 class DB {
  protected:
   NetworkInterface *iface;
   Mutex *m;
 
  public:
-  DB(NetworkInterface *_iface = NULL);
+  DB(NetworkInterface *_iface);
   virtual ~DB();
   
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true);
+  virtual int exec_sql_query(lua_State *vm, char *sql,
+			     bool limit_rows, bool wait_for_db_created = true);
   virtual void startDBLoop();
   virtual void flush() {};
-  virtual bool createDBSchema(bool set_db_created = true) {return false; /* override in non-schemaless subclasses */};
+  virtual bool createDBSchema(bool set_db_created = true) {
+	  return false; /* override in non-schemaless subclasses */ };
   virtual bool createNprobeDBView() { return false; };
   virtual void updateStats(const struct timeval *tv) {};
   virtual void checkPointCounters(bool drops_only) {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const {};
+#ifdef NTOPNG_PRO
+  virtual bool dumpAggregatedFlow(AggregatedFlow *f);
+#endif
 };
 
 #endif /* _DB_CLASS_H_ */

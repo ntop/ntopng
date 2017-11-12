@@ -68,18 +68,15 @@ if isEmptyString(l2_device_ndpi_timeseries_creation) then l2_device_ndpi_timeser
 local ifnames = interface.getIfNames()
 local prefs = ntop.getPrefs()
 
--- Scan "5 minute" alerts
-callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("5mins", ifstats)
-   housekeepingAlertsMakeRoom(getInterfaceId(ifname))
-end)
-
 -- ########################################################
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
   basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
-  if interface_rrd_creation == "1" then
+  scanAlerts("5mins", ifstats)
+  housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
+
+   if interface_rrd_creation == "1" then
      if interface_ndpi_timeseries_creation == "per_protocol" or interface_ndpi_timeseries_creation == "both" then
 	for k in pairs(ifstats["ndpi"]) do
 	   local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
@@ -193,6 +190,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
        end
      end -- ends if host.localhost
    end) -- end foreeachHost
+
    if not in_time then
       callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
       return false
@@ -219,11 +217,10 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
      end)
 
      if not in_time then
-      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
+	callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
       return false
-   end
-  end
-
+     end
+   end   
   end
 
   -- create RRD for ASN

@@ -44,7 +44,8 @@ NetworkInterface::NetworkInterface(const char *name,
 				   const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64], buf[64];
-  bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0; /* We need to do it as isView() is not yet initialized */
+  /* We need to do it as isView() is not yet initialized */
+  bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0;
 
   init();
   customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
@@ -109,15 +110,19 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(strchr(name, ':')
      || strchr(name, '@')
+     || strchr(name, '/') /* file path */
+     || (!strstr(name, ".pcap")) /* pcap */
      || (!strncmp(name, "lo", 2))
 #ifndef __APPLE__
      || (Utils::readIPv4((char*)name) == 0)
 #endif
      )
     ; /* Don't setup MDNS on ZC or RSS interfaces */
-  else
-    mdns = new MDNS(this), discovery = new NetworkDiscovery(this);
-
+  else {
+    mdns = new MDNS(this);
+    discovery = new NetworkDiscovery(this);
+  }
+    
   if(id >= 0) {
     u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
@@ -129,16 +134,19 @@ NetworkInterface::NetworkInterface(const char *name,
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
     /* The number of ASes cannot be greater than the number of hosts */
-    ases_hash = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+    ases_hash = new AutonomousSystemHash(this, num_hashes,
+					 ntop->getPrefs()->get_max_num_hosts());
 
-    vlans_hash = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
+    vlans_hash = new VlanHash(this, num_hashes,
+			      max_val(ntop->getPrefs()->get_max_num_hosts() / 2,
+				      (u_int16_t)-1));
 
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Global structure initialization failed");
+
       exit(-1);
     }
 
@@ -156,43 +164,58 @@ NetworkInterface::NetworkInterface(const char *name,
     NDPI_BITMASK_SET_ALL(all);
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
-    last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
+    last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
+      bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
-    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false, pkt_dumper = NULL;
+    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false,
+      pkt_dumper = NULL;
     arp_requests = arp_replies = 0;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
-    running = false, sprobe_interface = false, inline_interface = false, db = NULL;
+    running = false, sprobe_interface = false,
+      inline_interface = false, db = NULL;
 
-    if((!isViewInterface)
-       && (ntop->getPrefs()->do_dump_flows_on_mysql() || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
+    if(!isViewInterface) {
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+      if(ntop->getPrefs()->do_dump_flows_on_ndb()) {
+	db = new NDBFlowDB(this);
+	goto enable_aggregation;
+      }
+#endif
+    
+      if((db == NULL)
+	 && (ntop->getPrefs()->do_dump_flows_on_mysql()
+	     || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition() && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+	if(ntop->getPrefs()->is_enterprise_edition()
+	   && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef HAVE_MYSQL
-	db = new BatchedMySQLDB(this);
+	  db = new BatchedMySQLDB(this);
 #endif
-	ntop->getPrefs()->enable_flow_aggregation();
-	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
-	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
-      } else
-	aggregated_flows_hash = NULL;
+	enable_aggregation:
+	  aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
+							 ntop->getPrefs()->get_max_num_flows());
+	  
+	  ntop->getPrefs()->enable_flow_aggregation();
+	  nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+	} else
+	  aggregated_flows_hash = NULL;
 #endif
 
 #ifdef HAVE_MYSQL
-      if(db == NULL)
-	db = new MySQLDB(this);
-#else
-      db = NULL;
+	if(db == NULL)
+	  db = new MySQLDB(this);
 #endif
 
-      if(!db) throw "Not enough memory";
+	if(!db) throw "Not enough memory";
+      }
     }
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
-  } else {
+  } else /* id < 0 */ {    
 #ifdef NTOPNG_PRO
     aggregated_flows_hash = NULL;
 #endif
@@ -251,7 +274,6 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 #endif
-
 }
 
 /* **************************************************** */
@@ -336,7 +358,6 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
 
     if(aggregatedFlow == NULL) {
-
 #ifdef AGGREGATED_FLOW_DEBUG
       char buf[256];
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
@@ -355,7 +376,9 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 #ifdef AGGREGATED_FLOW_DEBUG
 	  char buf[256];
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "New AggregatedFlow successfully created and added to the hash table [%s]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "New AggregatedFlow successfully created and added "
+				       "to the hash table [%s]",
 				       aggregatedFlow->print(buf, sizeof(buf)));
 #endif
 	}
@@ -603,7 +626,11 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
 #ifdef NTOPNG_PRO
-  if(aggregated_flows_hash) { delete(aggregated_flows_hash); aggregated_flows_hash = NULL; }
+  if(aggregated_flows_hash) {
+    aggregated_flows_hash->cleanup();
+    delete(aggregated_flows_hash);
+    aggregated_flows_hash = NULL;
+  }
 #endif
 
   if(ndpi_struct) {
@@ -746,16 +773,24 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 #ifdef NTOPNG_PRO
 
 int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
-#ifdef HAVE_MYSQL
-  if(ntop->getPrefs()->is_enterprise_edition() && db && f && (f->get_packets() > 0)) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** DUMP ***");
+  
+  if(db
+     && f
+     && (f->get_packets() > 0)
+     && ntop->getPrefs()->is_enterprise_edition()
+     ) {
 #ifdef AGGREGATED_FLOW_DEBUG
     char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to dump AggregatedFlow to database [%s]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Going to dump AggregatedFlow to database [%s]",
 				 f->print(buf, sizeof(buf)));
 #endif
-    return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(f));
+
+    //return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(f));
+    
+    return(db->dumpAggregatedFlow(f));
   }
-#endif
 
   return(-1);
 }

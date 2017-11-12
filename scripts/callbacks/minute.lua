@@ -31,11 +31,6 @@ local when = os.time()
 local verbose = ntop.verboseTrace()
 local ifnames = interface.getIfNames()
 
--- Scan "minute" alerts
-callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("min", ifstats)
-end)
-
 if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
    verbose = true
 end
@@ -45,7 +40,9 @@ if(verbose) then
 end
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
-      -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
+   scanAlerts("min", ifstats)
+
+   -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
       do
         -- Dump topTalkers every minute
         local talkers = makeTopJSON(ifstats.id, _ifname)
@@ -118,11 +115,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
 	    ntop.tsSet(when, ifstats.id, 60, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
 	 end
       end
-end) -- forbeachInterface
-
--- check MySQL open files status
--- NOTE: performed on startup.lua
--- checkOpenFiles()
+end) -- foreachInterface
 
 -- when the active local hosts cache is enabled, ntopng periodically dumps active local hosts statistics to redis
 -- in order to protect from failures (e.g., power losses)

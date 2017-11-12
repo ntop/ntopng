@@ -156,6 +156,7 @@ int main(int argc, char *argv[])
 #endif
 
   prefs->reloadPrefsFromRedis();
+  prefs->validate();
   
   if(prefs->daemonize_ntopng())
     ntop->daemonize();

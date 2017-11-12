@@ -392,6 +392,7 @@
 #define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       "ntopng.prefs.alerts.ifid_%d"
+#define CONST_USE_NDB                      "ntopng.prefs.use_ndb"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
 #define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"
@@ -400,9 +401,9 @@
 #define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
 #define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
 #endif
-#define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
-#define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
-#define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
+#define CONST_NBOX_USER                     "ntopng.prefs.nbox_user"
+#define CONST_NBOX_PASSWORD                 "ntopng.prefs.nbox_password"
+#define CONST_IFACE_ID_PREFS                "ntopng.prefs.iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
 #define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"

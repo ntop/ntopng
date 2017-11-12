@@ -3191,54 +3191,56 @@ static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
 /* ****************************************** */
 
 static int ntop_ts_set(lua_State* vm) {
-#ifdef HAVE_NDB
-  const char *label = NULL, *metric = NULL, *key = "";
-  u_int8_t ifaceId, id = 1;
-  int8_t series_id;
-  u_int16_t step;
-  u_int32_t ts;
-  u_int64_t sent = 0, rcvd = 0;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+#if defined(HAVE_NDB) && defined(NTOPNG_PRO)
+  if(ntop->getPro()->is_ndb_in_use()) {
+    const char *label = NULL, *metric = NULL, *key = "";
+    u_int8_t ifaceId, id = 1;
+    int8_t series_id;
+    u_int16_t step;
+    u_int32_t ts;
+    u_int64_t sent = 0, rcvd = 0;
+    NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
+    if(!ntop_interface)
+      return(CONST_LUA_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  ts = (u_int32_t)lua_tonumber(vm, id++);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+    ts = (u_int32_t)lua_tonumber(vm, id++);
   
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  ifaceId = (u_int8_t)lua_tonumber(vm, id++);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+    ifaceId = (u_int8_t)lua_tonumber(vm, id++);
   
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-  step = (u_int32_t)lua_tonumber(vm, id++);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+    step = (u_int32_t)lua_tonumber(vm, id++);
 
-  if((series_id = ntop_ts_step_to_series_id(step)) == -1)
-    return(CONST_LUA_ERROR);
+    if((series_id = ntop_ts_step_to_series_id(step)) == -1)
+      return(CONST_LUA_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((label = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+    if((label = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(lua_type(vm, id) != LUA_TNIL) {
-    if(lua_type(vm, id) == LUA_TSTRING)
-      key = (const char*)lua_tostring(vm, id++);
-  } else
-    id++;
+    if(lua_type(vm, id) != LUA_TNIL) {
+      if(lua_type(vm, id) == LUA_TSTRING)
+	key = (const char*)lua_tostring(vm, id++);
+    } else
+      id++;
 
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((metric = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+    if((metric = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
   
-  if(lua_type(vm, id) == LUA_TNUMBER)
-    sent = (u_int64_t)lua_tonumber(vm, id++);
-  else if(lua_type(vm, id) == LUA_TSTRING)
-    sent = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
+    if(lua_type(vm, id) == LUA_TNUMBER)
+      sent = (u_int64_t)lua_tonumber(vm, id++);
+    else if(lua_type(vm, id) == LUA_TSTRING)
+      sent = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
   
-  if(lua_type(vm, id) == LUA_TNUMBER)
-    rcvd = (u_int64_t)lua_tonumber(vm, id++);
-  else if(lua_type(vm, id) == LUA_TSTRING)
-    rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
+    if(lua_type(vm, id) == LUA_TNUMBER)
+      rcvd = (u_int64_t)lua_tonumber(vm, id++);
+    else if(lua_type(vm, id) == LUA_TSTRING)
+      rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
   
-  ntop->tsSet(series_id, ts, true /* counter */, ifaceId,
-	      step, label, key, metric, sent, rcvd);
+    ntop->tsSet(series_id, ts, true /* counter */, ifaceId,
+		step, label, key, metric, sent, rcvd);
+  }
 #endif
   
   lua_pushnil(vm);
@@ -3248,22 +3250,25 @@ static int ntop_ts_set(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_ts_flush(lua_State* vm) {
-#ifdef HAVE_NDB
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int8_t series_id;
-  u_int16_t step;
-  
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 0, LUA_TNUMBER))
-    return(CONST_LUA_PARAM_ERROR);  
-  step = (u_int32_t)lua_tonumber(vm, 0);
-
-  if((series_id = ntop_ts_step_to_series_id(step)) == -1)
-     return(CONST_LUA_ERROR);
-       
-  ntop->tsFlush(series_id);
+#if defined(HAVE_NDB) && defined(NTOPNG_PRO)
+  if(ntop->getPro()->is_ndb_in_use()) {
+    NetworkInterface *ntop_interface = getCurrentInterface(vm);
+    int8_t series_id;
+    u_int16_t step;
+    
+    if(!ntop_interface)
+      return(CONST_LUA_ERROR);
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 0, LUA_TNUMBER))
+      return(CONST_LUA_PARAM_ERROR);
+    
+    step = (u_int32_t)lua_tonumber(vm, 0);
+    
+    if((series_id = ntop_ts_step_to_series_id(step)) == -1)
+      return(CONST_LUA_ERROR);
+    
+    ntop->tsFlush(series_id);
+  }
 #endif
   
   lua_pushnil(vm);

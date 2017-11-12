@@ -51,13 +51,16 @@ class Prefs {
     flow_aggregation_enabled,
     enable_mac_ndpi_stats;
 
-  u_int32_t non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
+  u_int32_t non_local_host_max_idle, local_host_cache_duration,
+	  local_host_max_idle, flow_max_idle;
   u_int32_t active_local_hosts_cache_interval;
   u_int32_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t housekeeping_frequency;
-  bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache, enable_active_local_hosts_cache;
-  bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation, enable_probing_alerts, enable_ssl_alerts;
+  bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
+	  enable_active_local_hosts_cache;
+  bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,
+	  enable_probing_alerts, enable_ssl_alerts;
   bool enable_dns_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
@@ -77,13 +80,14 @@ class Prefs {
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
-  bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
+  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_ndb;
   bool read_flows_from_mysql;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans;
-  char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *prefs_dir, *export_endpoint;
+  char *data_dir, *install_dir, *docs_dir, *scripts_dir,
+	  *callbacks_dir, *prefs_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
   char *zmq_encryption_pwd;
@@ -104,7 +108,8 @@ class Prefs {
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   int mysql_port;
   char *ls_host,*ls_port,*ls_proto;
-  bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
+  bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
+			      has been provided on the command line.*/
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -164,6 +169,8 @@ class Prefs {
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
+  inline bool  do_dump_flows_on_ndb()                   { return(dump_flows_on_ndb);      };
+    
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
@@ -289,6 +296,7 @@ class Prefs {
   inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
   inline HostMask getHostMask()                  { return(hostMask);                                    };
   inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
+  void validate();
 };
 
 #endif /* _PREFS_H_ */
