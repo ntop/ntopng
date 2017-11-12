@@ -58,7 +58,10 @@ void DB::startDBLoop() {
 
 /* ******************************************* */
 
+#ifdef NTOPNG_PRO
 bool DB::dumpAggregatedFlow(AggregatedFlow *f) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }
+#endif
+
