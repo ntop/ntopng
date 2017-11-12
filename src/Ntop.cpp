@@ -152,25 +152,27 @@ Ntop::Ntop(char *appName) {
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-  for(int i=0; i<NUM_NSERIES; i++) {
-    char path[MAX_PATH];
-    const char *base;
-
-    switch(i) {
-    case 0: base = "sec"; break;
-    case 1: base = "min"; break;
-    case 2: base = "5min"; break;
-    default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+  if(!ntop->getPro()->is_ndb_in_use()) {
+    for(int i=0; i<NUM_NSERIES; i++) {
+      char path[MAX_PATH];
+      const char *base;
+      
+      switch(i) {
+      case 0: base = "sec"; break;
+      case 1: base = "min"; break;
+      case 2: base = "5min"; break;
+      default:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+      }
+      
+      snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
+      
+      if(!Utils::mkdir_tree(path))
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Unable to create directory %s: nSeries will be disabled", path);
+      else
+	nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
     }
-    
-    snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
-    
-    if(!Utils::mkdir_tree(path))
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Unable to create directory %s: nSeries will be disabled", path);
-    else
-      nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
   }
 #endif
 }
@@ -254,8 +256,10 @@ Ntop::~Ntop() {
 #endif
 
 #ifdef HAVE_NDB
-  for(int i=0; i<NUM_NSERIES; i++)
-    if(nseries[i]) delete nseries[i];
+  if(!ntop->getPro()->is_ndb_in_use()) {
+    for(int i=0; i<NUM_NSERIES; i++)
+      if(nseries[i]) delete nseries[i];
+  }
 #endif
 }
 

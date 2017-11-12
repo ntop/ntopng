@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 #endif
 	
 #ifdef HAVE_PF_RING
-	if(iface == NULL)
+	if((iface == NULL) && (!strstr(ifName, ".pcap")))
 	  iface = new PF_RINGInterface(ifName);
 #endif
       }

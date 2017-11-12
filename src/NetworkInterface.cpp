@@ -625,6 +625,7 @@ void NetworkInterface::deleteDataStructures() {
   if(ases_hash)             { delete(ases_hash);  ases_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
+
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
     aggregated_flows_hash->cleanup();
@@ -632,11 +633,6 @@ void NetworkInterface::deleteDataStructures() {
     aggregated_flows_hash = NULL;
   }
 #endif
-
-  if(ndpi_struct) {
-    ndpi_exit_detection_module(ndpi_struct);
-    ndpi_struct = NULL;
-  }
 
   if(ifname) {
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s shutdown", ifname);
@@ -655,9 +651,9 @@ NetworkInterface::~NetworkInterface() {
     cleanup();
   }
 
-  if(db)             delete db;
-  if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
+  
+  if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(mdns)           delete mdns;
@@ -681,10 +677,15 @@ NetworkInterface::~NetworkInterface() {
     flowHashing = NULL;
   }
 
-  ndpi_exit_detection_module(ndpi_struct);
+  if(ndpi_struct) {
+    ndpi_exit_detection_module(ndpi_struct);
+    ndpi_struct = NULL;
+  }
+
   delete frequentProtocols;
   delete frequentMacs;
-
+  if(db)             delete db;
+  
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
 #ifndef HAVE_NEDGE
@@ -773,8 +774,6 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 #ifdef NTOPNG_PRO
 
 int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** DUMP ***");
-  
   if(db
      && f
      && (f->get_packets() > 0)
@@ -786,8 +785,6 @@ int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
 				 "Going to dump AggregatedFlow to database [%s]",
 				 f->print(buf, sizeof(buf)));
 #endif
-
-    //return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(f));
     
     return(db->dumpAggregatedFlow(f));
   }

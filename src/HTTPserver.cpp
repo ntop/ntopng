@@ -39,7 +39,7 @@ static HTTPserver *httpserver;
  * Send error message back to a client.
  */
 int send_error(struct mg_connection *conn, int status, const char *reason, const char *fmt, ...) {
-  va_list	ap;
+  va_list ap;
 
   conn->status_code = status;
 
