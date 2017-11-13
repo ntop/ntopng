@@ -2510,7 +2510,7 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
    print("var last_zmq_msg_drops = ".. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
 
-   print("var last_probe_zmq_exported_flows = ".. ifstats["zmq.num_flow_exports"] .. ";\n")
+   print("var last_probe_zmq_exported_flows = ".. (ifstats["zmq.num_flow_exports"] or 0) .. ";\n")
 end
 
 print [[
