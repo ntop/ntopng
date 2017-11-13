@@ -3470,15 +3470,20 @@ static int ntop_rrd_fetch(lua_State* vm) {
   rrd_value_t *data, *p;
   char **names;
   char *filename, *cf;
-  time_t t, start, end, last_update;
-  int status;
+  time_t t, start, end;
+#if 0
+  time_t last_update;
   unsigned long ds_count;
+#endif
+  int status;
 
   if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK)
     return status;
 
+#if 0
   if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1)
     return(CONST_LUA_ERROR);
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
 
@@ -3505,6 +3510,7 @@ static int ntop_rrd_fetch(lua_State* vm) {
   lua_newtable(vm);
   p = data;
   for(t=start+1, i=0; t<end; t+=step, i++) {
+#if 0
     bool add_point;
 
     /* Check for avoid going after the last point set */
@@ -3534,6 +3540,7 @@ static int ntop_rrd_fetch(lua_State* vm) {
       add_point = true;
 
     if(add_point) {
+#endif
       lua_newtable(vm);
     
       for(j=0; j<ds_cnt; j++) {
@@ -3547,8 +3554,10 @@ static int ntop_rrd_fetch(lua_State* vm) {
       }
       
       lua_rawseti(vm, -2, i+1);
+#if 0
     } else
       break;
+#endif
   }
   rrd_freemem(data);
 

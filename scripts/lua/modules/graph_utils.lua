@@ -1211,8 +1211,12 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local sampling = 1
    local s = {}
    local totalval, avgval = {}, {}
+   local now = os.time()
+
    for i, v in ipairs(fdata) do
       local instant = fstart + i * fstep  -- this is the instant in time corresponding to the datapoint
+      if instant > now then break end
+
       s[0] = instant  -- s holds the instant and all the values
       totalval[instant] = 0  -- totalval holds the sum of all values of this instant
       avgval[instant] = 0
