@@ -1417,7 +1417,8 @@ void Ntop::daemonize() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Parent process is exiting (this is normal)");
 
-  signal(SIGHUP, SIG_IGN);
+  signal(SIGPIPE, SIG_IGN);
+  signal(SIGHUP,  SIG_IGN);
   signal(SIGCHLD, SIG_IGN);
   signal(SIGQUIT, SIG_IGN);
 
