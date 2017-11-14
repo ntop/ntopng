@@ -372,7 +372,6 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 	  delete aggregatedFlow;
 	  return;
 	} else {
-
 #ifdef AGGREGATED_FLOW_DEBUG
 	  char buf[256];
 

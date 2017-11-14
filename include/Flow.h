@@ -283,6 +283,8 @@ class Flow : public GenericHashEntry {
   inline void* get_srv_id()                       { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()                 { return(cli_host->get_ip()->get_ipv4());  };
   inline u_int32_t get_srv_ipv4()                 { return(srv_host->get_ip()->get_ipv4());  };
+  inline struct ndpi_in6_addr* get_cli_ipv6()     { return(cli_host->get_ip()->get_ipv6());  };
+  inline struct ndpi_in6_addr* get_srv_ipv6()     { return(srv_host->get_ip()->get_ipv6());  };
   inline u_int16_t get_cli_port()                 { return(ntohs(cli_port));                 };
   inline u_int16_t get_srv_port()                 { return(ntohs(srv_port));                 };
   inline u_int16_t get_vlan_id()                  { return(vlanId);                          };
