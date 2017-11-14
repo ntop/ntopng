@@ -419,6 +419,7 @@ int Utils::dropPrivileges() {
 #ifndef WIN32
   struct passwd *pw = NULL;
   const char *username;
+  int rv;
 
   if(getgid() && getuid()) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
@@ -440,6 +441,13 @@ int Utils::dropPrivileges() {
   }
 
   if(pw != NULL) {
+    if(ntop->getPrefs()->get_pid_path() != NULL) {
+      /* Change PID file ownership to be able to delete it on shutdown */
+      rv = chown(ntop->getPrefs()->get_pid_path(), pw->pw_uid, pw->pw_gid);
+      if(rv != 0)
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change owner to PID in file %s", ntop->getPrefs()->get_pid_path());
+    }
+
     /* Drop privileges */
     if((setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]",

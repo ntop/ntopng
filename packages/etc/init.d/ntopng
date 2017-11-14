@@ -225,10 +225,17 @@ stop_ntopng() {
     for i in {1..5}
     do  
         get_ntopng_pid
-        if [ "${PID}" -gt 0 ]; then
-            kill -15 "$PID" &> /dev/null
-            MSG="Sent kill to ntop PID $PID"
-            sleep 1
+        if [ "${PID}" -gt 0 ] && [ -d "/proc/${PID}" ]; then
+            if grep -q ntopng "/proc/${PID}/comm"; then
+              kill -15 "$PID" &> /dev/null
+              MSG="Sent kill to ntop PID $PID"
+              sleep 1
+            else
+              MSG="Refusing to kill a process (PID=${PID}) which is not ntopng"
+              ERROR=1
+              RETVAL=1
+              error_handler "quit"
+            fi
         else
             MSG="Stopped ntopng PID $PID"
             break
