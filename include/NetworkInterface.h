@@ -276,7 +276,8 @@ class NetworkInterface {
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
-  int dumpAggregatedFlow(AggregatedFlow *f);
+  int  dumpAggregatedFlow(AggregatedFlow *f);
+  void flushFlowDump();
 #endif
   int dumpDBFlow(time_t when, Flow *f);
   int dumpEsFlow(time_t when, Flow *f);

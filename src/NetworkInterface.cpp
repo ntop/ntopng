@@ -122,7 +122,7 @@ NetworkInterface::NetworkInterface(const char *name,
     mdns = new MDNS(this);
     discovery = new NetworkDiscovery(this);
   }
-    
+
   if(id >= 0) {
     u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
@@ -183,7 +183,7 @@ NetworkInterface::NetworkInterface(const char *name,
 	goto enable_aggregation;
       }
 #endif
-    
+
       if((db == NULL)
 	 && (ntop->getPrefs()->do_dump_flows_on_mysql()
 	     || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
@@ -196,7 +196,7 @@ NetworkInterface::NetworkInterface(const char *name,
 	enable_aggregation:
 	  aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
 							 ntop->getPrefs()->get_max_num_flows());
-	  
+
 	  ntop->getPrefs()->enable_flow_aggregation();
 	  nextFlowAggregation = FLOW_AGGREGATION_DURATION;
 	} else
@@ -215,7 +215,7 @@ NetworkInterface::NetworkInterface(const char *name,
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
-  } else /* id < 0 */ {    
+  } else /* id < 0 */ {
 #ifdef NTOPNG_PRO
     aggregated_flows_hash = NULL;
 #endif
@@ -651,7 +651,7 @@ NetworkInterface::~NetworkInterface() {
   }
 
   deleteDataStructures();
-  
+
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
@@ -684,7 +684,7 @@ NetworkInterface::~NetworkInterface() {
   delete frequentProtocols;
   delete frequentMacs;
   if(db)             delete db;
-  
+
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
 #ifndef HAVE_NEDGE
@@ -774,21 +774,25 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 
 int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
   if(db
-     && f
-     && (f->get_packets() > 0)
-     && ntop->getPrefs()->is_enterprise_edition()
-     ) {
+     && f && (f->get_packets() > 0)
+     && ntop->getPrefs()->is_enterprise_edition()) {
 #ifdef AGGREGATED_FLOW_DEBUG
     char buf[256];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Going to dump AggregatedFlow to database [%s]",
 				 f->print(buf, sizeof(buf)));
 #endif
-    
+
     return(db->dumpAggregatedFlow(f));
   }
 
   return(-1);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::flushFlowDump() {
+  if(db) db->flush();
 }
 
 #endif
@@ -6214,7 +6218,7 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
 #endif
 
   src_ip.set(srcHost), dst_ip.set(dstHost);
-  f = flows_hash->find(&src_ip, &dst_ip, sport, dport, 
+  f = flows_hash->find(&src_ip, &dst_ip, sport, dport,
 		       0 /* vlanId */, protocol, &src2dst_direction);
 
   if(f) {
@@ -6231,7 +6235,7 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s [%lu][%s:%d -> %s:%d] [pkts %lu/%lu][bytes %lu/%lu]",
 			       msg, protocol,
-			       Utils::intoaV4(ntohl(srcHost), buf, sizeof(buf)), ntohs(sport), 
+			       Utils::intoaV4(ntohl(srcHost), buf, sizeof(buf)), ntohs(sport),
 			       Utils::intoaV4(ntohl(dstHost), buf1, sizeof(buf)), ntohs(dport),
 			       s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
 #endif
