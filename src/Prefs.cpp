@@ -270,6 +270,9 @@ void usage() {
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 #ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
+#ifdef HAVE_NDB
+	 "                                    | ndb           Dump in nDB\n"
+#endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   es;<idx type>;<idx name>;<es URL>;<http auth>\n"
