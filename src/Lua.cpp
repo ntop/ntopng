@@ -86,8 +86,8 @@ Lua::~Lua() {
 int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type) {
   if(lua_type(vm, pos) != expected_type) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "%s : expected %s, got %s", func,
-				 lua_typename(vm, expected_type),
+				 "%s : expected %s[@pos %d], got %s", func,
+				 lua_typename(vm, expected_type), pos,
 				 lua_typename(vm, lua_type(vm,pos)));
     return(CONST_LUA_PARAM_ERROR);
   }
@@ -3204,20 +3204,25 @@ static int ntop_ts_set(lua_State* vm) {
     if(!ntop_interface)
       return(CONST_LUA_ERROR);
 
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER))
+      return(CONST_LUA_PARAM_ERROR);
     ts = (u_int32_t)lua_tonumber(vm, id++);
   
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER))
+      return(CONST_LUA_PARAM_ERROR);
     ifaceId = (u_int8_t)lua_tonumber(vm, id++);
   
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER))
+      return(CONST_LUA_PARAM_ERROR);
     step = (u_int32_t)lua_tonumber(vm, id++);
 
     if((series_id = ntop_ts_step_to_series_id(step)) == -1)
       return(CONST_LUA_ERROR);
 
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-    if((label = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING))
+      return(CONST_LUA_PARAM_ERROR);
+    if((label = (const char*)lua_tostring(vm, id++)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
 
     if(lua_type(vm, id) != LUA_TNIL) {
       if(lua_type(vm, id) == LUA_TSTRING)
@@ -3225,8 +3230,10 @@ static int ntop_ts_set(lua_State* vm) {
     } else
       id++;
 
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-    if((metric = (const char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING))
+      return(CONST_LUA_PARAM_ERROR);
+    if((metric = (const char*)lua_tostring(vm, id++)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
   
     if(lua_type(vm, id) == LUA_TNUMBER)
       sent = (u_int64_t)lua_tonumber(vm, id++);
