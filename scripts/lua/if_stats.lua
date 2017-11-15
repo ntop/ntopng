@@ -99,7 +99,7 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 if (isAdministrator()) then
-   if (page == "config") and (not table.empty(_POST)) then
+   if (page == "config") and (_SERVER["REQUEST_METHOD"] == "POST") then
       -- TODO move keys to new schema: replace ifstats.name with ifid
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
 
@@ -118,7 +118,7 @@ if (isAdministrator()) then
       interface.loadScalingFactorPrefs()
    end
 
-   if is_packetdump_enabled and (page == "packetdump") and (not table.empty(_POST)) then
+   if is_packetdump_enabled and (page == "packetdump") and (_SERVER["REQUEST_METHOD"] == "POST") then
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic', ternary(isEmptyString(_POST["dump_all_traffic"]), "false", "true"))
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap', ternary(isEmptyString(_POST["dump_traffic_to_tap"]), "false", "true"))
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk', ternary(isEmptyString(_POST["dump_traffic_to_disk"]), "false", "true"))
@@ -1026,13 +1026,9 @@ end
       end
       print [["></input> MB<br>
     <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
-    </td></tr>
-      <tr>
-         <td colspan="2">
-            <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-         </td>
-      </tr>]]
+    </td>]]
    print("</table>")
+   print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>]]
    print("</form>")
    print[[<script>
       aysHandleForm("#packetdump_form");
@@ -1119,7 +1115,7 @@ elseif(page == "config") then
    local trigger_alerts = true
    local trigger_alerts_checked = "checked"
 
-   if not table.empty(_POST) then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["trigger_alerts"] ~= "1" then
          trigger_alerts = false
          trigger_alerts_checked = ""
@@ -1145,7 +1141,7 @@ elseif(page == "config") then
    local interface_rrd_creation = true
    local interface_rrd_creation_checked = "checked"
 
-   if not table.empty(_POST) then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["interface_rrd_creation"] ~= "1" then
          interface_rrd_creation = false
          interface_rrd_creation_checked = ""
@@ -1175,7 +1171,7 @@ elseif(page == "config") then
       local interface_network_discovery = true
       local interface_network_discovery_checked = "checked"
 
-      if not table.empty(_POST) then
+      if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["interface_network_discovery"] ~= "1" then
 	    interface_network_discovery = false
 	    interface_network_discovery_checked = ""
@@ -1199,12 +1195,9 @@ elseif(page == "config") then
       </tr>]]
    end
 
-      print[[<tr>
-      <td colspan="2">
-         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-      </td>
-   </tr>
+      print[[
    </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
       aysHandleForm("#iface_config");

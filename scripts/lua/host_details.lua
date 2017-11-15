@@ -1694,7 +1694,7 @@ elseif (page == "config") then
       return
    end
 
-   if not table.empty(_POST) then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
       if(host["localhost"] == true and is_packetdump_enabled) then
          if(_POST["dump_traffic"] == "1") then
             dump_status = true
@@ -1842,10 +1842,8 @@ elseif (page == "config") then
    end
 
    print[[
-      <td colspan="2">
-         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-      </td>
    </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
       aysHandleForm("#host_config");

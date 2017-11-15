@@ -31,7 +31,7 @@ local prefs = ntop.getPrefs()
 
 if isAdministrator() then
 
-   if not table.empty(_POST) then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
       setHostAltName(mac, _POST["custom_name"])
 
       local devtype = tonumber(_POST["device_type"])
@@ -306,12 +306,9 @@ elseif(page == "config") then
 	 printPoolChangeDropdown(pool_id)
       end
 
-print[[<tr>
-         <td colspan="2">
-            <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-         </td>
-      </tr>
+print[[
    </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
       aysHandleForm("#mac_config");

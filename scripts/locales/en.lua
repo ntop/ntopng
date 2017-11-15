@@ -1067,6 +1067,7 @@ local  en = {
    categories_page = {
       traffic_category = "Traffic Category",
       target = "Target",
+      search_application = "Search Application",
    },
 
    snmp_page = {
