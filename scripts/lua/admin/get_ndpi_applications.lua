@@ -79,6 +79,8 @@ for app_name, app_id in pairs(applications) do
    ::continue::
 end
 
+local categories = interface.getnDPICategories()
+
 local res_formatted = {}
 
 local cur_num = 0
@@ -96,7 +98,18 @@ for app, _ in pairsByValues(sorter, sOrder) do
    record["column_ndpi_application_id"] = tostring(app["app_id"])
    record["column_ndpi_application_category_id"] = tostring(app["cat"]["id"])
    record["column_ndpi_application"] = app["app_name"]
-   record["column_ndpi_application_category"] = app["cat"]["name"]
+
+   cat_select_dropdown = '<select class="form-control" name="proto_' .. app["app_id"] .. '">'
+   local current_id = tostring(app["cat"]["id"])
+   
+   for cat_name, cat_id in pairs(categories) do
+      cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [["]] ..
+         ternary(cat_id == current_id, " selected", "") .. [[>]] ..
+         cat_name .. [[</option>]]
+   end
+   cat_select_dropdown = cat_select_dropdown .. "</select>"
+
+   record["column_ndpi_application_category"] = cat_select_dropdown
 
    res_formatted[#res_formatted + 1] = record
    ::continue::

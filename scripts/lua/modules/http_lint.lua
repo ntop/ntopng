@@ -557,6 +557,15 @@ local function validateZoom(zoom)
    end
 end
 
+local function validateCategory(cat)
+   if not starts(cat, "cat_") then
+      return false
+   end
+
+   local id = split(cat, "cat_")[2]
+   return validateNumber(id)
+end
+
 local function validateShapedElement(elem_id)
    local id
    if starts(elem_id, "cat_") then
@@ -995,6 +1004,9 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 -- ALERTS (see alert_utils.lua)
    ["op_"]                     =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
    ["value_"]                  =  {validateAlertDescriptor,   validateEmptyOr(validateNumber)}, -- key: an alert descriptor, value: alert value
+
+-- Protocol to categories match
+   ["proto_"]                  =  {validateProtocolId, validateCategory},
 
 -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
