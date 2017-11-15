@@ -1716,7 +1716,7 @@ local function getEngagedAlertsCache(ifid, granularity)
 
   if isEmptyString(engaged_cache) then
     engaged_cache = {}
-    local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)})
+    local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)}) or {}
 
     for _, res in pairs(sql_res) do
       local entity_type = alertEntityRaw(res.alert_entity)

@@ -31,17 +31,13 @@ local prefs = ntop.getPrefs()
 
 if isAdministrator() then
 
-   if(_POST["custom_name"] ~= nil) then
+   if not table.empty(_POST) then
       setHostAltName(mac, _POST["custom_name"])
-   end
 
-   if(_POST["device_type"] ~=nil) then
       local devtype = tonumber(_POST["device_type"])
       setCustomDeviceType(mac, devtype)
       interface.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
-   end
 
-   if (_POST["pool"] ~= nil) then
       pool_id = _POST["pool"]
       local prev_pool = host_pools_utils.getMacPool(mac)
 
@@ -289,22 +285,20 @@ elseif(page == "config") then
    end
 
    print[[
+   <form id="mac_config" class="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">
       <tr>
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>]]
-   print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
 
-      print[[<input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
+      print[[<input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width:240px;display:inline;" value="]]
       if(label ~= nil) then print(label) end
-      print("\"></input> &nbsp;")
+      print("\"></input> &nbsp;<div style=\"width:240px;display:inline-block;\" >")
 
       discover.printDeviceTypeSelector(mac_info.devtype, "device_type")
 
-      print [[
-	 &nbsp;<button  type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[</form>
+      print [[</div>
          </td>
       </tr>]]
 
@@ -312,7 +306,16 @@ elseif(page == "config") then
 	 printPoolChangeDropdown(pool_id)
       end
 
-print[[</table>]]
+print[[<tr>
+         <td colspan="2">
+            <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+         </td>
+      </tr>
+   </table>
+   </form>
+   <script>
+      aysHandleForm("#mac_config");
+   </script>]]
 
 end
 

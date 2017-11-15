@@ -1764,16 +1764,12 @@ function printPoolChangeDropdown(pool_id)
    output[#output + 1] = [[<tr>
       <th>]] .. i18n("host_config.host_pool") .. [[</th>
       <td>
-         <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
             <select name="pool" class="form-control" style="width:20em; display:inline;">]]
 
    output[#output + 1] = poolDropdown(pool_id)
 
    output[#output + 1] = [[
             </select>&nbsp;
-            <input id="csrf" name="csrf" type="hidden" value="]] .. ntop.getRandomCSRFValue() ..[[" />
-            <button type="submit" class="btn btn-default">]] .. i18n("save") ..  [[</button>
-         </form> 
         <A HREF=/lua/if_stats.lua?page=pools#create><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
    .. i18n("host_pools.edit_host_pools") .. [[</A>
    </tr>]]

@@ -1687,16 +1687,16 @@ elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then
+   local dump_status = host["dump_host_traffic"]
+   local trigger_alerts = true
 
    if(not isAdministrator()) then
       return
    end
 
-   if(host["localhost"] == true and is_packetdump_enabled) then
-      local dump_status = host["dump_host_traffic"]
-
-      if(_POST["dump_traffic"] ~= nil) then
-         if(_POST["dump_traffic"] == "true") then
+   if not table.empty(_POST) then
+      if(host["localhost"] == true and is_packetdump_enabled) then
+         if(_POST["dump_traffic"] == "1") then
             dump_status = true
          else
             dump_status = false
@@ -1704,6 +1704,34 @@ elseif (page == "config") then
          interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
       end
 
+      if host["localhost"] == true then
+         if _POST["trigger_alerts"] ~= "1" then
+            trigger_alerts = false
+         else
+            trigger_alerts = true
+         end
+
+         ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
+
+         interface.select(ifname)
+         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      end
+
+      if(ifstats.inline and (host.localhost or host.systemhost)) then
+         local drop_host_traffic = _POST["drop_host_traffic"]
+         local host_key = hostinfo2hostkey(host_info)
+
+         if(drop_host_traffic ~= "1") then
+            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
+         else
+            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, "true")
+         end
+
+         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+      end
+   end
+
+   if(host["localhost"] == true and is_packetdump_enabled) then
       if(dump_status) then
          dump_traffic_checked = 'checked="checked"'
          dump_traffic_value = "false" -- Opposite
@@ -1713,43 +1741,32 @@ elseif (page == "config") then
       end
    end
 
-   local trigger_alerts = true
-   local trigger_alerts_checked = "checked"
+   local trigger_alerts_checked
 
    if host["localhost"] == true then
-      if (_POST["trigger_alerts"] ~= nil) then
-         if _POST["trigger_alerts"] ~= "true" then
-            trigger_alerts = false
-            trigger_alerts_checked = ""
-         end
+      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
 
-         ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
-
-         interface.select(ifname)
-         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      if trigger_alerts == "false" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
       else
-         trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
-         if trigger_alerts == "false" then
-            trigger_alerts = false
-            trigger_alerts_checked = ""
-         end
+         trigger_alerts = true
+         trigger_alerts_checked = "checked"
       end
    end
 
    print[[
+   <form id="host_config" class="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">
       <tr>
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>
-            <form class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
+               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
    if(host["label"] ~= nil) then print(host["label"]) end
    print[["></input> ]]
 
    print [[
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-            </form>
          </td>
       </tr>]]
 
@@ -1761,14 +1778,10 @@ elseif (page == "config") then
       print [[<tr>
          <th>]] print(i18n("host_config.trigger_host_alerts")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
                   ]] print(i18n("host_config.trigger_alerts_for_host",{host=host["name"]})) print[[
                </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
          </td>
       </tr>]]
    end
@@ -1777,14 +1790,10 @@ elseif (page == "config") then
       print [[<tr>
          <th>]] print(i18n("host_config.dump_host_traffic")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
-               <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="dump_traffic" value="1" ]] print(dump_traffic_checked) print[[>
                   <i class="fa fa-hdd-o fa-lg"></i>
                   <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">]] print(i18n("host_config.dump_traffic")) print[[</a>
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>]]
+               </input>]]
 
       local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
       local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
@@ -1804,25 +1813,12 @@ elseif (page == "config") then
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy
-      drop_host_traffic = _POST["drop_host_traffic"]
-      host_key = hostinfo2hostkey(host_info)
-      if(drop_host_traffic ~= nil) then
-         if(drop_host_traffic == "false") then
-            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         else
-            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
-         end
-
-         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
-      else
-         drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         if(drop_host_traffic == nil) then drop_host_traffic = "false" end
-      end
-
       print("<tr><th>" .. i18n("host_config.host_traffic_policy") .. "</th><td>")
 
       if(host["localhost"] == true) then
+         local host_key = hostinfo2hostkey(host_info)
          drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+
          if(drop_traffic == "true") then
             drop_traffic_checked = 'checked="checked"'
             drop_traffic_value = "false" -- Opposite
@@ -1831,10 +1827,7 @@ elseif (page == "config") then
             drop_traffic_value = "true" -- Opposite
          end
 
-         print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
-         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> '..i18n("host_config.drop_all_host_traffic")..'</input>')
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('</form>')
+         print('<input type="checkbox" name="drop_host_traffic" value="1" '..drop_traffic_checked..'"> '..i18n("host_config.drop_all_host_traffic")..'</input> &nbsp;')
       end
 
       print[[<a class="btn btn-default btn-sm" href="]]
@@ -1849,7 +1842,14 @@ elseif (page == "config") then
    end
 
    print[[
-   </table>]]
+      <td colspan="2">
+         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+      </td>
+   </table>
+   </form>
+   <script>
+      aysHandleForm("#host_config");
+   </script>]]
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then

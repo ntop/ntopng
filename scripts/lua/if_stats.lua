@@ -39,17 +39,13 @@ ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class)
-   print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value.."") end
-      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">]] print(i18n("save")) print[[</button>]]
+      print[[">]]
    else
       if(value ~= nil) then print(value) end
    end
-   print("</form>\n")
 end
 
 if(_POST["switch_interface"] ~= nil) then
@@ -103,70 +99,37 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 if (isAdministrator()) then
-   if(_POST["custom_name"] ~=nil) then
-	 -- TODO move keys to new schema: replace ifstats.name with ifid
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
-   end
+   if (page == "config") and (not table.empty(_POST)) then
+      -- TODO move keys to new schema: replace ifstats.name with ifid
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
 
-   if(_POST["ifSpeed"] ~= nil) then
       local ifspeed_cache = 'ntopng.prefs.'..ifstats.name..'.speed'
       if isEmptyString(_POST["ifSpeed"]) then
          ntop.delCache(ifspeed_cache)
       else
          ntop.setCache(ifspeed_cache, _POST["ifSpeed"])
       end
-   end
 
-   if(_POST["ifRate"] ~= nil) then
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
+
+      local sf = tonumber(_POST["scaling_factor"])
+      if(sf == nil) then sf = 1 end
+      ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
+      interface.loadScalingFactorPrefs()
    end
 
-   if(_POST["scaling_factor"] ~= nil) then
-	 local sf = tonumber(_POST["scaling_factor"])
-	 if(sf == nil) then sf = 1 end
-	 ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
-	 interface.loadScalingFactorPrefs()
-   end
+   if is_packetdump_enabled and (page == "packetdump") and (not table.empty(_POST)) then
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic', ternary(isEmptyString(_POST["dump_all_traffic"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap', ternary(isEmptyString(_POST["dump_traffic_to_tap"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk', ternary(isEmptyString(_POST["dump_traffic_to_disk"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic', ternary(isEmptyString(_POST["dump_unknown_to_disk"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', _POST["sampling_rate"])
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file', _POST["max_pkts_file"])
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
+      local max_files = ternary(not isEmptyString(_POST["max_files"]), _POST["max_files"], 500)
+      max_files = tonumber(max_files) * 1e6
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files))
 
-   if is_packetdump_enabled then
-      if(_POST["dump_all_traffic"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_POST["dump_all_traffic"])
-      end
-      if(_POST["dump_traffic_to_tap"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_POST["dump_traffic_to_tap"])
-      end
-      if(_POST["dump_traffic_to_disk"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_POST["dump_traffic_to_disk"])
-      end
-      if(_POST["dump_unknown_to_disk"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic',_POST["dump_unknown_to_disk"])
-      end
-
-      if(_POST["sampling_rate"] ~= nil) then
-	 page = "packetdump"
-	 local val = ternary(not isEmptyString(_POST["sampling_rate"]), _POST["sampling_rate"], "1")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
-      end
-      if(_POST["max_pkts_file"] ~= nil) then
-	 page = "packetdump"
-	 local val = ternary(not isEmptyString(_POST["max_pkts_file"]), _POST["max_pkts_file"], "1000000")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file', val)
-      end
-      if(_POST["max_sec_file"] ~= nil) then
-	 page = "packetdump"
-	 local val = ternary(not isEmptyString(_POST["max_sec_file"]), _POST["max_sec_file"], "300")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
-      end
-      if(_POST["max_files"] ~= nil) then
-	 page = "packetdump"
-	 local max_files = ternary(not isEmptyString(_POST["max_files"]), _POST["max_files"], 500)
-	 max_files = tonumber(max_files) * 1e6
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files))
-      end
       interface.loadDumpPrefs()
    end
 end
@@ -977,51 +940,36 @@ if is_packetdump_enabled then
     dump_traffic_tap_value = "true" -- Opposite
   end
 
+   print("<form id=\"packetdump_form\" class=\"form-inline\" method=\"post\">")
    print("<table class=\"table table-striped table-bordered\">\n")
-
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
    print("<tr><th rowspan=2 width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">'..' '..i18n("packetdump_page.dump_all_traffic"))
+	       print('<input name="dump_all_traffic" type="checkbox" value="1" '..dump_all_traffic_checked..'>'..' '..i18n("packetdump_page.dump_all_traffic"))
 	       print('</input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> '..i18n("packetdump_page.dump_unknown_traffic")..' </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
+	       print('<input name="dump_unknown_to_disk" type="checkbox" value="1" '..dump_unknown_checked..'> '..i18n("packetdump_page.dump_unknown_traffic")..' </input>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump_to_disk").. "</th><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
+	       print('<input name="dump_traffic_to_disk" type="checkbox" value="1" '..dump_traffic_checked..'> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
 	       if(dump_traffic_checked ~= "") then
 		 local dumped = interface.getInterfacePacketsDumpedFile()
 	         print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print('</input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th>" .. i18n("packetdump_page.packet_dump_to_tap") .. "</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
+	       print('<input name="dump_traffic_to_tap" type="checkbox" value="1" '..dump_traffic_tap_checked..'> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
  		 print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print(' </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
    else
       print(i18n("packetdump_page.packet_dump_to_tap_disabled_message"))
 end
@@ -1030,14 +978,10 @@ end
    print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
    print [[<td>]]
 
-   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print [[<input type="number" class="form-control" name="sampling_rate" placeholder="" min="1" step="1" max="100000000" value="]]
+   print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="sampling_rate" placeholder="" min="1" step="1" max="100000000" value="]]
    local srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
    if not isEmptyString(srate) then print(srate) else print("1") end
    print [["></input>
-      &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
     </td></tr>
        ]]
 
@@ -1046,56 +990,53 @@ end
    pcapdir = dirs.workingdir .."/"..ifstats.id.."/pcap/"
    print(pcapdir.."</td></tr>\n")
    print("<tr><th width=250>" .. i18n("packetdump_page.max_packets_per_file") .. "</th>\n")
-   print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" class="form-control" name="max_pkts_file" placeholder="" min="1" step="1" max="100000000" value="]]
+   print [[<td>]]
+      print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="max_pkts_file" placeholder="" min="1" step="1" max="100000000" value="]]
       local max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
       if(max_pkts_file ~= nil and max_pkts_file ~= "") then
 	 print(max_pkts_file.."")
       else
 	 print(interface.getInterfaceDumpMaxPkts().."")
       end
-      print [["></input> pkts &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
+      print [["></input> pkts<br>
     <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
     </td></tr>
        ]]
    print("<tr><th width=250>" .. i18n("packetdump_page.max_duration_file") .. "</th>\n")
-   print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" class="form-control" name="max_sec_file" placeholder="" min="60" step="60" max="100000000" value="]]
+   print [[<td>]]
+      print [[<input type="number" class="form-control" style="width:127px;display:inline;" name="max_sec_file" placeholder="" min="60" step="60" max="100000000" value="]]
       local max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
       if not isEmptyString(max_sec_file) then
 	 print(max_sec_file.."")
       else
 	 print(interface.getInterfaceDumpMaxSec().."")
       end
-      print [["></input>
-		  &nbsp;sec &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
+      print [["></input> sec<br>
     <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
     </td></tr>
        ]]
    print("<tr><th width=250>" .. i18n("packetdump_page.max_dump_files") .. "</th>\n")
-   print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" class="form-control" name="max_files" placeholder="" min="1" step="1" max="10000" value="]]
+   print [[<td>]]
+      print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="max_files" placeholder="" min="1" step="1" max="500000000" value="]]
       local max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
       if not isEmptyString(max_files) then
 	 print((max_files / 1e6).."")
       else
 	 print(interface.getInterfaceDumpMaxFiles().."")
       end
-      print [["></input>
-		  &nbsp; MB &nbsp; <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
+      print [["></input> MB<br>
     <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
     </td></tr>
-      ]]
+      <tr>
+         <td colspan="2">
+            <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+         </td>
+      </tr>]]
    print("</table>")
+   print("</form>")
+   print[[<script>
+      aysHandleForm("#packetdump_form");
+   </script>]]
 end
 elseif(page == "alerts") then
 
@@ -1110,6 +1051,8 @@ elseif(page == "config") then
    end
 
    print[[
+   <form id="iface_config" lass="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">]]
 
    if ((not interface.isPcapDumpInterface()) and
@@ -1176,8 +1119,8 @@ elseif(page == "config") then
    local trigger_alerts = true
    local trigger_alerts_checked = "checked"
 
-   if (_POST["trigger_alerts"] ~= nil) then
-      if _POST["trigger_alerts"] ~= "true" then
+   if not table.empty(_POST) then
+      if _POST["trigger_alerts"] ~= "1" then
          trigger_alerts = false
          trigger_alerts_checked = ""
       end
@@ -1194,12 +1137,7 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.trigger_interface_alerts")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
+            <input name="trigger_alerts" type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[>
          </td>
       </tr>]]
 
@@ -1207,8 +1145,8 @@ elseif(page == "config") then
    local interface_rrd_creation = true
    local interface_rrd_creation_checked = "checked"
 
-   if (_POST["interface_rrd_creation"] ~= nil) then
-      if _POST["interface_rrd_creation"] ~= "true" then
+   if not table.empty(_POST) then
+      if _POST["interface_rrd_creation"] ~= "1" then
          interface_rrd_creation = false
          interface_rrd_creation_checked = ""
       end
@@ -1226,12 +1164,7 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
          <td>
-            <form id="rrd_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="interface_rrd_creation" value="]] print(not interface_rrd_creation) print[[">
-               <input type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[ onclick="this.form.submit();">
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
+            <input name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
          </td>
       </tr>]]
 
@@ -1242,8 +1175,8 @@ elseif(page == "config") then
       local interface_network_discovery = true
       local interface_network_discovery_checked = "checked"
 
-      if (_POST["interface_network_discovery"] ~= nil) then
-	 if _POST["interface_network_discovery"] ~= "true" then
+      if not table.empty(_POST) then
+	 if _POST["interface_network_discovery"] ~= "1" then
 	    interface_network_discovery = false
 	    interface_network_discovery_checked = ""
 	 end
@@ -1261,18 +1194,21 @@ elseif(page == "config") then
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.interface_network_discovery")) print[[</th>
 	 <td>
-	    <form id="rrd_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-	       <input type="hidden" name="interface_network_discovery" value="]] print(not interface_network_discovery) print[[">
-	       <input type="checkbox" value="1" ]] print(interface_network_discovery_checked) print[[ onclick="this.form.submit();">
-	       </input>
-	       <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-	    </form>
+      <input type="checkbox" name="interface_network_discovery" value="1" ]] print(interface_network_discovery_checked) print[[>
 	 </td>
       </tr>]]
    end
 
-      print[[
-   </table>]]
+      print[[<tr>
+      <td colspan="2">
+         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+      </td>
+   </tr>
+   </table>
+   </form>
+   <script>
+      aysHandleForm("#iface_config");
+   </script>]]
 
 elseif(page == "snmp_bind") then
    if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then
