@@ -2374,6 +2374,29 @@ static int ntop_checkpoint_interface_network(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_checkpoint_network_interface(lua_State* vm) {
+  int ifid;
+  NetworkInterface *iface = NULL;
+  u_int8_t checkpoint_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+
+  ifid = (int)lua_tointeger(vm, 1);
+  iface = ntop->getInterfaceById(ifid);
+  checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
+
+  if(!iface || iface->isView() || !iface->checkPointInterfaceCounters(vm, checkpoint_id)){
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  } else
+    return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_flow_key(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Host *cli, *srv;
@@ -6400,6 +6423,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "restoreHost",            ntop_restore_interface_host },
   { "checkpointHost",         ntop_checkpoint_interface_host },
   { "checkpointNetwork",      ntop_checkpoint_interface_network },
+  { "checkpointInterface",    ntop_checkpoint_network_interface },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "getGroupedFlows",        ntop_get_interface_get_grouped_flows },
   { "getFlowsStats",          ntop_get_interface_flows_stats },

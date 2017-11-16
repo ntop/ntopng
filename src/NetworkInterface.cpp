@@ -3005,6 +3005,29 @@ bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpo
 
 /* **************************************************** */
 
+char* NetworkInterface::serializeCheckpoint() {
+  json_object *my_object, *inner;
+
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
+  if((inner = json_object_new_object()) == NULL) { json_object_put(my_object); return(NULL); }
+
+  json_object_object_add(my_object, "seen.last", json_object_new_int64(getTimeLastPktRcvd()));
+  json_object_object_add(my_object, "ndpiStats", ndpiStats.getJSONObjectForCheckpoint(this));
+
+  json_object_object_add(inner, "bytes", json_object_new_int64(getNumBytes()));
+  json_object_object_add(inner, "packets", json_object_new_int64(getNumPackets()));
+  json_object_object_add(my_object, "stats", inner);
+
+  char *rsp = strdup(json_object_to_json_string(my_object));
+
+  /* Free memory */
+  json_object_put(my_object);
+
+  return(rsp);
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {

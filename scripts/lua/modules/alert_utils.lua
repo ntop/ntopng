@@ -1835,37 +1835,25 @@ end
 
 -- #################################
 
-local function entity_threshold_status_rw(granularity, ifname_id, fname, to_write --[[nil if it's a read]], additional_path)
-   local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. granularity .. (additional_path and ("/"..additional_path) or ""))
-   local fpath = fixPath(basedir.."/"..fname)
-
-   if to_write ~= nil then
-      if not(ntop.exists(basedir)) then
-         ntop.mkdir(basedir)
-      end
-
-      -- Write new version
-      persistence.store(fpath, to_write)
-   elseif ntop.exists(fpath) then
-      -- Read old version
-      return persistence.load(fpath)
-   end
-end
-
--- #################################
-
-local function interface_threshold_status_rw(granularity, ifid,  to_write)
-   return entity_threshold_status_rw(granularity, ifid, "iface_"..ifid.."_lastdump", to_write)
-end
-
--- #################################
-
 local function check_interface_alerts(ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
-   
-   local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
-   local new_entity_info = ifstats
+
+   local checkpoints = interface.checkpointInterface(ifid, working_status.engine) or {}
+   local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+   local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+
+   if new_entity_info == nil then
+      if warning_shown == false then
+         print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+         tprint({
+            old_entity_info = old_entity_info,
+            granularity = working_status.granularity,
+            entity_value = entity_value,
+            ifname=getInterfaceName(ifid)})
+      end
+      return
+   end
 
    if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil) and (old_entity_info.stats.bytes ~= nil) then
       -- wrap check
@@ -1880,8 +1868,6 @@ local function check_interface_alerts(ifid, working_status)
    end
 
    check_entity_alerts(ifid, "interface", entity_value, working_status, old_entity_info, new_entity_info)
-
-   interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
 end
 
 local function check_networks_alerts(ifid, working_status)

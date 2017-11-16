@@ -71,6 +71,17 @@ end
 
 -- ##################################################################
 
+-- Remove the json dumps previously needed for alerts generation
+for _, ifname in pairs(interface.getIfNames()) do
+   interface.select(ifname)
+   local ifid = getInterfaceId(ifname)
+
+   local alerts_status_path = fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
+   ntop.rmdir(alerts_status_path)
+end
+
+-- ##################################################################
+
 initCustomnDPIProtoCategories()
 loadHostBlackList()
 
