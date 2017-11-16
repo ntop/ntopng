@@ -64,10 +64,6 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  for(int i = 0; i < CONST_MAX_NUM_CHECKPOINTS; i++) {
-    if(checkpoints[i]) free(checkpoints[i]);
-  }
-
   if(mac)           mac->decUses();
   if(as)            as->decUses();
   if(vlan)          vlan->decUses();
@@ -168,7 +164,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   flow_flood_victim_alert = new AlertCounter(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
   host_label_set = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false, blacklisted_alarm_emitted = false;
-  memset(&checkpoints, 0, sizeof(checkpoints));
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
@@ -1513,32 +1508,14 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 
 /* *************************************** */
 
-void Host::checkpoint(lua_State* vm, u_int8_t checkpoint_id) {
-  if(checkpoint_id >= CONST_MAX_NUM_CHECKPOINTS) {
-    if(vm) lua_pushnil(vm);
-    return;
-  }
+char* Host::serializeCheckpoint() {
+  json_object *my_object = getJSONObject();
+  char *rsp = strdup(json_object_to_json_string(my_object));
 
-  if(vm) {
-    lua_newtable(vm);
+  /* Free memory */
+  json_object_put(my_object);
 
-    if(checkpoints[checkpoint_id])
-      lua_push_str_table_entry(vm, (char*)"previous", checkpoints[checkpoint_id]);
-  }
-
-  if(checkpoints[checkpoint_id])
-    free(checkpoints[checkpoint_id]);
-
-  checkpoints[checkpoint_id] = serialize();
-
-  if(vm) {
-    if(checkpoints[checkpoint_id])
-      lua_push_str_table_entry(vm, (char*)"current", checkpoints[checkpoint_id]);
-  }
-
-  // char buf[64];
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "checkpoint for %s [host: %s]",
-  // 			       iface->get_name(), get_string_key(buf, sizeof(buf)));
+  return(rsp);
 }
 
 /* *************************************** */

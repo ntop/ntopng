@@ -167,6 +167,7 @@ using namespace std;
 #include "ntop_typedefs.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
+#include "Checkpointable.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
 #include "GenericTrafficElement.h"
