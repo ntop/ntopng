@@ -804,6 +804,7 @@
 */
 #define CONST_MAX_NUM_HOST_USES    8
 
+#define MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE 1024
 #define MAX_VALID_DNS_QUERY_LEN   96
 
 /* Keep in sync with nProbe */

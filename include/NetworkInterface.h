@@ -150,6 +150,7 @@ class NetworkInterface : public Checkpointable {
   PacketDumperTuntap *pkt_dumper_tap;
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
+  char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
 
   lua_State* initUserScriptsInterpreter(const char *lua_file, const char *context);
   void termLuaInterpreter();
@@ -288,7 +289,8 @@ class NetworkInterface : public Checkpointable {
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   bool checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id, char *host_ip, u_int16_t vlan_id);
   bool checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id, u_int8_t network_id);
-  inline bool checkPointInterfaceCounters(lua_State* vm, u_int8_t checkpoint_id) { return checkpoint(vm, checkpoint_id); }
+  inline bool checkPointInterfaceCounters(lua_State* vm, u_int8_t checkpoint_id) { return checkpoint(vm, this, checkpoint_id); }
+  inline char* getCheckpointCompressionBuffer(u_int8_t checkpoint_id) { return (checkpoint_id<CONST_MAX_NUM_CHECKPOINTS) ? checkpoint_compression_buffer[checkpoint_id] : NULL; };
   void checkPointCounters(bool drops_only);
 
   virtual char* serializeCheckpoint();

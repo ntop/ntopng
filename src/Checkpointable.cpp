@@ -23,24 +23,24 @@
 
 /* *************************************** */
 
-Checkpointable::Checkpointable(bool compress) {
+Checkpointable::Checkpointable() {
   memset(&checkpoints, 0, sizeof(checkpoints));
 
 #ifdef HAVE_ZLIB
-  compression_enabled = compress;
-
-  if(compression_enabled) {
-    compressed_lengths = (uLongf *) calloc(CONST_MAX_NUM_CHECKPOINTS, sizeof(uLongf));
-    uncompressed_lengths = (uLongf *) calloc(CONST_MAX_NUM_CHECKPOINTS, sizeof(uLongf));
-  } else
-    compressed_lengths = uncompressed_lengths = NULL;
+  /* When 0, no compression has been performed */
+  memset(&compressed_lengths, 0, sizeof(compressed_lengths));
 #endif
 }
 
 /* *************************************** */
 
-bool Checkpointable::checkpoint(lua_State* vm, u_int8_t checkpoint_id) {
+bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id) {
   char *new_data;
+
+#ifdef HAVE_ZLIB
+  char *comp_buffer = iface->getCheckpointCompressionBuffer(checkpoint_id);
+  bool is_compressed = false;
+#endif
 
   if(checkpoint_id >= CONST_MAX_NUM_CHECKPOINTS) {
     if(vm) lua_pushnil(vm);
@@ -52,26 +52,20 @@ bool Checkpointable::checkpoint(lua_State* vm, u_int8_t checkpoint_id) {
 
     if(checkpoints[checkpoint_id]) {
 #ifdef HAVE_ZLIB
-      if(compression_enabled) {
-        char *uncompressed = (char*) malloc(uncompressed_lengths[checkpoint_id] + 1);
-
-        if(uncompressed == NULL) {
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot allocate decompression buffer");
-          return false;
-        }
-
+      if((compressed_lengths[checkpoint_id] != 0) && comp_buffer) {
+        /* Value was compressed */
         int err;
+        uLongf destSize = MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE - 1;
 
-        if((err = uncompress((Bytef*)uncompressed, &uncompressed_lengths[checkpoint_id], (Bytef*)checkpoints[checkpoint_id], compressed_lengths[checkpoint_id])) != Z_OK) {
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d][len: %u]", err, uncompressed_lengths[checkpoint_id]);
-          free(uncompressed);
+        if((err = uncompress((Bytef*)comp_buffer, &destSize, (Bytef*)checkpoints[checkpoint_id], compressed_lengths[checkpoint_id])) != Z_OK) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d][len: %u]", err, destSize);
           return false;
         }
 
-        uncompressed[uncompressed_lengths[checkpoint_id]] = '\0';
-        lua_push_str_table_entry(vm, (char*)"previous", uncompressed);
-        free(uncompressed);
+        comp_buffer[destSize] = '\0';
+        lua_push_str_table_entry(vm, (char*)"previous", comp_buffer);
       } else
+        /* Not compressed */
         lua_push_str_table_entry(vm, (char*)"previous", checkpoints[checkpoint_id]);
 #else
       lua_push_str_table_entry(vm, (char*)"previous", checkpoints[checkpoint_id]);
@@ -79,47 +73,59 @@ bool Checkpointable::checkpoint(lua_State* vm, u_int8_t checkpoint_id) {
     }
   }
 
-  if(checkpoints[checkpoint_id])
+  if(checkpoints[checkpoint_id] != NULL) {
     free(checkpoints[checkpoint_id]);
+    checkpoints[checkpoint_id] = NULL;
+  }
 
   new_data = serializeCheckpoint();
 
   if(new_data) {
 #ifdef HAVE_ZLIB
-    if(compression_enabled) {
-      uLongf sourceLen = strlen(new_data);
-      uLongf destLen = compressBound(sourceLen);
+    /* Try to compress */
+    uLongf sourceLen = strlen(new_data);
+    uLongf destLen = MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE - 1;
+    char *compressed_value = NULL;
 
-      checkpoints[checkpoint_id] = (char *) malloc(destLen);
-      if(checkpoints[checkpoint_id] == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot allocate compression buffer");
-        free(new_data);
-        return false;
-      }
+    if (comp_buffer
+          && (sourceLen < MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE) /* we use the same buffer for decompression, so uncompressed data must fit it */
+          && (compress((Bytef*)comp_buffer, &destLen, (Bytef*)new_data, sourceLen) == Z_OK)
+          && (sourceLen > destLen + 2)) { /* the compression is meaningful */
+      compressed_value = (char *) malloc(destLen);
+      if (compressed_value) is_compressed = true;
+    }
 
-      compress((Bytef*)checkpoints[checkpoint_id], &destLen, (Bytef*)new_data, sourceLen);
-      uncompressed_lengths[checkpoint_id] = sourceLen;
-      compressed_lengths[checkpoint_id] = destLen;
+    if (!is_compressed) {
+      checkpoints[checkpoint_id] = new_data;
+      compressed_lengths[checkpoint_id] = 0;  /* No compression */
 
 #ifdef CHECKPOINT_COMPRESSION_DEBUG
-      /* Note: 2 * uLongf is the space needed to hold compression metadata */
-      /* Negative values means compression is not worth it! */
-      uLongf occupied_len = destLen + 2 * sizeof(uLongf);
-      float save_ratio = (1 - (occupied_len * 1.f / sourceLen)) * 100;
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checkpoint compress: [%u/%u bytes] %.2f%% save",
-              occupied_len, sourceLen, save_ratio);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refusing to compress %u bytes [bufsize=%u]",
+              sourceLen, MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE);
 #endif
-    } else
-      checkpoints[checkpoint_id] = new_data;
+    } else {
+      memcpy(compressed_value, comp_buffer, destLen);
+      checkpoints[checkpoint_id] = compressed_value;
+      compressed_lengths[checkpoint_id] = destLen; /* With compression */
+
+#ifdef CHECKPOINT_COMPRESSION_DEBUG
+      /* Negative values means compression is not worth it! */
+      float save_ratio = (1 - (destLen * 1.f / sourceLen)) * 100;
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checkpoint compress: [%u/%u bytes] %.2f%% save",
+              destLen, sourceLen, save_ratio);
+#endif
+    }
+
 #else
     checkpoints[checkpoint_id] = new_data;
-#endif
+#endif // HAVE_ZLIB
 
     if(vm)
       lua_push_str_table_entry(vm, (char*)"current", new_data);
 
 #ifdef HAVE_ZLIB
-  if(compression_enabled)
+  if(is_compressed)
     free(new_data);
 #endif
   } else {
@@ -135,9 +141,4 @@ Checkpointable::~Checkpointable() {
   for(int i = 0; i < CONST_MAX_NUM_CHECKPOINTS; i++) {
     if(checkpoints[i]) free(checkpoints[i]);
   }
-
-#ifdef HAVE_ZLIB
-  if (compressed_lengths) free(compressed_lengths);
-  if (uncompressed_lengths) free(uncompressed_lengths);
-#endif
 }
