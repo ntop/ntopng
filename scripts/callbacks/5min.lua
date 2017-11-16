@@ -70,10 +70,14 @@ local prefs = ntop.getPrefs()
 
 -- ########################################################
 
+-- We must scan the alerts on all the interfaces, not only the ones with interface_rrd_creation_enabled
+callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
+   scanAlerts("5mins", ifstats)
+end)
+
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
   basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
-  scanAlerts("5mins", ifstats)
   housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
 
    if interface_rrd_creation == "1" then

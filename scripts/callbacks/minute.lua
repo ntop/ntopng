@@ -39,9 +39,12 @@ if(verbose) then
    sendHTTPHeader('text/plain')
 end
 
-callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
+-- We must scan the alerts on all the interfaces, not only the ones with interface_rrd_creation_enabled
+callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
    scanAlerts("min", ifstats)
+end)
 
+callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
    -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
       do
         -- Dump topTalkers every minute
