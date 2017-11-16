@@ -2984,7 +2984,7 @@ bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint
   bool ret = false;
 
   if(host_ip && (h = getHost(host_ip, vlan_id)))
-    h->checkpoint(vm, checkpoint_id), ret = true;
+    ret = h->checkpoint(vm, checkpoint_id);
 
   return ret;
 }
@@ -2998,9 +2998,7 @@ bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpo
   if (stats == NULL)
     return false;
 
-  stats->checkpoint(vm, checkpoint_id);
-
-  return true;
+  return stats->checkpoint(vm, checkpoint_id);
 }
 
 /* **************************************************** */

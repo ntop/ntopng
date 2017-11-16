@@ -28,10 +28,16 @@ class Checkpointable {
  private:
   char *checkpoints[CONST_MAX_NUM_CHECKPOINTS]; /* controllable json serializations */
 
+#ifdef HAVE_ZLIB
+  bool compression_enabled;
+  uLongf *compressed_lengths;
+  uLongf *uncompressed_lengths;
+#endif
+
  public:
-  Checkpointable();
+  Checkpointable(bool compress=false);
   ~Checkpointable();
-  void checkpoint(lua_State* vm, u_int8_t checkpoint_id);
+  bool checkpoint(lua_State* vm, u_int8_t checkpoint_id);
 
   /* This function must return a serialization of the entity information needed
    * for the checkpoint. The returned string is dynamically allocated and will be

@@ -23,13 +23,13 @@
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface) : GenericHost(_iface) {
+Host::Host(NetworkInterface *_iface) : GenericHost(_iface), Checkpointable(true) {
   initialize(NULL, 0, false);
 }
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHost(_iface) {
+Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHost(_iface), Checkpointable(true) {
   ip.set(ipAddress);
   initialize(NULL, _vlanId, true);
 }
@@ -37,7 +37,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   u_int16_t _vlanId, IpAddress *_ip) : GenericHost(_iface) {
+	   u_int16_t _vlanId, IpAddress *_ip) : GenericHost(_iface), Checkpointable(true) {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -50,7 +50,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId) : GenericHost(_iface) {
+Host::Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId) : GenericHost(_iface), Checkpointable(true) {
   initialize(_mac, _vlanId, true);
 }
 
