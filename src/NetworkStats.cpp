@@ -39,6 +39,24 @@ void NetworkStats::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "inner", inner_broadcast.getNumBytes());
   lua_pushstring(vm, "broadcast");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);
-  
+  lua_settable(vm, -3);  
+}
+
+/* *************************************** */
+
+char* NetworkStats::serializeCheckpoint() {
+  json_object *my_object;
+
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
+
+  json_object_object_add(my_object, "ingress", json_object_new_int64(ingress.getNumBytes()));
+  json_object_object_add(my_object, "egress", json_object_new_int64(egress.getNumBytes()));
+  json_object_object_add(my_object, "inner", json_object_new_int64(inner.getNumBytes()));
+
+  char *rsp = strdup(json_object_to_json_string(my_object));
+
+  /* Free memory */
+  json_object_put(my_object);
+
+  return(rsp);
 }

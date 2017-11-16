@@ -2991,6 +2991,20 @@ bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint
 
 /* **************************************************** */
 
+bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id,
+					      u_int8_t network_id) {
+  NetworkStats *stats = getNetworkStats(network_id);
+
+  if (stats == NULL)
+    return false;
+
+  stats->checkpoint(vm, checkpoint_id);
+
+  return true;
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {

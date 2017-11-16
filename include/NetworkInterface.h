@@ -287,6 +287,7 @@ class NetworkInterface {
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   bool checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id, char *host_ip, u_int16_t vlan_id);
+  bool checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id, u_int8_t network_id);
   void checkPointCounters(bool drops_only);
 
   virtual u_int64_t getCheckPointNumPackets();

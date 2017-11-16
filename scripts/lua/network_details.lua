@@ -153,12 +153,8 @@ elseif (page == "config") then
       </tr>]]
 
    print[[
-   <tr>
-     <td colspan="2">
-        <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-     </td>
-    </tr>
    </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
      aysHandleForm("#network_config");

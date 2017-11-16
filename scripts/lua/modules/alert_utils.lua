@@ -1858,14 +1858,6 @@ local function interface_threshold_status_rw(granularity, ifid,  to_write)
    return entity_threshold_status_rw(granularity, ifid, "iface_"..ifid.."_lastdump", to_write)
 end
 
-local function network_threshold_status_rw(granularity, ifid, network, to_write)
-   return entity_threshold_status_rw(granularity, ifid, "alarmed_subnet_stats_lastdump", to_write, getPathFromKey(network))
-end
-
-local function host_threshold_status_rw(granularity, ifid, to_write)
-   return entity_threshold_status_rw(granularity, ifid, "hosts.json", to_write)
-end
-
 -- #################################
 
 local function check_interface_alerts(ifid, working_status)
@@ -1894,12 +1886,32 @@ end
 
 local function check_networks_alerts(ifid, working_status)
    local subnet_stats = interface.getNetworksStats()
+   local warning_shown = false
 
    for subnet, sstats in pairs(subnet_stats) do
-      local old_entity_info = network_threshold_status_rw(working_status.granularity, ifid, subnet) -- read old json
-      local new_entity_info = sstats
+      local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.engine) or {}
+
+      local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+      local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+
+      if new_entity_info == nil then
+         if warning_shown == false then
+            print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+            tprint({
+               old_entity_info = old_entity_info,
+               granularity = working_status.granularity,
+               entity_value = entity_value, network_id = network_id,
+               ifname=getInterfaceName(ifid)})
+            warning_shown = true
+         end
+         goto continue
+      end
+
+      new_entity_info["network_id"] = sstats.network_id
 
       if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil) then
+         old_entity_info["network_id"] = sstats.network_id
+
          -- wrap check
          if (old_entity_info["egress"] > new_entity_info["egress"])
           or (old_entity_info["ingress"] > new_entity_info["ingress"])
@@ -1914,8 +1926,7 @@ local function check_networks_alerts(ifid, working_status)
       end
 
       check_entity_alerts(ifid, "network", subnet, working_status, old_entity_info, new_entity_info)
-
-      network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
+      ::continue::
    end
 end
 

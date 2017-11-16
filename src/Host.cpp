@@ -1509,7 +1509,7 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 /* *************************************** */
 
 char* Host::serializeCheckpoint() {
-  json_object *my_object = getJSONObject();
+  json_object *my_object;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
