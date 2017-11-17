@@ -26,7 +26,7 @@
 /* *************************************** */
 
 HostPools::HostPools(NetworkInterface *_iface) {
-  tree = tree_shadow = NULL, swapRequested = swapInProgress = false;
+  tree = tree_shadow = NULL;
 
 #ifdef NTOPNG_PRO
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
@@ -58,10 +58,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
     throw 1;
 
   latest_swap = 0;
-  if(
-     ((swap_lock = new Mutex()) == NULL)
-     || ((inc_lock = new Mutex()) == NULL)
-     )
+  if((swap_lock = new Mutex()) == NULL)
     throw 3;
 
   if(_iface)
@@ -125,7 +122,6 @@ HostPools::~HostPools() {
   if(tree_shadow)   deleteTree(&tree_shadow);
   if(tree)          deleteTree(&tree);
   if(swap_lock)     delete swap_lock;
-  if(inc_lock)      delete inc_lock;
 
 #ifdef NTOPNG_PRO
   if(children_safe)     free(children_safe);
@@ -179,80 +175,41 @@ HostPools::~HostPools() {
 #ifdef NTOPNG_PRO
 void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
 #else
-  void HostPools::swap(AddressTree **new_trees) {
+void HostPools::swap(AddressTree **new_trees) {
 #endif
-    bool redo;
+  swap_lock->lock(__FILE__, __LINE__);
 
-    inc_lock->lock(__FILE__, __LINE__);
-
-    if(swapRequested) {
-      inc_lock->unlock(__FILE__, __LINE__);
-#ifdef HOST_POOLS_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> swapRequested", __FUNCTION__);
-#endif
-      return;
-    } else if(swapInProgress) {
-#ifdef HOST_POOLS_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> swapInProgress", __FUNCTION__);
-#endif
-      swapRequested = true;
-      inc_lock->unlock(__FILE__, __LINE__);
-      return;
-    }
-
-    inc_lock->unlock(__FILE__, __LINE__);
-
-    /* ************************* */
-
+  while(time(NULL) - latest_swap < 1) {
+    swap_lock->unlock(__FILE__, __LINE__);
+    sleep(1); /* Force at least 1 sec. time between consecutive swaps */
     swap_lock->lock(__FILE__, __LINE__);
-
-    swapInProgress = true;
-
-  begin_swap:
-#ifdef HOST_POOLS_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> swapping", __FUNCTION__);
-#endif
+  }
 
 #ifdef NTOPNG_PRO
-    /* Swap statistics */
-    if(new_stats) {
-      if(stats) {
-	if(stats_shadow) deleteStats(&stats_shadow);
-	stats_shadow = stats;
-      }
-
-      stats = new_stats;
-    }
-#endif
-
-    /* Swap address trees */
-    if(new_trees) {
-      if(tree) {
-	if(tree_shadow) deleteTree(&tree_shadow); /* Invokes the destructor */
-	tree_shadow = tree;
-      }
-
-      tree = new_trees;
+  /* Swap statistics */
+  if(new_stats) {
+    if(stats) {
+      if(stats_shadow) deleteStats(&stats_shadow);
+      stats_shadow = stats;
     }
 
-    latest_swap = time(NULL);
-
-    inc_lock->lock(__FILE__, __LINE__);
-    if(swapRequested)
-      redo = true, swapRequested = false;
-    else
-      redo = false;
-    inc_lock->unlock(__FILE__, __LINE__);
-
-    if(redo) {
-#ifdef HOST_POOLS_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> redo swap", __FUNCTION__);
-#endif
-      goto begin_swap;
-    }
-    swapInProgress = false;
-    swap_lock->unlock(__FILE__, __LINE__);
+    stats = new_stats;
   }
+#endif
+
+  /* Swap address trees */
+  if(new_trees) {
+    if(tree) {
+      if(tree_shadow) deleteTree(&tree_shadow); /* Invokes the destructor */
+      tree_shadow = tree;
+    }
+
+    tree = new_trees;
+  }
+
+  latest_swap = time(NULL);
+  swap_lock->unlock(__FILE__, __LINE__);
+}
 
 /* *************************************** */
 
@@ -464,9 +421,9 @@ void HostPools::resetPoolsStats() {
   if(stats) {
     for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if((hps = stats[i])) {
-        /* Must use the assigned hps as stats can be swapped
-           and accesses such as stats[i] could yield a NULL value */
-        hps->resetStats();
+	/* Must use the assigned hps as stats can be swapped
+	   and accesses such as stats[i] could yield a NULL value */
+	hps->resetStats();
       }
     }
   }
@@ -710,9 +667,9 @@ void HostPools::reloadPools() {
 #ifdef NTOPNG_PRO
     if(_pool_id != 0) { /* Pool id 0 stats already updated */
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
-        new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
+	new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
-        new_stats[_pool_id] = new HostPoolStats(iface);
+	new_stats[_pool_id] = new HostPoolStats(iface);
     }
 #endif
 
