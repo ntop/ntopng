@@ -43,7 +43,7 @@ class Checkpointable {
    * for the checkpoint. The returned string is dynamically allocated and will be
    * free by the caller.
    */
-  virtual char* serializeCheckpoint() = 0;
+  virtual bool serializeCheckpoint(json_object* my_object) = 0;
 };
 
 #endif

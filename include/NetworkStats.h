@@ -50,7 +50,7 @@ class NetworkStats: public Checkpointable {
   };
 
   void lua(lua_State* vm);
-  char* serializeCheckpoint();
+  bool serializeCheckpoint(json_object *my_object);
 };
 
 #endif /* _NETWORK_STATS_H_ */

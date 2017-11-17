@@ -1520,6 +1520,16 @@ end
 
 -- #################################
 
+-- Check for checkpoint expiration. This could occurr, for example, if the
+-- user disables then re-enables alerts
+local function checkpointExpired(checkpoint, working_status)
+   local tdiff = working_status.now - checkpoint.timestamp
+
+   return tdiff > 1.9 * working_status.interval
+end
+
+-- #################################
+
 local function getEngagedAlertsCacheKey(ifid, granularity)
    return "ntopng.cache.engaged_alerts_cache_ifid_"..ifid.."_".. granularity
 end
@@ -1839,6 +1849,12 @@ local function check_interface_alerts(ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
 
+   if (working_status.configured_thresholds[entity_value] == nil)
+         and (working_status.configured_thresholds["interfaces"] == nil) then
+      -- no threshold configured, no need to checkpoint
+      return
+   end
+
    local checkpoints = interface.checkpointInterface(ifid, working_status.engine) or {}
    local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
    local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
@@ -1855,16 +1871,18 @@ local function check_interface_alerts(ifid, working_status)
       return
    end
 
-   if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil) and (old_entity_info.stats.bytes ~= nil) then
+   if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil)
+            and (old_entity_info.stats.bytes ~= nil)
+            and not checkpointExpired(old_entity_info, working_status) then
       -- wrap check
       if old_entity_info.stats.bytes > ifstats.stats.bytes then
          -- reset
          if(verbose) then print("entity '"..entity_value.."' stats reset("..working_status.granularity..")") end
-         old_entity_info = {}
+         old_entity_info = nil
       end
    else
-      -- empty
-      old_entity_info = {}
+      -- reset
+      old_entity_info = nil
    end
 
    check_entity_alerts(ifid, "interface", entity_value, working_status, old_entity_info, new_entity_info)
@@ -1875,6 +1893,14 @@ local function check_networks_alerts(ifid, working_status)
    local warning_shown = false
 
    for subnet, sstats in pairs(subnet_stats) do
+      local entity_value = subnet
+
+      if (working_status.configured_thresholds[subnet] == nil)
+         and (working_status.configured_thresholds["local_networks"] == nil) then
+         -- no threshold configured, no need to checkpoint
+         goto continue
+      end
+
       local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.engine) or {}
 
       local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
@@ -1895,7 +1921,8 @@ local function check_networks_alerts(ifid, working_status)
 
       new_entity_info["network_id"] = sstats.network_id
 
-      if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil) then
+      if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil)
+               and not checkpointExpired(old_entity_info, working_status) then
          old_entity_info["network_id"] = sstats.network_id
 
          -- wrap check
@@ -1907,7 +1934,7 @@ local function check_networks_alerts(ifid, working_status)
             old_entity_info = nil
          end
       else
-         -- empty
+         -- reset
          old_entity_info = nil
       end
 
@@ -1930,15 +1957,23 @@ local function check_hosts_alerts(ifid, working_status)
 
    for host, new_entity_info in pairs(hosts) do
       local entity_value = hostinfo2hostkey(hostkey2hostinfo(host), nil, true --[[force vlan]])
+      local old_entity_info, new_entity_info
 
-      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.engine) or {}
+      if (working_status.configured_thresholds[entity_value] ~= nil)
+         or (working_status.configured_thresholds["local_hosts"] ~= nil) then
+         
+         local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.engine) or {}
 
-      local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
-      local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+         old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+         new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+      else
+         -- no threshold configured, no need to checkpoint
+         new_entity_info = {}
+      end
 
       -- attach anomalies to the new entity info (no need to attach them to the old)
-      if new_entity_info then
-	 new_entity_info["anomalies"] = hosts[host]["anomalies"]
+      if new_entity_info ~= nil then
+         new_entity_info["anomalies"] = hosts[host]["anomalies"]
       end
 
       if (new_entity_info == nil) then
@@ -1952,6 +1987,11 @@ local function check_hosts_alerts(ifid, working_status)
 	    warning_shown = true
 	 end
 	 goto continue
+      end
+
+      if (old_entity_info ~= nil) and checkpointExpired(old_entity_info, working_status) then
+         -- reset
+         old_entity_info = nil
       end
 
       check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
@@ -1976,6 +2016,8 @@ function scanAlerts(granularity, ifstats)
       engaged_cache = getEngagedAlertsCache(ifid, granularity),
       configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity),
       dirty_cache = false,
+      now = os.time(),
+      interval = granularity2sec(granularity),
    }
 
    check_interface_alerts(ifid, working_status)

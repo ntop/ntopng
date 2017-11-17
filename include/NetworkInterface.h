@@ -292,8 +292,7 @@ class NetworkInterface : public Checkpointable {
   inline bool checkPointInterfaceCounters(lua_State* vm, u_int8_t checkpoint_id) { return checkpoint(vm, this, checkpoint_id); }
   inline char* getCheckpointCompressionBuffer(u_int8_t checkpoint_id) { return (checkpoint_id<CONST_MAX_NUM_CHECKPOINTS) ? checkpoint_compression_buffer[checkpoint_id] : NULL; };
   void checkPointCounters(bool drops_only);
-
-  virtual char* serializeCheckpoint();
+  bool serializeCheckpoint(json_object *my_object);
 
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();

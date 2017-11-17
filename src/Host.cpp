@@ -1508,11 +1508,7 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 
 /* *************************************** */
 
-char* Host::serializeCheckpoint() {
-  json_object *my_object;
-
-  if((my_object = json_object_new_object()) == NULL) return(NULL);
-
+bool Host::serializeCheckpoint(json_object *my_object) {
   json_object_object_add(my_object, "ip", ip.getJSONObject());
   json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
   json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
@@ -1523,12 +1519,7 @@ char* Host::serializeCheckpoint() {
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
 
-  char *rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return(rsp);
+  return true;
 }
 
 /* *************************************** */

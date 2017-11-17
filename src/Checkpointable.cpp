@@ -35,11 +35,11 @@ Checkpointable::Checkpointable() {
 /* *************************************** */
 
 bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id) {
-  char *new_data;
+  const char *new_data;
+  json_object *json_dump;
 
 #ifdef HAVE_ZLIB
   char *comp_buffer = iface->getCheckpointCompressionBuffer(checkpoint_id);
-  bool is_compressed = false;
 #endif
 
   if(checkpoint_id >= CONST_MAX_NUM_CHECKPOINTS) {
@@ -78,9 +78,13 @@ bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t
     checkpoints[checkpoint_id] = NULL;
   }
 
-  new_data = serializeCheckpoint();
+  json_dump = json_object_new_object();
 
-  if(new_data) {
+  if(json_dump && serializeCheckpoint(json_dump)) {
+    /* Add dump timestamp */
+    json_object_object_add(json_dump, "timestamp", json_object_new_int64(time(0)));
+    new_data = json_object_to_json_string(json_dump);
+
 #ifdef HAVE_ZLIB
     /* Try to compress */
     uLongf sourceLen = strlen(new_data);
@@ -92,11 +96,10 @@ bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t
           && (compress((Bytef*)comp_buffer, &destLen, (Bytef*)new_data, sourceLen) == Z_OK)
           && (sourceLen > destLen + 2)) { /* the compression is meaningful */
       compressed_value = (char *) malloc(destLen);
-      if (compressed_value) is_compressed = true;
     }
 
-    if (!is_compressed) {
-      checkpoints[checkpoint_id] = new_data;
+    if (compressed_value == NULL) {
+      checkpoints[checkpoint_id] = strdup(new_data);
       compressed_lengths[checkpoint_id] = 0;  /* No compression */
 
 #ifdef CHECKPOINT_COMPRESSION_DEBUG
@@ -118,20 +121,17 @@ bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t
     }
 
 #else
-    checkpoints[checkpoint_id] = new_data;
+    checkpoints[checkpoint_id] = strdup(new_data);
 #endif // HAVE_ZLIB
 
     if(vm)
-      lua_push_str_table_entry(vm, (char*)"current", new_data);
+      lua_push_str_table_entry(vm, (char*)"current", (char*)new_data);
 
-#ifdef HAVE_ZLIB
-  if(is_compressed)
-    free(new_data);
-#endif
   } else {
     if(vm) lua_pushnil(vm);
   }
 
+  if (json_dump) json_object_put(json_dump);
   return true;
 }
 

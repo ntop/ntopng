@@ -44,19 +44,10 @@ void NetworkStats::lua(lua_State* vm) {
 
 /* *************************************** */
 
-char* NetworkStats::serializeCheckpoint() {
-  json_object *my_object;
-
-  if((my_object = json_object_new_object()) == NULL) return(NULL);
-
+bool NetworkStats::serializeCheckpoint(json_object *my_object) {
   json_object_object_add(my_object, "ingress", json_object_new_int64(ingress.getNumBytes()));
   json_object_object_add(my_object, "egress", json_object_new_int64(egress.getNumBytes()));
   json_object_object_add(my_object, "inner", json_object_new_int64(inner.getNumBytes()));
 
-  char *rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return(rsp);
+  return true;
 }
