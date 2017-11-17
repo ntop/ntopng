@@ -30,8 +30,7 @@ class Mac;
 
 class HostPools {
  private:
-  Mutex *swap_lock, *inc_lock;
-  bool swapRequested, swapInProgress;
+  Mutex *swap_lock;
   volatile time_t latest_swap;
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
@@ -89,20 +88,20 @@ class HostPools {
   bool findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
   void lua(lua_State *vm);
-  
+
   inline int32_t getNumPoolHosts(u_int16_t pool_id) {
     if(pool_id == NO_HOST_POOL_ID || pool_id >= max_num_pools)
       return 0;
     return num_active_hosts_inline[pool_id] + num_active_hosts_offline[pool_id];
   }
-  
+
   inline int32_t getNumPoolL2Devices(u_int16_t pool_id) {
     if((pool_id == NO_HOST_POOL_ID) || (pool_id >= max_num_pools))
       return 0;
-    
+
     return num_active_l2_devices_inline[pool_id] + num_active_l2_devices_offline[pool_id];
   }
-  
+
   inline void incNumHosts(u_int16_t pool_id, bool isInlineCall) {
     incNumMembers(pool_id, isInlineCall ? num_active_hosts_inline : num_active_hosts_offline);
   };
@@ -116,7 +115,7 @@ class HostPools {
     decNumMembers(pool_id, isInlineCall ? num_active_l2_devices_inline : num_active_l2_devices_offline);
   };
 
- 
+
 #ifdef NTOPNG_PRO
   void incPoolNumDroppedFlows(u_int16_t pool_id);
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
@@ -171,7 +170,7 @@ class HostPools {
   inline bool isChildrenSafePool(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? children_safe[pool_id] : false);
   }
-  
+
   inline u_int8_t getRoutingPolicy(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? routing_policy_id[pool_id] : 0);
   }
