@@ -172,12 +172,6 @@ local function validateMode(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateNetworkMode(mode)
-   local modes = { "router","transparent_bridge"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateOperator(mode)
    local modes = {"gt", "eq", "lt"}
 
@@ -978,9 +972,6 @@ local known_parameters = {
    ["create_guests_pool"]      =  validateOnOff,                 -- bridge wizard
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
    ["delete_all_policies"]     =  validateEmpty,                 -- traffic policies
-
-   -- ntopng Box
-   ["nbox_network_mode"]       =  validateNetworkMode,           -- bridge wizard
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
