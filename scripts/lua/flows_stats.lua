@@ -199,6 +199,18 @@ if(network_name ~= nil) then
    active_msg = active_msg .. i18n("network", {network=network_name})
 end
 
+if(inIfIdx ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.inIfIdx").." "..inIfIdx.."]"
+end
+
+if(outIfIdx ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.outIfIdx").." "..outIfIdx.."]"
+end
+
+if(deviceIP ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." "..deviceIP.."]"
+end
+
 print(" title: \""..active_msg)
 
 
