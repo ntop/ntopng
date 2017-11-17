@@ -61,8 +61,10 @@ void sigproc(int sig) {
 #ifndef WIN32
   if(ntop->getPrefs()->get_pid_path() != NULL) {
     int rc = unlink(ntop->getPrefs()->get_pid_path());
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s [rc: %d]",
-				 ntop->getPrefs()->get_pid_path(), rc);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s: [rc: %d][%s]",
+				 ntop->getPrefs()->get_pid_path(),
+				 rc, strerror(errno));
   }
 #endif
 
@@ -316,8 +318,8 @@ int main(int argc, char *argv[])
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "The PID file %s is empty: is your disk full perhaps ?",
 				     prefs->get_pid_path());
     } else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s",
-				   prefs->get_pid_path());
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s: %s",
+				   prefs->get_pid_path(), strerror(errno));
   }
 #endif
 

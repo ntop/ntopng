@@ -767,8 +767,10 @@ function discover.discover2table(interface_name, recache)
 
    local snmpSysDescr = interface.snmpReadResponses()
 
-   for ip,rsp in pairsByValues(snmpSysDescr, asc) do
+   if(discover.debug) then 
+      for ip,rsp in pairsByValues(snmpSysDescr, asc) do
 	 io.write("[SNMP Descr] "..ip.." OK\n")
+      end
    end
 
   if(discover.debug) then 

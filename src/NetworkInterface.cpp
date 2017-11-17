@@ -111,8 +111,8 @@ NetworkInterface::NetworkInterface(const char *name,
   if(strchr(name, ':')
      || strchr(name, '@')
      || strchr(name, '/') /* file path */
-     || (!strstr(name, ".pcap")) /* pcap */
-     || (!strncmp(name, "lo", 2))
+     || strstr(name, ".pcap") /* pcap */
+     || (strncmp(name, "lo", 2) == 0)
 #ifndef __APPLE__
      || (Utils::readIPv4((char*)name) == 0)
 #endif
