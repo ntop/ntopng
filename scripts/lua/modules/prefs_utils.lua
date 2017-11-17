@@ -82,7 +82,7 @@ end
 function printMenuSubpages(tab)
   for _, subpage in ipairs(menu_subpages) do
     if not subpage.disabled then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item menu-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
     end
   end
 end
