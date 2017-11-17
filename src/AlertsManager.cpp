@@ -360,7 +360,8 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
 		  alert_origin, alert_target, true);
 
 #ifndef WIN32
-      syslog(LOG_WARNING, "[Alert] [ENGAGED] %s", alert_json ? alert_json : (char*)"");
+      if(ntop->getPrefs()->are_alerts_syslog_enabled())
+	syslog(LOG_WARNING, "[Alert] [ENGAGED] %s", alert_json ? alert_json : (char*)"");
 #endif
     }
 
@@ -397,7 +398,8 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
       getNetworkInterface()->decAlertLevel();
 
 #ifndef WIN32
-    syslog(LOG_WARNING, "[Alert] [RELEASED] %s", alert_json ? alert_json : (char*)"");
+    if(ntop->getPrefs()->are_alerts_syslog_enabled())
+      syslog(LOG_WARNING, "[Alert] [RELEASED] %s", alert_json ? alert_json : (char*)"");
 #endif
 
     notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
@@ -714,7 +716,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     m.unlock(__FILE__, __LINE__);
 
 #ifndef WIN32
-    syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
+    if(ntop->getPrefs()->are_alerts_syslog_enabled())
+      syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
 #endif
 
     return rc;
@@ -834,7 +837,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
     f->setFlowAlerted();
   
 #ifndef WIN32
-    syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
+    if(ntop->getPrefs()->are_alerts_syslog_enabled())
+      syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
 #endif
 
     return rc;

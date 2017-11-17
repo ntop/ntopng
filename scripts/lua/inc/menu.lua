@@ -104,7 +104,7 @@ end
 
 if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
 
-   local alert_cache = interface.getCachedNumAlerts()
+   local alert_cache = interface.getCachedNumAlerts() or {}
    local active = ""
    local style = ""
    local color = ""
