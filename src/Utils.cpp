@@ -2522,3 +2522,50 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
   }
 }
 
+/* ****************************************************** */
+
+char* Utils::formatTraffic(float numBits, bool bits, char *buf) {
+  char unit;
+
+  if(bits)
+    unit = 'b';
+  else
+    unit = 'B';
+
+  if(numBits < 1024) {
+    snprintf(buf, 32, "%lu %c", (unsigned long)numBits, unit);
+  } else if(numBits < 1048576) {
+    snprintf(buf, 32, "%.2f K%c", (float)(numBits)/1024, unit);
+  } else {
+    float tmpMBits = ((float)numBits)/1048576;
+
+    if(tmpMBits < 1024) {
+      snprintf(buf, 32, "%.2f M%c", tmpMBits, unit);
+    } else {
+      tmpMBits /= 1024;
+
+      if(tmpMBits < 1024) {
+	snprintf(buf, 32, "%.2f G%c", tmpMBits, unit);
+      } else {
+	snprintf(buf, 32, "%.2f T%c", (float)(tmpMBits)/1024, unit);
+      }
+    }
+  }
+
+  return(buf);
+}
+
+/* ****************************************************** */
+
+char* Utils::formatPackets(float numPkts, char *buf) {
+  if(numPkts < 1000) {
+    snprintf(buf, 32, "%.2f", numPkts);
+  } else if(numPkts < 1000000) {
+    snprintf(buf, 32, "%.2f K", numPkts/1000);
+  } else {
+    numPkts /= 1000000;
+    snprintf(buf, 32, "%.2f M", numPkts);
+  }
+
+  return(buf);
+}

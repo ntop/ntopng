@@ -119,6 +119,9 @@ class Utils {
   static int dropWriteCapabilities();
   static u_int32_t findInterfaceGatewayIPv4(const char* ifname);
 
+  /* Data Format */
+  static char* formatTraffic(float numBits, bool bits, char *buf);
+  static char* formatPackets(float numPkts, char *buf);
 };
 
 #endif /* _UTILS_H_ */

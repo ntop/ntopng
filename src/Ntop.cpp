@@ -170,8 +170,13 @@ Ntop::Ntop(char *appName) {
       if(!Utils::mkdir_tree(path))
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Unable to create directory %s: nSeries will be disabled", path);
-      else
-	nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
+      else {
+	try {
+	  nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
+	} catch(...) {
+	  nseries[i] = NULL;
+	}
+      }
     }
   }
 #endif
