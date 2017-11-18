@@ -483,12 +483,27 @@ local mobile_country_code = {
 
 -- #######################
 
-function handleCustomFlowField(key, value)
+function formatInterfaceId(id, idx, snmpdevice)
+   if(id == 65535) then
+      return("Unknown")
+   else
+      if(snmpdevice ~= nil) then
+	 return('<A HREF="/lua/flows_stats.lua?deviceIP='..snmpdevice..'&'..idx..'='..id..'">'..id..'</A>')
+      else
+	 return(id)
+      end
+   end
+end
+
+-- #######################
+
+function handleCustomFlowField(key, value, snmpdevice)
    if((key == 'TCP_FLAGS') or (key == '6')) then
       return(formatTcpFlags(value))
-   elseif((key == 'INPUT_SNMP') or (key == '10')
-	     or (key == 'OUTPUT_SNMP') or (key == '14')) then
-      return(formatInterfaceId(value))
+   elseif((key == 'INPUT_SNMP') or (key == '10')) then
+      return(formatInterfaceId(value, "inIfIdx", snmpdevice))
+   elseif((key == 'OUTPUT_SNMP') or (key == '14')) then
+      return(formatInterfaceId(value, "outIfIdx", snmpdevice))
    elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == 'NPROBE_IPV4_ADDRESS') or (key == '130') or (key == '57943')) then
       local res = getResolvedAddress(hostkey2hostinfo(value))
 
@@ -568,16 +583,6 @@ function formatTcpFlags(flags)
    if(bit.band(flags, 8) == 8 )  then rsp = rsp .. " PUSH " end
 
    return(rsp .. "</A>")
-end
-
--- #######################
-
-function formatInterfaceId(id)
-   if(id == 65535) then
-      return("Unknown")
-   else
-      return(id)
-   end
 end
 
 -- #######################

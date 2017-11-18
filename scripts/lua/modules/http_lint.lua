@@ -640,7 +640,6 @@ local known_parameters = {
    ["query"]                   =  validateUnchecked,           -- This field should be used to perform partial queries.
                                                                -- It up to the script to implement proper validation.
                                                                -- In NO case query should be executed directly without validation.
-
 -- UNQUOTED (Not Generally dangerous)
    ["referer"]                 =  validateUnquoted,             -- An URL referer
    ["url"]                     =  validateUnquoted,             -- An URL

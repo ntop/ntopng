@@ -917,6 +917,7 @@ local  en = {
       received_traffic = "Received Traffic",
       dropped_packets = "Dropped Packets",
       note = "NOTE",
+      note_drops_sflow = "Drops are reported only for sFlow as NetFlow does not report them.<br>In <A HREF=https://www.ietf.org/rfc/rfc3176.txt>sFlow</A> drops are computed according to drops value part of the flow sample.",
       note_drop_ifstats_dynamic = "Drops are available in the main interface",
       flows_export_statistics = "Flows Export Statistics",
       exported_flows = "Exported Flows",

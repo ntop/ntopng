@@ -491,7 +491,7 @@ print("</script>\n")
 
       print(i18n("if_stats_overview.dropped_packets").."</th>")
 
-      print("<td width=20% colspan=2><span id=if_drops>")
+      print("<td width=20% colspan=3><span id=if_drops>")
 
       if(ifstats.stats.drops > 0) then
 	 print('<span class="label label-danger">')
@@ -505,9 +505,13 @@ print("</script>\n")
       end
 
       if(ifstats.stats.drops > 0) then print('</span>') end
+      print("</span>&nbsp;<span id=drops_trend></span>")
 
-      print("</span>&nbsp;<span id=drops_trend></span></td>")
-
+      if(ifstats.zmqRecvStats ~= nil) then
+	 print("<p><small> <b>"..i18n("if_stats_overview.note").."</b>:<br>".. i18n("if_stats_overview.note_drops_sflow").."</small>")
+      end
+      
+      print("</td>")
    else
       print("<td width=20% colspan=3>")
       print("<small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic").."</small>")
