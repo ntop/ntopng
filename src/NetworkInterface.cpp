@@ -1224,7 +1224,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 			  src2dst_direction ? zflow->core.outIndex : zflow->core.inIndex)) {
     static bool flow_device_already_set = false;
     if(!flow_device_already_set) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "A flow has been seen from multiple exprters or from "
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "A flow has been seen from multiple exporters or from "
 				   "multiple IN/OUT interfaces. Check exporters configuration.");
       flow_device_already_set = true;
     }

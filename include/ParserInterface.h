@@ -51,7 +51,7 @@ class ParserInterface : public NetworkInterface {
   u_int8_t parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data);
 
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
-
+  u_int32_t getNumDroppedPackets() { return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0; };
   virtual void lua(lua_State* vm);
 };
 
