@@ -2224,6 +2224,7 @@ local  en = {
     wifi = "Wireless Network",
     nas = "NAS",
     multimedia = "Multimedia",
+    iot = "IoT",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

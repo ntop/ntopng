@@ -140,6 +140,8 @@ discover.asset_icons = {
    ['wifi']        = '<i class="fa fa-wifi fa-lg devtype-icon" aria-hidden="true"></i>',
    ['nas']         = '<i class="fa fa-database fa-lg devtype-icon" aria-hidden="true"></i>',
    ['multimedia']  = '<i class="fa fa-music fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['iot']         = '<i class="fa fa-thermometer fa-lg devtype-icon" aria-hidden="true"></i>',
+   -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
 local id2label = {
@@ -155,6 +157,8 @@ local id2label = {
    [9]  = { 'wifi', i18n("device_types.wifi") },
    [10] = { 'nas', i18n("device_types.nas") },
    [11] = { 'multimedia', i18n("device_types.multimedia") },
+   [12] = { 'iot', i18n("device_types.iot") },
+   -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
 discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
@@ -425,6 +429,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'wifi', discover.asset_icons['wifi']
    elseif(string.contains(manufacturer, 'Broadband')) then -- % is the escape char in Lua
       return 'networking', discover.asset_icons['networking']
+   elseif(string.contains(manufacturer, 'Nest Labs')
+	  or string.contains(manufacturer, 'Netatmo')) then
+      return 'iot', discover.asset_icons['iot']
    elseif(string.contains(manufacturer, "Samsung Electronics")
 	  or string.contains(manufacturer, "SAMSUNG ELECTRO")
 	  or string.contains(manufacturer, "HTC Corporation")
@@ -835,6 +842,7 @@ function discover.discover2table(interface_name, recache)
 	    device_label = device_label .. discover.devtype2icon(mac_info.devtype)
 	 end
       end
+      
       interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
 
       entry["device_type"] = device_type

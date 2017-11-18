@@ -6053,6 +6053,8 @@ bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId,
 
   Utils::parseMac(mac, strmac);
 
+  ntop->getTrace()->traceEvent(TRACE_INFO, "setMacDeviceType(%s) = %d", strmac, (int)dtype);
+  
   if((m = getMac(mac, vlanId, false /* Don't create if missing */))) {
     oldtype = m->getDeviceType();
 
