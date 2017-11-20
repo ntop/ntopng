@@ -29,7 +29,7 @@ class ThreadPool {
   bool terminating;
   u_int8_t pool_size;
   u_int16_t queue_len;
-  ConditionalVariable *c;
+  pthread_cond_t condvar;
   Mutex *m;
   pthread_t *threadsState;
   std::queue <ThreadedActivity*> threads;

@@ -44,6 +44,9 @@ class Mutex {
   void lock(const char *filename, const int line);
   void unlock(const char *filename, const int line);  
   inline bool is_locked() { return(locked); };
+
+  /* NOTE: this must be called while locked */
+  inline int cond_wait(pthread_cond_t *condvar) { return pthread_cond_wait(condvar, &the_mutex); };
 };
 
 

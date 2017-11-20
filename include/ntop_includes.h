@@ -158,7 +158,6 @@ using namespace std;
 #include "patricia.h"
 #include "ntop_defines.h"
 #include "Mutex.h"
-#include "ConditionalVariable.h"
 #include "RwLock.h"
 #include "MDNS.h"
 #include "AddressTree.h"

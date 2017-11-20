@@ -35,7 +35,7 @@ static void* doRun(void* ptr)  {
 ThreadPool::ThreadPool(u_int8_t _pool_size) {
   pool_size = _pool_size, queue_len = 0;
   m = new Mutex();
-  c = new ConditionalVariable();
+  pthread_cond_init(&condvar, NULL);
   terminating = false;
   
   if((threadsState = (pthread_t*)malloc(sizeof(pthread_t)*pool_size)) == NULL)
@@ -58,9 +58,9 @@ ThreadPool::~ThreadPool() {
 #endif
     pthread_join(threadsState[i], &res);    
   }
-  
+
+  pthread_cond_destroy(&condvar);
   delete m;
-  delete c;
 }
 
 /* **************************************************** */
@@ -107,9 +107,9 @@ bool ThreadPool::queueJob(ThreadedActivity *j) {
   m->lock(__FILE__, __LINE__);  
   threads.push(j);
   queue_len++;
+  pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
 
-  c->signal(false);
   return(true); /*  TODO: add a max queue len and return false */
 }
 
@@ -118,20 +118,21 @@ bool ThreadPool::queueJob(ThreadedActivity *j) {
 ThreadedActivity* ThreadPool::dequeueJob(bool waitIfEmpty) {
   ThreadedActivity *t;
 
+  m->lock(__FILE__, __LINE__);
   if(waitIfEmpty) {
     while((queue_len == 0) && (!terminating))
-      c->wait();    
+      m->cond_wait(&condvar);
   }
   
-  if((queue_len == 0) || terminating)
-    return(NULL);
+  if((queue_len == 0) || terminating) {
+    t = NULL;
+  } else {
+    t = threads.front();
+    threads.pop();
+    queue_len--;
+  }
 
-  m->lock(__FILE__, __LINE__);
-  t = threads.front();
-  threads.pop();
-  queue_len--;
   m->unlock(__FILE__, __LINE__);
-  
   return(t);
 }
 
@@ -141,7 +142,9 @@ void ThreadPool::shutdown() {
 #ifdef THREAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** %s() ***", __FUNCTION__);
 #endif
-  
+
+  m->lock(__FILE__, __LINE__);
   terminating = true;
-  c->signal(true /* Broadcast */);
+  pthread_cond_broadcast(&condvar);
+  m->unlock(__FILE__, __LINE__);
 }
