@@ -63,9 +63,7 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
-  periodicTaskPool = new ThreadPool(PERIODIC_TASK_POOL_SIZE);
-
-  assert(periodicTaskPool != NULL);
+  periodicTaskPool = NULL;
   
   httpd = NULL, geo = NULL, mac_manufacturers = NULL,
     hostBlacklistShadow = hostBlacklist = NULL;
@@ -420,7 +418,12 @@ void Ntop::start() {
   loadLocalInterfaceAddress();
   address->startResolveAddressLoop();
 
+  /* Start the periodic activities.
+   * NOTE: order is important here. */
+  periodicTaskPool = new ThreadPool(PERIODIC_TASK_POOL_SIZE);
+  assert(periodicTaskPool != NULL);
   pa->startPeriodicActivitiesLoop();
+
   for(int i=0; i<num_defined_interfaces; i++) {
     iface[i]->allocateNetworkStats();
     iface[i]->startPacketPolling();
