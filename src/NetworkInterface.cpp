@@ -2543,7 +2543,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
-    if(--nextFlowAggregation == 0) {
+    if((getIfType() == interface_type_DUMMY) || (--nextFlowAggregation == 0)) {
       /* Start over */
       aggregated_flows_hash->cleanup();
       nextFlowAggregation = FLOW_AGGREGATION_DURATION;
@@ -2554,7 +2554,6 @@ void NetworkInterface::periodicStatsUpdate() {
 				   "Aggregated flows hash cleared. [num_items: %i]",
 				   aggregated_flows_hash->getCurrentSize());
 #endif
-
     } else
 #ifdef AGGREGATED_FLOW_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
