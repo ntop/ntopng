@@ -1679,7 +1679,7 @@ elseif(page == "alerts") then
 
    drawAlertSourceSettings("host", hostkey,
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
-      "host_details.lua", {ifid=ifId, host=host_ip},
+      "host_details.lua", {ifid=ifId, host=hostkey},
       host_name, "host", {host_ip=host_ip, host_vlan=host_vlan})
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then

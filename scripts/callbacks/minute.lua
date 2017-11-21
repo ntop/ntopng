@@ -18,6 +18,7 @@ require "graph_utils"
 require "top_structure"
 require "rrd_utils"
 
+local rrd_dump = require "rrd_dump_utils"
 local tcp_flags_rrd_creation = ntop.getPref("ntopng.prefs.tcp_flags_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 local callback_utils = require "callback_utils"
@@ -59,64 +60,25 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       -- TODO secondStats = interface.getLastMinuteTrafficStats()
       -- TODO send secondStats to collector
 
-      -- Save local subnets stats every minute
-      basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats')
-      local subnet_stats = interface.getNetworksStats()
-      for subnet,sstats in pairs(subnet_stats) do
-	 local rrdpath = getPathFromKey(subnet)
-	 rrdpath = fixPath(basedir.. "/" .. rrdpath)
-	 if(not(ntop.exists(rrdpath))) then
-	    ntop.mkdir(rrdpath)
-	 end
-
-	 local bytes_rrd = fixPath(rrdpath .. "/bytes.rrd")
-	 createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
-	 ntop.rrd_update(bytes_rrd, nil, tolongint(sstats["ingress"]), tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-	 ntop.tsSet(when, ifstats.id, 60, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-	 
-	 local bytes_bcast_rrd = fixPath(rrdpath .. "/broadcast_bytes.rrd")
-	 createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
-	 ntop.rrd_update(bytes_bcast_rrd, nil, tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
-	 ntop.tsSet(when, ifstats.id, 60, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
-      end
-
-      basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
+      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
       if not ntop.exists(basedir) then ntop.mkdir(basedir) end
 
-      -- General stats
-      makeRRD(basedir, when, ifstats.id, "iface", "num_hosts", 60, ifstats.stats.hosts)
-      makeRRD(basedir, when, ifstats.id, "iface", "num_devices", 60, ifstats.stats.devices)
-      makeRRD(basedir, when, ifstats.id, "iface", "num_flows", 60, ifstats.stats.flows)
-      makeRRD(basedir, when, ifstats.id, "iface", "num_http_hosts", 60, ifstats.stats.http_hosts)
+      rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
+      rrd_dump.iface_update_general_stats(when, ifstats, basedir)
 
       -- TCP stats
       if tcp_retr_ooo_lost_rrd_creation == "1" then
-	 makeRRD(basedir, when, ifstats.id, "iface", "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
-	 makeRRD(basedir, when, ifstats.id, "iface", "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
-	 makeRRD(basedir, when, ifstats.id, "iface", "tcp_lost", 60, ifstats.tcpPacketStats.lost)
+         rrd_dump.iface_update_tcp_stats(when, ifstats, basedir)
       end
 
       -- TCP Flags
       if tcp_flags_rrd_creation == "1" then
-         makeRRD(basedir, when, ifstats.id, "iface", "tcp_syn", 60, ifstats.pktSizeDistribution.syn)
-         makeRRD(basedir, when, ifstats.id, "iface", "tcp_synack", 60, ifstats.pktSizeDistribution.synack)
-         makeRRD(basedir, when, ifstats.id, "iface", "tcp_finack", 60, ifstats.pktSizeDistribution.finack)
-         makeRRD(basedir, when, ifstats.id, "iface", "tcp_rst", 60, ifstats.pktSizeDistribution.rst)
-     end
+         rrd_dump.iface_update_tcp_flags(when, ifstats, basedir)
+      end
 
       -- Save Profile stats every minute
       if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
-	 basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
-	 for pname, ptraffic in pairs(ifstats.profiles) do
-	    local rrdpath = fixPath(basedir.. "/" .. getPathFromKey(trimSpace(pname)))
-	    if(not(ntop.exists(rrdpath))) then
-	       ntop.mkdir(rrdpath)
-	    end
-	    rrdpath = fixPath(rrdpath .. "/bytes.rrd")
-	    createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
-	    ntop.rrd_update(rrdpath, nil, tolongint(ptraffic))
-	    ntop.tsSet(when, ifstats.id, 60, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
-	 end
+        rrd_dump.profiles_update_stats(when, ifstats, basedir)
       end
 end) -- foreachInterface
 
