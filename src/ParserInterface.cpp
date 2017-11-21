@@ -962,6 +962,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
   f = json_tokener_parse_verbose(payload, &jerr);
   
   if(f != NULL) {
+    int rc;
+    
     if(json_object_get_type(f) == json_type_array) {
       /* Flow array */
       int id, num_elements = json_object_array_length(f);
@@ -969,12 +971,14 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
       for(id = 0; id < num_elements; id++)
 	parseSingleFlow(json_object_array_get_idx(f, id), source_id, iface);
 
-      json_object_put(f);
-      return(num_elements);
+      rc = num_elements;
     } else {
       parseSingleFlow(f, source_id, iface);
-      return(1);
+      rc = 1;
     }
+
+    json_object_put(f);
+    return(rc);
   } else {
     // if o != NULL
     if(!once) {
