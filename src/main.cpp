@@ -237,13 +237,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    if(iface) {
-#if 0
-      /* Handle tagged interfaces whose name is enp65s0.3 */
-      char *dot = strchr(ifName, '.'); 
-      u_int vlan_id = dot ? atoi(&dot[1]) : 0;
-#endif
-      
+    if(iface) {      
       if(affinity != NULL) {
 	char *tmp;
 	
@@ -261,17 +255,6 @@ int main(int argc, char *argv[])
 	iface->setCPUAffinity(core_id);
       }
 
-#if 0
-      if(vlan_id != 0) {
-	char filter[4096];
-
-	snprintf(filter, sizeof(filter), "%s%s(vlan %u)",
-		 prefs->get_packet_filter() ? prefs->get_packet_filter()  : "",
-		 prefs->get_packet_filter() ? " and " : "", vlan_id);
-
-	iface->set_packet_filter(filter);	  
-      } else
-#endif
       if(prefs->get_packet_filter())
 	iface->set_packet_filter(prefs->get_packet_filter());
 

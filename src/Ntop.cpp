@@ -148,36 +148,6 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   setservent(1);
 #endif
-
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-  if(!ntop->getPro()->is_ndb_in_use()) {
-    for(int i=0; i<NUM_NSERIES; i++) {
-      char path[MAX_PATH];
-      const char *base;
-      
-      switch(i) {
-      case 0: base = "sec"; break;
-      case 1: base = "min"; break;
-      case 2: base = "5min"; break;
-      default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-      }
-      
-      snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
-      
-      if(!Utils::mkdir_tree(path))
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Unable to create directory %s: nSeries will be disabled", path);
-      else {
-	try {
-	  nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
-	} catch(...) {
-	  nseries[i] = NULL;
-	}
-      }
-    }
-  }
-#endif
 }
 
 /* ******************************************* */
@@ -191,7 +161,7 @@ Ntop::Ntop(char *appName) {
 
 void Ntop::initTimezone() {
 #ifdef WIN32
-	time_offset = -timezone;
+  time_offset = -timezone;
 #else
   time_t t = time(NULL);
 
@@ -324,6 +294,36 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   /* License check could have increased the number of interfaces available */
   initNetworkInterfaces();
+
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  if(ntop->getPro()->is_ndb_in_use()) {
+    for(int i=0; i<NUM_NSERIES; i++) {
+      char path[MAX_PATH];
+      const char *base;
+      
+      switch(i) {
+      case 0: base = "sec"; break;
+      case 1: base = "min"; break;
+      case 2: base = "5min"; break;
+      default:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+      }
+      
+      snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
+      
+      if(!Utils::mkdir_tree(path))
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Unable to create directory %s: nSeries will be disabled", path);
+      else {
+	try {
+	  nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
+	} catch(...) {
+	  nseries[i] = NULL;
+	}
+      }
+    }
+  }
+#endif
 }
 
 /* ******************************************* */
@@ -1599,6 +1599,7 @@ void Ntop::reloadInterfacesLuaInterpreter() {
 /* ******************************************* */
 
 void Ntop::registerInterface(NetworkInterface *_if) {
+  _if->finishInitialization();
   _if->checkAggregationMode();
 
   for(int i=0; i<num_defined_interfaces; i++) {

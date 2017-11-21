@@ -45,7 +45,6 @@ NetworkInterface::NetworkInterface(const char *name,
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64], buf[64];
   /* We need to do it as isView() is not yet initialized */
-  bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0;
 
   init();
   customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
@@ -99,7 +98,7 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  pkt_dumper_tap = NULL;
+  pkt_dumper_tap = NULL, db = NULL, aggregated_flows_hash = NULL;
   ifname = strdup(name);
   if(custom_interface_type) {
     ifDescription = strdup(name);
@@ -124,7 +123,6 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   if(id >= 0) {
-    u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
     u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
 
@@ -175,42 +173,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
     running = false, sprobe_interface = false,
       inline_interface = false, db = NULL;
-
-    if(!isViewInterface) {
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-      if(ntop->getPrefs()->do_dump_flows_on_ndb()) {
-	db = new NDBFlowDB(this);
-	goto enable_aggregation;
-      }
-#endif
-
-      if((db == NULL)
-	 && (ntop->getPrefs()->do_dump_flows_on_mysql()
-	     || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
-#ifdef NTOPNG_PRO
-	if(ntop->getPrefs()->is_enterprise_edition()
-	   && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
-#ifdef HAVE_MYSQL
-	  db = new BatchedMySQLDB(this);
-#endif
-	enable_aggregation:
-	  aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
-							 ntop->getPrefs()->get_max_num_flows());
-
-	  ntop->getPrefs()->enable_flow_aggregation();
-	  nextFlowAggregation = FLOW_AGGREGATION_DURATION;
-	} else
-	  aggregated_flows_hash = NULL;
-#endif
-
-#ifdef HAVE_MYSQL
-	if(db == NULL)
-	  db = new MySQLDB(this);
-#endif
-
-	if(!db) throw "Not enough memory";
-      }
-    }
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
@@ -6268,4 +6230,48 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
 			       Utils::intoaV4(ntohl(dstHost), buf1, sizeof(buf)), ntohs(dport),
 			       s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
 #endif
+}
+
+/* *************************************** */
+
+/*
+  Put here all the code that is executed when the NIC initialization
+  is succesful
+ */
+void NetworkInterface::finishInitialization() {
+  if(!isView()) {
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+    if(ntop->getPrefs()->do_dump_flows_on_ndb()) {
+      db = new NDBFlowDB(this);
+      goto enable_aggregation;
+    }
+#endif
+
+    if((db == NULL)
+       && (ntop->getPrefs()->do_dump_flows_on_mysql()
+	   || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
+#ifdef NTOPNG_PRO
+      if(ntop->getPrefs()->is_enterprise_edition()
+	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+#ifdef HAVE_MYSQL
+	db = new BatchedMySQLDB(this);
+#endif
+      enable_aggregation:
+	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
+						       ntop->getPrefs()->get_max_num_flows());
+
+	ntop->getPrefs()->enable_flow_aggregation();
+	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+      } else
+	aggregated_flows_hash = NULL;
+#endif
+
+#ifdef HAVE_MYSQL
+      if(db == NULL)
+	db = new MySQLDB(this);
+#endif
+
+      if(!db) throw "Not enough memory";
+    }
+  }
 }

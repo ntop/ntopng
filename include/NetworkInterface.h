@@ -68,6 +68,7 @@ class NetworkInterface : public Checkpointable {
   const char *customIftype;
   u_int8_t alertLevel, purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
+  u_int32_t num_hashes;
   
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
@@ -222,6 +223,7 @@ class NetworkInterface : public Checkpointable {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
+  void finishInitialization();
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getVLANsHashSize();
   virtual u_int32_t getMacsHashSize();
