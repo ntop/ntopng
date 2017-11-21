@@ -214,7 +214,7 @@ NetworkInterface::NetworkInterface(const char *name,
     ignore warnings let's be proactive
   */
   if(ifname
-     && (!isViewInterface)
+     && (!isView())
      && (!strstr(ifname, ":"))
      && (!strstr(ifname, ".pcap"))
      && strcmp(ifname, "dummy")
