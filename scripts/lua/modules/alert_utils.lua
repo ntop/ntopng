@@ -498,11 +498,12 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
   local value
 
   if entity_type == "host" then
-    value = resolveAddress(hostkey2hostinfo(entity_value))
+    local host_info = hostkey2hostinfo(entity_value)
+    value = resolveAddress(host_info)
 
-    if entity_info ~= nil then
+    if host_info ~= nil then
       value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid
-      .."&host="..hostinfo2hostkey({host=entity_info.ip.ip, vlan=entity_info.vlan_id}).."'>"..value.."</a>"
+      .."&host="..hostinfo2hostkey(host_info).."'>"..value.."</a>"
     end
   elseif entity_type == "interface" then
     value = getInterfaceName(ifid)

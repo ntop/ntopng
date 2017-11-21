@@ -1509,8 +1509,6 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 /* *************************************** */
 
 bool Host::serializeCheckpoint(json_object *my_object) {
-  json_object_object_add(my_object, "ip", ip.getJSONObject());
-  json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
   json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
   json_object_object_add(my_object, "seen.last", json_object_new_int64(last_seen));
   json_object_object_add(my_object, "sent", sent.getJSONObject());
