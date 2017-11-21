@@ -223,6 +223,8 @@ int main(int argc, char *argv[])
 #endif
       }
     } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during interface creation: %s", ifName);
+      if(iface) delete iface;
       iface = NULL;
     }
 
@@ -231,7 +233,8 @@ int main(int argc, char *argv[])
       try {
 	iface = new PcapInterface(ifName);
       } catch(...) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during interface creation: %s", ifName);
+	if(iface) delete iface;
 	iface = NULL;
       }
     }
