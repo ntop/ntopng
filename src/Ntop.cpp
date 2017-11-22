@@ -216,9 +216,6 @@ Ntop::~Ntop() {
   delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
-  delete prefs;
-  if(redis) delete redis;
-  delete globals;
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
@@ -229,11 +226,16 @@ Ntop::~Ntop() {
 #endif
 
 #ifdef HAVE_NDB
-  if(!ntop->getPro()->is_ndb_in_use()) {
-    for(int i=0; i<NUM_NSERIES; i++)
+  if(ntop->getPro()->is_ndb_in_use()) {
+    for(int i=0; i<NUM_NSERIES; i++) {
       if(nseries[i]) delete nseries[i];
+    }
   }
 #endif
+
+  if(redis) delete redis;
+  delete prefs;
+  delete globals;
 }
 
 /* ******************************************* */
@@ -318,6 +320,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 	try {
 	  nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
 	} catch(...) {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate nSeries db %s", path);
 	  nseries[i] = NULL;
 	}
       }
