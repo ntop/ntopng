@@ -56,7 +56,7 @@ HTTPstats::~HTTPstats() {
 
 /* *************************************** */
 
-static bool http_stats_summary(GenericHashEntry *node, void *user_data) {
+static bool http_stats_summary(GenericHashEntry *node, void *user_data, bool *matched) {
   VirtualHost *host = (VirtualHost*)node;
   struct http_walk_info *info =  (struct http_walk_info*)user_data;
 
@@ -64,7 +64,7 @@ static bool http_stats_summary(GenericHashEntry *node, void *user_data) {
     if((info->virtual_host != NULL) && strcmp(info->virtual_host, host->get_name()))
       return(false); /* false = keep on walking */
 
-    info->num++;
+    info->num++, *matched = true;
 
     lua_newtable(info->vm);
 
@@ -98,9 +98,11 @@ static bool http_stats_summary(GenericHashEntry *node, void *user_data) {
 u_int32_t HTTPstats::luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h) {
   if(virtualHosts) {
     struct http_walk_info info;
-
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
+    
     info.virtual_host = virtual_host, info.h = h, info.vm = vm, info.num = 0;
-    virtualHosts->walk(http_stats_summary, &info);
+    virtualHosts->walk(&begin_slot, walk_all, http_stats_summary, &info);
     return(info.num);
   } else
     return(0);
@@ -265,11 +267,13 @@ void HTTPstats::lua(lua_State *vm) {
 
   if(virtualHosts) {
     struct http_walk_info info;
-
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
+    
     info.virtual_host = NULL, info.h = NULL, info.vm = vm;
 
     lua_newtable(vm);
-    virtualHosts->walk(http_stats_summary, &info);
+    virtualHosts->walk(&begin_slot, walk_all, http_stats_summary, &info);
     lua_pushstring(vm, "virtual_hosts");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -531,10 +535,12 @@ bool HTTPstats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req
 
 /* *************************************** */
 
-static bool update_http_stats(GenericHashEntry *node, void *user_data) {
+static bool update_http_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   VirtualHost *host = (VirtualHost*)node;
 
   host->update_stats();
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
@@ -542,15 +548,17 @@ static bool update_http_stats(GenericHashEntry *node, void *user_data) {
 
 void HTTPstats::updateStats(struct timeval *tv) {
   float tdiff_msec = Utils::timeval2ms(tv) - Utils::timeval2ms(&last_update_time);
-
+  const u_int8_t indices[2] = { AS_SENDER, AS_RECEIVER };
+  
   if(tdiff_msec < 1000) return;  // too early
 
   // refresh the last update time with the new values
   // also refresh the statistics on request variations
-  const u_int8_t indices[2]  = {AS_SENDER, AS_RECEIVER};
-
   if(virtualHosts) {
-    virtualHosts->walk(update_http_stats, tv);
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
+    
+    virtualHosts->walk(&begin_slot, walk_all, update_http_stats, tv);
     virtualHosts->purgeIdle();
   }
 

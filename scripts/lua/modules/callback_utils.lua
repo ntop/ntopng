@@ -44,53 +44,84 @@ end
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachLocalHost(ifname, deadline, callback)
    local hostbase
-
+   local firstSlot = 0
+   local debug = false
+   
    interface.select(ifname)
 
-   local hosts_stats = interface.getLocalHostsInfo(false)
+   while(true) do
+      local hosts_stats
+      local next_slot
 
-   if hosts_stats == nil then
-      hosts_stats = {hosts = {}}
-   end
-
-   hosts_stats = hosts_stats["hosts"]
-
-   for hostname, hoststats in pairs(hosts_stats) do
-      local host = interface.getHostInfo(hostname)
-
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
-         -- Out of time
-         return false
+      if(false) then
+	 io.write("interface.getBatchedLocalHostsInfo(firstSlot=".. firstSlot ..")\n")
+      end
+	 
+      hosts_stats = interface.getBatchedLocalHostsInfo(false, firstSlot)
+      
+      if hosts_stats == nil then
+	 hosts_stats = { hosts = { }, nextSlot = 0, numHosts = 0 }
       end
 
-      if host ~= nil then
-         if(host.localhost) then
-            local keypath = getPathFromKey(hostname)
-            hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+      next_slot = hosts_stats.nextSlot
 
-            if(not(ntop.exists(hostbase))) then
-               ntop.mkdir(hostbase)
-            end
-         end
+      if(false) then
+	 io.write("interface.getBatchedLocalHostsInfo(numHosts=".. hosts_stats.numHosts ..", nextSlot=".. next_slot ..")\n")
+      end
+      
+      hosts_stats = hosts_stats["hosts"]
+      
+      for hostname, hoststats in pairs(hosts_stats) do
+	 local host = interface.getHostInfo(hostname)
+	 
+	 if ((deadline ~= nil) and (os.time() >= deadline)) then
+	    -- Out of time
+	    return false
+	 end
+	 
+	 if host ~= nil then
+	    if(host.localhost) then
+	       local keypath = getPathFromKey(hostname)
+	       hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+	       
+	       if(not(ntop.exists(hostbase))) then
+		  ntop.mkdir(hostbase)
+	       end
+	    end
+	    
+	    if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
+	       return false
+	    end
+	 end
+      end
 
-         if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
-            return false
-         end
+      firstSlot = next_slot
+
+      if((firstSlot == 0) or (firstSlot == nil)) then
+	 -- Back to square one
+	 break
       end
    end
-
+   
    return true
 end
+
 
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, deadline, callback)
+   local firstSlot = 0
+   local debug = true
+
    interface.select(ifname)
 
-   local devices_stats = interface.getMacsInfo()
+   local devices_stats = interface.getBatchedMacsInfo()
+   
    if devices_stats == nil or devices_stats["macs"] == nil then
-      devices_stats = {macs = {}}
+      devices_stats = { macs = { }, nextSlot = 0, numMacs = 0 }
    end
+
+   next_slot = devices_stats.nextSlot
 
    for devicename, devicestats in pairs(devices_stats["macs"]) do
       devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
@@ -110,6 +141,13 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
       if callback(devicename, devicestats, devicebase) == false then
 	 return false
       end
+
+      firstSlot = next_slot
+
+      if((firstSlot == 0) or (firstSlot == nil)) then
+	 -- Back to square one
+	 break
+      end      
    end
 
    return true

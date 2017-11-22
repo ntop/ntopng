@@ -67,8 +67,10 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
 /* **************************************************** */
 
-bool ViewInterface::walker(WalkerType wtype,
-			   bool (*walker)(GenericHashEntry *h, void *user_data),
+bool ViewInterface::walker(u_int32_t *begin_slot,
+			   bool walk_all,
+			   WalkerType wtype,
+			   bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
 			   void *user_data) {
   bool ret = false;
 
@@ -76,7 +78,7 @@ bool ViewInterface::walker(WalkerType wtype,
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "VIEW: Iterating on subinterface %s [walker_flows: %u]",
     // 				 subInterfaces[s]->get_name(),
     // 				 wtype == walker_flows ? 1 : 0);
-    ret |= subInterfaces[s]->walker(wtype, walker, user_data);
+    ret |= subInterfaces[s]->walker(begin_slot, walk_all, wtype, walker, user_data);
   }
 
   return(ret);

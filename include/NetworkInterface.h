@@ -167,7 +167,9 @@ class NetworkInterface : public Checkpointable {
 		time_t first_seen, time_t last_seen,
 		u_int32_t rawsize,
 		bool *new_flow);
-  int sortHosts(struct flowHostRetriever *retriever,
+  int sortHosts(u_int32_t *begin_slot,
+		bool walk_all,
+		struct flowHostRetriever *retriever,
 		u_int8_t bridge_iface_idx,
 		AddressTree *allowed_hosts,
 		bool host_details,
@@ -181,19 +183,23 @@ class NetworkInterface : public Checkpointable {
 	       char *sortColumn);
   int sortVLANs(struct flowHostRetriever *retriever,
 		char *sortColumn);
-  int sortMacs(struct flowHostRetriever *retriever,
+  int sortMacs(u_int32_t *begin_slot,
+	       bool walk_all,
+	       struct flowHostRetriever *retriever,
 	       u_int8_t bridge_iface_idx,
 	       u_int16_t vlan_id, bool sourceMacsOnly,	       
 	       bool hostMacsOnly, bool dhcpMacsOnly,
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter);
-  int sortFlows(struct flowHostRetriever *retriever,
-	       AddressTree *allowed_hosts,
-	       Host *host,
-	       Paginator *p,
-	       const char *sortColumn);
-
+  int sortFlows(u_int32_t *begin_slot,
+		bool walk_all,
+		struct flowHostRetriever *retriever,
+		AddressTree *allowed_hosts,
+		Host *host,
+		Paginator *p,
+		const char *sortColumn);
+  
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
@@ -230,7 +236,11 @@ class NetworkInterface : public Checkpointable {
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
 
-  virtual bool walker(WalkerType wtype, bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  virtual bool walker(u_int32_t *begin_slot,
+		      bool walk_all,
+		      WalkerType wtype,
+		      bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
+		      void *user_data);
 
   void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
@@ -376,6 +386,8 @@ class NetworkInterface : public Checkpointable {
   int getLatestActivityHostsList(lua_State* vm,
 				 AddressTree *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
+			 u_int32_t *begin_slot,
+			 bool walk_all,
 			 u_int8_t bridge_iface_idx,
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
@@ -386,6 +398,8 @@ class NetworkInterface : public Checkpointable {
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
+			  u_int32_t *begin_slot,
+			  bool walk_all,
 			  AddressTree *allowed_hosts,
 			  bool host_details, LocationPolicy location,
 			  char *countryFilter,
@@ -399,6 +413,8 @@ class NetworkInterface : public Checkpointable {
 			u_int32_t toSkip, bool a2zSortOrder,
 			DetailsLevel details_level);
   int getActiveMacList(lua_State* vm,
+		       u_int32_t *begin_slot,
+		       bool walk_all,
 		       u_int8_t bridge_iface_idx,
 		       u_int16_t vlan_id,
 		       bool sourceMacsOnly,

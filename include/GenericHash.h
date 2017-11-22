@@ -94,10 +94,13 @@ class GenericHash {
    * @brief generic walker for the hash.
    * @details This method uses the walker function to compare each elements of the hash with the user data.
    *
+   * @param begin_slot begin hash slot. Use 0 to walk all slots
+   * @param walk_all true = walk all hash, false, walk only one (non NULL) slot
    * @param walker A pointer to the comparison function.
    * @param user_data Value to be compared with the values of hash.
    */
-  bool walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  bool walk(u_int32_t *begin_slot, bool walk_all,
+	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data);
 
   /**
    * @brief Purge idle hash entries.

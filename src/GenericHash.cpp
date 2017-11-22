@@ -135,38 +135,72 @@ bool GenericHash::remove(GenericHashEntry *h) {
 
 /* ************************************ */
 
-bool GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+bool GenericHash::walk(u_int32_t *begin_slot,
+		       bool walk_all,
+		       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data) {
   bool found = false;
-
+  u_int16_t tot_matched = 0;
+  
   if(ntop->getGlobals()->isShutdown())     
     return(found);
 
-  for(u_int hash_id = 0; hash_id < num_hashes; hash_id++) {
+  for(u_int hash_id = *begin_slot; hash_id < num_hashes; hash_id++) {    
     if(table[hash_id] != NULL) {
       GenericHashEntry *head;
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]", hash_id, locks[hash_id]);
+#if WALK_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]", hash_id, locks[hash_id]);
+#endif
+      
       locks[hash_id]->lock(__FILE__, __LINE__);
       head = table[hash_id];
 
       while(head) {
 	GenericHashEntry *next = head->next();
 
-	if(!head->idle() && !head->is_ready_to_be_purged() && walker(head, user_data)) {
-	  found = true;
-	  break;
+	if(!head->idle() && !head->is_ready_to_be_purged()) {
+	  bool matched = false;
+	  bool rc = walker(head, user_data, &matched);
+
+	  if(matched) tot_matched++;
+	  
+	  if(rc) {
+	    found = true;
+	    break;
+	  }
 	}
+	
 	head = next;
       } /* while */
 
       locks[hash_id]->unlock(__FILE__, __LINE__);
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Unlocked %d", hash_id);
 
+      if((tot_matched >= 4) /* At least a few entries have been returned */
+	 && (!walk_all)) {
+	u_int32_t next_slot  = (hash_id == (num_hashes-1)) ? 0 /* start over */ : (hash_id+1);
+	
+	*begin_slot = next_slot;
+#if WALK_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [nextSlot: %u][hash_id: %u][tot_matched: %u]",
+				     next_slot, hash_id, tot_matched);
+#endif
+	
+	return(found);
+      }
+      
       if(found)
-	break;
+	break;      
     }
   }
 
+  if(!found)
+    *begin_slot = 0 /* start over */;
+
+#if WALK_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [tot_matched: %u]", tot_matched);
+#endif
+  
   return(found);
 }
 

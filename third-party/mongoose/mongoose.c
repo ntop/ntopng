@@ -278,8 +278,11 @@ typedef int SOCKET;
 #include "mongoose.h"
 
 #ifdef USE_LUA
+
+#if 0
 #include <lua.h>
 #include <lauxlib.h>
+#endif
 
 #if 1 /* ntop */
 #ifndef LUA_OK
