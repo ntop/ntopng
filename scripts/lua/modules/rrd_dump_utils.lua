@@ -292,7 +292,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_general_stats(when, ifstats, basedir)
+function rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
   -- General stats
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_hosts", 60, ifstats.stats.hosts)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_devices", 60, ifstats.stats.devices)
@@ -300,13 +300,13 @@ function rrd_dump.iface_update_general_stats(when, ifstats, basedir)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_http_hosts", 60, ifstats.stats.http_hosts)
 end
 
-function rrd_dump.iface_update_tcp_stats(when, ifstats, basedir)
+function rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_lost", 60, ifstats.tcpPacketStats.lost)
 end
 
-function rrd_dump.iface_update_tcp_flags(when, ifstats, basedir)
+function rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_syn", 60, ifstats.pktSizeDistribution.syn)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_synack", 60, ifstats.pktSizeDistribution.synack)
   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_finack", 60, ifstats.pktSizeDistribution.finack)
@@ -315,7 +315,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.profiles_update_stats(when, ifstats, basedir)
+function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
   local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
 
   for pname, ptraffic in pairs(ifstats.profiles) do

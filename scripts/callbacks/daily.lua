@@ -23,11 +23,6 @@ harvestJSONTopTalkers(30)
 local verbose = ntop.verboseTrace()
 local ifnames = interface.getIfNames()
 
--- Scan "day" alerts
-callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-   scanAlerts("day", ifstats)
-end)
-
 local delete_keys = true
 
 begin = os.clock()
@@ -51,6 +46,7 @@ if((minute_top_talkers_retention == nil) or (minute_top_talkers_retention == "")
 
 callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
    local interface_id = getInterfaceId(_ifname)
+   scanAlerts("day", ifstats)
 
    ntop.deleteMinuteStatsOlderThan(interface_id, tonumber(minute_top_talkers_retention))
 
