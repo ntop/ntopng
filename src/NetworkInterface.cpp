@@ -98,12 +98,16 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  pkt_dumper_tap = NULL, db = NULL, aggregated_flows_hash = NULL;
+  pkt_dumper_tap = NULL, db = NULL;
   ifname = strdup(name);
   if(custom_interface_type) {
     ifDescription = strdup(name);
   } else
     ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
+  
+#ifdef NTOPNG_PRO
+  aggregated_flows_hash = NULL;
+#endif
 
   snmp = new SNMP();
 
@@ -178,9 +182,6 @@ NetworkInterface::NetworkInterface(const char *name,
     ifSpeed = Utils::getMaxIfSpeed(name);
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
   } else /* id < 0 */ {
-#ifdef NTOPNG_PRO
-    aggregated_flows_hash = NULL;
-#endif
     flows_hash = NULL, hosts_hash = NULL;
     macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
