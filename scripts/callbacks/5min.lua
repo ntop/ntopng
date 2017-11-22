@@ -17,6 +17,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "rrd_utils"
+local os_utils = require "os_utils"
 local rrd_dump = require "rrd_dump_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
@@ -80,7 +81,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
   housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
 
   if interface_rrd_creation == "1" then
-    local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
+    local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
     if interface_ndpi_timeseries_creation == "per_protocol" or interface_ndpi_timeseries_creation == "both" then
       rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
@@ -141,11 +142,6 @@ end
 
     if tcp_retr_ooo_lost_rrd_creation == "1" then
       --[[ TODO: implement for ASes
-      local anoms = (asn_stats["tcp.packets.out_of_order"] or 0)
-      anoms = anoms + (asn_stats["tcp.packets.retransmissions"] or 0) + (asn_stats["tcp.packets.lost"] or 0)
-      if(anoms > 0) then
-        makeRRD(asnpath, when, ifstats.id, asn, "tcp_retr_ooo_lost", 300, anoms)
-      end
       --]]
     end
   end
@@ -156,11 +152,6 @@ end
 
     if tcp_retr_ooo_lost_rrd_creation == "1" then
         --[[ TODO: implement for VLANs
-        local anoms = (vlan_stats["tcp.packets.out_of_order"] or 0)
-        anoms = anoms + (vlan_stats["tcp.packets.retransmissions"] or 0) + (vlan_stats["tcp.packets.lost"] or 0)
-        if(anoms > 0) then
-           makeRRD(vlanpath, when, ifstats.id, vlan_id, "tcp_retr_ooo_lost", 300, anoms)
-        end
         --]]
     end
   end

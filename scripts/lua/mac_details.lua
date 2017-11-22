@@ -15,6 +15,7 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 
+local os_utils = require "os_utils"
 local discover = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
 local page        = _GET["page"]
@@ -103,7 +104,7 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
 end
 
-if(ntop.exists(fixPath(devicebase.."/"..rrdfile))) then
+if(ntop.exists(os_utils.fixPath(devicebase.."/"..rrdfile))) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else

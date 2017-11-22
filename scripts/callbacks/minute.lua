@@ -18,6 +18,7 @@ require "graph_utils"
 require "top_structure"
 require "rrd_utils"
 
+local os_utils = require "os_utils"
 local rrd_dump = require "rrd_dump_utils"
 local tcp_flags_rrd_creation = ntop.getPref("ntopng.prefs.tcp_flags_rrd_creation")
 local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
@@ -60,7 +61,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       -- TODO secondStats = interface.getLastMinuteTrafficStats()
       -- TODO send secondStats to collector
 
-      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
+      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
       if not ntop.exists(basedir) then ntop.mkdir(basedir) end
 
       rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)

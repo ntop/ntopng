@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
+local os_utils = require "os_utils"
 
 function cleanName(name)
    n = string.gsub(name, "'", "_")
@@ -58,7 +58,7 @@ key_name = when..".keys"
 local debug = true
 local delete_keys = true
 
-dump_dir = fixPath(dirs.workingdir .. "/datadump/")
+dump_dir = os_utils.fixPath(dirs.workingdir .. "/datadump/")
 ntop.mkdir(dump_dir)
 
 fname = dump_dir .. "20".. when

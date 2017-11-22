@@ -5,12 +5,10 @@
 dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
---package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
 require "lua_trace"
 locales_utils = require "locales_utils"
-
+local os_utils = require "os_utils"
 
 -- ##############################################
 
@@ -1262,23 +1260,6 @@ function purifyInterfaceName(interface_name)
   return(interface_name)
 end
 
-function getPathDivider()
-   if(ntop.isWindows()) then
-      return "\\"
-   else
-      return "/"
-   end
-end
-
--- Fix path format Unix <-> Windows
-function fixPath(path)
-   if(ntop.isWindows() and (string.len(path) > 2)) then
-      path = string.gsub(path, "/", getPathDivider())
-   end
-
-  return(path)
-end
-
 -- See datatype AggregationType in ntop_typedefs.h
 function aggregation2String(value)
   if(value == 0) then return("Client Name")
@@ -1289,8 +1270,6 @@ function aggregation2String(value)
   else return(value)
   end
 end
-
--- #################################
 
 -- #################################
 
@@ -2011,10 +1990,10 @@ function getPathFromIPv6(addr)
    -- most significant part of the address goes in a hierarchical structure
    local res = table.concat(most_significant, "/")
    -- the interface identifies goes as-is because it is non structured
-   res = fixPath(res.."/"..table.concat(interface_identifier, "_"))
+   res = os_utils.fixPath(res.."/"..table.concat(interface_identifier, "_"))
 
    if not isEmptyString(subnet) then
-      res = fixPath(res.."/"..subnet)
+      res = os_utils.fixPath(res.."/"..subnet)
    end
 
    return res
@@ -2034,9 +2013,9 @@ function getPathFromMac(addr)
    local nic = {mac[4], mac[5], mac[6]}
 
    -- each manufacturer has its own directory
-   local res = fixPath("macs/"..table.concat(manufacturer, "_"))
+   local res = os_utils.fixPath("macs/"..table.concat(manufacturer, "_"))
    -- the nic identifier goes as-is because it is non structured
-   res = fixPath(res.."/"..table.concat(nic, "/"))
+   res = os_utils.fixPath(res.."/"..table.concat(nic, "/"))
    -- finally the vlan
    res = res..vlan
 
@@ -2054,7 +2033,7 @@ function getPathFromKey(key)
 
    key = tostring(key):gsub("[%.:]", "/")
 
-   return fixPath(key)
+   return os_utils.fixPath(key)
 end
 
 function getRedisIfacePrefix(ifid)
@@ -2298,7 +2277,7 @@ function harvestUnusedDir(path, min_epoch)
 
    for k,v in pairs(files) do
       if(v ~= nil) then
-	 local p = fixPath(path .. "/" .. v)
+	 local p = os_utils.fixPath(path .. "/" .. v)
 	 if(ntop.isdir(p)) then
 	    harvestUnusedDir(p, min_epoch)
 	 else
@@ -2322,10 +2301,10 @@ function harvestJSONTopTalkers(days)
       interface.select(ifname)
       local _ifstats = interface.getStats()
       local dirs = ntop.getDirs()
-      local basedir = fixPath(dirs.workingdir .. "/" .. _ifstats.id)
+      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. _ifstats.id)
 
-      harvestUnusedDir(fixPath(basedir .. "/top_talkers"), when)
-      harvestUnusedDir(fixPath(basedir .. "/flows"), when)
+      harvestUnusedDir(os_utils.fixPath(basedir .. "/top_talkers"), when)
+      harvestUnusedDir(os_utils.fixPath(basedir .. "/flows"), when)
    end
 end
 
@@ -2496,7 +2475,7 @@ end
 -- makeTopStatsScriptsArray
 function makeTopStatsScriptsArray()
    path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
-   path = fixPath(path)
+   path = os_utils.fixPath(path)
    local files = ntop.readdir(path)
    topArray = {}
 
@@ -3540,7 +3519,7 @@ end
 
 function savePrefsToDisk()
    local dirs = ntop.getDirs()
-   local where = fixPath(dirs.workingdir.."/runtimeprefs.json")
+   local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
    local keys = ntop.getKeysCache("ntopng.prefs.*")
 
    local out = {}
@@ -3560,7 +3539,7 @@ end
 
 function readPrefsFromDisk()
    local dirs = ntop.getDirs()
-   local where = fixPath(dirs.workingdir.."/runtimeprefs.json")
+   local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
    local file = io.open(where, "r")
 
    if(file ~= nil) then

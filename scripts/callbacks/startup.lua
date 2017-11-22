@@ -19,6 +19,7 @@ require "blacklist_utils"
 
 local host_pools_utils = require "host_pools_utils"
 local http_bridge_conf_utils = require "http_bridge_conf_utils"
+local os_utils = require "os_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -76,7 +77,7 @@ for _, ifname in pairs(interface.getIfNames()) do
    interface.select(ifname)
    local ifid = getInterfaceId(ifname)
 
-   local alerts_status_path = fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
+   local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
 end
 

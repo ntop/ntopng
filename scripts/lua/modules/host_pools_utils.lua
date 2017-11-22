@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.
 
 local ntop_info = ntop.getInfo()
 
+local os_utils = require "os_utils"
+
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
 host_pools_utils.DEFAULT_ROUTING_POLICY_ID = "0"
@@ -411,7 +413,7 @@ end
 
 function host_pools_utils.getRRDBase(ifid, pool_id)
   local dirs = ntop.getDirs()
-  return fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
+  return os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
 end
 
 function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
@@ -424,14 +426,14 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     end
 
     -- Traffic stats
-    local rrdpath = fixPath(pool_base .. "/bytes.rrd")
+    local rrdpath = os_utils.fixPath(pool_base .. "/bytes.rrd")
     createRRDcounter(rrdpath, 300, verbose)
     ntop.rrd_update(rrdpath, nil, tolongint(pool_stats["bytes.sent"]), tolongint(pool_stats["bytes.rcvd"]))
 
     -- nDPI stats
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
-        local ndpiname = fixPath(pool_base.."/"..proto..".rrd")
+        local ndpiname = os_utils.fixPath(pool_base.."/"..proto..".rrd")
         createRRDcounter(ndpiname, 300, verbose)
         ntop.rrd_update(ndpiname, nil, tolongint(v["bytes.sent"]), tolongint(v["bytes.rcvd"]))
       end

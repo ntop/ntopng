@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_aggregation_utils"
+local os_utils = require "os_utils"
 
 local callback_utils = {}
 
@@ -65,7 +66,7 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
       if host ~= nil then
          if(host.localhost) then
             local keypath = getPathFromKey(hostname)
-            hostbase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+            hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
 
             if(not(ntop.exists(hostbase))) then
                ntop.mkdir(hostbase)
@@ -100,7 +101,7 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
       end
 
       local keypath = getPathFromKey(devicename)
-      local devicebase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+      local devicebase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
 
       if(not(ntop.exists(devicebase))) then
 	 ntop.mkdir(devicebase)

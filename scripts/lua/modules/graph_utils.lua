@@ -5,6 +5,7 @@ require "lua_utils"
 require "db_utils"
 require "historical_utils"
 local host_pools_utils = require "host_pools_utils"
+local os_utils = require "os_utils"
 
 local top_rrds = {
    {rrd="num_flows.rrd",               label=i18n("graphs.active_flows")},
@@ -39,7 +40,7 @@ end
 
 function getProtoVolume(ifName, start_time, end_time)
    ifId = getInterfaceId(ifName)
-   path = fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
+   path = os_utils.fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
    rrds = ntop.readdir(path)
    
    ret = { }
@@ -97,7 +98,7 @@ function navigatedir(url, label, base, path, print_html, ifid, host, start_time,
 
    for k,v in pairsByKeys(rrds, asc) do
       if(v ~= nil) then
-	 local p = fixPath(path .. "/" .. v)
+	 local p = os_utils.fixPath(path .. "/" .. v)
 
 	 if not ntop.isdir(p) then
 	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
@@ -188,41 +189,41 @@ end
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
       host_or_network = string.gsub(host_or_network, 'net:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
       host_or_network = string.gsub(host_or_network, 'profile:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
       host_or_network = string.gsub(host_or_network, 'pool:', '')
       rrdname = host_pools_utils.getRRDBase(ifid, "")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'snmp:') then
       host_or_network = string.gsub(host_or_network, 'snmp:', '')
       -- snmpstats are ntopng-wide so ifid is ignored
-      rrdname = fixPath(dirs.workingdir .. "/snmpstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/snmpstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
       host_or_network = string.gsub(host_or_network, 'flow_device:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'sflow:') then
       host_or_network = string.gsub(host_or_network, 'sflow:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
    else
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
 
    if(host_or_network ~= nil) then
       rrdname = rrdname .. getPathFromKey(host_or_network) .. "/"
    end
 
-   return fixPath(rrdname..(rrdFile or ''))
+   return os_utils.fixPath(rrdname..(rrdFile or ''))
 end
 
 -- ########################################################
@@ -592,7 +593,7 @@ if(show_timeseries == 1) then
       p = p .. getPathFromKey(host)
    end
 
-   local d = fixPath(p)
+   local d = os_utils.fixPath(p)
 
    -- nDPI protocols
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
@@ -931,65 +932,6 @@ print[['+hover.selected_epoch;
 else
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
 end
-end
-
--- ########################################################
-
-function create_rrd(name, step, ds)
-   step = tonumber(step)
-   if step == nil or step <= 1 then step = 1 end
-   if(not(ntop.exists(name))) then
-      if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
-      local prefs = ntop.getPrefs()
-      ntop.rrd_create(
-	 name,
-	 step,   -- step
-	 'DS:' .. ds .. ':DERIVE:'.. step * 5 .. ':U:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
-	 'RRA:AVERAGE:0.5:'..(60/step)..':'..tostring(prefs.intf_rrd_1min_days*24*60),   -- 1 min resolution = 1 month
-	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:'..(86400)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
-	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
-      )
-   end
-end
-
-function create_rrd_num(name, ds, step)
-   step = tonumber(step)
-   if step == nil or step <= 1 then step = 1 end
-   if(not(ntop.exists(name))) then
-      if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
-      local prefs = ntop.getPrefs()
-      ntop.rrd_create(
-	 name,
-	 step,   -- step
-	 'DS:' .. ds .. ':GAUGE:' .. step * 5 .. ':0:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
-	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:'..(86400/step)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
-	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
-      )
-   end
-end
-
-function makeRRD(basedir, when, if_id, key, rrdname, step, value)
-   local name = fixPath(basedir .. "/" .. rrdname .. ".rrd")
-
-   if(string.contains(rrdname, "num_")) then
-      create_rrd_num(name, rrdname, step)
-   else
-      create_rrd(name, step, rrdname)
-   end
-
-   ntop.rrd_update(name, nil, tolongint(value))
-
-   local tskey = if_id
-   if(key ~= nil) then tskey = tskey ..":"..key end
-   ntop.tsSet(when, if_id, tonumber(step), "iface", nil, rrdname, tonumber(value), 0)
-   
-   if(enable_second_debug) then 
-      io.write('Updating RRD ['.. if_id..'] '.. name .. " " .. value ..'\n')
-   end
 end
 
 function createRRDcounter(path, step, verbose)

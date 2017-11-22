@@ -41,6 +41,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "persistence"
+local os_utils = require "os_utils"
 
 other_stats_id = "Other"
 
@@ -157,7 +158,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
    hosts_stats = interface.getLatestActivityHostsInfo()
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
-   talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
+   talkers_dir = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
    if(not(ntop.exists(talkers_dir))) then
       ntop.mkdir(talkers_dir)
    end
@@ -339,7 +340,7 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
      hosts_stats = filterBy(hosts_stats, "localhost", loc)
    end
 
-   talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
+   talkers_dir = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
    if(not(ntop.exists(talkers_dir))) then
       ntop.mkdir(talkers_dir)
    end
@@ -435,7 +436,7 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
    hosts_stats = interface.getLatestActivityHostsInfo()
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
-   talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
+   talkers_dir = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
    if(not(ntop.exists(talkers_dir))) then
       ntop.mkdir(talkers_dir)
    end

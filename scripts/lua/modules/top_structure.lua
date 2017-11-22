@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "top_talkers"
 require "lua_utils"
+local os_utils = require "os_utils"
 
 local function getVLANList(ifid, ifname)
    interface.select(ifname)
@@ -20,7 +21,7 @@ end
 
 function makeTopJSON(ifid, ifname)
   path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
-  path = fixPath(path)
+  path = os_utils.fixPath(path)
   local files = ntop.readdir(path)
   local file_cnt = 0
   local vlan_cnt = 0

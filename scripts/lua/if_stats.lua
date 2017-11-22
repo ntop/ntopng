@@ -16,6 +16,7 @@ end
 local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
+local os_utils = require "os_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -143,7 +144,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(msg)
 
-rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
+rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
 url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
@@ -864,7 +865,7 @@ elseif(page == "trafficprofiles") then
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
-     local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
+     local rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
      local statschart_icon = ''
      if ntop.exists(rrdname) then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
