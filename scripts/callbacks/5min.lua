@@ -72,13 +72,13 @@ local prefs = ntop.getPrefs()
 
 -- ########################################################
 
--- We must scan the alerts on all the interfaces, not only the ones with interface_rrd_creation_enabled
 callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-   scanAlerts("5mins", ifstats)
-end)
-
-callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
   housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
+  scanAlerts("5mins", ifstats)
+
+  if not interface_rrd_creation_enabled(ifstats.id) then
+    goto continue
+  end
 
   if interface_rrd_creation == "1" then
     local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
@@ -166,6 +166,8 @@ end
   if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
     host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
   end
+
+  ::continue::
 end)
 
 -- ########################################################

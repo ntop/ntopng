@@ -41,12 +41,7 @@ if(verbose) then
    sendHTTPHeader('text/plain')
 end
 
--- We must scan the alerts on all the interfaces, not only the ones with interface_rrd_creation_enabled
 callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-   scanAlerts("min", ifstats)
-end)
-
-callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(_ifname, ifstats)
    -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
       do
         -- Dump topTalkers every minute
@@ -58,6 +53,12 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
         ntop.insertMinuteSampling(ifstats.id, talkers)
       end
 
+      scanAlerts("min", ifstats)
+
+      if not interface_rrd_creation_enabled(ifstats.id) then
+         goto continue
+      end
+
       -- TODO secondStats = interface.getLastMinuteTrafficStats()
       -- TODO send secondStats to collector
 
@@ -65,22 +66,23 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       if not ntop.exists(basedir) then ntop.mkdir(basedir) end
 
       rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
-      rrd_dump.iface_update_general_stats(when, ifstats, basedir)
+      rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
 
       -- TCP stats
       if tcp_retr_ooo_lost_rrd_creation == "1" then
-         rrd_dump.iface_update_tcp_stats(when, ifstats, basedir)
+         rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
       end
 
       -- TCP Flags
       if tcp_flags_rrd_creation == "1" then
-         rrd_dump.iface_update_tcp_flags(when, ifstats, basedir)
+         rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
       end
 
       -- Save Profile stats every minute
       if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
-        rrd_dump.profiles_update_stats(when, ifstats, basedir)
+        rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
       end
+   ::continue::
 end) -- foreachInterface
 
 -- when the active local hosts cache is enabled, ntopng periodically dumps active local hosts statistics to redis

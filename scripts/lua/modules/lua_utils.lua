@@ -3365,7 +3365,7 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
-function hasBridgeInterfaces()
+function hasBridgeInterfaces(skip_netfilter)
   local curif = ifname
   local ifnames = interface.getIfNames()
   local found = false
@@ -3374,7 +3374,8 @@ function hasBridgeInterfaces()
     interface.select(ifname)
 
     local ifstats = interface.getStats()
-    if isBridgeInterface(ifstats) then
+    if isBridgeInterface(ifstats)
+        and (skip_netfilter~=true or ifstats.type ~= "netfilter") then
       found = true
       break
     end

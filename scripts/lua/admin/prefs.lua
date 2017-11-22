@@ -405,12 +405,14 @@ function printBridgingPrefs()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
 
+if hasBridgeInterfaces(true) then
   prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
         "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
   prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
         "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
   prefsInputFieldPrefs(subpage_active.entries["secondary_dns"].title, subpage_active.entries["secondary_dns"].description,
         "ntopng.prefs.", "secondary_dns", prefs.secondary_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
+end
 
   prefsInformativeField(subpage_active.entries["featured_dns"].title, subpage_active.entries["featured_dns"].description..[[<br><br>
         <table class='table table-bordered table-condensed small'>
@@ -437,6 +439,10 @@ function printBridgingPrefs()
     disabled = not(show),
     to_switch = captivePortalElementsToSwitch,
   })
+
+  if not isEmptyString(label) then
+    prefsInformativeField("", label, true)
+  end
 
   local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
   prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
