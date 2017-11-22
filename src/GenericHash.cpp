@@ -176,7 +176,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       locks[hash_id]->unlock(__FILE__, __LINE__);
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Unlocked %d", hash_id);
 
-      if((tot_matched >= 4) /* At least a few entries have been returned */
+      if((tot_matched >= MIN_NUM_HASH_WALK_ELEMS) /* At least a few entries have been returned */
 	 && (!walk_all)) {
 	u_int32_t next_slot  = (hash_id == (num_hashes-1)) ? 0 /* start over */ : (hash_id+1);
 	

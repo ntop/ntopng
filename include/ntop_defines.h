@@ -812,5 +812,7 @@
 
 #define PERIODIC_TASK_POOL_SIZE   8 /* Threads */
 
+#define MIN_NUM_HASH_WALK_ELEMS   512
+
 #endif /* _NTOP_DEFINES_H_ */
 
