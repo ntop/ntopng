@@ -50,18 +50,22 @@ error_handler() {
     EXIT_ON_END=$0
 
     if [ -n "${MSG}" ]; then
-	if [ ${ERROR} -gt 0 ]; then
-	    if [ ${DISTRO} == "debian" ]; then
-		log_failure_msg "${MSG}"
-		log_end_msg $ERROR
-	    elif [ ${DISTRO} == "centos" ]; then
-		echo -n "${MSG}"
-		echo_failure; echo
-	    fi
-	else
-	    [ ${DISTRO} == "debian" ] && log_end_msg $ERROR
-	    [ ${DISTRO} == "centos" ] && echo_success && echo
-	fi
+        if [ ${ERROR} -gt 0 ]; then
+            if [ ${DISTRO} == "debian" ]; then
+                log_failure_msg "${MSG}"
+                log_end_msg $ERROR
+            elif [ ${DISTRO} == "centos" ]; then
+                echo -n "${MSG}"
+                echo_failure; echo
+            fi
+        else
+            if [ ${DISTRO} == "debian" ]; then
+                log_warning_msg $MSG
+            elif [ ${DISTRO} == "centos" ]; then
+                echo -n "${MSG}"
+                echo_success; echo
+            fi
+        fi
     fi
 
     if [ "$EXIT_ON_END" == "quit" ]; then
@@ -179,7 +183,7 @@ start_ntopng() {
 	fi
     else
         MSG="Missing /etc/ntopng/ntopng.start. Quitting"
-        ERROR=1
+        ERROR=0
         RETVAL=1
 	error_handler "quit"
     fi
