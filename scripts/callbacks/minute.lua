@@ -5,7 +5,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "alert_utils"
 if (ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
    require("minute")
@@ -15,21 +14,15 @@ end
 
 require "lua_utils"
 require "graph_utils"
-require "top_structure"
 require "rrd_utils"
 
-local os_utils = require "os_utils"
-local rrd_dump = require "rrd_dump_utils"
-local tcp_flags_rrd_creation = ntop.getPref("ntopng.prefs.tcp_flags_rrd_creation")
-local tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
+local rrd_dump = require "rrd_min_dump_utils"
 local callback_utils = require "callback_utils"
-
-local prefs = ntop.getPrefs()
 
 -- ########################################################
 
+local config = rrd_dump.getConfig()
 local when = os.time()
-
 local verbose = ntop.verboseTrace()
 local ifnames = interface.getIfNames()
 
@@ -42,48 +35,10 @@ if(verbose) then
 end
 
 callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-   -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
-      do
-        -- Dump topTalkers every minute
-        local talkers = makeTopJSON(ifstats.id, _ifname)
-        if(verbose) then
-          print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
-          print(talkers)
-        end
-        ntop.insertMinuteSampling(ifstats.id, talkers)
-      end
-
-      scanAlerts("min", ifstats)
-
-      if not interface_rrd_creation_enabled(ifstats.id) then
-         goto continue
-      end
-
-      -- TODO secondStats = interface.getLastMinuteTrafficStats()
-      -- TODO send secondStats to collector
-
-      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
-      if not ntop.exists(basedir) then ntop.mkdir(basedir) end
-
-      rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
-      rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
-
-      -- TCP stats
-      if tcp_retr_ooo_lost_rrd_creation == "1" then
-         rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
-      end
-
-      -- TCP Flags
-      if tcp_flags_rrd_creation == "1" then
-         rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
-      end
-
-      -- Save Profile stats every minute
-      if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
-        rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
-      end
-   ::continue::
+   rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
 end) -- foreachInterface
+
+local prefs = ntop.getPrefs()
 
 -- when the active local hosts cache is enabled, ntopng periodically dumps active local hosts statistics to redis
 -- in order to protect from failures (e.g., power losses)

@@ -1,5 +1,9 @@
 require "lua_utils"
+require "graph_utils"
+require "alert_utils"
 local rrd_utils = require "rrd_utils"
+local host_pools_utils = require "host_pools_utils"
+local callback_utils = require "callback_utils"
 local os_utils = require "os_utils"
 
 local dirs = ntop.getDirs()
@@ -267,66 +271,141 @@ end
 
 -- ########################################################
 
-function rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats')
-  local subnet_stats = interface.getNetworksStats()
+function rrd_dump.getConfig()
+  local config = {}
+  config.interface_rrd_creation = ntop.getPref("ntopng.prefs.config.interface_rrd_creation")
+  config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.config.interface_ndpi_timeseries_creation")
+  config.host_rrd_creation = ntop.getPref("ntopng.prefs.config.host_rrd_creation")
+  config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.config.host_ndpi_timeseries_creation")
+  config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.config.l2_device_rrd_creation")
+  config.l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.config.l2_device_ndpi_timeseries_creation")
+  config.flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
+  config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.config.host_pools_rrd_creation")
+  config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.config.snmp_devices_rrd_creation")
+  config.asn_rrd_creation = ntop.getPref("ntopng.prefs.config.asn_rrd_creation")
+  config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.config.vlan_rrd_creation")
+  config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.config.tcp_retr_ooo_lost_rrd_creation")
 
-  for subnet,sstats in pairs(subnet_stats) do
-    local rrdpath = getPathFromKey(subnet)
-    rrdpath = os_utils.fixPath(basedir.. "/" .. rrdpath)
-    if(not(ntop.exists(rrdpath))) then
-       ntop.mkdir(rrdpath)
-    end
-
-    local bytes_rrd = os_utils.fixPath(rrdpath .. "/bytes.rrd")
-    createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
-    ntop.rrd_update(bytes_rrd, nil, tolongint(sstats["ingress"]), tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-    ntop.tsSet(when, ifstats.id, 60, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-
-    local bytes_bcast_rrd = os_utils.fixPath(rrdpath .. "/broadcast_bytes.rrd")
-    createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
-    ntop.rrd_update(bytes_bcast_rrd, nil, tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
-    ntop.tsSet(when, ifstats.id, 60, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
+  -- ########################################################
+  -- Populate some defaults
+  if(tostring(config.flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
+     config.flow_devices_rrd_creation = "0"
   end
+
+  if(tostring(config.snmp_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
+     config.snmp_devices_rrd_creation = "0"
+  end
+
+  -- Interface RRD creation is on, with per-protocol nDPI
+  if isEmptyString(config.interface_rrd_creation) then config.interface_rrd_creation = "1" end
+  if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end
+
+  -- Local hosts RRD creation is on, with no nDPI rrd creation
+  if isEmptyString(config.host_rrd_creation) then config.host_rrd_creation = "1" end
+  if isEmptyString(config.host_ndpi_timeseries_creation) then config.host_ndpi_timeseries_creation = "none" end
+
+  -- Devices RRD creation is OFF, as OFF is the nDPI rrd creation
+  if isEmptyString(config.l2_device_rrd_creation) then config.l2_device_rrd_creation = "0" end
+  if isEmptyString(config.l2_device_ndpi_timeseries_creation) then config.l2_device_ndpi_timeseries_creation = "none" end
+
+  return config
 end
 
 -- ########################################################
 
-function rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
-  -- General stats
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_hosts", 60, ifstats.stats.hosts)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_devices", 60, ifstats.stats.devices)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_flows", 60, ifstats.stats.flows)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_http_hosts", 60, ifstats.stats.http_hosts)
-end
+function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
+  housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
+  scanAlerts("5mins", ifstats)
 
-function rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_lost", 60, ifstats.tcpPacketStats.lost)
-end
+  if not interface_rrd_creation_enabled(ifstats.id) then
+    return
+  end
 
-function rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_syn", 60, ifstats.pktSizeDistribution.syn)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_synack", 60, ifstats.pktSizeDistribution.synack)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_finack", 60, ifstats.pktSizeDistribution.finack)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_rst", 60, ifstats.pktSizeDistribution.rst)
-end
+  if config.interface_rrd_creation == "1" then
+    local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
--- ########################################################
-
-function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
-
-  for pname, ptraffic in pairs(ifstats.profiles) do
-    local rrdpath = os_utils.fixPath(basedir.. "/" .. getPathFromKey(trimSpace(pname)))
-    if(not(ntop.exists(rrdpath))) then
-      ntop.mkdir(rrdpath)
+    if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
+      rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
     end
-    rrdpath = os_utils.fixPath(rrdpath .. "/bytes.rrd")
-    createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
-    ntop.rrd_update(rrdpath, nil, tolongint(ptraffic))
-    ntop.tsSet(when, ifstats.id, 60, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
+
+    if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
+      rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
+    end
+
+    rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
+  end
+
+  -- Save hosts stats (if enabled from the preferences)
+  if config.host_rrd_creation ~= "0" then
+    local in_time = callback_utils.foreachLocalHost(_ifname, time_threshold, function (hostname, host, hostbase)
+
+      -- Crunch additional stats for local hosts only
+      if(host.localhost) then
+        -- Traffic stats
+        if(config.host_rrd_creation == "1") then
+          rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
+        end
+
+        if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
+          rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
+        end
+
+        if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then
+          rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
+        end
+      end
+    end)
+
+    if not in_time then
+      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
+      return false
+    end
+  end
+
+  if config.l2_device_rrd_creation ~= "0" then
+    local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device, devicebase)
+      rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
+
+      if config.l2_device_ndpi_timeseries_creation == "per_category" then
+        rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
+      end
+    end)
+
+    if not in_time then
+      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
+      return false
+    end
+  end
+
+  -- create RRD for ASN
+  if config.asn_rrd_creation == "1" then
+    rrd_dump.asn_update_rrds(when, ifstats, verbose)
+
+    if config.tcp_retr_ooo_lost_rrd_creation == "1" then
+      --[[ TODO: implement for ASes
+      --]]
+    end
+  end
+
+  -- Create RRD for vlans
+  if config.vlan_rrd_creation == "1" then
+    rrd_dump.vlan_update_rrds(when, ifstats, verbose)
+
+    if config.tcp_retr_ooo_lost_rrd_creation == "1" then
+        --[[ TODO: implement for VLANs
+        --]]
+    end
+  end
+
+  -- Create RRDs for flow and sFlow devices
+  if(config.flow_devices_rrd_creation == "1" and ntop.isEnterprise()) then
+    rrd_dump.sflow_device_update_rrds(when, ifstats, verbose)
+    rrd_dump.flow_device_update_rrds(when, ifstats, verbose)
+  end
+
+  -- Save Host Pools stats every 5 minutes
+  if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
+    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
   end
 end
 
