@@ -3,6 +3,7 @@
 require "lua_utils"
 require "top_structure"
 require "alert_utils"
+require "graph_utils"
 local rrd_utils = require "rrd_utils"
 local os_utils = require "os_utils"
 

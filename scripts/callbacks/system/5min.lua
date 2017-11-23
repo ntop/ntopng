@@ -14,8 +14,13 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
+local rrd_dump = require "rrd_5min_dump_utils"
+
+-- ########################################################
 
 local verbose = ntop.verboseTrace()
+local when = os.time()
+local config = rrd_dump.getConfig()
 local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 
 -- ########################################################
