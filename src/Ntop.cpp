@@ -63,7 +63,6 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
-  periodicTaskPool = NULL;
   
   httpd = NULL, geo = NULL, mac_manufacturers = NULL,
     hostBlacklistShadow = hostBlacklist = NULL;
@@ -175,12 +174,6 @@ Ntop::~Ntop() {
   if(httpd)
     delete httpd; /* Stop the http server before tearing down network interfaces */
 
-  /* 
-     Stop periodic scripts so that we avoid nasty things happen when
-     memory is being deallocated
-  */
-  delete periodicTaskPool;
-  
   /* Views are deleted first as they require access to the underlying sub-interfaces */
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(iface[i] && iface[i]->isView()) {
@@ -423,8 +416,6 @@ void Ntop::start() {
 
   /* Start the periodic activities.
    * NOTE: order is important here. */
-  periodicTaskPool = new ThreadPool(PERIODIC_TASK_POOL_SIZE);
-  assert(periodicTaskPool != NULL);
   pa->startPeriodicActivitiesLoop();
 
   for(int i=0; i<num_defined_interfaces; i++) {
@@ -1657,8 +1648,6 @@ void Ntop::runHousekeepingTasks() {
 /* ******************************************* */
 
 void Ntop::shutdown() {
-  periodicTaskPool->shutdown();
-  
   for(int i=0; i<num_defined_interfaces; i++) {
     EthStats *stats = iface[i]->getStats();
 

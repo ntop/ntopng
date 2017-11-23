@@ -259,7 +259,7 @@ static int ntop_select_interface(lua_State* vm) {
     ifname = (char*)lua_tostring(vm, 1);
   }
 
-  getLuaVMUservalue(vm,iface) = ntop->getNetworkInterface(vm, ifname);
+  getLuaVMUservalue(vm, iface) = ntop->getNetworkInterface(vm, ifname);
 
   // lua_pop(vm, 1); /* Cleanup the Lua stack */
   lua_pushnil(vm);
@@ -6932,7 +6932,7 @@ static int post_iterator(void *cls,
 /*
   Run a Lua script from within ntopng (no HTTP GUI)
 */
-int Lua::run_script(char *script_path) {
+int Lua::run_script(char *script_path, NetworkInterface *iface) {
   int rc = 0;
 
   if(!L) return(-1);
@@ -6941,6 +6941,11 @@ int Lua::run_script(char *script_path) {
     luaL_openlibs(L); /* Load base libraries */
     lua_register_classes(L, false); /* Load custom classes */
 
+    if(iface) {
+      /* Select the specified inteface */
+      getLuaVMUservalue(L, iface) = iface;    
+    }
+    
 #ifndef NTOPNG_PRO
     rc = luaL_dofile(L, script_path);
 #else

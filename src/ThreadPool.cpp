@@ -71,25 +71,26 @@ void ThreadPool::run() {
 #endif
   
   while(!terminating) {
-    ThreadedActivity *t;
-
-    
+    QueuedThreadData *q;
+   
 #ifdef THREAD_DEBUG  
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** About to dequeue job [%u][terminating=%d]",
 				 pthread_self(), terminating);
 #endif
     
-    t = dequeueJob(true);
+    q = dequeueJob(true);
 
 #ifdef THREAD_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Dequeued job [%u][t=%p][terminating=%d]",
-				 pthread_self(), t, terminating);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Dequeued job [%u][terminating=%d]",
+				 pthread_self(), terminating);
 #endif
     
-    if((t == NULL) || terminating)
+    if((q == NULL) || terminating) {
+      if(q) delete q;
       break;
-    else {
-      t->runScript();
+    } else {
+      (q->j)->runScript(q->script_path, q->iface);
+      delete q;
     }
   }
 
@@ -100,12 +101,21 @@ void ThreadPool::run() {
 
 /* **************************************************** */
 
-bool ThreadPool::queueJob(ThreadedActivity *j) {
+bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface) {
+  QueuedThreadData *q;
+  
   if(terminating)
     return(false);
 
+  q = new QueuedThreadData(j, path, iface);
+
+  if(!q) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create job");
+    return(false);
+  }
+
   m->lock(__FILE__, __LINE__);  
-  threads.push(j);
+  threads.push(q);
   queue_len++;
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
@@ -115,8 +125,8 @@ bool ThreadPool::queueJob(ThreadedActivity *j) {
 
 /* **************************************************** */
 
-ThreadedActivity* ThreadPool::dequeueJob(bool waitIfEmpty) {
-  ThreadedActivity *t;
+QueuedThreadData* ThreadPool::dequeueJob(bool waitIfEmpty) {
+  QueuedThreadData *q;
 
   m->lock(__FILE__, __LINE__);
   if(waitIfEmpty) {
@@ -125,15 +135,16 @@ ThreadedActivity* ThreadPool::dequeueJob(bool waitIfEmpty) {
   }
   
   if((queue_len == 0) || terminating) {
-    t = NULL;
+    q = NULL;
   } else {
-    t = threads.front();
+    q = threads.front();
     threads.pop();
     queue_len--;
   }
 
   m->unlock(__FILE__, __LINE__);
-  return(t);
+
+  return(q);
 }
 
 /* **************************************************** */
@@ -148,3 +159,4 @@ void ThreadPool::shutdown() {
   pthread_cond_broadcast(&condvar);
   m->unlock(__FILE__, __LINE__);
 }
+

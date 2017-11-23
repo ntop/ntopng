@@ -30,15 +30,26 @@ static void* startActivity(void* ptr)  {
 
 /* ******************************************* */
 
-ThreadedActivity::ThreadedActivity(const char* _path, NetworkInterface *_iface,
-				   u_int32_t _periodicity_seconds, bool _align_to_localtime) {
-  iface = _iface;
+ThreadedActivity::ThreadedActivity(const char* _path,
+				   u_int32_t _periodicity_seconds,
+				   bool _align_to_localtime,
+				   u_int8_t thread_pool_size) {
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
   thread_started = false, taskRunning = false;
+  path = strdup(_path); /* ntop->get_callbacks_dir() */;
+  numRunningChildren = 0;
+  
+  if(periodicity > MIN_TIME_SPAWN_THREAD_POOL) {
+    pool = new ThreadPool(thread_pool_size);
 
-  snprintf(path, sizeof(path), "%s/%s", ntop->get_callbacks_dir(), _path);
-
+    if(pool == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of resources");
+      throw -1;
+    }
+  } else
+    pool = NULL;
+  
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Creating ThreadedActivity '%s'", this, path);
 #endif
@@ -49,6 +60,9 @@ ThreadedActivity::ThreadedActivity(const char* _path, NetworkInterface *_iface,
 ThreadedActivity::~ThreadedActivity() {
   void *res;
 
+  if(path) free(path);
+  if(pool) delete pool;
+
   if(thread_started)
     pthread_join(pthreadLoop, &res);
 }
@@ -58,7 +72,7 @@ ThreadedActivity::~ThreadedActivity() {
 void ThreadedActivity::activityBody() {
   if(periodicity == 0)       /* The script is not periodic */
     aperiodicActivityBody();
-  else if(periodicity <= 10) /* Accurate time computation with micro-second-accurate sleep */
+  else if(periodicity <= MIN_TIME_SPAWN_THREAD_POOL) /* Accurate time computation with micro-second-accurate sleep */
     uSecDiffPeriodicActivityBody();
   else
     periodicActivityBody();
@@ -73,34 +87,47 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
+/* Run a script immediately */
 void ThreadedActivity::runScript() {
   struct stat statbuf;
+  char script_path[MAX_PATH];
+  
+  snprintf(script_path, sizeof(script_path), "%s/system/%s",
+	   ntop->get_callbacks_dir(), path);
+
+  if(stat(script_path, &statbuf) == 0) {
+    runScript(script_path, NULL);
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
+  Lua *l;
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
 #endif
 
-  if(stat(path, &statbuf) == 0) {
-    Lua *l;
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_path, iface);
+  
+  try {
+    l = new Lua();
+  } catch(std::bad_alloc& ba) {
+    static bool oom_warning_sent = false;
 
-    try {
-      l = new Lua();
-    } catch(std::bad_alloc& ba) {
-      static bool oom_warning_sent = false;
-
-      if(!oom_warning_sent) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	oom_warning_sent = true;
-      }
-
-      return;
+    if(!oom_warning_sent) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      oom_warning_sent = true;
     }
 
-    l->run_script(path);
-    delete l;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "[%p] Missing script %s", this, path);
+    return;
+  }
 
+  l->run_script(script_path, iface);
+
+  delete l;
   taskRunning = false;
 }
 
@@ -108,7 +135,7 @@ void ThreadedActivity::runScript() {
 
 void ThreadedActivity::aperiodicActivityBody() {
   if(!ntop->getGlobals()->isShutdown())
-    ntop->getPeriodicTaskPool()->scheduleJob(this);
+    runScript();
 }
 
 /* ******************************************* */
@@ -122,7 +149,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 
     gettimeofday(&begin, NULL);
     taskRunning = true;
-    ntop->getPeriodicTaskPool()->scheduleJob(this);
+    runScript();
     gettimeofday(&end, NULL);
 
     usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
@@ -165,9 +192,10 @@ void ThreadedActivity::periodicActivityBody() {
     if(now >= next_run) {
       while(taskRunning) usleep(1000);
       taskRunning = true;
-      ntop->getPeriodicTaskPool()->scheduleJob(this);
+      scheduleJob(pool);
 
-      next_run = roundTime(now, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
+      next_run = roundTime(now, periodicity,
+			   align_to_localtime ? ntop->get_time_offset() : 0);
     }
 
     sleep(1);
@@ -175,3 +203,36 @@ void ThreadedActivity::periodicActivityBody() {
 }
 
 /* ******************************************* */
+
+void ThreadedActivity::scheduleJob(ThreadPool *pool) {
+  /* Schedule per system / interface */
+  char script_path[MAX_PATH];
+  struct stat statbuf;
+  
+  while(numRunningChildren > 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "[%s] Waiting for %u to terminate",
+				 path, numRunningChildren);
+    sleep(1);
+  }
+
+  /* Schedule system script */
+  snprintf(script_path, sizeof(script_path), "%s/system/%s",
+	   ntop->get_callbacks_dir(), path);
+
+  if(stat(script_path, &statbuf) == 0)
+    pool->queueJob(this, script_path, NULL);
+
+  /* Schedule interface script */
+  snprintf(script_path, sizeof(script_path), "%s/interface/%s",
+	   ntop->get_callbacks_dir(), path);
+
+  if(stat(script_path, &statbuf) == 0) {
+    for(int i=0; i<ntop->get_num_interfaces(); i++) {
+      NetworkInterface *iface = ntop->getInterface(i);
+
+      if(iface)
+	pool->queueJob(this, script_path, iface);
+    }
+  }
+}

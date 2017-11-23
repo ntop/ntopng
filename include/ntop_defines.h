@@ -798,21 +798,21 @@
 #define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
 #define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)G(a)->userdata)->b
 
-/* 
+/*
    We assume that a host with more than CONST_MAX_NUM_HOST_USES
    MACs associated is a router
 */
 #define CONST_MAX_NUM_HOST_USES    8
 
 #define MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE 1024
-#define MAX_VALID_DNS_QUERY_LEN   96
+#define MAX_VALID_DNS_QUERY_LEN     96
 
 /* Keep in sync with nProbe */
-#define MAX_ZMQ_FLOW_BUF          4096
+#define MAX_ZMQ_FLOW_BUF             4096
 
-#define PERIODIC_TASK_POOL_SIZE   8 /* Threads */
+#define PERIODIC_TASK_POOL_SIZE      8 /* Threads */
 
-#define MIN_NUM_HASH_WALK_ELEMS   512
-
+#define MIN_NUM_HASH_WALK_ELEMS      512
+#define DEFAULT_THREAD_POOL_SIZE     2
+#define MIN_TIME_SPAWN_THREAD_POOL   10 /* sec */
 #endif /* _NTOP_DEFINES_H_ */
-
