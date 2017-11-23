@@ -273,18 +273,18 @@ end
 
 function rrd_dump.getConfig()
   local config = {}
-  config.interface_rrd_creation = ntop.getPref("ntopng.prefs.config.interface_rrd_creation")
-  config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.config.interface_ndpi_timeseries_creation")
-  config.host_rrd_creation = ntop.getPref("ntopng.prefs.config.host_rrd_creation")
-  config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.config.host_ndpi_timeseries_creation")
-  config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.config.l2_device_rrd_creation")
-  config.l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.config.l2_device_ndpi_timeseries_creation")
+  config.interface_rrd_creation = ntop.getPref("ntopng.prefs.interface_rrd_creation")
+  config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
+  config.host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
+  config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+  config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
+  config.l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.l2_device_ndpi_timeseries_creation")
   config.flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
-  config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.config.host_pools_rrd_creation")
-  config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.config.snmp_devices_rrd_creation")
-  config.asn_rrd_creation = ntop.getPref("ntopng.prefs.config.asn_rrd_creation")
-  config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.config.vlan_rrd_creation")
-  config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.config.tcp_retr_ooo_lost_rrd_creation")
+  config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
+  config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
+  config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
+  config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
+  config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
   -- ########################################################
   -- Populate some defaults
