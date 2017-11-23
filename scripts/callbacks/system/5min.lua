@@ -1,0 +1,26 @@
+--
+-- (C) 2013-17 - ntop.org
+--
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
+if(ntop.isPro()) then
+  package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
+  pcall(require, '5min')
+
+  package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+  require "snmp_utils"
+end
+
+require "lua_utils"
+
+local verbose = ntop.verboseTrace()
+local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
+
+-- ########################################################
+
+-- This must be placed at the end of the script
+if(tostring(config.snmp_devices_rrd_creation) == "1") then
+   snmp_update_rrds(time_threshold, verbose)
+end

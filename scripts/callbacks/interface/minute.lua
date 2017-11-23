@@ -2,41 +2,31 @@
 -- (C) 2013-17 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if (ntop.isPro()) then
-   package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
-   require("minute")
-
+   package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
+   pcall(require, 'minute')
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 
 require "lua_utils"
-require "graph_utils"
-require "rrd_utils"
 
 local rrd_dump = require "rrd_min_dump_utils"
-local callback_utils = require "callback_utils"
 
 -- ########################################################
 
-local config = rrd_dump.getConfig()
-local when = os.time()
 local verbose = ntop.verboseTrace()
-local ifnames = interface.getIfNames()
+local when = os.time()
+local config = rrd_dump.getConfig()
 
-if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
-   verbose = true
-end
+local ifstats = interface.getStats()
+local _ifname = ifstats.name
 
-if(verbose) then
-   sendHTTPHeader('text/plain')
-end
+-- ########################################################
 
-callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-   rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
-end) -- foreachInterface
+rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
 
 local prefs = ntop.getPrefs()
 
@@ -53,16 +43,12 @@ if prefs.is_active_local_hosts_cache_enabled then
    --]]
 
    if diff < 60 then
-      for _, ifname in pairs(ifnames) do
-	 -- tprint("dumping ifname: "..ifname)
+      -- tprint("dumping ifname: "..ifname)
 
-	 -- to protect from failures (e.g., power losses) it is possible to save
-	 -- local hosts counters to redis once per hour
-	 interface.select(ifname)
-	 interface.dumpLocalHosts2redis()
-      end
-
+      -- to protect from failures (e.g., power losses) it is possible to save
+      -- local hosts counters to redis once per hour
+      interface.dumpLocalHosts2redis()
    end
 end
 
-ntop.tsFlush(tonumber(60))
+
