@@ -7,9 +7,9 @@
 -- network interfaces are setup
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+local prefs_dump_utils = require "prefs_dump_utils"
 
-savePrefsToDisk()
+prefs_dump_utils.savePrefsToDisk()

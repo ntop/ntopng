@@ -11,7 +11,9 @@ require "flow_aggregation_utils"
 
 local db_debug = false
 
---- ====================================================================
+local db_utils = {}
+
+-- ########################################################
 
 function iptonumber(str)
    local num = 0
@@ -21,6 +23,7 @@ function iptonumber(str)
    return num
 end
 
+-- ########################################################
 
 function expandIpV4Network(net)
    local address, prefix = splitNetworkPrefix(net)
@@ -36,6 +39,8 @@ function expandIpV4Network(net)
 
    return({ addr, addr+num_hosts-1 })
 end
+
+-- ########################################################
 
 function flowsTableName(version, force_raw)
    if tblname_prefs == nil then
@@ -54,7 +59,7 @@ function flowsTableName(version, force_raw)
    return tblname
 end
 
---- ====================================================================
+-- ########################################################
 
 function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, vlan, profile, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order, aggregated_flows)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
@@ -117,7 +122,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
    end
 end
 
---- ====================================================================
+-- ########################################################
 
 function getFlowInfo(interface_id, version, flow_idx)
    version = tonumber(version)
@@ -145,7 +150,7 @@ function getFlowInfo(interface_id, version, flow_idx)
    end
 end
 
---- ====================================================================
+-- ########################################################
 
 function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, vlan, profile, begin_epoch, end_epoch, force_raw_flows)
    if(version == nil) then version = 4 end
@@ -216,6 +221,8 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    end
 end
 
+-- ########################################################
+
 function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port, vlan, profile)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
@@ -265,6 +272,8 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    end
    return sql..'\n'
 end
+
+-- ########################################################
 
 function getOverallTopTalkers(interface_id, l4proto, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
@@ -329,6 +338,7 @@ function getOverallTopTalkers(interface_id, l4proto, port, vlan, profile, info, 
    end
 end
 
+-- ########################################################
 
 function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- obtains host top talkers, possibly restricting the range only to l7_proto_id
@@ -434,6 +444,8 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, v
    end
 end
 
+-- ########################################################
+
 function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port, vlan, profile)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
@@ -485,6 +497,8 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
    end
    return sql..'\n'
 end
+
+-- ########################################################
 
 function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
@@ -547,6 +561,8 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, vlan, pr
       return(res)
    end
 end
+
+-- ########################################################
 
 function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- if both peers are nil, top applications are overall in the time range
@@ -638,3 +654,25 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
       return(res)
    end
 end
+
+-- ########################################################
+
+function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
+   interface.select(ifname)
+
+   local dbtables = {"flowsv4", "flowsv6"}
+   if useAggregatedFlows() then
+      dbtables[#dbtables+1] = "aggrflowsv4"
+      dbtables[#dbtables+1] = "aggrflowsv6"
+   end
+
+   for _, tb in pairs(dbtables) do
+      local sql = "DELETE FROM "..tb.." where FIRST_SWITCHED < "..mysql_retention
+      sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
+      sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
+      interface.execSQLQuery(sql)
+      if(verbose) then io.write(sql.."\n") end
+   end
+end
+
+return db_utils
