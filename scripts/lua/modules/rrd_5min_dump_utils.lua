@@ -314,47 +314,64 @@ end
 -- ########################################################
 
 function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
-  housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
-  scanAlerts("5mins", ifstats)
+  local working_status = nil
+  local is_rrd_creation_enabled = interface_rrd_creation_enabled(ifstats.id)
 
-  if not interface_rrd_creation_enabled(ifstats.id) then
-    return
+  -- alerts stuff
+  if mustScanAlerts(ifstats) then
+    housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
+    working_status = newAlertsWorkingStatus(ifstats, "5mins")
+
+    check_interface_alerts(ifstats.id, working_status)
+    check_networks_alerts(ifstats.id, working_status)
+    -- will scan the hosts alerts below
   end
 
-  if config.interface_rrd_creation == "1" then
-    local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
+  if is_rrd_creation_enabled then
+    if config.interface_rrd_creation == "1" then
+      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
-    if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-      rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
+      if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
+        rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
+      end
+
+      if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
+        rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
+      end
+
+      rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
     end
-
-    if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
-      rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
-    end
-
-    rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
   end
 
   -- Save hosts stats (if enabled from the preferences)
-  if config.host_rrd_creation ~= "0" then
+  if is_rrd_creation_enabled or mustScanAlerts(ifstats) then
     local in_time = callback_utils.foreachLocalHost(_ifname, time_threshold, function (hostname, host, hostbase)
+      -- Check alerts first
+      check_host_alerts(ifstats.id, working_status, hostname)
 
-      -- Crunch additional stats for local hosts only
-      if(host.localhost) then
-        -- Traffic stats
-        if(config.host_rrd_creation == "1") then
-          rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
-        end
+      if is_rrd_creation_enabled then
+        -- Crunch additional stats for local hosts only
+        if config.host_rrd_creation ~= "0" then
+          -- Traffic stats
+          if(config.host_rrd_creation == "1") then
+            rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
+          end
 
-        if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
-          rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
-        end
+          if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
+            rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
+          end
 
-        if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then
-          rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
+          if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then
+            rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
+          end
         end
       end
     end)
+
+    if working_status ~= nil then
+      -- NOTE: must always finalize current working_status before returning
+      finalizeAlertsWorkingStatus(working_status)
+    end
 
     if not in_time then
       callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
@@ -362,50 +379,52 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
     end
   end
 
-  if config.l2_device_rrd_creation ~= "0" then
-    local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device, devicebase)
-      rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
+  if is_rrd_creation_enabled then
+    if config.l2_device_rrd_creation ~= "0" then
+      local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device, devicebase)
+        rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
 
-      if config.l2_device_ndpi_timeseries_creation == "per_category" then
-        rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
+        if config.l2_device_ndpi_timeseries_creation == "per_category" then
+          rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
+        end
+      end)
+
+      if not in_time then
+        callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
+        return false
       end
-    end)
-
-    if not in_time then
-      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
-      return false
     end
-  end
 
-  -- create RRD for ASN
-  if config.asn_rrd_creation == "1" then
-    rrd_dump.asn_update_rrds(when, ifstats, verbose)
+    -- create RRD for ASN
+    if config.asn_rrd_creation == "1" then
+      rrd_dump.asn_update_rrds(when, ifstats, verbose)
 
-    if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-      --[[ TODO: implement for ASes
-      --]]
-    end
-  end
-
-  -- Create RRD for vlans
-  if config.vlan_rrd_creation == "1" then
-    rrd_dump.vlan_update_rrds(when, ifstats, verbose)
-
-    if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-        --[[ TODO: implement for VLANs
+      if config.tcp_retr_ooo_lost_rrd_creation == "1" then
+        --[[ TODO: implement for ASes
         --]]
+      end
     end
-  end
 
-  -- Create RRDs for flow and sFlow devices
-  if(config.flow_devices_rrd_creation == "1" and ntop.isEnterprise()) then
-    rrd_dump.sflow_device_update_rrds(when, ifstats, verbose)
-    rrd_dump.flow_device_update_rrds(when, ifstats, verbose)
-  end
+    -- Create RRD for vlans
+    if config.vlan_rrd_creation == "1" then
+      rrd_dump.vlan_update_rrds(when, ifstats, verbose)
 
-  -- Save Host Pools stats every 5 minutes
-  if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
-    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
+      if config.tcp_retr_ooo_lost_rrd_creation == "1" then
+          --[[ TODO: implement for VLANs
+          --]]
+      end
+    end
+
+    -- Create RRDs for flow and sFlow devices
+    if(config.flow_devices_rrd_creation == "1" and ntop.isEnterprise()) then
+      rrd_dump.sflow_device_update_rrds(when, ifstats, verbose)
+      rrd_dump.flow_device_update_rrds(when, ifstats, verbose)
+    end
+
+    -- Save Host Pools stats every 5 minutes
+    if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
+      host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
+    end
   end
 end
 

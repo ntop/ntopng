@@ -648,6 +648,11 @@ function areAlertsEnabled()
   return (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
 end
 
+function mustScanAlerts(ifstats)
+   -- can't alert on view interfaces as checkpoints will collide for their underlying real interfaces
+   return areAlertsEnabled() and not ifstats["isView"]
+end
+
 function hasAlertsDisabled()
   return ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
