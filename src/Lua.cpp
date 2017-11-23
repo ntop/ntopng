@@ -600,8 +600,8 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
     
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) show_details   = lua_toboolean(vm, 1) ? true : false;
-  if(lua_type(vm, 2) == LUA_TNUMBER)  begin_slot     = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 1) == LUA_TNUMBER)  begin_slot     = (u_int16_t)lua_tonumber(vm, 1);
+  if(lua_type(vm, 2) == LUA_TBOOLEAN) show_details   = lua_toboolean(vm, 2) ? true : false;
   if(lua_type(vm, 3) == LUA_TNUMBER)  maxHits        = (u_int16_t)lua_tonumber(vm, 3);
   
   if((!ntop_interface)
@@ -825,6 +825,8 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
   u_int8_t location_filter = (u_int8_t)-1;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER)  begin_slot     = (u_int16_t)lua_tonumber(vm, 1);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,

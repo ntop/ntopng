@@ -40,40 +40,85 @@ end
 
 -- ########################################################
 
+-- An iterator on the C batched API
+--
+--    batched_function: the function to call
+--    field: a string to get the value from a slot
+--    function_params : parameters to pass to the function
+--
+local function getBatchedIterator(batched_function, field, function_params)
+   local debug_enabled = false
+   local loaded_elems = nil
+   local nextSlot = 0
+   local iterator_finished = false
+   local first_iteration = true
+   function_params = function_params or {}
+
+   return function()
+      if ((nextSlot == 0) or (nextSlot == nil)) and not first_iteration then
+         iterator_finished = true
+      end
+
+      if iterator_finished then return nil end
+
+      if (loaded_elems == nil) or table.empty(loaded_elems) then
+         if loaded_elems ~= nil then
+            -- that was the first iteration
+            first_iteration = false
+         end
+
+         -- we need to load new slots from C
+         if(debug_enabled) then
+            io.write("getBatchedIterator["..field.."](curSlot=".. nextSlot ..")\n")
+         end
+
+         -- Assumption: nextSlot is always the first parameter
+         local slot = batched_function(nextSlot, unpack(function_params))
+
+         if slot == nil then
+            iterator_finished = true
+            return nil
+         end
+
+         nextSlot = slot.nextSlot
+         loaded_elems = slot[field]
+
+         if(debug_enabled) then
+            io.write("getBatchedIterator["..field.."](numElems=".. table.len(loaded_elems) ..", nextSlot=".. nextSlot ..")\n")
+         end
+      end
+
+      for key, value in pairs(loaded_elems) do
+         loaded_elems[key] = nil -- pop
+         return key, value
+      end
+   end
+end
+
+-- A batched iterator over the local hosts
+function callback_utils.getLocalHostsIterator(...)
+   return getBatchedIterator(interface.getBatchedLocalHostsInfo, "hosts", { ... })
+end
+
+-- A batched iterator over the l2 devices
+function callback_utils.getDevicesIterator(...)
+   return getBatchedIterator(interface.getBatchedMacsInfo, "macs", { ... })
+end
+
+-- ########################################################
+
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachLocalHost(ifname, deadline, callback)
    local hostbase
-   local firstSlot = 0
-   local debug = false
-   
+
    interface.select(ifname)
 
-   while(true) do
-      local hosts_stats
-      local next_slot
+   local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
 
-      if(false) then
-	 io.write("interface.getBatchedLocalHostsInfo(firstSlot=".. firstSlot ..")\n")
-      end
-	 
-      hosts_stats = interface.getBatchedLocalHostsInfo(false, firstSlot)
-      
-      if hosts_stats == nil then
-	 hosts_stats = { hosts = { }, nextSlot = 0, numHosts = 0 }
-      end
-
-      next_slot = hosts_stats.nextSlot
-
-      if(false) then
-	 io.write("interface.getBatchedLocalHostsInfo(numHosts=".. hosts_stats.numHosts ..", nextSlot=".. next_slot ..")\n")
-      end
-      
-      hosts_stats = hosts_stats["hosts"]
-      
-      for hostname, hoststats in pairs(hosts_stats) do
+   for hostname, hoststats in iterator do
 	 local host = interface.getHostInfo(hostname)
-	 
+
 	 if ((deadline ~= nil) and (os.time() >= deadline)) then
 	    -- Out of time
 	    return false
@@ -95,35 +140,17 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
 	 end
       end
 
-      firstSlot = next_slot
-
-      if((firstSlot == 0) or (firstSlot == nil)) then
-	 -- Back to square one
-	 break
-      end
-   end
-   
    return true
 end
-
 
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, deadline, callback)
-   local firstSlot = 0
-   local debug = true
-
    interface.select(ifname)
 
-   local devices_stats = interface.getBatchedMacsInfo()
-   
-   if devices_stats == nil or devices_stats["macs"] == nil then
-      devices_stats = { macs = { }, nextSlot = 0, numMacs = 0 }
-   end
+   local devices_stats = callback_utils.getDevicesIterator()
 
-   next_slot = devices_stats.nextSlot
-
-   for devicename, devicestats in pairs(devices_stats["macs"]) do
+   for devicename, devicestats in devices_stats do
       devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
 
       if ((deadline ~= nil) and (os.time() >= deadline)) then
@@ -141,13 +168,6 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
       if callback(devicename, devicestats, devicebase) == false then
 	 return false
       end
-
-      firstSlot = next_slot
-
-      if((firstSlot == 0) or (firstSlot == nil)) then
-	 -- Back to square one
-	 break
-      end      
    end
 
    return true
