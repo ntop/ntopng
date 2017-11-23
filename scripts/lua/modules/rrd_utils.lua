@@ -382,13 +382,13 @@ end
 function rrd_utils.makeRRD(basedir, when, if_id, key, rrdname, step, value)
    local name = os_utils.fixPath(basedir .. "/" .. rrdname .. ".rrd")
 
-   if(string.contains(rrdname, "num_")) then
+   if rrdname:find("^num_") then
       create_rrd_num(name, rrdname, step)
    else
       create_rrd(name, step, rrdname)
    end
 
-   ntop.rrd_update(name, nil, tolongint(value))
+   ntop.rrd_update(name, nil, string.format("%u", value or 0))
 
    local tskey = if_id
    if(key ~= nil) then tskey = tskey ..":"..key end
