@@ -36,8 +36,8 @@
 
     <link href="@HTTP_PREFIX@/css/ntopng.css" rel="stylesheet">
 
-    <script type="text/javascript" src="@HTTP_PREFIX@/js/jquery_bootstrap.min.js?@NTOP_STARTUP_EPOCH"></script>
-    <script type="text/javascript" src="@HTTP_PREFIX@/js/deps.min.js?@NTOP_STARTUP_EPOCH"></script>
+    <script type="text/javascript" src="@HTTP_PREFIX@/js/jquery_bootstrap.min.js?@NTOP_STARTUP_EPOCH@"></script>
+    <script type="text/javascript" src="@HTTP_PREFIX@/js/deps.min.js?@NTOP_STARTUP_EPOCH@"></script>
     <script type="text/javascript" src="@HTTP_PREFIX@/js/ntop.min.js?@NTOP_STARTUP_EPOCH@"></script>
   </head>
 <body>

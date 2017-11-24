@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 --[[ Note: keep the old iso-8859-1 encoding to avoid breaking existing passwords ]]
-sendHTTPContentTypeHeader('text/html', nil, 'iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 info = ntop.getInfo()

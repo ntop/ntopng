@@ -9,7 +9,7 @@
     <link href="@HTTP_PREFIX@/font-awesome/css/font-awesome.css" rel="stylesheet">
     <script src="@HTTP_PREFIX@/js/jquery.js"></script>
     <script src="@HTTP_PREFIX@/js/jquery-ui.js"></script>
-    <script src="@HTTP_PREFIX@/bootstrap/js/bootstrap.js"></script>
+    <script src="@HTTP_PREFIX@/js/bootstrap.js"></script>
     <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/jquery-ui.css">
     <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/rickshaw.css">
     <script src="@HTTP_PREFIX@/js/validator.js"></script>
