@@ -489,6 +489,28 @@ function l4Label(proto)
   return(_handleArray(l4_keys, proto))
 end
 
+-- ##############################################
+
+-- Note: make sure the maximum id for checkpoint_keys honours CONST_MAX_NUM_CHECKPOINTS
+local checkpoint_keys = {
+   {0, "top_talkers" }, -- used to compute minute-by-minute top talkers
+   -- following checkpoints are used for alerts
+   {1, "min"},
+   {2, "5mins"},
+   {3, "hour"},
+   {4, "day"},
+}
+
+function checkpointId(v)
+   local checkpointtable = {}
+   for i, t in ipairs(checkpoint_keys) do
+      checkpointtable[#checkpointtable + 1] = {t[1], t[2]}
+   end
+   return(_handleArray(checkpointtable, v))
+end
+
+-- ##############################################
+
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string"}
@@ -516,7 +538,7 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",                14, "flow_misbehaviour"          },
 }
 
-alert_entity_keys = {
+local alert_entity_keys = {
   { "Interface",       0, "interface"     },
   { "Host",            1, "host"          },
   { "Network",         2, "network"       },
@@ -524,10 +546,7 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
--- Note: make sure the number of alert_engine_keys honours CONST_MAX_NUM_CHECKPOINTS
--- and make sure engines with these ids are reserved only to handle alert-related
--- checkpoints
-alert_engine_keys = {
+local alert_engine_keys = {
    {i18n("show_alerts.minute"),       0, "min"    },
    {i18n("show_alerts.five_minutes"), 1, "5mins"  },
    {i18n("show_alerts.hourly"),       2, "hour"   },

@@ -1856,7 +1856,7 @@ function check_interface_alerts(ifid, working_status)
       return
    end
 
-   local checkpoints = interface.checkpointInterface(ifid, working_status.engine) or {}
+   local checkpoints = interface.checkpointInterface(ifid, working_status.checkpoint_id) or {}
    local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
    local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
 
@@ -1902,7 +1902,7 @@ function check_networks_alerts(ifid, working_status)
          goto continue
       end
 
-      local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.engine) or {}
+      local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.checkpoint_id) or {}
 
       local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
       local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
@@ -1951,7 +1951,7 @@ function check_host_alerts(ifid, working_status, host)
    if (working_status.configured_thresholds[entity_value] ~= nil)
       or (working_status.configured_thresholds["local_hosts"] ~= nil) then
 
-      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.engine) or {}
+      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.checkpoint_id) or {}
 
       old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
       new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
@@ -1995,9 +1995,10 @@ end
 -- #################################
 
 function newAlertsWorkingStatus(ifstats, granularity)
-   return {
+   local res = {
       granularity = granularity,
       engine = alertEngine(granularity),
+      checkpoint_id = checkpointId(granularity),
       ifid = ifstats.id,
       engaged_cache = getEngagedAlertsCache(ifstats.id, granularity),
       configured_thresholds = getConfiguredAlertsThresholds(ifstats.name, granularity),
@@ -2005,6 +2006,7 @@ function newAlertsWorkingStatus(ifstats, granularity)
       now = os.time(),
       interval = granularity2sec(granularity),
    }
+   return res
 end
 
 function finalizeAlertsWorkingStatus(working_status)
