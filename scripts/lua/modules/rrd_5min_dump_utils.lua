@@ -316,9 +316,10 @@ end
 function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
   local working_status = nil
   local is_rrd_creation_enabled = interface_rrd_creation_enabled(ifstats.id)
+  local are_alerts_enabled = mustScanAlerts(ifstats)
 
   -- alerts stuff
-  if mustScanAlerts(ifstats) then
+  if are_alerts_enabled then
     housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
     working_status = newAlertsWorkingStatus(ifstats, "5mins")
 
@@ -344,10 +345,12 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
   end
 
   -- Save hosts stats (if enabled from the preferences)
-  if is_rrd_creation_enabled or mustScanAlerts(ifstats) then
+  if is_rrd_creation_enabled or are_alerts_enabled then
     local in_time = callback_utils.foreachLocalHost(_ifname, time_threshold, function (hostname, host, hostbase)
-      -- Check alerts first
-      check_host_alerts(ifstats.id, working_status, hostname)
+      if are_alerts_enabled then
+        -- Check alerts first
+        check_host_alerts(ifstats.id, working_status, hostname)
+      end
 
       if is_rrd_creation_enabled then
         -- Crunch additional stats for local hosts only
