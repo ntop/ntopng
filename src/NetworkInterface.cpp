@@ -6438,7 +6438,10 @@ void NetworkInterface::finishInitialization() {
 #ifdef HAVE_MYSQL
 	db = new BatchedMySQLDB(this);
 #endif
+
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
       enable_aggregation:
+#endif
 	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
 						       ntop->getPrefs()->get_max_num_flows());
 
