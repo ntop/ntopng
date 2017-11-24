@@ -9,7 +9,7 @@
     <link href="@HTTP_PREFIX@/font-awesome/css/font-awesome.css" rel="stylesheet">
     <script src="@HTTP_PREFIX@/js/jquery.js"></script>
     <script src="@HTTP_PREFIX@/js/jquery-ui.js"></script>
-    <script src="@HTTP_PREFIX@/bootstrap/js/bootstrap.js"></script>
+    <script src="@HTTP_PREFIX@/js/bootstrap.js"></script>
     <script src="@HTTP_PREFIX@/js/bootstrap-datatable.js"></script>
     <script src="@HTTP_PREFIX@/js/datatable_utils.js"></script>
     <script src="@HTTP_PREFIX@/js/bootstrap3-typeahead.js"></script>
