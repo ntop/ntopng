@@ -30,4 +30,4 @@ $(NTOP_MIN_JS): $(NTOP_MIN_JS_SRC) Makefile
 	uglifyjs -o $@ --source-map $@.map -- $(NTOP_MIN_JS_SRC)
 
 clean:
-	rm -f $(QUERY_BOOTSTRAP_MIN_JS) $(DEP_MIN_JS) $(NTOP_MIN_JS) *.map
+	rm -f $(JQUERY_BOOTSTRAP_MIN_JS) $(DEP_MIN_JS) $(NTOP_MIN_JS) *.map
