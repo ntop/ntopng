@@ -259,6 +259,9 @@ uninstall:
 Makefile: configure Makefile.in
 	./configure
 
+minify:
+	cd httpdocs/js; make minify
+
 # Disabled to avoid too many recompilations
 #configure: @GIT_INDEX@
 #	@echo ""
