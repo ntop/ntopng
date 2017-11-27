@@ -34,7 +34,7 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
       rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_zmq_rcvd_flows",
-			1, tolongint(ifstats.zmqRecvStats.flows))
+			1, ifstats.zmqRecvStats.flows)
    else
       -- Packet interface
       rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "drops", 1, ifstats.stats.drops)

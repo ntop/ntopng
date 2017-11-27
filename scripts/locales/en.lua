@@ -102,6 +102,7 @@ local  en = {
    l4_protocols = "L4 Protocols",
    throughput = "Throughput",
    seen_since = "Seen Since",
+   language = "Language",
 
    locales = {
       en = "English",
