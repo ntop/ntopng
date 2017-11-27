@@ -414,12 +414,15 @@ void Ntop::start() {
   loadLocalInterfaceAddress();
   address->startResolveAddressLoop();
 
-  /* Start the periodic activities.
-   * NOTE: order is important here. */
+  for(int i=0; i<num_defined_interfaces; i++) {
+    iface[i]->allocateNetworkStats();
+  }
+
+  /* Note: must start periodic activities loop only *after* interfaces have been
+   * completely initialized.  */
   pa->startPeriodicActivitiesLoop();
 
   for(int i=0; i<num_defined_interfaces; i++) {
-    iface[i]->allocateNetworkStats();
     iface[i]->startPacketPolling();
   }
 
