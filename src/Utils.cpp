@@ -2569,3 +2569,25 @@ char* Utils::formatPackets(float numPkts, char *buf) {
 
   return(buf);
 }
+
+/* ****************************************************** */
+
+bool Utils::str2DetailsLevel(const char *details, DetailsLevel *out) {
+  bool rv = false;
+
+  if(!strcmp(details, "normal")) {
+    *out = details_normal;
+    rv = true;
+  } else if(!strcmp(details, "high")) {
+    *out = details_high;
+    rv = true;
+  } else if(!strcmp(details, "higher")) {
+    *out = details_higher;
+    rv = true;
+  } else if(!strcmp(details, "max")) {
+    *out = details_max;
+    rv = true;
+  }
+
+  return rv;
+}

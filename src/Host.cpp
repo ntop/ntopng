@@ -1508,14 +1508,17 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 
 /* *************************************** */
 
-bool Host::serializeCheckpoint(json_object *my_object) {
-  json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
-  json_object_object_add(my_object, "seen.last", json_object_new_int64(last_seen));
+bool Host::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
-  json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObjectForCheckpoint(iface));
-  json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
-  json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+
+  if (details_level >= details_high) {
+    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
+    json_object_object_add(my_object, "seen.last", json_object_new_int64(last_seen));
+    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObjectForCheckpoint(iface));
+    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
+    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+  }
 
   return true;
 }

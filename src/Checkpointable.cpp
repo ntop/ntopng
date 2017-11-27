@@ -34,7 +34,7 @@ Checkpointable::Checkpointable() {
 
 /* *************************************** */
 
-bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id) {
+bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id, DetailsLevel details_level) {
   const char *new_data;
   json_object *json_dump;
 
@@ -80,9 +80,12 @@ bool Checkpointable::checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t
 
   json_dump = json_object_new_object();
 
-  if(json_dump && serializeCheckpoint(json_dump)) {
-    /* Add dump timestamp */
-    json_object_object_add(json_dump, "timestamp", json_object_new_int64(time(0)));
+  if(json_dump && serializeCheckpoint(json_dump, details_level)) {
+    if (details_level >= details_high) {
+      /* Only add dump timestamp on high details */
+      json_object_object_add(json_dump, "timestamp", json_object_new_int64(time(0)));
+    }
+
     new_data = json_object_to_json_string(json_dump);
 
 #ifdef HAVE_ZLIB

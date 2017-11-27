@@ -3007,12 +3007,13 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 /* **************************************************** */
 
 bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id,
-					      char *host_ip, u_int16_t vlan_id) {
+					      char *host_ip, u_int16_t vlan_id,
+					      DetailsLevel details_level) {
   Host *h;
   bool ret = false;
 
   if(host_ip && (h = getHost(host_ip, vlan_id)))
-    ret = h->checkpoint(vm, this, checkpoint_id);
+    ret = h->checkpoint(vm, this, checkpoint_id, details_level);
 
   return ret;
 }
@@ -3020,18 +3021,19 @@ bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint
 /* **************************************************** */
 
 bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id,
-					      u_int8_t network_id) {
+					      u_int8_t network_id,
+					      DetailsLevel details_level) {
   NetworkStats *stats = getNetworkStats(network_id);
 
   if (stats == NULL)
     return false;
 
-  return stats->checkpoint(vm, this, checkpoint_id);
+  return stats->checkpoint(vm, this, checkpoint_id, details_level);
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::serializeCheckpoint(json_object *my_object) {
+bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
   json_object *inner;
 
   if((inner = json_object_new_object()) == NULL) return false;

@@ -37,13 +37,13 @@ class Checkpointable {
  public:
   Checkpointable();
   ~Checkpointable();
-  bool checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id);
+  bool checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id, DetailsLevel details_level);
 
   /* This function must return a serialization of the entity information needed
    * for the checkpoint. The returned string is dynamically allocated and will be
    * free by the caller.
    */
-  virtual bool serializeCheckpoint(json_object* my_object) = 0;
+  virtual bool serializeCheckpoint(json_object* my_object, DetailsLevel details_level) = 0;
 };
 
 #endif

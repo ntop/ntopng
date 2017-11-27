@@ -121,19 +121,7 @@ void Paginator::readOptions(lua_State *L, int index) {
 	    server_mode = location_all;
 	} else if(!strcmp(key, "detailsLevel")) {
 	  const char* value = lua_tostring(L, -1);
-	  if(!strcmp(value, "normal")) {
-	    details_level = details_normal;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "high")) {
-	    details_level = details_high;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "higher")) {
-	    details_level = details_higher;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "max")) {
-	    details_level = details_max;
-	    details_level_set = true;
-	  }
+	  details_level_set = Utils::str2DetailsLevel(value, &details_level);
 	} else if(!strcmp(key, "macFilter")) {
 	  const char* value = lua_tostring(L, -1);
 	  if(mac_filter) free(mac_filter);
