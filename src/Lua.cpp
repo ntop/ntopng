@@ -752,19 +752,6 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the hosts information of network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the host information.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_all));
-}
-
-/* ****************************************** */
-
 static u_int8_t str_2_location(const char *s) {
   if (! strcmp(s, "lan")) return located_on_lan_interface;
   else if (! strcmp(s, "wan")) return located_on_wan_interface;
@@ -1145,32 +1132,26 @@ static int ntop_shutdown(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get local hosts information of network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
+static int ntop_get_interface_hosts_info(lua_State* vm) {
+  return(ntop_get_interface_hosts(vm, location_all));
+}
+
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_local_only));
 }
 
-static int ntop_get_batched_interface_local_hosts_info(lua_State* vm) {
-  return(ntop_get_batched_interface_hosts(vm, location_local_only));
+static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
+  return(ntop_get_interface_hosts(vm, location_remote_only));
 }
 
 /* ****************************************** */
 
-/**
- * @brief Get remote hosts information of network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the remote host information.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_remote_only));
+static int ntop_get_batched_interface_hosts_info(lua_State* vm) {
+  return(ntop_get_batched_interface_hosts(vm, location_all));
+}
+
+static int ntop_get_batched_interface_local_hosts_info(lua_State* vm) {
+  return(ntop_get_batched_interface_hosts(vm, location_local_only));
 }
 
 static int ntop_get_batched_interface_remote_hosts_info(lua_State* vm) {
@@ -6519,9 +6500,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPICategories",        ntop_get_ndpi_categories },
   { "getHostsInfo",             ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",        ntop_get_interface_local_hosts_info },
-  { "getBatchedLocalHostsInfo",        ntop_get_batched_interface_local_hosts_info },
   { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
-  { "getBatchedRemoteHostsInfo",       ntop_get_batched_interface_remote_hosts_info },
+  { "getBatchedHostsInfo",        ntop_get_batched_interface_hosts_info },
+  { "getBatchedLocalHostsInfo",   ntop_get_batched_interface_local_hosts_info },
+  { "getBatchedRemoteHostsInfo",  ntop_get_batched_interface_remote_hosts_info },
   { "getHostInfo",              ntop_get_interface_host_info },
   { "getGroupedHosts",          ntop_get_grouped_interface_hosts },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },

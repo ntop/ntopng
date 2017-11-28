@@ -6,6 +6,7 @@ require "alert_utils"
 require "graph_utils"
 local rrd_utils = require "rrd_utils"
 local os_utils = require "os_utils"
+local top_talkers_utils = require "top_talkers_utils"
 
 local rrd_dump = {}
 
@@ -76,9 +77,11 @@ end
 
 -- ########################################################
 
-local function dumpTopTalkers(_ifname, ifstats, verbose)
+function dumpTopTalkers(_ifname, ifstats, verbose)
   -- Dump topTalkers every minute
-  local talkers = makeTopJSON(ifstats.id, _ifname)
+  -- local talkers = makeTopJSON(ifstats.id, _ifname) -- TODO: trash this method and all its calls
+
+  local talkers = top_talkers_utils.makeTopJson(_ifname)
 
   if(verbose) then
     print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
