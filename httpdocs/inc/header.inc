@@ -8,6 +8,7 @@
     <link href="@HTTP_PREFIX@/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/font-awesome/css/font-awesome.css" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/rickshaw.css">
+    <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/jquery-ui.css">
     <link href="@HTTP_PREFIX@/css/dc.css" rel="stylesheet">
 
 <style>
@@ -35,6 +36,7 @@
     <![endif]-->
 
     <link href="@HTTP_PREFIX@/css/ntopng.css" rel="stylesheet">
+    <link rel="stylesheet" href="@HTTP_PREFIX@/css/bootstrap-datetimepicker.css" />
 
     <script type="text/javascript" src="@HTTP_PREFIX@/js/jquery_bootstrap.min.js?@NTOP_STARTUP_EPOCH@"></script>
     <script type="text/javascript" src="@HTTP_PREFIX@/js/deps.min.js?@NTOP_STARTUP_EPOCH@"></script>
