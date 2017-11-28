@@ -9,7 +9,6 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
-   require "common"
    require "snmp_utils"
 end
 
@@ -837,10 +836,9 @@ elseif(page == "historical") then
    rrd_file = _GET["rrd_file"]
    selected_epoch = _GET["epoch"]
    if(selected_epoch == nil) then selected_epoch = "" end
-   topArray = makeTopStatsScriptsArray()
 
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
-   drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
+   drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch)
    --drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 
    if ntop.isPro() then

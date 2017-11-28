@@ -2496,33 +2496,6 @@ function getURLPattern()
   return "^https?://.+$"
 end
 
--- makeTopStatsScriptsArray
-function makeTopStatsScriptsArray()
-   path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
-   path = os_utils.fixPath(path)
-   local files = ntop.readdir(path)
-   topArray = {}
-
-   for k,v in pairs(files) do
-      if(string.ends(k, ".lua")) then
-	 if(v ~= nil) then
-	    value = {}
-	    fn,ext = v:match("([^.]+).([^.]+)")
-	    mod = require("top_scripts."..fn)
-	    if(type(mod) ~= type(true)) then
-	       value["name"] = mod.name
-	       value["script"] = mod.infoScript
-	       value["key"] = mod.infoScriptKey
-	       value["levels"] = mod.numLevels
-	       topArray[fn] = value
-	    end
-	 end
-      end
-   end
-
-   return(topArray)
-end
-
 -- get_mac_classification
 function get_mac_classification(m, extended_name)
    local short_extended = ntop.getMacManufacturer(m) or {}

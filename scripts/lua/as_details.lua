@@ -86,7 +86,7 @@ if isEmptyString(page) or page == "historical" then
       end
 
       local asn_url = ntop.getHttpPrefix()..'/lua/as_details.lua?ifid='..ifId..'&asn='..asn..'&page=historical'
-      drawRRD(ifId, 'asn:'..asn, rrdfile, _GET["zoom"], asn_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+      drawRRD(ifId, 'asn:'..asn, rrdfile, _GET["zoom"], asn_url, 1, _GET["epoch"])
    end
 
 elseif page == "flows" then

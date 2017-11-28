@@ -1,7 +1,6 @@
 -- ########################################################
 
 require "lua_utils"
-require "top_structure"
 require "alert_utils"
 require "graph_utils"
 local rrd_utils = require "rrd_utils"
@@ -79,8 +78,6 @@ end
 
 function dumpTopTalkers(_ifname, ifstats, verbose)
   -- Dump topTalkers every minute
-  -- local talkers = makeTopJSON(ifstats.id, _ifname) -- TODO: trash this method and all its calls
-
   local talkers = top_talkers_utils.makeTopJson(_ifname)
 
   if(verbose) then

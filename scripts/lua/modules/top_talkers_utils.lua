@@ -16,6 +16,8 @@ local asname_cache    = {}
 local hostname_cache  = {}
 local localhost_cache = {}
 
+-- ########################################################
+
 local function updateCache(cache, key, val)
    if cache[key] == nil then
       cache[key] = val
@@ -126,6 +128,8 @@ local function finalizeRes(res)
    return {vlan = p}
 end
 
+-- ########################################################
+
 function top_talkers_utils.makeTopJson(_ifname)
    local ifid = getInterfaceId(_ifname)
 
@@ -172,5 +176,7 @@ function top_talkers_utils.makeTopJson(_ifname)
    sortRes(res)
    return json.encode(finalizeRes(res))
 end
+
+-- ########################################################
 
 return top_talkers_utils

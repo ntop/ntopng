@@ -275,9 +275,7 @@ elseif(page == "historical") then
       rrdfile = _GET["rrd_file"]
    end
 
-   drawRRD(ifId, devicekey, rrdfile, _GET["zoom"],
-	   url..'&page=historical',
-	   1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+   drawRRD(ifId, devicekey, rrdfile, _GET["zoom"], url..'&page=historical', 1, _GET["epoch"])
 
 elseif(page == "config") then
    

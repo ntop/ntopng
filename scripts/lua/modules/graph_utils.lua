@@ -455,7 +455,7 @@ end
 -- ########################################################
 
 function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
-		 selectedEpoch, selected_epoch_sanitized, topArray)
+		 selectedEpoch, selected_epoch_sanitized)
    local debug_rrd = false
 
    if(zoomLevel == nil) then zoomLevel = "1h" end
@@ -488,7 +488,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
+      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized)
       return
    end
 
@@ -676,7 +676,6 @@ end
 
 rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
-if (topArray ~= nil) then
 print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
@@ -707,7 +706,6 @@ print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=t
 print [[
    </table>
 ]]
-end -- topArray ~= nil
 
 print[[</div></td></tr></table>
 
@@ -818,14 +816,13 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 		var infoHTML = "";
 ]]
 
-if(topArray ~= nil and topArray["top_talkers"] ~= nil) then
 print[[
 
 infoHTML += "<ul>";
 $.ajax({
 	  type: 'GET',
 	  url: ']]
-	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?module=top_talkers&epoch='+point.value.x+'&addvlan=true")
+	  print(ntop.getHttpPrefix().."/lua/get_top_talkers.lua?epoch='+point.value.x+'&addvlan=true")
 	    print [[',
 		  data: { epoch: point.value.x },
 		  async: false,
@@ -855,7 +852,7 @@ $.ajax({
 	   }
    });
 infoHTML += "</ul>";]]
-end -- topArray
+
 print [[
 		this.element.innerHTML = '';
 		this.element.style.left = graph.x(point.value.x) + 'px';
