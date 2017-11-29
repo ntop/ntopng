@@ -691,17 +691,6 @@ static int ntop_add_macs_ip_addresses(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-  ntop_interface->getLatestActivityHostsList(vm, get_allowed_nets(vm));
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 /**
  * @brief Get the host information of network interface grouped according to the criteria.
  *
@@ -6531,7 +6520,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "updateHostTrafficPolicy",   ntop_update_host_traffic_policy },
   { "refreshHostsAlertsConfiguration",   ntop_refresh_hosts_alerts_configuration },
   { "setHostDumpPolicy",        ntop_set_host_dump_policy },
-  { "getLatestActivityHostsInfo",       ntop_get_interface_latest_activity_hosts_info },
   { "getInterfaceDumpDiskPolicy",       ntop_get_interface_dump_disk_policy },
   { "getInterfaceDumpTapPolicy",        ntop_get_interface_dump_tap_policy },
   { "getInterfaceDumpTapName",          ntop_get_interface_dump_tap_name },

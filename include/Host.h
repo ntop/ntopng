@@ -147,8 +147,7 @@ class Host : public GenericHost, public Checkpointable {
   bool idle();
   void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   void lua(lua_State* vm, AddressTree * ptree, bool host_details,
-	   bool verbose, bool returnHost, bool asListElement,
-	   bool exclude_deserialized_bytes);
+	   bool verbose, bool returnHost, bool asListElement);
   void luaAnomalies(lua_State* vm);
   void resolveHostName();
   void setName(char *name);

@@ -502,8 +502,7 @@ void Host::set_mac(char *m) {
 
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
-	       bool returnHost, bool asListElement,
-	       bool exclude_deserialized_bytes) {
+	       bool returnHost, bool asListElement) {
   char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net, *host_id = buf_id;
   bool mask_host = Utils::maskHost(localHost);
   Mac *m = mac; /* Cache macs as they can be swapped/updated */
@@ -531,10 +530,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
-  lua_push_int_table_entry(vm, "bytes.sent",
-			   sent.getNumBytes() - (exclude_deserialized_bytes ? sent.getNumDeserializedBytes() : 0));
-  lua_push_int_table_entry(vm, "bytes.rcvd",
-			   rcvd.getNumBytes() - (exclude_deserialized_bytes ? rcvd.getNumDeserializedBytes() : 0));
+  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
+  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
 

@@ -2995,7 +2995,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->lua(vm, allowed_hosts, true, true, true, false, false);
+    h->lua(vm, allowed_hosts, true, true, true, false);
     ret = true;
   } else
     ret = false;
@@ -3968,56 +3968,6 @@ int NetworkInterface::dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p)
 
 /* **************************************************** */
 
-int NetworkInterface::getLatestActivityHostsList(lua_State* vm,
-						 AddressTree *allowed_hosts) {
-  struct flowHostRetriever retriever;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  memset(&retriever, 0, sizeof(retriever));
-
-  // there's not even the need to use the retriever or to sort results here
-  // we use the retriever just to leverage on the existing code.
-  retriever.allowed_hosts = allowed_hosts, retriever.location = location_all;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = getHostsHashSize();
-  retriever.asnFilter = (u_int32_t)-1, retriever.poolFilter = (u_int16_t)-1;
-  retriever.networkFilter = -2;
-  retriever.ndpi_proto = -1;
-  retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
-  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
-
-  if(retriever.elems == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
-    return(-1);
-  }
-
-  disablePurge(false);
-  walker(&begin_slot, walk_all,  walker_hosts, host_search_walker, (void*)&retriever);
-
-  lua_newtable(vm);
-
-  if(retriever.actNumEntries > 0) {
-    for(int i=0; i<(int)retriever.actNumEntries; i++) {
-      Host *h = retriever.elems[i].hostValue;
-
-      if(i < CONST_MAX_NUM_HITS)
-	h->lua(vm, NULL /* Already checked */,
-	       false /* host details */,
-	       false /* verbose */,
-	       false /* return host */,
-	       true  /* as list element*/,
-	       true  /* exclude deserialized bytes */);
-    }
-  }
-
-  enablePurge(false);
-  free(retriever.elems);
-
-  return(retriever.actNumEntries);
-}
-
-/* **************************************************** */
-
 int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				bool walk_all,
 				struct flowHostRetriever *retriever,
@@ -4294,12 +4244,12 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
   if(a2zSortOrder) {
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Host *h = retriever.elems[i].hostValue;
-      h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
+      h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Host *h = retriever.elems[i].hostValue;
-      h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
+      h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
     }
   }
 
