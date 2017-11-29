@@ -98,6 +98,7 @@ if (host ~= nil) then
 end
 
 if(host == nil) then
+   -- NOTE: this features is not currently enabled as it may incur into thread concurrency issues
    if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
       page = "historical"
       only_historical = true

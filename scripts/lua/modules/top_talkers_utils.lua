@@ -118,6 +118,7 @@ local function finalizeRes(res)
       end
 
       vlan_val["value"] = vlan_totals[vlan_k]
+      vlan_val["address"] = vlan_k..""
    end
 
    return {vlan = p}
@@ -176,12 +177,12 @@ end
 
 -- Computes label and url during visualization
 function top_talkers_utils.enrichRecordInformation(class_key, rec)
-  if rec.address ~= "Other" then
-    local url = ""
-    local label = rec.label or rec.address
+  local url = ""
+  local label = rec.label or rec.address
 
+  if rec.address ~= "Other" then
     if class_key == "hosts" then
-      url = ntop.getHttpPrefix()..'/lua/host_details.lua?host='
+      url = ntop.getHttpPrefix()..'/lua/host_details.lua?always_show_hist=true&host='
       -- Use the host alias as label, if set
       local alt_name = getHostAltName(rec.address)
       if not isEmptyString(alt_name) and (alt_name ~= rec.address) then
@@ -194,11 +195,11 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec)
     end
 
     url = url .. rec.address
-
-    -- Update record information
-    rec.url = url
-    rec.label = label
   end
+
+  -- Update record information
+  rec.url = url
+  rec.label = label
 end
 
 -- ########################################################
