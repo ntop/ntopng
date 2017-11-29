@@ -18,7 +18,7 @@ local rrd_dump = require "rrd_5min_dump_utils"
 local verbose = ntop.verboseTrace()
 local when = os.time()
 local config = rrd_dump.getConfig()
-local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
+local time_threshold = when - (when % 300) --[[ align ]] + (5 * 300) --[[ RRD heartbeat ]] - 10 --[[ safe margin ]]
 
 local ifstats = interface.getStats()
 local _ifname = ifstats.name

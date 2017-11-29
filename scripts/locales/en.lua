@@ -2232,6 +2232,7 @@ local  en = {
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
+   error_rrd_cannot_complete_dump = "Cannot complete local hosts RRD dump. Disk slow or too many local hosts?",
    error_no_search_results = "No results found. Please modify your search criteria.";
    enterpriseOnly = "This feature is only available in the ntopng enterprise edition",
    no_results_found = "No results found",

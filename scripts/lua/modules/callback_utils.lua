@@ -11,12 +11,6 @@ local callback_utils = {}
 
 -- ########################################################
 
-function callback_utils.print(file, line, message)
-   print("["..file.."]:["..line.."] "..message)
-end
-
--- ########################################################
-
 -- Iterates available interfaces, excluding PCAP interfaces.
 -- Each valid interface is select-ed and passed to the callback.
 function callback_utils.foreachInterface(ifnames, condition, callback)

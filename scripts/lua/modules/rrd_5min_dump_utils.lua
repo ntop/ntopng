@@ -377,7 +377,7 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
     end
 
     if not in_time then
-      callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot complete local hosts RRD dump in 5 minutes. Please check your RRD configuration.")
+      traceError(TRACE_ERROR, TRACE_CONSOLE, i18n("error_rrd_cannot_complete_dump"))
       return false
     end
   end
@@ -393,7 +393,7 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
       end)
 
       if not in_time then
-        callback_utils.print(__FILE__(), __LINE__(), "ERROR: Cannot devices RRD dump in 5 minutes. Please check your RRD configuration.")
+        traceError(TRACE_ERROR, TRACE_CONSOLE, i18n("error_rrd_cannot_complete_dump"))
         return false
       end
     end
