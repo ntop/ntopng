@@ -74,23 +74,22 @@ local function finalizeRes(res)
       for what_key_k, what_key_val in pairs(vlan_val) do
 	 for direction_key, direction_val in pairs(what_key_val) do
 	    for what_val_k, delta in pairs(direction_val) do
-	       local url = ''
 	       local label = what_val_k
 
 	       if what_val_k ~= "Other" then
 		  if what_key_k == "hosts" then
-		     url = ntop.getHttpPrefix()..'/lua/host_details.lua?host='
 		     label = getCache(hostname_cache, what_val_k)
 		  elseif what_key_k == "asn" then
-		     url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='
 		     label = getCache(asname_cache, what_val_k)
-		  elseif what_key_k:contains("os") then
-		     url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?os='
 		  end
-		  url = url..what_val_k
 	       end
 
-	       direction_val[what_val_k] = {address = what_val_k..'', value = delta, url = url, label = label}
+	       if label == what_val_k then
+	         -- Skip this label, as it is the same as the address
+	         label = nil
+	       end
+
+	       direction_val[what_val_k] = {address = what_val_k..'', value = delta, label = label}
 	       if what_key_k == "hosts" then
 		  direction_val[what_val_k]["local"] = tostring(getCache(localhost_cache, what_val_k) or "false")
 	       end
@@ -118,10 +117,6 @@ local function finalizeRes(res)
 	 vlan_val[what_key_k] = {{senders = s, receivers = r}}
       end
 
-      -- TODO: check and possibly remove the following fields
-      vlan_val["label"] = vlan_k..''
-      vlan_val["name"] = vlan_k..''
-      vlan_val["url"] = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan_k
       vlan_val["value"] = vlan_totals[vlan_k]
    end
 
@@ -175,6 +170,35 @@ function top_talkers_utils.makeTopJson(_ifname)
 
    sortRes(res)
    return json.encode(finalizeRes(res))
+end
+
+-- ########################################################
+
+-- Computes label and url during visualization
+function top_talkers_utils.enrichRecordInformation(class_key, rec)
+  if rec.address ~= "Other" then
+    local url = ""
+    local label = rec.label or rec.address
+
+    if class_key == "hosts" then
+      url = ntop.getHttpPrefix()..'/lua/host_details.lua?host='
+      -- Use the host alias as label, if set
+      local alt_name = getHostAltName(rec.address)
+      if not isEmptyString(alt_name) and (alt_name ~= rec.address) then
+        label = alt_name
+      end
+    elseif class_key == "asn" then
+      url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='
+    elseif class_key:contains("os") then
+      url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?os='
+    end
+
+    url = url .. rec.address
+
+    -- Update record information
+    rec.url = url
+    rec.label = label
+  end
 end
 
 -- ########################################################

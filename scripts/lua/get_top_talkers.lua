@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local json = require("dkjson")
+local top_talkers_utils = require("top_talkers_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -34,6 +35,7 @@ local function getTopTalkersFromJSONDirection(table, wantedDir, add_vlan)
 	 local direction = hostpair[wantedDir]
 	 if direction == nil then direction = {} end
 	 for _, host in pairs(direction) do
+	    top_talkers_utils.enrichRecordInformation("hosts", host)
 	    local addr = host["address"]
 	    local val = tonumber(host["value"])
 	    if addr == nil or val == nil then goto continue end
