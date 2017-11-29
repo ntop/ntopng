@@ -36,10 +36,10 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   u_int8_t thread_pool_size) {
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
-  thread_started = false, taskRunning = false;
+  thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
-  numRunningChildren = 0;
-  
+  interfaceTasksRunning = (bool *) calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(bool));
+
   if(periodicity > MIN_TIME_SPAWN_THREAD_POOL) {
     pool = new ThreadPool(thread_pool_size);
 
@@ -62,9 +62,28 @@ ThreadedActivity::~ThreadedActivity() {
 
   if(path) free(path);
   if(pool) delete pool;
+  if(interfaceTasksRunning) delete interfaceTasksRunning;
 
   if(thread_started)
     pthread_join(pthreadLoop, &res);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool running) {
+  const int iface_id = iface->get_id();
+
+  if((iface_id >= 0) && (iface_id < MAX_NUM_DEFINED_INTERFACES))
+    interfaceTasksRunning[iface_id] = running;
+}
+
+bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
+  const int iface_id = iface->get_id();
+
+  if((iface_id >= 0) && (iface_id < MAX_NUM_DEFINED_INTERFACES))
+    return interfaceTasksRunning[iface_id];
+
+  return false;
 }
 
 /* ******************************************* */
@@ -87,7 +106,7 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
-/* Run a script immediately */
+/* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runScript() {
   struct stat statbuf;
   char script_path[MAX_PATH];
@@ -103,6 +122,7 @@ void ThreadedActivity::runScript() {
 
 /* ******************************************* */
 
+/* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   Lua *l;
 
@@ -127,8 +147,12 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 
   l->run_script(script_path, iface);
 
+  if (iface == NULL)
+    systemTaskRunning = false;
+  else
+    setInterfaceTaskRunning(iface, false);
+
   delete l;
-  taskRunning = false;
 }
 
 /* ******************************************* */
@@ -145,10 +169,10 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   u_long usec_diff;
 
   while(!ntop->getGlobals()->isShutdown()) {
-    while(taskRunning) usleep(1000);
+    while(systemTaskRunning) usleep(1000);
 
     gettimeofday(&begin, NULL);
-    taskRunning = true;
+    systemTaskRunning = true;
     runScript();
     gettimeofday(&end, NULL);
 
@@ -190,8 +214,6 @@ void ThreadedActivity::periodicActivityBody() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      while(taskRunning) usleep(1000);
-      taskRunning = true;
       scheduleJob(pool);
 
       next_run = roundTime(now, periodicity,
@@ -208,22 +230,17 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
   struct stat statbuf;
-  
-  while(numRunningChildren > 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "[%s] Waiting for %u to terminate",
-				 path, numRunningChildren);
-    sleep(1);
+
+  if (! systemTaskRunning) {
+    /* Schedule system script */
+    snprintf(script_path, sizeof(script_path), "%s/system/%s",
+       ntop->get_callbacks_dir(), path);
+
+    if(stat(script_path, &statbuf) == 0)
+      pool->queueJob(this, script_path, NULL);
   }
 
-  /* Schedule system script */
-  snprintf(script_path, sizeof(script_path), "%s/system/%s",
-	   ntop->get_callbacks_dir(), path);
-
-  if(stat(script_path, &statbuf) == 0)
-    pool->queueJob(this, script_path, NULL);
-
-  /* Schedule interface script */
+  /* Schedule interface script, one for each interface */
   snprintf(script_path, sizeof(script_path), "%s/interface/%s",
 	   ntop->get_callbacks_dir(), path);
 
@@ -231,8 +248,10 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
     for(int i=0; i<ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface = ntop->getInterface(i);
 
-      if(iface)
-	pool->queueJob(this, script_path, iface);
+      if(iface && !isInterfaceTaskRunning(iface)) {
+        pool->queueJob(this, script_path, iface);
+        setInterfaceTaskRunning(iface, true);
+      }
     }
   }
 }

@@ -30,10 +30,11 @@ class ThreadedActivity {
  private:
   pthread_t pthreadLoop;
   char *path;
-  u_int16_t numRunningChildren;
   u_int32_t periodicity;
   bool align_to_localtime;
-  bool thread_started, taskRunning;
+  bool thread_started;
+  bool systemTaskRunning;
+  bool *interfaceTasksRunning;
   Mutex m;
   ThreadPool *pool;
   
@@ -44,6 +45,8 @@ class ThreadedActivity {
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
   void scheduleJob(ThreadPool *pool);
+  void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
+  bool isInterfaceTaskRunning(NetworkInterface *iface);
   
  public:
   ThreadedActivity(const char* _path,
@@ -55,16 +58,8 @@ class ThreadedActivity {
   void activityBody();
   void runScript();
   void runScript(char *script_path, NetworkInterface *iface);
+
   void run();
-
-  inline void modRunningChildren(int value) {
-    m.lock(__FILE__, __LINE__);
-    numRunningChildren += value;
-    m.lock(__FILE__, __LINE__);
-  }
-
-  inline void incRunningChildren() { modRunningChildren(1);  }
-  inline void decRunningChildren() { modRunningChildren(-1); }
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */
