@@ -213,9 +213,6 @@ class NetworkInterface : public Checkpointable {
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
 
-  Host* findHostsByIP(AddressTree *allowed_hosts,
-		      char *host_ip, u_int16_t vlan_id);
-
   void topItemsCommit(const struct timeval *when);
   
  public:
@@ -640,6 +637,7 @@ class NetworkInterface : public Checkpointable {
 		       u_int32_t dstHost, u_int16_t dport,
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
+  Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

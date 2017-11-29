@@ -103,6 +103,7 @@ local  en = {
    throughput = "Throughput",
    seen_since = "Seen Since",
    language = "Language",
+   remote_networks = "Remote Networks",
 
    locales = {
       en = "English",

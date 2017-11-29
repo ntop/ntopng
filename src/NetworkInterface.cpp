@@ -2436,7 +2436,7 @@ void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts
   bool walk_all = true;
 
   if(host_ip)
-    h = findHostsByIP(allowed_hosts, (char *)host_ip, vlan_id);
+    h = findHostByIP(allowed_hosts, (char *)host_ip, vlan_id);
 
   retriever.stats = stats;
   retriever.host = h;
@@ -2992,7 +2992,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
   disablePurge(false);
 
-  h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
     h->lua(vm, allowed_hosts, true, true, true, false);
@@ -3050,7 +3050,7 @@ bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel 
 
 /* **************************************************** */
 
-Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
+Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
     Host *h = getHost(host_ip, vlan_id);
@@ -6249,7 +6249,7 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
   int rv;
   disablePurge(false);
 
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+  if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->updateHostTrafficPolicy(host_ip);
     rv = CONST_LUA_OK;
   } else
@@ -6267,7 +6267,7 @@ int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, ch
   int rv;
   disablePurge(false);
 
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+  if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->setDumpTrafficPolicy(dump_traffic_to_disk);
     rv = CONST_LUA_OK;
   } else

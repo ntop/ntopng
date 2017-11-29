@@ -156,8 +156,13 @@ function top_talkers_utils.makeTopJson(_ifname)
 	      os_key = "local os"
 	   end
 
-	   for what_key, what_value in
-	   pairs({["hosts"] = hostname, ["asn"] = hoststats["asn"], [os_key] = hoststats["os"]}) do
+	   local country = interface.getHostCountry(hostname)
+
+	   for what_key, what_value in pairs({
+	       ["hosts"] = hostname, ["asn"] = hoststats["asn"],[os_key] = hoststats["os"],
+	       ["countries"] = ternary(not isEmptyString(country), country, nil),
+	       ["networks"] = hoststats["local_network_id"],
+	    }) do
 	      updateRes(res, vlan, what_key, what_value, direction, delta)
 	   end
 	end
@@ -190,11 +195,25 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec)
       end
     elseif class_key == "asn" then
       url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='
+    elseif class_key == "networks" then
+      url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='
+
+      local network_name = nil
+      if rec.address == "-1" then
+	 network_name = i18n("remote_networks")
+      else
+	 network_name = ntop.getNetworkNameById(tonumber(rec.address))
+      end
+      if not isEmptyString(network_name) then
+	 label = network_name
+      end
     elseif class_key:contains("os") then
       url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?os='
     end
 
-    url = url .. rec.address
+    if not isEmptyString(url) then
+      url = url .. rec.address
+    end
   end
 
   -- Update record information
