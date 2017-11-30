@@ -813,6 +813,15 @@
 #define PERIODIC_TASK_POOL_SIZE      8 /* Threads */
 
 #define MIN_NUM_HASH_WALK_ELEMS      512
+
+
+#if defined(__arm__) || defined(__mips__)
+#define DEFAULT_THREAD_POOL_SIZE     1
+#define MAX_THREAD_POOL_SIZE         1
+#else
 #define DEFAULT_THREAD_POOL_SIZE     2
+#define MAX_THREAD_POOL_SIZE         5
+#endif
+
 #define MIN_TIME_SPAWN_THREAD_POOL   10 /* sec */
 #endif /* _NTOP_DEFINES_H_ */

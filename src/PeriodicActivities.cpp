@@ -21,6 +21,13 @@
 
 #include "ntop_includes.h"
 
+typedef struct _activity_descr {
+  const char *path;
+  u_int32_t periodicity;
+  bool align_to_localtime;
+  u_int8_t thread_pool_size;
+} activity_descr;
+
 /* ******************************************* */
 
 PeriodicActivities::PeriodicActivities() {
@@ -47,7 +54,8 @@ PeriodicActivities::~PeriodicActivities() {
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;
-
+  static u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
+    
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
   if(stat(ntop->get_callbacks_dir(), &buf) != 0) {
@@ -69,27 +77,28 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     startup_activity = NULL;
   }
 
-  typedef struct _activity_descr {
-    const char *path;
-    u_int32_t periodicity;
-    bool align_to_localtime;
-    u_int8_t thread_pool_size;
-  } activity_descr;
+  if(num_threads < ntop->get_num_interfaces())
+    num_threads = ntop->get_num_interfaces();
 
+  if(num_threads > MAX_THREAD_POOL_SIZE)
+    num_threads = MAX_THREAD_POOL_SIZE;
+  
   static activity_descr ad[] = {
-    { SECOND_SCRIPT_PATH,       1,     false, 1                        },
-    { MINUTE_SCRIPT_PATH,       60,    false, DEFAULT_THREAD_POOL_SIZE },
-    { FIVE_MINUTES_SCRIPT_PATH, 300,   false, DEFAULT_THREAD_POOL_SIZE },
-    { HOURLY_SCRIPT_PATH,       3600,  false, DEFAULT_THREAD_POOL_SIZE },
-    { DAILY_SCRIPT_PATH,        86400, true,  1                        },
-    { HOUSEKEEPING_SCRIPT_PATH, 3,     false, DEFAULT_THREAD_POOL_SIZE },
-    { DISCOVER_SCRIPT_PATH,     5,     false, 1                        },
+    { SECOND_SCRIPT_PATH,       1,     false, 1           },
+    { MINUTE_SCRIPT_PATH,       60,    false, num_threads },
+    { FIVE_MINUTES_SCRIPT_PATH, 300,   false, num_threads },
+    { HOURLY_SCRIPT_PATH,       3600,  false, num_threads },
+    { DAILY_SCRIPT_PATH,        86400, true,  1           },
+    { HOUSEKEEPING_SCRIPT_PATH, 3,     false, num_threads },
+    { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
 #ifdef HAVE_NEDGE
-    { UPGRADE_SCRIPT_PATH,      10,    false, 1                        },
+    { UPGRADE_SCRIPT_PATH,      10,    false, 1           },
 #endif
     { NULL, 0, false}
   };
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);
+  
   activity_descr *d = ad;
   
   while(d->path) {

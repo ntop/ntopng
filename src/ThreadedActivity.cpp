@@ -77,6 +77,8 @@ void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool run
     interfaceTasksRunning[iface_id] = running;
 }
 
+/* ******************************************* */
+
 bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
   const int iface_id = iface->get_id();
 
