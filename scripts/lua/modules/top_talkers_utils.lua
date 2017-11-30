@@ -135,6 +135,10 @@ function top_talkers_utils.makeTopJson(_ifname)
      local checkpoint_id = checkpointId("top_talkers")
      local checkpoint = interface.checkpointHost(ifid, hostname, checkpoint_id, "normal")
 
+     if (checkpoint == nil) then
+        goto continue
+     end
+
      local current, previous
      if checkpoint["previous"] then previous = json.decode(checkpoint["previous"]) end
      if checkpoint["current"] then current = json.decode(checkpoint["current"]) end
@@ -167,6 +171,8 @@ function top_talkers_utils.makeTopJson(_ifname)
 	   end
 	end
      end
+
+     ::continue::
    end)
 
    if not in_time then
