@@ -227,4 +227,13 @@ end
 
 -- ########################################################
 
+function top_talkers_utils.enrichVlanInformation(vlan_tbl)
+   local vlan_id = ternary(vlan_tbl.address, tostring(vlan_tbl.address), "0")
+   vlan_tbl["label"] = vlan_id
+   vlan_tbl["name"] = vlan_id
+   vlan_tbl["url"] = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan_id
+end
+
+-- ########################################################
+
 return top_talkers_utils

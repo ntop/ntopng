@@ -25,6 +25,7 @@ local function getTopTalkersFromJSONDirection(table, wantedDir, add_vlan)
    local host_container = {}
    local sort_helper    = {}
    for i,vlan in pairs(table["vlan"]) do
+      top_talkers_utils.enrichVlanInformation(vlan)
       local vlanid = vlan["label"]
       local vlanname = vlan["name"]
       -- XXX hosts is an array of (senders, receivers) pairs?
