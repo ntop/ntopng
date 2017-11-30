@@ -935,7 +935,7 @@ function createRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2 -- Default hb = 2 minutes
+      local hb = step * 5 -- keep it aligned with rrd_utils.makeRRD
       ntop.rrd_create(
 	 path,
 	 step, -- step
@@ -955,7 +955,7 @@ function createSingleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2 -- Default hb = 2 minutes
+      local hb = step * 5 -- keep it aligned with rrd_utils.makeRRD
       ntop.rrd_create(
 	 path,
 	 step, -- step
@@ -974,7 +974,7 @@ function createTripleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then io.write('Creating RRD '..path..'\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2 -- Default hb = 2 minutes
+      local hb = step * 5 -- keep it aligned with rrd_utils.makeRRD
       ntop.rrd_create(
 	 path,
 	 step, -- step
