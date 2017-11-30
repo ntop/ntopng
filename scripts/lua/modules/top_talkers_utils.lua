@@ -176,8 +176,7 @@ function top_talkers_utils.makeTopJson(_ifname)
    end)
 
    if not in_time then
-      callback_utils.print(__FILE__(), __LINE__(),
-			   "ERROR: Cannot complete top talkers generation in 1 minute. Is there a huge number of hosts in the system?")
+      print("ERROR: Cannot complete top talkers generation in 1 minute. Is there a huge number of hosts in the system?")
    end
 
    sortRes(res)
