@@ -130,14 +130,18 @@ function top_talkers_utils.makeTopJson(_ifname)
    local ifid = getInterfaceId(_ifname)
 
    local res = {}
-
+   
    local in_time = callback_utils.foreachHost(_ifname, os.time() + 60 --[[1 minute --]], function (hostname, hoststats)
-     local checkpoint = interface.checkpointHostTalker(ifid, hostname, checkpoint_id)
-
-     local current, previous
-     if checkpoint["previous"] then previous = checkpoint["previous"] end
-     if checkpoint["current"] then current = checkpoint["current"] end
-
+      local checkpoint = interface.checkpointHostTalker(ifid, hostname, checkpoint_id)
+      
+      if(checkpoint == nil) then 
+        goto continue
+      end
+      
+      local current, previous
+      if checkpoint["previous"] then previous = checkpoint["previous"] end
+      if checkpoint["current"] then current = checkpoint["current"] end
+      
      local vlan = hoststats["vlan"]
 
      updateCache(hostname_cache, hostname, hoststats["name"])
@@ -166,6 +170,8 @@ function top_talkers_utils.makeTopJson(_ifname)
 	   end
 	end
      end
+
+     ::continue::
    end)
 
    if not in_time then
