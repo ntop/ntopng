@@ -104,9 +104,9 @@ end
 
 -- ########################################################
 
--- Iterates each active host on the ifname interface.
+-- Iterates each active host on the ifname interface for RRD creation.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalHost(ifname, deadline, callback)
+function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
    local hostbase
 
    interface.select(ifname)
@@ -114,6 +114,7 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
 
    for hostname, hoststats in iterator do
+    -- Note: this is expensive
 	 local host = interface.getHostInfo(hostname)
 
 	 if ((deadline ~= nil) and (os.time() >= deadline)) then
@@ -125,7 +126,8 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
 	    if(host.localhost) then
 	       local keypath = getPathFromKey(hostname)
 	       hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
-	       
+
+          -- NOTE: filesystem activity here
 	       if(not(ntop.exists(hostbase))) then
 		  ntop.mkdir(hostbase)
 	       end

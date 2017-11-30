@@ -346,7 +346,7 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
 
   -- Save hosts stats (if enabled from the preferences)
   if is_rrd_creation_enabled or are_alerts_enabled then
-    local in_time = callback_utils.foreachLocalHost(_ifname, time_threshold, function (hostname, host, hostbase)
+    local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, function (hostname, host, hostbase)
       if are_alerts_enabled then
         -- Check alerts first
         check_host_alerts(ifstats.id, working_status, hostname)
