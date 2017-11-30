@@ -115,6 +115,7 @@ REVISION = @GIT_RELEASE@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 NTOPNG_VERSION = @NTOPNG_VERSION@
 RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
+RPM_PCAP_PKG = $(TARGET)-pcap-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
 RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@REVISION@.noarch.rpm
 ######
 
@@ -215,6 +216,9 @@ protools:
 build-rpm-ntopng: ntopng protools
 	rpmbuild -bb ./packages/ntopng.spec
 	@./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
+	@if test -f $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG) ; then \
+	 ./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG) \
+	fi
 	@echo ""
 	@echo "Package contents:"
 	@rpm -qpl $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
