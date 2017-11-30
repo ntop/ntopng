@@ -167,6 +167,7 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 %if 0%{?centos_ver} == 7
 /bin/systemctl daemon-reload
 /bin/systemctl enable ntopng.service
+/bin/systemctl restart ntopng.service
 %else
 /sbin/chkconfig --add ntopng
 %endif
@@ -199,6 +200,7 @@ esac
 
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
+  /bin/systemctl stop ntopng.service
 %else
   /sbin/chkconfig --del ntopng
 %endif
