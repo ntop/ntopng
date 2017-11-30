@@ -66,6 +66,8 @@ class Host : public GenericHost, public Checkpointable {
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
   TrafficShaper **host_traffic_shapers;
 #endif
+  u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
+  bool checkpoint_set;
 
   struct {
     u_int32_t pktRetr, pktOOO, pktLost;
@@ -196,6 +198,7 @@ class Host : public GenericHost, public Checkpointable {
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
+  void checkPointHostTalker(lua_State *vm);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   void incrVisitedWebSite(char *hostname);

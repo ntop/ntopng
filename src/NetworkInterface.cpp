@@ -3034,6 +3034,20 @@ bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpo
 
 /* **************************************************** */
 
+bool NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id) {
+  Host *h;
+  bool ret = false;
+
+  if(host_ip && (h = getHost(host_ip, vlan_id))) {
+    h->checkPointHostTalker(vm);
+    ret = true;
+  }
+
+  return ret;
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
   json_object *inner;
 

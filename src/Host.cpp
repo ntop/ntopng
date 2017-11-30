@@ -170,6 +170,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     trigger_host_alerts = false;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
   nextSitesUpdate = 0;
+  checkpoint_set = false;
+  checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
@@ -1518,6 +1520,33 @@ bool Host::serializeCheckpoint(json_object *my_object, DetailsLevel details_leve
   }
 
   return true;
+}
+
+/* *************************************** */
+
+void Host::checkPointHostTalker(lua_State *vm) {
+  lua_newtable(vm);
+
+  if (! checkpoint_set) {
+    checkpoint_set = true;
+  } else {
+    lua_newtable(vm);
+    lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
+    lua_push_int_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
+    lua_pushstring(vm, "previous");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  checkpoint_sent_bytes = sent.getNumBytes();
+  checkpoint_rcvd_bytes = sent.getNumBytes();
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
+  lua_push_int_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
+  lua_pushstring(vm, "current");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */

@@ -493,12 +493,11 @@ end
 
 -- Note: make sure the maximum id for checkpoint_keys honours CONST_MAX_NUM_CHECKPOINTS
 local checkpoint_keys = {
-   {0, "top_talkers" }, -- used to compute minute-by-minute top talkers
    -- following checkpoints are used for alerts
-   {1, "min"},
-   {2, "5mins"},
-   {3, "hour"},
-   {4, "day"},
+   {0, "min"},
+   {1, "5mins"},
+   {2, "hour"},
+   {3, "day"},
 }
 
 function checkpointId(v)

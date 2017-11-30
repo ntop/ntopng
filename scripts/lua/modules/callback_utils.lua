@@ -47,17 +47,17 @@ local function getBatchedIterator(batched_function, field, function_params)
    function_params = function_params or {}
 
    return function()
-      if ((nextSlot == 0) or (nextSlot == nil)) and not first_iteration then
-         iterator_finished = true
-      end
-
-      if iterator_finished then return nil end
-
       if (loaded_elems == nil) or table.empty(loaded_elems) then
          if loaded_elems ~= nil then
             -- that was the first iteration
             first_iteration = false
          end
+
+         if ((nextSlot == 0) or (nextSlot == nil)) and not first_iteration then
+            iterator_finished = true
+         end
+
+         if iterator_finished then return nil end
 
          -- we need to load new slots from C
          if(debug_enabled) then

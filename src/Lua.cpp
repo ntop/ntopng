@@ -2437,6 +2437,32 @@ static int ntop_checkpoint_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_checkpoint_interface_host_talker(lua_State* vm) {
+  int ifid;
+  NetworkInterface *iface = NULL;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+
+  ifid = (int)lua_tointeger(vm, 1);
+  iface = ntop->getInterfaceById(ifid);
+
+  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if(!iface || iface->isView() || !iface->checkPointHostTalker(vm, host_ip, vlan_id)) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  } else
+    return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_checkpoint_interface_network(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
@@ -6522,6 +6548,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNetworksStats",         ntop_get_interface_networks_stats },
   { "restoreHost",              ntop_restore_interface_host },
   { "checkpointHost",           ntop_checkpoint_interface_host },
+  { "checkpointHostTalker",     ntop_checkpoint_interface_host_talker },
   { "checkpointNetwork",        ntop_checkpoint_interface_network },
   { "checkpointInterface",      ntop_checkpoint_network_interface },
   { "getFlowsInfo",             ntop_get_interface_flows_info },
