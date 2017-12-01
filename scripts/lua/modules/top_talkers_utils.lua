@@ -185,7 +185,7 @@ end
 -- ########################################################
 
 -- Computes label and url during visualization
-function top_talkers_utils.enrichRecordInformation(class_key, rec)
+function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
   local url = ""
   local label = rec.label or rec.address
 
@@ -196,6 +196,16 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec)
       local alt_name = getHostAltName(rec.address)
       if not isEmptyString(alt_name) and (alt_name ~= rec.address) then
         label = alt_name
+      else
+        local hinfo = hostkey2hostinfo(rec.address)
+        if not show_vlan then hinfo.vlan = 0 end
+        alt_name = host2name(hinfo.host, hinfo.vlan)
+
+        if not isEmptyString(alt_name) and (alt_name ~= rec.address) then
+           label = alt_name
+        else
+           label = rec.address
+        end
       end
     elseif class_key == "asn" then
       url = ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='

@@ -36,7 +36,7 @@ local function getTopTalkersFromJSONDirection(table, wantedDir, add_vlan)
 	 local direction = hostpair[wantedDir]
 	 if direction == nil then direction = {} end
 	 for _, host in pairs(direction) do
-	    top_talkers_utils.enrichRecordInformation("hosts", host)
+	    top_talkers_utils.enrichRecordInformation("hosts", host, add_vlan)
 	    local addr = host["address"]
 	    local val = tonumber(host["value"])
 	    if addr == nil or val == nil then goto continue end
