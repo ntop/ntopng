@@ -219,7 +219,7 @@ print [[/lua/logout.lua");  }, */
    if interface.isPcapDumpInterface() == false then
       print[[
 
-		$('#gauge_text_allTraffic').html(bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]");
+		$('#gauge_text_allTraffic').html("<small>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]</small>");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
