@@ -9,7 +9,6 @@ local json = require "dkjson"
 
 local top_talkers_utils = {}
 top_talkers_utils.MAX_NUM_ENTRIES = 10
-top_talkers_utils.THRESHOLD_LOW = .05
 
 local vlan_totals = {}
 local asname_cache    = {}
@@ -49,13 +48,6 @@ local function sortRes(res)
 	       total = total + delta
 
 	       if delta <= 0 or count > top_talkers_utils.MAX_NUM_ENTRIES then
-		  if delta > 0 then other = other + delta end
-		  direction_val[what_val_k] = nil
-	       end
-	    end
-
-	    for what_val_k, delta in pairs(direction_val) do
-	       if delta / total < top_talkers_utils.THRESHOLD_LOW then
 		  if delta > 0 then other = other + delta end
 		  direction_val[what_val_k] = nil
 	       end
