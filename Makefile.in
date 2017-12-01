@@ -217,13 +217,13 @@ build-rpm-ntopng: ntopng protools
 	rpmbuild -bb ./packages/ntopng.spec
 	@./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@if test -f $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG) ; then \
-	 ./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG) \
+	 ./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG); \
 	fi
 	@echo ""
 	@echo "Package contents:"
 	@rpm -qpl $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)"
-
+	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG)"
 
 build-rpm-ntopng-data: geoip
 	rpmbuild -bb ./packages/ntopng-data.spec
