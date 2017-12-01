@@ -11,57 +11,6 @@ local rrd_dump = {}
 
 -- ########################################################
 
-function rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
-  for k in pairs(ifstats["ndpi"]) do
-    local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
-    if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
-
-    local name = os_utils.fixPath(basedir .. "/"..k..".rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(v))
-    ntop.tsSet(when, ifstats.id, 300, 'iface:ndpi', tostring(k), "bytes", ifstats["ndpi"][k]["bytes.sent"], ifstats["ndpi"][k]["bytes.rcvd"])
-    end
-end
-
-function rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
-  for k, v in pairs(ifstats["ndpi_categories"]) do
-    v = v["bytes"]
-    if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
-
-    local name = os_utils.fixPath(basedir .. "/"..k..".rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(v))
-    ntop.tsSet(when, ifstats.id, 300, 'iface:ndpi_categories', tostring(k), "bytes", v, 0)
-  end
-end
-
-function rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
-  if(not ntop.exists(os_utils.fixPath(basedir.."/localstats/"))) then
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating localstats directory ", os_utils.fixPath(basedir.."/localstats"), '\n') end
-    ntop.mkdir(os_utils.fixPath(basedir.."/localstats/"))
-  end
-
-  -- IN/OUT counters
-  if(ifstats["localstats"]["bytes"]["local2remote"] > 0) then
-    local name = os_utils.fixPath(basedir .. "/localstats/local2remote.rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(ifstats["localstats"]["bytes"]["local2remote"]))
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
-  end
-
-  if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
-    local name = os_utils.fixPath(basedir .. "/localstats/remote2local.rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
-  end
-
-  ntop.tsSet(when, ifstats.id, 300, "iface:localstats", "local2remote", "bytes",
-    ifstats["localstats"]["bytes"]["local2remote"], ifstats["localstats"]["bytes"]["remote2local"])
-end
-
--- ########################################################
-
 function rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
   local name = os_utils.fixPath(hostbase.."/".."bytes.rrd")
   createRRDcounter(name, 300, verbose)
@@ -273,8 +222,7 @@ end
 
 function rrd_dump.getConfig()
   local config = {}
-  config.interface_rrd_creation = ntop.getPref("ntopng.prefs.interface_rrd_creation")
-  config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
+
   config.host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
   config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
   config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
@@ -295,10 +243,6 @@ function rrd_dump.getConfig()
   if(tostring(config.snmp_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
      config.snmp_devices_rrd_creation = "0"
   end
-
-  -- Interface RRD creation is on, with per-protocol nDPI
-  if isEmptyString(config.interface_rrd_creation) then config.interface_rrd_creation = "1" end
-  if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end
 
   -- Local hosts RRD creation is on, with no nDPI rrd creation
   if isEmptyString(config.host_rrd_creation) then config.host_rrd_creation = "1" end
@@ -326,22 +270,6 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
     check_interface_alerts(ifstats.id, working_status)
     check_networks_alerts(ifstats.id, working_status)
     -- will scan the hosts alerts below
-  end
-
-  if is_rrd_creation_enabled then
-    if config.interface_rrd_creation == "1" then
-      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
-
-      if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-        rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
-      end
-
-      if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
-        rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
-      end
-
-      rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
-    end
   end
 
   -- Save hosts stats (if enabled from the preferences)
