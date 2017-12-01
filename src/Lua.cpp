@@ -42,6 +42,7 @@ extern "C" {
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 
 static Mutex rrd_lock;
+
 /* ******************************* */
 
 Lua::Lua() {
@@ -3299,7 +3300,7 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
 */
 
 static void reset_rrd_state(void) {
-  rrd_lock.lock(__FILE__, __LINE__);
+  // rrd_lock.lock(__FILE__, __LINE__);
   optind = 0;
   opterr = 0;
   rrd_clear_error();
@@ -3487,13 +3488,13 @@ static int ntop_rrd_create(lua_State* vm) {
       char error_buf[256];
 
       snprintf(error_buf, sizeof(error_buf), "rrd_create_r() [%s] failed [%s]", filename, err);
-      luaL_error(vm, error_buf);
-      rrd_lock.unlock(__FILE__, __LINE__);
+      lua_pushstring(vm, error_buf);
+      // rrd_lock.unlock(__FILE__, __LINE__);
       return(CONST_LUA_ERROR);
     }
   }
 
-  rrd_lock.unlock(__FILE__, __LINE__);
+  // rrd_lock.unlock(__FILE__, __LINE__);
   
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -3504,10 +3505,20 @@ static int ntop_rrd_create(lua_State* vm) {
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
-
+  struct stat stat_buf;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
+  if(stat(filename, &stat_buf) != 0) {
+    char error_buf[256];
+    
+    snprintf(error_buf, sizeof(error_buf), "File %s does not exist", filename);
+    lua_pushstring(vm, error_buf);
+    
+    return(CONST_LUA_ERROR);
+  }
+  
   if(lua_type(vm, 2) == LUA_TSTRING) {
     if((when = (const char*)lua_tostring(vm, 2)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
@@ -3540,8 +3551,8 @@ static int ntop_rrd_update(lua_State* vm) {
 	char error_buf[256];
 	
 	snprintf(error_buf, sizeof(error_buf), "rrd_update_r() [%s][%s] failed [%s]", filename, buf, err);
-	luaL_error(vm, error_buf);
-	rrd_lock.unlock(__FILE__, __LINE__);
+	lua_pushstring(vm, error_buf);
+	// rrd_lock.unlock(__FILE__, __LINE__);
 	
 	free(buf);
 	return(CONST_LUA_ERROR);
@@ -3552,7 +3563,7 @@ static int ntop_rrd_update(lua_State* vm) {
   }
 
   lua_pushnil(vm);
-  rrd_lock.unlock(__FILE__, __LINE__);
+  // rrd_lock.unlock(__FILE__, __LINE__);
   
   return(CONST_LUA_OK);
 }
@@ -3568,14 +3579,14 @@ static int ntop_rrd_get_lastupdate(const char *filename, time_t *last_update, un
   status = rrd_lastupdate_r(filename, last_update, ds_count, &ds_names, &last_ds);
 
   if(status != 0) {
-    rrd_lock.unlock(__FILE__, __LINE__);
+    // rrd_lock.unlock(__FILE__, __LINE__);
     return(-1);
   } else {
     for(i = 0; i < *ds_count; i++)
       free(last_ds[i]), free(ds_names[i]);
 
     free(last_ds), free(ds_names);
-    rrd_lock.unlock(__FILE__, __LINE__);
+    // rrd_lock.unlock(__FILE__, __LINE__);
     return(0);
   }
 }
@@ -3619,7 +3630,7 @@ static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *s
     if((start_s = (char*)lua_tostring(vm, 3)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
     if((err = rrd_parsetime(start_s, &start_tv)) != NULL) {
-      luaL_error(vm, err);
+      lua_pushstring(vm, err);
       return(CONST_LUA_PARAM_ERROR);
     }
 
@@ -3627,7 +3638,7 @@ static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *s
     if((end_s = (char*)lua_tostring(vm, 4)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
     if((err = rrd_parsetime(end_s, &end_tv)) != NULL) {
-      luaL_error(vm, err);
+      lua_pushstring(vm, err);
       return(CONST_LUA_PARAM_ERROR);
     }
 
@@ -3679,7 +3690,7 @@ static int ntop_rrd_fetch(lua_State* vm) {
   reset_rrd_state();
 
   if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) {
-    rrd_lock.unlock(__FILE__, __LINE__);
+    // rrd_lock.unlock(__FILE__, __LINE__);
     return status;
   }
 
@@ -3757,7 +3768,7 @@ static int ntop_rrd_fetch(lua_State* vm) {
   }
 
   rrd_freemem(data);
-  rrd_lock.unlock(__FILE__, __LINE__);
+  // rrd_lock.unlock(__FILE__, __LINE__);
   
   /* return the end as the last value */
   lua_pushnumber(vm, (lua_Number) end);
@@ -3797,7 +3808,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
   if((status = __ntop_rrd_args(vm, &filename,
 			       &cf, &start, &end)) != CONST_LUA_OK) {
-    rrd_lock.unlock(__FILE__, __LINE__);
+    // rrd_lock.unlock(__FILE__, __LINE__);
     return status;
   }
 
@@ -3808,7 +3819,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 					     &end, &step, &ds_cnt,
 					     &names, &data), filename,
 				 cf)) != CONST_LUA_OK) {
-    rrd_lock.unlock(__FILE__, __LINE__);
+    // rrd_lock.unlock(__FILE__, __LINE__);
     return status;
   }
 
@@ -3844,7 +3855,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   /* end and npoints as last values */
   lua_pushnumber(vm, (lua_Number) end);
   lua_pushnumber(vm, (lua_Number) npoints);
-  rrd_lock.unlock(__FILE__, __LINE__);
+  // rrd_lock.unlock(__FILE__, __LINE__);
   
   /* number of return values */
   return(5);
