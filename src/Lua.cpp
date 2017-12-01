@@ -31,6 +31,9 @@
 
 extern "C" {
 #include "rrd.h"
+  extern void   rrd_clear_error_r(rrd_context_t *); 
+  extern char  *rrd_get_error_r  (rrd_context_t *); 
+  
 #ifdef HAVE_GEOIP
   extern const char * GeoIP_lib_version(void);
 #endif
@@ -3296,10 +3299,22 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
   and made reentrant
 */
 
-static void reset_rrd_state(void) {
+
+char *rrd_get_error_r(rrd_context_t * rrd_ctx) {
+  return rrd_ctx->rrd_error;
+}
+
+void rrd_clear_error_r(rrd_context_t * rrd_ctx) {
+  rrd_ctx->rrd_error[0] = '\0';
+}
+
+static rrd_context_t* reset_rrd_state(void) {
+  rrd_context_t *c = rrd_new_context();
+
   optind = 0;
   opterr = 0;
-  rrd_clear_error();
+  rrd_clear_error_r(c);
+  return(c);
 }
 
 /* ****************************************** */
@@ -3461,7 +3476,8 @@ static int ntop_rrd_create(lua_State* vm) {
   unsigned long pdp_step;
   const char **argv;
   int argc, status, offset = 3;
-
+  rrd_context_t *context;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3473,19 +3489,21 @@ static int ntop_rrd_create(lua_State* vm) {
   argc = lua_gettop(vm) - offset;
   argv = make_argv(vm, offset);
 
-  reset_rrd_state();
+  context = reset_rrd_state();
   status = rrd_create_r(filename, pdp_step, time(NULL)-86400 /* 1 day */, argc, argv);
   free(argv);
 
   if(status != 0) {
-    char *err = rrd_get_error();
+    char *err = rrd_get_error_r(context);
 
-    if(err != NULL) {
+    if(err != NULL) {      
       luaL_error(vm, err);
+      rrd_free_context(context);
       return(CONST_LUA_ERROR);
     }
   }
 
+  rrd_free_context(context);
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -3495,7 +3513,8 @@ static int ntop_rrd_create(lua_State* vm) {
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
-
+  rrd_context_t *context;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3521,21 +3540,24 @@ static int ntop_rrd_update(lua_State* vm) {
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__, filename, buf);
 
-    reset_rrd_state();
+    context = reset_rrd_state();
     status = rrd_update_r(filename, NULL, 1, (const char**)&buf);
     free(buf);
 
     if(status != 0) {
-      char *err = rrd_get_error();
+      char *err = rrd_get_error_r(context);
 
       if(err != NULL) {
 	luaL_error(vm, err);
+	rrd_free_context(context);
 	return(CONST_LUA_ERROR);
       }
     }
   }
 
   lua_pushnil(vm);
+  rrd_free_context(context);
+  
   return(CONST_LUA_OK);
 }
 
@@ -3546,16 +3568,19 @@ static int ntop_rrd_get_lastupdate(const char *filename, time_t *last_update, un
   char    **last_ds;
   unsigned long i;
   int status;
-
+  rrd_context_t *context = reset_rrd_state();
+  
   status = rrd_lastupdate_r(filename, last_update, ds_count, &ds_names, &last_ds);
 
   if(status != 0) {
+    rrd_free_context(context);
     return(-1);
   } else {
     for(i = 0; i < *ds_count; i++)
       free(last_ds[i]), free(ds_names[i]);
 
     free(last_ds), free(ds_names);
+    rrd_free_context(context);
     return(0);
   }
 }
@@ -3566,13 +3591,13 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
   const char *filename;
   time_t    last_update;
   unsigned long ds_count;
-
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1)
+  if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1) {
     return(CONST_LUA_ERROR);
-  else {
+  } else {
     lua_pushnumber(vm, last_update);
     lua_pushnumber(vm, ds_count);
     return(2 /* 2 values returned */);
@@ -3582,7 +3607,7 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
 /* ****************************************** */
 
 /* positional 1:4 parameters for ntop_rrd_fetch */
-static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
+static int __ntop_rrd_args (rrd_context_t *context, lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
   char *start_s, *end_s, *err;
   rrd_time_value_t start_tv, end_tv;
 
@@ -3620,11 +3645,11 @@ static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *s
 
 /* ****************************************** */
 
-static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf) {
+static int __ntop_rrd_status(rrd_context_t *context, lua_State* vm, int status, char *filename, char *cf) {
   char * err;
 
   if(status != 0) {
-    err = rrd_get_error();
+    err = rrd_get_error_r(context);
 
     if(err != NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -3655,20 +3680,18 @@ static int ntop_rrd_fetch(lua_State* vm) {
   unsigned long ds_count;
 #endif
   int status;
+  rrd_context_t *context;
 
-  if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK)
+  context = reset_rrd_state();
+  
+  if((status = __ntop_rrd_args(context, vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) {
+    rrd_free_context(context);
     return status;
-
-#if 0
-  if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1)
-    return(CONST_LUA_ERROR);
-#endif
-
+  }
+  
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
 
-  reset_rrd_state();
-
-  if((status = __ntop_rrd_status(vm, rrd_fetch_r(filename, cf, &start, &end,
+  if((status = __ntop_rrd_status(context, vm, rrd_fetch_r(filename, cf, &start, &end,
 						 &step, &ds_cnt, &names, &data),
 				 filename, cf)) != CONST_LUA_OK) return status;
 
@@ -3739,7 +3762,8 @@ static int ntop_rrd_fetch(lua_State* vm) {
 #endif
   }
   rrd_freemem(data);
-
+  rrd_free_context(context);
+  
   /* return the end as the last value */
   lua_pushnumber(vm, (lua_Number) end);
 
@@ -3773,15 +3797,27 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   char **names;
   unsigned long step = 0, ds_cnt = 0;
   rrd_value_t *data, *p;
+  rrd_context_t *context;
 
-  if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) return status;
-
+  context = reset_rrd_state();
+  
+  if((status = __ntop_rrd_args(context, vm, &filename,
+			       &cf, &start, &end)) != CONST_LUA_OK) {
+    rrd_free_context(context);
+    return status;
+  }
+  
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
 
-  reset_rrd_state();
-
-  if((status = __ntop_rrd_status(vm, rrd_fetch_r(filename, cf, &start, &end, &step, &ds_cnt, &names, &data), filename, cf)) != CONST_LUA_OK) return status;
-
+  if((status = __ntop_rrd_status(context, vm,
+				 rrd_fetch_r(filename, cf, &start,
+					     &end, &step, &ds_cnt,
+					     &names, &data), filename,
+				 cf)) != CONST_LUA_OK) {
+    rrd_free_context(context);
+    return status;
+  }
+  
   npoints = (end - start) / step;
 
   lua_pushnumber(vm, (lua_Number) start);
@@ -3814,7 +3850,8 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   /* end and npoints as last values */
   lua_pushnumber(vm, (lua_Number) end);
   lua_pushnumber(vm, (lua_Number) npoints);
-
+  rrd_free_context(context);
+  
   /* number of return values */
   return(5);
 }

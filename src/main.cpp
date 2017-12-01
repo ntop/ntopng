@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 #endif
       }
     } catch(...) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during interface creation: %s", ifName);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during interface creation: %s. Falling back to pcap", ifName);
       if(iface) delete iface;
       iface = NULL;
     }
