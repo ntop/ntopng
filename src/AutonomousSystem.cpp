@@ -76,15 +76,15 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
   if(details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, true);
 
+    lua_push_int_table_entry(vm, "seen.first", first_seen);
+    lua_push_int_table_entry(vm, "seen.last", last_seen);
+    lua_push_int_table_entry(vm, "duration", get_duration());
+
+    lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
+
     if(details_level >= details_higher)
       if(ndpiStats) ndpiStats->lua(iface, vm);
   }
-
-  lua_push_int_table_entry(vm, "seen.first", first_seen);
-  lua_push_int_table_entry(vm, "seen.last", last_seen);
-  lua_push_int_table_entry(vm, "duration", get_duration());
-
-  lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
 
   if(asListElement) {
     lua_pushnumber(vm, asn);

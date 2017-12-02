@@ -41,6 +41,7 @@ class ZCCollectorInterface : public ParserInterface {
   ZCCollectorInterface(const char *name);
   ~ZCCollectorInterface();
 
+  inline InterfaceType getIfType()      { return(interface_type_ZC_FLOW);       };
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
   inline bool is_ndpi_enabled()         { return(false);      };
   inline void incrDrops(u_int32_t num)  { num_drops += num;   };

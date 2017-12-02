@@ -155,25 +155,48 @@ typedef struct {
   u_int32_t num_vm_page_faults;
 } ProcessInfo;
 
-typedef struct zmq_flow {
+typedef struct zmq_flow_core {
+  u_int8_t version; /* 0 so far */
   IpAddress src_ip, dst_ip;
   u_int32_t deviceIP;
   u_int16_t src_port, dst_port, l7_proto, inIndex, outIndex;
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int8_t l4_proto, tcp_flags;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
+  u_int8_t absolute_packet_octet_counters;
   struct {
     u_int32_t ooo_in_pkts, ooo_out_pkts;
     u_int32_t retr_in_pkts, retr_out_pkts;
     u_int32_t lost_in_pkts, lost_out_pkts;
   } tcp;
   u_int32_t first_switched, last_switched;
-  json_object *additional_fields;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
+
+  /* Extensions used only during serialization */
+  u_int16_t extn_len;
+  //char extn[];
+} ZMQ_FlowCore;
+
+typedef struct zmq_flow {
+  ZMQ_FlowCore core;
+  json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
+
+/* IMPORTANT: whenever the ZMQ_FlowSerial is changed, nProbe must be updated too */
+
+
+typedef struct zmq_remote_stats {
+  char remote_ifname[32], remote_ifaddress[64];
+  char remote_probe_address[64], remote_probe_public_address[64];
+  u_int8_t  num_exporters;
+  u_int64_t remote_bytes, remote_pkts, num_flow_exports;
+  u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
+  u_int32_t remote_lifetime_timeout, remote_idle_timeout;
+  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops, sflow_pkt_sample_drops;
+} ZMQ_RemoteStats;
 
 struct vm_ptree {
   lua_State* vm;
@@ -213,6 +236,7 @@ typedef enum {
   status_flow_when_interface_alerted /* 8 */,
   status_tcp_connection_refused /* 9 */,
   status_ssl_certificate_mismatch /* 10 */,
+  status_dns_invalid_query /* 11 */,
 } FlowStatus;
 
 typedef enum {
@@ -258,6 +282,8 @@ typedef enum {
   /* Macs */
   column_num_hosts,
   column_manufacturer,
+  column_device_type,
+  column_arp_total,
   column_arp_sent,
   column_arp_rcvd
 } sortField;
@@ -330,6 +356,22 @@ typedef struct {
   UT_hash_handle hh; /* makes this structure hashable */
 } StringCache_t;
 
+PACK_ON
+struct arp_packet {
+  u_char dst_mac[6], src_mac[6];
+  u_int16_t proto;
+  /* ************* */
+  u_int16_t ar_hrd;/* Format of hardware address.  */
+  u_int16_t ar_pro;/* Format of protocol address.  */
+  u_int8_t  ar_hln;/* Length of hardware address.  */
+  u_int8_t  ar_pln;/* Length of protocol address.  */
+  u_int16_t ar_op;/* ARP opcode (command).  */
+  u_char arp_sha[6];/* sender hardware address */
+  u_int32_t arp_spa;/* sender protocol address */
+  u_char arp_tha[6];/* target hardware address */
+  u_int32_t arp_tpa;/* target protocol address */
+} PACK_OFF;
+
 #ifdef NTOPNG_PRO
 
 typedef struct {
@@ -339,5 +381,79 @@ typedef struct {
 } volatile_members_t;
 
 #endif
+
+/*
+  NOTE:
+  Keep in sync with Utils::deviceType2str / Utils::str2DeviceType
+  and discover.lua (asset_icons)
+*/
+typedef enum {
+  device_unknown = 0,
+  device_printer,
+  device_video,
+  device_workstation,
+  device_laptop,
+  device_tablet,
+  device_phone,
+  device_tv,
+  device_networking,
+  device_wifi,
+  device_nas,
+  device_multimedia,
+
+  device_max_type /* Leave it at the end */
+} DeviceType;
+
+typedef struct {
+  NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
+} DeviceProtocolBitmask;
+
+struct ntopngLuaContext {
+  char *ifname, *user;
+  void *zmq_context, *zmq_subscriber;
+  struct mg_connection *conn;
+  AddressTree *allowedNets;
+  NetworkInterface *iface;
+};
+
+typedef enum {
+  located_on_lan_interface = 1,
+  located_on_wan_interface,
+  located_on_unknown_interface,
+} MacLocation;
+
+typedef enum {
+  interface_type_UNKNOWN = 0,
+  interface_type_PCAP,
+  interface_type_PCAP_DUMP,
+  interface_type_ZMQ,
+  interface_type_VLAN,
+  interface_type_FLOW,
+  interface_type_VIEW,
+  interface_type_PF_RING,
+  interface_type_NETFILTER,
+  interface_type_DIVERT,
+  interface_type_DUMMY,
+  interface_type_ZC_FLOW  
+} InterfaceType;
+
+typedef enum {
+  os_unknown = 0,
+  os_linux,
+  os_windows,
+  os_macos,
+  os_ios,
+  os_android,
+  os_laserjet,
+  os_apple_airport,
+  os_max_os /* Keep as last element */
+} OperatingSystem;
+
+/* Action to be performed after ntopng shutdown*/
+typedef enum {
+  after_shutdown_nop = 0,
+  after_shutdown_reboot = 1,
+  after_shutdown_poweroff = 2,
+} AfterShutdownAction;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

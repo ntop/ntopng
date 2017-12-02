@@ -3,9 +3,8 @@
 set -e
 
 case "$1" in
-    purge|remove)
-	update-rc.d ntopng remove >/dev/null
-    ;;
+	purge|remove)
+	;;
 esac
 
 exit 0

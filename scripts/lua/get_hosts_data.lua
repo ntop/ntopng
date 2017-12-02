@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local discover = require("discover_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -164,9 +165,6 @@ if(hosts_stats ~= nil) then
 	    vals[(now-hosts_stats[key]["family"])+postfix] = key
 	 elseif(sortColumn == "column_last") then
 	    vals[(now-hosts_stats[key]["seen.last"]+1)+postfix] = key
-	 elseif(sortColumn == "column_category") then
-	    if(hosts_stats[key]["category"] == nil) then hosts_stats[key]["category"] = "" end
-	    vals[hosts_stats[key]["category"]..postfix] = key
 	 elseif(sortColumn == "column_httpbl") then
 	    if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
 	    vals[hosts_stats[key]["httpbl"]..postfix] = key
@@ -229,21 +227,24 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if(value.childSafe == true) then print(getSafeChildIcon()) end
 
-   if((value["country"] ~= nil) and (value["country"] ~= "")) then
-      print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
+   local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
+   if((host ~= nil) and (host.country ~= nil) and (host.country ~= "")) then
+      print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>")
    end
 
    print("&nbsp;")
 
    local icon = getOSIcon(value["os"])
-   if(mac ~= nil and trimSpace(getOSIcon(value["os"])) ~= trimSpace(getHostIcon(hosts_stats[key]["mac"]))) then
-      icon = icon.."&nbsp;"..getHostIcon(hosts_stats[key]["mac"])
-   end
-   if(icon == "") then icon = getHostIcon(hosts_stats[key]["ip"].."@"..hosts_stats[key]["vlan"]) end
+   icon = icon .. discover.devtype2icon(hosts_stats[key].devtype)
+   icon = icon:gsub('"',"'")
    print(icon)
 
    if(value["dump_host_traffic"] == true) then print("&nbsp;<i class='fa fa-hdd-o fa-lg'></i>") end
 
+   if((hosts_stats[key].ip ~= "0.0.0.0") and (not string.contains(hosts_stats[key].ip, ":"))) then
+      if(value.dhcpHost) then print("&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>") end
+   end
+   
    print("\", ")
 
    if(url ~= nil) then
@@ -267,7 +268,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if(value["ip"] ~= nil) then
-      label = getHostAltName(value["ip"])
+      local label = getHostAltName(value["ip"], value["mac"])
       if(label ~= value["ip"]) then
 	 print (" ["..label.."]")
       end

@@ -221,7 +221,9 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
   if(openStore(cache_name))
     return -1;
 
-  memset(retvals, 0, sizeof(*retvals));
+  // Set retvals to empty values - cannot use memset because of the vector
+  struct statsManagerRetrieval empty;
+  *retvals = empty;
 
   snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE TSTAMP >= %lu "
 	   "AND TSTAMP <= %lu",

@@ -16,7 +16,7 @@ Prerequisites
 - libmysqlclient-dev
 
 On Ubuntu/Debian
-- apt-get install build-essential git bison flex libglib2.0 libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev libmysqlclient-dev zlib1g-dev libssl-dev
+- apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev
 
 On Debian 9 you need to do
 - apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev
@@ -32,7 +32,7 @@ On Debian/Ubuntu if you plan to build packages you should also install
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
-- yum install git autoconf automake autogen bison flex libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter-queue-devel zlib-devel which
+- yum install git autoconf automake autogen bison flex libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel
 
 On MacOSX (using http://brew.sh)
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql

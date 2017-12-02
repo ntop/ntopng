@@ -5,7 +5,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "snmp_utils"
@@ -20,30 +19,31 @@ require "historical_utils"
 
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
+local discover = require "discover_utils"
 
-debug_hosts = false
-page        = _GET["page"]
-protocol_id = _GET["protocol"]
-application = _GET["application"]
-host_info   = url2hostinfo(_GET)
-host_ip     = host_info["host"]
-host_name   = hostinfo2hostkey(host_info)
-host_vlan   = host_info["vlan"] or 0
-always_show_hist = _GET["always_show_hist"]
+local debug_hosts = false
+local page        = _GET["page"]
+local protocol_id = _GET["protocol"]
+local application = _GET["application"]
+local host_info   = url2hostinfo(_GET)
+local host_ip     = host_info["host"]
+local host_name   = hostinfo2hostkey(host_info)
+local host_vlan   = host_info["vlan"] or 0
+local always_show_hist = _GET["always_show_hist"]
 
-ntopinfo    = ntop.getInfo()
-active_page = "hosts"
+local ntopinfo    = ntop.getInfo()
+local active_page = "hosts"
 
 interface.select(ifname)
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 
 ifId = ifstats.id
 
-is_packetdump_enabled = isLocalPacketdumpEnabled()
-host = nil
-family = nil
+local is_packetdump_enabled = isLocalPacketdumpEnabled()
+local host = nil
+local family = nil
 
-prefs = ntop.getPrefs()
+local prefs = ntop.getPrefs()
 
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local labelKey = host_info["host"].."@"..host_info["vlan"]
@@ -61,8 +61,9 @@ if(protocol_id == nil) then protocol_id = "" end
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
 
-host = interface.getHostInfo(host_info["host"], host_vlan)
-restoreFailed = false
+local host = interface.getHostInfo(host_info["host"], host_vlan)
+
+local restoreFailed = false
 
 if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) then
    if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_restored_host_info").."\n") end
@@ -71,7 +72,7 @@ if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) t
    restoreFailed = true
 end
 
-only_historical = false
+local only_historical = false
 
 local host_pool_id = nil
 
@@ -97,6 +98,7 @@ if (host ~= nil) then
 end
 
 if(host == nil) then
+   -- NOTE: this features is not currently enabled as it may incur into thread concurrency issues
    if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
       page = "historical"
       only_historical = true
@@ -246,14 +248,6 @@ else
    end
 end
 
-if(page == "activities") then
- print("<li class=\"active\"><a href=\"#\">"..i18n("activity").."</a></li>\n")
-else
- if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
-   print("<li><a href=\""..url.."&page=activities\">"..i18n("activity").."</a></li>")
- end
-end
-
 if(page == "dns") then
   print("<li class=\"active\"><a href=\"#\">"..i18n("dns").."</a></li>\n")
 else
@@ -285,14 +279,6 @@ else
    end
 end
 
-if(page == "categories") then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>\n")
-else
-   if(host["categories"] ~= nil) then
-      print("<li><a href=\""..url.."&page=categories\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>")
-   end
-end
-
 if host["localhost"] == true then
    if(ntop.isPro()) then
       if(page == "snmp") then
@@ -321,19 +307,6 @@ else
 
 end
 
-if(false) then
--- NOTE: code temporarily disabled
-if(not(isLoopback(ifname))) then
-   if(page == "jaccard") then
-      print("<li class=\"active\"><a href=\"#\">"..i18n("similarity").."</a></li>\n")
-   else
-      if(host["ip"] ~= nil) then
-	 print("<li><a href=\""..url.."&page=jaccard\">"..i18n("similarity").."</a></li>")
-      end
-   end
-end
-end
-
 if(host.systemhost) then
 if(page == "sprobe") then
   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
@@ -344,7 +317,7 @@ else
 end
 end
 
-if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() then
+if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifstats.isView then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -396,17 +369,30 @@ print [[
 </div>
    ]]
 
+local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
+
 --tprint(host)
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
-	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]))
-	 print('</td><td>&nbsp;</td></tr>')
-      end
-      if(not isEmptyString(host["secondary_mac"]) and host["secondary_mac"]  ~= "00:00:00:00:00:00") then
-	 print("<tr><th width=35%>"..i18n("details.additional_mac_address").."</th><td>" ..get_symbolic_mac(host["secondary_mac"]).. " "..getHostIcon(host["secondary_mac"]))
-	 print('</td><td>&nbsp;</td></tr>')
+	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
+	 print('</td><td>')
+
+	 if(host['localhost'] and (macinfo ~= nil)) then
+	    -- This is a known device type
+	    print(discover.devtype2icon(macinfo.devtype) .. " ")
+	    if macinfo.devtype ~= 0 then
+	       print(discover.devtype2string(macinfo.devtype) .. " ")
+	    else
+	       print(i18n("host_details.unknown_device_type") .. " ")
+	    end
+	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(macinfo)..'&page=config"><i class="fa fa-cog"></i></a>\n')
+	 else
+	    print("&nbsp;")
+	 end
+	 
+	 print('</td></tr>')
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
@@ -499,6 +485,7 @@ if((page == "overview") or (page == nil)) then
       if(host["name"] == nil) then
 	 host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
       end
+      
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
@@ -517,13 +504,11 @@ if((page == "overview") or (page == nil)) then
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
       print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
 
-
       if(host["localhost"] == true) then print('<span class="label label-success">'..i18n("details.label_local_host")..'</span>') else print('<span class="label label-default">'..i18n("details.label_remote")..'</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">'..i18n("details.label_private_ip")..'</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">'..i18n("details.label_system_ip")..' '..'<i class=\"fa fa-flag\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
 
-      print(getHostIcon(labelKey))
       print("</td><td></td>\n")
    end
 
@@ -592,6 +577,16 @@ end
    end
    print("</td></tr>")
 
+   if interface.isBridgeInterface(ifstats) then
+      print("<tr id=bridge_dropped_flows_tr ") if not host["flows.dropped"] then print("style='display:none;'") end print(">")
+
+      print("<th><i class=\"fa fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
+      print("<td colspan=2><span id=bridge_dropped_flows>" .. formatValue((host["flows.dropped"] or 0)) .. "</span>  <span id=trend_bridge_dropped_flows></span>")
+
+      print("</tr>")
+   end
+
+
    if host["tcp.packets.seq_problems"] == true then
       print("<tr><th width=30% rowspan=3>"..i18n("details.tcp_packets_sent_analysis").."</th><th>"..i18n("details.retransmissions").."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
       print("<tr></th><th>"..i18n("details.out_of_order").."</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
@@ -633,8 +628,6 @@ end
 	 print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       end
       if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
-         local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
-
          if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
             print('<tr><th class="text-left">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
@@ -780,8 +773,6 @@ protocolChart
 protocolChart.title(function(d){
       return d.key+": " + bytesToVolume(Math.pow(10, d.value));
       })
-
-protocolChart.on("click", function(){ alert("A"); });
 
 hostChart
     .width(600).height(300)
@@ -943,16 +934,23 @@ elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
 
-      <table class="table table-bordered table-striped">
-      	<tr><th class="text-left">]] print(i18n("ndpi_page.protocol_overview")) print[[</th>
-	       <td colspan=3>
-	       <div class="pie-chart" id="topApplicationProtocols"></div>
-	       </td>
-	       <td colspan=2>
-	       <div class="pie-chart" id="topApplicationBreeds"></div>
-	       </td>
-	       </tr>
-	</div>
+  <table class="table table-bordered table-striped">
+    <tr>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print[[</th>
+      <td>
+        <div class="pie-chart" id="topApplicationProtocols"></div>
+      </td>
+      <td colspan=2>
+        <div class="pie-chart" id="topApplicationBreeds"></div>
+      </td>
+    </tr>
+    <tr>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
+      <td colspan=2>
+        <div class="pie-chart" id="topApplicationCategories"></div>
+      </td>
+    </tr>
+  </table>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -961,10 +959,13 @@ elseif((page == "ndpi")) then
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ndpi_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
+				   do_pie("#topApplicationCategories", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/iface_ndpi_stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+
 				   do_pie("#topApplicationBreeds", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
-
 
 
 				}
@@ -972,8 +973,6 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
 	    </script>
            <p>
 	]]
-
-      print("</table>\n")
 
   local direction_filter = ""
   local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
@@ -993,9 +992,9 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
      <table class="table table-bordered table-striped">
      ]]
 
-     print("<thead><tr><th>"..i18n("ndpi_page.application_protocol").."</th><th>"..i18n("duration").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
+  print("<thead><tr><th>"..i18n("ndpi_page.application_protocol").."</th><th>"..i18n("duration").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
 
-  print ('<tbody id="host_details_ndpi_tbody">\n')
+  print ('<tbody id="host_details_ndpi_applications_tbody">\n')
   print ("</tbody>")
   print("</table>\n")
 
@@ -1008,88 +1007,72 @@ function update_ndpi_table() {
   print(ntop.getHttpPrefix())
   print [[/lua/host_details_ndpi.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
-    if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
-    print [[ },
+  if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
+  print [[ },
     success: function(content) {
-      $('#host_details_ndpi_tbody').html(content);
+      $('#host_details_ndpi_applications_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
       $('#h_ndpi_tbody').trigger("update");
     }
   });
 }
 update_ndpi_table();
-]]
-
---  Update interval ndpi table
-print("setInterval(update_ndpi_table, 5000);")
-
-print [[
-
+setInterval(update_ndpi_table, 5000);
 </script>
 
 ]]
 
+  print [[
+     <table class="table table-bordered table-striped">
+     ]]
+
+  print("<thead><tr><th>"..i18n("ndpi_page.application_protocol_category").."</th><th>"..i18n("duration").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
+
+  print ('<tbody id="host_details_ndpi_categories_tbody">\n')
+  print ("</tbody>")
+  print("</table>\n")
+
+  print [[
+<script>
+function update_ndpi_categories_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/host_details_ndpi_categories.lua',
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ },
+    success: function(content) {
+      $('#host_details_ndpi_categories_tbody').html(content);
+      // Let the TableSorter plugin know that we updated the table
+      $('#h_ndpi_tbody').trigger("update");
+    }
+  });
+}
+update_ndpi_categories_table();
+setInterval(update_ndpi_categories_table, 5000);
+
+</script>
+]]
+  
+  local host_ndpi_timeseries_creation = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+
+  print("<b>"..i18n("notes").."</b>")
+
+  if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol" then
+     print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+  end
+
+  if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category" then
+     print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol_category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+  end
+
+  print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
+  print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
+  print("</ul>")
+
+
    end
 
-   elseif(page == "activities") then
-	 print("<table class=\"table table-bordered table-striped\">\n")
-
-   print [[
-	    <tr><th>]] print(i18n("activities_page.host_activity")) print[[</th><td colspan=2>
-	    <span id="sentHeatmap"></span>
-	    <button id="sent-heatmap-prev-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-left fa-lg""></i></button>
-	    <button id="heatmap-refresh" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-refresh fa-lg"></i></button>
-	    <button id="sent-heatmap-next-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-right fa-lg"></i></button>
-	    <p><span id="heatmapInfo"></span>
-
-	    <script type="text/javascript">
-
-	 var sent_calendar = new CalHeatMap();
-        sent_calendar.init({
-		       itemSelector: "#sentHeatmap",
-		       data: "]]
-     print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(host_info)..'",\n')
-
-     timezone = get_timezone()
-
-     now = ((os.time()-5*3600)*1000)
-     today = os.time()
-     today = today - (today % 86400) - 2*3600
-     today = today * 1000
-
-     print("/* "..timezone.." */\n")
-     print("\t\tstart:   new Date("..now.."),\n") -- now-3h
-     print("\t\tminDate: new Date("..today.."),\n")
-     print("\t\tmaxDate: new Date("..(os.time()*1000).."),\n")
-		     print [[
-   		       domain : "hour",
-		       range : 6,
-		       nextSelector: "#sent-heatmap-next-selector",
-		       previousSelector: "#sent-heatmap-prev-selector",
-
-			   onClick: function(date, nb) {
-					  if(nb === null) { ("#heatmapInfo").html(""); }
-				       else {
-					     $("#heatmapInfo").html(date + ": detected traffic for <b>" + nb + "</b> seconds ("+ Math.round((nb*100)/60)+" % of time).");
-				       }
-				    }
-
-		    });
-
-	    $(document).ready(function(){
-			    $('#heatmap-refresh').click(function(){
-							      sent_calendar.update(]]
-									     print("\""..ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(host_info)..'\");\n')
-									     print [[
-						    });
-				      });
-
-   </script>
-
-	    </td></tr>
-      ]]
-
-	 print("</table>\n")
    elseif(page == "dns") then
       if(host["dns"] ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
@@ -1532,91 +1515,6 @@ print [[
    ]]
 
 end
-elseif(page == "categories") then
-print [[
-      <table class="table table-bordered table-striped">
-        <tr><th class="text-left">]] print(i18n("categories_page.traffic_categories")) print[[</th><td><div class="pie-chart" id="topTrafficCategories"></div></td></tr>
-        </div>
-
-        <script type='text/javascript'>
-	     window.onload=function() {
-
-                                   do_pie("#topTrafficCategories", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_category_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-  print [[
-	    }
-
-            </script>
-
-<tr><td colspan=2>
-<div id="table-categories"></div>
-         <script type='text/javascript'>
-           $("#table-categories").datatable({
-                        title: "",
-                        url: "]] print(ntop.getHttpPrefix().."/lua/get_host_categories.lua?"..hostinfo2url(host_info).."&ifid="..ifId) print [[",
-]]
-
--- Set the preference table
-preference = tablePreferences("rows_number",_GET["perPage"])
-if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
-
--- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("host_categories") ..'","' .. getDefaultTableSortOrder("host_categories").. '"] ],')
-
-
-print [[
-               showPagination: true,
-                columns: [
-                         {
-                             title: "]] print(i18n("categories_page.category_id")) print[[",
-                                 field: "column_id",
-                                 hidden: true,
-                                 sortable: true,
-                          },
-                          {
-                             title: "]] print(i18n("categories_page.traffic_category")) print[[",
-                                 field: "column_label",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'left'
-                             }
-                                 },
-                             {
-                             title: "]] print(i18n("categories_page.traffic_volume")) print[[",
-                                 field: "column_bytes",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'right'
-                             }
-                                 },
-                             {
-                             title: "]] print(i18n("categories_page.traffic_percentage")) print[[",
-                                 field: "column_pct",
-                                 sortable: false,
-                             css: {
-                                textAlign: 'right'
-                             }
-                                 }
-                             ]
-               });
-</script>
-<div>
-<small> <b>]] print(i18n("categories_page.note")) print[[</b>:<ul><li>]] print(i18n("categories_page.note_percentages"))
-if ntop.getCache("ntopng.prefs.host_categories_rrd_creation") ~= "1" then
-  print("<li>"..i18n("categories_page.note_historical_per_category_traffic",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua"}))
-  print(" "..i18n("categories_page.note_rrd_samples").."</li>")
-else
-  print("<li>".. i18n("categories_page.note_category_label").."</li>")
-end
-print [[
-</ul>
-</small>
-</div>
-
-</td></tr>
-</table>
-]]
 elseif(page == "snmp" and ntop.isPro()) then
    local sys_object_id = true
    local community = get_snmp_community(host_ip)
@@ -1686,127 +1584,6 @@ print [[
 </script>
     <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/googleMapJson.js" ></script>
 ]]
-
-elseif(page == "jaccard") then
--- NOTE: code temporarily disabled
-
-print [[
-<div id="prg" class="container">
-    <div class="progress progress-striped active">
-	 <div class="bar" style="width: 100%;"></div>
-    </div>
-</div>
-]]
-
-jaccard = interface.similarHostActivity(host_info["host"],host_info["vlan"])
-
-if(jaccard ~= nil) then
-print [[
-<script type="text/javascript">
-  var $bar = $('#prg');
-
-  $bar.hide();
-  $bar.remove();
-</script>
-]]
-
-vals = {}
-for k,v in pairs(jaccard) do
-   vals[v] = k
-end
-
-max_hosts = 10
-
-n = 0
-
-if(host["name"] == nil) then host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"])) end
-
-for v,k in pairsByKeys(vals, rev) do
-
-   if(v > 0) then
-      if(n == 0) then
-	 print("<table class=\"table table-bordered table-striped\">\n")
-	 print("<tr><th>Local Hosts Similar to ".. hostinfo2hostkey(host) .."</th><th>Jaccard Coefficient</th><th>Activity Map</th>\n")
-      end
-
-      correlated_host = interface.getHostInfo(k)
-      if(correlated_host ~= nil) then
-
-	 if(correlated_host["name"] == nil) then correlated_host["name"] = getResolvedAddress(hostkey2hostinfo(correlated_host["ip"])) end
-
-         -- print the host row together with the Jaccard coefficient
-	 print("<tr>")
-   -- print("<th align=left><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k.."'>"..correlated_host["name"].."</a></th>")
-	 print("<th align=left><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(correlated_host).."'>"..hostinfo2hostkey(correlated_host).."</a></th>")
-	 print("<th>"..round(v,2).."</th>");
-
-	 -- print the activity map row
-	 print("<td>");
-	 print("<span id=\"sentHeatmap"..n.."\"></span>");
-	 print [[
-	 <script type="text/javascript">
-	 	 var sent_calendar = new CalHeatMap();
-		 sent_calendar.init({
-	 ]]
-	print("itemSelector: \"#sentHeatmap"..n.."\",data: \"");
-  print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(correlated_host)..'",\n')
-  -- print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?host="..k..'",\n')
-
-	timezone = get_timezone()
-
-	now = ((os.time()-5*3600)*1000)
-	today = os.time()
-	today = today - (today % 86400) - 2*3600
-	today = today * 1000
-
-	print("/* "..timezone.." */\n")
-	print("\t\tstart:   new Date("..now.."),\n") -- now-3h
-	print("\t\tminDate: new Date("..today.."),\n")
-	print("\t\tmaxDate: new Date("..(os.time()*1000).."),\n")
-	print [[
-	domain : "hour",
-	range : 6,
-	nextSelector: "#sent-heatmap-next-selector",
-	previousSelector: "#sent-heatmap-prev-selector",
-	    });
-
-	    $(document).ready(function(){
-			    $('#heatmap-refresh').click(function(){
-				    sent_calendar.update(]]
-					    print("\""..ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifid="..ifId.."&"..hostinfo2url(correlated_host)..'\");\n')
-				    print [[
-				    });
-			    });
-	    </script>
-	    </td>
-	 ]]
-
-	 print("</td></tr>")
-	 n = n +1
-
-	 if(n >= max_hosts) then
-	    break
-	 end
-      end
-   end
-end
-
-if(n > 0) then
-   print("</table>\n")
-else
-   print("There is no host correlated to ".. hostinfo2hostkey(host).."<p>\n")
-end
-
-print [[
-<b>Note</b>:
-<ul>
-	 <li>Jaccard Similarity considers only activity map as shown in the <A HREF="]]
-print (ntop.getHttpPrefix())
-print [[/lua/host_details.lua?ifid=]] print(ifId.."&"..hostinfo2url(host_info)) print [[">host overview</A>.
-<li>Two hosts are similar according to the Jaccard coefficient when their activity tends to overlap. In particular when their activity map is very similar. The <A HREF="http://en.wikipedia.org/wiki/Jaccard_index">Jaccard similarity coefficient</A> is a number between +1 and 0.
-</ul>
-]]
-end
 
 elseif(page == "contacts") then
 
@@ -1902,32 +1679,59 @@ elseif(page == "alerts") then
 
    drawAlertSourceSettings("host", hostkey,
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
-      "host_details.lua", {ifid=ifId, host=host_ip},
-      host_name, "host")
+      "host_details.lua", {ifid=ifId, host=hostkey},
+      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan})
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then
+   local dump_status = host["dump_host_traffic"]
+   local trigger_alerts = true
 
    if(not isAdministrator()) then
       return
    end
 
-   if(host["localhost"] == true and is_packetdump_enabled) then
-      local dump_status = host["dump_host_traffic"]
-
-      if(_POST["dump_traffic"] ~= nil) then
-         if(_POST["dump_traffic"] == "true") then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if(host["localhost"] == true and is_packetdump_enabled) then
+         if(_POST["dump_traffic"] == "1") then
             dump_status = true
          else
             dump_status = false
          end
-         interface.select(ifname) -- if we submitted a form, nothing is select()ed
          interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
       end
 
+      if host["localhost"] == true then
+         if _POST["trigger_alerts"] ~= "1" then
+            trigger_alerts = false
+         else
+            trigger_alerts = true
+         end
+
+         ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
+
+         interface.select(ifname)
+         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      end
+
+      if(ifstats.inline and (host.localhost or host.systemhost)) then
+         local drop_host_traffic = _POST["drop_host_traffic"]
+         local host_key = hostinfo2hostkey(host_info)
+
+         if(drop_host_traffic ~= "1") then
+            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
+         else
+            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, "true")
+         end
+
+         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+      end
+   end
+
+   if(host["localhost"] == true and is_packetdump_enabled) then
       if(dump_status) then
          dump_traffic_checked = 'checked="checked"'
          dump_traffic_value = "false" -- Opposite
@@ -1937,49 +1741,35 @@ elseif (page == "config") then
       end
    end
 
-   local trigger_alerts = true
-   local trigger_alerts_checked = "checked"
+   local trigger_alerts_checked
 
    if host["localhost"] == true then
-      if (_POST["trigger_alerts"] ~= nil) then
-         if _POST["trigger_alerts"] ~= "true" then
-            trigger_alerts = false
-            trigger_alerts_checked = ""
-         end
+      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
 
-         ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
-
-         interface.select(ifname)
-         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      if trigger_alerts == "false" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
       else
-         trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
-         if trigger_alerts == "false" then
-            trigger_alerts = false
-            trigger_alerts_checked = ""
-         end
+         trigger_alerts = true
+         trigger_alerts_checked = "checked"
       end
    end
 
-   if(_POST["custom_icon"] ~= nil) then
-      setHostIcon(labelKey, _POST["custom_icon"])
-   end
-
    print[[
+   <form id="host_config" class="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">
       <tr>
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>
-            <form class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
+               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
    if(host["label"] ~= nil) then print(host["label"]) end
    print[["></input> ]]
-   pickIcon(labelKey, host["mac"])
+
    print [[
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-            </form>
          </td>
       </tr>]]
+
    if not ifstats.isView then
       printPoolChangeDropdown(host_pool_id)
    end
@@ -1988,53 +1778,47 @@ elseif (page == "config") then
       print [[<tr>
          <th>]] print(i18n("host_config.trigger_host_alerts")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
                   ]] print(i18n("host_config.trigger_alerts_for_host",{host=host["name"]})) print[[
                </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
          </td>
       </tr>]]
    end
 
+   if(host["localhost"] == true and is_packetdump_enabled) then
       print [[<tr>
          <th>]] print(i18n("host_config.dump_host_traffic")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
-               <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="dump_traffic" value="1" ]] print(dump_traffic_checked) print[[>
                   <i class="fa fa-hdd-o fa-lg"></i>
                   <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">]] print(i18n("host_config.dump_traffic")) print[[</a>
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
+               </input>]]
+
+      local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
+      local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
+      if dump_status_tap ~= "true" and dump_status_disk ~= "true" then
+	 print[[<small>]]
+	 print(i18n("host_config.dump_host_traffic_description",
+		    {to_disk = i18n("packetdump_page.packet_dump_to_disk"),
+		     to_tap = i18n("packetdump_page.dump_traffic_to_tap"),
+		     url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=packetdump"}))
+	 print[[</small>]]
+      end
+
+      print[[
          </td>
       </tr>]]
+   end
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy
-      drop_host_traffic = _POST["drop_host_traffic"]
-      host_key = hostinfo2hostkey(host_info)
-      if(drop_host_traffic ~= nil) then
-         if(drop_host_traffic == "false") then
-            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         else
-            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
-         end
-
-         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
-      else
-         drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         if(drop_host_traffic == nil) then drop_host_traffic = "false" end
-      end
-
       print("<tr><th>" .. i18n("host_config.host_traffic_policy") .. "</th><td>")
 
       if(host["localhost"] == true) then
+         local host_key = hostinfo2hostkey(host_info)
          drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+
          if(drop_traffic == "true") then
             drop_traffic_checked = 'checked="checked"'
             drop_traffic_value = "false" -- Opposite
@@ -2043,10 +1827,7 @@ elseif (page == "config") then
             drop_traffic_value = "true" -- Opposite
          end
 
-         print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
-         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> '..i18n("host_config.drop_all_host_traffic")..'</input>')
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('</form>')
+         print('<input type="checkbox" name="drop_host_traffic" value="1" '..drop_traffic_checked..'"> '..i18n("host_config.drop_all_host_traffic")..'</input> &nbsp;')
       end
 
       print[[<a class="btn btn-default btn-sm" href="]]
@@ -2061,7 +1842,12 @@ elseif (page == "config") then
    end
 
    print[[
-   </table>]]
+   </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+   </form>
+   <script>
+      aysHandleForm("#host_config");
+   </script>]]
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then
@@ -2076,7 +1862,8 @@ if(host_vlan and (host_vlan > 0)) then
    host_url = host_url.."&vlan="..host_vlan
    host_key = host_key.."@"..host_vlan
 end
-drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+
+drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"])
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 elseif(page == "sprobe") then
@@ -2356,6 +2143,10 @@ if (host ~= nil) then
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
 
+   if isBridgeInterface(ifstats) then
+      print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
+   end
+
    if(host["dns"] ~= nil) then
       print("var last_dns_sent_num_queries = " .. host["dns"]["sent"]["num_queries"] .. ";\n")
       print("var last_dns_sent_num_replies_ok = " .. host["dns"]["sent"]["num_replies_ok"] .. ";\n")
@@ -2412,6 +2203,25 @@ if (host ~= nil) then
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
    		  ]]
+
+   if isBridgeInterface(ifstats) then
+print [[
+                        if(host["flows.dropped"] > 0) {
+                          if(host["flows.dropped"] == last_dropped_flows) {
+                            $('#trend_bridge_dropped_flows').html("<i class=\"fa fa-minus\"></i>");
+                          } else {
+                            $('#trend_bridge_dropped_flows').html("<i class=\"fa fa-arrow-up\"></i>");
+                          }
+
+                          $('#bridge_dropped_flows').html(addCommas(host["flows.dropped"]));
+
+                          $('#bridge_dropped_flows_tr').show();
+                          last_dropped_flows = host["flows.dropped"];
+                        } else {
+                          $('#bridge_dropped_flows_tr').hide();
+                        }
+]]
+   end
 
    if(host["dns"] ~= nil) then
    print [[

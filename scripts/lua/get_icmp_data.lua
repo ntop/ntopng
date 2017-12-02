@@ -143,7 +143,7 @@ if(stats ~= nil) then
 
 	    end
 	    
-	    print("</td><td align=right>".. formatPackets(value.sent+value.rcvd) .."</td></tr>\n")
+	    print("</td><td align=right>".. (value.sent+value.rcvd) .."</td></tr>\n")
 	 end
       end
    end

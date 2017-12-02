@@ -24,13 +24,30 @@
 /* *************************************** */
 
 NetworkStats::NetworkStats() {
-  ingress = egress = inner = 0;
 }
 
 /* *************************************** */
 
 void NetworkStats::lua(lua_State* vm) {
-  lua_push_int_table_entry(vm, "ingress", ingress);
-  lua_push_int_table_entry(vm, "egress", egress);
-  lua_push_int_table_entry(vm, "inner", inner);
+  lua_push_int_table_entry(vm, "ingress", ingress.getNumBytes());
+  lua_push_int_table_entry(vm, "egress", egress.getNumBytes());
+  lua_push_int_table_entry(vm, "inner", inner.getNumBytes());
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "ingress", ingress_broadcast.getNumBytes());
+  lua_push_int_table_entry(vm, "egress", egress_broadcast.getNumBytes());
+  lua_push_int_table_entry(vm, "inner", inner_broadcast.getNumBytes());
+  lua_pushstring(vm, "broadcast");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);  
+}
+
+/* *************************************** */
+
+bool NetworkStats::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
+  json_object_object_add(my_object, "ingress", json_object_new_int64(ingress.getNumBytes()));
+  json_object_object_add(my_object, "egress", json_object_new_int64(egress.getNumBytes()));
+  json_object_object_add(my_object, "inner", json_object_new_int64(inner.getNumBytes()));
+
+  return true;
 }

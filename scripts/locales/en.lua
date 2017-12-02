@@ -26,6 +26,8 @@ local  en = {
    max_rate = "Max Rate",
    duration = "Duration",
    traffic = "Traffic",
+   packets = "Packets",
+   broadcast_traffic = "Broadcast Traffic",
    save = "Save",
    close = "Close",
    remove = "Remove",
@@ -49,6 +51,7 @@ local  en = {
    interface_ifname = "Interface %{ifname}",
    ip_address = "IP Address",
    info = "Info",
+   os = "Operating System",
    ipv4 = "IPv4",
    ipv6 = "IPv6",
    application = "Application",
@@ -80,6 +83,7 @@ local  en = {
    mac_address = "MAC Address",
    as_number = "AS number",
    asn = "ASN",
+   as = "AS",
    peers = "Peers",
    activities = "Activities",
    dns = "DNS",
@@ -98,6 +102,14 @@ local  en = {
    l4_protocols = "L4 Protocols",
    throughput = "Throughput",
    seen_since = "Seen Since",
+   language = "Language",
+   remote_networks = "Remote Networks",
+
+   locales = {
+      en = "English",
+      it = "Italian",
+      jp = "Japanese",
+   },
 
    graphs = {
       arp_requests = "ARP Requests",
@@ -120,7 +132,13 @@ local  en = {
       top_senders = "Top Senders",
       top_receivers = "Top Receivers",
       top_profiles = "Top Profiles",
-      all_protocols = "All Protocols",
+      all_ndpi_protocols  = "All Applications",
+      all_ndpi_categories = "All Categories",
+      note_click_to_zoom = "Left-click on the chart to zoom in, right-click to zoom out.",
+      note_protocols_shown = "Protocols not seen in the selected timeframe are not listed in the dropdown.",
+      note_ases_traffic = "Traffic shown is sent and received by the autonomous system.",
+      note_ases_sent = "Traffic sent is the traffic sent by the autonomous system.",
+      note_ases_rcvd = "Traffic received the traffic received by the autonomous system.",
    },
 
    flows_page = {
@@ -136,8 +154,10 @@ local  en = {
       hosts = "Hosts",
       direction = "Direction",
       all_flows = "All Flows",
-      one_way_multicast = "One-way Multicast/Broadcast Traffic",
-      one_way_non_multicast = "One-way Non-Multicast/Broadcast Traffic",
+      one_way_multicast = "One-Way Multicast/Broadcast",
+      one_way_non_multicast = "One-Way Non-Multicast/Non-Broadcast",
+      multicast = "Multicast/Broadcast",
+      non_multicast = "Non-Multicast/Non-Broadcast",
       normal = "Normal",
       alerted = "Alerted",
       blocked = "Blocked",
@@ -146,6 +166,17 @@ local  en = {
       all_ip_versions = "All Versions",
       ipv4_only = "IPv4 Only",
       ipv6_only = "IPv6 Only",
+      device_ip = "Flow Exporter",
+      all_devices = "All Flow Exporters",
+      inIfIdx = "Input Interface",
+      all_inIfIdx = "All Input Interfaces",
+      outIfIdx = "Output Interface",
+      all_outIfIdx = "All Output Interfaces",
+      vlan = "VLAN",
+      all_vlan_ids = "All VLANs",
+      client_as = "Client AS",
+      server_as = "Server AS",
+      all_ases = "All ASes",
       actual_throughput = "Actual Thpt",
       total_bytes = "Total Bytes",
       applications = "Applications",
@@ -207,6 +238,15 @@ local  en = {
       receivers = "Receivers",
    },
 
+   topk_heuristic = {
+      precision = {
+	 disabled = "Disabled",
+	 more_accurate = "More Accurate",
+	 less_accurate = "Less Accurate",
+	 aggressive = "Aggressive",
+      },
+   },
+
    shaping = {
       protocols = "Protocols",
       manage_policies = "Manage Policies",
@@ -242,9 +282,12 @@ local  en = {
       note_drop_core = "Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.",
       note_default_pool_config = "Policies and quotas only apply to user-defined host pools. Select a different pool or create a new one <a href='%{url}'>here</a>.",
       note_quota_unlimited = "Set Traffic and Time Quota to 0 for unlimited traffic.",
-      note_families = "Protocol Families can be used to set the same policy on multiple protocols at once.<br>Use the dropdown below to obtain the list of protocols contained into a Protocol Family:",
+      note_target_type = "You can modify what to show into the Target column via the Policy Target Type field in the <a href=\"%{url}\">Traffic Briding preferences</a> expert view.",
+      note_traffic_categories = "You can configure the Traffic Categories from the <a href=\"%{url}\">applications page</a>.",
       see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas.",
       no_quota_traffic = "No quota related traffic so far",
+      delete_all_policies = "Delete all Policies",
+      confirm_delete_all_policies = "Do you really want ot delete all the \"%{pool_name}\" pool policies",
    },
 
    alert_messages = {
@@ -396,7 +439,7 @@ local  en = {
       request_failed = "Request failed",
       ok_request_sent = "OK, request sent",
       all = "all",
-      unsave = "Unsave",
+      unsave = "Remove",
       application_flows = "Application flows",
       talkers_with_this_host = "Talkers with this host",
       host_name = "Host Name",
@@ -491,6 +534,7 @@ local  en = {
       member_exists = "member \"%{member_name}\" not added. It is already assigned to pool \"%{member_pool}\".",
       children_safe = "Safe Search",
       enforce_quotas_per_pool_member = "Per-Member Quotas",
+      enforce_shapers_per_pool_member = "Per-Member Shapers",
       alias_or_manufacturer = "Alias / Manufacturer",
       manufacturer_filter = "Manufacturer: %{manufacturer}",
       member_filter = "Member: %{member}",
@@ -504,6 +548,17 @@ local  en = {
       members_limit_reached = "members limit reached",
       cannot_delete_cp = "A pool cannot be deleted if there is any Captive Portal user associated",
       per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
+      per_member_shapers = "When the per-member shapers option is set, each host will its own shapers. When unset, all the hosts belonging to the same pool will share the same shapers",
+   },
+
+   discover = {
+      network_discovery = "Network Discovery",
+      network_discovery_datetime = "Last Network Discovery",
+      err_unable_to_arp_discovery = "Unable to start ARP network discovery",
+      device = "Device",
+      network_discovery_not_enabled = "A network discovery is in progress. The page will refresh periodically.",
+      error_unable_to_decode_json = "Unable to decode cache JSON discovery data.",
+      error_no_discovery_cached = "No discovery data has been cached yet.",
    },
 
    snmp = {
@@ -556,25 +611,30 @@ local  en = {
       user_authentication = "User Authentication",
       network_interfaces = "Network Interfaces",
       cache_settings = "Cache Settings",
-      data_retention = "Data Retention",
+      timeseries = "Timeseries",
       mysql = "MySQL",
       external_alerts = "External Alerts Report",
       protocols = "Protocols",
       flow_database_dump = "Flow Database Dump",
       snmp = "SNMP",
       nbox_integration = "nBox Integration",
+      network_discovery = "Network Discovery",
       misc = "Misc",
       traffic_bridging = "Traffic Bridging",
       dynamic_network_interfaces = "Dynamic Network Interfaces",
-      dynamic_iface_vlan_creation_title = "VLAN Disaggregation",
-      dynamic_iface_vlan_creation_description = "Toggle the automatic creation of virtual interfaces based on VLAN tags.",
-      dynamic_iface_vlan_creation_note_1 = "Value changes will not be effective for existing interfaces.",
-      dynamic_iface_vlan_creation_note_2 = "This setting is valid only for packet-based interfaces (no flow collection).",
-      dynamic_flow_collection_title = "Dynamic Flow Collection Interfaces",
-      dynamic_flow_collection_description = "When ntopng is used in flow collection mode (e.g. -i tcp://127.0.0.1:1234c), flows can be collected on dynamic sub-interfaces based on the specified criteria",
-      dynamic_flow_collection_note_1 = "Value changes will not be effective for existing interfaces.",
-      dynamic_flow_collection_note_2 = "This setting is valid only for flow-based interfaces (no packet collection).",
-      dynamic_flow_collection_note_3 = "When using the Ingress Flow Interface option on non-sflow devices, %%INPUT_SNMP must appear into the nprobe template.",
+      zmq_interfaces = "ZMQ Interfaces",
+      dynamic_interfaces_creation_title = "Disaggregation Criterion",
+      dynamic_interfaces_creation_description = "ntopng can use a criterion to disaggregate incoming traffic. "..
+        "When a disaggregation criterion is selected, ntopng will use the criterion value to divert incoming traffic to dynamically-created interfaces. "..
+        "For example, when the VLAN Id criterion is selected, a dynamic interface will be created for each VLAN Id observed, "..
+	"and the incoming traffic will be diverted to one dynamic interface depending the VLAN Id value. ",
+      dynamic_interfaces_creation_note_0 = "VLAN Id disaggregation is supported both for physical interfaces as well as for flows received over ZMQ. The other disaggregation criteria are only supported for ZMQ flows and will be ineffective for physical interfaces.",
+      dynamic_interfaces_creation_note_1 = "Criterion changes will not affect existing interfaces.",
+      dynamic_interfaces_creation_note_2 = "When using the Ingress Interface criterion on non-sflow devices, %%INPUT_SNMP must appear into the nprobe template.",
+      toggle_src_with_post_nat_src_title = "Use Post-Nat Source IPv4 Addresses and Ports",
+      toggle_src_with_post_nat_src_description = "Replace IPv4 source addresses (%%IPV4_SRC_ADDR) and ports (%%L4_SRC_PORT) with their post-nat values (%%POST_NAT_SRC_IPV4_ADDR and %%POST_NAPT_SRC_TRANSPORT_PORT).",
+      toggle_dst_with_post_nat_dst_title = "Use Post-Nat Destination IPv4 Addresses and Ports",
+      toggle_dst_with_post_nat_dst_description = "Replace IPv4 destination addresses (%%IPV4_DST_ADDR) and ports (%%L4_DST_PORT) with their post-nat values (%%POST_NAT_DST_IPV4_ADDR and %%POST_NAPT_DST_TRANSPORT_PORT).",
       idle_timeout_settings = "Idle Timeout Settings",
       local_host_max_idle_title = "Local Host Idle Timeout",
       local_host_max_idle_description = "Inactivity time after which a local host is considered idle (sec). "..
@@ -591,14 +651,15 @@ local  en = {
             "Larger values are less computationally intensive and tend to average out minor variations. "..
             "Smaller values are more computationally intensive and tend to highlight minor variations. "..
             "Values in the order of few seconds are safe. " ..
-            "Default: 5 seconds.",
-      timeseries = "Timeseries",
-      toggle_local_title = "Traffic",
-      toggle_local_description = "Toggle the creation of bytes and packets timeseries for local hosts and defined local networks.<br>"..
-            "Turn it off to save storage space.",
-      toggle_local_ndpi_title = "Layer-7 Application",
-      toggle_local_ndpi_description = "Toggle the creation of application protocols timeseries for local hosts and defined local networks.<br>"..
-            "Turn it off to save storage space.",
+	 "Default: 5 seconds.",
+      interfaces_timeseries = "Interfaces Timeseries",
+      local_hosts_timeseries = "Local Hosts Timeseries",
+      l2_devices_timeseries = "Devices Timeseries",
+      other_timeseries = "Other Timeseries",
+      toggle_traffic_rrd_creation_title = "Traffic",
+      toggle_traffic_rrd_creation_description = "Toggle the creation of bytes and packets timeseries.",
+      toggle_ndpi_timeseries_creation_title = "Layer-7 Applications",
+      toggle_ndpi_timeseries_creation_description = "Toggle the creation of Layer-7 application timeseries. Creating a timeseries per protocol requires more disk space and extra I/O and, in general, it is not needed.",
       toggle_flow_rrds_title = "Flow Devices",
       toggle_flow_rrds_description = "Toggle the creation of bytes timeseries for each port of the remote device as received through ZMQ (e.g. sFlow/NetFlow/SNMP).<br>"..
             "For non sFlow devices, %%INPUT_SNMP and %%OUTPUT_SNMP must appear into the nprobe template.",
@@ -612,19 +673,13 @@ local  en = {
       toggle_tcp_flags_rrds_description = "Toggle the creation of TCP flags SYN, SYN+ACK, FIN+ACK and RST timeseries for network interfaces.",
       toggle_tcp_retr_ooo_lost_rrds_title = "TCP Out of Order, Lost and Retransmitted Segments",
       toggle_tcp_retr_ooo_lost_rrds_description = "Toggle the creation of timeseries for out-of-order, lost and retransmitted TCP segments. Timeseries will be created for network interfaces, autonomous systems, local networks and vlans.",
-      toggle_local_categorization_title = "Categories",
-      toggle_local_categorization_description = "Toggle the creation of categories timeseries for local hosts and defined local networks.<br>"..
-            "Enabling their creation allows you "..
-            "to keep persistent traffic category statistics (e.g. social networks, news) at the cost of using more disk space.<br>"..
-            "Creation is only possible if the ntopng instance has been launched with option ",
       local_hosts_cache_settings = "Local Hosts Cache Settings",
       toggle_local_host_cache_enabled_title = "Idle Local Hosts Cache",
       toggle_local_host_cache_enabled_description = "Toggle the creation of cache entries for idle local hosts. "..
             "Cached local hosts counters are restored automatically to their previous values "..
             " upon detection of additional host traffic.",
       toggle_active_local_host_cache_enabled_title = "Active Local Hosts Cache",
-      toggle_active_local_host_cache_enabled_description = "Toggle the creation of cache entries for idle local hosts. "..
-            "Toggle the creation of cache entries for active local hosts. "..
+      toggle_active_local_host_cache_enabled_description = "Toggle the creation of cache entries for active local hosts. "..
             "Caching active local hosts periodically can be useful to protect host counters against "..
             "failures (e.g., power losses). This is particularly important for local hosts that seldomly go idle "..
             "as it guarantees that their counters will be cached after the specified time interval.",
@@ -635,6 +690,8 @@ local  en = {
       databases = "Databases",
       minute_top_talkers_retention_title = "Top Talkers Storage",
       minute_top_talkers_retention_description = "Number of days to keep one minute resolution top talkers statistics. Default: 365 days.",
+      rrd_files_retention_title = "Timeseries Retention",
+      rrd_files_retention_description = "The maximum number of days non-updated timeseries are preserved before being deleted.",
       mysql_retention_title = "MySQL storage",
       mysql_retention_description = "Duration in days of data retention for the MySQL database. Default: 7 days.<br>MySQL is used to store exported flows data.<br>"..
             "Flows dump is only possible if the ntopng instance has been launched with option ",
@@ -650,6 +707,8 @@ local  en = {
       toggle_alert_probing_description = "Enable alerts generated when probing attempts are detected.",
       toggle_ssl_alerts_title = "Enable SSL Alerts",
       toggle_ssl_alerts_description = "Enable alerts generated when the SSL certificate provided by a server does not match the certificate Common Name.",
+      toggle_dns_alerts_title = "Enable DNS Alerts",
+      toggle_dns_alerts_description = "Enable alerts generated when the DNS query is invalid",
       toggle_malware_probing_title = "Enable Hosts Malware Blacklists",
       toggle_malware_probing_description = "Enable alerts generated by traffic sent/received by "..
             "<a href=\"%{url}\">malware-marked hosts</a>. Overnight new blacklist rules are refreshed.",
@@ -713,6 +772,12 @@ local  en = {
       nbox_user_description = "User that has privileges to access the nBox. Default: nbox",
       nbox_password_title = "nBox Password",
       nbox_password_description = "Password associated to the nBox user. Default: nbox",
+
+      toggle_network_discovery_title = "Active Network Discovery",
+      toggle_network_discovery_description = "Toggle the periodic discovery of network devices using multiple techniques that include ARP scan, MDNS and SSDP.",
+      network_discovery_interval_title = "Active Network Discovery Interval",
+      network_discovery_interval_description = "Interval between consecutive discoveries of networks. Default: 15 min.",
+
       web_user_interface = "Web User Interface",
       toggle_autologout_title = "Auto Logout",
       toggle_autologout_description = "Toggle the automatic logout of web interface users with expired sessions.",
@@ -721,9 +786,13 @@ local  en = {
             "and now requires a browser API key to be submitted for every request. Detailed information on how to obtain an API key "..
             "<a href=\"%{url}\">can be found here</a>. "..
             "Once obtained, the API key can be placed in this field.",
-      report_units = "Report Units",
+      report = "Report",
       toggle_thpt_content_title = "Throughput Unit",
       toggle_thpt_content_description = "Select the throughput unit to be displayed in traffic reports.",
+      max_ui_strlen_title = "Maximum Displayed String Length",
+      max_ui_strlen_description = "Shorten strings longer than the specified maximum number of characters.",
+      topk_heuristic_precision_title = "Top-K Heuristic",
+      topk_heuristic_precision_description = "Use an heuristic when aggregating historical top hosts, countries, etc, to build traffic reports. Useful when building reports over long-periods.",
       traffic_shaping = "Traffic Shaping",
       toggle_shaping_directions_title = "Split Shaping Directions",
       toggle_shaping_directions_description = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",
@@ -746,10 +815,14 @@ local  en = {
       toggle_ldap_anonymous_bind_description = "Enable anonymous binding.",
       slack_notification_severity_preference_title = "Notification Preference Based On Severity",
       slack_notification_severity_preference_description = "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (every kind of alerts will be notified).",
-      ingress_flow_interface = "Ingress Flow Interface",
+      ingress_flow_interface = "Ingress Interface",
       ingress_vrf_id = "Ingress VRF Id",
-      probe_ip_address = "Probe IP Address",
+      probe_ip_address = "Probe IP",
+      vlan = "VLAN Id",
       none = "None",
+      per_protocol = "Per Protocol",
+      per_category = "Per Category",
+      both = "Both",
       errors = "Errors",
       errors_and_warnings = "Errors and Warnings",
       all = "All",
@@ -760,7 +833,7 @@ local  en = {
       samaccount = "sAMAccount",
       host_mask = "Mask Host IP Addresses",
       toggle_host_mask_title = "Mask Host IP Addresses",
-      toggle_host_mask_description = "For privacy reasons it might be necessary to mask hosts IP addresses. For instance if you are an ISP you are not supposed to know what local addresses are accessing rmote hosts.",
+      toggle_host_mask_description = "For privacy reasons it might be necessary to mask hosts IP addresses. For instance if you are an ISP you are not supposed to know which local addresses are accessing remote hosts.",
       no_host_mask = "Don't Mask Hosts",
       local_host_mask = "Mask Local Hosts",
       remote_host_mask = "Mask Remote Hosts",
@@ -784,6 +857,8 @@ local  en = {
       transparent_bridge = "Transparent Bridge",
       network_mode_router = "<b>Router:</b> you need to <u>disable the DHCP on your router</u> and let this box dynamically assign IP addresses (DHCP) to local hosts and become their gateway. This box will use your router as gateway to the Internet, and thus it must have a static IP address configured in order to reach your router.",
       network_mode_bridge = "<b>Transparent Bridge</b>: your hosts will be connected to this box either using the embedded access point or through the optional ethernet interface and won't notice any change in IP address configuration.",
+      policy_target_type = "Policy Target Type",
+      policy_target_type_description = "Specify if you wish to set the policies on single protocols or on traffic categories",
    },
 
    entity_thresholds = {
@@ -798,13 +873,16 @@ local  en = {
    },
 
    export_data = {
-      export_data = "Export Data",
-      host = "Host",
+      export_data = "Export Host Data",
+      hosts = "Hosts",
+      all_hosts = "All",
+      local_hosts = "Local",
+      remote_hosts = "Remote",
+      single = "Single",
       ip_or_mac_address = "IP or MAC Address",
-      note_host = "NOTE: If the field is empty all hosts will be exported",
-      note_vlan = "NOTE: If the field is empty vlan is set to 0.",
       export_json_data = "Export JSON Data",
-      reset_form = "Reset Form",
+      note_maximum_number = "The maximum number of downloadable hosts is 32,768.",
+      note_active_hosts = "Only active hosts are returned.",
    },
 
    if_stats_overview = {
@@ -821,8 +899,13 @@ local  en = {
       interface_ip = "Interface IP",
       probe_ip = "Probe IP",
       public_probe_ip = "Public Probe IP",
+      probe_timeout_lifetime = "Lifetime Timeout",
+      probe_timeout_idle = "Idle Timeout",
+      probe_zmq_num_flow_exports = "Exported Flows",
+      probe_zmq_num_endpoints = "Active Probe ZMQ Endpoints",
       family = "Family",
       in_path_interface = "In-Path Interface (Bump in the Wire)",
+      has_traffic_directions = "with RX/TX Directions",
       packet_dumper = "Packet Dumper",
       dumped_packets = "Dumped Packets",
       dumped_files = "Dumped Files",
@@ -836,8 +919,8 @@ local  en = {
       received_traffic = "Received Traffic",
       dropped_packets = "Dropped Packets",
       note = "NOTE",
-      note_drop_ifstats_dynamic_vlan = "The main interface reports drops for all VLAN sub-interfaces",
-      note_drop_ifstats_not_dynamic_vlan = "The above drops are the sum of drops for all VLAN sub-interfaces",
+      note_drops_sflow = "Drops are reported only for sFlow as NetFlow does not report them.<br>In <A HREF=https://www.ietf.org/rfc/rfc3176.txt>sFlow</A> drops are computed according to drops value part of the flow sample.",
+      note_drop_ifstats_dynamic = "Drops are available in the main interface",
       flows_export_statistics = "Flows Export Statistics",
       exported_flows = "Exported Flows",
       dropped_flows = "Dropped Flows",
@@ -886,18 +969,17 @@ local  en = {
    },
 
    ndpi_page = {
-      cumulative_protocol_stats = "Cumulative Protocol Stats",
       live_flows_count = "Live Flows Count",
       note = "NOTE",
       note_live_flows_chart = "This chart depicts only TCP connections.",
       application_protocol = "Application Protocol",
+      application_protocol_category = "Application Protocol Category",
       total_since_startup = "Total (Since Startup)",
-      protocol_overview = "Protocol Overview",
+      overview = "%{what} Overview",
       sent_only = "Sent only",
       received_only = "Received only",
       note = "NOTE",
-      note_historical_per_protocol_traffic = "Historical per-protocol traffic data can be enabled via ntopng <a href='%{url}'>%{flask_icon} Preferences</a>.",
-      note_rrd_samples = "When enabled, RRDs with 5-minute samples will be created for each protocol detected and historical data will become accessible by clicking on each protocol.",
+      note_historical_per_protocol_traffic = "Historical %{what} traffic data can be enabled via ntopng <a href='%{url}'>%{flask_icon} Preferences</a>.",
       note_possible_probing_alert = "An icon like %{icon} indicates a possible probing (or application server down) alert as the host has received traffic for a specific application protocol without sending back any data. You can use <A HREF='%{url}'>historical reports</A> to drill-down this issue.",
       note_protocol_usage_time = "Protocol usage time is computed on discrete slot intervals.",
       unable_to_find_host = "Unable to find %{host_ip} (data expired ?)",
@@ -918,21 +1000,18 @@ local  en = {
    },
 
    packetdump_page = {
-      packet_dump = "Packet Dump",
-      dump_all_traffic = "Dump All Traffic",
+      packet_dump = "Packets Eligible for Dump",
+      dump_all_traffic = "All Packets",
+      dump_unknown_traffic = "Unknown Layer-7 Flows Packets",
       packet_dump_to_disk = "Packet Dump To Disk",
       dump_traffic_to_disk = "Dump Traffic To Disk",
-      dump_unknown_traffic_to_disk = "Dump Unknown Traffic To Disk",
       dump_traffic_to_disk_on_security_alert = "Dump Traffic To Disk On Security Alert",
       packet_dump_to_tap = "Packet Dump To Tap",
-      dump_traffic_to_tap = "Dump Traffic To Tap",
+      dump_traffic_to_tap = "Packet Dump To Tap",
       num_dumped_packets = "%{num_pkts} packets dumped",
       packet_dump_to_tap_disabled_message = "Disabled. Please restart ntopng with --enable-taps",
       sampling_rate = "Sampling Rate",
       note = "NOTE",
-      note_sampling_rate = "Sampling rate is applied only when dumping packets caused by a security alert<br>"..
-            "(e.g. a volumetric DDoS attack) and not to those hosts/flows that have been marked explicitly for dump.",
-      sampling_rate_disabled_message = "Disabled. Enable packet dump on security alert.",
       dump_to_disk_parameters = "Dump To Disk Parameters",
       pcap_dump_directory = "Pcap Dump Directory",
       max_packets_per_file = "Max Packets per File",
@@ -940,9 +1019,9 @@ local  en = {
       max_duration_file = "Max Duration of File",
       max_duration_file_description = "Maximum pcap file duration before creating a new file.",
       note_max_duration_file = "a dump file is closed when it reaches first the maximum size or duration specified.",
-      max_size_dump_files = "Max Size of Dump Files",
-      max_size_dump_files_description = "Maximum size of created pcap files.",
-      note_max_size_dump_files = "total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.",
+      max_dump_files = "Max Total Size of Dump Files",
+      max_size_dump_files_description = "Maximum total size of created pcap files, computed as the sum of the size of every pcap file.",
+      note_max_size_dump_files = "Maximum total size is checked daily. Older dump files are deleted untile the current total size is below the configured threshold.",
    },
 
    activities_page = {
@@ -989,16 +1068,9 @@ local  en = {
    },
 
    categories_page = {
-      traffic_categories = "Traffic Categories",
-      category_id = "Category Id",
       traffic_category = "Traffic Category",
-      traffic_volume = "Traffic Volume",
-      traffic_percentage = "Traffic %%",
-      note = "NOTE",
-      note_percentages = "Percentages are related only to classified traffic.",
-      note_historical_per_category_traffic = "Historical per-category traffic data can be enabled via ntopng <a href='%{url}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
-      note_rrd_samples = "When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category.",
-      note_category_label = "Category labels can be clicked to browse historical data.",
+      target = "Target",
+      search_application = "Search Application",
    },
 
    snmp_page = {
@@ -1027,6 +1099,7 @@ local  en = {
       trigger_alerts_for_host = "Trigger alerts for Host %{host}",
       dump_host_traffic = "Dump Host Traffic",
       dump_traffic = "Dump Traffic",
+      dump_host_traffic_description = "Host traffic dump requires either \"%{to_disk}\" or \"%{to_tap}\" to be <A HREF=\"%{url}\"><i class='fa fa-sm fa-cog' aria-hidden='true'></i> enabled</A>.",
       host_traffic_policy = "Host Traffic Policy",
       drop_all_host_traffic = "Drop All Host Traffic",
       modify_host_pool_policy_btn = "Modify Host Pool Policy",
@@ -1054,7 +1127,8 @@ local  en = {
       scaling_factor = "Ingress Packets Sampling Rate",
       scaling_factor_popup_msg = "This should match your capture interface sampling rate",
       trigger_interface_alerts = "Trigger Interface Alerts",
-      trigger_alerts_for_interface = "Trigger alerts for Interface %{ifname}",
+      interface_rrd_creation = "Create Interface Timeseries",
+      interface_network_discovery = "Periodic Interface Network Discovery",
    },
 
    bridge_wizard = {
@@ -1143,16 +1217,18 @@ local  en = {
    },
 
    mac_stats = {
-      layer_2_host_devices = "Layer 2 Host Devices",
+      layer_2_host_devices = "Layer 2 %{device_type} Host Devices",
+      layer_2_dev_devices = "Layer 2 %{device_type} Devices",
       all_layer_2_devices = "All Layer 2 Devices",
+      dev_layer_2_devices = "%{device_type} Layer 2 Devices",
       layer_2_devices_with_manufacturer = "%{title} from '%{manufacturer}' manufacturer",
       filter_macs = "Filter MACs",
       manufacturer = "Manufacturer",
       all_devices = "All Devices",
       hosts_only = "Hosts Only",
+      dhcp_only = "DHCP Only",
       all_manufacturers = "All Manufacturers",
-      arp_sent = "ARP Sent",
-      arp_received = "ARP Received",
+      arp_total = "ARP",
    },
 
    details = {
@@ -1187,6 +1263,7 @@ local  en = {
       flows_non_packet_iface = "Recently Active Flows / Total",
       flows_packet_iface = "Active Flows / Total Active / Low Goodput",
       flows_packet_pcap_dump_iface = "Flows / Total Active / Low Goodput",
+      flows_dropped_by_bridge = "Flows Blocked due to Traffic Policies",
       as_client = "As Client",
       as_server = "As Server",
       tcp_packets_sent_analysis = "TCP Packets Sent Analysis",
@@ -1197,6 +1274,7 @@ local  en = {
       l4_proto = "L4 Proto",
       total_traffic = "Total Traffic",
       goodput = "Goodput",
+      device_type = "Device Type"
    },
 
    host_details = {
@@ -1213,6 +1291,7 @@ local  en = {
       host_traffic_blocked_quota = "Some host traffic has been blocked by an exceeded quota",
       host_traffic_blocked_shaper = "Some host traffic has been blocked by a blocking shaper",
       host_traffic_blocked_quota_and_shaper = "Some host traffic has been blocked by an exceeded quota and a blocking shaper",
+      unknown_device_type = "Unknown Device Type",
    },
 
    mac_details = {
@@ -1223,8 +1302,15 @@ local  en = {
 
    network_details = {
       network = "Network",
-      network_parameter_missing_message = "Network parameter is missing (internal error ?)",
+      network_parameter_missing_message = "Network parameter is missing (internal error?)",
       no_available_stats_for_network = "No available stats for network %{network}",
+   },
+
+   as_details = {
+      as = "Autonomous System",
+      as_parameter_missing_message = "Autonomous System parameter is missing (internal error?)",
+      no_available_data_for_as = "No available data for AS %{asn}.",
+      as_timeseries_enable_message = "AS timeseries can be enabled from the <A HREF=\"%{url}\">%{icon_flask} Preferences</A>. Few minutes are necessary to see the first data points.",
    },
 
    port_details = {
@@ -1292,6 +1378,7 @@ local  en = {
       flow_emitted = "Flow emitted when network interface was alerted",
       tcp_connection_refused = "TCP connection refused",
       ssl_certificate_mismatch = "SSL Certificate Mismatch",
+      dns_invalid_query = "Invalid DNS query",
       unknown_status = "Unknown status (%{status})",
       sip_protocol_information = "SIP Protocol Information",
       call_id = "Call-ID",
@@ -1645,6 +1732,7 @@ local  en = {
       max_ttl = "Max flow TTL",
       dst_tos = "TOS/DSCP (dst->src)",
       in_src_mac = "Source MAC Address",
+      out_src_mac = "Source MAC Address, potentially modified by a middlebox function after the Observation Point",
       src_vlan = "Source VLAN (inner VLAN in QinQ)",
       dst_vlan = "Destination VLAN (inner VLAN in QinQ)",
       dot1q_src_vlan = "Source VLAN (outer VLAN in QinQ)",
@@ -1662,7 +1750,8 @@ local  en = {
       mpls_label_8 = "MPLS label at position 8",
       mpls_label_9 = "MPLS label at position 9",
       mpls_label_10 = "MPLS label at position 10",
-      out_dst_mac = "Destination MAC Address",
+      in_dst_mac = "Destination MAC Address",
+      out_dst_mac = "Destination MAC Address, potentially modified by a middlebox function after the Observation Point",
       application_id = "Collected Application Id (Cisco or IXIA)",
       packet_section_offset = "Packet section offset",
       sampled_packet_size = "Sampled packet size",
@@ -1676,12 +1765,17 @@ local  en = {
       flow_start_microseconds = "uSec (epoch) of the first flow packet",
       flow_end_milliseconds = "Msec (epoch) of the last flow packet",
       flow_end_microseconds = "uSec (epoch) of the first flow packet",
+      firewall_event = "Firewall Event 0=ignore, 1=flow created, 2=flow deleted, 3=flow denied, 4=flow alert, 5=flow update",
       biflow_direction = "1=initiator, 2=reverseInitiator",
       ingress_vrfid = "Ingress VRF ID",
       flow_duration_milliseconds = "Flow duration (msec)",
       flow_duration_microseconds = "Flow duration (usec)",
       icmp_ipv4_type = "ICMP Type",
       icmp_ipv4_code = "ICMP Code",
+      post_nat_src_ipv4_addr = "Post NAT Source IPv4 Address",
+      post_nat_dst_ipv4_addr = "Post NAT Destination IPv4 Address",
+      post_napt_src_transport_port = "Post NAPT Source Transport Port",
+      post_napt_dst_transport_port = "Post NAPT Destination Transport Port",
       observation_point_type = "Observation point type",
       observation_point_id = "Observation point id",
       selector_id = "Selector id",
@@ -2082,9 +2176,63 @@ local  en = {
       missing_user_name_message = "Missing user name",
    },
 
+   login = {
+      welcome_to = "Welcome to %{product}",
+      username_ph = "Username (default admin)",
+      password_ph = "Password (default admin)",
+      login = "Login",
+      donation = "If you find %{product} useful, please support us by making a small <A href=\"%{donation_url}\">donation</A>. Your funding will help to run and foster the development of this project. Thank you.",
+      license = "%{product} is released under <a href=\"%{license_url}\">%{license}</a>.",
+      password_mismatch = "Passwords do not match",
+      password_not_valid = "Please specify a different password",
+      change_password = "Change Password",
+      must_change_password = "Default admin password must be changed. Please enter a new password below.",
+      password = "Password",
+      confirm_password = "Confirm Password",
+      logout = "Logout",
+      logging_out = "Logging out...",
+      device_label = "Device Label",
+      username = "Username",
+      enter_credentials = "Please enter your credentials for accessing this network.",
+      internet_redirecting = "We're redirecting you to the Internet...",
+      auth_success = "Authentication Successful",
+   },
+
+   policy_presets = {
+    default = "Default",
+    child = "Child",
+    child_description = "A preset for children. Blocks social networks and limits game time",
+    business = "Business",
+    business_description = "A preset for business company employees",
+    no_obfuscation = "No Obfuscation",
+    no_obfuscation_description = "A preset to prevent traffic obfuscation",
+    walled_garden = "Walled Garden",
+    walled_garden_description = "Blocks VPN and Social Networks",
+    guests = "Guests",
+    guests_description = "A preset for guests. Only basic navigation allowed",
+  },
+
+  -- NOTE: do not add "Device" in these mappings
+  device_types = {
+    unknown = "Unknown",
+    printer = "Printer",
+    video = "Video",
+    workstation = "Computer",
+    laptop = "Laptop",
+    tablet = "Tablet",
+    phone = "Phone",
+    tv = "TV",
+    networking = "Router/Switch",
+    wifi = "Wireless Network",
+    nas = "NAS",
+    multimedia = "Multimedia",
+    iot = "IoT",
+  },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
+   error_rrd_cannot_complete_dump = "Cannot complete local hosts RRD dump. Disk slow or too many local hosts?",
    error_no_search_results = "No results found. Please modify your search criteria.";
    enterpriseOnly = "This feature is only available in the ntopng enterprise edition",
    no_results_found = "No results found",

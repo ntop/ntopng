@@ -24,26 +24,40 @@
 
 #include "ntop_includes.h"
 
+class ThreadPool;
+
 class ThreadedActivity {
  private:
   pthread_t pthreadLoop;
-  char path[MAX_PATH];
-  NetworkInterface *iface;
+  char *path;
   u_int32_t periodicity;
   bool align_to_localtime;
-
-  static void runScript(char *path, u_int32_t when);
-  static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
+  bool thread_started;
+  bool systemTaskRunning;
+  bool *interfaceTasksRunning;
+  Mutex m;
+  ThreadPool *pool;
+  
+  u_int32_t roundTime(u_int32_t now, u_int32_t rounder,
+		      int32_t offset_from_utc);
 
   void periodicActivityBody();
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
-
+  void scheduleJob(ThreadPool *pool);
+  void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
+  bool isInterfaceTaskRunning(NetworkInterface *iface);
+  
  public:
-  ThreadedActivity(const char* _path, NetworkInterface *_iface = NULL,
-		   u_int32_t _periodicity_seconds = 0, bool _align_to_localtime = false);
+  ThreadedActivity(const char* _path,
+		   u_int32_t _periodicity_seconds = 0,
+		   bool _align_to_localtime = false,
+		   u_int8_t thread_pool_size = 1);
   ~ThreadedActivity();
+
   void activityBody();
+  void runScript();
+  void runScript(char *script_path, NetworkInterface *iface);
 
   void run();
 };

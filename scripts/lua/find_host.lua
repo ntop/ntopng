@@ -10,6 +10,7 @@ require "lua_utils"
 sendHTTPHeader('application/json')
 
 max_num_to_find = 5
+local already_printed = {}
 
 print [[
       {
@@ -34,15 +35,25 @@ print [[
 
       if(res ~= nil) then
 	 for k, v in pairs(res) do
-	    if isIPv6(k) and (not string.contains(v, "%[IPv6%]")) then
+	    if isIPv6(v) and (not string.contains(v, "%[IPv6%]")) then
 	      v = v.." [IPv6]"
 	    end
 
-	    if(v ~= "") then
+	    if((v ~= "") and (already_printed[v] == nil)) then
 	       if(num > 0) then print(",\n") end
-	       print('\t{"name": "'..v..'", "ip": "'..k..'"}')
+	       print('\t{"name": "'..v..'", ')
+	       if(isMacAddress(v)) then
+	          print('"ip": "'..v..'", "isMac": true}')
+	       else
+	          print('"ip": "'..k..'"}')
+	       end
 	       num = num + 1
+	       already_printed[v] = true
 	    end -- if
+
+	    if num >= max_num_to_find then
+	      break
+	    end
 	  end -- for
        end -- if
 

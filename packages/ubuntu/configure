@@ -597,6 +597,8 @@ DATE
 EXTN
 MACHINE
 NTOPNG_VERS
+DEFAULT_TARGET
+APP
 target_alias
 host_alias
 build_alias
@@ -639,6 +641,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_nedge
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1259,6 +1262,11 @@ if test -n "$ac_init_help"; then
    esac
   cat <<\_ACEOF
 
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-nedge            Enable nEdge device build
+
 Report bugs to the package provider.
 _ACEOF
 ac_status=$?
@@ -1688,6 +1696,13 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+# Check whether --with-nedge was given.
+if test "${with_nedge+set}" = set; then :
+  withval=$with_nedge;
+fi
+
+
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
@@ -1698,6 +1713,7 @@ else
   if test $SHORT_MACHINE = "arm"; then
      EXTN="armhf"
      EXTRA_DEPS=""
+     LIBRRD="librrd8, "
   else
      if test $SHORT_MACHINE = "mip"; then
        EXTN="mips"
@@ -1753,7 +1769,14 @@ else
   SUDO="sudo"
 fi
 
-CHOWN="$SUDO chown $USER:$GROUP ../ntopng_*deb"
+
+if test "${with_nedge+set}" = set; then
+ APP=nedge
+else
+ APP=ntopng
+fi
+
+CHOWN="$SUDO chown $USER:$GROUP ../$APP_*deb"
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
 if test $SHORT_MACHINE = "mip"; then
@@ -1766,7 +1789,15 @@ fi
 
 /bin/rm -f debian.ntopng/control.in
 \cd debian.ntopng
-ln -s control.$UBUNTU_RELEASE.in control.in
+
+if test "${with_nedge+set}" = set; then
+ ln -s control.nedge.in control.in
+ DEFAULT_TARGET=nedge
+else
+ ln -s control.$UBUNTU_RELEASE.in control.in
+ DEFAULT_TARGET=ntopng
+fi
+
 cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
@@ -1791,6 +1822,8 @@ KERNEL=`uname -r`
 
 
 
+
+
 ac_config_files="$ac_config_files Makefile"
 
 ac_config_files="$ac_config_files debian.ntopng/changelog"
@@ -1798,6 +1831,8 @@ ac_config_files="$ac_config_files debian.ntopng/changelog"
 ac_config_files="$ac_config_files debian.ntopng/files"
 
 ac_config_files="$ac_config_files debian.ntopng/control"
+
+ac_config_files="$ac_config_files debian.ntopng/rules"
 
 ac_config_files="$ac_config_files debian.ntopng-data/changelog"
 
@@ -2515,6 +2550,7 @@ do
     "debian.ntopng/changelog") CONFIG_FILES="$CONFIG_FILES debian.ntopng/changelog" ;;
     "debian.ntopng/files") CONFIG_FILES="$CONFIG_FILES debian.ntopng/files" ;;
     "debian.ntopng/control") CONFIG_FILES="$CONFIG_FILES debian.ntopng/control" ;;
+    "debian.ntopng/rules") CONFIG_FILES="$CONFIG_FILES debian.ntopng/rules" ;;
     "debian.ntopng-data/changelog") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/changelog" ;;
     "debian.ntopng-data/files") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/files" ;;
     "debian.ntopng-data/control") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/control" ;;

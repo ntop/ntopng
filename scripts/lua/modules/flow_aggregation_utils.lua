@@ -5,10 +5,11 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "template"
 require "lua_utils"
 
-function initPrefs()
+local pr = nil
+
+local function initPrefs()
    if pr == nil then
       pr = ntop.getPrefs()
    end
@@ -36,6 +37,8 @@ function useAggregatedFlows()
       -- or when searching in a time range that has not yet been included in an aggregation)
       if tonumber(_GET["l4proto"]) ~= nil
          or tonumber(_GET["port"]) ~= nil
+	 or tonumber(_GET["vlan"]) ~= nil
+	 or isEmptyString(_GET["profile"]) == false
          or isEmptyString(_GET["info"]) == false then
 	    -- tprint("coercing aggr to false")
 	    aggr = false
@@ -52,7 +55,7 @@ function useAggregatedFlows()
 	    if not isEmptyString(_GET[w]) then
 	       local period
 	       if w:ends("_str") then
-		  period = tonumber(makeTimeStamp(_GET[w]))
+		  period = tonumber(makeTimeStamp(_GET[w], _GET["timezone"]))
 	       else
 		  period = tonumber(_GET[w])
 	       end

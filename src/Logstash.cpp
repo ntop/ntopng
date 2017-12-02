@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 static void* lsLoop(void* ptr) {
@@ -41,7 +43,7 @@ Logstash::Logstash() {
 
 /* **************************************** */
 
-Logstash::~Logstash(){
+Logstash::~Logstash() {
 
 }
 
@@ -83,7 +85,7 @@ int Logstash::sendToLS(char* msg) {
   struct string_list *e;
   int rc = 0;
 
-  if(!msg || !strcmp(msg,"")){
+  if(!msg || !strcmp(msg,"")) {
     return(-1);
   }
   
@@ -129,7 +131,7 @@ int Logstash::sendToLS(char* msg) {
 /* **************************************** */
 
 void Logstash::startFlowDump() {
-  if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     pthread_create(&lsThreadLoop, NULL, lsLoop, (void*)this);
   }
 }
@@ -156,13 +158,13 @@ void Logstash::sendLSdata() {
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
 
-  if(server == NULL || portstr == NULL){
+  if(server == NULL || portstr == NULL) {
      //can't send
      return;
   }
 
   proto = ntop->getPrefs()->get_ls_proto();
-  if(proto && !strncmp(proto,"udp",3)){
+  if(proto && !strncmp(proto,"udp",3)) {
      sendTCP = 0;
   }
   portno = atoi(portstr);
@@ -174,13 +176,13 @@ void Logstash::sendLSdata() {
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
 
-  if(server == NULL || portstr == NULL){
+  if(server == NULL || portstr == NULL) {
     //can't send
     return;
   }
 
   proto = ntop->getPrefs()->get_ls_proto();
-  if(proto && !strncmp(proto, "udp", 3)){
+  if(proto && !strncmp(proto, "udp", 3)) {
     sendTCP = 0;
   }
 
@@ -193,8 +195,8 @@ void Logstash::sendLSdata() {
 
   while(!ntop->getGlobals()->isShutdown()) {
     if(num_queued_elems >= watermark) {
-      if(sockfd<0||skipDequeue==1){
-        if(sockfd<0){
+      if(sockfd<0||skipDequeue==1) {
+        if(sockfd<0) {
   	  if(!sendTCP) { //UDP socket
             sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
           } else {  //TCP socket
@@ -204,7 +206,7 @@ void Logstash::sendLSdata() {
 #ifndef WIN32
           //Set nonblocking
           retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
-          if(retval == -1){
+          if(retval == -1) {
             ntop->getTrace()->traceEvent(TRACE_WARNING,"[LS] Error  while setting NONBLOCK flag. Skipping dequeue.");
             close(sockfd);
 	    sockfd = -1;
@@ -235,7 +237,7 @@ void Logstash::sendLSdata() {
         }
       }
 
-      if(skipDequeue == 1){
+      if(skipDequeue == 1) {
 	//Next loop should start dequeuing again if all goes well
 	skipDequeue = 2;
       } else {
@@ -247,7 +249,7 @@ void Logstash::sendLSdata() {
 
         for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
           struct string_list *prev;
-  	  if(!(tail && tail->str)){
+  	  if(!(tail && tail->str)) {
             //No events in queue
 	    break;
 	  }
@@ -271,18 +273,18 @@ void Logstash::sendLSdata() {
 
 
       //try to send data
-      if(skipDequeue == 1 || skipDequeue == 2){
+      if(skipDequeue == 1 || skipDequeue == 2) {
         //Continue with the leftover data
       } else {
         sent = 0;
         sentLength = len;
       }
 
-      if(sendTCP){
+      if(sendTCP) {
 	//TCP
-        while(sentLength > 0){
+        while(sentLength > 0) {
           retval = send(sockfd,postbuf+sent,sentLength,0);
-	  if(retval<=0){
+	  if(retval <= 0 ) {
             // Err occured
             // don't clear postbuf as it hasn't been sent
             // and skip dequeue next time
@@ -297,12 +299,12 @@ void Logstash::sendLSdata() {
         //UDP
         retval = sendto(sockfd, postbuf, sizeof(postbuf), 0,
                    (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-	if(retval<=0){
+	if(retval <= 0) {
 	  skipDequeue = 1;
 	  break;
 	}
       }
-      if(skipDequeue == 1){
+      if(skipDequeue == 1) {
 	//Sending most likely failed.
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] Sending failed. Scheduling retry..");
 	sleep(1);
@@ -320,3 +322,5 @@ void Logstash::sendLSdata() {
 
   close(sockfd);
 }
+
+#endif

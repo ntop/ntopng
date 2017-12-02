@@ -4,12 +4,22 @@
 # an upgrade, we will instead do a restart in the postinst... this keeps ntopng
 # from being left shut down for a long time, which could pose problems.
 case "$1" in
-upgrade)
+	upgrade)
 	;;
-*)
-         if [ `pidof ntopng|wc -l` -gt 0 ]; then
-            /etc/init.d/ntopng stop
-         fi
+
+	*)
+	echo "Stopping ntopng services..."
+	if grep -q systemd /proc/1/comm; then
+		systemctl stop ntopng
+
+		systemctl disable ntopng
+
+		systemctl daemon-reload
+		systemctl reset-failed
+	else
+		/etc/init.d/ntopng stop
+		update-rc.d ntopng remove >/dev/null
+	fi
 	;;
 esac
 

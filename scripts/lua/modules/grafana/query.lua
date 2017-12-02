@@ -31,6 +31,8 @@ else
    local res = {}
 
    for _, t in pairs(_GRAFANA["payload"]["targets"]) do
+      if t["target"] == nil then t["target"] = "" end
+
       local is_host = string.starts(t["target"] or '', "host_")
 
       local addr
@@ -58,12 +60,16 @@ else
       local totalval = rr["totalval"]
       rr = json.decode(rr["json"])
 
+      local label = ifname
+      if is_host then label = addr..", "..label end
+      label = "["..label.."]"
+
       if is_allprotos then
-	 res = toSeries(rr)
+	 toSeries(rr, res, label)
       elseif string.ends(t["target"], "traffic_total_bytes") or string.ends(t["target"], "traffic_total_packets") then
 	 res[#res + 1] = {target="Total", datapoints={{totalval, 0 --[[ it's an integral, an instant is not meaningful here --]]}}}
       else
-	 res = toSeries(rr)
+	 toSeries(rr, res, label)
       end
 
 

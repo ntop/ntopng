@@ -41,9 +41,8 @@ class Redis {
   StringCache_t *stringCache;
   u_int numCached;
   
-  void setDefaults();
   void reconnectRedis();
-  int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size);
+  int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
   int oneOperator(const char *operation, char *key);
   int twoOperators(const char *operation, char *op1, char *op2);
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
@@ -54,13 +53,13 @@ class Redis {
   bool expireCache(char *key, u_int expire_sec);
 	  
  public:
-  Redis(char *redis_host = (char*)"127.0.0.1",
-	char *redis_password = NULL,
+  Redis(const char *redis_host = (char*)"127.0.0.1",
+	const char *redis_password = NULL,
 	u_int16_t redis_port = 6379, u_int8_t _redis_db_id = 0);
   ~Redis();
 
   char* getVersion(char *str, u_int str_len);
-
+  void setDefaults();
   inline bool isOperational() { return(operational); };
   int expire(char *key, u_int expire_sec);
   int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
@@ -104,7 +103,7 @@ class Redis {
   void setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_int32_t id);
   u_int32_t host_to_id(NetworkInterface *iface, char *daybuf, char *host_name, bool *new_key);
   int id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len);
-  int lpush(const char *queue_name, char *msg, u_int queue_trim_size);
+  int lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
   int rpush(const char *queue_name, char *msg, u_int queue_trim_size);
   int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
   u_int llen(const char *queue_name);
@@ -113,7 +112,8 @@ class Redis {
   int lrange(const char *list_name, char ***elements, int start_offset, int end_offset);
   int lpop(const char *queue_name, char *buf, u_int buf_len);
   int lpop(const char *queue_name, char ***elements, u_int num_elements);
-
+  int flushDb();
+  void flushCache();
   /**
    * @brief Increment a redis key and return its new value
    *
@@ -122,8 +122,8 @@ class Redis {
   u_int32_t incrKey(char *key);
   int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
   void lua(lua_State *vm);
-
-  void flushCache();
+  char* dump(char *key);
+  int restore(char *key, char *buf);
 };
 
 #endif /* _REDIS_H_ */

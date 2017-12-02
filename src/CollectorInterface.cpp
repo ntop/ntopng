@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* **************************************************** */
 
 CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
@@ -38,7 +40,7 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
   
   e = strtok_r(tmp, ",", &t);
   while(e != NULL) {
-    int l = strlen(e)-1;
+    int l = strlen(e)-1, val;
     char last_char = e[l];
 
     if(num_subscribers == MAX_ZMQ_SUBSCRIBERS) {
@@ -49,6 +51,10 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     }
 
     subscriber[num_subscribers].socket = zmq_socket(context, ZMQ_SUB);
+
+    val = 131072;
+    if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");
 
     if(last_char == 'c')
       is_collector = true, e[l] = '\0';
@@ -110,6 +116,7 @@ void CollectorInterface::collect_flows() {
   u_int payload_len = sizeof(payload)-1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
   u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
+  u_int32_t now, next_purge_idle = (u_int32_t)time(NULL) + FLOW_PURGE_FREQUENCY;
   int rc, size;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s", ifname);
@@ -125,13 +132,16 @@ void CollectorInterface::collect_flows() {
       items[i].socket = subscriber[i].socket, items[i].fd = 0, items[i].events = ZMQ_POLLIN, items[i].revents = 0;
 
     do {
-      rc = zmq_poll(items, num_subscribers, 1000 /* 1 sec */);
+      rc = zmq_poll(items, num_subscribers,  MAX_ZMQ_POLL_WAIT_MS);
+
+      now = (u_int32_t)time(NULL);
       zmq_max_num_polls_before_purge--;
 
       if((rc < 0) || (!isRunning())) return;
 
-      if(rc == 0 || zmq_max_num_polls_before_purge == 0) {
-	purgeIdle(time(NULL));
+      if(rc == 0 || now >= next_purge_idle || zmq_max_num_polls_before_purge == 0) {
+	purgeIdle(now);
+	next_purge_idle = now + FLOW_PURGE_FREQUENCY;
 	zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
       }
     } while(rc == 0);
@@ -177,7 +187,7 @@ void CollectorInterface::collect_flows() {
 	if(size > 0) {
 	  char *uncompressed = NULL;
 	  u_int uncompressed_len;
-
+	  
 	  payload[size] = '\0';
 
 	  if(payload[0] == 0 /* Compressed traffic */) {
@@ -185,11 +195,11 @@ void CollectorInterface::collect_flows() {
 	    int err;
 	    uLongf uLen;
 
-	    uLen = uncompressed_len = 3*size;
+	    uLen = uncompressed_len = max(3*size, MAX_ZMQ_FLOW_BUF);
 	    uncompressed = (char*)malloc(uncompressed_len+1);
 	    if((err = uncompress((Bytef*)uncompressed, &uLen, (Bytef*)&payload[1], size-1)) != Z_OK) {
-	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d]", err);
-	      return;
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d][len: %u]", err, size);
+	      continue;
 	    }
 
 	    uncompressed_len = uLen, uncompressed[uLen] = '\0';
@@ -199,7 +209,7 @@ void CollectorInterface::collect_flows() {
 	    if(!once)
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to uncompress ZMQ traffic: ntopng compiled without zlib"), once = true;
 
-	    return;
+	    continue;
 #endif
 	  } else
 	    uncompressed = payload, uncompressed_len = size;
@@ -216,8 +226,7 @@ void CollectorInterface::collect_flows() {
 	    break;
 
 	  case 'f': /* flow */
-	    recvStats.num_flows++;
-	    parseFlow(uncompressed, uncompressed_len, source_id, this);
+	    recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
 	    break;
 
 	  case 'c': /* counter */
@@ -282,7 +291,7 @@ bool CollectorInterface::set_packet_filter(char *filter) {
 /* **************************************************** */
 
 void CollectorInterface::lua(lua_State* vm) {
-  NetworkInterface::lua(vm);
+  ParserInterface::lua(vm);
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "flows", recvStats.num_flows);
@@ -293,3 +302,17 @@ void CollectorInterface::lua(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+
+/* **************************************************** */
+
+void CollectorInterface::purgeIdle(time_t when) {
+  NetworkInterface::purgeIdle(when);
+
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    HASH_ITER(hh, flowHashing, current, tmp)
+      static_cast<NetworkInterface*>(current->iface)->purgeIdle(when);
+  }
+}
+
+#endif

@@ -29,24 +29,28 @@ class GenericTrafficElement {
   u_int16_t vlan_id;
   TrafficStats sent, rcvd;
   nDPIStats *ndpiStats;
+  u_int32_t total_num_dropped_flows;
 
   float bytes_thpt, pkts_thpt;
   float last_bytes_thpt, last_pkts_thpt;
   ValueTrend bytes_thpt_trend, pkts_thpt_trend;
   float bytes_thpt_diff;
   u_int64_t last_bytes, last_packets;
-  u_int64_t last_bytes_periodic;
   struct timeval last_update_time;
+
+  u_int16_t host_pool_id;
 
  public:
   GenericTrafficElement();
+  GenericTrafficElement(const GenericTrafficElement &gte);
+
   virtual ~GenericTrafficElement() {
     if(ndpiStats) delete ndpiStats;
   };
-
+  inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
-  bool idle();
-  void updateStats(struct timeval *tv);
+  inline void incNumDroppedFlows() { total_num_dropped_flows++;      };
+  virtual void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 
   inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
@@ -57,6 +61,7 @@ class GenericTrafficElement {
   inline float getThptTrendDiff()     { return(bytes_thpt_diff);           };
   inline float getBytesThpt()         { return(bytes_thpt);                };
   inline float getPacketsThpt()       { return(pkts_thpt);                 };
+  void resetStats();
 };
 
 #endif /* _GENRIC_TRAFFIC_ELEMENT_H_ */

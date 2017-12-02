@@ -1,3 +1,4 @@
+require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
@@ -229,6 +230,31 @@ print[[
 <br>
 
 <div class="row">
+    <div class="form-group col-md-6 has-feedback">
+      <label class="form-label">]] print(i18n("language")) print[[</label>
+      <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
+        <select name="user_language" id="user_language" class="form-control">]]
+
+for _, lang in pairs(locales_utils.getAvailableLocales()) do
+   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+end
+
+print[[
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group col-md-6 has-feedback">
+      <label class="form-label"></label>
+      <div class="input-group">
+      </div>
+    </div>
+</div>
+
+<br>
+
+<div class="row">
     <div class="form-group col-md-12 has-feedback">
       <button id="pref_change" class="btn btn-primary btn-block">Change User Preferences</button>
     </div>
@@ -381,6 +407,9 @@ function reset_pwd_dialog(user) {
       $('#networks_input').val(data.allowed_nets);
       $('#allowed_interface option[value="' + data.allowed_if_id + '"]').attr('selected','selected');
 
+      if(data.language !== "") {
+      $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
+      }
       if(data.host_pool_id) {
         $('#old_host_pool_id').val(data.host_pool_id);
         $('#host_pool_id option[value = '+data.host_pool_id+']').attr('selected','selected');

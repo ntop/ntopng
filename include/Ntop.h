@@ -44,37 +44,44 @@ class Ntop {
   char install_dir[MAX_PATH]; /**< Array of install directory. */
   char startup_dir[MAX_PATH]; /**< Array of startup directory. */
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
-  NetworkInterface *iface[MAX_NUM_DEFINED_INTERFACES];/**< Array of network interfaces. */
+  NetworkInterface **iface; /**< Array of network interfaces. */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
-  Redis *redis; /**< Pointer of Redis server. */
+  Redis *redis; /**< Pointer to the Redis server. */
+#ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
+  ExportInterface *export_interface;
+#endif
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
-  RuntimePrefs *runtimeprefs;
   Geolocation *geo;
   MacManufacturers *mac_manufacturers;
+  void *trackers_automa;
   HTTPBL *httpbl;
-  Flashstart *flashstart;
-  ExportInterface *export_interface;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
   NtopPro *pro;
+  DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
+  
 #ifdef NTOPNG_PRO
 #ifndef WIN32
   NagiosManager *nagios_manager;
 #endif
   FlowChecker *flow_checker;
 #endif
+#ifdef HAVE_NDB
+  Nseries *nseries[NUM_NSERIES];
+#endif
   AddressTree *hostBlacklist, *hostBlacklistShadow;
 
   void loadLocalInterfaceAddress();
-
+  void initAllowedProtocolPresets();
+  
  public:
   /**
    * @brief A Constructor
@@ -98,6 +105,14 @@ class Ntop {
    */
   void registerPrefs(Prefs *_prefs, bool quick_registration);
 
+  /**
+   * @brief Register an ntopng log file
+   * @details Log file is used under windows and in daemon mode
+   *
+   * @param logFile A valid path to a log file
+   */
+  inline void registerLogFile(const char* logFile)    { getTrace()->set_log_file(logFile);       };
+  inline void rotateLogs(bool force_rotation = false) { getTrace()->rotate_logs(force_rotation); };
 #ifdef NTOPNG_PRO
   void registerNagios(void);
   inline FlowChecker *getFlowChecker() { return(flow_checker); };
@@ -173,9 +188,10 @@ class Ntop {
    * @param family Internetwork: UDP, TCP, etc.
    * @param addr Internet Address.
    * @param network_id It returns the networkId to which the host belongs to
+   * @param network_mask_bits It returns the number of bits of the network mask
    * @return True if the address is in the local networks, false otherwise.
    */
-  bool isLocalAddress(int family, void *addr, int16_t *network_id);
+  bool isLocalAddress(int family, void *addr, int16_t *network_id, u_int8_t *network_mask_bits = NULL);
 
   /**
    * @brief Start ntopng packet processing.
@@ -229,9 +245,6 @@ class Ntop {
    */
   inline HTTPBL* get_httpbl()                        { return(httpbl);             };
 
-  inline Flashstart* get_flashstart()                { return(flashstart);         };
-  inline void set_flashstart(Flashstart *f)          { flashstart = f;             };
-
   /**
    * @brief Register the network interface.
    * @details Check for duplicated interface and add the network interface in to @ref iface.
@@ -257,7 +270,7 @@ class Ntop {
    * @return The network interface instance if exists, NULL otherwise.
    */
   inline NetworkInterface* getInterfaceAtId(lua_State *vm, int i) const {
-    if(i<num_defined_interfaces && iface[i]) {
+    if((i < num_defined_interfaces) && iface[i]) {
       return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
     }
     return NULL;
@@ -364,11 +377,14 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
+#ifndef HAVE_NEDGE
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Logstash*         getLogstash()             { return(logstash);            };
-  inline Prefs*            getPrefs()                { return(prefs);               };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
+#endif
 
+  inline Prefs*            getPrefs()                { return(prefs);               };
+  
 #ifdef NTOPNG_PRO
 #ifdef WIN32
   char* getIfName(int if_id, char *name, u_int name_len);
@@ -390,8 +406,10 @@ class Ntop {
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
+  bool changeUserLanguage(const char * const username, const char * const language) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
-	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
+	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
+	       char *language);
   bool addUserLifetime(const char * const username, u_int32_t lifetime_secs); /* Captive portal users may expire */
   bool clearUserLifetime(const char * const username);
   bool isCaptivePortalUser(const char * const username);
@@ -411,7 +429,7 @@ class Ntop {
   };
   IpAddress* getLocalNetworkIp(int16_t local_network_id);
   void createExportInterface();
-  void initRedis();
+  void initNetworkInterfaces();
   void initElasticSearch();
   void initLogstash(); 
 
@@ -428,20 +446,32 @@ class Ntop {
   inline void getLocalNetworks(lua_State* vm) { address->getLocalNetworks(vm);          };
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void reloadInterfacesLuaInterpreter();
-
+  void loadTrackers();
+  bool isATrackerHost(char *host);
   void allocHostBlacklist();
   void swapHostBlacklist();
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(char *name);
-  inline NetworkInterface* getFirstInterface() { return(iface[0]); }
-
+  inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
+  inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
 #ifdef NTOPNG_PRO
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
-#endif
+#ifdef HAVE_NDB
+  inline void tsSet(u_int8_t series_id, u_int32_t tsSec, bool isCounter,
+		    u_int8_t ifaceId, u_int16_t step, const char *label,
+		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
+    nseries[series_id]->set(tsSec, isCounter, ifaceId, step, label ? label : "",
+			    key ? key : "", metric ? metric : "", sent, rcvd);
+  }
+  
+  inline void tsFlush(u_int8_t series_id) { nseries[series_id]->flush(); }
+#endif /* HAVE_NDB */
+#endif /* NTOPNG_PRO */
+  
+  DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
 };
-
 
 extern Ntop *ntop;
 

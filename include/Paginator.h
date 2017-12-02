@@ -33,8 +33,14 @@ class Paginator {
   int l7proto_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
+  u_int16_t vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
+  u_int32_t asn_filter;
+  u_int32_t deviceIP;
+  u_int16_t inIndex, outIndex;
+  u_int16_t pool_filter;
+  u_int8_t *mac_filter;
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -74,9 +80,33 @@ class Paginator {
   inline bool localNetworkFilter(int16_t *f) const {
     if(local_network_filter) { (*f) = local_network_filter; return true; } return false;
   }
+
+  inline bool vlanIdFilter(u_int16_t *f) const {
+    if(vlan_id_filter) { (*f) = vlan_id_filter; return true; } return false;
+  }
   
   inline bool ipVersion(u_int8_t *f) const {
     if(ip_version) { (*f) = ip_version; return true; } return false;
+  }
+
+  inline bool deviceIpFilter(u_int32_t *f) const {
+    if(deviceIP) { (*f) = deviceIP; return true; } return false;
+  }
+
+  inline bool inIndexFilter(u_int16_t *f) const {
+    if(inIndex) { (*f) = inIndex; return true; } return false;
+  }
+
+  inline bool outIndexFilter(u_int16_t *f) const {
+    if(outIndex) { (*f) = outIndex; return true; } return false;
+  }
+
+  inline bool poolFilter(u_int16_t *f) const {
+    if(pool_filter != ((u_int16_t)-1)) { (*f) = pool_filter; return true; } return false;
+  }
+
+  inline bool macFilter(u_int8_t **f) const {
+    if(mac_filter) { (*f) = mac_filter; return true; } return false;
   }
 
   inline bool clientMode(LocationPolicy *f) const {
@@ -85,6 +115,10 @@ class Paginator {
 
   inline bool serverMode(LocationPolicy *f) const {
     if(server_mode) { (*f) = server_mode; return true; } return false;
+  }
+
+  inline bool asnFilter(u_int32_t *f) const {
+    if(asn_filter != (u_int32_t)-1) { (*f) = asn_filter; return true; } return false;
   }
 
   inline bool unidirectionalTraffic(bool *f) const {

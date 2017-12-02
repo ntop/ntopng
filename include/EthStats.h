@@ -26,7 +26,7 @@
 
 class EthStats {
  private:
-  ProtoStats raw, eth_IPv4, eth_IPv6, eth_ARP, eth_MPLS, eth_other;
+  ProtoStats rawIngress, rawEgress, eth_IPv4, eth_IPv6, eth_ARP, eth_MPLS, eth_other;
 
  public:
   EthStats();
@@ -38,13 +38,28 @@ class EthStats {
   inline ProtoStats* getEthOtherStats() { return(&eth_other); };
 
   void lua(lua_State *vm);
-  void incStats(u_int16_t proto, u_int32_t num_pkts, u_int32_t num_bytes, u_int pkt_overhead);
-  inline void  setNumPackets(u_int64_t v) { return(raw.setPkts(v));  };
-  inline void  setNumBytes(u_int64_t v)   { return(raw.setBytes(v)); };
-  inline u_int64_t getNumPackets() { return(raw.getPkts());  };
-  inline u_int64_t getNumBytes()   { return(raw.getBytes()); };
+  void incStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
+		u_int32_t num_bytes, u_int pkt_overhead);
+
+  inline void setNumPackets(bool ingressPacket, u_int64_t v) { 
+    if(ingressPacket) rawIngress.setPkts(v); else rawEgress.setPkts(v);   
+  };
+
+  inline void setNumBytes(bool ingressPacket, u_int64_t v) {
+    if(ingressPacket) rawIngress.setBytes(v); else rawEgress.setBytes(v); 
+  };
+
+  inline u_int64_t getNumIngressPackets() { return(rawIngress.getPkts());  };
+  inline u_int64_t getNumEgressPackets()  { return(rawEgress.getPkts());   };
+  inline u_int64_t getNumIngressBytes()   { return(rawIngress.getBytes()); };
+  inline u_int64_t getNumEgressBytes()    { return(rawEgress.getBytes());  };
+
+  inline u_int64_t getNumPackets() { return(rawIngress.getPkts() + rawEgress.getPkts());  };
+  inline u_int64_t getNumBytes()   { return(rawIngress.getBytes() + rawEgress.getBytes()); };
+
   inline void sum(EthStats *e) {
-    raw.sum(&e->raw), eth_IPv4.sum(&e->eth_IPv4), eth_IPv6.sum(&e->eth_IPv6),
+    rawIngress.sum(&e->rawIngress), rawEgress.sum(&e->rawEgress),
+      eth_IPv4.sum(&e->eth_IPv4), eth_IPv6.sum(&e->eth_IPv6),
       eth_ARP.sum(&e->eth_ARP), eth_MPLS.sum(&e->eth_MPLS), eth_other.sum(&e->eth_other);
   };
 

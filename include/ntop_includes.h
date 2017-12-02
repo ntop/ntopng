@@ -93,11 +93,11 @@
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
 #include <ifaddrs.h>
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__APPLE__)
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif
-
+#include <sys/select.h>
 #ifdef __APPLE__
 #include <uuid/uuid.h>
 #endif
@@ -105,6 +105,7 @@
 extern "C" {
 #include "pcap.h"
 #include "ndpi_main.h"
+#include "lj_obj.h"
 #include "luajit.h"
 #include "lauxlib.h"
 #include "lualib.h"
@@ -129,8 +130,12 @@ extern "C" {
 #endif
 
 #include "third-party/uthash.h"
+
+#ifdef HAVE_MYSQL
 #include <mysql.h>
 #include <errmsg.h>
+#endif
+
 #ifdef HAVE_LIBCAP
 #include <sys/capability.h>
 #include <sys/prctl.h>
@@ -144,6 +149,8 @@ extern "C" {
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <queue>
+#include <typeinfo>
 
 using namespace std;
 
@@ -152,12 +159,14 @@ using namespace std;
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
+#include "MDNS.h"
 #include "AddressTree.h"
 #include "AddressList.h"
 #include "IpAddress.h"
 #include "ntop_typedefs.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
+#include "Checkpointable.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
 #include "GenericTrafficElement.h"
@@ -166,8 +175,10 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "CountMinSketch.h"
+#ifndef HAVE_NEDGE
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
+#endif
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
 #include "FlowInterfacesStats.h"
@@ -181,16 +192,17 @@ using namespace std;
 #endif
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
+#include "FrequentTrafficItems.h"
 #include "HostPools.h"
-#include "RuntimePrefs.h"
 #include "Prefs.h"
 #include "Utils.h"
-#include "ActivityStats.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
+#include "SNMP.h"
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"
+#include "FlowGrouper.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
 #include "TcpPacketStats.h"
@@ -204,11 +216,19 @@ using namespace std;
 #include "StatsManager.h"
 #include "AlertsManager.h"
 #include "DB.h"
+#ifdef HAVE_MYSQL
 #include "MySQLDB.h"
+#endif
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+#include "ndb_api.h"
+#include "Nseries.h"
+#endif
 #include "NetworkInterface.h"
+#ifndef HAVE_NEDGE
 #include "PcapInterface.h"
+#endif
 #include "ViewInterface.h"
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
@@ -220,17 +240,22 @@ using namespace std;
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
 #include "Redis.h"
+#ifndef HAVE_NEDGE
 #include "ElasticSearch.h"
 #include "Logstash.h"
+#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
+#include "DnsHostMapping.h"
 #ifndef WIN32
 #include "PacketBridge.h"
 #endif
 #include "TrafficShaper.h"
 #include "L7Policer.h"
+#ifdef HAVE_MYSQL
 #include "BatchedMySQLDB.h"
 #include "BatchedMySQLDBEntry.h"
+#endif
 #include "SPSCQueue.h"
 #include "LuaHandler.h"
 #ifndef WIN32
@@ -239,6 +264,7 @@ using namespace std;
 #include "FlowChecker.h"
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
+#include "FrequentTrafficItems.h"
 #ifdef HAVE_NETFILTER
 #include "NetfilterInterface.h"
 #endif
@@ -246,15 +272,16 @@ using namespace std;
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include "DivertInterface.h"
 #endif
+#ifndef HAVE_NEDGE
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
+#endif
+
 #include "Geolocation.h"
-#include "Flashstart.h"
 #include "GenericHost.h"
-#include "CategoryStats.h"
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Mac.h"
@@ -268,8 +295,12 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
+#ifdef HAVE_NDB
+#include "NDBFlowDB.h"
+#endif
 #endif
 #include "ThreadedActivity.h"
+#include "ThreadPool.h"
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "MacManufacturers.h"

@@ -15,7 +15,6 @@ if isCORSpreflight() then
 else
    interface.select(ifname)
 
-
    local corsr = {}
    corsr["Access-Control-Allow-Origin"] = _SERVER["Origin"]
    sendHTTPHeader('application/json', nil, corsr)
@@ -44,10 +43,10 @@ else
       if isEmptyString(addr) then
 	 addr = string.match(target or '', "_(.-)$") -- assumes address is between the first underscore and the end of string
       end
-      host_info = hostkey2hostinfo(addr)
+      host_info = hostkey2hostinfo(addr or '')
       -- tprint(host_info)
 
-      local a, b = string.find(target, addr)
+      local a, b = string.find(target, addr or '')
       target = string.sub(target, b + 2 --[[ +2 removes the optional uderscore preceding interface_ --]])
       -- tprint({target=target})
    end

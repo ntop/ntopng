@@ -61,9 +61,10 @@ class Lua {
    * @details Run a script from within ntopng. No HTTP GUI.
    * 
    * @param script_path Full path of lua script.
+   * @param iface Select the specified interface (if not NULL)
    * @return 0 if the script has been executed successfully.
    */
-  int run_script(char *script_path);
+  int run_script(char *script_path, NetworkInterface *iface);
 
   /**
    * @brief Handling of request info of script.
@@ -100,6 +101,7 @@ class Lua {
  * @param value The value of hash table.
  */
 extern void lua_push_str_table_entry(lua_State *L, const char *key, char *value);
+
 /**
  * @brief Push null value to table entry specify the key.
  * 
@@ -107,6 +109,7 @@ extern void lua_push_str_table_entry(lua_State *L, const char *key, char *value)
  * @param key The key of hash table.
  */
 extern void lua_push_nil_table_entry(lua_State *L, const char *key);
+
 /**
  * @brief Push int value to table entry specify the key.
  * 
@@ -115,7 +118,6 @@ extern void lua_push_nil_table_entry(lua_State *L, const char *key);
  * @param value The value of hash table.
  */
 extern void lua_push_int_table_entry(lua_State *L, const char *key, u_int64_t value);
-
 
 /**
  * @brief Push int32 value to table entry specify the key.
@@ -136,6 +138,7 @@ void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value);
  * @param value The value of hash table.
  */
 extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value);
+
 /**
  * @brief Push float value to table entry specify the key.
  * 
@@ -145,6 +148,6 @@ extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value)
  */
 extern void lua_push_float_table_entry(lua_State *L, const char *key, float value);
 
-
+int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
 
 #endif /* _LUA_H_ */

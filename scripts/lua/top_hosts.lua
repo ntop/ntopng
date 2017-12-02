@@ -2,7 +2,7 @@
 -- (C) 2013-17 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -11,18 +11,20 @@ sendHTTPContentTypeHeader('text/html')
 
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-active_page = "hosts"
+local active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-hosts_stats = interface.getLocalHostsInfo()
-hosts_stats = hosts_stats["hosts"]
+local interface_refresh_rate = getInterfaceRefreshRate(getInterfaceId(ifname)) or 3
+
+local hosts_stats = interface.getLocalHostsInfo()
+local hosts_stats = hosts_stats["hosts"]
 
 --io.write(ifname.."/"..total.."\n")
-max_num = 25
-localhosts = {}
-found = false
-num = 0
+local max_num = 25
+local localhosts = {}
+local found = false
+local num = 0
 for key, value in pairs(hosts_stats) do
    --print(hosts_stats[key]["name"].."<p>\n")
 
@@ -87,7 +89,7 @@ var width = 800;
 var context = cubism.context()
 .serverDelay(0)
 .clientDelay(0) // specifies how long a delay we are prepared to wait before querying the server for new data points
-.step(3000)
+.step(]] print(tostring(interface_refresh_rate)) print[[000)
 .size(width);
 
 

@@ -63,31 +63,59 @@ local subpage_active, tab = prefsGetActiveSubpage(show_advanced_prefs, _GET["tab
 
 -- ================================================================================
 
+local function fixChromeLoginFields()
+  -- These two fields are necessary to prevent chrome from filling in LDAP username and password with saved credentials
+  -- Chrome, in fact, ignores the autocomplete=off on the input field. The input fill-in triggers un-necessary are-you-sure leave message
+  print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
+  print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
+  --
+end
+
+-- ================================================================================
+
 function printInterfaces()
   print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dynamic_network_interfaces")..'</th></tr>')
 
-  prefsToggleButton({
-    field = "dynamic_iface_vlan_creation",
-    default = "0",
-  })
-  
-  local labels = {i18n("prefs.none"), i18n("prefs.probe_ip_address"), i18n("prefs.ingress_flow_interface"), i18n("prefs.ingress_vrf_id")}
-  local values = {"none","probe_ip","ingress_iface_idx", "ingress_vrf_id"}
+  local labels = {i18n("prefs.none"),
+		  i18n("prefs.vlan"),
+		  i18n("prefs.probe_ip_address"),
+		  i18n("prefs.ingress_flow_interface"),
+		  i18n("prefs.ingress_vrf_id")}
+  local values = {"none",
+		  "vlan",
+		  "probe_ip",
+		  "ingress_iface_idx",
+		  "ingress_vrf_id"}
+
   local elementToSwitch = {}
   local showElementArray = { true, false, false }
   local javascriptAfterSwitch = "";
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_flow_collection"].title,
-				    subpage_active.entries["dynamic_flow_collection"].description.."<p><b>NOTE:</b><ul>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_1").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_2").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_flow_collection_note_3").."</li></ul>",
-				    labels, values, "none", "primary", "multiple_flow_collection", "ntopng.prefs.dynamic_flow_collection_mode", nil,
+  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
+				    subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
+				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
+				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li></ul>",
+				    labels, values, "none", "primary", "disaggregation_criterion", "ntopng.prefs.dynamic_flow_collection_mode", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch)
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.zmq_interfaces")..'</th></tr>')
+
+  prefsToggleButton({
+	field = "toggle_dst_with_post_nat_dst",
+	default = "0",
+	pref = "override_dst_with_post_nat_dst",
+  })
+
+  prefsToggleButton({
+	field = "toggle_src_with_post_nat_src",
+	default = "0",
+	pref = "override_src_with_post_nat_src",
+  })
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
@@ -121,7 +149,8 @@ function printAlerts()
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
   "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
-  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header", "row_toggle_ssl_alerts"}
+  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
+  "row_toggle_ssl_alerts", "row_toggle_dns_alerts"}
 
   prefsToggleButton({
     field = "disable_alerts_generation",
@@ -157,6 +186,7 @@ function printAlerts()
 
   prefsToggleButton({
     field = "toggle_alert_probing",
+    pref = "probing_alerts",
     default = "0",
     hidden = not showElements,
   })
@@ -164,6 +194,13 @@ function printAlerts()
   prefsToggleButton({
     field = "toggle_ssl_alerts",
     pref = "ssl_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  prefsToggleButton({
+    field = "toggle_dns_alerts",
+    pref = "dns_alerts",
     default = "0",
     hidden = not showElements,
   })
@@ -187,7 +224,7 @@ function printAlerts()
 
   print('<tr><th colspan=2 style="text-align:right;">')
   print('<button class="btn btn-default" type="button" onclick="$(\'#flushAlertsData\').modal(\'show\');" style="width:230px; float:left;">'..i18n("show_alerts.reset_alert_database")..'</button>')
-  print('<button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button>')
+  print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
   print('</th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -248,14 +285,14 @@ function printExternalAlertsReport()
 
   local retVal = multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                labels, values, "only_errors", "primary", "slack_notification_severity_preference",
-	       "ntopng.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
+	       "ntopng.prefs.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
 
   prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
-           "ntopng.alerts.", "sender_username",
+           "ntopng.prefs.alerts.", "sender_username",
 		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
 
   prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
-		       "ntopng.alerts.", "slack_webhook",
+		       "ntopng.prefs.alerts.", "slack_webhook",
 		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
 
   if(ntop.isPro() and hasNagiosSupport()) then
@@ -286,7 +323,7 @@ function printExternalAlertsReport()
     prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
   end
   
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
@@ -307,7 +344,7 @@ function printProtocolPrefs()
     default = "0",
   })
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -337,23 +374,45 @@ function printBridgingPrefs()
   print('<table class="table">')
 
   if show_advanced_prefs then
-    print('<tr><th colspan=2 class="info">'..i18n("prefs.traffic_shaping")..'</th></tr>')
+    print('<tr><th colspan=2 class="info">'..i18n("traffic_policy")..'</th></tr>')
 
     prefsToggleButton({
       field = "toggle_shaping_directions",
       pref = "split_shaping_directions",
       default = "0",
     })
+
+    local labels = {
+      i18n("prefs.per_protocol"),
+      i18n("prefs.per_category"),
+      i18n("prefs.both"),
+    }
+
+    local values = {
+      "per_protocol",
+      "per_category",
+      "both",
+    }
+
+    multipleTableButtonPrefs(subpage_active.entries["policy_target_type"].title,
+				    subpage_active.entries["policy_target_type"].description,
+				    labels, values,
+				    "per_category",
+				    "primary",
+				    "bridging_policy_target_type",
+				    "ntopng.prefs.bridging_policy_target_type")
   end
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
 
+if hasBridgeInterfaces(true) then
   prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
         "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
   prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
         "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
   prefsInputFieldPrefs(subpage_active.entries["secondary_dns"].title, subpage_active.entries["secondary_dns"].description,
         "ntopng.prefs.", "secondary_dns", prefs.secondary_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
+end
 
   prefsInformativeField(subpage_active.entries["featured_dns"].title, subpage_active.entries["featured_dns"].description..[[<br><br>
         <table class='table table-bordered table-condensed small'>
@@ -381,11 +440,15 @@ function printBridgingPrefs()
     to_switch = captivePortalElementsToSwitch,
   })
 
+  if not isEmptyString(label) then
+    prefsInformativeField("", label, true)
+  end
+
   local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
   prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
         "ntopng.prefs.", "redirection_url", prefs.redirection_url, nil, to_show, false, nil, {pattern=getURLPattern()})
   
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -415,14 +478,54 @@ function printNbox()
     showElements = false
   end
 
+  fixChromeLoginFields()
   prefsInputFieldPrefs(subpage_active.entries["nbox_user"].title, subpage_active.entries["nbox_user"].description, "ntopng.prefs.", "nbox_user", "nbox", nil, showElements, false)
   prefsInputFieldPrefs(subpage_active.entries["nbox_password"].title, subpage_active.entries["nbox_password"].description, "ntopng.prefs.", "nbox_password", "nbox", "password", showElements, false)
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
+end
+
+-- ================================================================================
+
+function printNetworkDiscovery()
+   print('<form method="post">')
+   print('<table class="table">')
+
+   print('<tr><th colspan=2 class="info">'..i18n("prefs.network_discovery")..'</th></tr>')
+
+   local elementToSwitch = {"network_discovery_interval"}
+
+   prefsToggleButton({
+    field = "toggle_network_discovery",
+    default = "0",
+    pref = "is_network_discovery_enabled",
+    to_switch = elementToSwitch,
+  })
+
+   local showNetworkDiscoveryInterval = false
+   if ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1" then
+      showNetworkDiscoveryInterval = true
+   end
+
+   local interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
+
+   if isEmptyString(interval) then -- set a default value
+      interval = 15 * 60 -- 15 minutes
+      ntop.setPref("ntopng.prefs.network_discovery_interval", tostring(interval))
+   end
+
+   prefsInputFieldPrefs(subpage_active.entries["network_discovery_interval"].title, subpage_active.entries["network_discovery_interval"].description,
+    "ntopng.prefs.", "network_discovery_interval", interval, "number", showNetworkDiscoveryInterval, nil, nil, {min=60 * 15, tformat="mhd"})
+
+   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+
+   print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
 end
 
 -- ================================================================================
@@ -439,18 +542,39 @@ function printMisc()
       pref = "is_autologon_enabled",
     })
   end
+
+  prefsInputFieldPrefs(subpage_active.entries["max_ui_strlen"].title, subpage_active.entries["max_ui_strlen"].description,
+		       "ntopng.prefs.", "max_ui_strlen", prefs.max_ui_strlen, "number", nil, nil, nil, {min=3, max=128})
+
   prefsInputFieldPrefs(subpage_active.entries["google_apis_browser_key"].title, subpage_active.entries["google_apis_browser_key"].description,
 		       "ntopng.prefs.",
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.report_units")..'</th></tr>')
+  -- ######################
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr>')
 
   local t_labels = {i18n("bytes"), i18n("packets")}
   local t_values = {"bps", "pps"}
 
   multipleTableButtonPrefs(subpage_active.entries["toggle_thpt_content"].title, subpage_active.entries["toggle_thpt_content"].description,
 			   t_labels, t_values, "bps", "primary", "toggle_thpt_content", "ntopng.prefs.thpt_content")
+
+  -- ######################
+
+  if ntop.isPro() then
+     t_labels = {i18n("topk_heuristic.precision.disabled"),
+		 i18n("topk_heuristic.precision.more_accurate"),
+		 i18n("topk_heuristic.precision.less_accurate"),
+		 i18n("topk_heuristic.precision.aggressive")}
+     t_values = {"disabled", "more_accurate", "accurate", "aggressive"}
+
+     multipleTableButtonPrefs(subpage_active.entries["topk_heuristic_precision"].title,
+			      subpage_active.entries["topk_heuristic_precision"].description,
+			      t_labels, t_values, "more_accurate", "primary", "topk_heuristic_precision",
+			      "ntopng.prefs.topk_heuristic_precision")
+  end
 
   -- ######################
 
@@ -467,7 +591,7 @@ function printMisc()
 
   -- #####################
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
@@ -533,11 +657,7 @@ function printAuthentication()
   if showElements == true then
     showElementsBind = showEnabledAnonymousBind
   end
-  -- These two fields are necessary to prevent chrome from filling in LDAP username and password with saved credentials
-  -- Chrome, in fact, ignores the autocomplete=off on the input field. The input fill-in triggers un-necessary are-you-sure leave message
-  print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
-  print('<input style="display:none;" type="password" name="_" data-ays-ignore="true" />')
-  --
+  fixChromeLoginFields()
   prefsInputFieldPrefs(subpage_active.entries["bind_dn"].title, subpage_active.entries["bind_dn"].description .. "\"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}})
   prefsInputFieldPrefs(subpage_active.entries["bind_pwd"].title, subpage_active.entries["bind_pwd"].description, "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
 
@@ -545,7 +665,7 @@ function printAuthentication()
   prefsInputFieldPrefs(subpage_active.entries["user_group"].title, subpage_active.entries["user_group"].description, "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
   prefsInputFieldPrefs(subpage_active.entries["admin_group"].title, subpage_active.entries["admin_group"].description, "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
   print('</form>')
@@ -563,15 +683,22 @@ function printInMemory()
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
+    to_switch = {"local_host_cache_duration"},
   })
 
-  local elementToSwitchLocalCache = {"active_local_host_cache_interval"}
+  local showLocalHostCacheInterval = false
+  if ntop.getPref("ntopng.prefs.is_local_host_cache_enabled") == "1" then
+    showLocalHostCacheInterval = true
+  end
+
+  prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
+    "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", showLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
   prefsToggleButton({
     field = "toggle_active_local_host_cache_enabled",
     default = "0",
     pref = "is_active_local_host_cache_enabled",
-    to_switch = elementToSwitchLocalCache,
+    to_switch = {"active_local_host_cache_interval"},
   })
 
   local showActiveLocalHostCacheInterval = false
@@ -580,25 +707,23 @@ function printInMemory()
   end
 
   prefsInputFieldPrefs(subpage_active.entries["active_local_host_cache_interval"].title, subpage_active.entries["active_local_host_cache_interval"].description,
-    "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
+    "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval or 3600, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
-  prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
-    "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="mhd"})
   print('</table>')
   
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.idle_timeout_settings")..'</th></tr>')
   prefsInputFieldPrefs(subpage_active.entries["local_host_max_idle"].title, subpage_active.entries["local_host_max_idle"].description,
-      "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil, {min=1, max=1800, tformat="sm", attributes={["data-localremotetimeout"]="localremotetimeout"}})
+      "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh", attributes={["data-localremotetimeout"]="localremotetimeout"}})
   prefsInputFieldPrefs(subpage_active.entries["non_local_host_max_idle"].title, subpage_active.entries["non_local_host_max_idle"].description,
-      "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil, {min=1, max=1800, tformat="sm"})
+      "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh"})
   prefsInputFieldPrefs(subpage_active.entries["flow_max_idle"].title, subpage_active.entries["flow_max_idle"].description,
-      "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil, {min=1, max=1800, tformat="sm"})
+      "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh"})
 
   prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title, subpage_active.entries["housekeeping_frequency"].description,
       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60})
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
@@ -642,26 +767,93 @@ end
 function printStatsTimeseries()
   print('<form method="post">')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n('prefs.timeseries')..'</th></tr>')
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
+
+  -- TODO: make also per-category interface RRDs
+  local l7_rrd_labels = {i18n("prefs.none"),
+		  i18n("prefs.per_protocol"),
+		  i18n("prefs.per_category"),
+		  i18n("prefs.both")
+                  }
+  local l7_rrd_values = {"none",
+		  "per_protocol",
+		  "per_category",
+		  "both"}
+
+  local elementToSwitch = { }
+  local showElementArray = nil -- { true, false, false }
+  local javascriptAfterSwitch = "";
 
   prefsToggleButton({
-    field = "toggle_local",
+	field = "toggle_interface_traffic_rrd_creation",
+	default = "1",
+	pref = "interface_rrd_creation",
+	to_switch = {"row_interfaces_ndpi_timeseries_creation"},
+  })
+
+  local showElement = ntop.getPref("ntopng.prefs.interface_rrd_creation") == "1"
+
+  retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
+				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
+				    l7_rrd_labels, l7_rrd_values,
+				    "per_protocol",
+				    "primary",
+				    "interfaces_ndpi_timeseries_creation",
+				    "ntopng.prefs.interface_ndpi_timeseries_creation", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
+
+  prefsToggleButton({
+    field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
     pref = "host_rrd_creation",
-    to_switch = elementToSwitchLocalCache,
+    to_switch = {"row_hosts_ndpi_timeseries_creation"},
   })
+
+  local showElement = ntop.getPref("ntopng.prefs.host_rrd_creation") == "1"
+
+  retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
+				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
+				    l7_rrd_labels, l7_rrd_values,
+				    "none",
+				    "primary",
+				    "hosts_ndpi_timeseries_creation",
+				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.l2_devices_timeseries')..'</th></tr>')
 
   prefsToggleButton({
-    field = "toggle_local_ndpi",
+    field = "toggle_l2_devices_traffic_rrd_creation",
     default = "0",
-    pref = "host_ndpi_rrd_creation",
-    to_switch = elementToSwitchLocalCache,
+    pref = "l2_device_rrd_creation",
+    to_switch = {"row_l2_devices_ndpi_timeseries_creation", "rrd_files_retention"},
   })
 
-  local activityPrefsToSwitch = {"local_activity_prefs",
-    "host_activity_rrd_raw_hours", "id_input_host_activity_rrd_raw_hours",
-    "host_activity_rrd_1h_days", "id_input_host_activity_rrd_1h_days",
-    "host_activity_rrd_1d_days", "id_input_host_activity_rrd_1d_days"}
+  local l7_rrd_labels = {i18n("prefs.none"),
+			 i18n("prefs.per_category")}
+  local l7_rrd_values = {"none",
+			 "per_category"}
+
+  local showElement = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"
+
+  retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
+				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
+				    l7_rrd_labels, l7_rrd_values,
+				    "none",
+				    "primary",
+				    "l2_devices_ndpi_timeseries_creation",
+				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
+		       "ntopng.prefs.", "rrd_files_retention", 30, "number",
+		       showElement,
+		       nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
+
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
   local info = ntop.getInfo()
 
@@ -704,13 +896,6 @@ function printStatsTimeseries()
     pref = "asn_rrd_creation",
   })
 
-  prefsToggleButton({
-    field = "toggle_local_categorization",
-    default = "0",
-    pref = "host_categories_rrd_creation",
-    disabled = not prefs.is_categorization_enabled,
-  })
-
   print('</table>')
 
   print('<table class="table">')
@@ -740,7 +925,7 @@ if show_advanced_prefs and false --[[ hide these settings for now ]] then
   prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "other_rrd_1h_days", prefs.other_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "other_rrd_1d_days", prefs.other_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
 end
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -764,7 +949,7 @@ function printLogging()
     pref = "enable_access_log",
   })
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
@@ -790,7 +975,7 @@ function printSnmp()
 		       "default_snmp_community",
 		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}})
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
@@ -814,7 +999,7 @@ function printFlowDBDump()
   prefsInputFieldPrefs(subpage_active.entries["max_num_bytes_per_tiny_flow"].title, subpage_active.entries["max_num_bytes_per_tiny_flow"].description,
         "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
@@ -915,6 +1100,10 @@ if(tab == "nbox") then
   if(ntop.isPro()) then
      printNbox()
   end
+end
+
+if(tab == "discovery") then
+   printNetworkDiscovery()
 end
 
 if(tab == "bridging") then

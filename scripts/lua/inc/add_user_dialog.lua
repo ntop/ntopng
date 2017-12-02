@@ -1,3 +1,4 @@
+require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
@@ -11,7 +12,6 @@ if is_captive_portal_active then
       captive_portal_user = true
    end
 end
-
 
 print [[
 <div id="add_user_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add_user_dialog_label" aria-hidden="true">
@@ -209,6 +209,31 @@ end
 end
 
 print[[
+<br>
+
+<div class="row">
+    <div class="form-group col-md-6 has-feedback">
+      <label class="form-label">Language</label>
+      <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
+        <select name="user_language" id="user_language" class="form-control">]]
+
+for _, lang in pairs(locales_utils.getAvailableLocales()) do
+   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+end
+
+print[[
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group col-md-6 has-feedback">
+      <label class="form-label"></label>
+      <div class="input-group">
+      </div>
+    </div>
+</div>
+
 <br>
 
 <div class="row">

@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 class ExportInterface {
  private:
   char *endpoint, *topic;
@@ -35,6 +37,7 @@ class ExportInterface {
 
   void export_data(char *json);
 };
+#endif
 
 #endif /* _EXPORT_INTERFACE_H_ */
 

@@ -31,8 +31,9 @@
 
 /* **************************************** */
 
-Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_int8_t _redis_db_id) {
-  redis_host = _redis_host, redis_password = _redis_password;
+Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _redis_port, u_int8_t _redis_db_id) {
+  redis_host = _redis_host ? strdup(_redis_host) : NULL;
+  redis_password = _redis_password ? strdup(_redis_password) : NULL;
   redis_port = _redis_port, redis_db_id = _redis_db_id;
 
   num_requests = num_reconnections = 0;
@@ -40,7 +41,6 @@ Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_
   reconnectRedis();
   stringCache = NULL, numCached = 0;
   l = new Mutex();
-  setDefaults();
 }
 
 /* **************************************** */
@@ -50,6 +50,8 @@ Redis::~Redis() {
   redisFree(redis);
   // flushCache();
   delete l;
+  if(redis_host)     free(redis_host);
+  if(redis_password) free(redis_password);
 }
 
 /* **************************************** */
@@ -128,7 +130,7 @@ int Redis::expire(char *key, u_int expire_secs) {
     l->unlock(__FILE__, __LINE__);
     return(0);
   }
-  
+
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "EXPIRE %s %u", key, expire_secs);
   if(!reply) reconnectRedis();
@@ -154,7 +156,7 @@ bool Redis::isCacheable(char *key) {
 
 bool Redis::expireCache(char *key, u_int expire_secs) {
   StringCache_t *cached = NULL;
-  
+
 #ifdef CACHE_DEBUG
   printf("**** Setting cache expire for %s [%u sec]\n", key, expire_secs);
 #endif
@@ -172,9 +174,9 @@ bool Redis::expireCache(char *key, u_int expire_secs) {
 /* **************************************** */
 
 /* NOTE: We assume that the addToCache() caller locks this instance */
-void Redis::addToCache(char *key, char *value, u_int expire_secs) { 
+void Redis::addToCache(char *key, char *value, u_int expire_secs) {
   StringCache_t *cached = NULL;
- 
+
 #ifdef CACHE_DEBUG
   printf("**** Caching %s=%s\n", key, value ? value : "<NULL>");
 #endif
@@ -187,12 +189,12 @@ void Redis::addToCache(char *key, char *value, u_int expire_secs) {
     cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
     return;
   }
-  
+
   cached = (StringCache_t*)malloc(sizeof(StringCache_t));
   if(cached) {
     cached->key = strdup(key), cached->value = strdup(value);
     cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
-    
+
     if(cached->key && cached->value) {
       HASH_ADD_STR(stringCache, key, cached);
       numCached++;
@@ -212,13 +214,6 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   bool cacheable = false;
   redisReply *reply;
   StringCache_t *cached = NULL;
-
-  /* For backward compatibility, we check if it is a preference
-   even if it has been requested as a normal readis get */
-  if(!strncmp(key, "ntopng.prefs.", strlen("ntopng.prefs."))) {
-    if(ntop->getPrefs()->hashGet(key, rsp, rsp_len) > 0)
-      return 0;
-  }
 
   l->lock(__FILE__, __LINE__);
 
@@ -268,18 +263,18 @@ int Redis::del(char *key){
   int rc;
   redisReply *reply;
   StringCache_t *cached = NULL;
-  
+
   l->lock(__FILE__, __LINE__);
-  
+
   HASH_FIND_STR(stringCache, key, cached);
 
   if(cached) {
     HASH_DEL(stringCache, cached);
     if(cached->key)   free(cached->key);
     if(cached->value) free(cached->value);
-    free(cached);    
+    free(cached);
   }
-  
+
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "DEL %s", key);
   if(!reply) reconnectRedis();
@@ -369,7 +364,7 @@ int Redis::set(char *key, char *value, u_int expire_secs) {
 
   if(isCacheable(key))
     addToCache(key, value, expire_secs);
-  
+
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "SET %s %s", key, value);
   if(!reply) reconnectRedis();
@@ -665,7 +660,7 @@ int Redis::twoOperators(const char *operation, char *op1, char *op2) {
 /* **************************************** */
 
 int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existence, bool localHost) {
-  if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
+  if(ntop->getPrefs()->is_httpbl_enabled()) {
     if(hostname == NULL) return(-1);
     return(pushHost(TRAFFIC_FILTERING_CACHE, TRAFFIC_FILTERING_TO_RESOLVE,
 		    hostname, dont_check_for_existence, localHost));
@@ -686,12 +681,12 @@ int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool
     */
     IpAddress ip;
     int16_t network_id;
-    
+
     ip.set(hostname);
     if(!ip.isLocalHost(&network_id))
       return(-1);
   }
-  
+
   return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existence, localHost));
 }
 
@@ -775,8 +770,7 @@ char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
   char key[CONST_MAX_LEN_REDIS_KEY];
   redisReply *reply;
 
-  if((!ntop->getPrefs()->is_httpbl_enabled())
-     && (!ntop->getPrefs()->is_flashstart_enabled()))
+  if(!ntop->getPrefs()->is_httpbl_enabled())
     return(NULL);
 
   buf[0] = '\0';
@@ -829,14 +823,18 @@ int Redis::popDomainToCategorize(char *domainname, u_int domainname_len) {
 
 void Redis::setDefaults() {
   char *admin_md5 = (char*)"21232f297a57a5a743894a0e4a801fc3";
-  char value[CONST_MAX_LEN_REDIS_VALUE];
+  char *value;
 
+  if((value = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    return;
+  
   setResolvedAddress((char*)"127.0.0.1", (char*)"localhost");
   setResolvedAddress((char*)"::1", (char*)"localhostV6");
   setResolvedAddress((char*)"255.255.255.255", (char*)"Broadcast");
   setResolvedAddress((char*)"0.0.0.0", (char*)"NoIP");
 
-  if(get((char*)"ntopng.user.admin.password", value, sizeof(value)) < 0) {
+  if(get((char*)"ntopng.user.admin.password", value,
+	 CONST_MAX_LEN_REDIS_VALUE) < 0) {
     set((char*)"ntopng.user.admin.password", admin_md5);
     set((char*)"ntopng.user.admin.full_name", (char*)"ntopng Administrator");
     set((char*)"ntopng.user.admin.group", (char*)CONST_USER_GROUP_ADMIN);
@@ -844,6 +842,33 @@ void Redis::setDefaults() {
   } else if(strncmp(value, admin_md5, strlen(admin_md5))) {
     set((char*)CONST_DEFAULT_PASSWORD_CHANGED, (char*)"1");
   }
+
+  free(value);
+}
+
+/* **************************************** */
+
+int Redis::flushDb() {
+  int rc;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "FLUSHDB");
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
+
+  l->unlock(__FILE__, __LINE__);
+
+  if (rc == 0) {
+    flushCache();
+    setDefaults();
+  }
+
+  return(rc);
 }
 
 /* **************************************** */
@@ -1140,18 +1165,22 @@ void Redis::setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_
 
 /* *************************************** */
 
-u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf, char *host_name, bool *new_key) {
+u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf,
+			    char *host_name, bool *new_key) {
   u_int32_t id;
   int rc;
-  char buf[32], keybuf[384], rsp[CONST_MAX_LEN_REDIS_VALUE];
+  char buf[32], keybuf[384], *rsp;
 
   if(iface == NULL) return(-1);
 
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    return(CONST_LUA_PARAM_ERROR);
+  
   snprintf(keybuf, sizeof(keybuf), "%s|%s", iface->get_name(), host_name);
 
   /* Add host key if missing */
   snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
-  rc = hashGet(buf, keybuf, rsp, sizeof(rsp));
+  rc = hashGet(buf, keybuf, rsp, CONST_MAX_LEN_REDIS_VALUE);
 
   if(rc == -1) {
     /* Not found */
@@ -1163,6 +1192,8 @@ u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf, char *host_na
   } else
     id = atol(rsp), *new_key = false;
 
+  free(rsp);
+  
   return(id);
 }
 
@@ -1178,8 +1209,8 @@ int Redis::id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len) {
 
 /* ******************************************* */
 
-int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("LPUSH", queue_name, msg, queue_trim_size));
+int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
+  return(msg_push("LPUSH", queue_name, msg, queue_trim_size, trace_errors));
 }
 
 /* ******************************************* */
@@ -1190,7 +1221,7 @@ int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
 
 /* ******************************************* */
 
-int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size) {
+int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
   redisReply *reply;
   int rc = 0;
 
@@ -1201,7 +1232,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 
   if(!reply) reconnectRedis();
   if(reply) {
-    if(reply->type == REDIS_REPLY_ERROR)
+    if(reply->type == REDIS_REPLY_ERROR && trace_errors)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
     else
       rc = reply->integer;
@@ -1213,7 +1244,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
       reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size - 1);
       if(!reply) reconnectRedis();
       if(reply) {
-	if(reply->type == REDIS_REPLY_ERROR)
+	if(reply->type == REDIS_REPLY_ERROR && trace_errors)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
 
 	freeReplyObject(reply);
@@ -1436,7 +1467,7 @@ void Redis::flushCache() {
 
   l->lock(__FILE__, __LINE__);
   sd = stringCache;
-    
+
   HASH_ITER(hh, sd, current, tmp) {
     HASH_DEL(sd, current);
     if(current->key)   free(current->key);
@@ -1446,8 +1477,98 @@ void Redis::flushCache() {
 
   numCached = 0;
   l->unlock(__FILE__, __LINE__);
-  
+
 #ifdef CACHE_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** Successfully flushed cache\n");
 #endif
+}
+
+/* **************************************** */
+
+/* https://github.com/nullptr-cc/redis-extra-tools */
+static void bin2hex(char * in, int len, char * out) {
+  int i;
+
+  char table[] = "0123456789ABCDEF";
+
+  for (i = 0; i < len; ++i) {
+    out[i*2+0] = table[in[i] >> 4 & 0x0F];
+    out[i*2+1] = table[in[i] & 0x0F];
+  }
+
+  out[len*2] = 0;
+}
+
+static char hdig2bin(char c) {
+  if (c >= '0' && c <= '9') {
+    return c - '0';
+  } else {
+    return c - 'A' + 0x0A;
+  }
+}
+
+static void hex2bin(char * in, char * out) {
+  int unsigned i, len = strlen(in);
+
+  for (i = 0; i < len; i += 2) {
+    out[i / 2] = (hdig2bin(in[i]) << 4) + hdig2bin(in[i+1]);
+  }
+}
+
+/* **************************************** */
+
+char* Redis::dump(char *key) {
+  char *rsp = NULL;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "DUMP %s", key);
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+  if(reply) {
+    if((rsp = (char*)malloc(1 + reply->len * 2)) != NULL)
+      bin2hex(reply->str, reply->len, rsp);
+
+    freeReplyObject(reply);
+  }
+
+  l->unlock(__FILE__, __LINE__);
+
+  return(rsp);
+}
+
+/* **************************************** */
+
+int Redis::restore(char *key, char *buf) {
+  int rc;
+  redisReply *reply;
+  char *buf_bin = (char*)malloc(strlen(buf));
+  const char * argv[4] = {"RESTORE", key, "0", buf_bin};
+  size_t argvlen[4] = {7, 0, 0, 0};
+
+  if(buf_bin == NULL)
+    return(-1);
+
+  hex2bin(buf, buf_bin);
+
+  l->lock(__FILE__, __LINE__);
+  num_requests++;
+
+  argvlen[1] = strlen(argv[1]);
+  argvlen[2] = strlen(argv[2]);
+  argvlen[3] = strlen(buf) / 2;
+
+  reply = (redisReply*)redisCommandArgv(redis, 4, argv, argvlen);
+
+  rc = reply ? 0 : -1;
+
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  free(buf_bin);
+
+  return(rc);
 }

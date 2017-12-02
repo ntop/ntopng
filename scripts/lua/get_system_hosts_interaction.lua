@@ -58,7 +58,7 @@ for key, value in ipairs(flows_stats) do
 	 client_type = "syshost"
       else
 	 client_id = flows_stats[key]["cli.source_id"]..'-'..flows_stats[key]["cli.ip"]
-	 client_name = abbreviateString(cli_name, 20)
+	 client_name = shortenString(cli_name)
 	 client_type = "host"
       end
 
@@ -72,7 +72,7 @@ for key, value in ipairs(flows_stats) do
 	 server_type = "syshost"
       else
 	 server_id = flows_stats[key]["srv.source_id"]..'-'..flows_stats[key]["srv.ip"]
-	 server_name = abbreviateString(srv_name, 20)
+	 server_name = shortenString(srv_name)
 	 server_type = "host"
       end
 

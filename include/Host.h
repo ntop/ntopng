@@ -24,28 +24,24 @@
 
 #include "ntop_includes.h"
 
-class Host : public GenericHost {
+class Host : public GenericHost, public Checkpointable {
  private:
   u_int32_t asn;
   AutonomousSystem *as;
   Vlan *vlan;
-  char *symbolic_name, *continent, *country, *city, *asname, os[16], trafficCategory[12], *info;
+  char *symbolic_name, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char *old_sites;
   bool blacklisted_host, blacklisted_alarm_emitted, drop_all_host_traffic, dump_host_traffic, dhcpUpdated, host_label_set;
   u_int32_t host_quota_mb;
   int16_t local_network_id;
   u_int32_t num_alerts_detected;
-  float latitude, longitude;
   IpAddress ip;
   Mutex *m;
-  Mac *mac, *secondary_mac;
-  u_int32_t mac_last_seen, secondary_mac_last_seen;
+  Mac *mac;
+  u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt, nextSitesUpdate;
-#ifdef NTOPNG_PRO
-  CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
-#endif
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   TrafficStats tcp_sent, tcp_rcvd;
@@ -63,14 +59,15 @@ class Host : public GenericHost {
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   NetworkStats *networkStats;
-  CategoryStats *categoryStats;
   char *ssdpLocation, *ssdpLocation_shadow;
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
+  TrafficShaper **host_traffic_shapers;
 #endif
-  u_int16_t host_pool_id;
+  u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
+  bool checkpoint_set;
 
   struct {
     u_int32_t pktRetr, pktOOO, pktLost;
@@ -83,8 +80,8 @@ class Host : public GenericHost {
   bool readDHCPCache();
   void updateLocal();
 #ifdef NTOPNG_PRO
-  u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
-  void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, bool *is_category);
+  TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
+  void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
 
  public:
@@ -94,10 +91,10 @@ class Host : public GenericHost {
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   ~Host();
 
-  void updateStats(struct timeval *tv);
+  virtual void updateStats(struct timeval *tv);
   void incLowGoodputFlows(bool asClient);
   void decLowGoodputFlows(bool asClient);
-  void resetPeriodicStats(void);
+
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num; };
@@ -110,28 +107,25 @@ class Host : public GenericHost {
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
-  inline void setOS(char *_os)                 { if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os); }
+  void setOS(char *_os);
   inline IpAddress* get_ip()                   { return(&ip);              }
-  void set_mac(Mac  *m,     bool primary = true);
-  void set_mac(char *m,     bool primary = true);
-  void set_mac(u_int8_t *m, bool primary = true);
+  void set_mac(Mac  *m);
+  void set_mac(char *m);
+  void set_mac(u_int8_t *m);
   inline bool isBlacklisted()                  { return(blacklisted_host); }
   inline bool isBlacklistedAlarmEmitted()      { return(blacklisted_alarm_emitted); }
   inline void setBlacklistedAlarmEmitted()     { blacklisted_alarm_emitted = true; }
   bool hasAnomalies();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
-  inline Mac* getSecondaryMac()                { return(secondary_mac);    }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
-  inline char* get_continent()                 { return(continent);        }
-  inline char* get_country()                   { return(country);          }
-  inline char* get_city()                      { return(city);             }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
 #ifdef NTOPNG_PRO
-  inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
-  inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
-  bool checkQuota(u_int16_t protocol, bool *is_category);
+  inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
+  inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
+  bool checkQuota(u_int16_t protocol, bool *is_category, const struct tm *now); /* Per-protocol quota check */
+  bool checkCrossApplicationQuota(); /* Overall quota check (e.g., total traffic per host pool) */
   inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
 				       ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
@@ -143,12 +137,10 @@ class Host : public GenericHost {
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); }
   void luaUsedQuotas(lua_State* vm);
 #endif
-  inline u_int16_t get_host_pool()             { return(host_pool_id);     }
+
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
-  inline float get_latitude()                  { return(latitude);         }
-  inline float get_longitude()                 { return(longitude);        }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   char* get_visual_name(char *buf, u_int buf_len, bool from_info=false);
@@ -157,8 +149,7 @@ class Host : public GenericHost {
   bool idle();
   void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   void lua(lua_State* vm, AddressTree * ptree, bool host_details,
-	   bool verbose, bool returnHost, bool asListElement,
-	   bool exclude_deserialized_bytes);
+	   bool verbose, bool returnHost, bool asListElement);
   void luaAnomalies(lua_State* vm);
   void resolveHostName();
   void setName(char *name);
@@ -166,9 +157,7 @@ class Host : public GenericHost {
   inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
-  virtual void housekeep();
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
-		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
@@ -177,6 +166,7 @@ class Host : public GenericHost {
   void  serialize2redis();
   bool  deserialize(char *json_str, char *key);
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
+  bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
 
   void incNumFlows(bool as_client);
@@ -203,14 +193,12 @@ class Host : public GenericHost {
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostL7Policy();
-  void updateHostPool();
+  void updateHostPool(bool isInlineCall);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
-  void getPeerBytes(lua_State* vm, u_int32_t peer_key);
-  inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
-  inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
-  inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
+  bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
+  void checkPointHostTalker(lua_State *vm);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   void incrVisitedWebSite(char *hostname);
@@ -219,20 +207,9 @@ class Host : public GenericHost {
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   void setMDSNInfo(char *str);
-  bool IsAllowedTrafficCategory(struct site_categories *category);
-  inline void updateMacSeen(Mac *m) {
-    if(mac == m && mac)
-      mac_last_seen = m->get_last_seen();
-    else if(secondary_mac == m && secondary_mac)
-      secondary_mac_last_seen = m->get_last_seen();
-  }
-  inline bool isChildSafe() {
-#ifdef NTOPNG_PRO
-    return(iface->getHostPools()->isChildrenSafePool(host_pool_id));
-#else
-    return(false);
-#endif
-  }
+  char* get_country(char *buf, u_int buf_len);
+  char* get_city(char *buf, u_int buf_len);
+  void get_geocoordinates(float *latitude, float *longitude);
 
   inline void setSSDPLocation(char *url) {
      if(url) {

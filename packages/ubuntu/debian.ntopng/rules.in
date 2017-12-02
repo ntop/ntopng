@@ -1,0 +1,72 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+# export DH_VERBOSE=1
+
+#
+# debian/compat
+# We should use at least compatibility version 5
+# but this requires the whole building process
+# to be remade and this is something we leave
+# to when we will have more time
+# http://www.tin.org/bin/man.cgi?section=7&topic=debhelper
+#
+
+package=@APP@
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	dh_installinit
+	dh_installman
+# Do not strip binary so we can leave debug symbols
+#	dh_strip
+	dh_compress
+#	dh_fixperms
+	dh_installdeb
+# install the files into debian/@APP@.
+	mkdir -p ./debian/@APP@
+	cp -r ./usr/ ./debian/@APP@
+	if test "@APP@" = "nedge"; then cp -r ../../nedge/packages/etc/ ./debian/@APP@; else cp -r ../etc/ ./debian/@APP@; fi
+	-rm ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
+	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
+	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'
+	-find ./debian/@APP@ -name '*#' -exec /bin/rm -rf {} ';'
+	-find ./debian/@APP@ -name '*.in' -exec /bin/rm -rf {} ';'
+	\rm -rf ./debian/@APP@/etc/init.d/nprobe ./debian/@APP@/etc/ld.so.conf.d
+	if grep -q init /proc/1/comm; then \
+		rm -rf ./debian/@APP@/etc/systemd; \
+	else \
+		rm -rf ./debian/@APP@/etc/init.d; \
+	fi
+# Don't use upstart
+	\rm -rf ./debian/@APP@/etc/init
+	dh_link
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

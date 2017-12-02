@@ -504,3 +504,15 @@ function memberValueValidator(input) {
 
   return is_mac_address(member) || is_network_mask(member, true);
 }
+
+/* Used while searching hosts a and macs with typeahead */
+function makeFindHostBeforeSubmitCallback(http_prefix) {
+  return function(form, data) {
+    if (data.isMac)
+      form.attr("action", http_prefix + "/lua/mac_details.lua");
+    else
+      form.attr("action", http_prefix + "/lua/host_details.lua");
+
+    return true;
+  }
+}

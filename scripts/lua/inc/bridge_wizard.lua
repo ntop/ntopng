@@ -1,3 +1,4 @@
+require("lua_utils")
 local template = require "template_utils"
 local host_pools_utils = require "host_pools_utils"
 

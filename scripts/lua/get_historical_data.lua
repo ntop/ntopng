@@ -5,7 +5,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-require "top_talkers"
 require "db_utils"
 local json = require ("dkjson")
 
@@ -36,6 +35,9 @@ local l4_proto_id = _GET["l4_proto_id"]
 
 -- also add a port
 local port = _GET["port"]
+
+local vlan    = _GET["vlan"]
+local profile = _GET["profile"]
 
 local host_info = url2hostinfo(_GET)
 local host = nil
@@ -122,13 +124,13 @@ local res = {["status"] = "unable to parse the request, please check input param
 if stats_type == "top_talkers" then
    if not peer1 and not peer2 and not l7_proto_id then
       -- CASE 01: compute interface-wide top-talkers for the selected time interval
-      res = getOverallTopTalkers(ifid, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+      res = getOverallTopTalkers(ifid, l4_proto_id, port, vlan, profile, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
       for _, record in pairs(res) do
 	 record["label"] = getResolvedAddress(hostkey2hostinfo(record["addr"]))
       end
    elseif not peer1 and not peer2 and l7_proto_id and l7_proto_id ~= "" then
       -- CASE 02: compute top-talkers for the specified L7 protocol
-      res = getAppTopTalkers(ifid, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+      res = getAppTopTalkers(ifid, l7_proto_id, l4_proto_id, port, vlan, profile, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = getResolvedAddress(hostkey2hostinfo(record["addr"]))
@@ -137,7 +139,7 @@ if stats_type == "top_talkers" then
       -- CASE 03: compute top-talkers with the given peer1
       -- if l7_proto_id is specified and non-nil, then top-talkers are computed
       -- with reference to peer1 and restricted to the application identified by l7_proto_id
-      res = getHostTopTalkers(ifid, peer1, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+      res = getHostTopTalkers(ifid, peer1, l7_proto_id, l4_proto_id, port, vlan, profile, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = getResolvedAddress(hostkey2hostinfo(record["addr"]))
@@ -150,7 +152,7 @@ if stats_type == "top_talkers" then
       end
    end
 elseif stats_type =="top_applications" then
-   res = getTopApplications(ifid, peer1, peer2, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+   res = getTopApplications(ifid, peer1, peer2, l7_proto_id, l4_proto_id, port, vlan, profile, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
    -- add protocol labels
    for _, record in pairs(res) do

@@ -17,10 +17,10 @@ print [[
 	<div class="col-xs-6 col-sm-4">]]
 print(info["product"])
 
-iface_id = interface.name2id(ifname)
+local iface_id = interface.name2id(ifname)
 
 interface.select(ifname)
-_ifstats = interface.getStats()
+local _ifstats = interface.getStats()
 
 printntopngRelease(info)
 
@@ -29,7 +29,7 @@ print(" v."..info["version"])
 print("</br>User ")
 print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> Interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
 
-alias = getInterfaceNameAlias(ifname)
+local alias = getInterfaceNameAlias(ifname)
 print(alias)
 
 print('</span></a>')
@@ -219,7 +219,7 @@ print [[/lua/logout.lua");  }, */
    if interface.isPcapDumpInterface() == false then
       print[[
 
-		$('#gauge_text_allTraffic').html(bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]");
+		$('#gauge_text_allTraffic').html("<small>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]</small>");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
@@ -313,7 +313,7 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 
             msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/mac_stats.lua?devices_mode=host_macs_only\">";
+print [[/lua/macs_stats.lua?devices_mode=host_macs_only\">";
 		  msg += "<span class=\"label label-default\">";
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 
@@ -437,7 +437,7 @@ print[[
 
 // hide the possibly shown alerts icon in the header
 ]]
-if ntop.getPrefs().are_alerts_enabled == false then
+if not _ifstats.isView or ntop.getPrefs().are_alerts_enabled == false then
    print("$('#alerts-li').hide();")
 else
    print("$('#alerts-li').show();")

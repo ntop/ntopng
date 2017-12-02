@@ -63,9 +63,12 @@
       });
     }, afterSelect: function(item) {
       if (! item.no_results) {
-        $("#{{typeahead.base_id}}_query")
+        var form = $("#{{typeahead.base_id}}_query")
           .val(item["{{typeahead.json_key}}"])
-          .closest("form").submit();
+          .closest("form");
+
+        if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false")
+          form.submit();
       }
     }, addItem: {name:"", no_results:true},
   });

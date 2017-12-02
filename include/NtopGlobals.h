@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 class NtopGlobals {
-  bool is_shutdown, do_decode_tunnels;
+  bool is_shutdown, shutdown_requested, do_decode_tunnels;
   time_t start_time;
   u_int ifMTU, snaplen;
   Trace *trace;
@@ -37,12 +37,15 @@ class NtopGlobals {
   ~NtopGlobals();
 
   inline u_int getUptime()             { return((u_int)(time(NULL)-start_time+1)); };
-  inline u_int getIfMTU()              { return(ifMTU);             };
-  inline u_int getSnaplen()            { return(snaplen);           };
-  inline Trace *getTrace()             { return(trace);             };
-  inline bool  isShutdown()            { return(is_shutdown);       };
-  inline bool  decode_tunnels()        { return(do_decode_tunnels); };
-  inline void  shutdown()              { is_shutdown = true;        };
+  inline u_int getIfMTU()              { return(ifMTU);              };
+  inline u_int getSnaplen()            { return(snaplen);            };
+  inline Trace *getTrace()             { return(trace);              }; 
+  inline bool  decode_tunnels()        { return(do_decode_tunnels);  };
+  inline bool  isShutdown()            { return(is_shutdown);        };
+  inline void  shutdown()              { is_shutdown = true;         };
+  inline bool  isShutdownRequested()   { return(shutdown_requested); };
+  inline void  requestShutdown()       { shutdown_requested = true;  };
+  
   char* get_temp_filename(char *buf, u_int buf_len);
 };
 

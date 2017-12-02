@@ -34,16 +34,15 @@ local menu_subpages = {
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  disabled=false, entries={
-    dynamic_iface_vlan_creation = {
-      title       = i18n("prefs.dynamic_iface_vlan_creation_title"),
-      description = i18n("prefs.dynamic_iface_vlan_creation_description"),
-      content  = "<p><b>"..i18n("shaping.notes")..":</b><ul>"..
-          "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_1").."</li>"..
-          "<li>"..i18n("prefs.dynamic_iface_vlan_creation_note_2").."</li>"..
-          "</ul>"
-    }, dynamic_flow_collection = {
-      title       = i18n("prefs.dynamic_flow_collection_title"),
-      description = i18n("prefs.dynamic_flow_collection_description"),
+    dynamic_interfaces_creation = {
+      title       = i18n("prefs.dynamic_interfaces_creation_title"),
+      description = i18n("prefs.dynamic_interfaces_creation_description"),
+    }, toggle_src_with_post_nat_src = {
+      title       = i18n("prefs.toggle_src_with_post_nat_src_title"),
+      description = i18n("prefs.toggle_src_with_post_nat_src_description"),
+    }, toggle_dst_with_post_nat_dst = {
+      title       = i18n("prefs.toggle_dst_with_post_nat_dst_title"),
+      description = i18n("prefs.toggle_dst_with_post_nat_dst_description"),
     },
   }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  disabled=false, entries={
     local_host_max_idle = {
@@ -71,13 +70,19 @@ local menu_subpages = {
       title       = i18n("prefs.local_host_cache_duration_title"),
       description = i18n("prefs.local_host_cache_duration_description"),
     },
-  }}, {id="on_disk_ts",    label=i18n("prefs.data_retention"),       advanced=false, pro_only=false,  disabled=false, entries={
-    toggle_local = {
-      title       = i18n("prefs.toggle_local_title"),
-      description = i18n("prefs.toggle_local_description"),
-    }, toggle_local_ndpi = {
-      title       = i18n("prefs.toggle_local_ndpi_title"),
-      description = i18n("prefs.toggle_local_ndpi_description"),
+  }}, {id="on_disk_ts",    label=i18n("prefs.timeseries"),       advanced=false, pro_only=false,  disabled=false, entries={
+    toggle_interface_traffic_rrd_creation = {
+      title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
+      description = i18n("prefs.toggle_traffic_rrd_creation_description"),
+    }, toggle_local_hosts_traffic_rrd_creation = {
+      title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
+      description = i18n("prefs.toggle_traffic_rrd_creation_description"),
+    }, toggle_l2_devices_traffic_rrd_creation = { -- layer 2 devices
+      title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
+      description = i18n("prefs.toggle_traffic_rrd_creation_description"),
+    }, toggle_ndpi_timeseries_creation = {
+      title       = i18n("prefs.toggle_ndpi_timeseries_creation_title"),
+      description = i18n("prefs.toggle_ndpi_timeseries_creation_description"),
     }, toggle_flow_rrds = {
       title       = i18n("prefs.toggle_flow_rrds_title"),
       description = i18n("prefs.toggle_flow_rrds_description"),
@@ -96,12 +101,12 @@ local menu_subpages = {
     }, toggle_tcp_retr_ooo_lost_rrds = {
       title       = i18n("prefs.toggle_tcp_retr_ooo_lost_rrds_title"),
       description = i18n("prefs.toggle_tcp_retr_ooo_lost_rrds_description"),
-    }, toggle_local_categorization = {
-      title       = i18n("prefs.toggle_local_categorization_title"),
-      description = i18n("prefs.toggle_local_categorization_description"),
     }, minute_top_talkers_retention = {
       title       = i18n("prefs.minute_top_talkers_retention_title"),
       description = i18n("prefs.minute_top_talkers_retention_description"),
+    }, rrd_files_retention = {
+      title       = i18n("prefs.rrd_files_retention_title"),
+      description = i18n("prefs.rrd_files_retention_description"),
     }, mysql_retention = {
       title       = i18n("prefs.mysql_retention_title"),
       description = i18n("prefs.mysql_retention_description"),
@@ -120,6 +125,9 @@ local menu_subpages = {
     }, toggle_ssl_alerts = {
       title       = i18n("prefs.toggle_ssl_alerts_title"),
       description = i18n("prefs.toggle_ssl_alerts_description"),
+    }, toggle_dns_alerts = {
+      title       = i18n("prefs.toggle_dns_alerts_title"),
+      description = i18n("prefs.toggle_dns_alerts_description"),
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
       description = i18n("prefs.toggle_malware_probing_description", {url="https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"}),
@@ -195,6 +203,14 @@ local menu_subpages = {
       title       = i18n("prefs.nbox_password_title"),
       description = i18n("prefs.nbox_password_description"),
     },
+  }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   disabled=false, entries={
+    toggle_network_discovery = {
+      title       = i18n("prefs.toggle_network_discovery_title"),
+      description = i18n("prefs.toggle_network_discovery_description"),
+    }, network_discovery_interval = {
+      title       = i18n("prefs.network_discovery_interval_title"),
+      description = i18n("prefs.network_discovery_interval_description"),
+    },
   }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  disabled=false, entries={
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),
@@ -205,10 +221,16 @@ local menu_subpages = {
     }, toggle_thpt_content = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),
+    }, max_ui_strlen = {
+       title       = i18n("prefs.max_ui_strlen_title"),
+       description = i18n("prefs.max_ui_strlen_description"),
     }, toggle_host_mask = {
       title       = i18n("prefs.toggle_host_mask_title"),
       description = i18n("prefs.toggle_host_mask_description"),
-    }
+    }, topk_heuristic_precision = {
+      title       = i18n("prefs.topk_heuristic_precision_title"),
+      description = i18n("prefs.topk_heuristic_precision_description"),
+    },
   }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
     safe_search_dns = {
       title       = i18n("prefs.safe_search_dns_title"),
@@ -231,6 +253,9 @@ local menu_subpages = {
     }, captive_portal_url = {
       title       = i18n("prefs.captive_portal_url_title"),
       description = i18n("prefs.captive_portal_url_description"),
+    }, policy_target_type = {
+      title       = i18n("prefs.policy_target_type"),
+      description = i18n("prefs.policy_target_type_description"),
     }
   }},
 }

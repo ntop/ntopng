@@ -46,10 +46,6 @@ prefs = ntop.getPrefs()
 
 ifstats = interface.getStats()
 
-print [[
-      <hr>
-]]
-
 if (_GET["page"] ~= "historical") then
 if(asn ~= nil) then
 print [[
@@ -123,7 +119,6 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
 if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
 
 -- Set the host table option
-if(prefs.is_categorization_enabled) then print ('host_rows_option["categorization"] = true;\n') end
 if(prefs.is_httpbl_enabled) then print ('host_rows_option["httpbl"] = true;\n') end
 if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
 
@@ -218,6 +213,13 @@ print [[    showPagination: true, ]]
    print[['<div class="btn-group pull-right">]]
    printIpVersionDropdown(base_url, page_params)
    print[[</div>']]
+
+   -- VLAN selector
+   if ifstats.vlan then
+      print[[, '<div class="btn-group pull-right">]]
+      printVLANFilterDropdown(base_url, page_params)
+      print[[</div>']]
+   end
 
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)
@@ -477,6 +479,21 @@ else
 
    if asn ~= nil then
       drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
+      print[[
+
+<br>
+
+<div>
+  <b>]] print(i18n('notes')) print[[</b>
+  <ul>
+    <li>]] print(i18n('graphs.note_ases_traffic')) print[[</li>
+    <li>]] print(i18n('graphs.note_ases_sent')) print[[</li>
+    <li>]] print(i18n('graphs.note_ases_rcvd')) print[[</li>
+  </ul>
+</div>
+
+]]
+
    elseif vlan ~= nil then
       drawRRD(ifstats.id, 'vlan:'..vlan, rrdfile, _GET["zoom"], base_url.."?vlan="..vlan.."&page=historical", 1, _GET["epoch"])
    end

@@ -6,8 +6,9 @@
 #
 ### BEGIN INIT INFO
 # Provides:          ntopng
-# Required-Start:    $local_fs $remote_fs $network $syslog $pf_ring
-# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Should-Start:      pf_ring
+# Required-Stop:     
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start/stop ntopng web
@@ -130,11 +131,14 @@ start_ntopng() {
 
           echo "-d=/storage/ntopng" >> /etc/ntopng/ntopng.conf
         fi
+
         CHECK_P4P1=$(grep p4p1 /proc/net/dev|wc -l)
         if [ "$CHECK_P4P1" -eq 1 ]; then
           echo "-i=p4p1" >> /etc/ntopng/ntopng.conf
         fi
 	    touch /etc/ntopng/ntopng.start
+      else
+	  echo "Missing configuration file. Please use the nbox GUI to start it"
       fi
     fi
 
@@ -221,10 +225,17 @@ stop_ntopng() {
     for i in {1..5}
     do  
         get_ntopng_pid
-        if [ "${PID}" -gt 0 ]; then
-            kill -15 "$PID" &> /dev/null
-            MSG="Sent kill to ntop PID $PID"
-            sleep 1
+        if [ "${PID}" -gt 0 ] && [ -d "/proc/${PID}" ]; then
+            if grep -q ntopng "/proc/${PID}/comm"; then
+              kill -15 "$PID" &> /dev/null
+              MSG="Sent kill to ntop PID $PID"
+              sleep 1
+            else
+              MSG="Refusing to kill a process (PID=${PID}) which is not ntopng"
+              ERROR=1
+              RETVAL=1
+              error_handler "quit"
+            fi
         else
             MSG="Stopped ntopng PID $PID"
             break

@@ -5,19 +5,20 @@ dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
-require "lua_utils"
-
 local ntop_info = ntop.getInfo()
+
+local os_utils = require "os_utils"
 
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
+host_pools_utils.DEFAULT_ROUTING_POLICY_ID = "0"
 host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
-host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
+host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"] or 5
 -- this takes into account the special pools
-host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
+host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"] or 5
 -- this does not take into account the special pools
 host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
 
@@ -42,10 +43,16 @@ local function initInterfacePools(ifid)
   host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
 end
 
-local function get_pool_detail(ifid, pool_id, detail)
+function host_pools_utils.getPoolDetail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
 
   return ntop.getHashCache(details_key, detail)
+end
+
+function host_pools_utils.setPoolDetail(ifid, pool_id, detail, value)
+  local details_key = get_pool_details_key(ifid, pool_id)
+
+  return ntop.setHashCache(details_key, detail, tostring(value))
 end
 
 local function addMemberToRedisPool(members_key, member_key)
@@ -61,7 +68,8 @@ end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, enforce_quotas_per_pool_member)
+function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
+				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member)
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
 
@@ -74,7 +82,8 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe, en
   ntop.setMembersCache(ids_key, pool_id)
   ntop.setHashCache(details_key, "name", pool_name)
   ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
-  ntop.setHashCache(details_key, "enforce_quotas_per_pool_member", tostring(enforce_quotas_per_pool_member or false))
+  ntop.setHashCache(details_key, "enforce_quotas_per_pool_member",  tostring(enforce_quotas_per_pool_member  or false))
+  ntop.setHashCache(details_key, "enforce_shapers_per_pool_member", tostring(enforce_shapers_per_pool_member or false))
   return true
 end
 
@@ -241,7 +250,8 @@ function host_pools_utils.getPoolsList(ifid, without_info)
         id = pool_id,
         name = host_pools_utils.getPoolName(ifid, pool_id),
         children_safe = host_pools_utils.getChildrenSafe(ifid, pool_id),
-	enforce_quotas_per_pool_member = host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id),
+	enforce_quotas_per_pool_member  = host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id),
+	enforce_shapers_per_pool_member = host_pools_utils.getEnforceShapersPerPoolMember(ifid, pool_id),
       }
     end
 
@@ -308,15 +318,44 @@ function host_pools_utils.getMemberKey(member)
 end
 
 function host_pools_utils.getPoolName(ifid, pool_id)
-  return get_pool_detail(ifid, pool_id, "name")
+  return host_pools_utils.getPoolDetail(ifid, pool_id, "name")
 end
 
 function host_pools_utils.getChildrenSafe(ifid, pool_id)
-  return toboolean(get_pool_detail(ifid, pool_id, "children_safe"))
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "children_safe"))
+end
+
+function host_pools_utils.getRoutingPolicyId(ifid, pool_id)
+  local routing_policy_id = host_pools_utils.getPoolDetail(ifid, pool_id, "routing_policy_id")
+  if isEmptyString(routing_policy_id) then routing_policy_id = "0" end
+  return routing_policy_id
+end
+
+function host_pools_utils.setRoutingPolicyId(ifid, pool_id, routing_policy_id)
+  return host_pools_utils.setPoolDetail(ifid, pool_id, "routing_policy_id", routing_policy_id)
 end
 
 function host_pools_utils.getEnforceQuotasPerPoolMember(ifid, pool_id)
-  return toboolean(get_pool_detail(ifid, pool_id, "enforce_quotas_per_pool_member"))
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "enforce_quotas_per_pool_member"))
+end
+
+function host_pools_utils.getEnforceShapersPerPoolMember(ifid, pool_id)
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "enforce_shapers_per_pool_member"))
+end
+
+function host_pools_utils.clearPools()
+  for _, ifname in pairs(interface.getIfNames()) do
+    local ifid = getInterfaceId(ifname)
+    local ifstats = interface.getStats()
+
+    if not ifstats.isView then
+       local pools_list = host_pools_utils.getPoolsList(ifid)
+       for _, pool in pairs(pools_list) do
+	  host_pools_utils.deletePool(ifid, pool["id"])
+       end
+    end
+
+  end
 end
 
 function host_pools_utils.initPools()
@@ -374,7 +413,7 @@ end
 
 function host_pools_utils.getRRDBase(ifid, pool_id)
   local dirs = ntop.getDirs()
-  return fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
+  return os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
 end
 
 function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
@@ -387,16 +426,16 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     end
 
     -- Traffic stats
-    local rrdpath = fixPath(pool_base .. "/bytes.rrd")
+    local rrdpath = os_utils.fixPath(pool_base .. "/bytes.rrd")
     createRRDcounter(rrdpath, 300, verbose)
-    ntop.rrd_update(rrdpath, "N:"..tolongint(pool_stats["bytes.sent"]) .. ":" .. tolongint(pool_stats["bytes.rcvd"]))
+    ntop.rrd_update(rrdpath, nil, tolongint(pool_stats["bytes.sent"]), tolongint(pool_stats["bytes.rcvd"]))
 
     -- nDPI stats
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
-        local ndpiname = fixPath(pool_base.."/"..proto..".rrd")
+        local ndpiname = os_utils.fixPath(pool_base.."/"..proto..".rrd")
         createRRDcounter(ndpiname, 300, verbose)
-        ntop.rrd_update(ndpiname, "N:"..tolongint(v["bytes.sent"])..":"..tolongint(v["bytes.rcvd"]))
+        ntop.rrd_update(ndpiname, nil, tolongint(v["bytes.sent"]), tolongint(v["bytes.rcvd"]))
       end
     end
   end
@@ -409,14 +448,18 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
   local ndpi_stats = pool_stats.ndpi
   local category_stats = pool_stats.ndpi_categories
   local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
+  local cross_traffic_quota, cross_time_quota = shaper_utils.getCrossApplicationQuotas(ifId, pool_id)
 
   -- Empty check
-  local empty = true
-  for _, proto in pairs(quota_and_protos) do
-    if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
-      -- at least a quota is set
-      empty = false
-      break
+  local empty = (cross_traffic_quota == shaper_utils.NO_QUOTA) and (cross_time_quota == shaper_utils.NO_QUOTA)
+
+  if empty then
+    for _, proto in pairs(quota_and_protos) do
+      if ((tonumber(proto.traffic_quota) > 0) or (tonumber(proto.time_quota) > 0)) then
+        -- at least a quota is set
+        empty = false
+        break
+      end
     end
   end
 
@@ -459,6 +502,27 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
      </script>]]
   end
 
+end
+
+function host_pools_utils.getFirstAvailablePoolId(ifid)
+  local ids_key = get_pool_ids_key(ifid)
+  local ids = ntop.getMembersCache(ids_key) or {}
+
+  for i, id in pairs(ids) do
+    ids[i] = tonumber(id)
+  end
+
+  local host_pool_id = tonumber(host_pools_utils.FIRST_AVAILABLE_POOL_ID)
+
+  for _, pool_id in pairsByValues(ids, asc) do
+    if pool_id > host_pool_id then
+      break
+    end
+
+    host_pool_id = math.max(pool_id + 1, host_pool_id)
+  end
+
+  return tostring(host_pool_id)
 end
 
 return host_pools_utils

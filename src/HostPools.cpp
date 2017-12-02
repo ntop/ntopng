@@ -28,15 +28,21 @@
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
 
+#ifdef NTOPNG_PRO
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
-#ifdef NTOPNG_PRO
+  if((routing_policy_id = (u_int8_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int8_t))) == NULL)
+    throw 1;
+
   stats = stats_shadow = NULL;
 
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
-     || (volatile_members_lock = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
-     || (enforce_quotas_per_pool_member = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
+     || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
+     || (pool_shaper = (u_int16_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int16_t))) == NULL
+     || (schedule_bitmap = (u_int32_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int32_t))) == NULL
+     || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
+     || (enforce_shapers_per_pool_member  = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
@@ -44,6 +50,12 @@ HostPools::HostPools(NetworkInterface *_iface) {
       throw 2;
   }
 #endif
+
+  if((num_active_hosts_inline          = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_hosts_offline      = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_inline  = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
+     || (num_active_l2_devices_offline = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL)
+    throw 1;
 
   latest_swap = 0;
   if((swap_lock = new Mutex()) == NULL)
@@ -59,8 +71,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
 #endif
 
   max_num_pools = MAX_NUM_HOST_POOLS;
-
-  assert(max_num_pools == MAX_NUM_HOST_POOLS);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Host Pools Available: %u", MAX_NUM_HOST_POOLS);
 }
@@ -100,31 +110,43 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
 /* *************************************** */
 
 HostPools::~HostPools() {
-  int i;
+  if(num_active_hosts_inline)
+    free(num_active_hosts_inline);
+  if(num_active_hosts_offline)
+    free(num_active_hosts_offline);
+  if(num_active_l2_devices_inline)
+    free(num_active_l2_devices_inline);
+  if(num_active_l2_devices_offline)
+    free(num_active_l2_devices_offline);
 
-  if(tree_shadow)
-    deleteTree(&tree_shadow);
-  if(tree)
-    deleteTree(&tree);
-  if(children_safe)
-    free(children_safe);
+  if(tree_shadow)   deleteTree(&tree_shadow);
+  if(tree)          deleteTree(&tree);
+  if(swap_lock)     delete swap_lock;
 
 #ifdef NTOPNG_PRO
+  if(children_safe)     free(children_safe);
+  if(routing_policy_id) free(routing_policy_id);
+
   dumpToRedis();
 
+  if(pool_shaper)
+    free(pool_shaper);
+  if(schedule_bitmap)
+    free(schedule_bitmap);
   if(enforce_quotas_per_pool_member)
     free(enforce_quotas_per_pool_member);
-  
-  if(stats)
-    deleteStats(&stats);
-  if(stats_shadow)
-    deleteStats(&stats_shadow);
+  if(enforce_shapers_per_pool_member)
+    free(enforce_shapers_per_pool_member);
+
+  if(stats)        deleteStats(&stats);
+  if(stats_shadow) deleteStats(&stats_shadow);
 
   if(volatile_members_lock) {
-    for(i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if(volatile_members_lock[i])
 	delete volatile_members_lock[i];
     }
+
     delete []volatile_members_lock;
   }
 
@@ -156,6 +178,7 @@ void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
 void HostPools::swap(AddressTree **new_trees) {
 #endif
   swap_lock->lock(__FILE__, __LINE__);
+
   while(time(NULL) - latest_swap < 1) {
     swap_lock->unlock(__FILE__, __LINE__);
     sleep(1); /* Force at least 1 sec. time between consecutive swaps */
@@ -166,10 +189,10 @@ void HostPools::swap(AddressTree **new_trees) {
   /* Swap statistics */
   if(new_stats) {
     if(stats) {
-      if(stats_shadow)
-	deleteStats(&stats_shadow);
+      if(stats_shadow) deleteStats(&stats_shadow);
       stats_shadow = stats;
     }
+
     stats = new_stats;
   }
 #endif
@@ -177,10 +200,10 @@ void HostPools::swap(AddressTree **new_trees) {
   /* Swap address trees */
   if(new_trees) {
     if(tree) {
-      if(tree_shadow)
-	deleteTree(&tree_shadow); /* Invokes the destructor */
+      if(tree_shadow) deleteTree(&tree_shadow); /* Invokes the destructor */
       tree_shadow = tree;
     }
+
     tree = new_trees;
   }
 
@@ -243,9 +266,10 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
     }
 
     volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-
   }
 };
+
+/* *************************************** */
 
 void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, time_t lifetime) {
   volatile_members_t *m;
@@ -288,6 +312,7 @@ void HostPools::dumpToRedis() {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
+
       if(value) {
 	redis->hashSet(key, buf, value);
 	free(value);
@@ -306,7 +331,8 @@ void HostPools::loadFromRedis() {
 
   snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
 
-  if((!redis) || (! stats) || (! iface)) return;
+  if((!redis) || (!stats) || (!iface)) return;
+
   if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
     return;
@@ -330,23 +356,32 @@ void HostPools::loadFromRedis() {
 
   free(value);
 }
- 
+
 /* *************************************** */
- 
+
+void HostPools::incPoolNumDroppedFlows(u_int16_t pool_id) {
+  HostPoolStats *hps = getPoolStats(pool_id);
+
+  if(!hps) return;
+
+  hps->incNumDroppedFlows();
+}
+
+/* *************************************** */
+
 void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 			     ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
   HostPoolStats *hps = getPoolStats(host_pool_id);
-  
-  if(!hps)
-    return;
-  
+
+  if(!hps) return;
+
   /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
   hps->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 };
- 
+
 /* *************************************** */
- 
+
 void HostPools::updateStats(struct timeval *tv) {
   HostPoolStats *hps;
 
@@ -386,9 +421,9 @@ void HostPools::resetPoolsStats() {
   if(stats) {
     for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if((hps = stats[i])) {
-        /* Must use the assigned hps as stats can be swapped
-           and accesses such as stats[i] could yield a NULL value */
-        hps->resetStats();
+	/* Must use the assigned hps as stats can be swapped
+	   and accesses such as stats[i] could yield a NULL value */
+	hps->resetStats();
       }
     }
   }
@@ -431,7 +466,6 @@ void HostPools::luaVolatileMembers(lua_State *vm) {
     }
 
     volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-
   }
 };
 
@@ -532,6 +566,50 @@ void HostPools::removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_p
 
 /* *************************************** */
 
+void HostPools::lua(lua_State *vm) {
+  u_int32_t hosts = 0, l2_devices = 0;
+  u_int32_t cur_hosts = 0, cur_l2 = 0;
+  u_int32_t active_pools = 0;
+  char buf[8];
+
+  lua_newtable(vm);
+
+  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    if(i == NO_HOST_POOL_ID) continue;
+
+    if((cur_hosts = getNumPoolHosts(i)))  hosts += cur_hosts;
+    if((cur_l2 = getNumPoolL2Devices(i))) l2_devices += cur_l2;
+
+    if(cur_hosts || cur_l2) {
+      lua_newtable(vm);
+      lua_push_int_table_entry(vm, "num_hosts", cur_hosts);
+      lua_push_int_table_entry(vm, "num_l2_devices", cur_l2);
+      snprintf(buf, sizeof(buf), "%d", i);
+
+      lua_pushstring(vm, buf);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      active_pools++;
+    }
+  }
+
+  lua_pushstring(vm, "num_members_per_pool");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "num_hosts", hosts);
+  lua_push_int_table_entry(vm, "num_l2_devices", l2_devices);
+  lua_push_int_table_entry(vm, "num_active_pools", active_pools);
+
+  lua_pushstring(vm, "num_members");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void HostPools::reloadPools() {
   char kname[CONST_MAX_LEN_REDIS_KEY];
   char **pools, **pool_members, *at, *member;
@@ -543,7 +621,7 @@ void HostPools::reloadPools() {
 #endif
   Redis *redis = ntop->getRedis();
 
-  if(!iface || iface->get_id() == -1)
+  if(!iface || (iface->get_id() == -1))
     return;
 
   if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL
@@ -554,8 +632,10 @@ void HostPools::reloadPools() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
+
   for(u_int32_t i = 0; i < MAX_NUM_VLAN; i++)
     new_tree[i] = NULL;
+
 #ifdef NTOPNG_PRO
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
     new_stats[i] = NULL;
@@ -564,18 +644,18 @@ void HostPools::reloadPools() {
   snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY, iface->get_id());
 
 #ifdef NTOPNG_PRO
-  /* Always allocate defaul pool stats */
+  /* Always allocate default pool stats */
   if(stats && stats[0]) /* Duplicate existing statistics */
     new_stats[0] = new HostPoolStats(*stats[0]);
   else /* Brand new statistics */
-    new_stats[0] = new HostPoolStats();
+    new_stats[0] = new HostPoolStats(iface);
 #endif
 
   /* Keys are pool ids */
   num_pools = redis->smembers(kname, &pools);
 
   for(int i = 0; i < num_pools; i++) {
-    char rsp[8];
+
 
     if(!pools[i])
       continue;
@@ -587,23 +667,40 @@ void HostPools::reloadPools() {
 #ifdef NTOPNG_PRO
     if(_pool_id != 0) { /* Pool id 0 stats already updated */
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
-        new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
+	new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
-        new_stats[_pool_id] = new HostPoolStats();
+	new_stats[_pool_id] = new HostPoolStats(iface);
     }
 #endif
 
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
-    rsp[0] = '\0';
-    children_safe[i] = ((redis->hashGet(kname, (char*)"children_safe", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));
 
 #ifdef NTOPNG_PRO
-    enforce_quotas_per_pool_member[i] = ((redis->hashGet(kname, (char*)"enforce_quotas_per_pool_member", rsp, sizeof(rsp)) != -1) && (!strcmp(rsp, "true")));;
+    char rsp[16] = { 0 };
+
+    children_safe[i] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
+			&& (!strcmp(rsp, "true")));
+
+    routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
+    pool_shaper[i] = (redis->hashGet(kname, (char*)CONST_POOL_SHAPER_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_SHAPER_ID;
+    schedule_bitmap[i] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? strtol(rsp, NULL, 16) : DEFAULT_TIME_SCHEDULE;
+
+    enforce_quotas_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+					 && (!strcmp(rsp, "true")));;
+    enforce_shapers_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+					 && (!strcmp(rsp, "true")));;
 
 #ifdef HOST_POOLS_DEBUG
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s] [children_safe: %i] [enforce_quotas_per_pool_member: %i]",
-				 rsp, children_safe[i], enforce_quotas_per_pool_member[i]);    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s]"
+				 "[children_safe: %i]"
+				 "[pool_shaper: %i]"
+				 "[schedule_bitmap: %i]"
+				 "[enforce_quotas_per_pool_member: %i]"
+				 "[enforce_shapers_per_pool_member: %i]",
+				 rsp, children_safe[i], pool_shaper[i], schedule_bitmap[i],
+				 enforce_quotas_per_pool_member[i],
+				 enforce_shapers_per_pool_member[i]);
 #endif
 
 #endif /* NTOPNG_PRO */
@@ -612,7 +709,8 @@ void HostPools::reloadPools() {
 
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
-      num_members = min_val((u_int32_t)num_members, MAX_NUM_POOL_MEMBERS);
+      // NOTE: the auto-assigned host_pool must not be limited as it receives devices assigments automatically
+      num_members = min_val((u_int32_t)num_members, ((i == ntop->getPrefs()->get_auto_assigned_pool_id()) ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
 
       for(int k = 0; k < num_members; k++) {
 	member = pool_members[k];
@@ -639,7 +737,6 @@ void HostPools::reloadPools() {
 					 rc ? "Successfully added" : "Unable to add",
 					 member, vlan_id,
 					 pools[i]);
-
 	}
 
 	free(member);
@@ -651,8 +748,7 @@ void HostPools::reloadPools() {
     free(pools[i]);
   }
 
-  if(pools)
-    free(pools);
+  if(pools) free(pools);
 
 #ifdef NTOPNG_PRO
   if(ntop->getPrefs()->isCaptivePortalEnabled())
@@ -669,27 +765,35 @@ void HostPools::reloadPools() {
 
 bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool) {
   AddressTree *cur_tree; /* must use this as tree can be swapped */
+  int16_t ret;
 
   if(!tree || !(cur_tree = tree[vlan_id]))
-    return false;
+    return(false);
 
-  int16_t ret = cur_tree->findMac(mac);
+  ret = cur_tree->findMac(mac);
 
   if(ret != -1) {
     *found_pool = (u_int16_t)ret;
-    return true;
+    return(true);
   }
 
-  return false;
+  return(false);
 }
 
 /* *************************************** */
 
 bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
-  if (mac->isSpecialMac())
-    return false;
+  bool found;
 
-  return findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
+  if(mac->isSpecialMac())
+    return(false);
+
+  found = findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
+
+  if((!found) && (mac->get_vlan_id() != 0))
+    found = findMacPool(mac->get_mac(), 0 /* No VLAN */, found_pool);
+
+  return(found);
 }
 
 /* *************************************** */
@@ -701,9 +805,10 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
 #endif
 
   if(!tree || !(cur_tree = tree[vlan_id]))
-    return false;
+    return(false);
 
   *found_node = (patricia_node_t*)ip->findAddress(cur_tree);
+
   if(*found_node) {
 #ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -711,12 +816,11 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
 				   ip->print(buf, sizeof(buf)), (*found_node)->user_data);
 #endif
       *found_pool = (*found_node)->user_data;
-      return true;
+      return(true);
   }
 
-  return false;
+  return(false);
 }
-
 
 /* *************************************** */
 
@@ -728,10 +832,26 @@ u_int16_t HostPools::getPool(Host *h) {
   if(h) {
     if(h->getMac())
       found = findMacPool(h->getMac(), &pool_id);
+
     if(!found && h->get_ip()) {
       found = findIpPool(h->get_ip(), h->get_vlan_id(), &pool_id, &node);
     }
   }
+
+  if(!found)
+    return NO_HOST_POOL_ID;
+
+  return pool_id;
+}
+
+/* *************************************** */
+
+ u_int16_t HostPools::getPool(Mac *m) {
+  u_int16_t pool_id;
+  bool found = false;
+
+  if(m)
+    found = findMacPool(m, &pool_id);
 
   if(!found)
     return NO_HOST_POOL_ID;

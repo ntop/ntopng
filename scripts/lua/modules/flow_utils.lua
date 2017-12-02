@@ -483,12 +483,27 @@ local mobile_country_code = {
 
 -- #######################
 
-function handleCustomFlowField(key, value)
+function formatInterfaceId(id, idx, snmpdevice)
+   if(id == 65535) then
+      return("Unknown")
+   else
+      if(snmpdevice ~= nil) then
+	 return('<A HREF="/lua/flows_stats.lua?deviceIP='..snmpdevice..'&'..idx..'='..id..'">'..id..'</A>')
+      else
+	 return(id)
+      end
+   end
+end
+
+-- #######################
+
+function handleCustomFlowField(key, value, snmpdevice)
    if((key == 'TCP_FLAGS') or (key == '6')) then
       return(formatTcpFlags(value))
-   elseif((key == 'INPUT_SNMP') or (key == '10')
-	     or (key == 'OUTPUT_SNMP') or (key == '14')) then
-      return(formatInterfaceId(value))
+   elseif((key == 'INPUT_SNMP') or (key == '10')) then
+      return(formatInterfaceId(value, "inIfIdx", snmpdevice))
+   elseif((key == 'OUTPUT_SNMP') or (key == '14')) then
+      return(formatInterfaceId(value, "outIfIdx", snmpdevice))
    elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == 'NPROBE_IPV4_ADDRESS') or (key == '130') or (key == '57943')) then
       local res = getResolvedAddress(hostkey2hostinfo(value))
 
@@ -572,16 +587,6 @@ end
 
 -- #######################
 
-function formatInterfaceId(id)
-   if(id == 65535) then
-      return("Unknown")
-   else
-      return(id)
-   end
-end
-
--- #######################
-
 -- IMPORTANT: keep it in sync with ParserInterface::ParserInterface()
 
 local flow_fields_description = {
@@ -628,6 +633,7 @@ local flow_fields_description = {
     ["MAX_TTL"] = i18n("flow_fields_description.max_ttl"),
     ["DST_TOS"] = i18n("flow_fields_description.dst_tos"),
     ["IN_SRC_MAC"] = i18n("flow_fields_description.in_src_mac"),
+    ["OUT_SRC_MAC"] = i18n("flow_fields_description.out_src_mac"),
     ["SRC_VLAN"] = i18n("flow_fields_description.src_vlan"),
     ["DST_VLAN"] = i18n("flow_fields_description.dst_vlan"),
     ["DOT1Q_SRC_VLAN"] = i18n("flow_fields_description.dot1q_src_vlan"),
@@ -645,6 +651,7 @@ local flow_fields_description = {
     ["MPLS_LABEL_8"] = i18n("flow_fields_description.mpls_label_8"),
     ["MPLS_LABEL_9"] = i18n("flow_fields_description.mpls_label_9"),
     ["MPLS_LABEL_10"] = i18n("flow_fields_description.mpls_label_10"),
+    ["IN_DST_MAC"] = i18n("flow_fields_description.in_dst_mac"),
     ["OUT_DST_MAC"] = i18n("flow_fields_description.out_dst_mac"),
     ["APPLICATION_ID"] = i18n("flow_fields_description.application_id"),
     ["PACKET_SECTION_OFFSET"] = i18n("flow_fields_description.packet_section_offset"),
@@ -659,12 +666,17 @@ local flow_fields_description = {
     ["FLOW_START_MICROSECONDS"] = i18n("flow_fields_description.flow_start_microseconds"),
     ["FLOW_END_MILLISECONDS"] = i18n("flow_fields_description.flow_end_milliseconds"),
     ["FLOW_END_MICROSECONDS"] = i18n("flow_fields_description.flow_end_microseconds"),
+    ['FIREWALL_EVENT'] = i18n("flow_fields_description.firewall_event"),
     ["BIFLOW_DIRECTION"] = i18n("flow_fields_description.biflow_direction"),
     ["INGRESS_VRFID"] = i18n("flow_fields_description.ingress_vrfid"),
     ["FLOW_DURATION_MILLISECONDS"] = i18n("flow_fields_description.flow_duration_milliseconds"),
     ["FLOW_DURATION_MICROSECONDS"] = i18n("flow_fields_description.flow_duration_microseconds"),
     ["ICMP_IPV4_TYPE"] = i18n("flow_fields_description.icmp_ipv4_type"),
     ["ICMP_IPV4_CODE"] = i18n("flow_fields_description.icmp_ipv4_code"),
+    ["POST_NAT_SRC_IPV4_ADDR"] = i18n("flow_fields_description.post_nat_src_ipv4_addr"),
+    ["POST_NAT_DST_IPV4_ADDR"] = i18n("flow_fields_description.post_nat_dst_ipv4_addr"),
+    ["POST_NAPT_SRC_TRANSPORT_PORT"] = i18n("flow_fields_description.post_napt_src_transport_port"),
+    ["POST_NAPT_DST_TRANSPORT_PORT"] = i18n("flow_fields_description.post_napt_dst_transport_port"),
     ["OBSERVATION_POINT_TYPE"] = i18n("flow_fields_description.observation_point_type"),
     ["OBSERVATION_POINT_ID"] = i18n("flow_fields_description.observation_point_id"),
     ["SELECTOR_ID"] = i18n("flow_fields_description.selector_id"),
@@ -1101,6 +1113,7 @@ end
  end
 
 -- #######################
+
 function map_failure_resp_code(fail_resp_code_string)
   if (fail_resp_code_string ~= nil) then
     if(fail_resp_code_string == "200") then
@@ -1119,6 +1132,93 @@ function map_failure_resp_code(fail_resp_code_string)
   return fail_resp_code_string
 end
 
+
+-- #######################
+
+function getFlowLabel(flow, show_macs, add_hyperlinks)
+   if flow == nil then return "" end
+
+   local cli_name = shortenString(flowinfo2hostname(flow, "cli"))
+   local srv_name = shortenString(flowinfo2hostname(flow, "srv"))
+
+   local cli_port
+   local srv_port
+   if flow["cli.port"] > 0 then cli_port = flow["cli.port"] end
+   if flow["srv.port"] > 0 then srv_port = flow["srv.port"] end
+
+   local srv_mac
+   if(not isEmptyString(flow["srv.mac"]) and flow["srv.mac"] ~= "00:00:00:00:00:00") then
+      srv_mac = flow["srv.mac"]
+   end
+
+   local cli_mac
+   if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
+      cli_mac = flow["cli.mac"]
+   end
+
+   if add_hyperlinks then
+      cli_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">"
+      cli_name = cli_name..shortenString(flowinfo2hostname(flow,"cli"))
+      if(flow["cli.systemhost"] == true) then
+	 cli_name = cli_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+      end
+      cli_name = cli_name.."</A>"
+
+      srv_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"srv") .. "\">"
+      srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
+      if(flow["srv.systemhost"] == true) then
+	 srv_name = srv_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+      end
+      srv_name = srv_name.."</A>"
+
+      if cli_port then
+	 cli_port = "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..cli_port.. "\">"..cli_port.."</A>"
+      end
+
+      if srv_port then
+	 srv_port = "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..srv_port.. "\">"..srv_port.."</A>"
+      end
+
+      if cli_mac then
+	 cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
+      end
+
+      if srv_mac then
+	 srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+      end
+
+   end
+
+   local label = ""
+
+   if not isEmptyString(cli_name) then
+      label = label..cli_name
+   end
+
+   if cli_port then
+      label = label..":"..cli_port
+   end
+
+   if show_macs and cli_mac then
+      label = label.." [ "..cli_mac.." ]"
+   end
+
+   label = label.." <i class=\"fa fa-exchange fa-lg\"  aria-hidden=\"true\"></i> "
+
+   if not isEmptyString(srv_name) then
+      label = label..srv_name
+   end
+
+   if srv_port then
+      label = label..":"..srv_port
+   end
+
+   if show_macs and srv_mac then
+      label = label.." [ "..srv_mac.." ]"
+   end
+
+   return label
+end
 
 -- #######################
 
@@ -1618,7 +1718,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_payload_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"payload_id_tr\" "..rtp_payload_hide.."><th style=\"text-align:right\">Payload Type</th><td><div id=payload_type_in>"..rtp_payload_in_var.."</div></td><td><div id=payload_type_out>"..rtp_payload_out_var.."</div></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"payload_id_tr\" "..rtp_payload_hide.."><th style=\"text-align:right\">"..i18n("flow_details.payload_type").."</th><td><div id=payload_type_in>"..rtp_payload_in_var.."</div></td><td><div id=payload_type_out>"..rtp_payload_out_var.."</div></td></tr>\n"
       end
 	    
       -- MOS

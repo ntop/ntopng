@@ -64,6 +64,9 @@ bool IpAddress::isEmpty() {
 
 void IpAddress::checkIP() {
   u_int32_t a;
+  int16_t local_network_id;
+  u_int32_t nmask;
+  u_int8_t nmask_bits;
 
   addr.privateIP = false; /* Default */
 
@@ -79,6 +82,7 @@ void IpAddress::checkIP() {
     172.16.0.0      -   172.31.255.255  (172.16/12 prefix)
     192.168.0.0     -   192.168.255.255 (192.168/16 prefix)
   */
+
   a = ntohl(addr.ipType.ipv4);
 
   if(((a & 0xFF000000) == 0x0A000000 /* 10.0.0.0/8 */)
@@ -91,6 +95,16 @@ void IpAddress::checkIP() {
     addr.multicastIP = true;
   else if((a == 0xFFFFFFFF) || (a == 0))
     addr.broadcastIP = true;
+
+  if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
+    if(nmask_bits < 31) { /* /32 is just an host, /31 is a point-to-point */
+      nmask = ~((1 << (32 - nmask_bits)) - 1);
+      if(a == (a | ~nmask) || a == (a & nmask))
+	addr.broadcastIP = true;
+    }
+
+  }
+
 }
 
 /* ******************************************* */
@@ -157,6 +171,7 @@ void IpAddress::compute_key() {
 /* ******************************************* */
 
 char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) {
+  str[0] = '\0';
   return(intoa(str, str_len, bitmask));
 }
 
@@ -209,26 +224,6 @@ char* IpAddress::serialize() {
   json_object_put(my_object);
 
   return(rsp);
-}
-
-/* ******************************************* */
-
-void IpAddress::deserialize(json_object *o) {
-  json_object *obj;
-
-  if(!o) return;
-
-  /* Reset all */
-  memset(&addr, 0, sizeof(addr));
-
-  if(json_object_object_get_ex(o, "ipVersion", &obj))
-    addr.ipVersion = json_object_get_int(obj);
-
-  if(json_object_object_get_ex(o, "localHost", &obj))
-    addr.localHost = json_object_get_boolean(obj);
-
-  if(json_object_object_get_ex(o, "ip", &obj))
-    set((char*)json_object_get_string(obj));
 }
 
 /* ******************************************* */

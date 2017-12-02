@@ -950,6 +950,8 @@
                 return $.tablesorter.formatFloat(s[0])*1000000;
             else if (s[1] == "GB")
                 return $.tablesorter.formatFloat(s[0])*1000000000;
+	    else if (s[1] == "TB")
+                return $.tablesorter.formatFloat(s[0])*1000000000000;
             else
                 return $.tablesorter.formatFloat(s[0]);
         }, type: "numeric"

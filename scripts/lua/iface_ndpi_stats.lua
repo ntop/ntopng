@@ -10,29 +10,30 @@ require "lua_utils"
 sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifname)
-host_info = url2hostinfo(_GET)
+local host_info = url2hostinfo(_GET)
 
-if(_GET["breed"] == "true") then
-   show_breed = true
-else
-   show_breed = false
-end
+local show_ndpi_category = false
+local show_breed = false
+
+if(_GET["breed"] == "true") then show_breed = true end
+if(_GET["ndpi_category"] == "true") then show_ndpi_category = true end
+
+local tot = 0
+local _ifstats = {}
 
 if(_GET["ndpistats_mode"] == "sinceStartup") then
    stats = interface.getStats()
-   elseif(_GET["ndpistats_mode"] == "count") then
+   tot = stats.stats.bytes
+elseif(_GET["ndpistats_mode"] == "count") then
    stats = interface.getnDPIFlowsCount()
-   elseif(host_info["host"] == nil) then
-   stats = interface.getnDPIStats()
 else
    stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
+   tot = stats["bytes.sent"] + stats["bytes.rcvd"]
 end
 
 print "[\n"
 
 if(stats ~= nil) then
-   tot = 0
-   _ifstats = {}
 
    if(_GET["ndpistats_mode"] == "count") then
       tot = 0
@@ -43,8 +44,8 @@ if(stats ~= nil) then
 	 --  print(k.."="..v.."\n,")
       end
 
-      threshold = (tot * 3) / 100	
-      num = 0	
+      local threshold = (tot * 3) / 100
+      local num = 0
       for k, v in pairsByValues(stats, rev) do
 	 if((num < 5) and (v > threshold)) then
 	    if(num > 0) then print(", ") end
@@ -59,79 +60,96 @@ if(stats ~= nil) then
       if(tot > 0) then
 	 if(num > 0) then print(", ") end
 	 print("\t { \"label\": \"Other\", \"value\": ".. tot .." }")
-      else
+      elseif(num == 0) then
 	 print("\t { \"label\": \"No Flows\", \"value\": 0 }")
       end
 
       print "]\n"
       return
    end
-   
+
    if(show_breed) then
-      __ifstats = {}
-      
+      local breed_stats = {}
+
       for key, value in pairs(stats["ndpi"]) do
-	 b = stats["ndpi"][key]["breed"] 
+	 local b = stats["ndpi"][key]["breed"]
 
-	 traffic = stats["ndpi"][key]["bytes.sent"] + stats["ndpi"][key]["bytes.rcvd"]
+	 local traffic = stats["ndpi"][key]["bytes.sent"] + stats["ndpi"][key]["bytes.rcvd"]
 
-	 if(__ifstats[b] == nil) then
-	    __ifstats[b] = traffic
+	 if(breed_stats[b] == nil) then
+	    breed_stats[b] = traffic
 	 else
-	    __ifstats[b] = __ifstats[b] + traffic
+	    breed_stats[b] = breed_stats[b] + traffic
 	 end
       end
 
-      for key, value in pairs(__ifstats) do
+      for key, value in pairs(breed_stats) do
 	 --print(key.."="..value.."<p>\n")
-	 _ifstats[value] = key
-	 tot = tot + value
+	 _ifstats[key] = value
       end
+
+   elseif(show_ndpi_category) then
+      local ndpi_category_stats = {}
+
+      for key, value in pairs(stats["ndpi_categories"]) do
+	 local traffic = value["bytes"]
+
+	 if(ndpi_category_stats[key] == nil) then
+	    ndpi_category_stats[key] = traffic
+	 else
+	    ndpi_category_stats[key] = ndpi_category_stats[key] + traffic
+	 end
+      end
+
+      for key, value in pairs(ndpi_category_stats) do
+	 --print(key.."="..value.."<p>\n")
+	 _ifstats[key] = value
+      end
+
    else
       -- Add ARP to stats
       if(stats["eth"] ~= nil) then
-         arpBytes = stats["eth"]["ARP_bytes"]
+	 arpBytes = stats["eth"]["ARP_bytes"]
       else
-         arpBytes = 0
-      end   
+	 arpBytes = 0
+      end
 
       if(arpBytes > 0) then
-      	_ifstats[arpBytes] = "ARP"
-        tot = arpBytes
+	_ifstats["ARP"] = arpBytes
       end
 
       for key, value in pairs(stats["ndpi"]) do
 	 --print("->"..key.."\n")
 
-	 traffic = stats["ndpi"][key]["bytes.sent"] + stats["ndpi"][key]["bytes.rcvd"]
+	 local traffic = value["bytes.sent"] + value["bytes.rcvd"]
 	 if(key == "Unknown") then
 	   traffic = traffic - arpBytes
 	 end
-	 
+
 	 if(traffic > 0) then
-  	   if(show_breed) then
-	      _ifstats[traffic] = stats["ndpi"][key]["breed"]
+	   if(show_breed) then
+	      _ifstats[value["breed"]] = traffic
 	   else
-	      _ifstats[traffic] = key
+	      _ifstats[key] = traffic
 	   end
-	 
+
 	   --print(key.."="..traffic)
-	   tot = tot + traffic
 	 end
       end
    end
 
    -- Print up to this number of entries
-   max_num_entries = 5   
+   local max_num_entries = 5
 
    -- Print entries whose value >= 3% of the total
-   threshold = (tot * 3) / 100
+   local threshold = (tot * 3) / 100
 
-   num = 0
-   accumulate = 0
-   for key, value in pairsByKeys(_ifstats, rev) do
-      -- print("["..key.."/"..value.."]\n")
-      if(key < threshold) then
+   local num = 0
+   local accumulate = 0
+
+   for key, value in pairsByValues(_ifstats, rev) do
+      -- print("["..value.."/"..key.."]\n")
+      if(value < threshold) then
 	 break
       end
 
@@ -140,20 +158,20 @@ if(stats ~= nil) then
       end
 
       if(host_info["host"] == nil) then
-         print("\t { \"label\": \"" .. value .."\", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..value.."\", \"value\": ".. key .." }")
+	 print("\t { \"label\": \"" .. key .."\", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..key.."\", \"value\": ".. value .." }")
       else
 	 local duration
-	 
-	 if(stats["ndpi"][value] ~= nil) then
-	    duration = stats["ndpi"][value]["duration"]
+
+	 if(stats["ndpi"][key] ~= nil) then
+	    duration = stats["ndpi"][key]["duration"]
 	 else
 	    duration = 0
 	 end
-	 
-         print("\t { \"label\": \"" .. value .."\", \"value\": ".. key ..", \"duration\": ".. duration .." }")
+
+	 print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"duration\": ".. duration .." }")
       end
 
-      accumulate = accumulate + key
+      accumulate = accumulate + value
       num = num + 1
 
       if(num == max_num_entries) then

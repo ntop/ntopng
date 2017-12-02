@@ -57,7 +57,6 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
   pcap_datalink_type = DLT_EN10MB;
 
-  pfring_set_direction(pfring_handle, rx_only_direction);
   pfring_set_poll_watermark(pfring_handle, 8);
   pfring_set_application_name(pfring_handle, (char*)"ntopng");
   pfring_enable_rss_rehash(pfring_handle);
@@ -71,7 +70,16 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   if(pfring_set_direction(pfring_handle, direction) != 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 
+  if(pfring_set_socket_mode(pfring_handle, recv_only_mode) != 0)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set socket mode");
+  
   memset(&last_pfring_stat, 0, sizeof(last_pfring_stat));
+
+  /* 
+     We need to enable the ring here and not in packetPollLoop() as otherwise
+     with ZC we cannot allocate hugepages after we switched to nobody
+  */
+  pfring_enable_ring(pfring_handle);
 }
 
 /* **************************************************** */
@@ -88,13 +96,15 @@ PF_RINGInterface::~PF_RINGInterface() {
 static void* packetPollLoop(void* ptr) {
   PF_RINGInterface *iface = (PF_RINGInterface*)ptr;
   pfring  *pd = iface->get_pfring_handle();
-
+  u_int sleep_time, max_sleep = 1000, step_sleep = 100;
+  
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
-  pfring_enable_ring(pd);
 
   while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
 
+  sleep_time = step_sleep;
+  
   while(iface->isRunning()) {
     if(pfring_is_pkt_available(pd)) {
       u_char *buffer;
@@ -107,8 +117,12 @@ static void* packetPollLoop(void* ptr) {
 	  Flow *flow = NULL;
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  iface->dissectPacket(0, (const struct pcap_pkthdr *) &hdr, buffer,
+	  iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+			       (hdr.extended_hdr.rx_direction == 1) ? 
+			       true /* ingress */ : false /* egress */,
+			       NULL, (const struct pcap_pkthdr *) &hdr, buffer,
 			       &p, &srcHost, &dstHost, &flow);
+	  sleep_time = step_sleep;
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
@@ -119,7 +133,8 @@ static void* packetPollLoop(void* ptr) {
 	}
       }
     } else {
-      usleep(1);
+      if(sleep_time < max_sleep) sleep_time += step_sleep;
+      usleep(sleep_time);
       iface->purgeIdle(time(NULL));
     }
   }

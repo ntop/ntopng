@@ -34,7 +34,9 @@ static bool help_printed = false;
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() { init(); }
+NetworkInterface::NetworkInterface() {
+  init();
+}
 
 /* **************************************************** */
 
@@ -42,16 +44,16 @@ NetworkInterface::NetworkInterface(const char *name,
 				   const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64], buf[64];
-  bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0; /* We need to do it as isView() is not yet initialized */
+  /* We need to do it as isView() is not yet initialized */
 
-  customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
   init();
+  customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
-  scalingFactor = 1, remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
+  scalingFactor = 1;
   if(strcmp(name, "-") == 0) name = "stdin";
   if(strcmp(name, "-") == 0) name = "stdin";
 
@@ -96,12 +98,35 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  pkt_dumper_tap = NULL, lastSecUpdate = 0;
+  pkt_dumper_tap = NULL, db = NULL;
   ifname = strdup(name);
-  ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
-    
+  if(custom_interface_type) {
+    ifDescription = strdup(name);
+  } else
+    ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
+
+#ifdef NTOPNG_PRO
+  aggregated_flows_hash = NULL;
+#endif
+
+  snmp = new SNMP();
+
+  if(strchr(name, ':')
+     || strchr(name, '@')
+     || strchr(name, '/') /* file path */
+     || strstr(name, ".pcap") /* pcap */
+     || (strncmp(name, "lo", 2) == 0)
+#ifndef __APPLE__
+     || (Utils::readIPv4((char*)name) == 0)
+#endif
+     )
+    ; /* Don't setup MDNS on ZC or RSS interfaces */
+  else {
+    mdns = new MDNS(this);
+    discovery = new NetworkDiscovery(this);
+  }
+
   if(id >= 0) {
-    u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
     u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
 
@@ -111,16 +136,19 @@ NetworkInterface::NetworkInterface(const char *name,
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
     /* The number of ASes cannot be greater than the number of hosts */
-    ases_hash = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+    ases_hash = new AutonomousSystemHash(this, num_hashes,
+					 ntop->getPrefs()->get_max_num_hosts());
 
-    vlans_hash = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
+    vlans_hash = new VlanHash(this, num_hashes,
+			      max_val(ntop->getPrefs()->get_max_num_hosts() / 2,
+				      (u_int16_t)-1));
 
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Global structure initialization failed");
+
       exit(-1);
     }
 
@@ -131,49 +159,29 @@ NetworkInterface::NetworkInterface(const char *name,
 
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			    no_master, no_master,
-			    (char*)"Operating System",
-			    NDPI_PROTOCOL_CATEGORY_SYSTEM,
-			    d_port, d_port);
+			    no_master, no_master, (char*)"Operating System",
+			    NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 
     // enable all protocols
     NDPI_BITMASK_SET_ALL(all);
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
-    last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
+    last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
+      bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
-    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false, pkt_dumper = NULL;
+    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false,
+      pkt_dumper = NULL;
     arp_requests = arp_replies = 0;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
-    running = false, sprobe_interface = false, inline_interface = false, db = NULL;
-
-    if((!isViewInterface) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
-#ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition()){
-	db = new BatchedMySQLDB(this);
-
-	ntop->getPrefs()->enable_flow_aggregation();
-	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
-	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
-      } else
-	aggregated_flows_hash = NULL;
-#endif
-
-      if(db == NULL)
-	db = new MySQLDB(this);
-
-      if(!db) throw "Not enough memory";
-    }
+    running = false, sprobe_interface = false,
+      inline_interface = false, db = NULL;
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
-  } else {
-#ifdef NTOPNG_PRO
-    aggregated_flows_hash = NULL;
-#endif
+  } else /* id < 0 */ {
     flows_hash = NULL, hosts_hash = NULL;
     macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
@@ -184,9 +192,11 @@ NetworkInterface::NetworkInterface(const char *name,
 
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
+#ifndef HAVE_NEDGE
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
+#endif
 
   flow_interfaces_stats = NULL; /* Lazy, instantiated on demand */
 #endif
@@ -194,14 +204,10 @@ NetworkInterface::NetworkInterface(const char *name,
   loadDumpPrefs();
   loadScalingFactorPrefs();
 
-  if(((statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME)) == NULL)
-     || ((alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME)) == NULL))
-    throw "Not enough memory";
+  statsManager = NULL, alertsManager = NULL;
 
   if((host_pools = new HostPools(this)) == NULL)
     throw "Not enough memory";
-
-  alertLevel = alertsManager->getNumAlerts(true);
 
 #ifdef linux
   /*
@@ -209,7 +215,7 @@ NetworkInterface::NetworkInterface(const char *name,
     ignore warnings let's be proactive
   */
   if(ifname
-     && (!isViewInterface)
+     && (!isView())
      && (!strstr(ifname, ":"))
      && (!strstr(ifname, ".pcap"))
      && strcmp(ifname, "dummy")
@@ -224,9 +230,9 @@ NetworkInterface::NetworkInterface(const char *name,
     iface = strtok_r(ifaces, ",", &tmp);
 
     while(iface != NULL) {
-      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", iface);
+      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off 2>/dev/null", iface);
       system(buf);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s", buf);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", buf);
       iface = strtok_r(NULL, ",", &tmp);
     }
   }
@@ -236,16 +242,14 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
-    remoteProbePublicIPaddr = NULL, flows_hash = NULL,
-    hosts_hash = NULL,
-    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
+  ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
+    bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, numSubInterfaces = 0,
+    running = false, customIftype = NULL, is_dynamic_interface = false,
     numVirtualInterfaces = 0, flowHashing = NULL,
-    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0,
+    pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
     sprobe_interface = false, has_vlan_packets = false,
@@ -254,41 +258,50 @@ void NetworkInterface::init() {
     has_too_many_hosts = has_too_many_flows = false,
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
-    pollLoopCreated = false, bridge_interface = false;
+    pollLoopCreated = false, bridge_interface = false,
+    mdns = NULL, snmp = NULL, discovery = NULL, ifDescription = NULL,
+    flowHashingMode = flowhashing_none,
+    macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
 
+  numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
+
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL;
 
-  memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
-  resetSecondTraffic();
-
   L_user_scripts_inline = L_user_scripts_periodic = NULL;
   forceLuaInterpreterReload();
 
+  gettimeofday(&last_frequent_reset, NULL);
+  frequentMacs = new FrequentTrafficItems(5);
+  frequentProtocols = new FrequentTrafficItems(5);
+
   db = NULL;
 #ifdef NTOPNG_PRO
-  aggregated_flows_hash = NULL;
+  aggregated_flows_hash = NULL, flow_interfaces_stats = NULL;
   policer = NULL;
 #endif
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic
-    = dump_security_packets = dump_to_tap = false;
+    = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
   flow_profiles = shadow_flow_profiles = NULL;
+#endif
+
 #endif
 }
 
@@ -308,7 +321,6 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
 
     if(aggregatedFlow == NULL) {
-
 #ifdef AGGREGATED_FLOW_DEBUG
       char buf[256];
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
@@ -323,11 +335,12 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 	  delete aggregatedFlow;
 	  return;
 	} else {
-
 #ifdef AGGREGATED_FLOW_DEBUG
 	  char buf[256];
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "New AggregatedFlow successfully created and added to the hash table [%s]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "New AggregatedFlow successfully created and added "
+				       "to the hash table [%s]",
 				       aggregatedFlow->print(buf, sizeof(buf)));
 #endif
 	}
@@ -348,7 +361,6 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 				 "Aggregated Flows hash table [num items: %i]",
 				 aggregated_flows_hash->getCurrentSize());
 #endif
-
   }
 }
 
@@ -360,19 +372,25 @@ void NetworkInterface::checkAggregationMode() {
   if(!customIftype) {
     char rsp[32];
 
-    if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
-      if(ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) > 0) {
-	if(rsp[0] != '\0') {
-	  if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
-	  else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
-	  else if(!strcmp(rsp, "ingress_vrf_id")) flowHashingMode = flowhashing_vrfid;
-	  else if(strcmp(rsp, "none") != 0) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown aggregation value %s", rsp);
-	}
+    if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)))
+       && (rsp[0] != '\0')) {
+      if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
+	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
+	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
+	else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
+	else if(strcmp(rsp,  DISAGGREGATION_NONE))
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Unknown aggregation value for interface %s [rsp: %s]",
+				       get_type(), rsp);
+      } else { /* non-ZMQ interface */
+	if(!strcmp(rsp, DISAGGREGATION_VLAN)) flowHashingMode = flowhashing_vlan;
+	else if(strcmp(rsp,  DISAGGREGATION_NONE))
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Unknown aggregation value for interface %s [rsp: %s]",
+				       get_type(), rsp);
+
       }
-    } else {
-      if((ntop->getPrefs()->hashGet((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) > 0)
-	 && (!strncmp(rsp, "1", 1)))
-	flowHashingMode = flowhashing_vlan;
     }
   }
 }
@@ -448,7 +466,7 @@ bool NetworkInterface::updateDumpAllTrafficPolicy(void) {
 /* **************************************************** */
 
 bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
-  bool retval = false, retval_u = false, retval_s = false;
+  bool retval = false, retval_u = false;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
@@ -456,30 +474,26 @@ bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_disk", ifname);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval = !strncmp(rsp, "true", 5);
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_unknown_disk", ifname);
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_unknown_traffic", ifname);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval_u = !strncmp(rsp, "true", 5);
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_security_disk", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval_s = !strncmp(rsp, "true", 5);
   }
 
   dump_to_disk = retval;
   dump_unknown_traffic = retval_u;
-  dump_security_packets = retval_s;
   return retval;
 }
 
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficSamplingRate(void) {
-  int retval = 1;
+  int retval = CONST_DUMP_SAMPLING_RATE;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_sampling_rate", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
       retval = atoi(rsp);
   }
 
@@ -490,13 +504,13 @@ int NetworkInterface::updateDumpTrafficSamplingRate(void) {
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficMaxPktsPerFile(void) {
-  int retval = 0;
+  int retval = CONST_MAX_NUM_PACKETS_PER_DUMP;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_pkts_file", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
       retval = atoi(rsp);
   }
 
@@ -529,13 +543,13 @@ int NetworkInterface::updateDumpTrafficMaxSecPerFile(void) {
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficMaxFiles(void) {
-  int retval = 0;
+  int retval = CONST_MAX_DUMP;
 
   if(ifname != NULL) {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_files", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
       retval = atoi(rsp);
   }
 
@@ -573,14 +587,14 @@ void NetworkInterface::deleteDataStructures() {
   if(ases_hash)             { delete(ases_hash);  ases_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
-#ifdef NTOPNG_PRO
-  if(aggregated_flows_hash) { delete(aggregated_flows_hash); aggregated_flows_hash = NULL; }
-#endif
 
-  if(ndpi_struct) {
-    ndpi_exit_detection_module(ndpi_struct);
-    ndpi_struct = NULL;
+#ifdef NTOPNG_PRO
+  if(aggregated_flows_hash) {
+    aggregated_flows_hash->cleanup();
+    delete(aggregated_flows_hash);
+    aggregated_flows_hash = NULL;
   }
+#endif
 
   if(ifname) {
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s shutdown", ifname);
@@ -599,14 +613,13 @@ NetworkInterface::~NetworkInterface() {
     cleanup();
   }
 
-  if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
-  if(ifDescription)     free(ifDescription);
-  if(remoteIfname)      free(remoteIfname);
-  if(remoteIfIPaddr)    free(remoteIfIPaddr);
-  if(remoteProbeIPaddr) free(remoteProbeIPaddr);
-  if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
-  if(db)             delete db;
+
+  if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
+  if(ifDescription)  free(ifDescription);
+  if(discovery)      delete discovery;
+  if(mdns)           delete mdns;
+  if(snmp)           delete snmp;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;
@@ -622,14 +635,25 @@ NetworkInterface::~NetworkInterface() {
       HASH_DEL(flowHashing, current);
       free(current);
     }
+
+    flowHashing = NULL;
   }
 
-  ndpi_exit_detection_module(ndpi_struct);
-  
+  if(ndpi_struct) {
+    ndpi_exit_detection_module(ndpi_struct);
+    ndpi_struct = NULL;
+  }
+
+  delete frequentProtocols;
+  delete frequentMacs;
+  if(db)             delete db;
+
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
+#ifndef HAVE_NEDGE
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
+#endif
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
 
@@ -642,11 +666,11 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping flow.");
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, f));
-  } else if(ntop->getPrefs()->do_dump_flows_on_es()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
     return(dumpEsFlow(when, f));
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     return(dumpLsFlow(when,f));
-  }else {
+  } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
     return(-1);
   }
@@ -654,19 +678,28 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpLsFlow(time_t when, Flow *f){
+int NetworkInterface::dumpLsFlow(time_t when, Flow *f) {
+#ifndef HAVE_NEDGE
   char *json = f->serialize(true);
   int rc;
+
   if(json && ntop->getLogstash()) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s", json);
     rc = ntop->getLogstash()->sendToLS(json);
     free(json);
   } else
     rc = -1;
+
   return(rc);
+#else
+  return(-1);
+#endif
 }
 
+/* **************************************************** */
+
 int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
+#ifndef HAVE_NEDGE
   char *json = f->serialize(true);
   int rc;
 
@@ -678,6 +711,9 @@ int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
     rc = -1;
 
   return(rc);
+#else
+  return(-1);
+#endif
 }
 
 /* **************************************************** */
@@ -700,26 +736,39 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 #ifdef NTOPNG_PRO
 
 int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
-  if(ntop->getPrefs()->is_enterprise_edition() && db && f && (f->get_packets() > 0)) {
+  if(db
+     && f && (f->get_packets() > 0)
+     && ntop->getPrefs()->is_enterprise_edition()) {
 #ifdef AGGREGATED_FLOW_DEBUG
     char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to dump AggregatedFlow to database [%s]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Going to dump AggregatedFlow to database [%s]",
 				 f->print(buf, sizeof(buf)));
 #endif
-    return(dynamic_cast<BatchedMySQLDB*>(db)->dumpAggregatedFlow(f));
+
+    return(db->dumpAggregatedFlow(f));
   }
+
   return(-1);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::flushFlowDump() {
+  if(db) db->flush();
 }
 
 #endif
 
 /* **************************************************** */
 
-static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data) {
+static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   Host *host = (Host*)h;
 
-  if(host && (host->isLocalHost() || host->isSystemHost()))
+  if(host && (host->isLocalHost() || host->isSystemHost())) {    
     host->serialize2redis();
+    *matched = true;
+  }
 
   return(false); /* false = keep on walking */
 }
@@ -728,9 +777,12 @@ static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data) {
 
 int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
   int rc;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(disable_purge) disablePurge(false /* on hosts */);
-  rc = walker(walker_hosts, local_hosts_2_redis_walker, NULL) ? 0 : -1;
+  rc = walker(&begin_slot, walk_all,  walker_hosts,
+	      local_hosts_2_redis_walker, NULL) ? 0 : -1;
   if(disable_purge) enablePurge(false /* on hosts */);
 
   return rc;
@@ -739,132 +791,61 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getHostsHashSize() {
-  if(!isView())
-    return(hosts_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
-
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_hosts_hash()->getNumEntries();
-
-    return(tot);
-  }
+  return(hosts_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getASesHashSize() {
-  if(!isView())
-    return(ases_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
-
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_ases_hash()->getNumEntries();
-
-    return(tot);
-  }
+  return(ases_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getVLANsHashSize() {
-  if(!isView())
-    return(vlans_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
-
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_vlans_hash()->getNumEntries();
-
-    return(tot);
-  }
+  return(vlans_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getFlowsHashSize() {
-  if(!isView())
-    return(flows_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
-
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_flows_hash()->getNumEntries();
-
-    return(tot);
-  }
+  return(flows_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getMacsHashSize() {
-  if(!isView())
-    return(macs_hash->getNumEntries());
-  else {
-    u_int32_t tot = 0;
-
-    for(u_int8_t s = 0; s<numSubInterfaces; s++)
-      tot += subInterfaces[s]->get_macs_hash()->getNumEntries();
-
-    return(tot);
-  }
+  return(macs_hash->getNumEntries());
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::walker(WalkerType wtype,
-			      bool (*walker)(GenericHashEntry *h, void *user_data),
+bool NetworkInterface::walker(u_int32_t *begin_slot,
+			      bool walk_all,
+			      WalkerType wtype,
+			      bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
 			      void *user_data) {
   bool ret = false;
 
   switch(wtype) {
   case walker_hosts:
-    if(!isView())
-      ret = hosts_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_hosts_hash()->walk(walker, user_data);
-    }
+    ret = hosts_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
 
   case walker_flows:
-    if(!isView())
-      ret = flows_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_flows_hash()->walk(walker, user_data);
-    }
+    ret = flows_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
 
   case walker_macs:
-    if(!isView())
-      ret = macs_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_macs_hash()->walk(walker, user_data);
-    }
-
+    ret = macs_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
 
   case walker_ases:
-    if(!isView())
-      ret = ases_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_ases_hash()->walk(walker, user_data);
-    }
-
+    ret = ases_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
 
   case walker_vlans:
-    if(!isView())
-      ret = vlans_hash->walk(walker, user_data);
-    else {
-      for(u_int8_t s = 0; s<numSubInterfaces; s++)
-	ret |= subInterfaces[s]->get_vlans_hash()->walk(walker, user_data);
-    }
-
+    ret = vlans_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
   }
 
@@ -874,13 +855,14 @@ bool NetworkInterface::walker(WalkerType wtype,
 /* **************************************************** */
 
 Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
-				u_int16_t vlan_id,
-				u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
-  				IpAddress *src_ip, IpAddress *dst_ip,
+				u_int16_t vlan_id,  u_int32_t deviceIP,
+				u_int16_t inIndex,  u_int16_t outIndex,
+  				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
 				bool *src2dst_direction,
 				time_t first_seen, time_t last_seen,
+				u_int32_t rawsize,
 				bool *new_flow) {
   Flow *ret;
   Mac *primary_mac;
@@ -930,9 +912,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   }
 
   if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
-
-    if((primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
-#ifdef SECONDARY_MAC_DEBUG
+    if((!srcMac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
+#ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Detected mac address [%s] [host: %s][primary mac: %s]",
@@ -941,27 +922,40 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
 
-      /* Mac address is not the primary host mac address, let's see if it is the secondary */
-      if(!srcHost->getSecondaryMac()) {
-#ifdef SECONDARY_MAC_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Adding secondary mac [host: %s][primary mac: %s][secondary mac: %s]",
-				     srcHost->get_ip()->print(buf, sizeof(buf)),
-				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)),
-				     Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)));
+      if(srcHost->getMac()->isSpecialMac()) {
+	if(getIfType() == interface_type_NETFILTER) {
+	  /*
+	     This is the first *reply* packet of a flow so we need to increment it
+	     with the initial packet that was missed as NetFilter did not report
+	     the (destination) MAC. From now on, all flow peers are known
+	  */
+
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
+	  if(ret->get_packets_cli2srv() == 1 /* first packet */)
+	    srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
 #endif
-
-	srcHost->set_mac(srcMac, false /* Secondary mac */);
+	}
       }
-    }
 
-    srcHost->updateMacSeen(srcMac);
+      srcHost->set_mac(srcMac);
+      srcHost->updateHostPool(true /* Inline */);
+    }
   }
 
   if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
+    if(dstMac->isSpecialMac()) {
+      if(getIfType() == interface_type_NETFILTER) {
+	/*
+	   In this case the destination Mac is unknown and thus we need to
+	   increase the bytes/packets counters for the flow peer (if set)
+	*/
 
-    if((primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
-#ifdef SECONDARY_MAC_DEBUG
+	if(!dstHost->getMac()->isSpecialMac())
+	  dstHost->getMac()->incRcvdStats(1, rawsize);
+      }
+    } else if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
+#ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Detected mac address [%s] [host: %s][primary mac: %s]",
@@ -969,22 +963,9 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				   dstHost->get_ip()->print(buf, sizeof(buf)),
 				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
-
-      /* Mac address is not the primary host mac address, let's see if it is the secondary */
-      if(!dstHost->getSecondaryMac()) {
-#ifdef SECONDARY_MAC_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Adding secondary mac [host: %s][primary mac: %s][secondary mac: %s]",
-				     dstHost->get_ip()->print(buf, sizeof(buf)),
-				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)),
-				     Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)));
-#endif
-
-	dstHost->set_mac(dstMac, false /* Secondary mac */);
-      }
+      dstHost->set_mac(dstMac);
+      dstHost->updateHostPool(true /* Inline */);
     }
-
-    dstHost->updateMacSeen(dstMac);
   }
 
   return(ret);
@@ -992,7 +973,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
-NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
+NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool parser_interface) {
+#ifndef HAVE_NEDGE
   FlowHashing *h = NULL;
 
   HASH_FIND_INT(flowHashing, &criteria, h);
@@ -1010,23 +992,26 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
 	switch(flowHashingMode) {
 	case flowhashing_vlan:
 	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
-	  snprintf(buf, sizeof(buf), "%s [vlanId: %u]", ifname, criteria);
+	  snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, criteria);
+	  // snprintf(buf, sizeof(buf), "VLAN Id %u", criteria);
 	  break;
 
 	case flowhashing_probe_ip:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [probeIP: %s]", ifname,
-		   Utils::intoaV4(criteria, buf1, sizeof(buf1)));
+	  snprintf(buf, sizeof(buf), "%s [Probe IP: %s]", ifname, Utils::intoaV4(criteria, buf1, sizeof(buf1)));
+	  // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4(criteria, buf1, sizeof(buf1)));
 	  break;
 
 	case flowhashing_ingress_iface_idx:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
+	  snprintf(buf, sizeof(buf), "%s [If Idx: %u]", ifname, criteria);
+	  // snprintf(buf, sizeof(buf), "If Idx %u", criteria);
 	  break;
 
 	case flowhashing_vrfid:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, criteria);
+	  // snprintf(buf, sizeof(buf), "VRF Id %u", criteria);
 	  break;
 
 	default:
@@ -1035,10 +1020,17 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
 	  break;
 	}
 
-	if((h->iface = new NetworkInterface(buf, vIface_type)) != NULL) {
+	if(parser_interface)
+	  h->iface = new ParserInterface(buf, vIface_type);
+	else
+	  h->iface = new NetworkInterface(buf, vIface_type);
+
+	if(h->iface) {
+	  h->iface->allocateNetworkStats();
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
+	  h->iface->setDynamicInterface();
 	}
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
@@ -1046,6 +1038,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
   }
 
   if(h) return(h->iface);
+#endif
 
   return(NULL);
 }
@@ -1058,57 +1051,62 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   ndpi_protocol p;
   time_t now = time(NULL);
   Mac *srcMac, *dstMac;
+  IpAddress srcIP, dstIP;
 
   if(last_pkt_rcvd_remote > 0) {
     int drift = now - last_pkt_rcvd_remote;
 
     if(drift >= 0)
-      zflow->last_switched += drift, zflow->first_switched += drift;
+      zflow->core.last_switched += drift, zflow->core.first_switched += drift;
     else {
       u_int32_t d = (u_int32_t)-drift;
 
-      if(d < zflow->last_switched)  zflow->last_switched  += drift;
-      if(d < zflow->first_switched) zflow->first_switched += drift;
+      if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
+      if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
     }
 
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				 zflow->first_switched,  zflow->last_switched,
-				 zflow->last_switched-zflow->first_switched, drift,
+				 zflow->core.first_switched,  zflow->core.last_switched,
+				 zflow->core.last_switched-zflow->core.first_switched, drift,
 				 now, last_pkt_rcvd_remote);
 #endif
   } else {
     /* Old nProbe */
 
-    if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd_remote)
-      last_pkt_rcvd_remote = zflow->last_switched;
+    if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
+      last_pkt_rcvd_remote = zflow->core.last_switched;
 
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
-				 zflow->first_switched,  zflow->last_switched,
-				 zflow->last_switched- zflow->first_switched);
+				 zflow->core.first_switched,  zflow->core.last_switched,
+				 zflow->core.last_switched- zflow->core.first_switched);
 #endif
   }
 
-  if(flowHashingMode != flowhashing_none) {
-    NetworkInterface *vIface;
+  if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
+    NetworkInterface *vIface = NULL;
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
-      vIface = getSubInterface((u_int32_t)zflow->deviceIP);
+      vIface = getSubInterface((u_int32_t)zflow->core.deviceIP, true);
       break;
 
     case flowhashing_ingress_iface_idx:
-      vIface = getSubInterface((u_int32_t)zflow->inIndex);
+      vIface = getSubInterface((u_int32_t)zflow->core.inIndex, true);
       break;
 
     case flowhashing_vrfid:
-      vIface = getSubInterface((u_int32_t)zflow->vrfId);
+      vIface = getSubInterface((u_int32_t)zflow->core.vrfId, true);
+      break;
+
+    case flowhashing_vlan:
+      if(zflow->core.vlan_id)
+	vIface = getSubInterface((u_int32_t)zflow->core.vlan_id, true);
       break;
 
     default:
-      vIface = NULL;
       break;
     }
 
@@ -1118,89 +1116,172 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 
-  srcMac = getMac((u_int8_t*)zflow->src_mac, zflow->vlan_id, true);
-  dstMac = getMac((u_int8_t*)zflow->dst_mac, zflow->vlan_id, true);
+  srcMac = getMac((u_int8_t*)zflow->core.src_mac, zflow->core.vlan_id, true);
+  dstMac = getMac((u_int8_t*)zflow->core.dst_mac, zflow->core.vlan_id, true);
+
+  srcIP.set(&zflow->core.src_ip), dstIP.set(&zflow->core.dst_ip);
 
   /* Updating Flow */
-  flow = getFlow(srcMac,
-		 dstMac,
-		 zflow->vlan_id,
-		 zflow->deviceIP, zflow->inIndex, zflow->outIndex,
-		 &zflow->src_ip, &zflow->dst_ip,
-		 zflow->src_port, zflow->dst_port,
-		 zflow->l4_proto, &src2dst_direction,
-		 zflow->first_switched,
-		 zflow->last_switched, &new_flow);
+  flow = getFlow(srcMac, dstMac,
+		 zflow->core.vlan_id,
+		 zflow->core.deviceIP,
+		 zflow->core.inIndex, zflow->core.outIndex,
+		 &srcIP, &dstIP,
+		 zflow->core.src_port, zflow->core.dst_port,
+		 zflow->core.l4_proto, &src2dst_direction,
+		 zflow->core.first_switched,
+		 zflow->core.last_switched,
+		 0, &new_flow);
 
   if(flow == NULL)
     return;
 
-  /* Update Mac stats */
-  if(srcMac) {
-    srcMac->incSentStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_pkts : zflow->out_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_bytes : zflow->out_bytes));
-    srcMac->incRcvdStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_pkts : zflow->in_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_bytes : zflow->in_bytes));
+  if(zflow->core.absolute_packet_octet_counters) {
+    /* Ajdust bytes and packets counters if the zflow update contains absolute values.
+
+       As flows may arrive out of sequence, special care is needed to avoid counting absolute values multiple times.
+
+       http://www.cisco.com/c/en/us/td/docs/security/asa/special/netflow/guide/asa_netflow.html#pgfId-1331296
+       Different events in the life of a flow may be issued in separate NetFlow packets and may arrive out-of-order
+       at the collector. For example, the packet containing a flow teardown event may reach the collector before the packet
+       containing a flow creation event. As a result, it is important that collector applications use the Event Time field
+       to correlate events.
+    */
+
+    u_int64_t in_cur_pkts = src2dst_direction ? flow->get_packets_cli2srv() : flow->get_packets_srv2cli(),
+      in_cur_bytes = src2dst_direction ? flow->get_bytes_cli2srv() : flow->get_bytes_srv2cli();
+    u_int64_t out_cur_pkts = src2dst_direction ? flow->get_packets_srv2cli() : flow->get_packets_cli2srv(),
+      out_cur_bytes = src2dst_direction ? flow->get_bytes_srv2cli() : flow->get_bytes_cli2srv();
+    bool out_of_sequence = false;
+
+    if(zflow->core.in_pkts) {
+      if(zflow->core.in_pkts >= in_cur_pkts) zflow->core.in_pkts -= in_cur_pkts;
+      else zflow->core.in_pkts = 0, out_of_sequence = true;
+    }
+
+    if(zflow->core.in_bytes) {
+      if(zflow->core.in_bytes >= in_cur_bytes) zflow->core.in_bytes -= in_cur_bytes;
+      else zflow->core.in_bytes = 0, out_of_sequence = true;
+    }
+
+    if(zflow->core.out_pkts) {
+      if(zflow->core.out_pkts >= out_cur_pkts) zflow->core.out_pkts -= out_cur_pkts;
+      else zflow->core.out_pkts = 0, out_of_sequence = true;
+    }
+
+    if(zflow->core.out_bytes) {
+      if(zflow->core.out_bytes >= out_cur_bytes) zflow->core.out_bytes -= out_cur_bytes;
+      else zflow->core.out_bytes = 0, out_of_sequence = true;
+    }
+
+    if(out_of_sequence) {
+#ifdef ABSOLUTE_COUNTERS_DEBUG
+      char flowbuf[265];
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "A flow received an update with absolute values smaller than the current values. "
+				   "[in_bytes: %u][in_cur_bytes: %u][out_bytes: %u][out_cur_bytes: %u]"
+				   "[in_pkts: %u][in_cur_pkts: %u][out_pkts: %u][out_cur_pkts: %u]\n"
+				   "%s",
+				   zflow->core.in_bytes, in_cur_bytes, zflow->core.out_bytes, out_cur_bytes,
+				   zflow->core.in_pkts, in_cur_pkts, zflow->core.out_pkts, out_cur_pkts,
+				   flow->print(flowbuf, sizeof(flowbuf)));
+#endif
+    }
+  }
+
+  /* Update flow device stats */
+  if(!flow->setFlowDevice(zflow->core.deviceIP,
+			  src2dst_direction ? zflow->core.inIndex  : zflow->core.outIndex,
+			  src2dst_direction ? zflow->core.outIndex : zflow->core.inIndex)) {
+    static bool flow_device_already_set = false;
+    if(!flow_device_already_set) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "A flow has been seen from multiple exporters or from "
+				   "multiple IN/OUT interfaces. Check exporters configuration.");
+      flow_device_already_set = true;
+    }
+  }
+
+#ifdef MAC_DEBUG
+  char bufm1[32], bufm2[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+      "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
+      Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+      Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
+      (src2dst_direction) ? 1 : 0);
+#endif
+
+  /* Update Mac stats
+     Note: do not use src2dst_direction to inc the stats as
+     in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
+     source mac (srcMac) and destination mac (dstMac)
+  */
+  if(likely(srcMac != NULL)) {
+    srcMac->incSentStats(zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
+			 zflow->core.pkt_sampling_rate * zflow->core.in_bytes);
+    srcMac->incRcvdStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
+			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
 
     if(!srcMac->isSourceMac())
       srcMac->setSourceMac();
   }
-  if(dstMac) {
-    dstMac->incSentStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_pkts : zflow->in_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->out_bytes : zflow->in_bytes));
-    dstMac->incRcvdStats(zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_pkts : zflow->out_pkts),
-			 zflow->pkt_sampling_rate * (src2dst_direction ? zflow->in_bytes : zflow->out_bytes));
+  if(likely(dstMac != NULL)) {
+    dstMac->incSentStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
+			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
+    dstMac->incRcvdStats(zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
+			 zflow->core.pkt_sampling_rate * zflow->core.in_bytes);
   }
 
-  if(zflow->l4_proto == IPPROTO_TCP) {
+  if(zflow->core.l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
     when.tv_sec = (long)now, when.tv_usec = 0;
     flow->updateTcpFlags((const struct bpf_timeval*)&when,
-			 zflow->tcp_flags, src2dst_direction);
+			 zflow->core.tcp_flags, src2dst_direction);
     flow->incTcpBadStats(true,
-			 zflow->tcp.ooo_in_pkts, zflow->tcp.retr_in_pkts, zflow->tcp.lost_in_pkts);
+			 zflow->core.tcp.ooo_in_pkts, zflow->core.tcp.retr_in_pkts,
+			 zflow->core.tcp.lost_in_pkts);
     flow->incTcpBadStats(false,
-			 zflow->tcp.ooo_out_pkts, zflow->tcp.retr_out_pkts, zflow->tcp.lost_out_pkts);
+			 zflow->core.tcp.ooo_out_pkts, zflow->core.tcp.retr_out_pkts,
+			 zflow->core.tcp.lost_out_pkts);
   }
 
 #ifdef NTOPNG_PRO
-  if(zflow->deviceIP) {
+  if(zflow->core.deviceIP) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
     if(!flow_interfaces_stats)
       flow_interfaces_stats = new FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(zflow->deviceIP, zflow->inIndex,    zflow->out_bytes, zflow->in_bytes);
+      flow_interfaces_stats->incStats(zflow->core.deviceIP, zflow->core.inIndex,    zflow->core.out_bytes, zflow->core.in_bytes);
       /* If the SNMP device is actually an host with an SNMP agent, then traffic can enter and leave it
 	 from the same interface (think to a management interface). For this reason it is important to check
 	 the outIndex and increase its counters only if it is different from inIndex to avoid double counting. */
-      if(zflow->outIndex != zflow->inIndex)
-	flow_interfaces_stats->incStats(zflow->deviceIP, zflow->outIndex, zflow->in_bytes, zflow->out_bytes);
+      if(zflow->core.outIndex != zflow->core.inIndex)
+	flow_interfaces_stats->incStats(zflow->core.deviceIP, zflow->core.outIndex,
+					zflow->core.in_bytes, zflow->core.out_bytes);
     }
   }
 #endif
 
   flow->addFlowStats(src2dst_direction,
-		     zflow->pkt_sampling_rate*zflow->in_pkts,
-		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
-		     zflow->pkt_sampling_rate*zflow->out_pkts,
-		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
-		     zflow->last_switched);
-  p.app_protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+		     zflow->core.pkt_sampling_rate*zflow->core.in_pkts,
+		     zflow->core.pkt_sampling_rate*zflow->core.in_bytes, 0,
+		     zflow->core.pkt_sampling_rate*zflow->core.out_pkts,
+		     zflow->core.pkt_sampling_rate*zflow->core.out_bytes, 0,
+		     zflow->core.last_switched);
+  p.app_protocol = zflow->core.l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
-  flow->updateActivities();
 
   flow->updateInterfaceLocalStats(src2dst_direction,
-				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
-				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+				  zflow->core.pkt_sampling_rate*(zflow->core.in_pkts+zflow->core.out_pkts),
+				  zflow->core.pkt_sampling_rate*(zflow->core.in_bytes+zflow->core.out_bytes));
 
   if(zflow->src_process.pid || zflow->dst_process.pid) {
     if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
     if(zflow->dst_process.pid) flow->handle_process(&zflow->dst_process, src2dst_direction ? false : true);
 
-    if(zflow->l7_proto == NDPI_PROTOCOL_UNKNOWN)
+    if(zflow->core.l7_proto == NDPI_PROTOCOL_UNKNOWN)
       flow->guessProtocol();
   }
 
@@ -1209,17 +1290,18 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->http_site) flow->setServerName(zflow->http_site);
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
-  if(zflow->vrfId)           flow->setVRFid(zflow->vrfId);
+  if(zflow->core.vrfId)      flow->setVRFid(zflow->core.vrfId);
   /* Do not put incStats before guessing the flow protocol */
-  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStats(true /* ingressPacket */,
+	   now, srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
-	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
-	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
+	   zflow->core.pkt_sampling_rate*(zflow->core.in_bytes + zflow->core.out_bytes),
+	   zflow->core.pkt_sampling_rate*(zflow->core.in_pkts + zflow->core.out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
 
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
-  // purgeIdle(zflow->last_switched);
+  // purgeIdle(zflow->core.last_switched);
 }
 
 /* **************************************************** */
@@ -1245,10 +1327,11 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
-bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
+bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
+				     bool ingressPacket,
 				     const struct bpf_timeval *when,
-				     const u_int64_t time,
-				     Mac *srcMac, Mac *dstMac,
+				     const u_int64_t packet_time,
+				     struct ndpi_ethhdr *eth,
 				     u_int16_t vlan_id,
 				     struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6,
@@ -1262,6 +1345,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
   bool src2dst_direction, is_sent_packet = false; /* FIX */
   u_int8_t l4_proto;
   Flow *flow;
+  Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress src_ip, dst_ip;
   u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
   struct ndpi_tcphdr *tcph = NULL;
@@ -1273,34 +1357,66 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
   bool pass_verdict = true;
 
   /* VLAN disaggregation */
-  if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
+  if((!isDynamicInterface()) && (flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
     NetworkInterface *vIface;
 
-    if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
+    if((vIface = getSubInterface((u_int32_t)vlan_id, false)) != NULL) {
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
+      vIface->purgeIdle(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
-				  when, time,
-				  srcMac, dstMac,
-				  vlan_id,
+				  ingressPacket, when, packet_time,
+				  eth, vlan_id,
 				  iph, ip6, ipsize, rawsize,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
-      vIface->purgeIdle(h->ts.tv_sec);
 
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
       return(ret);
     }
   }
 
+  if((srcMac = getMac(eth->h_source, vlan_id, true))) {
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
+    srcMac->incSentStats(1, rawsize);
+#endif
+    srcMac->setSeenIface(bridge_iface_idx);
+
+#ifdef NTOPNG_PRO
+    u_int16_t mac_pool = 0;
+    char bufMac[24];
+    char *mac_str;
+
+    /* When captive portal is disabled, use the auto_assigned_pool_id as the default MAC pool */
+    if(host_pools
+          && (ntop->getPrefs()->get_auto_assigned_pool_id() != NO_HOST_POOL_ID)
+          && (!ntop->getPrefs()->isCaptivePortalEnabled())
+          && (srcMac->locate() == located_on_lan_interface)) {
+      if(!host_pools->findMacPool(srcMac->get_mac(), vlan_id, &mac_pool) || (mac_pool == NO_HOST_POOL_ID)) {
+        mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
+        host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
+      }
+    }
+#endif
+  }
+
+  if((dstMac = getMac(eth->h_dest, vlan_id, true))) {
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
+    dstMac->incRcvdStats(1, rawsize);
+#endif
+}
+
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket,
+	       when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1319,7 +1435,8 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 
     if(ipsize < sizeof(const struct ndpi_ipv6hdr)) {
-      incStats(when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
+      incStats(ingressPacket,
+	       when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
 	       1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1334,7 +1451,9 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       ipv6_shift = 8 * (options[1] + 1);
 
       if(ipsize < ipv6_shift) {
-	incStats(when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(ingressPacket,
+		 when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       }
     }
@@ -1358,7 +1477,8 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", l4_packet_len);
-      incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_UDP) {
@@ -1371,7 +1491,8 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", l4_packet_len);
-      incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_GRE) {
@@ -1425,13 +1546,17 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, &new_flow);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow);
 
   if(flow == NULL) {
-    incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+    incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
+#ifdef NTOPNG_PRO
+    if(new_flow)
+      flow->setIngress2EgressDirection(ingressPacket);
+#endif
     *srcHost = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;
@@ -1461,7 +1586,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 	    src2dst_direction = false;
         }
 
-        flow->setICMP(src2dst_direction, icmp_type, icmp_code);
+        flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
 	else
@@ -1470,6 +1595,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       break;
     }
 
+#ifndef HAVE_NEDGE
 #ifdef __OpenBSD__
     struct timeval tv_ts;
     tv_ts.tv_sec  = h->ts.tv_sec;
@@ -1478,10 +1604,11 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 #else
     flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
 #endif
+#endif
+
   }
 
   /* Protocol Detection */
-  flow->updateActivities();
   flow->updateInterfaceLocalStats(src2dst_direction, 1, rawsize);
 
   if(!flow->isDetectionCompleted()) {
@@ -1497,7 +1624,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
 	else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-								  ip, ipsize, (u_int32_t)time,
+								  ip, ipsize, (u_int32_t)packet_time,
 								  cli, srv), false);
       } else {
 	// FIX - only handle unfragmented packets
@@ -1508,36 +1635,63 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())
-     && flow->get_cli_host()
-     && flow->get_srv_host()) {
+     && flow->get_cli_host() && flow->get_srv_host()) {
     struct ndpi_flow_struct *ndpi_flow;
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
-      if(payload_len > 240) {
-	for(int i = 240; i<payload_len; ) {
-	  u_int8_t id  = payload[i], len = payload[i+1];
+      /* TODO case NDPI_PROTOCOL_DHCPV6: */
+      {
+	Mac *mac = (*srcHost)->getMac();
 
-	  if(len == 0) break;
+	if(payload_len > 240) {
+	  if(mac && (payload[0] == 0x01)) /* Request */
+	    mac->setDhcpHost();
 
-	  if(id == 12 /* Host Name */) {
-	    char name[64], buf[24], *client_mac, key[64];
-	    int j;
+	  for(int i = 240; i<payload_len; ) {
+	    u_int8_t id  = payload[i], len = payload[i+1];
 
-	    j = ndpi_min(len, sizeof(name)-1);
-	    strncpy((char*)name, (char*)&payload[i+2], j);
-	    name[j] = '\0';
+	    if(len == 0) break;
 
-	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf)),
+#ifdef DHCP_DEBUG
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
+#endif
+
+	    if(id == 12 /* Host Name */) {
+	      char name[64], buf[24], *client_mac, key[64];
+	      int j;
+
+	      j = ndpi_min(len, sizeof(name)-1);
+	      strncpy((char*)name, (char*)&payload[i+2], j);
+	      name[j] = '\0';
+
+	      client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
 	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
 
-	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
-	    ntop->getRedis()->hashSet(key, client_mac, name);
-	    break;
-	  } else if(id == 0xFF)
-	    break; /* End of options */
+	      snprintf(key, sizeof(key), DHCP_CACHE, get_id());
+	      ntop->getRedis()->hashSet(key, client_mac, name);
+	    } else if(id == 55 /* Parameters List (Fingerprint) */) {
+	      if((*srcHost)->getMac()) {
+		char fingerprint[64], buf[32];
+		u_int idx, offset = 0;
 
-	  i += len + 2;
+		len = ndpi_min(len, sizeof(buf)/2);
+
+		for(idx=0; idx<len; idx++) {
+		  snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
+		  offset += 2;
+		}
+
+#ifdef DHCP_DEBUG
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+#endif
+		mac->setFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	      }
+	    } else if(id == 0xFF)
+	      break; /* End of options */
+
+	    i += len + 2;
+	  }
 	}
       }
       break;
@@ -1596,7 +1750,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
       if(payload_len > 0)
 	flow->dissectSSDP(src2dst_direction, (char*)payload, payload_len);
       break;
-      
+
     case NDPI_PROTOCOL_DNS:
       ndpi_flow = flow->get_ndpi_flow();
 
@@ -1646,7 +1800,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 	       0, sizeof(ndpi_flow->detected_protocol_stack));
 
 	ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-				      ip, ipsize, (u_int32_t)time,
+				      ip, ipsize, (u_int32_t)packet_time,
 				      src2dst_direction ? cli : srv,
 				      src2dst_direction ? srv : cli);
 
@@ -1661,7 +1815,7 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
     case NDPI_PROTOCOL_MDNS:
       flow->dissectMDNS(payload, payload_len);
       break;
-      
+
     default:
       if(flow->isSSLProto())
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
@@ -1671,40 +1825,38 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
     if(is_bridge_interface()) {
-      pass_verdict = flow->isPassVerdict();
+      struct tm now;
+      time_t t_now = time(NULL);
+      localtime_r(&t_now, &now);
+      pass_verdict = flow->checkPassVerdict(&now);
 
       if(pass_verdict) {
-	u_int8_t shaper_ingress, shaper_egress;
+	TrafficShaper *shaper_ingress, *shaper_egress;
 	char buf[64];
 
-	/*
-	  In case of uncategorized DNS requests we need to temporarily
-	  drop traffic until a decision is made
-	*/
+	flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_egress);
+	ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
+				     flow->get_detected_protocol_name(buf, sizeof(buf)),
+				     shaper_ingress, shaper_egress);
+	pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
 
-	if(ntop->getPrefs()->is_flashstart_enabled() && flow->isCategorizationOngoing()
-	   && (ndpi_get_lower_proto(flow->get_detected_protocol()) == NDPI_PROTOCOL_DNS)) {
-	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** DROPPING UNCATEGORIZED DNS ***"); */
-	  pass_verdict = false;
-	} else {
-	  flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_egress);
-	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
-				       flow->get_detected_protocol_name(buf, sizeof(buf)),
-				       shaper_ingress, shaper_egress);
-	  pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
-
-	  if(pass_verdict) {
-	    /* Update pools stats inline only for bridge interfaces! */
-	    if(src2dst_direction)
-	      flow->update_pools_stats(when,
-				       1, rawsize, /* sent-only */
-				       0, 0);
-	    else
-	      flow->update_pools_stats(when,
-				       0, 0,
-				       1, rawsize /* received-only */);
-	  }
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
+	if(pass_verdict) {
+	  /* Update pools stats inline only for bridge interfaces! */
+	  if(src2dst_direction)
+	    flow->update_pools_stats(when,
+				     1, rawsize, /* sent-only */
+				     0, 0);
+	  else
+	    flow->update_pools_stats(when,
+				     0, 0,
+				     1, rawsize /* received-only */);
 	}
+#endif
+
+      } else {
+	flow->incFlowDroppedCounters();
       }
     }
 #endif
@@ -1715,14 +1867,13 @@ bool NetworkInterface::processPacket(u_int8_t bridge_iface_idx,
 
     if(dump_if_unknown
        || dump_all_traffic
-       || dump_security_packets
        || flow->dumpFlowTraffic()) {
       if(dump_to_disk) dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
       if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
     }
   }
 
-  incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
@@ -1738,21 +1889,22 @@ void NetworkInterface::purgeIdle(time_t when) {
     last_pkt_rcvd = when;
 
     if((n = purgeIdleFlows()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle flows on %s",
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
     if((m = purgeIdleHostsMacsASesVlans()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts/macs on %s",
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
 				   n, getNumHosts()+getNumMacs(), ifname);
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
-  updateSecondTraffic(when);
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
+bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
+				     bool ingressPacket,
+				     u_int8_t *sender_mac,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
 				     u_int16_t *ndpiProtocol,
@@ -1761,11 +1913,16 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
-  Mac *srcMac = NULL, *dstMac = NULL;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", ingressPacket ? "RX" : "TX");
+
+  /* Netfilter interfaces don't report MAC addresses on packets */
+  if(getIfType() == interface_type_NETFILTER)
+    rawsize += sizeof(struct ndpi_ethhdr);
 
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {
@@ -1779,6 +1936,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
   }
 
   setTimeLastPktRcvd(h->ts.tv_sec);
+  purgeIdle(h->ts.tv_sec);
 
   time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
 
@@ -1796,31 +1954,25 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
-      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict); /* Any other non IP protocol */
     }
 
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
   } else if(pcap_datalink_type == DLT_EN10MB) {
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
-
-    if((srcMac = getMac(ethernet->h_source, vlan_id, true))) {
-      srcMac->incSentStats(1, rawsize);
-      srcMac->setSeenIface(bridge_iface_idx);
-    }
-    if((dstMac = getMac(ethernet->h_dest, vlan_id, true)))
-      dstMac->incRcvdStats(1, rawsize);
-
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
     ip_offset = 16 + eth_offset;
-    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 #ifdef DLT_RAW
   } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
     switch((packet[eth_offset] & 0xf0) >> 4) {
@@ -1831,20 +1983,23 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
-      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict); /* Unknown IP protocol version */
     }
+
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
   } else if(pcap_datalink_type == DLT_IPV4) {
     eth_type = ETHERTYPE_IP;
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = 0;
   } else {
-    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   }
 
@@ -1883,7 +2038,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 
       if(iph->version != 4) {
 	/* This is not IPv4 */
-	incStats(h->ts.tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
+		 NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else
 	frag_off = ntohs(iph->frag_off);
@@ -1911,7 +2067,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 
 	    if(iph->version != 4) {
 	      /* FIX - Add IPv6 support */
-	      incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
+		       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	  }
@@ -1946,7 +2103,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	      offset += tag_len;
 
 	      if(offset >= h->caplen) {
-		incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+			 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 		return(pass_verdict);
 	      } else {
 		eth_offset = offset;
@@ -1974,7 +2132,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	  ip_offset = ip_offset+capwap_header_len+24+8;
 
 	  if(ip_offset >= h->len) {
-	    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -1988,19 +2147,20 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	    ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	    break;
 	  default:
-	    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	}
       }
 
       if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr) & 0xFF;
+	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
-				     &h->ts, time,
-				     srcMac, dstMac,
+				     ingressPacket, &h->ts, time,
+				     ethernet,
 				     vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
@@ -2022,7 +2182,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 
       if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
-	incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
@@ -2037,7 +2198,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
 	  // ip_offset += ipv6_shift;
 	  if((ip_offset + ipv6_shift) >= h->len) {
-	    incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 
@@ -2063,7 +2225,8 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	    ip_offset = ip_offset+capwap_header_len+24+8;
 
 	    if(ip_offset >= h->len) {
-	      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -2077,19 +2240,20 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 	      ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	      break;
 	    default:
-	      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	  }
 	}
 
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr) & 0xFF;
+	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
 	try {
 	  pass_verdict = processPacket(bridge_iface_idx,
-				       &h->ts, time,
-				       srcMac, dstMac,
+				       ingressPacket, &h->ts, time,
+				       ethernet,
 				       vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
@@ -2106,6 +2270,15 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
     break;
 
   default: /* No IPv4 nor IPv6 */
+    Mac *srcMac = getMac(ethernet->h_source, vlan_id, true);
+    Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
+
+/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+#ifndef HAVE_NEDGE
+    if(srcMac) srcMac->incSentStats(1, rawsize);
+    if(dstMac) dstMac->incRcvdStats(1, rawsize);
+#endif
+
     if(srcMac && dstMac) {
       const u_int16_t arp_opcode_offset = ip_offset + 6;
       u_int16_t arp_opcode = 0;
@@ -2124,12 +2297,10 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
       }
     }
 
-    incStats(h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN, rawsize,
-	     1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN,
+	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
   }
-
-  purgeIdle(h->ts.tv_sec);
 
   return(pass_verdict);
 }
@@ -2139,7 +2310,7 @@ bool NetworkInterface::dissectPacket(u_int8_t bridge_iface_idx,
 void NetworkInterface::startPacketPolling() {
   if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
     if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
 				   get_name(), cpu_affinity);
     else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
@@ -2167,7 +2338,6 @@ void NetworkInterface::cleanup() {
   running = false, sprobe_interface = false, inline_interface = false;
 
   getStats()->cleanup();
-
   flows_hash->cleanup();
   hosts_hash->cleanup();
   ases_hash->cleanup();
@@ -2240,7 +2410,7 @@ struct ndpiStatsRetrieverData {
   Host *host;
 };
 
-static bool flow_sum_protos(GenericHashEntry *flow, void *user_data) {
+static bool flow_sum_protos(GenericHashEntry *flow, void *user_data, bool *matched) {
   ndpiStatsRetrieverData *retriever = (ndpiStatsRetrieverData*)user_data;
   nDPIStats *stats = retriever->stats;
   Flow *f = (Flow*)flow;
@@ -2251,6 +2421,8 @@ static bool flow_sum_protos(GenericHashEntry *flow, void *user_data) {
     return(false); /* false = keep on walking */
 
   f->sumStats(stats);
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
@@ -2259,35 +2431,39 @@ static bool flow_sum_protos(GenericHashEntry *flow, void *user_data) {
 void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts,
 				    const char *host_ip, u_int16_t vlan_id) {
   ndpiStatsRetrieverData retriever;
-
   Host *h = NULL;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(host_ip)
-    h = findHostsByIP(allowed_hosts, (char *)host_ip, vlan_id);
+    h = findHostByIP(allowed_hosts, (char *)host_ip, vlan_id);
 
   retriever.stats = stats;
   retriever.host = h;
-  walker(walker_flows, flow_sum_protos, (void*)&retriever);
+  walker(&begin_slot, walk_all, walker_flows, flow_sum_protos, (void*)&retriever);
 }
 
 /* **************************************************** */
 
-static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data) {
+static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
   flow->update_hosts_stats(tv);
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
+static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *host = (Host*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
   host->updateStats(tv);
-
+  *matched = true;
+  
   /*
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
     ((StringHost*)node)->host_key(),
@@ -2299,34 +2475,37 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-static bool update_ases_stats(GenericHashEntry *node, void *user_data) {
+static bool update_ases_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   AutonomousSystem *as = (AutonomousSystem*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
   as->updateStats(tv);
-
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-static bool update_vlans_stats(GenericHashEntry *node, void *user_data) {
+static bool update_vlans_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Vlan *vl = (Vlan*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
   vl->updateStats(tv);
-
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-static bool update_macs_stats(GenericHashEntry *node, void *user_data) {
+static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Mac *mac = (Mac*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
   mac->updateStats(tv);
-
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
@@ -2334,16 +2513,19 @@ static bool update_macs_stats(GenericHashEntry *node, void *user_data) {
 
 void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(isView()) return;
 
   gettimeofday(&tv, NULL);
 
-  flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
+  flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
+  topItemsCommit(&tv);
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
-    if(--nextFlowAggregation == 0) {
+    if((getIfType() == interface_type_DUMMY) || (--nextFlowAggregation == 0)) {
       /* Start over */
       aggregated_flows_hash->cleanup();
       nextFlowAggregation = FLOW_AGGREGATION_DURATION;
@@ -2354,7 +2536,6 @@ void NetworkInterface::periodicStatsUpdate() {
 				   "Aggregated flows hash cleared. [num_items: %i]",
 				   aggregated_flows_hash->getCurrentSize());
 #endif
-
     } else
 #ifdef AGGREGATED_FLOW_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -2366,16 +2547,27 @@ void NetworkInterface::periodicStatsUpdate() {
   }
 #endif
 
-  hosts_hash->walk(update_hosts_stats, (void*)&tv);
-  ases_hash->walk(update_ases_stats, (void*)&tv);
-  if(hasSeenVlanTaggedPackets())
-    vlans_hash->walk(update_vlans_stats, (void*)&tv);
-  macs_hash->walk(update_macs_stats, (void*)&tv);
+  begin_slot = 0;
+  hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
 
+  begin_slot = 0;
+  ases_hash->walk(&begin_slot, walk_all, update_ases_stats, (void*)&tv);
+
+  if(hasSeenVlanTaggedPackets()) {
+    begin_slot = 0;
+    vlans_hash->walk(&begin_slot, walk_all, update_vlans_stats, (void*)&tv);
+  }
+
+  begin_slot = 0;
+  macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
+
+#ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
+
     db->flush();
   }
+#endif
 
 #ifdef NTOPNG_PRO
   if(host_pools)
@@ -2390,7 +2582,7 @@ struct update_host_pool_l7policy {
   bool update_l7policy;
 };
 
-static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_data) {
+static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *h = (Host*)node;
   update_host_pool_l7policy *up = (update_host_pool_l7policy*)user_data;
 #ifdef HOST_POOLS_DEBUG
@@ -2398,14 +2590,15 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
   u_int16_t cur_pool_id = h->get_host_pool();
 #endif
 
+  *matched = true;
+  
   if(up->update_pool_id)
-    h->updateHostPool();
+    h->updateHostPool(false /* Not inline with traffic processing */);
 
   if(up->update_l7policy)
     h->updateHostL7Policy();
 
 #ifdef HOST_POOLS_DEBUG
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Going to refresh pool for %s "
 			       "[refresh pool id: %i] "
@@ -2417,7 +2610,30 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 			       up->update_l7policy ? 1 : 0,
 			       cur_pool_id,
 			       h->get_host_pool());
+#endif
 
+  return(false); /* false = keep on walking */
+}
+
+static bool update_l2_device_host_pool(GenericHashEntry *node, void *user_data, bool *matched) {
+  Mac *m = (Mac*)node;
+
+#ifdef HOST_POOLS_DEBUG
+  u_int16_t cur_pool_id = m->get_host_pool();
+#endif
+
+  *matched = true;
+  m->updateHostPool(false /* Not inline with traffic processing */);
+
+#ifdef HOST_POOLS_DEBUG
+  char buf[24];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Going to refresh pool for %s "
+			       "[host pool id before refresh: %i] "
+			       "[host pool id after refresh: %i] ",
+			       Utils::formatMac(m->get_mac(), buf, sizeof(buf)),
+			       cur_pool_id,
+			       m->get_host_pool());
 #endif
 
   return(false); /* false = keep on walking */
@@ -2426,6 +2642,9 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 /* **************************************************** */
 
 void NetworkInterface::refreshHostPools() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
   if(isView()) return;
 
   struct update_host_pool_l7policy update_host;
@@ -2434,16 +2653,24 @@ void NetworkInterface::refreshHostPools() {
 
 #ifdef NTOPNG_PRO
   if(is_bridge_interface() && getL7Policer()) {
-    /* Every pool is associated with a set of L7 rules
-       so a refresh must be triggered to seal this association */
+    /*
+      Every pool is associated with a set of L7 rules
+      so a refresh must be triggered to seal this association
+    */
+
     getL7Policer()->refreshL7Rules();
-    /* Must refresh host l7policies as a change in the host pool id
-       may determine an l7policy change for that host */
+
+    /*
+      Must refresh host l7policies as a change in the host pool id
+      may determine an l7policy change for that host
+    */
     update_host.update_l7policy = true;
   }
 #endif
 
-  hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
+  hosts_hash->walk(&begin_slot, walk_all, update_host_host_pool_l7policy, &update_host);
+  begin_slot = 0;
+  macs_hash->walk(&begin_slot, walk_all, update_l2_device_host_pool, NULL);
 
 #ifdef NTOPNG_PRO
   if(update_host.update_l7policy)
@@ -2457,12 +2684,14 @@ void NetworkInterface::refreshHostPools() {
 
 /* **************************************************** */
 
-static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
+static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
 
+  *matched = true;
   f->updateFlowShapers();
+#ifndef HAVE_NEDGE
   f->updateProfile();
-
+#endif
   return(false); /* false = keep on walking */
 }
 
@@ -2470,47 +2699,73 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
   if(isView()) return;
 
   struct update_host_pool_l7policy update_host;
   update_host.update_pool_id = false;
   update_host.update_l7policy = true;
 
-  hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
+  /* Pool id didn't change here so there's no need to walk on the macs
+   as policies are set on the hosts */
+  hosts_hash->walk(&begin_slot, walk_all,
+		   update_host_host_pool_l7policy, &update_host);
 }
 
 /* **************************************************** */
 
 void NetworkInterface::updateFlowsL7Policy() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
   if(isView()) return;
 
-  flows_hash->walk(update_flow_l7_policy, NULL);
+  flows_hash->walk(&begin_slot, walk_all, update_flow_l7_policy, NULL);
 }
 
 /* **************************************************** */
 
-static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data) {
+static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
   Flow *f = (Flow*)flow;
+  struct tm *now = (struct tm *) user_data;
 
-  f->recheckQuota();
+  *matched = true;
+  f->recheckQuota(now);
+  
   return(false); /* false = keep on walking */
 }
 
-static bool host_reset_quotas(GenericHashEntry *host, void *user_data) {
+/* **************************************************** */
+
+static bool host_reset_quotas(GenericHashEntry *host, void *user_data, bool *matched) {
   Host *h = (Host*)host;
 
+  *matched = true;
   h->resetQuotaStats();
   h->resetBlockedTrafficStatus();
+  
   return(false); /* false = keep on walking */
 }
 
+/* **************************************************** */
+
 void NetworkInterface::resetPoolsStats() {
+  struct tm now;
+  time_t t_now = time(NULL);
+  localtime_r(&t_now, &now);
+
   if(host_pools) {
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
+
     disablePurge(true);
 
     host_pools->resetPoolsStats();
-    walker(walker_hosts, host_reset_quotas, NULL);
-    walker(walker_flows, flow_recheck_quota_walker, NULL);
+    walker(&begin_slot, walk_all,  walker_hosts, host_reset_quotas, NULL);
+    begin_slot = 0;
+    walker(&begin_slot, walk_all,  walker_flows, flow_recheck_quota_walker, &now);
 
     enablePurge(true);
   }
@@ -2546,11 +2801,12 @@ struct mac_find_info {
   u_int8_t mac[6];
   u_int16_t vlan_id;
   Mac *m;
+  DeviceType dtype;
 };
 
 /* **************************************************** */
 
-static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
+static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matched) {
   struct host_find_info *info = (struct host_find_info*)user_data;
   Host *host                  = (Host*)h;
 
@@ -2573,6 +2829,7 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
 
     if(host->get_name() && (!strcmp(host->get_name(), info->host_to_find))) {
       info->h = host;
+      *matched = true;
       return(true); /* found */
     }
   }
@@ -2582,7 +2839,7 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
+static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched) {
   struct mac_find_info *info = (struct mac_find_info*)user_data;
   Mac *m = (Mac*)h;
 
@@ -2591,6 +2848,8 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
      && (!memcmp(info->mac, m->get_mac(), 6))
      ) {
     info->m = m;
+    *matched = true;
+    
     return(true); /* found */
   }
 
@@ -2599,12 +2858,13 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-static bool find_as_by_asn(GenericHashEntry *he, void *user_data) {
+static bool find_as_by_asn(GenericHashEntry *he, void *user_data, bool *matched) {
   struct as_find_info *info = (struct as_find_info*)user_data;
   AutonomousSystem *as = (AutonomousSystem*)he;
 
   if((info->as == NULL) && info->asn == as->get_asn()) {
     info->as = as;
+    *matched = true;
     return(true); /* found */
   }
 
@@ -2613,12 +2873,13 @@ static bool find_as_by_asn(GenericHashEntry *he, void *user_data) {
 
 /* **************************************************** */
 
-static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data) {
+static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *matched) {
   struct vlan_find_info *info = (struct vlan_find_info*)user_data;
   Vlan *vl = (Vlan*)he;
 
   if((info->vl == NULL) && info->vlan_id == vl->get_vlan_id()) {
     info->vl = vl;
+    *matched = true;
     return(true); /* found */
   }
 
@@ -2656,10 +2917,12 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
      && (inet_pton(AF_INET6, (const char*)host_ip, &a6) == 0)) {
     /* Looks like a symbolic name */
     struct host_find_info info;
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
 
     memset(&info, 0, sizeof(info));
     info.host_to_find = host_ip, info.vlan_id = vlan_id;
-    walker(walker_hosts, find_host_by_name, (void*)&info);
+    walker(&begin_slot, walk_all,  walker_hosts, find_host_by_name, (void*)&info);
 
     h = info.h;
   } else {
@@ -2668,14 +2931,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
     if(ip) {
       ip->set(host_ip);
 
-      if(!isView())
-	h = hosts_hash->get(vlan_id, ip);
-      else {
-	for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-	  h = subInterfaces[s]->get_hosts_hash()->get(vlan_id, ip);
-	  if(h) break;
-	}
-      }
+      h = hosts_hash->get(vlan_id, ip);
 
       delete ip;
     }
@@ -2688,10 +2944,13 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
 #ifdef NTOPNG_PRO
 
-static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
+#ifndef HAVE_NEDGE
+static bool update_flow_profile(GenericHashEntry *h, void *user_data, bool *matched) {
   Flow *flow = (Flow*)h;
 
   flow->updateProfile();
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
@@ -2702,6 +2961,8 @@ void NetworkInterface::updateFlowProfiles() {
 
   if(ntop->getPro()->has_valid_license()) {
     FlowProfiles *newP;
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
 
     if(shadow_flow_profiles) {
       delete shadow_flow_profiles;
@@ -2714,9 +2975,10 @@ void NetworkInterface::updateFlowProfiles() {
     newP->loadProfiles(); /* and reload */
     flow_profiles = newP; /* Overwrite the current profiles */
 
-    flows_hash->walk(update_flow_profile, NULL);
+    flows_hash->walk(&begin_slot, walk_all, update_flow_profile, NULL);
   }
 }
+#endif
 
 #endif
 
@@ -2730,10 +2992,10 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
   disablePurge(false);
 
-  h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->lua(vm, allowed_hosts, true, true, true, false, false);
+    h->lua(vm, allowed_hosts, true, true, true, false);
     ret = true;
   } else
     ret = false;
@@ -2745,7 +3007,64 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
-Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
+bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id,
+					      char *host_ip, u_int16_t vlan_id,
+					      DetailsLevel details_level) {
+  Host *h;
+  bool ret = false;
+
+  if(host_ip && (h = getHost(host_ip, vlan_id)))
+    ret = h->checkpoint(vm, this, checkpoint_id, details_level);
+
+  return ret;
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id,
+					      u_int8_t network_id,
+					      DetailsLevel details_level) {
+  NetworkStats *stats = getNetworkStats(network_id);
+
+  if (stats == NULL)
+    return false;
+
+  return stats->checkpoint(vm, this, checkpoint_id, details_level);
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id) {
+  Host *h;
+  bool ret = false;
+
+  if(host_ip && (h = getHost(host_ip, vlan_id))) {
+    h->checkPointHostTalker(vm);
+    ret = true;
+  }
+
+  return ret;
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
+  json_object *inner;
+
+  if((inner = json_object_new_object()) == NULL) return false;
+
+  json_object_object_add(my_object, "seen.last", json_object_new_int64(getTimeLastPktRcvd()));
+  json_object_object_add(my_object, "ndpiStats", ndpiStats.getJSONObjectForCheckpoint(this));
+  json_object_object_add(inner, "bytes", json_object_new_int64(getNumBytes()));
+  json_object_object_add(inner, "packets", json_object_new_int64(getNumPackets()));
+  json_object_object_add(my_object, "stats", inner);
+
+  return true;
+}
+
+/* **************************************************** */
+
+Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
     Host *h = getHost(host_ip, vlan_id);
@@ -2777,7 +3096,7 @@ struct flowHostRetriever {
   Host *host;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
-  bool sourceMacsOnly, hostMacsOnly;
+  bool sourceMacsOnly, hostMacsOnly, dhcpMacsOnly;
   char *country;
   int ndpi_proto;             /* Not used in flow_search_walker */
   sortField sorter;
@@ -2789,6 +3108,8 @@ struct flowHostRetriever {
   u_int32_t asnFilter;
   int16_t networkFilter;
   u_int16_t poolFilter;
+  u_int8_t devtypeFilter;
+  u_int8_t locationFilter;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
@@ -2800,28 +3121,28 @@ struct flowHostRetriever {
 
 /* **************************************************** */
 
-static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
-  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
-  Flow *f = (Flow*)h;
+static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int ndpi_proto;
   u_int16_t port;
   int16_t local_network_id;
+  u_int16_t vlan_id = 0, pool_filter;
   u_int8_t ip_version;
+  u_int8_t *mac_filter;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   bool unicast, unidirectional, alerted_flows;
+  u_int32_t asn_filter;
+  u_int32_t deviceIP;
+  u_int16_t inIndex, outIndex;
 #ifdef NTOPNG_PRO
   bool filtered_flows;
 #endif
-
-  if(retriever->actNumEntries >= retriever->maxNumEntries)
-    return(true); /* Limit reached */
 
   if(f && (!f->idle())) {
     if(retriever->host
        && (retriever->host != f->get_cli_host())
        && (retriever->host != f->get_srv_host()))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->l7protoFilter(&ndpi_proto)
@@ -2832,60 +3153,79 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	   (ndpi_proto != NDPI_PROTOCOL_UNKNOWN
 	    && (f->get_detected_protocol().app_protocol != ndpi_proto
 		&& f->get_detected_protocol().master_protocol != ndpi_proto))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->ipVersion(&ip_version)
        && (((ip_version == 4) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv4()))
 	   || ((ip_version == 6) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv6()))))
-      return(false); /* false = keep on walking */
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->deviceIpFilter(&deviceIP)) {
+	if(f->getFlowDeviceIp() != deviceIP
+	   || (retriever->pag->inIndexFilter(&inIndex) && f->getFlowDeviceInIndex() != inIndex)
+	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
+	  return(false);
+    }
+
+    if(retriever->pag
+       && retriever->pag->asnFilter(&asn_filter)
+       && f->get_cli_host() && f->get_srv_host()
+       && f->get_cli_host()->get_asn() != asn_filter
+       && f->get_srv_host()->get_asn() != asn_filter)
+      return(false);
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)
        && f->get_cli_port() != port
        && f->get_srv_port() != port)
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->localNetworkFilter(&local_network_id)
        && f->get_cli_host() && f->get_srv_host()
        && f->get_cli_host()->get_local_network_id() != local_network_id
        && f->get_srv_host()->get_local_network_id() != local_network_id)
-      return(false); /* false = keep on walking */
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->vlanIdFilter(&vlan_id)
+       && f->get_vlan_id() != vlan_id)
+      return(false);
 
     if(retriever->pag
        && retriever->pag->clientMode(&client_policy)
        && f->get_cli_host()
        && (((client_policy == location_local_only) && (!f->get_cli_host()->isLocalHost()))
 	   || ((client_policy == location_remote_only) && (f->get_cli_host()->isLocalHost()))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->serverMode(&server_policy)
        && (((server_policy == location_local_only) && (!f->get_srv_host()->isLocalHost()))
 	   || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     if(retriever->pag
        && retriever->pag->alertedFlows(&alerted_flows)
        && ((alerted_flows && f->getFlowStatus() == status_normal)
 	   || (!alerted_flows && f->getFlowStatus() != status_normal)))
-      return(false); /* false = keep on walking */
+      return(false);
 
 #ifdef NTOPNG_PRO
     if(retriever->pag
        && retriever->pag->filteredFlows(&filtered_flows)
        && ((filtered_flows && f->isPassVerdict())
        || (!filtered_flows && !f->isPassVerdict())))
-      return(false); /* false = keep on walking */
-
+      return(false);
 #endif
 
     if(retriever->pag
        && retriever->pag->unidirectionalTraffic(&unidirectional)
        && ((unidirectional && (f->get_packets() > 0) && (f->get_packets_cli2srv() > 0) && (f->get_packets_srv2cli() > 0))
 	   || (!unidirectional && (f->get_packets() > 0) && ((f->get_packets_cli2srv() == 0) || (f->get_packets_srv2cli() == 0)))))
-      return(false); /* false = keep on walking */
+      return(false);
 
     /* Unicast: at least one between client and server is unicast address */
     if(retriever->pag
@@ -2894,12 +3234,42 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 			|| (f->get_srv_host() && (f->get_srv_host()->get_ip()->isMulticastAddress() || f->get_srv_host()->get_ip()->isBroadcastAddress()))))
 	   || (!unicast && ((f->get_cli_host() && (!f->get_cli_host()->get_ip()->isMulticastAddress() && !f->get_cli_host()->get_ip()->isBroadcastAddress()))
 			    && (f->get_srv_host() && (!f->get_srv_host()->get_ip()->isMulticastAddress() && !f->get_srv_host()->get_ip()->isBroadcastAddress()))))))
-      return(false); /* false = keep on walking */
+      return(false);
 
+    /* Pool filter */
+    if(retriever->pag
+       && retriever->pag->poolFilter(&pool_filter)
+       && !((f->get_cli_host() && f->get_cli_host()->get_host_pool() == pool_filter)
+	      || (f->get_srv_host() && f->get_srv_host()->get_host_pool() == pool_filter)))
+      return(false);
+
+    /* Mac filter - NOTE: must stay below the vlan_id filter */
+    if(retriever->pag
+       && retriever->pag->macFilter(&mac_filter)
+       && !((f->get_cli_host() && f->get_cli_host()->getMac() && f->get_cli_host()->getMac()->equal(vlan_id, mac_filter))
+	      || (f->get_srv_host() && f->get_srv_host()->getMac() && f->get_srv_host()->getMac()->equal(vlan_id, mac_filter))))
+      return(false);
+
+    if(f->match(retriever->allowed_hosts))
+      return(true); /* match */
+  }
+
+  return(false);
+}
+
+/* **************************************************** */
+
+static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  Flow *f = (Flow*)h;
+
+  if(retriever->actNumEntries >= retriever->maxNumEntries)
+    return(true); /* Limit reached - stop iterating */
+
+  if(flow_matches(f, retriever)) {
     retriever->elems[retriever->actNumEntries].flow = f;
 
-    if(f->match(retriever->allowed_hosts)) {
-      switch(retriever->sorter) {
+    switch(retriever->sorter) {
       case column_client:
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
@@ -2933,19 +3303,20 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
 	break;
-      }
     }
+
+    *matched = true;
   }
+
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-static bool host_search_walker(GenericHashEntry *he, void *user_data) {
+static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   char buf[64];
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
-  Mac *sm = NULL;
 
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
@@ -2959,12 +3330,10 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac()
-			   && (!(sm = h->getSecondaryMac()) || !sm->isSourceMac())))                     ||
-     (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)
-			   && (!(sm = h->getSecondaryMac()) || !sm->equal(r->vlan_id, r->mac))))         ||
+     (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac())) ||
+     (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
-     (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
+     (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
@@ -2989,7 +3358,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     break;
 
   case column_country:
-    r->elems[r->actNumEntries++].stringValue = strdup(h->get_country() ? h->get_country() : (char*)"");
+    r->elems[r->actNumEntries++].stringValue = strdup(h->get_country(buf, sizeof(buf)));
     break;
 
   case column_os:
@@ -3048,12 +3417,13 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     break;
   }
 
+  *matched = true;
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
+static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Mac *m = (Mac*)he;
   u_int16_t pool_value;
@@ -3067,6 +3437,9 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
      || ((r->vlan_id && (r->vlan_id != m->get_vlan_id())))
      || (r->sourceMacsOnly && !m->isSourceMac())
      || (r->hostMacsOnly && m->getNumHosts() == 0)
+     || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
+     || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
+     || (r->dhcpMacsOnly && (!m->isDhcpHost()))
      || ((r->poolFilter != (u_int16_t)-1) && (
         (((pool_found = m->getInterface()->getHostPools()->findMacPool(m, &pool_value)) == false /* unassigned */) && r->poolFilter != 0)
         || ((pool_found == true) && (pool_value != r->poolFilter))))
@@ -3104,6 +3477,14 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].stringValue = m->get_manufacturer() ? (char*)m->get_manufacturer() : (char*)"zzz";
     break;
 
+  case column_device_type:
+    r->elems[r->actNumEntries++].numericValue = m->getDeviceType();
+    break;
+
+  case column_arp_total:
+    r->elems[r->actNumEntries++].numericValue = m->getNumSentArp() + m->getNumRcvdArp();
+    break;
+
   case column_arp_sent:
     r->elems[r->actNumEntries++].numericValue = m->getNumSentArp();
     break;
@@ -3117,13 +3498,13 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
     break;
   }
 
+  *matched = true;
   return(false); /* false = keep on walking */
 }
 
-
 /* **************************************************** */
 
-static bool as_search_walker(GenericHashEntry *he, void *user_data) {
+static bool as_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   AutonomousSystem *as = (AutonomousSystem*)he;
 
@@ -3166,12 +3547,13 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data) {
     break;
   }
 
+  *matched = true;
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-static bool vlan_search_walker(GenericHashEntry *he, void *user_data) {
+static bool vlan_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Vlan *vl = (Vlan*)he;
 
@@ -3210,6 +3592,7 @@ static bool vlan_search_walker(GenericHashEntry *he, void *user_data) {
     break;
   }
 
+  *matched = true;
   return(false); /* false = keep on walking */
 }
 
@@ -3382,14 +3765,62 @@ int NetworkInterface::getFlows(lua_State* vm,
 
 /* **************************************************** */
 
+int NetworkInterface::sortFlows(u_int32_t *begin_slot,
+				bool walk_all,
+				struct flowHostRetriever *retriever,
+				AddressTree *allowed_hosts,
+				Host *host,
+				Paginator *p,
+				const char *sortColumn) {
+  int (*sorter)(const void *_a, const void *_b);
+
+  if(retriever == NULL)
+    return -1;
+
+  retriever->pag = p;
+  retriever->host = host, retriever->location = location_all;
+  retriever->ndpi_proto = -1;
+  retriever->actNumEntries = 0, retriever->maxNumEntries = getFlowsHashSize(), retriever->allowed_hosts = allowed_hosts;
+  retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
+
+  if(retriever->elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_info")) retriever->sorter = column_info, sorter = stringSorter;
+  else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
+    retriever->sorter = column_bytes, sorter = numericSorter;
+  }
+
+  // make sure the caller has disabled the purge!!
+  walker(begin_slot, walk_all,  walker_flows, flow_search_walker, (void*)retriever);
+
+  qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  return(retriever->actNumEntries);
+}
+
+/* **************************************************** */
+
 int NetworkInterface::getFlows(lua_State* vm,
 			       AddressTree *allowed_hosts,
 			       Host *host,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
-  int (*sorter)(const void *_a, const void *_b);
   char sortColumn[32];
   DetailsLevel highDetails;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(p == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
@@ -3402,41 +3833,16 @@ int NetworkInterface::getFlows(lua_State* vm,
   p->serverMode(&server_mode);
   bool local_hosts = ((client_mode == location_local_only) && (server_mode == location_local_only));
 
-  if (! p->getDetailsLevel(&highDetails))
+  snprintf(sortColumn, sizeof(sortColumn), "%s", p->sortColumn());
+  if(! p->getDetailsLevel(&highDetails))
     highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
-  retriever.pag = p;
-  retriever.host = host, retriever.location = location_all;
-  retriever.ndpi_proto = -1;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize(), retriever.allowed_hosts = allowed_hosts;
-  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
-
-  if(retriever.elems == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
-    return(-1);
-  }
-
-  snprintf(sortColumn, sizeof(sortColumn), "%s", p->sortColumn());
-  if(!strcmp(sortColumn, "column_client")) retriever.sorter = column_client, sorter = hostSorter;
-  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_server")) retriever.sorter = column_server, sorter = hostSorter;
-  else if(!strcmp(sortColumn, "column_proto_l4")) retriever.sorter = column_proto_l4, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_ndpi")) retriever.sorter = column_ndpi, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_duration")) retriever.sorter = column_duration, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_thpt")) retriever.sorter = column_thpt, sorter = numericSorter;
-  else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever.sorter = column_bytes, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_info")) retriever.sorter = column_info, sorter = stringSorter;
-  else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
-    retriever.sorter = column_bytes, sorter = numericSorter;
-  }
-
-  /* ******************************* */
-
   disablePurge(true);
-  walker(walker_flows, flow_search_walker, (void*)&retriever);
 
-  qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+  if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
+    enablePurge(true);
+    return -1;
+  }
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
@@ -3475,61 +3881,110 @@ int NetworkInterface::getFlows(lua_State* vm,
   lua_settable(vm, -3);
 
   enablePurge(true);
-  free(retriever.elems);
+
+  if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
 }
 
 /* **************************************************** */
 
-int NetworkInterface::getLatestActivityHostsList(lua_State* vm, AddressTree *allowed_hosts) {
+int NetworkInterface::getFlowsGroup(lua_State* vm,
+			       AddressTree *allowed_hosts,
+			       Paginator *p,
+			       const char *groupColumn) {
   struct flowHostRetriever retriever;
+  FlowGrouper *gper;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
-  memset(&retriever, 0, sizeof(retriever));
-
-  // there's not even the need to use the retriever or to sort results here
-  // we use the retriever just to leverage on the existing code.
-  retriever.allowed_hosts = allowed_hosts, retriever.location = location_all;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = getHostsHashSize();
-  retriever.asnFilter = (u_int32_t)-1, retriever.poolFilter = (u_int16_t)-1;
-  retriever.networkFilter = -2;
-  retriever.ndpi_proto = -1;
-  retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
-  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
-
-  if(retriever.elems == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+  if(p == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
     return(-1);
   }
 
-  disablePurge(false);
-  walker(walker_hosts, host_search_walker, (void*)&retriever);
+  disablePurge(true);
+
+  if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, NULL, p, groupColumn) < 0) {
+    enablePurge(true);
+    return -1;
+  }
+
+  // build a new grouper that will help in aggregating stats
+  if((gper = new(std::nothrow) FlowGrouper(retriever.sorter)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to allocate memory for a Grouper.");
+    enablePurge(true);
+    return -1;
+  }
 
   lua_newtable(vm);
 
-  if(retriever.actNumEntries > 0) {
-    for(int i=0; i<(int)retriever.actNumEntries; i++) {
-      Host *h = retriever.elems[i].hostValue;
+  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+    Flow *flow = retriever.elems[i].flow;
 
-      if(i < CONST_MAX_NUM_HITS)
-	h->lua(vm, NULL /* Already checked */,
-	       false /* host details */,
-	       false /* verbose */,
-	       false /* return host */,
-	       true  /* as list element*/,
-	       true  /* exclude deserialized bytes */);
+    if(flow) {
+      if(gper->inGroup(flow) == false) {
+	if(gper->getNumEntries() > 0)
+	  gper->lua(vm);
+	gper->newGroup(flow);
+      }
+
+      gper->incStats(flow);
     }
   }
 
-  enablePurge(false);
-  free(retriever.elems);
+  if(gper->getNumEntries() > 0)
+    gper->lua(vm);
+
+  delete gper;
+  enablePurge(true);
+
+  if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
 }
 
 /* **************************************************** */
 
-int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
+static bool flow_drop_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  Flow *f = (Flow*)h;
+
+  if(flow_matches(f, retriever)) {
+    f->setDropVerdict();
+    *matched = true;
+  }
+  
+  return(false); /* Keep on walking */
+}
+
+/* **************************************************** */
+
+int NetworkInterface::dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p) {
+  struct flowHostRetriever retriever;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  memset(&retriever, 0, sizeof(retriever));
+
+  retriever.allowed_hosts = allowed_hosts;
+  retriever.pag = p;
+
+  disablePurge(true);
+
+  walker(&begin_slot, walk_all,  walker_flows, flow_drop_walker, (void*)&retriever);
+
+  enablePurge(true);
+
+  return(0);
+}
+
+/* **************************************************** */
+
+int NetworkInterface::sortHosts(u_int32_t *begin_slot,
+				bool walk_all,
+				struct flowHostRetriever *retriever,
 				u_int8_t bridge_iface_idx,
 				AddressTree *allowed_hosts,
 				bool host_details,
@@ -3609,7 +4064,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   }
 
   // make sure the caller has disabled the purge!!
-  walker(walker_hosts, host_search_walker, (void*)retriever);
+  walker(begin_slot, walk_all, walker_hosts, host_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -3618,11 +4073,15 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
 /* **************************************************** */
 
-int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
+int NetworkInterface::sortMacs(u_int32_t *begin_slot,
+			       bool walk_all,
+			       struct flowHostRetriever *retriever,
 			       u_int8_t bridge_iface_idx,
 			       u_int16_t vlan_id, bool sourceMacsOnly,
-			       bool hostMacsOnly, const char *manufacturer,
-			       char *sortColumn, u_int16_t pool_filter) {
+			       bool hostMacsOnly, bool dhcpMacsOnly,
+			       const char *manufacturer,
+			       char *sortColumn, u_int16_t pool_filter,
+			       u_int8_t devtype_filter, u_int8_t location_filter) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
 
@@ -3634,10 +4093,14 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
     maxHits = CONST_MAX_NUM_HITS;
 
   retriever->vlan_id = vlan_id, retriever->sourceMacsOnly = sourceMacsOnly,
-    retriever->hostMacsOnly = hostMacsOnly, retriever->actNumEntries = 0,
+    retriever->hostMacsOnly = hostMacsOnly,
+    retriever->dhcpMacsOnly = dhcpMacsOnly,
+    retriever->actNumEntries = 0,
     retriever->poolFilter = pool_filter,
     retriever->manufacturer = (char *)manufacturer,
     retriever->maxNumEntries = maxHits,
+    retriever->devtypeFilter = devtype_filter,
+    retriever->locationFilter = location_filter,
     retriever->ndpi_proto = -1,
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
@@ -3653,12 +4116,14 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_manufacturer")) retriever->sorter = column_manufacturer, sorter = stringSorter;
-  else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_device_type"))  retriever->sorter = column_device_type, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_total"))    retriever->sorter = column_arp_total, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_sent"))     retriever->sorter = column_arp_sent,  sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_arp_rcvd"))     retriever->sorter = column_arp_rcvd,  sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
-  walker(walker_macs, mac_search_walker, (void*)retriever);
+  walker(begin_slot, walk_all, walker_macs, mac_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -3670,6 +4135,8 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(retriever == NULL)
     return -1;
@@ -3696,7 +4163,7 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
-  walker(walker_ases, as_search_walker, (void*)retriever);
+  walker(&begin_slot, walk_all,  walker_ases, as_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -3708,6 +4175,8 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
 int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(retriever == NULL)
     return -1;
@@ -3733,7 +4202,7 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortC
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
-  walker(walker_vlans, vlan_search_walker, (void*)retriever);
+  walker(&begin_slot, walk_all,  walker_vlans, vlan_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -3743,6 +4212,8 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortC
 /* **************************************************** */
 
 int NetworkInterface::getActiveHostsList(lua_State* vm,
+					 u_int32_t *begin_slot,
+					 bool walk_all,
 					 u_int8_t bridge_iface_idx,
 					 AddressTree *allowed_hosts,
 					 bool host_details, LocationPolicy location,
@@ -3756,7 +4227,14 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 
   disablePurge(false);
 
-  if(sortHosts(&retriever, bridge_iface_idx,
+#if DEBUG
+  if(!walk_all)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[BEGIN] %s(begin_slot=%u, walk_all=%u)",
+				 __FUNCTION__, *begin_slot, walk_all);
+#endif
+
+  if(sortHosts(begin_slot, walk_all,
+	       &retriever, bridge_iface_idx,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
@@ -3765,26 +4243,34 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
     return -1;
   }
 
+#if DEBUG
+  if(!walk_all)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[END] %s(end_slot=%u, numHosts=%u)",
+				 __FUNCTION__, *begin_slot, retriever.actNumEntries);
+#endif
+
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
+  lua_push_int_table_entry(vm, "nextSlot", *begin_slot);
 
   lua_newtable(vm);
 
   if(a2zSortOrder) {
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Host *h = retriever.elems[i].hostValue;
-      h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
+      h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Host *h = retriever.elems[i].hostValue;
-      h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
+      h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
     }
   }
 
   lua_pushstring(vm, "hosts");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
 
   enablePurge(false);
 
@@ -3809,13 +4295,76 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 
 /* **************************************************** */
 
-int NetworkInterface::getActiveHostsGroup(lua_State* vm,	       
+struct hosts_get_macs_retriever {
+  lua_State *vm;
+  int idx;
+};
+
+static bool hosts_get_macs(GenericHashEntry *he, void *user_data, bool *matched) {
+  struct hosts_get_macs_retriever *r = (struct hosts_get_macs_retriever *) user_data;
+  Host *host = (Host *)he;
+  Mac *mac = host->getMac();
+  char mac_buf[32], *mac_ptr;
+  char ip_buf[64];
+
+  if(mac && !mac->isSpecialMac() && host->get_ip()) {
+    mac_ptr = Utils::formatMac(mac->get_mac(), mac_buf, sizeof(mac_buf));
+    lua_getfield(r->vm, r->idx, mac_ptr);
+
+    if(lua_type(r->vm, -1) == LUA_TTABLE) {
+      lua_getfield(r->vm, -1, "ip");
+
+      if(lua_type(r->vm, -1) == LUA_TNIL) {
+        /* First assignment - create table */
+        lua_pop(r->vm, 1);
+        lua_pushstring(r->vm, "ip");
+        lua_newtable(r->vm);
+        lua_settable(r->vm, -3);
+        lua_getfield(r->vm, -1, "ip");
+      }
+
+      if(lua_type(r->vm, -1) == LUA_TTABLE) {
+        /* Add the ip address to the table */
+        lua_push_int_table_entry(r->vm, host->get_hostkey(ip_buf, sizeof(ip_buf)), host->get_ip()->isIPv4() ? 4 : 6);
+      }
+
+      lua_pop(r->vm, 1);
+    }
+
+    lua_pop(r->vm, 1);
+    *matched = true;
+  }
+
+  /* keep on iterating */
+  return (false);
+}
+
+/* **************************************************** */
+
+int NetworkInterface::getMacsIpAddresses(lua_State *vm, int idx) {
+  struct hosts_get_macs_retriever retriever;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  retriever.vm = vm;
+  retriever.idx = idx;
+
+  walker(&begin_slot, walk_all,  walker_hosts, hosts_get_macs, (void*)&retriever);
+  return 0;
+}
+
+/* **************************************************** */
+
+int NetworkInterface::getActiveHostsGroup(lua_State* vm,
+					  u_int32_t *begin_slot,
+					  bool walk_all,
 					  AddressTree *allowed_hosts,
 					  bool host_details, LocationPolicy location,
 					  char *countryFilter,
 					  u_int16_t vlan_id, char *osFilter,
 					  u_int32_t asnFilter, int16_t networkFilter,
-					  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
+					  u_int16_t pool_filter, bool filtered_hosts,
+					  u_int8_t ipver_filter,
 					  bool local_macs, char *groupColumn) {
   struct flowHostRetriever retriever;
   Grouper *gper;
@@ -3823,10 +4372,12 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
   disablePurge(false);
 
   // sort hosts according to the grouping criterion
-  if(sortHosts(&retriever, 0 /* bridge_iface_idx TODO */,
+  if(sortHosts(begin_slot, walk_all,
+	       &retriever, 0 /* bridge_iface_idx TODO */,
 	       allowed_hosts, host_details, location,
 	       countryFilter, NULL /* Mac */, vlan_id,
-	       osFilter, asnFilter, networkFilter, pool_filter, filtered_hosts, ipver_filter, -1 /* no protocol filter */,
+	       osFilter, asnFilter, networkFilter, pool_filter,
+	       filtered_hosts, ipver_filter, -1 /* no protocol filter */,
 	       local_macs, groupColumn) < 0 ) {
     enablePurge(false);
     return -1;
@@ -3842,7 +4393,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 
   lua_newtable(vm);
 
-  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+  for(int i = 0; i < (int)retriever.actNumEntries; i++) {
     Host *h = retriever.elems[i].hostValue;
 
     if(h) {
@@ -3885,7 +4436,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 
 /* **************************************************** */
 
-static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
+static bool flow_stats_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   struct active_flow_stats *stats = (struct active_flow_stats*)user_data;
   Flow *flow = (Flow*)h;
 
@@ -3893,6 +4444,8 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
     stats->ndpi_bytes[flow->get_detected_protocol().app_protocol] += (u_int32_t)flow->get_bytes(),
     stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
+  *matched = true;
+    
   return(false); /* false = keep on walking */
 }
 
@@ -3900,9 +4453,11 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
 
 void NetworkInterface::getFlowsStats(lua_State* vm) {
   struct active_flow_stats stats;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   memset(&stats, 0, sizeof(stats));
-  walker(walker_flows, flow_stats_walker, (void*)&stats);
+  walker(&begin_slot, walk_all,  walker_flows, flow_stats_walker, (void*)&stats);
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "num_flows", stats.num_flows);
@@ -3956,6 +4511,7 @@ void NetworkInterface::getNetworksStats(lua_State* vm) {
 /* **************************************************** */
 
 u_int NetworkInterface::purgeIdleFlows() {
+  u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!purge_idle_flows_hosts) return(0);
@@ -3967,19 +4523,11 @@ u_int NetworkInterface::purgeIdleFlows() {
     return(0); /* Too early */
   else {
     /* Time to purge flows */
-    u_int n;
 
     ntop->getTrace()->traceEvent(TRACE_INFO,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, flows_hash->getCurrentSize());
     n = flows_hash->purgeIdle();
-
-    if(flowHashing) {
-      FlowHashing *current, *tmp;
-
-      HASH_ITER(hh, flowHashing, current, tmp)
-	current->iface->purgeIdleFlows();
-    }
 
     next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
     return(n);
@@ -3989,65 +4537,55 @@ u_int NetworkInterface::purgeIdleFlows() {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getNumPackets() {
-  u_int64_t tot = ethStats.getNumPackets();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumPackets();
-  return(tot);
+  return(ethStats.getNumPackets());
 };
 
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getNumBytes() {
-  u_int64_t tot = ethStats.getNumBytes();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumBytes();
-  return(tot);
+  return(ethStats.getNumBytes());
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getNumPacketDrops() {
-  u_int32_t tot = getNumDroppedPackets();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets();
-  return(tot);
+  return(!isDynamicInterface() ? getNumDroppedPackets() : 0);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumFlows()        {
-  u_int tot = flows_hash ? flows_hash->getNumEntries() : 0;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumFlows();
-  return(tot);
+u_int NetworkInterface::getNumFlows() {
+  return(flows_hash ? flows_hash->getNumEntries() : 0);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumHosts()        {
-  u_int tot = numHosts;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHosts();
-  return(tot);
+u_int NetworkInterface::getNumL2Devices() {
+  return(numL2Devices);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumLocalHosts()    {
-  u_int tot = numLocalHosts;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumLocalHosts();
-  return(tot);
+u_int NetworkInterface::getNumHosts() {
+  return(numHosts);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumHTTPHosts()    {
-  u_int tot = hosts_hash ? hosts_hash->getNumHTTPEntries() : 0;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHTTPHosts();
-  return(tot);
+u_int NetworkInterface::getNumLocalHosts() {
+  return(numLocalHosts);
 };
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumMacs()        {
-  u_int tot = macs_hash ? macs_hash->getNumEntries() : 0;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumMacs();
-  return(tot);
+u_int NetworkInterface::getNumHTTPHosts() {
+  return(hosts_hash ? hosts_hash->getNumHTTPEntries() : 0);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumMacs() {
+  return(macs_hash ? macs_hash->getNumEntries() : 0);
 };
 
 /* **************************************************** */
@@ -4072,13 +4610,6 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
       + ases_hash->purgeIdle()
       + vlans_hash->purgeIdle();
 
-    if(flowHashing) {
-      FlowHashing *current, *tmp;
-
-      HASH_ITER(hh, flowHashing, current, tmp)
-	current->iface->purgeIdleHostsMacsASesVlans();
-    }
-
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
   }
@@ -4093,10 +4624,16 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
 
   for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
     char buf[8];
-    
+
     snprintf(buf, sizeof(buf), "%d", i);
     lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
   }
+}
+
+/* *************************************** */
+
+void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+  ndpi_set_proto_category(ndpi_struct, protoId, protoCategory);
 }
 
 /* **************************************************** */
@@ -4126,7 +4663,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
   3 = FIN
 */
 
-static bool num_flows_state_walker(GenericHashEntry *node, void *user_data) {
+static bool num_flows_state_walker(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
@@ -4148,17 +4685,20 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data) {
     break;
   }
 
+  *matched = true;
+  
   return(false /* keep walking */);
 }
 
 /* *************************************** */
 
-static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
+static bool num_flows_walker(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
   num_flows[flow->get_detected_protocol().app_protocol]++;
-
+  *matched = true;
+  
   return(false /* keep walking */);
 }
 
@@ -4166,8 +4706,10 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
 
 void NetworkInterface::getFlowsStatus(lua_State *vm) {
   u_int32_t num_flows[NUM_TCP_STATES] = { 0 };
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
-  walker(walker_flows, num_flows_state_walker, num_flows);
+  walker(&begin_slot, walk_all,  walker_flows, num_flows_state_walker, num_flows);
 
   lua_push_int_table_entry(vm, "RST", num_flows[0]);
   lua_push_int_table_entry(vm, "SYN", num_flows[1]);
@@ -4179,15 +4721,19 @@ void NetworkInterface::getFlowsStatus(lua_State *vm) {
 
 void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
   u_int32_t *num_flows;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
-  num_flows = (u_int32_t*)calloc(ndpi_struct->ndpi_num_supported_protocols, sizeof(u_int32_t));
+  num_flows = (u_int32_t*)calloc(ndpi_struct->ndpi_num_supported_protocols,
+				 sizeof(u_int32_t));
 
   if(num_flows) {
-    walker(walker_flows, num_flows_walker, num_flows);
+    walker(&begin_slot, walk_all,  walker_flows, num_flows_walker, num_flows);
 
     for(int i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
       if(num_flows[i] > 0)
-	lua_push_int_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, num_flows[i]);
+	lua_push_int_table_entry(vm, ndpi_struct->proto_defaults[i].protoName,
+				 num_flows[i]);
     }
 
     free(num_flows);
@@ -4222,17 +4768,15 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "description", get_description());
   lua_push_int_table_entry(vm, "scalingFactor", scalingFactor);
   lua_push_int_table_entry(vm,  "id", id);
+  if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
+  lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
-
-  if(remoteIfname)      lua_push_str_table_entry(vm, "remote.name",    remoteIfname);
-  if(remoteIfIPaddr)    lua_push_str_table_entry(vm, "remote.if_addr", remoteIfIPaddr);
-  if(remoteProbeIPaddr) lua_push_str_table_entry(vm, "probe.ip", remoteProbeIPaddr);
-  if(remoteProbePublicIPaddr) lua_push_str_table_entry(vm, "probe.public_ip", remoteProbePublicIPaddr);
+  lua_push_bool_table_entry(vm, "has_traffic_directions", areTrafficDirectionsSupported());
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "packets",     getNumPackets());
@@ -4242,7 +4786,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "local_hosts", getNumLocalHosts());
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
-  lua_push_int_table_entry(vm, "devices",     numL2Devices);
+  lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
+
+#ifndef HAVE_NEDGE
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
   */
@@ -4250,9 +4796,11 @@ void NetworkInterface::lua(lua_State *vm) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, false /* Overall */);
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->lua(vm, false /* Overall */);
   }
+#endif
+
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -4261,13 +4809,17 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "packets",     getNumPackets() - getCheckPointNumPackets());
   lua_push_int_table_entry(vm, "bytes",       getNumBytes() - getCheckPointNumBytes());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops() - getCheckPointNumPacketDrops());
+
+#ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->lua(vm, true /* Since last checkpoint */);
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
   }
+#endif
+
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -4302,16 +4854,21 @@ void NetworkInterface::lua(lua_State *vm) {
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
-  _ndpiStats.lua(this, vm);
+  _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
 
   if(!isView()) {
     if(pkt_dumper)    pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     if(flow_profiles) flow_profiles->lua(vm);
 #endif
+#endif
   }
+
+  if(host_pools)
+    host_pools->lua(vm);
 }
 
 /* **************************************************** */
@@ -4331,20 +4888,12 @@ void NetworkInterface::runHousekeepingTasks() {
 
 /* **************************************************** */
 
-Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId,
-			      bool createIfNotPresent) {
+Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent) {
   Mac *ret = NULL;
 
   if(_mac == NULL) return(NULL);
 
-  if(!isView())
-    ret = macs_hash->get(vlanId, _mac);
-  else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_macs_hash()->get(vlanId, _mac)) != NULL)
-	break;
-    }
-  }
+  ret = macs_hash->get(vlanId, _mac);
 
   if((ret == NULL) && createIfNotPresent) {
     try {
@@ -4439,18 +4988,12 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa,
 
 Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 				      AddressTree *allowed_hosts) {
-  Flow *f;
+  Flow *f = NULL;
 
-  if(!isView())
-    f = (Flow*)(flows_hash->findByKey(key));
-  else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      f = (Flow*)subInterfaces[s]->get_flows_hash()->findByKey(key);
-      if(f) break;
-    }
-  }
+  f = (Flow*)(flows_hash->findByKey(key));
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
+
   return(f);
 }
 
@@ -4465,15 +5008,54 @@ struct search_host_info {
 
 /* **************************************************** */
 
-static bool hosts_search_walker(GenericHashEntry *h, void *user_data) {
+static bool hosts_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   Host *host = (Host*)h;
   struct search_host_info *info = (struct search_host_info*)user_data;
 
-  if(host->addIfMatching(info->vm, info->allowed_hosts, info->host_name_or_ip))
+  if(host->addIfMatching(info->vm, info->allowed_hosts, info->host_name_or_ip)) {
     info->num_matches++;
-
+    *matched = true;
+  }
+  
   /* Stop after CONST_MAX_NUM_FIND_HITS matches */
   return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
+}
+
+/* **************************************************** */
+
+struct search_mac_info {
+  lua_State *vm;
+  u_int8_t *mac;
+  u_int num_matches;
+};
+
+/* **************************************************** */
+
+static bool macs_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  Host *host = (Host*)h;
+  struct search_mac_info *info = (struct search_mac_info*)user_data;
+
+  if(host->addIfMatching(info->vm, info->mac)) {
+    info->num_matches++;
+    *matched = true;
+  }
+  
+  /* Stop after CONST_MAX_NUM_FIND_HITS matches */
+  return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
+}
+
+/* *************************************** */
+
+bool NetworkInterface::findHostsByMac(lua_State* vm, u_int8_t *mac) {
+  struct search_mac_info info;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  info.vm = vm, info.mac = mac, info.num_matches = 0;
+
+  lua_newtable(vm);
+  walker(&begin_slot, walk_all,  walker_hosts, macs_search_walker, (void*)&info);
+  return(info.num_matches > 0);
 }
 
 /* **************************************************** */
@@ -4482,17 +5064,23 @@ bool NetworkInterface::findHostsByName(lua_State* vm,
 				       AddressTree *allowed_hosts,
 				       char *key) {
   struct search_host_info info;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
-  info.vm = vm, info.host_name_or_ip = key, info.num_matches = 0, info.allowed_hosts = allowed_hosts;
+  info.vm = vm, info.host_name_or_ip = key, info.num_matches = 0,
+    info.allowed_hosts = allowed_hosts;
 
   lua_newtable(vm);
-  walker(walker_hosts, hosts_search_walker, (void*)&info);
+  walker(&begin_slot, walk_all,  walker_hosts, hosts_search_walker, (void*)&info);
   return(info.num_matches > 0);
 }
 
 /* **************************************************** */
 
 bool NetworkInterface::validInterface(char *name) {
+#ifdef HAVE_NEDGE
+  return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
+#else
   if(name &&
      (strstr(name, "PPP")            /* Avoid to use the PPP interface              */
       || strstr(name, "dialup")      /* Avoid to use the dialup interface           */
@@ -4502,6 +5090,7 @@ bool NetworkInterface::validInterface(char *name) {
   }
 
   return(true);
+#endif
 }
 
 /* **************************************************** */
@@ -4589,115 +5178,12 @@ bool NetworkInterface::isNumber(const char *str) {
 
 /* **************************************************** */
 
-struct correlator_host_info {
-  lua_State* vm;
-  Host *h;
-  activity_bitmap x;
-};
-
-static bool correlator_walker(GenericHashEntry *node, void *user_data) {
-  Host *h = (Host*)node;
-  struct correlator_host_info *info = (struct correlator_host_info*)user_data;
-
-  if(h
-     // && h->isLocalHost() /* Consider only local hosts */
-     && h->get_ip()
-     && (h != info->h)) {
-    char buf[32], *name = h->get_ip()->print(buf, sizeof(buf));
-    activity_bitmap y;
-    double pearson;
-
-    h->getActivityStats()->extractPoints(&y);
-
-    pearson = Utils::pearsonValueCorrelation(&(info->x), &y);
-
-    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s: %f", name, pearson); */
-    lua_push_float_table_entry(info->vm, name, (float)pearson);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-static bool similarity_walker(GenericHashEntry *node, void *user_data) {
-  Host *h = (Host*)node;
-  struct correlator_host_info *info = (struct correlator_host_info*)user_data;
-
-  if(h
-     // && h->isLocalHost() /* Consider only local hosts */
-     && h->get_ip()
-     && (h != info->h)) {
-    char buf[32], name[64];
-
-    if(h->get_vlan_id() == 0) {
-      sprintf(name, "%s",h->get_ip()->print(buf, sizeof(buf)));
-    } else {
-      sprintf(name, "%s@%d",h->get_ip()->print(buf, sizeof(buf)), h->get_vlan_id());
-    }
-
-    activity_bitmap y;
-    double jaccard;
-
-    h->getActivityStats()->extractPoints(&y);
-
-    jaccard = Utils::JaccardSimilarity(&(info->x), &y);
-
-    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s: %f", name, pearson); */
-    lua_push_float_table_entry(info->vm, name, (float)jaccard);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::correlateHostActivity(lua_State* vm,
-					     AddressTree *allowed_hosts,
-					     char *host_ip, u_int16_t vlan_id) {
-  Host *h = getHost(host_ip, vlan_id);
-
-  if(h) {
-    struct correlator_host_info info;
-
-    memset(&info, 0, sizeof(info));
-
-    info.vm = vm, info.h = h;
-    h->getActivityStats()->extractPoints(&info.x);
-    walker(walker_hosts, correlator_walker, &info);
-
-    return(true);
-  } else
-    return(false);
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::similarHostActivity(lua_State* vm,
-					   AddressTree *allowed_hosts,
-					   char *host_ip, u_int16_t vlan_id) {
-  Host *h = getHost(host_ip, vlan_id);
-
-  if(h) {
-    struct correlator_host_info info;
-
-    memset(&info, 0, sizeof(info));
-
-    info.vm = vm, info.h = h;
-    h->getActivityStats()->extractPoints(&info.x);
-    walker(walker_hosts, similarity_walker, &info);
-
-    return(true);
-  } else
-    return(false);
-}
-
-/* **************************************************** */
-
 struct user_flows {
   lua_State* vm;
   char *username;
 };
 
-static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
+static bool userfinder_walker(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
   struct user_flows *info = (struct user_flows*)user_data;
   char *user = f->get_username(true);
@@ -4710,7 +5196,9 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
+    *matched = true;
   }
+  
   return(false); /* false = keep on walking */
 }
 
@@ -4718,9 +5206,11 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
 
 void NetworkInterface::findUserFlows(lua_State *vm, char *username) {
   struct user_flows u;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   u.vm = vm, u.username = username;
-  walker(walker_flows, userfinder_walker, &u);
+  walker(&begin_slot, walk_all, walker_flows, userfinder_walker, &u);
 }
 
 /* **************************************************** */
@@ -4730,7 +5220,7 @@ struct proc_name_flows {
   char *proc_name;
 };
 
-static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
+static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
   struct proc_name_flows *info = (struct proc_name_flows*)user_data;
   char *name = f->get_proc_name(true);
@@ -4750,15 +5240,20 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
       lua_settable(info->vm, -3);
     }
   }
-
+  *matched = true;
+  
   return(false); /* false = keep on walking */
 }
 
+/* **************************************************** */
+
 void NetworkInterface::findProcNameFlows(lua_State *vm, char *proc_name) {
   struct proc_name_flows u;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   u.vm = vm, u.proc_name = proc_name;
-  walker(walker_flows, proc_name_finder_walker, &u);
+  walker(&begin_slot, walk_all,  walker_flows, proc_name_finder_walker, &u);
 }
 
 /* **************************************************** */
@@ -4768,7 +5263,7 @@ struct pid_flows {
   u_int32_t pid;
 };
 
-static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
+static bool pidfinder_walker(GenericHashEntry *node, void *pid_data, bool *matched) {
   Flow *f = (Flow*)node;
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
@@ -4777,6 +5272,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
+    *matched = true;
   }
 
   return(false); /* false = keep on walking */
@@ -4786,14 +5282,16 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
 
 void NetworkInterface::findPidFlows(lua_State *vm, u_int32_t pid) {
   struct pid_flows u;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   u.vm = vm, u.pid = pid;
-  walker(walker_flows, pidfinder_walker, &u);
+  walker(&begin_slot, walk_all,  walker_flows, pidfinder_walker, &u);
 }
 
 /* **************************************** */
 
-static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_data) {
+static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_data, bool *matched) {
   Flow *f = (Flow*)node;
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
@@ -4802,6 +5300,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
+    *matched = true;
   }
 
   return(false); /* false = keep on walking */
@@ -4811,9 +5310,11 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
 
 void NetworkInterface::findFatherPidFlows(lua_State *vm, u_int32_t father_pid) {
   struct pid_flows u;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   u.vm = vm, u.pid = father_pid;
-  walker(walker_flows, father_pidfinder_walker, &u);
+  walker(&begin_slot, walk_all,  walker_flows, father_pidfinder_walker, &u);
 }
 
 /* **************************************** */
@@ -4826,14 +5327,16 @@ struct virtual_host_valk_info {
 
 /* **************************************** */
 
-static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data) {
+static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data, bool *matched) {
   Host *h = (Host*)node;
   struct virtual_host_valk_info *info = (struct virtual_host_valk_info*)data;
   HTTPstats *s = h->getHTTPstats();
 
-  if(s)
+  if(s) {
     info->num += s->luaVirtualHosts(info->vm, info->key, h);
-
+    *matched = true;
+  }
+  
   return(false); /* false = keep on walking */
 }
 
@@ -4841,11 +5344,13 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data) {
 
 void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
   struct virtual_host_valk_info info;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   lua_newtable(vm);
 
   info.vm = vm, info.key = key, info.num = 0;
-  walker(walker_hosts, virtual_http_hosts_walker, &info);
+  walker(&begin_slot, walk_all,  walker_hosts, virtual_http_hosts_walker, &info);
 }
 
 /* **************************************** */
@@ -4891,7 +5396,7 @@ void NetworkInterface::addAllAvailableInterfaces() {
 	ntop->getTrace()->traceEvent(TRACE_INFO,
 				     "Interface [%s][%s] not valid or down: discarded",
 				     devpointer->name, devpointer->description);
-      
+
       devpointer = devpointer->next;
     } /* for */
     pcap_freealldevs(devpointer);
@@ -4935,6 +5440,8 @@ void NetworkInterface::allocateNetworkStats() {
 
   try {
     networkStats = new NetworkStats[numNetworks];
+    statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
+    alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
@@ -4942,9 +5449,13 @@ void NetworkInterface::allocateNetworkStats() {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
       oom_warning_sent = true;
     }
-
-    networkStats = NULL;
   }
+
+  if(alertsManager)
+    alertLevel = alertsManager->getNumAlerts(true);
+  else
+    alertLevel = 0;
+
 }
 
 /* **************************************** */
@@ -4958,22 +5469,6 @@ NetworkStats* NetworkInterface::getNetworkStats(u_int8_t networkId) {
 
 /* **************************************** */
 
-void NetworkInterface::updateSecondTraffic(time_t when) {
-  u_int64_t bytes = ethStats.getNumBytes();
-  u_int16_t sec = when % 60;
-
-  if(sec == 0) {
-    /* Beginning of a new minute */
-    memcpy(lastMinuteTraffic, currentMinuteTraffic, sizeof(currentMinuteTraffic));
-    resetSecondTraffic();
-  }
-
-  currentMinuteTraffic[sec] = max_val(0, bytes-lastSecTraffic);
-  lastSecTraffic = bytes;
-};
-
-/* **************************************** */
-
 void NetworkInterface::checkPointCounters(bool drops_only) {
   if(!drops_only) {
     checkpointPktCount = getNumPackets(),
@@ -4981,73 +5476,34 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
   }
   checkpointPktDropCount = getNumPacketDrops();
 
+#ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     if(db) db->checkPointCounters(drops_only);
-  }else if(ntop->getPrefs()->do_dump_flows_on_ls()){
+  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->checkPointCounters(drops_only);
   }
+#endif
 }
 
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getCheckPointNumPackets() {
-  u_int64_t tot = checkpointPktCount;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPackets();
-  return(tot);
+  return(checkpointPktCount);
 };
 
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getCheckPointNumBytes() {
-  u_int64_t tot = checkpointBytesCount;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumBytes();
-  return(tot);
+  return(checkpointBytesCount);
 }
 
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
-  u_int32_t tot = checkpointPktDropCount;
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPacketDrops();
-  return(tot);
+  return(checkpointPktDropCount);
 };
-
-/* **************************************** */
-
-void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
-				      char *remoteProbeAddress, char *remoteProbePublicAddress,
-				      u_int64_t remBytes, u_int64_t remPkts,
-				      u_int32_t remTime, u_int32_t last_pps, u_int32_t last_bps) {
-  if(name)               setRemoteIfname(name);
-  if(address)            setRemoteIfIPaddr(address);
-  if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
-  if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd = 0, last_pkt_rcvd_remote = remTime,
-    last_remote_pps = last_pps, last_remote_bps = last_bps;
-
-  if((zmq_initial_pkts == 0) /* ntopng has been restarted */
-     || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */
-     ) {
-    /* Start over */
-    zmq_initial_bytes = remBytes, zmq_initial_pkts = remPkts;
-  } else {
-    remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]",
-				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
-				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
-    /*
-     * Don't override ethStats here, these stats are properly updated
-     * inside NetworkInterface::processFlow for ZMQ interfaces.
-     * Overriding values here may cause glitches and non-strictly-increasing counters
-     * yielding negative rates.
-     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
-     *
-     */
-  }
-}
 
 /* **************************************** */
 
@@ -5070,22 +5526,10 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid) {
   ndpi_protocol proto;
+
   proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
   return get_ndpi_proto_category(proto);
-}
-
-/* **************************************** */
-
-static int lua_flow_get_ndpi_category(lua_State* vm) {
-  Flow *f;
-
-  lua_getglobal(vm, CONST_USER_SCRIPTS_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, ndpi_category_str(f->get_detected_protocol_category()));
-  return(CONST_LUA_OK);
 }
 
 /* **************************************** */
@@ -5205,7 +5649,6 @@ static int lua_flow_dump(lua_State* vm) {
 
 /* These callbacks operate on the global flow of user scripts */
 static const luaL_Reg flow_reg[] = {
-  { "getNdpiCategory",   lua_flow_get_ndpi_category },
   { "getNdpiProto",      lua_flow_get_ndpi_proto },
   { "getNdpiProtoId",    lua_flow_get_ndpi_proto_id },
   { "getFirstSeen",      lua_flow_get_first_seen },
@@ -5214,13 +5657,15 @@ static const luaL_Reg flow_reg[] = {
   { "getHTTPUrl",        lua_flow_get_http_url },
   { "getHTTPContentType",lua_flow_get_http_content_type },
   { "dump",              lua_flow_dump },
-  { NULL,         NULL }
+  { NULL,                NULL }
 };
 
 static const ntop_class_reg ntop_lua_reg[] = {
   { "flow",   flow_reg  },
   {NULL,      NULL}
 };
+
+  /* ******************************************** */
 
 lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, const char *context) {
   int i;
@@ -5229,7 +5674,8 @@ lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, co
 
   L = luaL_newstate();
 
-  if(!L) {
+  if(L) G(L)->userdata = (void*)calloc(1, sizeof(struct ntopngLuaContext));
+  if((L == NULL) || (G(L)->userdata == NULL)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize lua interpreter");
     return(NULL);
   }
@@ -5255,6 +5701,7 @@ lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, co
   if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s[%s]: %s",
 				 script_path, context, lua_tostring(L, -1));
+    if(G(L)->userdata) free(G(L)->userdata);
     lua_close(L);
     L = NULL;
   } else {
@@ -5270,8 +5717,21 @@ lua_State* NetworkInterface::initUserScriptsInterpreter(const char *lua_file, co
 /* **************************************** */
 
 void NetworkInterface::termLuaInterpreter() {
-  if(L_user_scripts_inline) { lua_close(L_user_scripts_inline); L_user_scripts_inline = NULL; }
-  if(L_user_scripts_periodic) { lua_close(L_user_scripts_periodic); L_user_scripts_periodic = NULL; }
+  if(L_user_scripts_inline) {
+    if(G(L_user_scripts_inline)->userdata)
+      free(G(L_user_scripts_inline)->userdata);
+
+    lua_close(L_user_scripts_inline);
+    L_user_scripts_inline = NULL;
+  }
+
+  if(L_user_scripts_periodic) {
+    if(G(L_user_scripts_periodic)->userdata)
+      free(G(L_user_scripts_periodic)->userdata);
+
+    lua_close(L_user_scripts_periodic);
+    L_user_scripts_periodic = NULL;
+  }
 }
 
 /* **************************************** */
@@ -5309,18 +5769,30 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
   switch(context) {
   case user_script_context_inline:
-    if (user_scripts_reload_inline) {
-      if(L_user_scripts_inline) lua_close(L_user_scripts_inline);
-      L_user_scripts_inline = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_INLINE);
+    if(user_scripts_reload_inline) {
+      if(L_user_scripts_inline) {
+	if(G(L_user_scripts_inline)->userdata)
+	  free(G(L_user_scripts_inline)->userdata);
+	lua_close(L_user_scripts_inline);
+      }
+
+      L_user_scripts_inline = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER,
+							 CONST_USER_SCRIPTS_CONTEXT_INLINE);
       user_scripts_reload_inline = false;
     }
 
     L = L_user_scripts_inline;
     break;
   case user_script_context_periodic:
-    if (user_scripts_reload_periodic) {
-      if(L_user_scripts_periodic) lua_close(L_user_scripts_periodic);
-      L_user_scripts_periodic = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER, CONST_USER_SCRIPTS_CONTEXT_PERIODIC);
+    if(user_scripts_reload_periodic) {
+      if(L_user_scripts_periodic) {
+	if(G(L_user_scripts_periodic)->userdata)
+	  free(G(L_user_scripts_periodic)->userdata);
+	lua_close(L_user_scripts_periodic);
+      }
+
+      L_user_scripts_periodic = initUserScriptsInterpreter(CONST_USER_SCRIPTS_LOADER,
+							   CONST_USER_SCRIPTS_CONTEXT_PERIODIC);
       user_scripts_reload_periodic = false;
     }
 
@@ -5337,7 +5809,8 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
   lua_getglobal(L, luaFunction); /* function to be called */
   if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]", luaFunction, rc, lua_tostring(L, -1));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]",
+				 luaFunction, rc, lua_tostring(L, -1));
   }
 
   return(rc);
@@ -5346,27 +5819,34 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 /* **************************************** */
 
 int NetworkInterface::getActiveMacList(lua_State* vm,
+				       u_int32_t *begin_slot,
+				       bool walk_all,
 				       u_int8_t bridge_iface_idx,
 				       u_int16_t vlan_id,
 				       bool sourceMacsOnly,
-				       bool hostMacsOnly, const char *manufacturer,
+				       bool hostMacsOnly,
+				       bool dhcpMacsOnly, const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder,
-				       u_int16_t pool_filter) {
+				       u_int16_t pool_filter, u_int8_t devtype_filter,
+				       u_int8_t location_filter) {
   struct flowHostRetriever retriever;
   bool show_details = true;
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
-	      hostMacsOnly, manufacturer, sortColumn, pool_filter) < 0) {
+  if(sortMacs(begin_slot, walk_all,
+	      &retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      hostMacsOnly, dhcpMacsOnly, manufacturer, sortColumn,
+	      pool_filter, devtype_filter, location_filter) < 0) {
     enablePurge(false);
     return -1;
   }
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numMacs", retriever.actNumEntries);
-
+  lua_push_int_table_entry(vm, "nextSlot", *begin_slot);
+  
   lua_newtable(vm);
 
   if(a2zSortOrder) {
@@ -5399,33 +5879,37 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 
 /* **************************************** */
 
-int NetworkInterface::getActiveASList(lua_State* vm,
-				      char *sortColumn, u_int32_t maxHits,
-				      u_int32_t toSkip, bool a2zSortOrder,
-				      DetailsLevel details_level) {
+int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   struct flowHostRetriever retriever;
+  DetailsLevel details_level;
+
+  if(!p)
+    return -1;
 
   disablePurge(false);
 
-  if(sortASes(&retriever, sortColumn) < 0) {
+  if(sortASes(&retriever, p->sortColumn()) < 0) {
     enablePurge(false);
     return -1;
   }
+
+  if(!p->getDetailsLevel(&details_level))
+    details_level = details_normal;
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numASes", retriever.actNumEntries);
 
   lua_newtable(vm);
 
-  if(a2zSortOrder) {
-    for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
+  if(p->a2zSortOrder()) {
+    for(int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries && num < (int)p->maxHits(); i++, num++) {
       AutonomousSystem *as = retriever.elems[i].asValue;
 
       as->lua(vm, details_level, false);
       lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
     }
   } else {
-    for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
+    for(int i = (retriever.actNumEntries - 1 - p->toSkip()), num = 0; i >= 0 && num < (int)p->maxHits(); i--, num++) {
       AutonomousSystem *as = retriever.elems[i].asValue;
 
       as->lua(vm, details_level, false);
@@ -5506,13 +5990,19 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 						u_int8_t bridge_iface_idx,
 						u_int16_t vlan_id,
 						bool sourceMacsOnly,
-						bool hostMacsOnly, u_int32_t maxHits) {
+						bool hostMacsOnly, bool dhcpMacsOnly,
+						u_int32_t maxHits,
+						u_int8_t devtype_filter, u_int8_t location_filter) {
   struct flowHostRetriever retriever;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
-	      hostMacsOnly, NULL, (char*)"column_manufacturer", (u_int16_t)-1) < 0) {
+  if(sortMacs(&begin_slot, walk_all,
+	      &retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      hostMacsOnly, dhcpMacsOnly, NULL, (char*)"column_manufacturer",
+	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -5521,17 +6011,20 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 
   const char *cur_manuf = NULL;
   u_int32_t cur_count = 0;
-  for(int i = 0; i<(int)retriever.actNumEntries && i < (int)maxHits; i++) {
+  int k = 0;
+
+  for(int i = 0; i<(int)retriever.actNumEntries && k < (int)maxHits; i++) {
     Mac *m = retriever.elems[i].macValue;
 
     const char *manufacturer = m->get_manufacturer();
     if(manufacturer != NULL) {
-      if(cur_manuf != manufacturer) {
+      if(!cur_manuf || (strcmp(cur_manuf, manufacturer) != 0)) {
 	if(cur_manuf != NULL)
 	  lua_push_int32_table_entry(vm, cur_manuf, cur_count);
 
 	cur_manuf = manufacturer;
 	cur_count = 1;
+	k++;
       } else {
 	cur_count++;
       }
@@ -5550,16 +6043,80 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 
 /* **************************************** */
 
+int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
+					   u_int8_t bridge_iface_idx,
+					   u_int16_t vlan_id,
+					   bool sourceMacsOnly,
+					   bool hostMacsOnly,
+					   bool dhcpMacsOnly,
+					   u_int32_t maxHits,
+					   const char *manufacturer, u_int8_t location_filter) {
+  struct flowHostRetriever retriever;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  disablePurge(false);
+
+  if(sortMacs(&begin_slot, walk_all,
+	      &retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      hostMacsOnly, dhcpMacsOnly, manufacturer, (char*)"column_device_type",
+	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
+    enablePurge(false);
+    return -1;
+  }
+
+  lua_newtable(vm);
+
+  u_int8_t cur_devtype = 0;
+  u_int32_t cur_count = 0;
+  int k = 0;
+
+  for(int i = 0; i<(int)retriever.actNumEntries && k < (int)maxHits; i++) {
+    Mac *m = retriever.elems[i].macValue;
+
+    if(m->getDeviceType() != cur_devtype) {
+      if(cur_count) {
+        lua_pushnumber(vm, cur_devtype);
+        lua_pushnumber(vm, cur_count);
+        lua_settable(vm, -3);
+      }
+
+      cur_devtype = m->getDeviceType();
+      cur_count = 1;
+      k++;
+    } else {
+      cur_count++;
+    }
+  }
+
+  if(cur_count) {
+    lua_pushnumber(vm, cur_devtype);
+    lua_pushnumber(vm, cur_count);
+    lua_settable(vm, -3);
+  }
+
+  enablePurge(false);
+
+  // finally free the elements regardless of the sorted kind
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
+/* **************************************** */
+
 bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
   struct mac_find_info info;
   bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   memset(&info, 0, sizeof(info));
   Utils::parseMac(info.mac, mac), info.vlan_id = vlan_id;
 
   disablePurge(false);
 
-  walker(walker_macs, find_mac_by_name, (void*)&info);
+  walker(&begin_slot, walk_all,  walker_macs, find_mac_by_name, (void*)&info);
 
   if(info.m) {
     info.m->lua(vm, true, false);
@@ -5574,16 +6131,60 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
 
 /* **************************************** */
 
+bool NetworkInterface::setMacOperatingSystem(lua_State* vm, char *strmac, OperatingSystem os) {
+  u_int8_t mac[6];
+  Mac *m;
+
+  Utils::parseMac(mac, strmac);
+
+  if((m = getMac(mac, 0 /* no vlan */, false /* Don't create if missing */))) {
+    m->setOperatingSystem(os);
+    return(true);
+  } else
+    return(false);
+}
+
+/* **************************************** */
+
+bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId,
+					DeviceType dtype, bool alwaysOverwrite) {
+  u_int8_t mac[6];
+  Mac *m;
+  DeviceType oldtype;
+
+  Utils::parseMac(mac, strmac);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "setMacDeviceType(%s) = %d", strmac, (int)dtype);
+
+  if((m = getMac(mac, vlanId, false /* Don't create if missing */))) {
+    oldtype = m->getDeviceType();
+
+    if(alwaysOverwrite || (oldtype == device_unknown)) {
+      m->setDeviceType(dtype);
+
+      if(alwaysOverwrite && (oldtype != device_unknown) && (oldtype != dtype))
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Device %s type changed from %d to %d\n",
+				strmac, oldtype, dtype);
+    }
+    return(true);
+  } else
+    return(false);
+}
+
+/* **************************************** */
+
 bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
   struct as_find_info info;
   bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   memset(&info, 0, sizeof(info));
   info.asn = asn;
 
   disablePurge(false);
 
-  walker(walker_ases, find_as_by_asn, (void*)&info);
+  walker(&begin_slot, walk_all,  walker_ases, find_as_by_asn, (void*)&info);
 
   if(info.as) {
     info.as->lua(vm, details_higher, false);
@@ -5601,13 +6202,15 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
 bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
   struct vlan_find_info info;
   bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   memset(&info, 0, sizeof(info));
   info.vlan_id = vlan_id;
 
   disablePurge(false);
 
-  walker(walker_vlans, find_vlan_by_vlan_id, (void*)&info);
+  walker(&begin_slot, walk_all,  walker_vlans, find_vlan_by_vlan_id, (void*)&info);
 
   if(info.vl) {
     info.vl->lua(vm, details_higher, false);
@@ -5622,13 +6225,14 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
 
 /* **************************************** */
 
-static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data) {
+static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data, bool *matched) {
   bool full_refresh = (user_data != NULL) ? true : false;
   Host *h = (Host*)host;
 
   h->refreshHostAlertPrefs();
-
-  if (full_refresh)
+  *matched = true;
+  
+  if(full_refresh)
     h->loadAlertsCounter();
   return(false); /* false = keep on walking */
 }
@@ -5636,34 +6240,20 @@ static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data) {
 /* **************************************** */
 
 void NetworkInterface::refreshHostsAlertPrefs(bool full_refresh) {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
   /* Read the new configuration */
   ntop->getPrefs()->refreshHostsAlertsPrefs();
 
   disablePurge(false);
 
   /* Update the hosts */
-  walker(walker_hosts, host_reload_alert_prefs, (void *)full_refresh);
+  walker(&begin_slot, walk_all,  walker_hosts,
+	 host_reload_alert_prefs, (void *)full_refresh);
 
   enablePurge(false);
 };
-
-/* **************************************** */
-
-int NetworkInterface::resetPeriodicHostStats(AddressTree* allowed_networks,
-					     char *host_ip, u_int16_t host_vlan) {
-  Host *h;
-  int rv;
-  disablePurge(false);
-
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
-    h->resetPeriodicStats();
-    rv = CONST_LUA_OK;
-  } else
-    rv = CONST_LUA_ERROR;
-
-  enablePurge(false);
-  return rv;
-}
 
 /* **************************************** */
 
@@ -5673,7 +6263,7 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
   int rv;
   disablePurge(false);
 
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+  if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->updateHostTrafficPolicy(host_ip);
     rv = CONST_LUA_OK;
   } else
@@ -5691,26 +6281,8 @@ int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, ch
   int rv;
   disablePurge(false);
 
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+  if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->setDumpTrafficPolicy(dump_traffic_to_disk);
-    rv = CONST_LUA_OK;
-  } else
-    rv = CONST_LUA_ERROR;
-
-  enablePurge(false);
-  return rv;
-}
-
-/* **************************************** */
-
-int NetworkInterface::getPeerBytes(AddressTree* allowed_networks, lua_State *vm, char *host_ip,
-				   u_int16_t host_vlan, u_int32_t peer_key) {
-  Host *h;
-  int rv;
-  disablePurge(false);
-
-  if((h = findHostsByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
-    h->getPeerBytes(vm, peer_key);
     rv = CONST_LUA_OK;
   } else
     rv = CONST_LUA_ERROR;
@@ -5739,4 +6311,119 @@ int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char
   } else
     rv = CONST_LUA_ERROR;
   return rv;
+}
+
+/* *************************************** */
+
+void NetworkInterface::topItemsCommit(const struct timeval *tv) {
+  float tdiff_msec = ((float)(tv->tv_sec-last_frequent_reset.tv_sec)*1000)+((tv->tv_usec-last_frequent_reset.tv_usec)/(float)1000);
+
+  frequentProtocols->reset(tdiff_msec);
+  frequentMacs->reset(tdiff_msec);
+
+  last_frequent_reset = *tv;
+}
+
+/* *************************************** */
+
+void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, u_int16_t protocol, u_int32_t bytes) {
+  if((bytes > 0) && (pool_id != 0)) {
+    // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
+    frequentProtocols->addPoolProtocol(pool_id, protocol, bytes);
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes) {
+  if((bytes > 0) && (! mac->isSpecialMac()) && (mac->locate() == located_on_lan_interface)) {
+    // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
+    frequentMacs->addMacProtocol(mac->get_mac(), protocol, bytes);
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::updateFlowStats(u_int8_t protocol,
+				       u_int32_t srcHost, u_int16_t sport,
+				       u_int32_t dstHost, u_int16_t dport,
+				       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
+				       u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
+  bool src2dst_direction;
+  IpAddress src_ip, dst_ip;
+  Flow *f;
+#ifdef DEBUG
+  char buf[32], buf1[32];
+  const char *msg;
+#endif
+
+  src_ip.set(srcHost), dst_ip.set(dstHost);
+  f = flows_hash->find(&src_ip, &dst_ip, sport, dport,
+		       0 /* vlanId */, protocol, &src2dst_direction);
+
+  if(f) {
+    f->setPacketsBytes(s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
+#ifdef DEBUG
+    msg = "Updated ";
+#endif
+  } else {
+#ifdef DEBUG
+    msg = "NOT FOUND";
+#endif
+  }
+
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s [%lu][%s:%d -> %s:%d] [pkts %lu/%lu][bytes %lu/%lu]",
+			       msg, protocol,
+			       Utils::intoaV4(ntohl(srcHost), buf, sizeof(buf)), ntohs(sport),
+			       Utils::intoaV4(ntohl(dstHost), buf1, sizeof(buf)), ntohs(dport),
+			       s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
+#endif
+}
+
+/* *************************************** */
+
+/*
+  Put here all the code that is executed when the NIC initialization
+  is succesful
+ */
+void NetworkInterface::finishInitialization() {
+  if(!isView()) {
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+    if(ntop->getPrefs()->do_dump_flows_on_ndb()) {
+      db = new NDBFlowDB(this);
+      goto enable_aggregation;
+    }
+#endif
+
+    if((db == NULL)
+       && (ntop->getPrefs()->do_dump_flows_on_mysql()
+	   || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
+#ifdef NTOPNG_PRO
+      if(ntop->getPrefs()->is_enterprise_edition()
+	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+#ifdef HAVE_MYSQL
+	db = new BatchedMySQLDB(this);
+#endif
+
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+      enable_aggregation:
+#endif
+	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
+						       ntop->getPrefs()->get_max_num_flows());
+
+	ntop->getPrefs()->enable_flow_aggregation();
+	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+      } else
+	aggregated_flows_hash = NULL;
+#endif
+
+#ifdef HAVE_MYSQL
+      if(db == NULL)
+	db = new MySQLDB(this);
+#endif
+
+      if(!db) throw "Not enough memory";
+    }
+  }
 }

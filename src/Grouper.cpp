@@ -52,7 +52,6 @@ bool Grouper::inGroup(Host *h) {
   case column_asn:
     return h->get_asn() == group_id_i;
 
-
   case column_vlan:
     return h->get_vlan_id() == group_id_i;
 
@@ -67,10 +66,12 @@ bool Grouper::inGroup(Host *h) {
     return Utils::macaddr_int(h->get_mac()) == (u_int64_t)group_id_i;
 
   case column_country:
-    return h->get_country() ?
-      !strcmp(group_id_s, h->get_country()) :
-      !strcmp(group_id_s, (char*)UNKNOWN_COUNTRY);
-
+    {
+      char buf[32], *c = h->get_country(buf, sizeof(buf));
+      return (strcmp(group_id_s, c) == 0) ? true : false;
+    }
+    break;
+    
   case column_os:
     return h->get_os() ?
       !strcmp(group_id_s, h->get_os()) :
@@ -134,8 +135,12 @@ int8_t Grouper::newGroup(Host *h) {
     break;
 
   case column_country:
-    group_id_s  = strdup(h->get_country() ? h->get_country() : (char*)UNKNOWN_COUNTRY);
-    group_label = strdup(group_id_s);
+    {
+      char buf[32], *c = h->get_country(buf, sizeof(buf));
+      
+      group_id_s  = strdup(c);
+      group_label = strdup(group_id_s);
+    }
     break;
 
   case column_os:
@@ -154,6 +159,8 @@ int8_t Grouper::newGroup(Host *h) {
 /* *************************************** */
 
 int8_t Grouper::incStats(Host *h) {
+  char buf[32], *c = h->get_country(buf, sizeof(buf));
+  
   if(h == NULL || !inGroup(h))
     return -1;
 
@@ -168,9 +175,8 @@ int8_t Grouper::incStats(Host *h) {
   stats.throughput_bps += h->getBytesThpt();
   stats.throughput_pps += h->getPacketsThpt();
   stats.throughput_trend_bps_diff += h->getThptTrendDiff();
-
-  if(h->get_country())
-    strncpy(stats.country, h->get_country(), sizeof(stats.country));
+ 
+  if(c) strncpy(stats.country, c, sizeof(stats.country));
 
   return 0;
 }

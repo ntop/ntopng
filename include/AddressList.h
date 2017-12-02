@@ -37,7 +37,9 @@ class AddressList {
   inline u_int8_t getNumAddresses() { return(tree.getNumAddresses()); }
   bool addAddresses(char *net);
   
-  int16_t findAddress(int family, void *addr) { return(tree.findAddress(family, addr));                      };
+  int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL) {
+    return(tree.findAddress(family, addr, network_mask_bits));
+  };
   void getAddresses(lua_State* vm)            { return(tree.getAddresses(vm));                               };
   inline char *getAddressString(u_int8_t id)  { return((id < getNumAddresses()) ? addressString[id] : NULL); };
   inline void dump()                          { tree.dump(); }

@@ -1,4 +1,5 @@
 require "lua_utils"
+local os_utils = require "os_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -28,7 +29,7 @@ function vlan2record(vlan)
    record["column_traffic"] = bytesToSize(vlan["bytes.sent"] + vlan["bytes.rcvd"])
 
    record["column_chart"] = ""
-   local vlanstats_rrd = fixPath(dirs.workingdir .. "/" ..getInterfaceId(ifname)..'/vlanstats/'..vlan["vlan_id"]..'/bytes.rrd')
+   local vlanstats_rrd = os_utils.fixPath(dirs.workingdir .. "/" ..getInterfaceId(ifname)..'/vlanstats/'..vlan["vlan_id"]..'/bytes.rrd')
    if ntop.exists(vlanstats_rrd) then
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan["vlan_id"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
    end

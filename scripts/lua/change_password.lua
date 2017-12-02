@@ -9,14 +9,18 @@ require "lua_utils"
 
 local error_msg
 
+if not isEmptyString(_POST["user_language"]) then
+  ntop.changeUserLanguage(_SESSION["user"], _POST["user_language"])
+end
+
 if (_POST["new_password"] ~= nil) and (_SESSION["user"] == "admin") then
   local new_password = _POST["new_password"]
   local confirm_new_password = _POST["confirm_password"]
 
   if new_password ~= confirm_new_password then
-    error_msg = "Passwords do not match"
+    error_msg = i18n("login.password_mismatch")
   elseif new_password == "admin" then
-    error_msg = "Please specify a different password"
+    error_msg = i18n("login.password_not_valid")
   else
     ntop.resetUserPassword(_SESSION["user"], "admin", "", unescapeHTML(new_password))
     ntop.setCache("ntopng.prefs.admin_password_changed", "1")
@@ -73,8 +77,8 @@ print [[
 <div class="container">
 
 	 <form role="form" data-toggle="validator" class="form-signin" method="POST">
-	 <h2 class="form-signin-heading" style="font-weight: bold;">Change Password</h2>
-   <p>Default admin password must be changed. Please enter a new password below.</p>
+	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.change_password")) print[[</h2>
+   <p>]] print(i18n("login.must_change_password")) print[[</p>
 ]]
 
 if error_msg ~= nil then
@@ -87,23 +91,39 @@ end
 print[[
   <div class="form-group has-feedback">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-      <input type="password" class="form-control" name="new_password" placeholder="Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="password" class="form-control" name="new_password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="password" class="form-control" name="confirm_password" placeholder="]] print(i18n("login.confirm_password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
 
   ]]
 
 print[[
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Change Password</button>
+  <div class="form-group">
+      <label class="form-label">]] print(i18n("language")) print[[</label>
+      <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
+        <select name="user_language" id="user_language" class="form-control">]]
+
+for _, lang in pairs(locales_utils.getAvailableLocales()) do
+   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+end
+
+print[[
+        </select>
+      </div>
+    </div>]]
+
+print[[
+    <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">
         <small>
-        <p><a href="]] print(ntop.getHttpPrefix()) print[[logout.lua">Logout</a></p>
-      <p>If you find ]] print(info["product"]) print [[ useful, please support us by making a small <A href="http://shop.ntop.org">donation</A>. Your funding will help to run and foster the development of this project. Thank you.
+        <p><a href="]] print(ntop.getHttpPrefix()) print[[logout.lua">]] print(i18n("login.logout")) print[[</a></p>
+      <p>]] print(i18n("login.donation", {product=info["product"], donation_url="http://shop.ntop.org"})) print[[
           </p>
 
-      <p>]] print(info["copyright"]) print [[<br> ]] print(info["product"]) print [[ is released under <A HREF="http://www.gnu.org/copyleft/gpl.html">GPLv3</A>.</p>
+      <p>]] print(info["copyright"]) print [[<br> ]] print(i18n("login.license", {product=info["product"], license="GPLv3", license_url="http://www.gnu.org/copyleft/gpl.html"})) print[[</p>
         </small>
       </div>
     </div>

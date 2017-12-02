@@ -9,13 +9,15 @@ require "lua_utils"
 local template = require "template_utils"
 
 prefs = ntop.getPrefs()
-names = interface.getIfNames()
+local iface_names = interface.getIfNames()
+
+-- tprint(iface_names)
+
 num_ifaces = 0
-for k,v in pairs(names) do
+for k,v in pairs(iface_names) do
    num_ifaces = num_ifaces+1
 end
 
--- tprint(names)
 
 print [[
       <div class="masthead">
@@ -78,8 +80,12 @@ end
 
 print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
 
+  if(interface.isDiscoverableInterface()) then
+    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
+  end
+
 if(ntop.isPro()) then
-	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Traffic Report</a></li>')
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Traffic Report</a></li>')
 end
 
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
@@ -96,10 +102,9 @@ end
 
 -- ##############################################
 
-interface.select(ifname)
-if ntop.getPrefs().are_alerts_enabled == true then
+if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
 
-   local alert_cache = interface.getCachedNumAlerts()
+   local alert_cache = interface.getCachedNumAlerts() or {}
    local active = ""
    local style = ""
    local color = ""
@@ -240,7 +245,7 @@ print("</ul> </li>")
 -- Devices
 info = ntop.getInfo()
 
-if((ifs["has_macs"] == true) or ntop.isPro()) then
+if((ifs["has_macs"] == true) or ntop.isEnterprise()) then
 if active_page == "devices_stats" then
   print [[ <li class="dropdown active"> ]]
 else
@@ -254,7 +259,7 @@ print [[
 ]]
 
 if ifs["has_macs"] == true then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Layer 2</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=host_macs_only">Layer 2</a></li>')
    if(info["version.enterprise_edition"] == true) then
       print('<li class="divider"></li>')
    end
@@ -287,55 +292,84 @@ print [[
       <ul class="dropdown-menu">
 ]]
 
-views = {}
-ifnames = {}
-ifdescr = {}
+local views = {}
+local drops = {}
+local packetinterfaces = {}
+local ifnames = {}
+local ifdescr = {}
+local ifHdescr = {}
+local ifCustom = {}
 
-for v,k in pairs(interface.getIfNames()) do
+for v,k in pairs(iface_names) do
    interface.select(k)
    _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
+   if(interface.isPacketInterface()) then packetinterfaces[k] = true end
+   if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
+      drops[k] = true
+   end
+   ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
+   ifCustom[_ifstats.id] = _ifstats.customIftype
 end
 
-for k,v in pairsByKeys(ifnames, asc) do
-   local descr
-   
-   print("      <li>")
+-- First round: only physical interfaces
+-- Second round: only virtual interfaces
 
-   if(v == ifname) then
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..k.."\">")
-   else
-      print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(tostring(k)) print[[">]]
-      print[[<input name="switch_interface" type="hidden" value="1" />]]
-      print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-      print[[</form>]]
-      print[[<a href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
-   end
+for round = 1, 2 do
 
-   if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
-   if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+   for k,_ in pairsByValues(ifHdescr, asc) do
+      local descr
+      
+      if((round == 1) and (ifCustom[k] ~= nil)) then
+   	 -- do nothing
+      elseif((round == 2) and (ifCustom[k] == nil)) then
+      	 -- do nothing
+      else
+	 v = ifnames[k]
+	 print("      <li>")
 
-   descr = getHumanReadableInterfaceName(v.."")
+	 if(v == ifname) then
+	    print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..k.."\">")
+	 else
+	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(tostring(k)) print[[">]]
+	    print[[<input name="switch_interface" type="hidden" value="1" />]]
+	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+	    print[[</form>]]
+	    print[[<a href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+	 end
 
-   if(string.contains(descr, "{")) then -- Windows
-      descr = ifdescr[k]      
-   else
-      if(v ~= ifdescr[k]) then
-	 descr = descr .. " (".. ifdescr[k] ..")"
-      elseif(v ~= descr) then
-	 descr = descr .. " (".. v ..")"
+	 if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
+	 if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+
+	 descr = getHumanReadableInterfaceName(v.."")
+
+	 if(string.contains(descr, "{")) then -- Windows
+	    descr = ifdescr[k]      
+	 else
+	    if(v ~= ifdescr[k]) then
+	       descr = descr .. " (".. ifdescr[k] ..")"
+	    elseif(v ~= descr) then
+	       descr = descr .. " (".. v ..")"
+	    end
+	 end
+
+	 print(descr)
+	 if(views[v] == true) then
+	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
+	 end
+
+	 if(drops[v] == true) then
+	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
+	 end
+
+	 print("</a>")
+	 print("</li>\n")
       end
    end
-   
-   print(descr)
-   if(views[v] == true) then print(' <i class="fa fa-eye"></i> ') end
-   print("</a>")
-   print("</li>\n")
 end
-
 
 print [[
 
@@ -387,6 +421,8 @@ if(user_group == "administrator") then
       if(false) then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
+
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> Applications</a></li>\n")
    end
 
 end
@@ -424,12 +460,13 @@ print(
   template.gen("typeahead_input.html", {
     typeahead={
       base_id     = "host_search",
-      action      = "/lua/host_details.lua",
+      action      = "", -- see makeFindHostBeforeSubmitCallback
       json_key    = "ip",
       query_field = "host",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
       query_title = "Search Host",
       style       = "width:16em;",
+      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
     }
   })
 )

@@ -21,6 +21,7 @@
 
 #include "ntop_includes.h"
 
+#ifdef HAVE_MYSQL
 /* **************************************************** */
 
 static void* queryLoop(void* ptr) {
@@ -417,6 +418,59 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 
 /* ******************************************* */
 
+bool MySQLDB::createNprobeDBView() {
+  char sql[CONST_MAX_SQL_QUERY_LEN];
+  const u_int16_t ipvers[2] = {4, 6};
+  u_int16_t i = 0;
+
+  if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
+    goto err;
+    return false;
+  }
+
+  for(; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
+    snprintf(sql, sizeof(sql), MYSQL_DROP_NPROBE_VIEW, ipvers[i]);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+				 "Deleting existing nProbe views for IPV%hu:\n"
+				 "[%s]",
+				 ipvers[i],
+				 sql);
+
+    if(exec_sql_query(&mysql, sql, true) < 0)
+      goto err;
+
+    snprintf(sql, sizeof(sql), MYSQL_CREATE_NPROBE_VIEW,
+	     ipvers[i], ipvers[i], ipvers[i], iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ipvers[i]);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+				 "Creating nProbe view on table %sflows for IPV%hu:\n"
+				 "[%s]",
+				 ntop->getPrefs()->get_mysql_tablename(),
+				 ipvers[i],
+				 sql);
+
+    if(exec_sql_query(&mysql, sql, true) < 0) {
+    err:
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Before starting ntopng, make sure to start nprobe with option --mysql and template @NTOPNG@.");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Example:");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "./nprobe -i eno1 -T \"@NTOPNG@\" --mysql=\"localhost:ntopng:nf:root:root\" --zmq \"tcp://127.0.0.1:5556\" --zmq-probe-mode");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "./ntopng  -i \"tcp://*:5556c\" -F \"mysql-nprobe;localhost;ntopng;nf;root;root\"");
+      return false;
+    }
+
+  }
+
+  db_created = true;
+
+  return true;
+}
+
+/* ******************************************* */
+
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   mysqlDroppedFlows = 0;
   mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
@@ -500,7 +554,8 @@ char* MySQLDB::escapeAphostrophes(const char *unescaped) {
 
 /* ******************************************* */
 
-int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const {
+int MySQLDB::flow2InsertValues(Flow *f, char *json,
+			       char *values_buf, size_t values_buf_len) const {
   char cli_str[64], srv_str[64], *json_buf, *info_buf;
   u_int32_t packets, first_seen, last_seen;
   u_int32_t bytes_cli2srv, bytes_srv2cli;
@@ -649,14 +704,15 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
-			    3306 /* port */,
+			    ntop->getPrefs()->get_mysql_port(),
 			    NULL /* socket */, flags);
 
   if(rc == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s:%s]\n",
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s@%s:%i]\n",
 				 mysql_error(conn),
+				 ntop->getPrefs()->get_mysql_user(),
 				 ntop->getPrefs()->get_mysql_host(),
-				 ntop->getPrefs()->get_mysql_user());
+                 ntop->getPrefs()->get_mysql_port());
 
     if(m) m->unlock(__FILE__, __LINE__);
     return(false);
@@ -664,9 +720,10 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s:%s] for interface %s",
-			       ntop->getPrefs()->get_mysql_host(),
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s@%s:%i] for interface %s",
 			       ntop->getPrefs()->get_mysql_user(),
+			       ntop->getPrefs()->get_mysql_host(),
+			       ntop->getPrefs()->get_mysql_port(),
 			       iface->get_name());
 
   if(m) m->unlock(__FILE__, __LINE__);
@@ -816,3 +873,5 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
 
   return(0);
 }
+
+#endif

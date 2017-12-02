@@ -1,5 +1,7 @@
 AC_INIT([Makefile.in], 1.0)
 
+AC_ARG_WITH(nedge,          [  --with-nedge            Enable nEdge device build])
+
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
@@ -10,6 +12,7 @@ else
   if test $SHORT_MACHINE = "arm"; then
      EXTN="armhf"
      EXTRA_DEPS=""
+     LIBRRD="librrd8, "
   else
      if test $SHORT_MACHINE = "mip"; then
        EXTN="mips"
@@ -65,7 +68,14 @@ else
   SUDO="sudo"
 fi
 
-CHOWN="$SUDO chown $USER:$GROUP ../ntopng_*deb"
+
+if test "${with_nedge+set}" = set; then
+ APP=nedge
+else
+ APP=ntopng
+fi
+
+CHOWN="$SUDO chown $USER:$GROUP ../$APP_*deb"
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
 if test $SHORT_MACHINE = "mip"; then
@@ -78,7 +88,15 @@ fi
 
 /bin/rm -f debian.ntopng/control.in
 \cd debian.ntopng
-ln -s control.$UBUNTU_RELEASE.in control.in
+
+if test "${with_nedge+set}" = set; then
+ ln -s control.nedge.in control.in
+ DEFAULT_TARGET=nedge
+else
+ ln -s control.$UBUNTU_RELEASE.in control.in
+ DEFAULT_TARGET=ntopng
+fi
+
 cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
@@ -88,6 +106,8 @@ GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
 DATE=`date -R`
 KERNEL=`uname -r`
 
+AC_SUBST(APP)
+AC_SUBST(DEFAULT_TARGET)
 AC_SUBST(NTOPNG_VERS)
 AC_SUBST(MACHINE)
 AC_SUBST(EXTN)
@@ -107,6 +127,7 @@ AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(debian.ntopng/changelog)
 AC_CONFIG_FILES(debian.ntopng/files)
 AC_CONFIG_FILES(debian.ntopng/control)
+AC_CONFIG_FILES(debian.ntopng/rules)
 AC_CONFIG_FILES(debian.ntopng-data/changelog)
 AC_CONFIG_FILES(debian.ntopng-data/files)
 AC_CONFIG_FILES(debian.ntopng-data/control)

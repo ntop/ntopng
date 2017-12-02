@@ -39,6 +39,7 @@ Paginator::Paginator() {
   l7proto_filter = -1;
   port_filter = 0;
   local_network_filter = 0;
+  vlan_id_filter = 0;
   ip_version = 0;
   client_mode = location_all;
   server_mode = location_all;
@@ -46,6 +47,11 @@ Paginator::Paginator() {
   unidirectional_traffic = -1;
   alerted_flows = -1;
   filtered_flows = -1;
+  pool_filter = ((u_int16_t)-1);
+  mac_filter = NULL;
+
+  deviceIP = inIndex = outIndex = 0;
+  asn_filter = (u_int32_t)-1;
 
   details_level = details_normal;
   details_level_set = false;
@@ -55,7 +61,6 @@ Paginator::Paginator() {
 
     osFilter
     vlanFilter
-    asnFilter
   */
 };
 
@@ -65,6 +70,7 @@ Paginator::~Paginator() {
   if(sort_column)    free(sort_column);
   if(country_filter) free(country_filter);
   if(host_filter)    free(host_filter);
+  if(mac_filter)     free(mac_filter);
 }
 
 /* **************************************************** */
@@ -89,6 +95,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	if(!strcmp(key, "sortColumn")) {
 	  if(sort_column) free(sort_column);
 	  sort_column = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "deviceIpFilter")) {
+	  deviceIP = ntohl(inet_addr(lua_tostring(L, -1)));
 	} else if(!strcmp(key, "countryFilter")) {
 	  if(country_filter) free(country_filter);
 	  country_filter = strdup(lua_tostring(L, -1));
@@ -113,19 +121,12 @@ void Paginator::readOptions(lua_State *L, int index) {
 	    server_mode = location_all;
 	} else if(!strcmp(key, "detailsLevel")) {
 	  const char* value = lua_tostring(L, -1);
-	  if(!strcmp(value, "normal")) {
-	    details_level = details_normal;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "high")) {
-	    details_level = details_high;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "higher")) {
-	    details_level = details_higher;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "max")) {
-	    details_level = details_max;
-	    details_level_set = true;
-	  }
+	  details_level_set = Utils::str2DetailsLevel(value, &details_level);
+	} else if(!strcmp(key, "macFilter")) {
+	  const char* value = lua_tostring(L, -1);
+	  if(mac_filter) free(mac_filter);
+	  mac_filter = (u_int8_t *) malloc(6);
+	  Utils::parseMac(mac_filter, value);
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;
@@ -141,8 +142,19 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))
 	  local_network_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "vlanIdFilter"))
+	  vlan_id_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "inIndexFilter"))
+	  inIndex = lua_tointeger(L, -1);
+	else if(!strcmp(key, "outIndexFilter"))
+	  outIndex = lua_tointeger(L, -1);
 	else if(!strcmp(key, "ipVersion"))
 	  ip_version = lua_tointeger(L, -1);
+	else if(!strcmp(key, "poolFilter"))
+	  pool_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "asnFilter"))
+	  asn_filter = lua_tointeger(L, -1);
+
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;

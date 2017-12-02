@@ -1,18 +1,1 @@
-Source: ntopng
-Section: free
-Priority: optional
-Maintainer: Luca Deri <deri@ntop.org>
-Standards-Version: @NTOPNG_VERS@
-Build-Depends:
-Build-Conflicts:
-
-Depends: libsqlite3-0, libgeoip1, redis-server, @LIBRRD@ logrotate, libcurl3, libzmq3, libnetfilter-queue1, libmariadb2, libldap-2.4-2, libssl1.0.0, libpcap0.8, libhiredis0.10, libmysqlclient18, ethtool, bridge-utils
-Package: ntopng
-Architecture: @EXTN@
-Recommends: ntopng-data
-Suggests: ntopng-data
-Pre-Depends:
-Conflicts:
-Provides:
-Replaces: ntop
-Description: Web-based traffic monitoring.
+control.arm.stretch_pi.in

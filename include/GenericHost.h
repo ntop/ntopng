@@ -31,47 +31,50 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
  protected:
   bool localHost, systemHost;
   u_int32_t host_serial;
-  nDPIStats *ndpiStats;
-  ActivityStats activityStats;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
-  u_int8_t source_id;
-  time_t last_activity_update;
   u_int32_t total_activity_time /* sec */, last_epoch_update; /* useful to avoid multiple updates */
-  
+
   /* Throughput */
   float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
   ValueTrend bytes_goodput_thpt_trend;
-
-  void dumpStats(bool forceDump);
-  void readStats();
 
   virtual void computeHostSerial() { ; }
 
  public:
   GenericHost(NetworkInterface *_iface);
-  ~GenericHost();
+  virtual ~GenericHost() {
+    /* Pool counters are updated both in and outside the datapath.
+       So decPoolNumHosts must stay in the destructor to preserve counters
+       consistency (no thread outside the datapath will change the last pool id) */
+    iface->decPoolNumHosts(get_host_pool(), true /* Host is deleted inline */);
+  };
 
-  inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
   inline bool isLocalHost()                { return(localHost || systemHost); };
-  inline bool isSystemHost()               { return(systemHost); };
-  inline void setSystemHost()              { systemHost = true;  };
-  inline nDPIStats* get_ndpi_stats()       { return(ndpiStats); };
-  inline ActivityStats* getActivityStats() { return(&activityStats); };  
-  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets, 
-		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
-  inline u_int32_t get_host_serial()  { return(host_serial);               };
+  inline bool isSystemHost()               { return(systemHost);              };
+  inline void setSystemHost()              { systemHost = true;               };
 
-  inline u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
-  void resetPeriodicStats(void);
-  void updateActivities();
-  inline char* getJsonActivityMap()   { return(activityStats.serialize()); };
-  inline u_int8_t getSourceId()       { return(source_id);                 };
+  inline nDPIStats* get_ndpi_stats()       { return(ndpiStats);               };
+
+  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
+		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
+
+  inline u_int32_t get_host_serial() { return(host_serial);                        };
+
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
-  virtual bool match(AddressTree *ptree)             { return(true);   };
-  virtual void set_to_purge() {
+  virtual bool match(AddressTree *ptree)             { return(true);       };
+
+  virtual void set_to_purge() { /* Saves 1 extra-step of purge idle */
     iface->decNumHosts(isLocalHost());
     GenericHashEntry::set_to_purge();
+  };
+
+  inline bool isChildSafe() {
+#ifdef NTOPNG_PRO
+    return(iface->getHostPools()->isChildrenSafePool(host_pool_id));
+#else
+    return(false);
+#endif
   };
 };
 

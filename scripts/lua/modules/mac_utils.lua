@@ -1,4 +1,5 @@
 require "lua_utils"
+local discover = require "discover_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -8,7 +9,8 @@ local now = os.time()
 function macAddIcon(mac, pre)
    local pre = pre or mac
    if not isSpecialMac(mac) then
-      local icon = getHostIcon(mac)
+      local icon = discover.devtype2icon(mac.devtype)
+
       if not isEmptyString(icon) then
          return pre.."&nbsp;"..icon
       end
@@ -18,22 +20,36 @@ function macAddIcon(mac, pre)
 end
 
 function mac2link(mac)
-   local link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..mac.."'>"..mac..'</A>'
-   return macAddIcon(mac, link)
+   local macaddress = mac["mac"]
+   return "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..macaddress.."'>"..macaddress..'</A>'
 end
 
 function mac2record(mac)
    local record = {}
    record["key"] = hostinfo2jqueryid(mac)
 
-   record["column_mac"] = mac2link(mac["mac"])
+   record["column_mac"] = mac2link(mac)
 
+   if(mac.fingerprint ~= "") then
+      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
+      -- io.write(mac.fingerprint.."\n")
+   end
+
+   if(mac.dhcpHost) then
+      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-flash fa-lg" aria-hidden="true" title="DHCP Host"></i>'
+   end
+   
+   record["column_mac"] = record["column_mac"]..getOperatingSystemIcon(mac.operatingSystem)   
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end
    record["column_manufacturer"] = manufacturer
 
-   record["column_arp_sent"] = formatValue(mac["arp_requests.sent"] + mac["arp_replies.sent"])
-   record["column_arp_rcvd"] = formatValue(mac["arp_requests.rcvd"] + mac["arp_replies.rcvd"])
+   record["column_arp_total"] = formatValue(mac["arp_requests.sent"]
+					       + mac["arp_replies.sent"]
+					       + mac["arp_requests.rcvd"]
+					       + mac["arp_replies.rcvd"])
+
+   record["column_device_type"] = discover.devtype2icon(mac["devtype"]).." "..discover.devtype2string(mac["devtype"])
 
    record["column_hosts"] = mac["num_hosts"]..""
    record["column_since"] = secondsToTime(now - mac["seen.first"]+1)

@@ -245,6 +245,9 @@ table, tr, td, th, tbody, thead, tfoot {
   top: -8px;
   right: 2px;
 }
+.menu-item {
+  border: 1px solid #ddd !important;
+}
 
 .table-borderless tbody tr td,
 .table-borderless tbody tr th,

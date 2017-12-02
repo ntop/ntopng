@@ -27,26 +27,45 @@
 class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
-  const char * manuf;
-  u_int16_t vlan_id;
-  bool source_mac:1, special_mac:1, bridge_seen_iface[2] /* , notused:4 */;
+  u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
+  char *fingerprint;
+  const char *manuf;
+  OperatingSystem os;
+  bool source_mac, special_mac, dhcpHost, lockDeviceTypeChanges;
   ArpStats arp_stats;
+  DeviceType device_type;
+  
 
+  void checkDeviceTypeFromManufacturer();
+  
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
-  inline u_int16_t getNumHosts()               { return getUses();            }
-  inline void incUses()                        { GenericHashEntry::incUses(); if(source_mac && (getUses() == 1)) iface->incNumL2Devices(); }
-  inline void decUses()                        { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
-  inline bool isSpecialMac()                   { return(special_mac);         }
-  inline bool isSourceMac()                    { return(source_mac);          }
+  inline u_int16_t getNumHosts()   { return getUses();            }
+  inline void incUses() {
+    GenericHashEntry::incUses();
+    if(source_mac && (getUses() == 1))
+      iface->incNumL2Devices();
+    
+    if(getUses() > CONST_MAX_NUM_HOST_USES) {
+      setDeviceType(device_networking);
+      lockDeviceTypeChanges = true;
+    }
+  }
+  inline void decUses()            { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
+  inline bool isSpecialMac()       { return(special_mac);         }
+  inline bool isDhcpHost()         { return(dhcpHost);            }
+  inline void setDhcpHost()        { dhcpHost = true;             }
+  inline bool isSourceMac()        { return(source_mac);          }
   inline void setSourceMac() {
-    if (!source_mac && !special_mac) {
+    if(!source_mac && !special_mac) {
       source_mac = true;
       if(getUses() > 0) iface->incNumL2Devices();
     }
   }
+
+  MacLocation locate();
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()                   { return(mac);                 }
   inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }
@@ -62,24 +81,43 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(num_pkts, num_bytes);
   }
+  inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
+            u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+            u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+    if(ndpiStats || (ndpiStats = new nDPIStats())) {
+      //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      ndpiStats->incCategoryStats(when,
+				  getInterface()->get_ndpi_proto_category(protocol),
+				  sent_bytes, rcvd_bytes);
+    }
+  }
 
   inline void incSentArpRequests()   { arp_stats.sent_requests++;         }
   inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
   inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
-  inline void setSeenIface(u_int8_t idx)  { bridge_seen_iface[idx & 0x01] = 1; setSourceMac(); }
-  inline bool isSeenIface(u_int8_t idx)   { return(bridge_seen_iface[idx & 0x01]); }
-  inline u_int64_t getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
-  inline u_int64_t getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
+  inline void setSeenIface(u_int32_t idx)  { bridge_seen_iface_id = idx; setSourceMac(); }
+  inline u_int32_t getSeenIface()     { return(bridge_seen_iface_id); }
+  inline void setDeviceType(DeviceType devtype) { if(!lockDeviceTypeChanges) device_type = devtype; }
+  inline DeviceType getDeviceType()        { return (device_type); }
+  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
+  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
 
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
-  inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
+  inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); };
   inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };
-
+  inline char* print(char *str, u_int str_len)          { return(Utils::formatMac(mac, str, str_len)); };
   char* serialize();
   void deserialize(char *key, char *json_str);
   json_object* getJSONObject();
+  void updateFingerprint();
+  void updateHostPool(bool isInlineCall);
+  inline void setOperatingSystem(OperatingSystem _os) { os = _os; }
+  inline char* getFingerprint()          { return(fingerprint); }
+  inline void setFingerprint(char *f) { if(f) { if(fingerprint) free(fingerprint); fingerprint = strdup(f); updateFingerprint(); } }
+
 };
 
 #endif /* _MAC_H_ */

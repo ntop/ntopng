@@ -30,13 +30,15 @@ AddressTree::AddressTree() { init(); }
 /* **************************************** */
 
 AddressTree::AddressTree(const AddressTree &at) {
-  MacKey_t *current, *tmp, *s;
+  MacKey_t *current, *tmp;
 
   ptree_v4 = patricia_clone(at.ptree_v4);
   ptree_v6 = patricia_clone(at.ptree_v6);
 
   macs = NULL;
   HASH_ITER(hh, at.macs, current, tmp) {
+    MacKey_t *s;
+    
     if((s = (MacKey_t*)calloc(1, sizeof(MacKey_t))) != NULL)
       memcpy(s, current, sizeof(MacKey_t));
       HASH_ADD(hh, macs, mac, 6, s);
@@ -116,7 +118,7 @@ bool AddressTree::addAddresses(char *rule, const int16_t user_data) {
 
 /* ******************************************* */
 
-int16_t AddressTree::findAddress(int family, void *addr) {
+int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
   patricia_tree_t *p;
   int bits;
   patricia_node_t *node;
@@ -132,8 +134,11 @@ int16_t AddressTree::findAddress(int family, void *addr) {
   
   if(node == NULL)
     return(-1);
-  else
+  else {
+    if(network_mask_bits)
+      *network_mask_bits = node->bit;
     return(node->user_data);
+  }
 }
 
 /* ******************************************* */

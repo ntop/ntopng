@@ -16,11 +16,10 @@ ifid = _GET["ifid"]
 direction = _GET["sflow_filter"]
 
 interface.select(ifid)
-host_info = url2hostinfo(_GET)
-host_ip = host_info["host"]
-host_vlan = host_info["vlan"]
-host = interface.getHostInfo(host_ip, host_vlan)
-host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
+local host_info = url2hostinfo(_GET)
+local host_ip = host_info["host"]
+local host_vlan = host_info["vlan"]
+local host = interface.getHostInfo(host_ip, host_vlan)
 
 local now    = os.time()
 local ago1h  = now - 3600
@@ -116,12 +115,3 @@ for _k in pairsByKeys(vals , desc) do
     print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
   end
 end
-if host_ndpi_rrd_creation ~= "1" then
-print("<tr><td colspan=\"7\"> <small> <b>NOTE</b>:<ul>")
-print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
-print(" "..i18n("ndpi_page.note_rrd_samples"))
-print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&host=".._GET["host"].."&page=historical"}))
-print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
-print("</ul>")
-end
-print("</small> </p></td></tr>")

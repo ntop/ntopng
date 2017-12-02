@@ -24,14 +24,6 @@
 --!  @ingroup Script
 ---------------------------------
 
-
---! @memberof interface
---! @brief Get the default network interface name.
---! @details For more information please read the @ref ntop_get_default_interface_name documentation.
---! @return {string} The default network interface name of ntopng.
-function getDefaultIfName()
-
-
 --! @memberof interface
 --! @brief Sets the network interface name identified by Id as active one on which to perform operations.
 --! @details For more information please read the @ref ntop_set_active_interface_id documentation.

@@ -6,7 +6,7 @@
 window.onload=function() {
    var refresh = 3000 /* ms */;
 
-   do_pie("#topApplicationProtocols", '@HTTP_PREFIX@/lua/iface_ndpi_stats.lua', {  }, "", refresh);
+   do_pie("#topApplicationProtocols", '@HTTP_PREFIX@/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup" }, "", refresh);
 }
 
 </script>

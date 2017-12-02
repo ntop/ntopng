@@ -90,7 +90,7 @@ stats_by_group_key = interface.getGroupedHosts(false, -- do not show details
    tonumber(vlan_n),     -- VLAN filter
    tonumber(as_n),       -- ASN filter
    tonumber(network_n),  -- Network filter
-   true,                 -- Hosts only, no MAC
+   false,                -- All hosts, not just hosts that have a source mac
    tonumber(pool_n),     -- Host Pool filter
    tonumber(ipver_n))    -- IP version filter (4 or 6)
 stats_by_group_col = stats_by_group_key
@@ -167,9 +167,9 @@ function print_single_group(value)
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
-      local asnstats_rrd = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats/'..value["id"]..'/bytes.rrd')
+      local asnstats_rrd = getRRDName(ifstats.id, 'asn:'..value["id"], 'bytes.rrd')
       if ntop.exists(asnstats_rrd) then
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
          print('')
       end
@@ -185,13 +185,14 @@ function print_single_group(value)
    if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
    print('"column_link": "<A HREF=\''..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'\'>'.. value["id"]..alt..'</A>')
 
-   if(not(isSpecialMac(value["id"]))) then
+   -- TODO how is this used?
+   --[[if(not(isSpecialMac(value["id"]))) then
         local icon = getHostIcon(value["id"])
 
 	if(icon ~= "") then
 	   print(icon)
         end
-   end
+   end]]
 
    print('",')
 

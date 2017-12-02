@@ -26,8 +26,6 @@
 
 class Vlan : public GenericHashEntry, public GenericTrafficElement {
  private:
-  u_int16_t vlan_id;
-
   inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
     sent.incStats(num_pkts, num_bytes);
     if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();

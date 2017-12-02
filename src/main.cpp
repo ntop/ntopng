@@ -25,6 +25,8 @@ extern "C" {
   extern char* rrd_strversion(void);
 };
 
+AfterShutdownAction afterShutdownAction = after_shutdown_nop;
+
 /* ******************************** */
 
 void sighup(int sig) {
@@ -35,7 +37,8 @@ void sighup(int sig) {
 
 void sigproc(int sig) {
   static int called = 0;
-
+  ThreadedActivity *shutdown_activity;
+  
   if(called) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Ok I am leaving now");
     _exit(0);
@@ -44,6 +47,13 @@ void sigproc(int sig) {
     called = 1;
   }
 
+  /* Exec shutdown script before shutting down ntopng */
+  if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
+    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    shutdown_activity->runScript();
+    delete shutdown_activity;
+  }    
+
   ntop->getGlobals()->shutdown();
   sleep(2); /* Wait until all threads know that we're shutting down... */
   ntop->shutdown();
@@ -51,12 +61,24 @@ void sigproc(int sig) {
 #ifndef WIN32
   if(ntop->getPrefs()->get_pid_path() != NULL) {
     int rc = unlink(ntop->getPrefs()->get_pid_path());
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s [rc: %d]",
-				 ntop->getPrefs()->get_pid_path(), rc);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s: [rc: %d][%s]",
+				 ntop->getPrefs()->get_pid_path(),
+				 rc, strerror(errno));
   }
 #endif
 
   delete ntop;
+
+#ifdef linux
+  switch(afterShutdownAction) {
+    case after_shutdown_nop: break;
+    case after_shutdown_reboot: system("/sbin/reboot &"); break;
+    case after_shutdown_poweroff: system("/sbin/shutdown -h now &"); break;
+    default: break;
+  }
+#endif
+  
   _exit(0);
 }
 
@@ -96,7 +118,8 @@ int main(int argc, char *argv[])
   int core_id;
   char path[MAX_PATH];
   FILE *fd;
-
+  ThreadedActivity *boot_activity;
+  
 #ifdef WIN32
   initWinsock32();
 #endif
@@ -117,6 +140,12 @@ int main(int argc, char *argv[])
 
   ntop->registerPrefs(prefs, false);
 
+  if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
+    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    boot_activity->runScript();
+    delete boot_activity;
+  }
+  
   prefs->registerNetworkInterfaces();
 
   if(prefs->get_num_user_specified_interfaces() == 0) {
@@ -129,6 +158,7 @@ int main(int argc, char *argv[])
 #endif
 
   prefs->reloadPrefsFromRedis();
+  prefs->validate();
   
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
@@ -144,15 +174,15 @@ int main(int argc, char *argv[])
   for(int i=0; i<MAX_NUM_INTERFACES; i++) {
     NetworkInterface *iface = NULL;
 
-    if((ifName = ntop->get_if_name(i)) == NULL)
+    if((ifName = ntop->get_if_name(i)) == NULL
+       || !strncmp(ifName, "view:", 5) /* Defer view interfaces init */)
       continue;
 
     try {
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
+#ifndef HAVE_NEDGE
       if(!strcmp(ifName, "dummy")) {
 	iface = new DummyInterface();
-      } else if(!strncmp(ifName, "view:", 5)) {
-	iface = new ViewInterface(ifName);
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
 	char *at = strchr(ifName, '@');
 	char *endpoint;
@@ -163,11 +193,13 @@ int main(int argc, char *argv[])
 	  endpoint = ifName;
 
 	iface = new CollectorInterface(endpoint);
-#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__)) && (!defined(__i686__))
+#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
       } else if(strstr(ifName, "zcflow:")) {
 	iface = new ZCCollectorInterface(ifName);
 #endif
-      } else {
+      } else
+#endif
+	{
 	iface = NULL;
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
@@ -186,24 +218,29 @@ int main(int argc, char *argv[])
 #endif
 	
 #ifdef HAVE_PF_RING
-	if(iface == NULL)
+	if((iface == NULL) && (!strstr(ifName, ".pcap")))
 	  iface = new PF_RINGInterface(ifName);
 #endif
       }
     } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during interface creation: %s. Falling back to pcap", ifName);
+      if(iface) delete iface;
       iface = NULL;
     }
 
+#ifndef HAVE_NEDGE
     if(iface == NULL) {
       try {
 	iface = new PcapInterface(ifName);
       } catch(...) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during interface creation: %s", ifName);
+	if(iface) delete iface;
 	iface = NULL;
       }
     }
+#endif
 
-    if(iface) {
+    if(iface) {      
       if(affinity != NULL) {
 	char *tmp;
 	
@@ -221,18 +258,30 @@ int main(int argc, char *argv[])
 	iface->setCPUAffinity(core_id);
       }
 
-      if(prefs->get_packet_filter() != NULL)
+      if(prefs->get_packet_filter())
 	iface->set_packet_filter(prefs->get_packet_filter());
 
       ntop->registerInterface(iface);
     }
   } /* for */
 
-  ntop->createExportInterface();
+  /* Instantiated deferred view interfaces */
+  for(int i = 0; i < MAX_NUM_INTERFACES; i++) {
+    NetworkInterface *iface = NULL;
 
+    if((ifName = ntop->get_if_name(i)) == NULL || strncmp(ifName, "view:", 5))
+      continue;
+
+    if((iface = new ViewInterface(ifName)))
+      ntop->registerInterface(iface);
+  }
+
+#ifndef HAVE_NEDGE
+  ntop->createExportInterface();
   ntop->getElasticSearch()->startFlowDump();
   ntop->getLogstash()->startFlowDump();
-
+#endif
+  
   if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
     exit(0);
@@ -255,8 +304,8 @@ int main(int argc, char *argv[])
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "The PID file %s is empty: is your disk full perhaps ?",
 				     prefs->get_pid_path());
     } else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s",
-				   prefs->get_pid_path());
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s: %s",
+				   prefs->get_pid_path(), strerror(errno));
   }
 #endif
 
@@ -272,7 +321,7 @@ int main(int argc, char *argv[])
 
   ntop->loadGeolocation(prefs->get_docs_dir());
   ntop->loadMacManufacturers(prefs->get_docs_dir());
-
+  ntop->loadTrackers();
   ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
 
   /*
@@ -284,6 +333,13 @@ int main(int argc, char *argv[])
     if(!ntop->getInterfaceAtId(0)->createDBSchema()){
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Unable to create database schema, quitting.");
+      exit(EXIT_FAILURE);
+    }
+  } else if(prefs->do_read_flows_from_nprobe_mysql()) {
+    /* Create a view only one time for the first interface */
+    if(!ntop->getInterfaceAtId(0)->createNprobeDBView()){
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to create a view on the nProbe database.");
       exit(EXIT_FAILURE);
     }
   }
@@ -307,6 +363,20 @@ int main(int argc, char *argv[])
     unlink(path);
   }
   
+#ifndef WIN32
+  if(prefs->daemonize_ntopng())
+#endif
+    {
+      char path[MAX_PATH];
+
+      Utils::mkdir_tree(ntop->get_data_dir());
+      Utils::mkdir_tree(ntop->get_working_dir());
+      snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
+      ntop->fixPath(path);
+      ntop->registerLogFile(path);
+      ntop->rotateLogs(true /* Force rotation to start clean */);
+    }
+
   if(prefs->get_httpbl_key() != NULL)
     ntop->setHTTPBL(new HTTPBL(prefs->get_httpbl_key()));
 
@@ -331,9 +401,15 @@ int main(int argc, char *argv[])
 
   ntop->start();
 
+  if(ntop->getGlobals()->isShutdownRequested()) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutdown requested: hold on");
+    sleep(3); /* Wait until all open activities have been completed */
+    ntop->shutdown();
+  }
+  
   sigproc(0);
   delete ntop;
-
+ 
   return(0);
 }
 

@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-ifid = _GET["ifid"]
+local ifid = _GET["ifid"]
 
 if ifid ~= nil and ifid ~= "" then
    if_name = getInterfaceName(ifid)
@@ -19,9 +19,9 @@ end
 
 interface.select(if_name)
 
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 
-format = _GET["format"]
+local format = _GET["format"]
 if(format == "json") then
    sendHTTPHeader('application/json')
    json_format = true
@@ -48,13 +48,13 @@ if(ifstats.stats ~= nil) then
   end
 end   
 
-total = ifstats.stats.bytes
+local total = ifstats.stats.bytes
 
-vals = {}
+local vals = {}
 
-for k in pairs(ifstats["ndpi"]) do
+for k, v in pairs(ifstats["ndpi"]) do
    -- io.write("->"..k.."\n")
-   if((ifstats["ndpi"][k]["bytes.rcvd"] > 0) or (ifstats["ndpi"][k]["bytes.sent"] > 0)) then
+   if v["bytes.rcvd"] > 0 or v["bytes.sent"] > 0 then
     vals[k] = k
    end
 end
@@ -63,8 +63,8 @@ table.sort(vals)
 
 if(json_format) then print('[\n') end
 
-num = 0
-for _k in pairsByKeys(vals, rev) do
+local num = 0
+for _k in pairsByKeys(vals, asc) do
   k = vals[_k]
 
   if(not(json_format)) then
@@ -95,13 +95,13 @@ for _k in pairsByKeys(vals, rev) do
 
   if(not(json_format)) then
      if(k ~= "ARP") then print(" <A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fa fa-search-plus\"></i></A>") end
-     print("</th><td class=\"text-right\" style=\"width: 20%;\">" .. bytesToSize(t).. "</td>")
+     print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      percentageBar(total, t, "") -- k
      -- print("</td>\n")
-     print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 2).. " %</span></td></tr>\n")
+     print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 1).. " %</span></td></tr>\n")
   else
-     print('"bytes": '..t..' }')
+     print('"bytes": '..tostring(t)..' }')
   end
 
   num = num + 1

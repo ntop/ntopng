@@ -14,34 +14,48 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-application = _GET["application"]
-application_filter = ""
-hosts = _GET["hosts"]
-host = _GET["host"]
-vhost = _GET["vhost"]
-flowhosts_type = _GET["flowhosts_type"]
-flowhosts_type_filter = ""
-ipversion = _GET["version"]
-ipversion_filter = ""
-traffic_type = _GET["traffic_type"]
-traffic_type_filter = ""
-flow_status = _GET["flow_status"]
-flow_status_filter = ""
-port = _GET["port"]
+local application = _GET["application"]
+local application_filter = ""
+local hosts = _GET["hosts"]
+local host = _GET["host"]
+local vhost = _GET["vhost"]
+local flowhosts_type = _GET["flowhosts_type"]
+local flowhosts_type_filter = ""
+local ipversion = _GET["version"]
+local ipversion_filter = ""
+local vlan = _GET["vlan"]
+local vlan_filter = ""
 
-network_id = _GET["network"]
+-- remote exporters address and interfaces
+local deviceIP = _GET["deviceIP"]
+local inIfIdx  = _GET["inIfIdx"]
+local outIfIdx = _GET["outIfIdx"]
+local deviceIP_filter = ""
+local inIfIdx_filter  = ""
+local outIfIdx_filter = ""
 
-prefs = ntop.getPrefs()
+local traffic_type = _GET["traffic_type"]
+local traffic_type_filter = ""
+local flow_status = _GET["flow_status"]
+local flow_status_filter = ""
+local port = _GET["port"]
+
+local network_id = _GET["network"]
+
+local client_asn = _GET["client_asn"]
+local server_asn = _GET["server_asn"]
+
+local prefs = ntop.getPrefs()
 interface.select(ifname)
-ifstats = interface.getStats()
-ndpistats = interface.getnDPIStats()
+local ifstats = interface.getStats()
+local ndpistats = interface.getnDPIStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
 
 if (network_id ~= nil) then
-network_name = ntop.getNetworkNameById(tonumber(network_id))
-url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network='..network_id
+local network_name = ntop.getNetworkNameById(tonumber(network_id))
+local url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network='..network_id
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -106,6 +120,26 @@ if(ipversion ~= nil) then
   ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
+if(deviceIP ~= nil) then
+   page_params["deviceIP"] = deviceIP
+   deviceIP_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(inIfIdx ~= nil) then
+   page_params["inIfIdx"] = inIfIdx
+   inIfIdx_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(outIfIdx ~= nil) then
+   page_params["outIfIdx"] = outIfIdx
+   outIfIdx_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
+if(vlan ~= nil) then
+  page_params["vlan"] = vlan
+  vlan_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+
 if(traffic_type ~= nil) then
    page_params["traffic_type"] = traffic_type
    traffic_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
@@ -118,6 +152,14 @@ end
 
 if(network_id ~= nil) then
   page_params["network"] = network_id
+end
+
+if(client_asn ~= nil) then
+   page_params["client_asn"] = client_asn
+end
+
+if(server_asn ~= nil) then
+   page_params["server_asn"] = server_asn
 end
 
 if(flowhosts_type ~= nil) then
@@ -157,6 +199,18 @@ if(network_name ~= nil) then
    active_msg = active_msg .. i18n("network", {network=network_name})
 end
 
+if(inIfIdx ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.inIfIdx").." "..inIfIdx.."]"
+end
+
+if(outIfIdx ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.outIfIdx").." "..outIfIdx.."]"
+end
+
+if(deviceIP ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." "..deviceIP.."]"
+end
+
 print(" title: \""..active_msg)
 
 
@@ -186,7 +240,6 @@ local function printDropdownEntries(entries, param_arr, param_filter, curr_filte
       print[[><a href="]] print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
    end
 end
-
 print[['\
    <div class="btn-group">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(flowhosts_type_filter) print[[<span class="caret"></span></button>\
@@ -237,9 +290,11 @@ print[[, '\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(traffic_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu">\
          <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
-   printDropdownEntries({
-      {"broadcast_multicast", i18n("flows_page.one_way_multicast")},
-      {"unicast", i18n("flows_page.one_way_non_multicast")},
+printDropdownEntries({
+      {"unicast", i18n("flows_page.non_multicast")},
+      {"broadcast_multicast", i18n("flows_page.multicast")},
+      {"one_way_unicast", i18n("flows_page.one_way_non_multicast")},
+      {"one_way_broadcast_multicast", i18n("flows_page.one_way_multicast")},
    }, traffic_type_params, "traffic_type", traffic_type)
 print[[\
       </ul>\
@@ -274,6 +329,18 @@ ipversion_params["version"] = nil
 print[[, '<div class="btn-group pull-right">]]
 printIpVersionDropdown(base_url, ipversion_params)
 print [[</div>']]
+
+-- VLAN selector
+local vlan_params = table.clone(page_params)
+if ifstats.vlan then
+   print[[, '<div class="btn-group pull-right">]]
+   printVLANFilterDropdown(base_url, vlan_params)
+   print[[</div>']]
+end
+
+if ntop.isPro() and interface.isPacketInterface() == false then
+   printFlowDevicesFilterDropdown(base_url, vlan_params)
+end
 
 -- end buttons
 

@@ -17,7 +17,7 @@ print [[
  <meta http-equiv="refresh" content="1; URL=/">
 <html>
 <body>
- Logging out...
+ ]] print(i18n("login.logging_out")) print[[
 </body>
 </html>
 

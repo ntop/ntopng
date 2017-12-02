@@ -88,7 +88,8 @@ end
 local macs_stats = interface.getMacsInfo(nil, nil, nil, nil,
          tonumber(vlan),
          true --[[ sourceMacsOnly ]],
-         true --[[ hostMacsOnly ]], nil--[[manufacturer]], tonumber(host_pools_utils.DEFAULT_POOL_ID))
+         true --[[ hostMacsOnly ]], nil--[[manufacturer]],
+	 tonumber(host_pools_utils.DEFAULT_POOL_ID), false)
 
 if (macs_stats ~= nil) then
    macs_stats = macs_stats.macs
@@ -154,7 +155,7 @@ for mac, _ in pairsByValues(mac_to_sort, sort_function) do
       local record = {}
 
       if in_memory then
-         record["column_mac"] = mac2link(device["mac"])
+         record["column_mac"] = mac2link(device)
       else
          record["column_mac"] = macAddIcon(device["mac"])
       end

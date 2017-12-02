@@ -21,6 +21,11 @@
 
 #include "ntop_includes.h"
 
+#if defined(__APPLE__)
+#include <net/if_dl.h>
+#include <ifaddrs.h>
+#endif
+
 #include <curl/curl.h>
 #include <string.h>
 
@@ -34,6 +39,24 @@ typedef struct {
   char outbuf[65536];
   u_int num_bytes;
 } DownloadState;
+
+#ifdef HAVE_LIBCAP
+/* 
+   The include below can be found in libcap-dev 
+   
+   sudo apt-get install libcap-dev
+*/
+#include <sys/capability.h>
+#include <sys/prctl.h>
+
+static cap_value_t cap_values[] = { 
+  CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
+  CAP_NET_RAW,      /* Use RAW and PACKET sockets */
+  CAP_NET_ADMIN     /* Perform various network-related operations */
+};
+
+int num_cap = sizeof(cap_values)/sizeof(cap_value_t);
+#endif
 
 /* ****************************************************** */
 
@@ -153,7 +176,7 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
     return(0);
   else {
     int ret = -1;
-#ifdef linux
+#ifdef HAVE_LIBCAP
     u_int num_cores = ntop->getNumCPUs();
     u_long core = core_id % num_cores;
     cpu_set_t cpu_set;
@@ -267,7 +290,7 @@ size_t Utils::file_read(const char *path, char **content) {
 
     fclose(f);
   }
-  
+
   if(buffer) {
     if(content && ret)
       *content = buffer;
@@ -287,7 +310,7 @@ bool Utils::mkdir_tree(char *path) {
   ntop->fixPath(path);
 
   if(stat(path, &s) != 0) {
-    int permission = 0777;
+    int permission = 0700;
 
     /* Start at 1 to skip the root */
     for(int i=1; path[i] != '\0'; i++)
@@ -358,6 +381,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
   case status_ssl_certificate_mismatch:
     *aType = alert_suspicious_activity;
     return("SSL certificate mismatch");
+  case status_dns_invalid_query:
+    *aType = alert_suspicious_activity;
+    return("Invalid DNS query");
   default:
     return("Unknown status");
     break;
@@ -393,6 +419,7 @@ int Utils::dropPrivileges() {
 #ifndef WIN32
   struct passwd *pw = NULL;
   const char *username;
+  int rv;
 
   if(getgid() && getuid()) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
@@ -404,7 +431,7 @@ int Utils::dropPrivileges() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain privileges for privileged file writing");
 #endif
   }
-  
+
   username = ntop->getPrefs()->get_user();
   pw = getpwnam(username);
 
@@ -414,6 +441,13 @@ int Utils::dropPrivileges() {
   }
 
   if(pw != NULL) {
+    if(ntop->getPrefs()->get_pid_path() != NULL) {
+      /* Change PID file ownership to be able to delete it on shutdown */
+      rv = chown(ntop->getPrefs()->get_pid_path(), pw->pw_uid, pw->pw_gid);
+      if(rv != 0)
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change owner to PID in file %s", ntop->getPrefs()->get_pid_path());
+    }
+
     /* Drop privileges */
     if((setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]",
@@ -425,7 +459,7 @@ int Utils::dropPrivileges() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate user %s", username);
     return -1;
   }
-  umask(0);
+  // umask(0);
 #endif
   return 0;
 }
@@ -602,19 +636,19 @@ extern "C" {
 		int i = -1;
 
 		while (haystack[++i] != '\0') {
-			if (tolower(haystack[i]) == tolower(needle[0])) {
+			if(tolower(haystack[i]) == tolower(needle[0])) {
 				int j = i, k = 0, match = 0;
 				while (tolower(haystack[++j]) == tolower(needle[++k])) {
 					match = 1;
 					// Catch case when they match at the end
 					//printf("j:%d, k:%d\n",j,k);
-					if (haystack[j] == '\0' && needle[k] == '\0') {
+					if(haystack[j] == '\0' && needle[k] == '\0') {
 						//printf("Mj:%d, k:%d\n",j,k);
 						return &haystack[i];
 					}
 				}
 				// Catch normal case
-				if (match && needle[k] == '\0'){
+				if(match && needle[k] == '\0'){
 					// printf("Norm j:%d, k:%d\n",j,k);
 					return &haystack[i];
 				}
@@ -687,7 +721,7 @@ char* Utils::sanitizeHostName(char *str) {
 /* **************************************************** */
 
 char* Utils::stripHTML(const char * const str) {
-    if (!str) return NULL;
+    if(!str) return NULL;
     int len = strlen(str), j = 0;
     char *stripped_str = NULL;
     try {
@@ -704,7 +738,7 @@ char* Utils::stripHTML(const char * const str) {
     // scan string
     for (int i = 0; i < len; i++) {
         // found an open '<', scan for its close
-        if (str[i] == '<') {
+        if(str[i] == '<') {
             // charge ahead in the string until it runs out or we find what we're looking for
             for (; i < len && str[i] != '>'; i++);
         } else {
@@ -762,8 +796,7 @@ bool Utils::isUserAdministrator(lua_State* vm) {
   char *username;
   char key[64], val[64];
 
-  lua_getglobal(vm, "user");
-  if((username = (char*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
+  if((username = getLuaVMUserdata(vm,user)) == NULL) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
     return(false); /* Unknown */
   }
@@ -865,7 +898,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
       char c;
       int new_i;
 
-      if ((u_char)param[i] == 0xC3) {
+      if((u_char)param[i] == 0xC3) {
         /* Latin-1 within UTF-8 - Align to ASCII encoding */
         c = param[i+1] | 0x40;
         new_i = i+1; /* We are actually validating two bytes */
@@ -879,7 +912,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
         && (c != '>')
         && (c != '"'); /* Prevents injections - single quotes are allowed and will be validated in http_lint.lua */
 
-      if (is_good)
+      if(is_good)
         i = new_i;
     }
 
@@ -1321,91 +1354,162 @@ ticks Utils::getticks() {
 
 /* **************************************** */
 
-bool scan_dir(const char * dir_name, list<dirent *> *dirlist,
+bool scan_dir(const char * dir_name, list<pair<struct dirent *, char * > > *dirlist,
               unsigned long *total) {
+  int path_length;
+  char path[MAX_PATH];
   DIR *d;
   struct stat file_stats;
 
-  d = opendir (dir_name);
+  d = opendir(dir_name);
   if(!d) return false;
 
   while (1) {
     struct dirent *entry;
     const char *d_name;
 
-    entry = readdir (d);
+    entry = readdir(d);
     if(!entry) break;
     d_name = entry->d_name;
-    if(!(entry->d_type & DT_DIR)) {
-      if(!stat(entry->d_name, &file_stats)) {
+
+    if(entry->d_type & DT_REG) {
+      snprintf(path, MAX_PATH, "%s/%s", dir_name, entry->d_name);
+      if(!stat(path, &file_stats)) {
         struct dirent *temp = (struct dirent *)malloc(sizeof(struct dirent));
         memcpy(temp, entry, sizeof(struct dirent));
-        dirlist->push_back(entry);
-        total += file_stats.st_size;
+        dirlist->push_back(make_pair(temp, strndup(path, MAX_PATH)));
+	if(total)
+	  *total += file_stats.st_size;
       }
-    }
 
-    if(entry->d_type & DT_DIR) {
+    } else if(entry->d_type & DT_DIR) {
       if(strncmp (d_name, "..", 2) != 0 &&
           strncmp (d_name, ".", 1) != 0) {
-        int path_length;
-        char path[MAX_PATH];
-
         path_length = snprintf (path, MAX_PATH,
                                 "%s/%s", dir_name, d_name);
+
         if(path_length >= MAX_PATH)
           return false;
+
         scan_dir(path, dirlist, total);
       }
     }
   }
-  if(closedir (d)) return false;
+
+  if(closedir(d)) return false;
 
   return true;
 }
 
 /* **************************************** */
 
-bool dir_size_compare(const struct dirent *d1, const struct dirent *d2) {
+bool file_mtime_compare(const pair<struct dirent *, char * > &d1, const pair<struct dirent *, char * > &d2) {
   struct stat sa, sb;
-  if(stat(d1->d_name, &sa) || stat(d2->d_name, &sb)) return false;
-  if(S_ISDIR(sa.st_mode) && S_ISDIR(sb.st_mode)) {
-    if(sa.st_mtime < sb.st_mtime) return false;
-    else return true;
-  }
-  return false;
+  if(!d1.second || !d2.second)
+    return false;
+
+  if(stat(d1.second, &sa) || stat(d2.second, &sb))
+    return false;
+
+  return difftime(sa.st_mtime, sb.st_mtime) <= 0;
 }
 
 /* **************************************** */
 
 bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_size) {
   unsigned long total = 0;
-  list<struct dirent *> dirlist;
-  list<struct dirent *>::iterator it;
+  list<pair<struct dirent *, char * > > fileslist;
+  list<pair<struct dirent *, char * > >::iterator it;
   struct stat st;
 
   if(path == NULL || !strncmp(path, "", MAX_PATH))
     return false;
 
   /* First, get a list of all non-dir dirents and compute total size */
-  if(!scan_dir(path, &dirlist, &total)) return false;
+  if(!scan_dir(path, &fileslist, &total)) return false;
+
+  //printf("path: %s, total: %u, max_size: %u\n", path, total, max_size);
 
   if(total < max_size) return true;
 
-  /* Second, sort the list by file size */
-  dirlist.sort(dir_size_compare);
+  fileslist.sort(file_mtime_compare);
 
   /* Third, traverse list and delete until we go below quota */
-  for (it = dirlist.begin(); it != dirlist.end(); ++it) {
-    stat((*it)->d_name, &st);
-    unlink((*it)->d_name);
+  for (it = fileslist.begin(); it != fileslist.end(); ++it) {
+    //printf("[file: %s][path: %s]\n", it->first->d_name, it->second);
+    if(!it->second) continue;
+
+    stat(it->second, &st);
+    unlink(it->second);
+
     total -= st.st_size;
-    if(total < max_size) break;
+    if(total < max_size)
+      break;
   }
-  for (it = dirlist.begin(); it != dirlist.end(); ++it)
-    free(*it);
+
+  for (it = fileslist.begin(); it != fileslist.end(); ++it) {
+    if(it->first)
+      free(it->first);
+    if(it->second)
+      free(it->second);
+  }
+  
 
   return true;
+}
+
+/* **************************************** */
+
+bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seconds) {
+  struct dirent entry, *result = NULL;
+  int path_length, ret;
+  char path[MAX_PATH];
+  DIR *d;
+  struct stat file_stats;
+
+  if(!dir_name || strlen(dir_name) > MAX_PATH)
+    return false;
+
+  d = opendir(dir_name);
+  if(!d) return false;
+
+  for (ret = readdir_r(d, &entry, &result); result && !ret; ret = readdir_r(d, &entry, &result)) {
+    if(entry.d_type & DT_REG) {
+      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, entry.d_name)) <= MAX_PATH) {
+	ntop->fixPath(path);
+
+	if(!stat(path, &file_stats)) {
+	  if(file_stats.st_mtime <= now - older_than_seconds)
+	    unlink(path);
+	}
+      }
+    } else if(entry.d_type & DT_DIR) {
+      if(strncmp(entry.d_name, "..", 2) && strncmp(entry.d_name, ".", 1)) {
+        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, entry.d_name)) <= MAX_PATH) {
+	  ntop->fixPath(path);
+
+	  ntop_delete_old_files(path, now, older_than_seconds);
+	}
+      }
+    }
+  }
+
+  rmdir(dir_name); /* Remove the directory, if empty */
+  closedir(d);
+
+  return true;
+}
+
+/* **************************************** */
+
+bool Utils::discardOldFiles(char *path, int older_than_seconds) {
+  time_t now = time(NULL);
+
+  if(!path || strlen(path) > MAX_PATH)
+    return false;
+
+  ntop->fixPath(path);
+  return ntop_delete_old_files(path, now, older_than_seconds);
 }
 
 /* **************************************** */
@@ -1439,7 +1543,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 /* **************************************** */
 
-#if defined(linux) || defined(__FreeBSD__)
+#if defined(linux) || defined(__FreeBSD__) || defined(__APPLE__)
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   char ifname[32];
@@ -1449,7 +1553,7 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(_ifname, ':');
-  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+  if(colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
     _ifname = colon+1;
 
   snprintf(ifname, sizeof(ifname), "%s", _ifname);
@@ -1457,7 +1561,24 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   if(at != NULL)
     at[0] = '\0';
 
-#ifndef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
+  struct ifaddrs *ifap, *ifaptr;
+  unsigned char *ptr;
+
+  if((res = getifaddrs(&ifap)) == 0) {
+    for(ifaptr = ifap; ifaptr != NULL; ifaptr = ifaptr->ifa_next) {
+      if(!strcmp(ifaptr->ifa_name, ifname) && (ifaptr->ifa_addr->sa_family == AF_LINK)) {
+
+	ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)ifaptr->ifa_addr);
+	memcpy(mac_addr, ptr, 6);
+
+	break;
+
+      }
+    }
+    freeifaddrs(ifap);
+  }
+#else
   int _sock;
   struct ifreq ifr;
 
@@ -1471,24 +1592,6 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
 
   close(_sock);
-
-#else /* defined(__FreeBSD__) */
-  struct ifaddrs *ifap, *ifaptr;
-  unsigned char *ptr;
-
-  if((res = getifaddrs(&ifap)) == 0) {
-    for(ifaptr = ifap; ifaptr != NULL; ifaptr = ifaptr->ifa_next) {
-      if (!strcmp(ifaptr->ifa_name, ifname) && (ifaptr->ifa_addr->sa_family == AF_LINK)) {
-
-	ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)ifaptr->ifa_addr);
-	memcpy(mac_addr, ptr, 6);
-
-	break;
-
-      }
-    }
-    freeifaddrs(ifap);
-  }
 #endif
 
   if(res < 0)
@@ -1504,6 +1607,31 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
   memset(mac_addr, 0, 6);
 }
 #endif
+
+/* **************************************** */
+
+u_int32_t Utils::readIPv4(char *ifname) {
+  struct ifreq ifr;
+  int fd;
+  u_int32_t ret_ip = 0;
+
+  memset(&ifr, 0, sizeof(ifr));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  ifr.ifr_addr.sa_family = AF_INET;
+
+  if((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
+  } else {
+    if(ioctl(fd, SIOCGIFADDR, &ifr) == -1)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read IPv4 for device %s", ifname);
+    else
+      ret_ip = (((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr).s_addr;
+
+    closesocket(fd);
+  }
+
+  return(ret_ip);
+}
 
 /* **************************************** */
 
@@ -1553,7 +1681,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
     /* These are interfaces with , (e.g. eth0,eth1) */
     char ifaces[128], *iface, *tmp;
     u_int32_t speed = 0;
-    
+
     snprintf(ifaces, sizeof(ifaces), "%s", ifname);
     iface = strtok_r(ifaces, ",", &tmp);
 
@@ -1566,7 +1694,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
     return(speed);
   }
-  
+
   memset(&ifr, 0, sizeof(struct ifreq));
 
   sock = socket(PF_INET, SOCK_DGRAM, 0);
@@ -1665,6 +1793,15 @@ char* Utils::tokenizer(char *arg, int c, char **data) {
 
 /* ****************************************************** */
 
+in_addr_t Utils::inet_addr(const char *cp) {
+  if((cp == NULL) || (cp[0] == '\0'))
+    return(0);
+  else
+    return(::inet_addr(cp));
+}
+
+/* ****************************************************** */
+
 char* Utils::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
   char *cp, *retStr;
   int n;
@@ -1749,7 +1886,7 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
   else {
     u_int16_t v2 = (mac[0] << 8) + mac[1];
     u_int32_t v3 = (mac[0] << 16) + (mac[1] << 8) + mac[2];
-    
+
     switch(v3) {
     case 0x01000C:
     case 0x0180C2:
@@ -1758,14 +1895,14 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
     case 0x011B19:
       return(true);
     }
-    
+
     switch(v2) {
     case 0xFFFF:
     case 0x3333:
       return(true);
       break;
     }
-    
+
     return(false);
   }
 }
@@ -1773,26 +1910,23 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
 /* ****************************************************** */
 
 void Utils::parseMac(u_int8_t *mac, const char *symMac) {
-	int _mac[6];
+  int _mac[6] = { 0 };
+
   sscanf(symMac, "%x:%x:%x:%x:%x:%x",
 	 &_mac[0], &_mac[1], &_mac[2],
 	 &_mac[3], &_mac[4], &_mac[5]);
-
-  for (int i = 0; i < 6; i++) mac[i] = (u_int8_t)_mac[i];
+  
+  for(int i = 0; i < 6; i++) mac[i] = (u_int8_t)_mac[i];
 }
 
 /* *********************************************** */
 
 static int fill_prefix_v4(prefix_t *p, struct in_addr *a, int b, int mb) {
-  do {
-    if(b < 0 || b > mb)
-      return(-1);
-
-    memcpy(&p->add.sin, a, (mb+7)/8);
-    p->family = AF_INET;
-    p->bitlen = b;
-    p->ref_count = 0;
-  } while (0);
+  if(b < 0 || b > mb)
+    return(-1);
+  
+  memcpy(&p->add.sin, a, (mb+7)/8);
+  p->family = AF_INET, p->bitlen = b, p->ref_count = 0;
 
   return(0);
 }
@@ -1804,9 +1938,7 @@ static int fill_prefix_v6(prefix_t *prefix, struct in6_addr *addr, int bits, int
     return -1;
 
   memcpy(&prefix->add.sin6, addr, (maxbits + 7) / 8);
-  prefix->family = AF_INET6;
-  prefix->bitlen = bits;
-  prefix->ref_count = 0;
+  prefix->family = AF_INET6, prefix->bitlen = bits, prefix->ref_count = 0;
 
   return 0;
 }
@@ -1818,9 +1950,7 @@ static int fill_prefix_mac(prefix_t *prefix, u_int8_t *mac, int bits, int maxbit
     return -1;
 
   memcpy(prefix->add.mac, mac, 6);
-  prefix->family = AF_MAC;
-  prefix->bitlen = bits;
-  prefix->ref_count = 0;
+  prefix->family = AF_MAC, prefix->bitlen = bits, prefix->ref_count = 0;
 
   return 0;
 }
@@ -2016,20 +2146,29 @@ int Utils::numberOfSetBits(u_int32_t i) {
 
 /* ******************************************* */
 
-/* 
+void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id) {
+  if(r) {
+    if(*r) delete(*r);
+    (*r) = new Redis(redis_host, redis_password, redis_port, _redis_db_id);
+  }
+}
+
+/* ******************************************* */
+
+/*
    IMPORTANT: line buffer is large enough to contain the replaced string
  */
 void Utils::replacestr(char *line, const char *search, const char *replace) {
   char *sp;
   int search_len, replace_len, tail_len;
-  
-  if ((sp = strstr(line, search)) == NULL) {
+
+  if((sp = strstr(line, search)) == NULL) {
     return;
   }
 
   search_len = strlen(search), replace_len = strlen(replace);
   tail_len = strlen(sp+search_len);
-  
+
   memmove(sp+replace_len,sp+search_len,tail_len+1);
   memcpy(sp, replace, replace_len);
 }
@@ -2074,7 +2213,7 @@ bool Utils::isInterfaceUp(char *ifname) {
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(ifname, ':');
-  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+  if(colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
     ifname = colon+1;
 
   memset(&ifr, 0, sizeof(ifr));
@@ -2095,16 +2234,16 @@ bool Utils::isInterfaceUp(char *ifname) {
 
 bool Utils::maskHost(bool isLocalIP) {
   bool mask_host = false;
-  
+
   switch(ntop->getPrefs()->getHostMask()) {
   case mask_local_hosts:
     if(isLocalIP) mask_host = true;
     break;
-    
+
   case mask_remote_hosts:
     if(!isLocalIP) mask_host = true;
     break;
-    
+
   default:
     break;
   }
@@ -2121,7 +2260,7 @@ void Utils::luaCpuLoad(lua_State* vm) {
 
   if(vm) {
     if((fp = fopen("/proc/stat", "r"))) {
-      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu", 
+      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu",
 	     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
       fclose(fp);
 
@@ -2175,24 +2314,26 @@ void Utils::luaMeminfo(lua_State* vm) {
 
 char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
   char ebuf[256];
-  pcap_if_t *devpointer;
+  pcap_if_t *devs, *devpointer;
 
   snprintf(buf, buf_len, "%s", ifname);
   ebuf[0] = '\0';
 
-  if(pcap_findalldevs(&devpointer, ebuf) == 0) {
+  if(pcap_findalldevs(&devs, ebuf) == 0) {
+    devpointer = devs;
+
     for(int i = 0; devpointer != NULL; i++) {
       if(strcmp(devpointer->name, ifname) == 0) {
 	if(devpointer->description)
 	  snprintf(buf, buf_len, "%s", devpointer->description);
 	break;
-      } else      
+      } else
 	devpointer = devpointer->next;
     }
 
-    pcap_freealldevs(devpointer);
+    pcap_freealldevs(devs);
   }
-    
+
   return(buf);
 }
 
@@ -2223,12 +2364,12 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 
     pAdapter = pAdapter->ifa_next;
   }
-  
+
   if(pAdapterFound != NULL) {
-    int addrsize = (family == AF_INET6)?sizeof(sockaddr_in6):sizeof(sockaddr_in);
+    int addrsize = (family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
     bindresult = bind(sock, pAdapterFound->ifa_addr, addrsize);
   }
-  
+
   freeifaddrs(pList);
   return bindresult;
 #endif
@@ -2238,14 +2379,14 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 
 int Utils::retainWriteCapabilities() {
   int rc = 0;
-  
+
 #ifdef HAVE_LIBCAP
-  cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
   cap_t caps;
- 
-  /* Add the capability of interest to the perimitted capabilities  */
-  caps = cap_get_proc(); 
-  cap_set_flag(caps, CAP_PERMITTED, 1, cap_values, CAP_SET);
+
+  /* Add the capability of interest to the permitted capabilities  */
+  caps = cap_get_proc();
+  cap_set_flag(caps, CAP_PERMITTED, num_cap, cap_values, CAP_SET);
+  cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, CAP_SET);
   rc = cap_set_proc(caps);
 
   if(rc == 0) {
@@ -2255,27 +2396,29 @@ int Utils::retainWriteCapabilities() {
       rc = -1;
     }
   }
-  
+
   cap_free(caps);
 #else
   rc = -1;
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "ntopng has not been compiled with libcap-dev");
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Network discovery and other privileged activities will fail");
 #endif
-  
+
 return(rc);
 }
 
 /* ****************************************************** */
 
+#ifndef __APPLE__
 static int _setWriteCapabilities(int enable) {
   int rc = 0;
-  
+
 #ifdef HAVE_LIBCAP
-  cap_value_t cap_values[] = { CAP_DAC_OVERRIDE }; /*  Bypass file read, write, and execute permission checks  */
   cap_t caps;
-   
+
   caps = cap_get_proc();
   if(caps) {
-    cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_values, enable ? CAP_SET : CAP_CLEAR);
+    cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, enable ? CAP_SET : CAP_CLEAR);
     rc = cap_set_proc(caps);
     cap_free(caps);
   } else
@@ -2286,6 +2429,7 @@ static int _setWriteCapabilities(int enable) {
 
   return(rc);
 }
+#endif
 
 /* ****************************************************** */
 
@@ -2293,9 +2437,9 @@ static int _setWriteCapabilities(int enable) {
   Usage example
 
   local path="/etc/test.lua"
-  
+
   ntop.gainWriteCapabilities()
-  
+
   file = io.open(path, "w")
   if(file ~= nil) then
     file:write("-- End of the test.lua file")
@@ -2303,16 +2447,151 @@ static int _setWriteCapabilities(int enable) {
   else
     print("Unable to create file "..path.."<p>")
   end
-  
+
   ntop.dropWriteCapabilities()
 */
 
 int Utils::gainWriteCapabilities() {
+#ifndef __APPLE__
   return(_setWriteCapabilities(true));
+#else
+  return(0);
+#endif
 }
 
 /* ****************************************************** */
 
 int Utils::dropWriteCapabilities() {
+#ifndef __APPLE__
   return(_setWriteCapabilities(false));
+#else
+  return(0);
+#endif
+}
+
+/* ******************************* */
+
+/* Return IP is network byte order */
+u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
+#ifndef WIN32
+  char cmd[128];
+  FILE *fp;
+
+  sprintf(cmd, "netstat -rn | grep '%s' | grep 'UG' | awk '{print $2}'", ifname);
+
+  if((fp = popen(cmd, "r")) != NULL) {
+    char line[256];
+    u_int32_t rc = 0;
+
+    if(fgets(line, sizeof(line), fp) != NULL)
+      rc = inet_addr(line);
+
+    pclose(fp);
+    return(rc);
+  } else
+#endif
+    return(0);
+}
+
+/* ******************************* */
+
+void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) {
+  int i, rcv_buffsize_base, rcv_buffsize, max_buf_size = 1024 * max_buf_mb * 1024, debug = 0;
+  socklen_t len = sizeof(rcv_buffsize_base);
+  int buf_type = rx_buffer ? SO_RCVBUF /* RX */ : SO_SNDBUF /* TX */;
+    
+  if(getsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize_base, &len) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read socket receiver buffer size [%s]",
+				 strerror(errno));
+    return;
+  } else {
+    if(debug) ntop->getTrace()->traceEvent(TRACE_INFO, "Default socket %s buffer size is %d",
+				buf_type == SO_RCVBUF ? "receive" : "send",
+				rcv_buffsize_base);
+  }
+
+  for(i=2;; i++) {
+    rcv_buffsize = i * rcv_buffsize_base;
+    if(rcv_buffsize > max_buf_size) break;
+
+    if(setsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize, sizeof(rcv_buffsize)) < 0) {
+      if(debug) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set socket %s buffer size [%s]",
+					     buf_type == SO_RCVBUF ? "receive" : "send",
+					     strerror(errno));
+      break;
+    } else
+      if(debug) ntop->getTrace()->traceEvent(TRACE_INFO, "%s socket buffer size set %d",
+					     buf_type == SO_RCVBUF ? "Receive" : "Send",
+					     rcv_buffsize);
+  }
+}
+
+/* ****************************************************** */
+
+char* Utils::formatTraffic(float numBits, bool bits, char *buf) {
+  char unit;
+
+  if(bits)
+    unit = 'b';
+  else
+    unit = 'B';
+
+  if(numBits < 1024) {
+    snprintf(buf, 32, "%lu %c", (unsigned long)numBits, unit);
+  } else if(numBits < 1048576) {
+    snprintf(buf, 32, "%.2f K%c", (float)(numBits)/1024, unit);
+  } else {
+    float tmpMBits = ((float)numBits)/1048576;
+
+    if(tmpMBits < 1024) {
+      snprintf(buf, 32, "%.2f M%c", tmpMBits, unit);
+    } else {
+      tmpMBits /= 1024;
+
+      if(tmpMBits < 1024) {
+	snprintf(buf, 32, "%.2f G%c", tmpMBits, unit);
+      } else {
+	snprintf(buf, 32, "%.2f T%c", (float)(tmpMBits)/1024, unit);
+      }
+    }
+  }
+
+  return(buf);
+}
+
+/* ****************************************************** */
+
+char* Utils::formatPackets(float numPkts, char *buf) {
+  if(numPkts < 1000) {
+    snprintf(buf, 32, "%.2f", numPkts);
+  } else if(numPkts < 1000000) {
+    snprintf(buf, 32, "%.2f K", numPkts/1000);
+  } else {
+    numPkts /= 1000000;
+    snprintf(buf, 32, "%.2f M", numPkts);
+  }
+
+  return(buf);
+}
+
+/* ****************************************************** */
+
+bool Utils::str2DetailsLevel(const char *details, DetailsLevel *out) {
+  bool rv = false;
+
+  if(!strcmp(details, "normal")) {
+    *out = details_normal;
+    rv = true;
+  } else if(!strcmp(details, "high")) {
+    *out = details_high;
+    rv = true;
+  } else if(!strcmp(details, "higher")) {
+    *out = details_higher;
+    rv = true;
+  } else if(!strcmp(details, "max")) {
+    *out = details_max;
+    rv = true;
+  }
+
+  return rv;
 }
