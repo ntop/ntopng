@@ -194,7 +194,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	continue; /* I know myself already */
 
       // Inject packet
-      if(pcap_inject(pd, &arp, sizeof(arp)) == -1)
+      if(pcap_sendpacket(pd, (const u_char*)&arp, sizeof(arp)) == -1)
 	break;
 
       FD_ZERO(&rset);
@@ -520,7 +520,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
     for(i=0; query_list[i] != NULL; i++) {
       u_int16_t len = buildMDNSDiscoveryDatagram(query_list[i], sender_ip, sender_mac, msg, sizeof(msg));
 
-      if(pcap_inject(pd, msg, len) == -1)
+      if(pcap_sendpacket(pd, msg, len) == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
       else
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sent MDNS request [%s][len: %u]", query_list[i], len);

@@ -357,7 +357,7 @@ bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
   }
   
   nbns_dest.sin_family = AF_INET, nbns_dest.sin_port = htons(137), nbns_dest.sin_addr.s_addr = ipv4addr;
-  if(sendto(batch_udp_sock, nbns_discover, sizeof(nbns_discover), 0, (struct sockaddr *)&nbns_dest, sizeof(struct sockaddr_in)) < 0)
+  if(sendto(batch_udp_sock, (const char*)nbns_discover, sizeof(nbns_discover), 0, (struct sockaddr *)&nbns_dest, sizeof(struct sockaddr_in)) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error %s [%d/%s]", Utils::intoaV4(ntohl(ipv4addr), src, sizeof(src)), errno, strerror(errno));
 
   return(true);

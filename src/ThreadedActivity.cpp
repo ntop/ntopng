@@ -171,7 +171,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   u_long usec_diff;
 
   while(!ntop->getGlobals()->isShutdown()) {
-    while(systemTaskRunning) usleep(1000);
+    while(systemTaskRunning) _usleep(1000);
 
     gettimeofday(&begin, NULL);
     systemTaskRunning = true;

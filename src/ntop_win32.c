@@ -109,6 +109,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 
 /* ************************************ */
 
+#if 0
 /* static */int pthread_cond_init(pthread_cond_t *cv, const void *unused) {
 	unused = NULL;
 	cv->signal = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -136,6 +137,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 /* static */int pthread_cond_destroy(pthread_cond_t *cv) {
 	return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
 }
+#endif
 
 /* ************************************ */
 
