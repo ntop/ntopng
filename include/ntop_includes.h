@@ -70,6 +70,7 @@
 #include <netdb.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <sys/select.h>
 #endif
 
 #ifdef linux
@@ -97,7 +98,6 @@
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif
-#include <sys/select.h>
 #ifdef __APPLE__
 #include <uuid/uuid.h>
 #endif

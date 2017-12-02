@@ -1611,10 +1611,12 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 /* **************************************** */
 
 u_int32_t Utils::readIPv4(char *ifname) {
+ u_int32_t ret_ip = 0;
+
+#ifndef WIN32
   struct ifreq ifr;
   int fd;
-  u_int32_t ret_ip = 0;
-
+  
   memset(&ifr, 0, sizeof(ifr));
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
   ifr.ifr_addr.sa_family = AF_INET;
@@ -1629,6 +1631,7 @@ u_int32_t Utils::readIPv4(char *ifname) {
 
     closesocket(fd);
   }
+#endif
 
   return(ret_ip);
 }
@@ -2500,7 +2503,7 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
   socklen_t len = sizeof(rcv_buffsize_base);
   int buf_type = rx_buffer ? SO_RCVBUF /* RX */ : SO_SNDBUF /* TX */;
     
-  if(getsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize_base, &len) < 0) {
+  if(getsockopt(sock_fd, SOL_SOCKET, buf_type, (char*)&rcv_buffsize_base, &len) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read socket receiver buffer size [%s]",
 				 strerror(errno));
     return;
@@ -2514,7 +2517,7 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
     rcv_buffsize = i * rcv_buffsize_base;
     if(rcv_buffsize > max_buf_size) break;
 
-    if(setsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize, sizeof(rcv_buffsize)) < 0) {
+    if(setsockopt(sock_fd, SOL_SOCKET, buf_type, (const char*)&rcv_buffsize, sizeof(rcv_buffsize)) < 0) {
       if(debug) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set socket %s buffer size [%s]",
 					     buf_type == SO_RCVBUF ? "receive" : "send",
 					     strerror(errno));

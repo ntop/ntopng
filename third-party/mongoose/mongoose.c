@@ -156,9 +156,9 @@ typedef long off_t;
 #define fileno(x) _fileno(x)
 #endif // !fileno MINGW #defines fileno
 
-typedef struct {HANDLE signal, broadcast;} pthread_cond_t;
-
 #if 0 /* NTOP */
+typedef struct { HANDLE signal, broadcast; } pthread_cond_t;
+
 typedef HANDLE pthread_mutex_t;
 typedef DWORD pthread_t;
 #define pid_t HANDLE // MINGW typedefs pid_t to int. Using #define here.
@@ -1290,6 +1290,15 @@ static int mg_mkdir(const char *path, int mode) {
   }
 
   return result;
+}
+
+int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result) {
+	*result = readdir(dirp);
+
+	if (*result == NULL)
+		return(-1);
+	else
+		return(0);
 }
 
 #ifndef HAVE_POLL

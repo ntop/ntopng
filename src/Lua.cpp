@@ -849,12 +849,15 @@ static int ntop_set_mac_operating_system(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
   OperatingSystem os = os_unknown;
+  int i;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   mac = (char*)lua_tostring(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  os = (OperatingSystem)lua_tonumber(vm, 2);
+  i = lua_tonumber(vm, 2);
+
+  os = (OperatingSystem)i;
   if(os >= os_max_os) return(CONST_LUA_ERROR);
 
   if((!ntop_interface)
@@ -872,12 +875,14 @@ static int ntop_set_mac_device_type(lua_State* vm) {
   char *mac = NULL;
   DeviceType dtype = device_unknown;
   bool overwriteType;
+  int i;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   mac = (char*)lua_tostring(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  dtype = (DeviceType)lua_tonumber(vm, 2);
+  i = lua_tonumber(vm, 2);
+  dtype = (DeviceType)i;
   if(dtype > device_max_type) dtype = device_unknown;
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);

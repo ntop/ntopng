@@ -37,7 +37,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
     errno = 0;
     rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
 
-    if((rc < 0) and (errno != 0)) {
+    if((rc < 0) && (errno != 0)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
 				   ifname, errno, strerror(errno));
     }
@@ -236,7 +236,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	if(FD_ISSET(mdns_sock, &rset)) {
 	  struct sockaddr_in from;
 	  socklen_t from_len = sizeof(from);
-	  int len = recvfrom(mdns_sock, mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
+	  int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
 
 	  if(len > 0) {
 	    char outbuf[1024];
@@ -292,7 +292,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
       if(select(max_sock + 1, &rset, NULL, NULL, &tv) > 0) {
 	struct sockaddr_in from;
 	socklen_t from_len = sizeof(from);
-	int len = recvfrom(mdns_sock, mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
+	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
 
 	if(len > 0) {
 	  char outbuf[1024];
