@@ -65,6 +65,7 @@ typedef struct {
 class NetworkInterface : public Checkpointable {
  protected:
   char *ifname, *ifDescription;
+  bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
   u_int8_t alertLevel, purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
@@ -241,10 +242,11 @@ class NetworkInterface : public Checkpointable {
 
   void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
+  inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();
-  virtual char *getScriptName()                { return NULL;   }
+  virtual char *getScriptName()                { return NULL;   };
   virtual char *getEndpoint(u_int8_t id)       { return NULL;   };
   virtual bool set_packet_filter(char *filter) { return(false); };
   virtual void incrDrops(u_int32_t num)        { ; }

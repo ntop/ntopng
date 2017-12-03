@@ -94,7 +94,7 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
    and Luca Peretti <lucaperetti.lp@gmail.com>
 */
 void NetworkDiscovery::arpScan(lua_State* vm) {
-  bpf_u_int32 maskp, netp;
+  bpf_u_int32 netp, maskp;
   u_int32_t first_ip, last_ip, host_ip, sender_ip = Utils::readIPv4(iface->get_name());
   char macbuf[32], ipbuf[32], mdnsbuf[256];
   u_char mdnsreply[1500];
@@ -103,20 +103,16 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   fd_set rset;
   struct timeval tv;
   struct pcap_pkthdr h;
-  char errbuf[PCAP_ERRBUF_SIZE];
   int mdns_sock, max_sock = 0;
   ndpi_dns_packet_header *dns_h;
   u_int dns_query_len;
   struct sockaddr_in mdns_dest;
 
-  lua_newtable(vm);
-
   if(!pd) return;
 
-  if(pcap_lookupnet(iface->get_name(), &netp, &maskp, errbuf) == -1) {
-    /* No IP/mask: can't do much then */
-    return;
-  }
+  lua_newtable(vm);
+  
+  iface->getIPv4Address(&netp, &maskp);
     
   /* Purge existing packets */
   while(pcap_next(pd, &h) != NULL) ;

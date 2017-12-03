@@ -45,7 +45,8 @@ NetworkInterface::NetworkInterface(const char *name,
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64], buf[64];
   /* We need to do it as isView() is not yet initialized */
-
+  char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+  
   init();
   customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
 
@@ -65,8 +66,6 @@ NetworkInterface::NetworkInterface(const char *name,
   purge_idle_flows_hosts = true;
 
   if(name == NULL) {
-    char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-
     if(!help_printed)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "No capture interface specified");
 
@@ -122,8 +121,14 @@ NetworkInterface::NetworkInterface(const char *name,
      )
     ; /* Don't setup MDNS on ZC or RSS interfaces */
   else {
-    mdns = new MDNS(this);
-    discovery = new NetworkDiscovery(this);
+    ipv4_network = ipv4_network_mask = 0;
+    if(pcap_lookupnet(ifname, &ipv4_network, &ipv4_network_mask, pcap_error_buffer) == -1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
+				   ifname, pcap_error_buffer);
+    } else {
+      mdns = new MDNS(this);
+      discovery = new NetworkDiscovery(this);
+    }
   }
 
   if(id >= 0) {
