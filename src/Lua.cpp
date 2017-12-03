@@ -2197,14 +2197,14 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
     try {
       NetworkDiscovery *d;
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(WIN32)
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
 
       d = ntop_interface->getNetworkDiscovery();
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(WIN32)
       Utils::dropWriteCapabilities();
 #endif
       
