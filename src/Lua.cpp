@@ -2202,21 +2202,18 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
 
-      d = new NetworkDiscovery(ntop_interface);
+      d = ntop_interface->getNetworkDiscovery();
 
 #ifndef __APPLE__
       Utils::dropWriteCapabilities();
 #endif
-
-      if(d) {
+      
+      if(d)
 	d->arpScan(vm);
-	delete d;
-      }
     } catch(...) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
       Utils::dropWriteCapabilities();
     }
-
 
     return(CONST_LUA_OK);
   } else
@@ -4929,6 +4926,8 @@ static int ntop_sqlite_exec_query(lua_State* vm) {
   sqlite3_close(db);
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Insert a new minute sampling in the historical database
