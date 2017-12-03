@@ -36,9 +36,10 @@ if grep -q systemd /proc/1/comm; then
     systemctl reset-failed
     systemctl enable ntopng
     systemctl restart ntopng
-else
+elif [ -f /etc/init.d/ntopng ]; then
     update-rc.d ntopng defaults 93 >/dev/null
     /etc/init.d/ntopng restart
+# else we are on a system with no systemd (e.g. docker)
 fi
 
 exit 0
