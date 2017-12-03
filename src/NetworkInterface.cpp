@@ -112,6 +112,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(strchr(name, ':')
      || strchr(name, '@')
+	 || (!strcmp(name, "dummy"))
      || strchr(name, '/') /* file path */
      || strstr(name, ".pcap") /* pcap */
      || (strncmp(name, "lo", 2) == 0)

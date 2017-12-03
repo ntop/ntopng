@@ -281,7 +281,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	break;
     }
 
-    close(mdns_sock);
+    closesocket(mdns_sock);
   }
 }
 

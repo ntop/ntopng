@@ -10,7 +10,9 @@
 
 #if defined(_MSC_VER)
 /* MSVC is stuck in the last century and doesn't have C99's stdint.h. */
-//typedef __int8 int8_t;
+#ifndef WIN32
+typedef __int8 int8_t;
+#endif
 typedef __int16 int16_t;
 typedef __int32 int32_t;
 typedef __int64 int64_t;
