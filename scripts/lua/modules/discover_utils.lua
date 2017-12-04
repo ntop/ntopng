@@ -644,11 +644,9 @@ local function discoverARP()
    if(discover.debug) then io.write("Starting ARP discovery...\n") end
    local status = discoverStatus("OK")
    local res = {}
-
    local ghost_macs  = {}
    local ghost_found = false
    local arp_mdns = interface.arpScanHosts()
-
 
    if(arp_mdns == nil) then
       status = discoverStatus("ERROR", i18n("discover.err_unable_to_arp_discovery"))
@@ -672,7 +670,7 @@ local function discoverARP()
       end
    end
 
-   return {status = status, ghost_macs = ghost_macs, ghost_found = ghost_found, arp_mdns = arp_mdns}
+   return { status = status, ghost_macs = ghost_macs, ghost_found = ghost_found, arp_mdns = arp_mdns }
 end
 
 -- #############################################################################
@@ -712,6 +710,8 @@ function discover.discover2table(interface_name, recache)
 
 	 -- This is an ARP entry
 	 if(discover.debug) then io.write("Attempting to resolve "..ip.."\n") end
+	 local sym = ntop.getResolvedName(ip) -- dummy resolution just to fill-up the cache
+
 	 interface.mdnsQueueNameToResolve(ip)
 
 	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.5.0", 0)
@@ -808,9 +808,11 @@ function discover.discover2table(interface_name, recache)
       local symIP = mdns[ip]
 
       if(host ~= nil) then sym = host["name"] else sym = ntop.getResolvedName(ip) end
+
       if not isEmptyString(sym) and sym ~= ip then
 	 entry["sym"] = sym
       end
+
       if not isEmptyString(symIP) and symIP ~= ip then
 	 entry["symIP"] = symIP
       end
