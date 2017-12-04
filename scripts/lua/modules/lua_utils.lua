@@ -1390,12 +1390,30 @@ end
 
 -- #################################
 
+function getOperatingSystemName(id)
+   if(id == 1) then return("Linux")
+   elseif(id == 2) then return("Windows")
+   elseif(id == 3) then return("MacOS")
+   elseif(id == 4) then return("iOS")
+   elseif(id == 5) then return("Android")
+   elseif(id == 6) then return("LaserJET")
+   elseif(id == 7) then return("AppleAirport")
+   else
+      return("") -- Unknown
+   end
+end
+
+-- #################################
+
 function getOperatingSystemIcon(id)
    if(id == 1) then return(' <i class=\'fa fa-linux fa-lg\'></i>')
    elseif(id == 2) then return(' <i class=\'fa fa-windows fa-lg\'></i>')
    elseif(id == 3) then return(' <i class=\'fa fa-apple fa-lg\'></i>')
    elseif(id == 4) then return(' <i class=\'fa fa-apple fa-lg\'></i>')
    elseif(id == 5) then return(' <i class=\'fa fa-android fa-lg\'></i>')
+   elseif(id == 6) then return(' LasetJET')
+   elseif(id == 7) then return(' Apple Airport')
+
    else return("")
    end
 end
