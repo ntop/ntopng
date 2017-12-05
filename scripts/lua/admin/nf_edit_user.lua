@@ -29,12 +29,34 @@ print[[<ul class="nav nav-tabs">
   <li ]] print(ternary(page == "categories", 'class="active"', '')) print[[><a href="?page=categories&username=]] print(username) print[[">]] print(i18n("users.categories")) print[[</a></li>
 </ul><br>]]
 
-if page == "settings" then
+-- ###################################################################
+
+local function printSettingsPage()
   print("TODO settings page")
-elseif page == "protocols" then
+end
+
+-- ###################################################################
+
+local function printProtocolsPage()
   print("TODO protocols page")
-elseif page == "categories" then
+end
+
+-- ###################################################################
+
+local function printCategoriesPage()
   print("TODO categories page")
 end
+
+-- ###################################################################
+
+if page == "settings" then
+  printSettingsPage()
+elseif page == "protocols" then
+  printProtocolsPage()
+elseif page == "categories" then
+  printCategoriesPage()
+end
+
+-- ###################################################################
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
