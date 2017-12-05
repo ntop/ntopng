@@ -398,8 +398,13 @@ user_group = ntop.getUserGroup()
 
 if(user_group == "administrator") then
   print(ntop.getHttpPrefix())
-  print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
+  if not haveNedge2() then
+   print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
+  else
+   print [[/lua/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
+      ]]
+  end
 else
   print [[#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>
       ]]

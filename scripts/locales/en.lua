@@ -2229,6 +2229,15 @@ local  en = {
     iot = "IoT",
   },
 
+  users = {
+    no_users = "No users",
+    edit = "Edit",
+    delete_user = "Delete User",
+    confirm_delete_user = "Do you really want to delete user \"%{user}\"?",
+    settings = "Settings",
+    categories = "Categories",
+  },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",

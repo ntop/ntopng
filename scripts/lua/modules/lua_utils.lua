@@ -3379,6 +3379,16 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
+function haveNedge2()
+   local ifstats = interface.getStats()
+
+   if ifstats.type == "netfilter" then
+      return true
+   end
+
+   return false
+end
+
 function hasBridgeInterfaces(skip_netfilter)
   local curif = ifname
   local ifnames = interface.getIfNames()

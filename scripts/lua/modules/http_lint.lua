@@ -608,6 +608,12 @@ local function validateHostsList(l)
    return validateListOfType(l, validateHost)
 end
 
+local function validateListOfTypeInline(t)
+   return function(l)
+      return validateListOfType(l, t)
+   end
+end
+
 local function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
       return true
@@ -961,6 +967,7 @@ local known_parameters = {
    ["lifetime_unlimited"]      =  validateEmptyOr(validateOnOff), -- set if user should have an unlimited lifetime
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
+   ["delete_user"]             =  validateSingleWord,
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
