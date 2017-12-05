@@ -402,7 +402,7 @@ if(user_group == "administrator") then
    print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
   else
-   print [[/lua/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
+   print [[/lua/pro/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
   end
 else
