@@ -2244,6 +2244,8 @@ local  en = {
     user_x = "User: %{user}",
     unchanged = "unchanged",
     forge_global_dns = "Forge Global DNS",
+    protocols = "Protocols",
+    policy = "Policy",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",
