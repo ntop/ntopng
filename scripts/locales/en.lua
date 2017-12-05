@@ -2230,12 +2230,17 @@ local  en = {
   },
 
   users = {
+    full_name = "Full Name",
     no_users = "No users",
     edit = "Edit",
     delete_user = "Delete User",
     confirm_delete_user = "Do you really want to delete user \"%{user}\"?",
     settings = "Settings",
     categories = "Categories",
+    assigned_devices = "Assigned Devices",
+    add_user = "Add User",
+    add_new_user = "Add New User",
+    user_exists = "User \"%{user}\" already exists",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

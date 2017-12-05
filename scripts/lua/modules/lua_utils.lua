@@ -2141,14 +2141,14 @@ function getDefaultTableSort(table_type)
   return(value)
 end
 
-function getDefaultTableSortOrder(table_type)
+function getDefaultTableSortOrder(table_type, force_get)
    local table_key = getRedisPrefix("ntopng.prefs.table")
    local value = nil
 
   if(table_type ~= nil) then
     value = ntop.getHashCache(table_key, "sort_order_"..table_type)
   end
-  if((value == nil) or (value == "")) then value = 'desc' end
+  if((value == nil) or (value == "")) and (force_get ~= true) then value = 'desc' end
   return(value)
 end
 
@@ -2159,10 +2159,10 @@ function getDefaultTableSize()
   return(tonumber(value))
 end
 
-function tablePreferences(key, value)
+function tablePreferences(key, value, force_set)
   table_key = getRedisPrefix("ntopng.prefs.table")
 
-  if((value == nil) or (value == "")) then
+  if((value == nil) or (value == "")) and (force_set ~= true) then
     -- Get preferences
     return ntop.getHashCache(table_key, key)
   else
@@ -2502,7 +2502,7 @@ function maxRateToString(max_rate)
 end
 
 function getPasswordInputPattern()
-  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{5,}$]]
+  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,}$]]
 end
 
 function getIPv4Pattern()

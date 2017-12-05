@@ -19,7 +19,8 @@ host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 -- NEDGE specific code 
 if haveNedge2() then
   function host_pools_utils.usernameToPoolId(username)
-    return ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
+    local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
+    return ternary(not isEmptyString(res), res, nil)
   end
 
   function host_pools_utils.poolIdToUsername(pool_id)
