@@ -979,6 +979,8 @@ local known_parameters = {
    ["create_guests_pool"]      =  validateOnOff,                 -- bridge wizard
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
    ["delete_all_policies"]     =  validateEmpty,                 -- traffic policies
+   ["safe_search"]             =  validateOnOff,                 -- users
+   ["forge_global_dns"]        =  validateOnOff,                 -- users
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

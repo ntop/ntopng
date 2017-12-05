@@ -2241,6 +2241,9 @@ local  en = {
     add_user = "Add User",
     add_new_user = "Add New User",
     user_exists = "User \"%{user}\" already exists",
+    user_x = "User: %{user}",
+    unchanged = "unchanged",
+    forge_global_dns = "Forge Global DNS",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

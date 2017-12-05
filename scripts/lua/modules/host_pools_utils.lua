@@ -338,6 +338,18 @@ function host_pools_utils.getChildrenSafe(ifid, pool_id)
   return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "children_safe"))
 end
 
+function host_pools_utils.setChildrenSafe(ifid, pool_id, value)
+  host_pools_utils.setPoolDetail(ifid, pool_id, "children_safe", ternary(value, "true", "false"))
+end
+
+function host_pools_utils.getForgeGlobalDNS(ifid, pool_id)
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "forge_global_dns"))
+end
+
+function host_pools_utils.setForgeGlobalDNS(ifid, pool_id, value)
+  host_pools_utils.setPoolDetail(ifid, pool_id, "forge_global_dns", ternary(value, "true", "false"))
+end
+
 function host_pools_utils.getRoutingPolicyId(ifid, pool_id)
   local routing_policy_id = host_pools_utils.getPoolDetail(ifid, pool_id, "routing_policy_id")
   if isEmptyString(routing_policy_id) then routing_policy_id = "0" end
