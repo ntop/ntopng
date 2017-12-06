@@ -1106,7 +1106,7 @@ print[["></td><td class="text-center"></td></tr>');
             var children_safe = $("td:nth-child(4)", $(this));
             var enforce_quotas_per_pool_member = $("td:nth-child(5)", $(this));
             var enforce_shapers_per_pool_member = $("td:nth-child(6)", $(this));
-            var pool_link = $("td:nth-child(7)", $(this)).html();
+            var pool_link = $("td:nth-child(8)", $(this)).html();
 
             /* Make pool name editable */
             var input = $(']] printPoolNameField('pool_id') print[[');
