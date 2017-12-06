@@ -15,5 +15,10 @@ fi
 
 IFNAME="$1"
 
-iptables -A INPUT -i $IFNAME -j NFQUEUE --queue-num 0 --queue-bypass
-iptables -A OUTPUT -o $IFNAME -j NFQUEUE --queue-num 0 --queue-bypass
+iptables -F
+iptables -F -t mangle
+
+iptables -t mangle -A PREROUTING -j CONNMARK --restore-mark
+iptables -A INPUT -i $IFNAME -m mark --mark 0 -j NFQUEUE --queue-num 0 --queue-bypass
+iptables -A OUTPUT -o $IFNAME -m mark --mark 0 -j NFQUEUE --queue-num 0 --queue-bypass
+iptables -t mangle -A POSTROUTING -j CONNMARK --save-mark

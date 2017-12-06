@@ -1000,6 +1000,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["qtraffic_"]               =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: traffic quota
    ["qtime_"]                  =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: time quota
    ["oldrule_"]                =  {validateShapedElement,     validateEmpty},       -- key: category or protocol ID, value: empty
+   ["policy_"]                 =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
 
 -- ALERTS (see alert_utils.lua)
    ["op_"]                     =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
