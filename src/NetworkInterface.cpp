@@ -2602,7 +2602,7 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
     h->updateHostPool(false /* Not inline with traffic processing */);
 
   if(up->update_l7policy)
-    h->updateHostL7Policy();
+    h->resetBlockedTrafficStatus();
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,

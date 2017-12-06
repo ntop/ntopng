@@ -61,7 +61,6 @@ class Host : public GenericHost, public Checkpointable {
   NetworkStats *networkStats;
   char *ssdpLocation, *ssdpLocation_shadow;
 #ifdef NTOPNG_PRO
-  L7Policy_t *l7Policy, *l7PolicyShadow;
   bool has_blocking_quota, has_blocking_shaper;
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
   TrafficShaper **host_traffic_shapers;
@@ -192,7 +191,6 @@ class Host : public GenericHost, public Checkpointable {
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
-  void updateHostL7Policy();
   void updateHostPool(bool isInlineCall);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };

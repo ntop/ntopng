@@ -80,8 +80,6 @@ Host::~Host() {
     free(host_traffic_shapers);
   }
 
-  if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
-  if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
 #endif
   if(icmp)            delete icmp;
   if(dns)             delete dns;
@@ -137,7 +135,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64], host[96];
 
 #ifdef NTOPNG_PRO
-  l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
   host_traffic_shapers = NULL;
@@ -262,7 +259,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   
   if(!host_serial) computeHostSerial();
   updateHostPool(true /* inline with packet processing */);
-  updateHostL7Policy();
 }
 
 /* *************************************** */
@@ -332,38 +328,6 @@ void Host::updateHostTrafficPolicy(char *key) {
     else
       dump_host_traffic = true;
   }
-}
-
-/* *************************************** */
-
-void Host::updateHostL7Policy() {
-#ifdef NTOPNG_PRO
-    if(!iface->is_bridge_interface() && !iface->getL7Policer())
-      return;
-
-    if(ntop->getPro()->has_valid_license()) {
-
-	if(l7PolicyShadow) {
-	    free_ptree_l7_policy_data((void*)l7PolicyShadow);
-	    l7PolicyShadow = NULL;
-	}
-
-	l7PolicyShadow = l7Policy;
-
-#ifdef SHAPER_DEBUG
-	{
-	    char buf[64];
-
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "Updating host policy %s",
-					 ip.print(buf, sizeof(buf)));
-	}
-#endif
-
-	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool_id);
-	resetBlockedTrafficStatus();
-    }
-#endif
 }
 
 /* *************************************** */
@@ -1185,11 +1149,9 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   TrafficShaper *ts = NULL, **shapers = NULL;
   u_int8_t shaper_id = DEFAULT_SHAPER_ID;
   ShaperDirection_t *sd = NULL;
-  L7Policy_t *policy = l7Policy; /*
-				    Cache value so that even if updateHostL7Policy()
-				    runs in the meantime, we're consistent with the policer
-				 */
+  L7Policy_t *policy = NULL;
 
+  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
   hp = iface->getHostPools();
 
   if(hp && ((shaper_id = hp->getPoolShaper(get_host_pool())) != PASS_ALL_SHAPER_ID)) {
@@ -1267,16 +1229,15 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 /* *************************************** */
 
 void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category) {
-  L7Policy_t *policy = l7Policy; /*
-				    Cache value so that even if updateHostL7Policy()
-				    runs in the meantime, we're consistent with the policer
-				 */
   ShaperDirection_t *sd = NULL;
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
   bool category = false; /* Default: no category */
   u_int32_t schedule = 0xFFFFFFFF; /* Default: all day */
   int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
+  L7Policy_t *policy = NULL;
+
+  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
 
   if(policy) {
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol32, sd);
@@ -1386,10 +1347,12 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *no
 
 bool Host::checkCrossApplicationQuota() {
   HostPools *pools = getInterface()->getHostPools();
-  L7Policy_t *policy = l7Policy; /* Cache it! */
   u_int64_t cur_bytes = 0;
   u_int32_t cur_duration = 0;
   bool is_above = false;
+  L7Policy_t *policy = NULL;
+
+  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
 
   if(pools && policy
      && (policy->cross_application_quotas.bytes_quota > 0
