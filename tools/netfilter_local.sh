@@ -15,6 +15,11 @@ fi
 
 IFNAME="$1"
 
+modprobe nf_conntrack_ipv4
+echo 1 > /proc/sys/net/netfilter/nf_conntrack_acct
+nfacct flush
+nfacct add ipv4
+
 iptables -F
 iptables -F -t mangle
 
