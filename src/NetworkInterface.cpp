@@ -2601,8 +2601,10 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
   if(up->update_pool_id)
     h->updateHostPool(false /* Not inline with traffic processing */);
 
+#ifdef NTOPNG_PRO
   if(up->update_l7policy)
     h->resetBlockedTrafficStatus();
+#endif
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
