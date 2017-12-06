@@ -1379,33 +1379,6 @@ elseif(page == "filtering") then
    -- possibly decode parameters pairs
    local _POST = paramsPairsDecode(_POST)
 
-function get_shapers_from_parameters(callback)
-   local done = {}
-
-   for option,value in pairs(_POST) do
-      local sp = split(option, "ishaper_")
-      local k = nil
-
-      if #sp == 2 then
-         k = sp[2]
-      else
-         sp = split(option, "eshaper_")
-         if #sp == 2 then
-            k = sp[2]
-         end
-      end
-
-      if k ~= nil then
-         if not done[k] then
-            local qtraffic = _POST["qtraffic_"..k]
-            local qtime = _POST["qtime_"..k]
-
-            done[k] = true;
-            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic or "0", qtime or "0")
-         end
-      end
-   end
-end
    local perPageProtos
    if tonumber(tablePreferences("protocolShapers")) == nil then
       perPageProtos = "10"
@@ -1483,7 +1456,7 @@ end
             end
          end
 
-         get_shapers_from_parameters(function(proto_id)
+         shaper_utils.get_shapers_from_parameters(function(proto_id)
             -- A new rule will be set for the protocol, no need to delete it
             rules_to_delete[proto_id] = nil
          end)
@@ -1493,7 +1466,7 @@ end
          end
 
          -- set protocols policy for the pool
-         get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
+         shaper_utils.get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
             if proto_id == "default" then
                -- This is not the default protocol quota but the overall quota
                shaper_utils.setCrossApplicationQuotas(ifid, target_pool, traffic_quota, time_quota)

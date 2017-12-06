@@ -2248,6 +2248,13 @@ local  en = {
     policy = "Policy",
     edit_default_policy = "Edit Default Policy",
     default_policy = "Default Policy",
+    shapers = {
+       pass = "Pass",
+       slow = "Slow Pass",
+       slower = "Slower Pass",
+       drop = "Drop",
+       default = "Default",
+    },
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",
