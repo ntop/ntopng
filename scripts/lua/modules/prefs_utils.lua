@@ -212,6 +212,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   if (_input_type == "number") then
     attributes["required"] = "required"
+  elseif (_input_type == "password") then
+    -- disable chrome autocomplete
+    attributes["autocomplete"] = "new-password"
   end
 
   local input_type = "text"
