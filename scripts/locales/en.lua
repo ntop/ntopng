@@ -2242,10 +2242,12 @@ local  en = {
     add_new_user = "Add New User",
     user_exists = "User \"%{user}\" already exists",
     user_x = "User: %{user}",
-    unchanged = "unchanged",
+    unchanged = "Unchanged",
     forge_global_dns = "Forge Global DNS",
     protocols = "Protocols",
     policy = "Policy",
+    edit_default_policy = "Edit Default Policy",
+    default_policy = "Default Policy",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

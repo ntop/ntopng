@@ -395,10 +395,11 @@ print [[
       <li><a href="]]
 
 user_group = ntop.getUserGroup()
+local have_nedge_2 = haveNedge2()
 
 if(user_group == "administrator") then
   print(ntop.getHttpPrefix())
-  if not haveNedge2() then
+  if not have_nedge_2 then
    print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
   else
@@ -422,7 +423,9 @@ if(user_group == "administrator") then
    end
 
    if(ntop.isPro()) then
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")
+      if not have_nedge_2 then
+         print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")
+      end
       if(false) then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
