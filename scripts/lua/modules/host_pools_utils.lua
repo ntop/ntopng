@@ -16,18 +16,21 @@ host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
--- NEDGE specific code 
-if haveNedge2() then
-  function host_pools_utils.usernameToPoolId(username)
-    local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
-    return ternary(not isEmptyString(res), res, nil)
-  end
-
-  function host_pools_utils.poolIdToUsername(pool_id)
-    local ifid = getInterfaceId(ifname)
-    return host_pools_utils.getPoolName(ifid, pool_id)
-  end
+--
+-- BEGIN NEDGE specific code
+--
+function host_pools_utils.usernameToPoolId(username)
+  local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
+  return ternary(not isEmptyString(res), res, nil)
 end
+
+function host_pools_utils.poolIdToUsername(pool_id)
+  local ifid = getInterfaceId(ifname)
+  return host_pools_utils.getPoolName(ifid, pool_id)
+end
+--
+-- END NEDGE specific code
+--
 
 host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"] or 5
 -- this takes into account the special pools
