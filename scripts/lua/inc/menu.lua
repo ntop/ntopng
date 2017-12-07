@@ -414,7 +414,7 @@ end
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a></li>\n")
 
-   if is_bridge_interface and ntop.isEnterprise() then
+   if is_bridge_interface and ntop.isEnterprise() and not have_nedge_2 then
       print[[<form id="go_show_bridge_wizard" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua">]]
       print[[<input name="show_wizard" type="hidden" value="" />]]
       print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]

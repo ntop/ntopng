@@ -153,9 +153,21 @@ end
 if(_GET["pool"] ~= nil) then
    local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
    local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+   local pool_edit = ""
 
-   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>"..
-      "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools&pool=".._GET["pool"].."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"..
+   if _GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID then
+      local pool_link
+
+      if haveNedge2() then
+         pool_link = "/lua/pro/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+      else
+         pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+      end
+
+      pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
+   end
+
+   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>".. pool_edit ..
       ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
       "</small>"
 end

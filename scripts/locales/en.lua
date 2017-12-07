@@ -2248,6 +2248,7 @@ local  en = {
     policy = "Policy",
     edit_default_policy = "Edit Default Policy",
     default_policy = "Default Policy",
+    devices = "Devices",
     shapers = {
        pass = "Pass",
        slow = "Slow Pass",

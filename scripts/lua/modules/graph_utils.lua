@@ -1707,9 +1707,11 @@ function printPoolChangeDropdown(pool_id)
 
    output[#output + 1] = poolDropdown(pool_id)
 
+   local edit_pools_link = ternary(haveNedge2(), "/lua/pro/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
+
    output[#output + 1] = [[
             </select>&nbsp;
-        <A HREF=/lua/if_stats.lua?page=pools#create><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
+        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
    .. i18n("host_pools.edit_host_pools") .. [[</A>
    </tr>]]
 

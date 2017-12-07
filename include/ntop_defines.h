@@ -301,6 +301,7 @@
 #define PASS_ALL_SHAPER_ID             0
 #define DROP_ALL_SHAPER_ID             1
 #define DEFAULT_SHAPER_ID              PASS_ALL_SHAPER_ID
+#define NEDGE_USER_DEFAULT_POLICY_SHAPER_ID  4 /* see shaper_utils.nedge_shapers default */
 #define DEFAULT_ROUTING_TABLE_ID       0
 #define NUM_TRAFFIC_SHAPERS           16
 #define NUM_TC_TRAFFIC_SHAPERS         8
@@ -425,6 +426,7 @@
 #define CONST_PROFILES_PREFS                "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
+#define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
 #define CONST_PREFS_REDIRECTION_URL         "ntopng.prefs.redirection_url"
 #define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"

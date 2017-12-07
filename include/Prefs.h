@@ -70,6 +70,7 @@ class Prefs {
   char *redirection_url, *redirection_url_shadow;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   u_int32_t max_ui_strlen;
+  u_int8_t default_l7policy;
   HostMask hostMask;
 
   LocationPolicy dump_hosts_to_db, sticky_hosts;
@@ -283,6 +284,7 @@ class Prefs {
   inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
 
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);  }
+  inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
 
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
   inline int32_t   get_max_num_flow_alerts()             { return(max_num_flow_alerts); };
@@ -300,3 +302,4 @@ class Prefs {
 };
 
 #endif /* _PREFS_H_ */
+

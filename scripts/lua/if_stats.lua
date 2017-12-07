@@ -16,6 +16,7 @@ local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
+local have_nedge_2 = haveNedge2()
 
 require "lua_utils"
 require "prefs_utils"
@@ -210,7 +211,7 @@ if(ntop.exists(rrdname) and not is_historical) then
 end
 
 
-if(table.len(ifstats.profiles) > 0) then
+if have_nedge_2 and (table.len(ifstats.profiles) > 0) then
   if(page == "trafficprofiles") then
     print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   else
@@ -267,10 +268,12 @@ if isAdministrator() and (not ifstats.isView) then
       label = ""
    end
 
-   if(page == "pools") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
+   if not have_nedge_2 then
+      if(page == "pools") then
+         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
+      else
+         print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
+      end
    end
 end
 
@@ -379,7 +382,7 @@ if((page == "overview") or (page == nil)) then
    else
       print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
 
-      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() then
+      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() and not have_nedge_2 then
          print[[ <a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-sm fa-magic" aria-hidden="true" title=]] print('\"'..i18n("bridge_wizard.bridge_wizard")..'\"') print[[></i></a>]]
          show_bridge_wizard = true
       end

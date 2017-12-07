@@ -1144,6 +1144,37 @@ void Host::decNumFlows(bool as_client) {
 
 #ifdef NTOPNG_PRO
 
+#ifdef HAVE_NEDGE2
+
+/* We have to differentiate between category shaper and protocol shaper to handle default properly */
+static void getCategoryAndProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy,
+      u_int8_t *protocol_shaper, u_int8_t *category_shaper, bool *proto_set, bool *cat_set) {
+  ShaperDirection_t *sd = NULL;
+  int protocol;
+
+  if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
+    protocol = ndpiProtocol.app_protocol;
+  else
+    protocol = ndpiProtocol.master_protocol;
+
+  HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+  if(!sd && protocol != ndpiProtocol.master_protocol) {
+    protocol = ndpiProtocol.master_protocol;
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+  }
+
+  if(sd) {
+    if(sd->protocol_shapers.enabled && sd->protocol_shapers.egress != NEDGE_USER_DEFAULT_POLICY_SHAPER_ID) {
+      *protocol_shaper = sd->protocol_shapers.egress;
+      *proto_set = true;
+    }
+    if(sd->category_shapers.enabled && sd->category_shapers.egress != NEDGE_USER_DEFAULT_POLICY_SHAPER_ID) {
+      *category_shaper = sd->category_shapers.egress;
+      *cat_set = true;
+    }
+  }
+}
+#else
 static bool getProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy, u_int8_t *shaper_id, bool isIngress) {
   ShaperDirection_t *sd = NULL;
   int protocol;
@@ -1173,11 +1204,17 @@ static bool getProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy, u_
 
   return shaper_set;
 }
+#endif
 
 TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   HostPools *hp;
   TrafficShaper *ts = NULL, **shapers = NULL;
   u_int8_t shaper_id = DEFAULT_SHAPER_ID;
+#ifdef HAVE_NEDGE2
+  u_int8_t category_shaper_id = DEFAULT_SHAPER_ID;
+  bool proto_set = false;
+  bool cat_set = false;
+#endif
   L7Policy_t *policy = NULL;
 
   if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
@@ -1191,15 +1228,32 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
     if (iface->getL7Policer()) {
        L7Policy_t *default_policy = iface->getL7Policer()->getIpPolicy(NO_HOST_POOL_ID);
 
-       if (default_policy)
-         getProtocolShaper(ndpiProtocol, default_policy, &shaper_id, isIngress);
+       if (default_policy) {
+         getCategoryAndProtocolShaper(ndpiProtocol, default_policy, &shaper_id, &category_shaper_id, &proto_set, &cat_set);
+#ifdef SHAPER_DEBUG
+         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DEFAULT] proto_shaper=%d cat_shaper=%d - use_proto=%d use_cat=%d\n", shaper_id, category_shaper_id, proto_set, cat_set);
+#endif
+       }
+    }
+
+    // Try to get a specific shaper
+    getCategoryAndProtocolShaper(ndpiProtocol, policy, &shaper_id, &category_shaper_id, &proto_set, &cat_set);
+#ifdef SHAPER_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SPECIFIC] proto_shaper=%d cat_shaper=%d - use_proto=%d use_cat=%d\n", shaper_id, category_shaper_id, proto_set, cat_set);
+#endif
+    // prefer protocol shaper, then category shaper
+    if(!proto_set) {
+      if(cat_set)
+        shaper_id = category_shaper_id;
+      else
+        shaper_id = ntop->getPrefs()->getDefaultl7Policy(); // Global default policy from user preference
     }
 #else
     shaper_id = isIngress ? policy->default_shapers.ingress : policy->default_shapers.egress;
-#endif
 
     // Try to get a specific shaper
     getProtocolShaper(ndpiProtocol, policy, &shaper_id, isIngress);
+#endif
   }
 
 #ifdef SHAPER_DEBUG
