@@ -1,13 +1,16 @@
 
 var quotas_utils_opts = {}
 
-function initQuotaUtils(url_update_callback, pool_id, empty_quota_bar, disabled, reduced_timeout) {
+function initQuotaUtils(url_update_callback, pool_id, empty_quota_bar, disabled, reduced_timeout, proto_id_getter, traffic_quota_getter, time_quota_getter) {
    quotas_utils_opts = {
       url_update_callback: url_update_callback,
       pool_id: pool_id,
       empty_quota_bar: empty_quota_bar,
       reduced_timeout: reduced_timeout,
       disabled: disabled,
+      proto_id_getter: proto_id_getter || function(row) { return $("td:first select", row).val(); },
+      traffic_quota_getter: traffic_quota_getter || function(row) { return $("td:nth-child(4) div.progress", row).parent(); },
+      time_quota_getter: time_quota_getter || function(row) { return $("td:nth-child(5) div.progress", row).parent(); },
    }
 }
 
@@ -25,7 +28,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
 
    // fix ctrl id
    var buttons = $(replaceCtrlId(template_html, input_name));
-   var div = $('<div class="text-center form-group" style="padding:0; margin:0;"></div>');
+   var div = $('<div class="text-center form-group ' + (extra.form_group_class || "") + '" style="padding:0; margin:0;"></div>');
    td_object.html("");
    div.appendTo(td_object);
    buttons.appendTo(div);
@@ -55,17 +58,21 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
    return input;
 }
 
-function makeTrafficQuotaButtons(tr_obj, proto_id) {
-   makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
+function makeTrafficQuotaButtons(tr_obj, proto_id, field_selector, form_group_class) {
+   field_selector = field_selector || "td:nth-child(4)";
+   makeResolutionButtonsAtRuntime($(field_selector, tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
       max_value: 100*1024*1024*1024 /* 100 GB */,
       min_value: 0,
+      form_group_class: form_group_class,
    });
 }
 
-function makeTimeQuotaButtons(tr_obj, proto_id) {
-   makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
+function makeTimeQuotaButtons(tr_obj, proto_id, field_selector, form_group_class) {
+   field_selector = field_selector || "td:nth-child(5)";
+   makeResolutionButtonsAtRuntime($(field_selector, tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
       max_value: 23*60*60 /* 23 hours */,
       min_value: 0,
+      form_group_class: form_group_class,
    });
 }
 
@@ -87,18 +94,17 @@ function quotaUpdateCallback(url) {
          var rsp = $("<table>"+response+"</table>");
 
          $("#table-protos > div > table > tbody > tr").each(function() {
-            //var proto_id = $("td:first select", $(this)).val() || "default";
-            var proto_id = $("td:first", $(this)).html() || "default";
+            var proto_id = quotas_utils_opts.proto_id_getter($(this)) || "default";
+            var traffic_quota = quotas_utils_opts.traffic_quota_getter($(this));
+            var time_quota = quotas_utils_opts.time_quota_getter($(this));
 
             if (typeof(proto_id) !== "undefined") {
                var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
-               var traffic_quota = $("td:nth-child(4) div.progress", $(this)).parent();
-               var time_quota = $("td:nth-child(5) div.progress", $(this)).parent();
 
                if (tr_quota.length === 1) {
                   var input_traffic_bar = $("div.progress:first", tr_quota);
                   var traffic_label = input_traffic_bar.closest("td").find("> span");
-                  traffic_quota.html("<small>" + traffic_label.html() + "</small>");
+                  traffic_quota.html("<div class='text-center'><small>" + traffic_label.html() + "</small></div>");
                   input_traffic_bar
                      .css("height", "20px")
                      .css("margin", "2px 0 12px 0")
@@ -106,7 +112,7 @@ function quotaUpdateCallback(url) {
 
                   var input_time_bar = $("div.progress:last", tr_quota);
                   var time_label = input_time_bar.closest("td").find("> span");
-                  time_quota.html("<small>" + time_label.html() + "</small>");
+                  time_quota.html("<div class='text-center'><small>" + time_label.html() + "</small></div>");
                   input_time_bar
                      .css("height", "20px")
                      .css("margin", "2px 0 12px 0")
