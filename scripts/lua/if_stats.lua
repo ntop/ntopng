@@ -138,8 +138,9 @@ end
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
-active_page = "if_stats"
-
+if page == "filtering" then
+   print('<script type="text/javascript" src="'..ntop.getHttpPrefix()..'/js/quotas_utils.js"></script>')
+end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(msg)
@@ -1730,50 +1731,6 @@ var rowid_prefix = "proto_policy_row_";
 var oldid_prefix = rowid_prefix + "old_";
 var newid_prefix = rowid_prefix + "new_";
 
-function replaceCtrlId(v, with_this) {
-   return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, with_this);
-}
-
-function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, input_name, extra) {
-   var extra = extra || {};
-   var value = (extra.value !== undefined) ? (extra.value) : (td_object.html());
-   var disabled = extra.disabled;
-   var hidden = extra.hidden;
-   var maxvalue = extra.max_value;
-   var minvalue = extra.min_value;
-
-   // fix ctrl id
-   var buttons = $(replaceCtrlId(template_html, input_name));
-   var div = $('<div class="text-center form-group" style="padding:0; margin:0;"></div>');
-   td_object.html("");
-   div.appendTo(td_object);
-   buttons.appendTo(div);
-
-   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:6em; text-align:right; margin-left:0.5em; display:inline;" required/>');
-   if (maxvalue !== null)
-      input.attr("data-max", maxvalue);
-
-   input.attr("data-min", (minvalue !== null) ? minvalue : -1);
-   input.appendTo($("td:first", div));
-
-   if (disabled) {
-      input.attr("disabled", "disabled");
-      buttons.find("label").attr("disabled", "disabled");
-   }
-
-   // Add steps if available
-   for (resol in extra.steps)
-      input.attr("data-step-"+resol, extra.steps[resol]);
-
-   // execute group specific code
-   eval(replaceCtrlId(template_js, input_name));
-
-   // set initial value
-   resol_selector_set_value(input, value);
-
-   return input;
-}
-
 function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
@@ -1863,75 +1820,8 @@ print[[
 
    var new_row_ctr = 0;
    var protocol_categories = ]] print(json.encode(protocol_categories)) print[[;
-   var quota_update = null;
-   var quota_update_xhr = null;
 
-   function quotaUpdateCallback() {
-      if (quota_update_xhr !== null) {
-         quota_update_xhr.abort();
-         quota_update_xhr = null;
-      }
-
-      quota_update_xhr = $.ajax({
-         type: "GET",
-         url: "]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua",
-         data: {pool: ]] print(selected_pool.id) print[[, include_unlimited:true},
-         success: function(response) {
-            var rsp = $("<table>"+response+"</table>");
-
-            $("#table-protos > div > table > tbody > tr").each(function() {
-               var proto_id = $("td:first select", $(this)).val() || "default";
-
-               if (typeof(proto_id) !== "undefined") {
-                  var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
-                  var traffic_quota = $("td:nth-child(4) div.progress", $(this)).parent();
-                  var time_quota = $("td:nth-child(5) div.progress", $(this)).parent();
-
-                  if (tr_quota.length === 1) {
-                     var input_traffic_bar = $("div.progress:first", tr_quota);
-                     var traffic_label = input_traffic_bar.closest("td").find("> span");
-                     traffic_quota.html("<small>" + traffic_label.html() + "</small>");
-                     input_traffic_bar
-                        .css("height", "20px")
-                        .css("margin", "2px 0 12px 0")
-                        .appendTo(traffic_quota);
-
-                     var input_time_bar = $("div.progress:last", tr_quota);
-                     var time_label = input_time_bar.closest("td").find("> span");
-                     time_quota.html("<small>" + time_label.html() + "</small>");
-                     input_time_bar
-                        .css("height", "20px")
-                        .css("margin", "2px 0 12px 0")
-                        .appendTo(time_quota);
-                  } else {
-                     traffic_quota.html(']] print(empty_quota_bar) print[[');
-                     time_quota.html(']] print(empty_quota_bar) print[[');
-                  }
-               }
-            });
-         }
-      });
-
-      /* Periodic timeout */
-      quota_update = setTimeout(quotaUpdateCallback, 5000);
-   }
-
-   function refreshQuotas() {]]
-
-   if not ntop.isEnterprise() then
-      -- no need to update quotas as they are not supported
-      print("return;")
-   end
-
-   print[[
-      if (quota_update !== null) {
-         clearTimeout(quota_update);
-         quota_update = null;
-      }
-
-      /* Reduced timeout (only once) */
-      quota_update = setTimeout(quotaUpdateCallback, 100);
-   }
+   initQuotaUtils("]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua", ]] print(selected_pool.id) print[[, ']] print(empty_quota_bar) print[[', ]] print(not ntop.isEnterprise()) print[[, 100);
    refreshQuotas();
 
    function addNewShapedProto() {
@@ -2072,20 +1962,6 @@ print[[
 
       if ((name !== "new_protocol_id"))
          $("option[value='"+name+"']", input).prop('selected', true);
-   }
-
-   function makeTrafficQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
-         max_value: 100*1024*1024*1024 /* 100 GB */,
-         min_value: 0,
-      });
-   }
-
-   function makeTimeQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
-         max_value: 23*60*60 /* 23 hours */,
-         min_value: 0,
-      });
    }
 
    $("#table-protos").datatable({

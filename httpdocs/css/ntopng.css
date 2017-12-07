@@ -249,6 +249,10 @@ table, tr, td, th, tbody, thead, tfoot {
   border: 1px solid #ddd !important;
 }
 
+tr.quotas > td {
+  padding: 0px;
+}
+
 .table-borderless tbody tr td,
 .table-borderless tbody tr th,
 .table-borderless thead tr th,

@@ -104,6 +104,7 @@ local  en = {
    seen_since = "Seen Since",
    language = "Language",
    remote_networks = "Remote Networks",
+   legenda = "Legenda",
 
    locales = {
       en = "English",

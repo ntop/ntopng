@@ -967,6 +967,7 @@ local known_parameters = {
    ["lifetime_unlimited"]      =  validateEmptyOr(validateOnOff), -- set if user should have an unlimited lifetime
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
+   ["edit_policy"]             =  validateEmpty,                 -- set when editing policy
    ["delete_user"]             =  validateSingleWord,
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
