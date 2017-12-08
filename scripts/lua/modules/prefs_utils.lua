@@ -10,6 +10,7 @@ local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
 show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
+local have_nedge2 = haveNedge2()
 
 -- ############################################
 
@@ -41,7 +42,7 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   if (subpage.disabled) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
-     ((subpage.enterprise_only) and (not info["version.enterprise_edition"])) then
+     ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge2)) then
     return false
   end
 

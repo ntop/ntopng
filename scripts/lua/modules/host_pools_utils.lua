@@ -71,7 +71,13 @@ function host_pools_utils.setPoolDetail(ifid, pool_id, detail, value)
   return ntop.setHashCache(details_key, detail, tostring(value))
 end
 
-local function addMemberToRedisPool(members_key, member_key)
+local function addMemberToRedisPool(ifid, pool_id, member_key)
+  if pool_id == host_pools_utils.DEFAULT_POOL_ID then
+    -- avoid adding default pool members explicitly
+    return true
+  end
+
+  local members_key = get_pool_members_key(ifid, pool_id)
   local n = table.len(ntop.getMembersCache(members_key) or {})
 
   if n >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
@@ -183,7 +189,6 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
     end
   end
 
-  local members_key = get_pool_members_key(ifid, new_pool)
   local member_exists, info = getMembershipInfo(member_and_vlan)
   local prev_pool
 
@@ -200,18 +205,17 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
   end
 
   host_pools_utils.deletePoolMember(ifid, prev_pool, info.key)
-  addMemberToRedisPool(members_key, info.key)
+  addMemberToRedisPool(ifid, new_pool, info.key)
   return true
 end
 
 function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
-  local members_key = get_pool_members_key(ifid, pool_id)
   local member_exists, info = getMembershipInfo(member_and_vlan)
 
   if member_exists then
     return false, info
   else
-    local rv = addMemberToRedisPool(members_key, info.key)
+    local rv = addMemberToRedisPool(ifid, pool_id, info.key)
     return rv, info
   end
 end

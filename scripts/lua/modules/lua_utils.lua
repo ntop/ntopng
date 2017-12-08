@@ -3411,7 +3411,7 @@ end
 
 -- Returns true if the captive portal can be started with the current configuration
 function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
-   if not ntop.isEnterprise() then
+   if not ntop.isEnterprise() and not haveNedge2() then
       return false
    end
 
