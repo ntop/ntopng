@@ -106,6 +106,7 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
   ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
   ntop.setHashCache(details_key, "enforce_quotas_per_pool_member",  tostring(enforce_quotas_per_pool_member  or false))
   ntop.setHashCache(details_key, "enforce_shapers_per_pool_member", tostring(enforce_shapers_per_pool_member or false))
+  ntop.setHashCache(details_key, "forge_global_dns", "true")
   return true
 end
 

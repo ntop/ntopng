@@ -39,6 +39,7 @@ class HostPools {
   int32_t *num_active_l2_devices_inline, *num_active_l2_devices_offline;
 #ifdef NTOPNG_PRO
   bool *children_safe;
+  bool *forge_global_dns;
   u_int8_t *routing_policy_id;
   u_int16_t *pool_shaper;
   u_int32_t *schedule_bitmap;
@@ -169,6 +170,10 @@ class HostPools {
 
   inline bool isChildrenSafePool(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? children_safe[pool_id] : false);
+  }
+
+  inline bool forgeGlobalDns(u_int16_t pool_id) {
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? forge_global_dns[pool_id] : false);
   }
 
   inline u_int8_t getRoutingPolicy(u_int16_t pool_id) {

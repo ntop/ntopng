@@ -76,6 +76,14 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
     return(false);
 #endif
   };
+
+  inline bool forgeGlobalDns() {
+#ifdef NTOPNG_PRO
+    return(iface->getHostPools()->forgeGlobalDns(host_pool_id));
+#else
+    return(false);
+#endif
+  };
 };
 
 #endif /* _GENERIC_HOST_H_ */

@@ -776,6 +776,7 @@
 #define CONST_HELLO_HOST                "hello"
 
 #define CONST_CHILDREN_SAFE                    "children_safe"
+#define CONST_FORGE_GLOBAL_DNS                 "forge_global_dns"
 #define CONST_ROUTING_POLICY_ID                "routing_policy_id"
 #define CONST_POOL_SHAPER_ID                   "pool_shaper_id"
 #define CONST_SCHEDULE_BITMAP                  "daily_schedule"

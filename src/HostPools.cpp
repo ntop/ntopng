@@ -27,9 +27,14 @@
 
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
+  children_safe = forge_global_dns = NULL;
+  routing_policy_id = NULL;
 
 #ifdef NTOPNG_PRO
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
+    throw 1;
+
+  if((forge_global_dns = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
   if((routing_policy_id = (u_int8_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int8_t))) == NULL)
@@ -125,6 +130,7 @@ HostPools::~HostPools() {
 
 #ifdef NTOPNG_PRO
   if(children_safe)     free(children_safe);
+  if(forge_global_dns)  free(forge_global_dns);
   if(routing_policy_id) free(routing_policy_id);
 
   dumpToRedis();
@@ -681,6 +687,9 @@ void HostPools::reloadPools() {
     children_safe[i] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
 			&& (!strcmp(rsp, "true")));
 
+    forge_global_dns[i] = ((redis->hashGet(kname, (char*)CONST_FORGE_GLOBAL_DNS, rsp, sizeof(rsp)) != -1)
+    			&& (!strcmp(rsp, "true")));
+
     routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
     pool_shaper[i] = (redis->hashGet(kname, (char*)CONST_POOL_SHAPER_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_SHAPER_ID;
     schedule_bitmap[i] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? strtol(rsp, NULL, 16) : DEFAULT_TIME_SCHEDULE;
@@ -694,11 +703,13 @@ void HostPools::reloadPools() {
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s]"
 				 "[children_safe: %i]"
+				 "[forge_global_dns: %i]"
 				 "[pool_shaper: %i]"
 				 "[schedule_bitmap: %i]"
 				 "[enforce_quotas_per_pool_member: %i]"
 				 "[enforce_shapers_per_pool_member: %i]",
-				 rsp, children_safe[i], pool_shaper[i], schedule_bitmap[i],
+				 rsp, children_safe[i], forge_global_dns[i],
+				 pool_shaper[i], schedule_bitmap[i],
 				 enforce_quotas_per_pool_member[i],
 				 enforce_shapers_per_pool_member[i]);
 #endif
