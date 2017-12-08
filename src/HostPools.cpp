@@ -27,8 +27,10 @@
 
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
+#ifdef NTOPNG_PRO
   children_safe = forge_global_dns = NULL;
   routing_policy_id = NULL;
+#endif
 
 #ifdef NTOPNG_PRO
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
