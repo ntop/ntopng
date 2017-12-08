@@ -1447,8 +1447,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       return(pass_verdict);
     }
 
-    l4_packet_len = ntohs(ip6->ip6_ctlun.ip6_un1.ip6_un1_plen);
-    l4_proto = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+    l4_packet_len = ntohs(ip6->ip6_hdr.ip6_un1_plen);
+    l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
 
     if(l4_proto == 0x3C /* IPv6 destination option */) {
       u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
@@ -2186,14 +2186,14 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       struct ndpi_iphdr *iph = NULL;
       struct ndpi_ipv6hdr *ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 
-      if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
+      if((ntohl(ip6->ip6_hdr.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
-	u_int8_t l4_proto = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+	u_int8_t l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
 
 	if(l4_proto == 0x3C /* IPv6 destination option */) {
 	  u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
