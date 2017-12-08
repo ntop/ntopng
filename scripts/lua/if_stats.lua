@@ -286,7 +286,7 @@ if(hasSnmpDevices(ifstats.id) and is_packet_interface and false --[[disabled: no
    end
 end
 
-if(ifstats.inline and isAdministrator()) then
+if(ifstats.inline and isAdministrator() and not have_nedge_2) then
    if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">"..i18n('traffic_policy').."</a></li>")
    else
