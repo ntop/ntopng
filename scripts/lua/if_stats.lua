@@ -16,7 +16,6 @@ local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
-local have_nedge_2 = haveNedge2()
 
 require "lua_utils"
 require "prefs_utils"
@@ -24,6 +23,8 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 require "rrd_utils"
+
+local have_nedge_2 = haveNedge2() -- requires lua_utils
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
