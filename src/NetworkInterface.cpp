@@ -3323,6 +3323,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 
 static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   char buf[64];
+  u_int8_t network_prefix = 0;
+  IpAddress *ip_addr = NULL;
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
 
@@ -3402,7 +3404,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
   case column_local_network:
-    r->elems[r->actNumEntries++].ipValue = ntop->getLocalNetworkIp(h->get_local_network_id());
+    ntop->getLocalNetworkIp(h->get_local_network_id(), &ip_addr, &network_prefix);
+    r->elems[r->actNumEntries].ipValue = ip_addr;
+    r->elems[r->actNumEntries++].numericValue = network_prefix;
     break;
 
   case column_mac:
@@ -3613,14 +3617,22 @@ int hostSorter(const void *_a, const void *_b) {
   return(a->hostValue->get_ip()->compare(b->hostValue->get_ip()));
 }
 
-int ipSorter(const void *_a, const void *_b) {
+int ipNetworkSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
+  int rv;
 
   if(!a || !b || !a->ipValue || !b->ipValue)
     return(true);
 
-  return(a->ipValue->compare(b->ipValue));
+  /* Compare network address first */
+  rv = a->ipValue->compare(b->ipValue);
+  if(rv != 0) return rv;
+
+  /* If the address matches, compare netmasks */
+  if(a->numericValue < b->numericValue)      return(-1);
+  else if(a->numericValue > b->numericValue) return(1);
+  else return(0);
 }
 
 int numericSorter(const void *_a, const void *_b) {
@@ -4057,7 +4069,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_num_flows")) retriever->sorter = column_num_flows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_local_network_id")) retriever->sorter = column_local_network_id, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_local_network")) retriever->sorter = column_local_network, sorter = ipSorter;
+  else if(!strcmp(sortColumn, "column_local_network")) retriever->sorter = column_local_network, sorter = ipNetworkSorter;
   else if(!strcmp(sortColumn, "column_mac")) retriever->sorter = column_mac, sorter = numericSorter;
   /* criteria (datatype sortField in ntop_typedefs.h / see also host_search_walker:NetworkInterface.cpp) */
   else if(!strcmp(sortColumn, "column_uploaders")) retriever->sorter = column_uploaders, sorter = numericSorter;

@@ -468,24 +468,25 @@ bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id, u_int8_t 
 
 /* ******************************************* */
 
-IpAddress* Ntop::getLocalNetworkIp(int16_t local_network_id) {
-  IpAddress *network_ip = new IpAddress();
+void Ntop::getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix) {
   char *network_address, *slash;
+  *network_ip = new IpAddress();
+  *network_prefix = 0;
 
   if (local_network_id >= 0)
     network_address = strdup(getLocalNetworkName(local_network_id));
   else
     network_address = strdup((char*)"0.0.0.0/0"); /* Remote networks */
 
-  if((slash = strchr(network_address, '/')))
+  if((slash = strchr(network_address, '/'))) {
+    *network_prefix = atoi(slash + 1);
     *slash = '\0';
+  }
 
-  if(network_ip)
-    network_ip->set(network_address);
+  if(*network_ip)
+    (*network_ip)->set(network_address);
   if(network_address)
-  free(network_address);
-
-  return(network_ip);
+    free(network_address);
 };
 
 /* ******************************************* */
