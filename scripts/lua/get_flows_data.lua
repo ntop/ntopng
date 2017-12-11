@@ -25,6 +25,7 @@ local sortOrder   = _GET["sortOrder"]
 local host_info   = url2hostinfo(_GET)
 local port        = _GET["port"]
 local application = _GET["application"]
+local category    = _GET["category"]
 local network_id  = _GET["network"]
 local vlan        = _GET["vlan"]
 
@@ -102,6 +103,10 @@ local pageinfo = {
 
 if application ~= nil and application ~= "" then
    pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+end
+
+if category ~= nil and category ~= "" then
+   pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
 end
 
 if not isEmptyString(flowhosts_type) then

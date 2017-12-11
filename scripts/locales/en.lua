@@ -163,6 +163,7 @@ local  en = {
       alerted = "Alerted",
       blocked = "Blocked",
       all_proto = "All Proto",
+      all_categories = "All Categories",
       ip_version = "IP Version",
       all_ip_versions = "All Versions",
       ipv4_only = "IPv4 Only",

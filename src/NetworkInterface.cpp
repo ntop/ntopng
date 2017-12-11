@@ -3130,7 +3130,7 @@ struct flowHostRetriever {
 /* **************************************************** */
 
 static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
-  int ndpi_proto;
+  int ndpi_proto, ndpi_cat;
   u_int16_t port;
   int16_t local_network_id;
   u_int16_t vlan_id = 0, pool_filter;
@@ -3161,6 +3161,11 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   (ndpi_proto != NDPI_PROTOCOL_UNKNOWN
 	    && (f->get_detected_protocol().app_protocol != ndpi_proto
 		&& f->get_detected_protocol().master_protocol != ndpi_proto))))
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->l7categoryFilter(&ndpi_cat)
+       && f->get_detected_protocol_category() != ndpi_cat)
       return(false);
 
     if(retriever->pag

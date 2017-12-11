@@ -552,12 +552,14 @@ local function validateZoom(zoom)
 end
 
 local function validateCategory(cat)
-   if not starts(cat, "cat_") then
-      return false
+   if starts(cat, "cat_") then
+      local id = split(cat, "cat_")[2]
+      return validateNumber(id)
+   else
+      return validateChoiceByKeys(ndpi_categories, cat)
    end
 
-   local id = split(cat, "cat_")[2]
-   return validateNumber(id)
+   return false
 end
 
 local function validateShapedElement(elem_id)
@@ -693,6 +695,7 @@ local known_parameters = {
 
 -- NDPI
    ["application"]             =  validateApplication,           -- An nDPI application protocol name
+   ["category"]                =  validateCategory,              -- An nDPI protocol category name
    ["breed"]                   =  validateBool,                  -- True if nDPI breed should be shown
    ["ndpi_category"]           =  validateBool,                  -- True if nDPI category should be shown
    ["ndpistats_mode"]          =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua

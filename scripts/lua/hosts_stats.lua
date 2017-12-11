@@ -290,17 +290,23 @@ print [[
          			field: "key",
          			hidden: true,
          			css: {
-              textAlign: 'center'
-           }
-         		},
-         		{
+                                  textAlign: 'center'
+                                }
+         		},{
+			     title: "",
+				 field: "column_info",
+				 sortable: false,
+	 	             css: {
+			        textAlign: 'center'
+			     }
+         		},{
 			     title: "]] print(i18n("ip_address")) print[[",
 				 field: "column_ip",
 				 sortable: true,
 	 	             css: {
 			        textAlign: 'left'
 			     }
-				 },
+                        },
 			  ]]
 
 if(show_vlan) then

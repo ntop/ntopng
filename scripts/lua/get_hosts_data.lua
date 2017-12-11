@@ -2,7 +2,7 @@
 -- (C) 2013-17 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local discover = require("discover_utils")
@@ -10,28 +10,28 @@ local discover = require("discover_utils")
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
-all = _GET["all"]
-currentPage = _GET["currentPage"]
-perPage     = _GET["perPage"]
-sortColumn  = _GET["sortColumn"]
-sortOrder   = _GET["sortOrder"]
-protocol    = _GET["protocol"]
-long_names  = _GET["long_names"]
-criteria    = _GET["criteria"]
+local all = _GET["all"]
+local currentPage = _GET["currentPage"]
+local perPage     = _GET["perPage"]
+local sortColumn  = _GET["sortColumn"]
+local sortOrder   = _GET["sortOrder"]
+local protocol    = _GET["protocol"]
+local long_names  = _GET["long_names"]
+local criteria    = _GET["criteria"]
 
 -- Host comparison parameters
-mode        = _GET["mode"]
-tracked     = _GET["tracked"]
-ipversion   = _GET["version"]
+local mode        = _GET["mode"]
+local tracked     = _GET["tracked"]
+local ipversion   = _GET["version"]
 
 -- Used when filtering by ASn, VLAN or network
-asn          = _GET["asn"]
-vlan         = _GET["vlan"]
-network      = _GET["network"]
-pool         = _GET["pool"]
-country      = _GET["country"]
-os_    	     = _GET["os"]
-mac          = _GET["mac"]
+local asn          = _GET["asn"]
+local vlan         = _GET["vlan"]
+local network      = _GET["network"]
+local pool         = _GET["pool"]
+local country      = _GET["country"]
+local os_    	     = _GET["os"]
+local mac          = _GET["mac"]
 
 function update_host_name(h)
    if(h["name"] == nil) then
@@ -46,7 +46,7 @@ function update_host_name(h)
 end
 
 -- Get from redis the throughput type bps or pps
-throughput_type = getThroughputType()
+local throughput_type = getThroughputType()
 
 if(long_names == nil) then
    long_names = false
@@ -58,8 +58,8 @@ else
    end
 end
 
-criteria_key = nil
-sortPrefs = "hosts"
+local criteria_key = nil
+local sortPrefs = "hosts"
 if(criteria ~= nil) then
    criteria_key, criteria_format = label2criteriakey(criteria)
    sortPrefs = "localhosts_"..criteria
@@ -104,13 +104,13 @@ if((mode == nil) or (mode == "")) then mode = "all" end
 
 interface.select(ifname)
 
-to_skip = (currentPage-1) * perPage
+local to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local filtered_hosts = false
 
-hosts_retrv_function = interface.getHostsInfo
+local hosts_retrv_function = interface.getHostsInfo
 if mode == "local" then
    hosts_retrv_function = interface.getLocalHostsInfo
 elseif mode == "remote" then
@@ -119,10 +119,11 @@ elseif mode == "filtered" then
    filtered_hosts = true
 end
 
-hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
-	                           country, os_, tonumber(vlan), tonumber(asn),
-				   tonumber(network), mac,
-				   tonumber(pool), tonumber(ipversion), tonumber(protocol), filtered_hosts) -- false = little details
+local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
+					 country, os_, tonumber(vlan), tonumber(asn),
+					 tonumber(network), mac,
+					 tonumber(pool), tonumber(ipversion),
+					 tonumber(protocol), filtered_hosts) -- false = little details
 
 -- tprint(hosts_stats)
 --io.write("---\n")
@@ -138,10 +139,10 @@ end
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 
-now = os.time()
-vals = {}
+local now = os.time()
+local vals = {}
 
-num = 0
+local num = 0
 if(hosts_stats ~= nil) then
    for key, value in pairs(hosts_stats) do
 	 num = num + 1
@@ -339,6 +340,11 @@ for _key, _value in pairsByKeys(vals, funct) do
    else
       print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
    end
+
+   print ("\"column_info\" : \"<a href='"
+	     ..ntop.getHttpPrefix().."/lua/host_details.lua?page=flows&"..hostinfo2url(value).."'>"
+	     .."<span class='label label-info'>"..i18n("flows").."</span>"
+	     .."</a> \",")
 
    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
 

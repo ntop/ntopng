@@ -269,6 +269,7 @@ class NetworkInterface : public Checkpointable {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
+  inline int   get_ndpi_category_id(char *cat) { return(ndpi_get_category_id(ndpi_struct, cat));     };
   inline char* get_ndpi_proto_breed_name(u_int id) {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };

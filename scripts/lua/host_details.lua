@@ -25,6 +25,7 @@ local debug_hosts = false
 local page        = _GET["page"]
 local protocol_id = _GET["protocol"]
 local application = _GET["application"]
+local category    = _GET["category"]
 local host_info   = url2hostinfo(_GET)
 local host_ip     = host_info["host"]
 local host_name   = hostinfo2hostkey(host_info)
@@ -1245,6 +1246,8 @@ print [[/lua/get_flows_data.lua?ifid=]]
 print(ifId.."&")
 if (application ~= nil) then
    print("application="..application.."&")
+elseif (category ~= nil) then
+   print("category="..category.."&")
 end
 print (hostinfo2url(host_info)..'";')
 
@@ -1263,24 +1266,48 @@ elseif interface.isPcapDumpInterface() then
    active_flows_msg = i18n("flows")
 end
 
-local application_filter = ''
-if(application ~= nil) then
-   application_filter = '<span class="glyphicon glyphicon-filter"></span>'
-end
-local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
-dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
+local dt_buttons = ''
 
-local ndpi_stats = interface.getnDPIStats(host_info["host"], host_vlan)
-
-for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
-   local class_active = ''
-   if(key == application) then
-      class_active = ' class="active"'
+if not category then
+   local application_filter = ''
+   if(application ~= nil) then
+      application_filter = '<span class="glyphicon glyphicon-filter"></span>'
    end
-   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
+   dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
+
+   for key, value in pairsByKeys(host["ndpi"] or {}, asc) do
+      local class_active = ''
+      if(key == application) then
+	 class_active = ' class="active"'
+      end
+      dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   end
+
+   dt_buttons = dt_buttons .. "</ul></div>',"
 end
 
-dt_buttons = dt_buttons .. "</ul></div>']"
+if not application then
+   local category_filter = ''
+   if(category ~= nil) then
+      category_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   end
+   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("users.categories").. " " .. category_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
+   dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_categories")..'</a></li>'
+
+   for key, value in pairsByKeys(host["ndpi_categories"] or {}, asc) do
+      local class_active = ''
+      if(key == category) then
+	 class_active = ' class="active"'
+      end
+      dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&category='..key..'">'..key..'</a></li>'
+   end
+
+   dt_buttons = dt_buttons .. "</ul></div>',"
+
+end
+
+dt_buttons = "["..dt_buttons.."]"
 
 if(show_sprobe) then
 print [[

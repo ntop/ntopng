@@ -36,7 +36,7 @@ Paginator::Paginator() {
   /* int */
   max_hits = CONST_MAX_NUM_HITS;
   to_skip = 0;
-  l7proto_filter = -1;
+  l7proto_filter = l7category_filter = -1;
   port_filter = 0;
   local_network_filter = 0;
   vlan_id_filter = 0;
@@ -138,6 +138,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  to_skip = lua_tointeger(L, -1);
 	else if(!strcmp(key, "l7protoFilter"))
 	  l7proto_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "l7categoryFilter"))
+	  l7category_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "portFilter"))
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))

@@ -17,6 +17,7 @@ function host_table_setID (row) {
   row.attr('id', host_key);
 
   row.find("td").eq(index++).attr('id', host_key+"_key");
+  row.find("td").eq(index++).attr('id', host_key+"_info");
   //custom
   if (host_rows_option["ip"]) row.find("td").eq(index++).attr('id', host_key+"_ip");
   if (host_rows_option["vlan"]) row.find("td").eq(index++).attr('id', host_key+"_vlan");
