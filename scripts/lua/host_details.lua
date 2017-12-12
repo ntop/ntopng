@@ -1292,7 +1292,7 @@ if not application then
    if(category ~= nil) then
       category_filter = '<span class="glyphicon glyphicon-filter"></span>'
    end
-   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("users.categories").. " " .. category_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
+   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("users.categories").. " " .. category_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu pull-right\" role=\"menu\" >"
    dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_categories")..'</a></li>'
 
    for key, value in pairsByKeys(host["ndpi_categories"] or {}, asc) do
