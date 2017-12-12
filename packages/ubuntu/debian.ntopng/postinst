@@ -31,7 +31,7 @@ fi
 
 # Start service after upgrade/install
 echo "(Re)Starting ntopng..."
-if [ -h /sbin/init ]; then
+if hash systemctl 2>/dev/null; then
     systemctl daemon-reload
     systemctl reset-failed
     systemctl enable ntopng
