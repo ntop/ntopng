@@ -197,6 +197,13 @@ function printAlerts()
   })
 
   prefsToggleButton({
+    field = "toggle_remote_to_remote_alerts",
+    pref = "remote_to_remote_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  prefsToggleButton({
     field = "toggle_malware_probing",
     pref = "host_blacklist",
     default = "1",
@@ -287,7 +294,7 @@ function printExternalAlertsReport()
 		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
 
   if(ntop.isPro() and hasNagiosSupport()) then
-    print('<tr><th colspan=2 class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
+    print('<tr><th colspan= class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
 
     local alertsEnabled = showElements
 

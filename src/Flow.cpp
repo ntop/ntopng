@@ -237,7 +237,13 @@ void Flow::dumpFlowAlert() {
     case status_dns_invalid_query:
       do_dump = ntop->getPrefs()->are_dns_alerts_enabled();
       break;
+
+    case status_remote_to_remote:
+      do_dump = ntop->getPrefs()->are_remote_to_remote_alerts_enabled();
+      break;
     }
+
+
 
     if(do_dump && cli_host && srv_host) {
       char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
@@ -786,11 +792,10 @@ char* Flow::print(char *buf, u_int buf_len) {
 #endif
 	   );
 
-  if(getFlowStatus() == status_dns_invalid_query && protos.dns.last_query) {
+  if(getFlowStatus() == status_dns_invalid_query && protos.dns.last_query)
     snprintf(&buf[strlen(buf)], buf_len - strlen(buf), "[query: %s]", protos.dns.last_query);
-  }
 
-  return(buf);
+return(buf);
 }
 
 /* *************************************** */
@@ -3089,6 +3094,9 @@ FlowStatus Flow::getFlowStatus() {
 	return status_dns_invalid_query;
     }
   }
+
+  if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost())
+    return status_remote_to_remote;
 
   if(iface->getAlertLevel() > 0)
    return(status_flow_when_interface_alerted);
