@@ -1234,6 +1234,7 @@ local  en = {
       dhcp_only = "DHCP Only",
       all_manufacturers = "All Manufacturers",
       arp_total = "ARP",
+      idle_devices_not_listed = "Idle devices not listed.",
    },
 
    details = {

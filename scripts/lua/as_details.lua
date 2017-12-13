@@ -137,6 +137,9 @@ print [[
          url: url_update,
          buttons: ]] print(dt_buttons) print[[,
          rowCallback: function ( row ) { return flow_table_setID(row); },
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+   print(i18n('flows_page.idle_flows_not_listed'))
+   print[['); },
 	       showPagination: true,
 	       ]]
 
