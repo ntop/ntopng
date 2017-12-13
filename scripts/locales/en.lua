@@ -778,7 +778,7 @@ local  en = {
       nbox_password_description = "Password associated to the nBox user. Default: nbox",
 
       toggle_network_discovery_title = "Active Network Discovery",
-      toggle_network_discovery_description = "Toggle the periodic discovery of network devices using multiple techniques that include ARP scan, MDNS and SSDP.",
+      toggle_network_discovery_description = "Toggle the periodic discovery of network devices using multiple techniques that include ARP scan, MDNS and SSDP.<p><b>NOTE:</b> discovery can be <u>only</u> enabled on physical interfaces  (i.e. no ZMQ) where we can send/receive traffic to the network (i.e. read-only interfaces such as those connected to port mirrors won't work). ",
       network_discovery_interval_title = "Active Network Discovery Interval",
       network_discovery_interval_description = "Interval between consecutive discoveries of networks. Default: 15 min.",
 
