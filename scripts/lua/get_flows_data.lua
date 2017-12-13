@@ -369,7 +369,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
 
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar progress-bar-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>"
-   record["column_info"] = "ciao"
 
    local info = value["info"]
 

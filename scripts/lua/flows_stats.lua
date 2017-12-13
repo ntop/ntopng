@@ -188,9 +188,12 @@ if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
    print [[
 	 var table = $("#table-flows").datatable({
-			url: url_update , ]]
-print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
-
+			url: url_update ,
+         rowCallback: function(row) { return flow_table_setID(row); },
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+   print(i18n('flows_page.idle_flows_not_listed'))
+   print[['); },
+]]
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 

@@ -203,6 +203,12 @@ end
 print('title: "'..getPageTitle()..'",\n')
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
 
+print [[
+       tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+print(i18n('hosts_stats.idle_hosts_not_listed'))
+print[['); },
+]]
+
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end

@@ -162,13 +162,8 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  if(good_low_flow_detected) {
-    if(cli_host) cli_host->decLowGoodputFlows(true);
-    if(srv_host) srv_host->decLowGoodputFlows(false);
-  }
-
-  if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
-  if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
+  if(cli_host)         cli_host->decUses();
+  if(srv_host)         srv_host->decUses();
   if(json_info)        free(json_info);
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);

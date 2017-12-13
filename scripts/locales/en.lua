@@ -144,6 +144,7 @@ local  en = {
 
    flows_page = {
       recently_active_flows = "Recently Active %{filter} Flows",
+      idle_flows_not_listed = "Idle flows not listed.",
       active_flows = "Active %{filter} Flows",
       flows = "%{filter} Flows",
       network = " [ Network %{network} ]",
@@ -1544,6 +1545,7 @@ local  en = {
       label_local_host = "Local Host",
       label_remote_host = "Remote Host",
       label_blacklisted_host = "Blacklisted Host",
+      idle_hosts_not_listed = "Idle hosts not listed.",
    },
 
    unknown_devices = {

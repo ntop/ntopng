@@ -216,6 +216,18 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
+  virtual void set_to_purge() { /* Saves 1 extra-step of purge idle */
+    if(cli_host) {
+      cli_host->decNumFlows(true);
+      if(good_low_flow_detected) cli_host->decLowGoodputFlows(true);
+    }
+    if(srv_host) {
+      srv_host->decNumFlows(false);
+      if(good_low_flow_detected) srv_host->decLowGoodputFlows(false);
+    }
+    GenericHashEntry::set_to_purge();
+  };
+
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();

@@ -1315,9 +1315,12 @@ print [[
    flow_rows_option["sprobe"] = true;
    flow_rows_option["type"] = 'host';
    $("#table-flows").datatable({
-      url: url_update ,
+      url: url_update,
       buttons: ]] print(dt_buttons) print[[,
       rowCallback: function ( row ) { return flow_table_setID(row); },
+      tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+   print(i18n('flows_page.idle_flows_not_listed'))
+   print[['); },
          showPagination: true,
 ]]
 -- Set the preference table
@@ -1427,7 +1430,10 @@ print [[
          url: url_update,
          buttons: ]] print(dt_buttons) print[[,
          rowCallback: function ( row ) { return flow_table_setID(row); },
-	       showPagination: true,
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+print(i18n('flows_page.idle_flows_not_listed'))
+print[['); },
+         showPagination: true,
 	       ]]
 
   print('title: "'..active_flows_msg..'",')
