@@ -14,5 +14,5 @@ Suggests: ntopng-data
 Pre-Depends:
 Conflicts:
 Provides:
-Replaces: ntop, nedge
+Replaces: ntop
 Description: Web-based traffic monitoring.
