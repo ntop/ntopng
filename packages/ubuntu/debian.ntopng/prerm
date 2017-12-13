@@ -8,7 +8,8 @@ case "$1" in
 	;;
 
 	*)
-	echo "Stopping ntopng services..."
+        if [ -f /.dockerenv ]; then exit 0; fi
+        echo "Stopping ntopng services..."
 	if grep -q systemd /proc/1/comm; then
 		systemctl stop ntopng
 

@@ -58,7 +58,7 @@ if test -d "$HOME/ntopng/pro"; then
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.luar" | xargs rename .luar .lua
 fi
 
-if grep -q systemd /proc/1/comm; then
+if hash systemctl 2>/dev/null; then
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng*.service    $RPM_BUILD_ROOT/etc/systemd/system/
 else
@@ -131,6 +131,8 @@ echo 'Setting up redis auto startup'
 echo 'Creating link under /usr/local/bin'
 if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/ntopng ; fi
 if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
+
+if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} == 7
 /bin/systemctl daemon-reload
 /bin/systemctl enable ntopng.service
@@ -138,6 +140,7 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 %else
 /sbin/chkconfig --add ntopng
 %endif
+fi
 
 %if 0%{?centos_ver} != 7
 case "$1" in
@@ -165,12 +168,15 @@ case "$1" in
 esac
 %endif
 
+if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
   /bin/systemctl stop ntopng.service
 %else
   /sbin/chkconfig --del ntopng
 %endif
+fi
+
 if [ $1 == 0 ] ; then
     rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi

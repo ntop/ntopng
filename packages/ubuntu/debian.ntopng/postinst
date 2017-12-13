@@ -28,6 +28,8 @@ if [ -d /usr/local/share/ntopng ] ; then
     mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled
 fi
 
+if [ -f /.dockerenv ]; then exit 0; fi
+
 # Start service after upgrade/install
 echo "(Re)Starting ntopng..."
 if hash systemctl 2>/dev/null; then
