@@ -514,27 +514,22 @@ end
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string"}
 alert_level_keys = {
+  { "<span class='label label-info'>None</span>",      -1, "none"   },
   { "<span class='label label-info'>Info</span>",       0, "info"    },
   { "<span class='label label-warning'>Warning</span>", 1, "warning" },
   { "<span class='label label-danger'>Error</span>",    2, "error"   }
 }
 
 alert_type_keys = {
-  { "<i class='fa fa-life-ring'></i> TCP SYN Flood",                       0, "tcp_syn_flood"              },
-  { "<i class='fa fa-life-ring'></i> Flows Flood",                         1, "flows_flood"                },
-  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",               2, "threshold_cross"            },
-  { "<i class='fa fa-frown-o'></i> Blacklisted Host",                      3, "blacklist_host"             },
-  { "<i class='fa fa-clock-o'></i> Periodic Activity",                     4, "periodic_activity"          },
-  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",                       5, "quota_exceeded"             },
-  { "<i class='fa fa-ban'></i> Malware Detected",                          6, "malware_detected"           },
-  { "<i class='fa fa-bomb'></i> Ongoing Attacker",                         7, "ongoing_attacker"           },
-  { "<i class='fa fa-bomb'></i> Under Attack",                             8, "under_attack"               },
-  { "<i class='fa fa-exclamation'></i> Misconfigured App",                 9, "misconfigured_app"          },
-  { "<i class='fa fa-exclamation'></i> Suspicious Activity",              10, "suspicious_activity"        },
-  { "<i class='fa fa-exclamation'></i> Too Many Alerts",                  11, "too_many_alerts"            },
-  { "<i class='fa fa-exclamation'></i> MySQL open_files_limit too small", 12, "open_files_limit_too_small" },
-  { "<i class='fa fa-exclamation'></i> Interface Alerted",                13, "interface_alerted"          },
-  { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",                14, "flow_misbehaviour"          },
+  { "<i class='fa fa-ok'></i> No alert",                             -1, "alert_none"                 },
+  { "<i class='fa fa-life-ring'></i> TCP SYN Flood",                  0, "tcp_syn_flood"              },
+  { "<i class='fa fa-life-ring'></i> Flows Flood",                    1, "flows_flood"                },
+  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",          2, "threshold_cross"            },
+  { "<i class='fa fa-exclamation'></i> Suspicious Activity",          3, "suspicious_activity"        },
+  { "<i class='fa fa-exclamation'></i> Interface Alerted",            4, "interface_alerted"          },
+  { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",            5, "flow_misbehaviour"          },
+  { "<i class='fa fa-exclamation'></i> Remote to Remote Flow",        6, "flow_remote_to_remote"      },
+  { "<i class='fa fa-exclamation'></i> Blacklisted Flow",             7, "flow_blacklisted"           },
 }
 
 local alert_entity_keys = {
@@ -2705,6 +2700,7 @@ function getFlowStatus(status)
   elseif(status == 10) then return("<font color=orange>"..i18n("flow_details.ssl_certificate_mismatch").."</font>")
   elseif(status == 11) then return("<font color=orange>"..i18n("flow_details.dns_invalid_query").."</font>")
   elseif(status == 12) then return("<font color=orange>"..i18n("flow_details.remote_to_remote").."</font>")
+  elseif(status == 13) then return("<font color=orange>"..i18n("flow_details.blacklisted_flow").."</font>")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end

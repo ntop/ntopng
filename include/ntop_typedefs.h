@@ -52,18 +52,11 @@ typedef enum {
   alert_syn_flood = 0,
   alert_flow_flood,
   alert_threshold_exceeded,
-  alert_dangerous_host,
-  alert_periodic_activity,
-  alert_quota,
-  alert_malware_detection,
-  alert_host_under_attack,
-  alert_host_attacker,
-  alert_app_misconfiguration,
   alert_suspicious_activity,
-  alert_too_many_alerts,
-  alert_db_misconfiguration,
   alert_interface_alerted,
-  alert_flow_misbehaviour
+  alert_flow_misbehaviour,
+  alert_flow_remote_to_remote,
+  alert_flow_blacklisted,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -78,9 +71,10 @@ typedef enum {
 } SlackNotificationChoice;
 
 typedef enum {
+  alert_level_none = -1,
   alert_level_info = 0,
   alert_level_warning,
-  alert_level_error,
+  alert_level_error
 } AlertLevel;
 
 typedef enum {
@@ -238,6 +232,7 @@ typedef enum {
   status_ssl_certificate_mismatch /* 10 */,
   status_dns_invalid_query /* 11 */,
   status_remote_to_remote /* 12 */,
+  status_blacklisted /* 13 */,
 } FlowStatus;
 
 typedef enum {

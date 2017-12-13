@@ -129,7 +129,7 @@ class AlertsManager : protected StoreManager {
   /*
     ========== FLOW alerts API =========
    */
-  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int storeFlowAlert(Flow *f);
   inline int getNumFlowAlerts() {
     return getNumFlowAlerts(NULL);
   };

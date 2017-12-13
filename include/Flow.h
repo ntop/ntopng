@@ -69,7 +69,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
-  bool detection_completed, protocol_processed, blacklist_alarm_emitted,
+  bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
@@ -190,13 +190,15 @@ class Flow : public GenericHashEntry {
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   void processLua(lua_State* vm, ProcessInfo *proc, bool client);
   void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
-  void checkBlacklistedFlow();
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
+  inline bool isBlacklistedFlow() {
+    return(cli_host && srv_host && (cli_host->isBlacklisted() || srv_host->isBlacklisted()));
+  };
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
     return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));

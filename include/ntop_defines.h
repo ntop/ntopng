@@ -677,7 +677,7 @@
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v6.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v7.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.prefs.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.prefs.alerts.ifid_%i.make_room_flow_alerts"

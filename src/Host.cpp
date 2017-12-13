@@ -1711,11 +1711,6 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     ntop->getPrefs()->get_http_prefix(),
 	     c, iface->get_id(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
-
-    // iface->getAlertsManager()->engageHostAlert(this,
-    // 					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
-    // 					       asClient ? alert_host_under_attack : alert_host_attacker,
-    // 					       alert_level_error, msg);
 #endif
     good_low_flow_detected = true;
   }
@@ -1733,12 +1728,7 @@ void Host::decLowGoodputFlows(bool asClient) {
   }
 
   if(alert && good_low_flow_detected) {
-    /* TODO: send end of alert
-       iface->getAlertsManager()->releaseHostAlert(this,
-       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
-       asClient ? alert_host_under_attack : alert_host_attacker,
-       alert_level_error, msg);
-    */
+    /* TODO: send end of alert  */
     good_low_flow_detected = false;
   }
 }

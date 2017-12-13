@@ -342,12 +342,14 @@ bool Utils::mkdir_tree(char *path) {
 
 /* **************************************************** */
 
-const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
+const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aLevel) {
   *aType = alert_flow_misbehaviour; /* Default */
+  *aLevel = alert_level_warning;
 
   switch(s) {
   case status_normal:
     *aType = alert_none;
+    *aLevel = alert_level_none;
     return("Normal");
     break;
   case status_slow_tcp_connection:
@@ -385,8 +387,11 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
     *aType = alert_suspicious_activity;
     return("Invalid DNS query");
   case status_remote_to_remote:
-    *aType = alert_suspicious_activity;
+    *aType = alert_flow_remote_to_remote;
     return("Remote client and remote server");
+  case status_blacklisted:
+    *aType = alert_flow_blacklisted;
+    return("Client or server blacklisted (or both)");
   default:
     return("Unknown status");
     break;

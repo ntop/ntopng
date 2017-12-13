@@ -12,7 +12,6 @@ to save as many fields as he/she wish.
 'alert_type' must be an integer number that uniquely identifies the alert type.
 This integer number can be obtained using the helper function alertType as follows:
 
-alertType("under_attack"))
 alertType("tcp_syn_flood"))
 alertType("flows_flood"))
 
@@ -28,14 +27,6 @@ alertSeverity("error")
 
 
 Examples of alerts generation are:
-
-fire_alert(0,
-	   {['ifid']=0,
-	      ['alert_type']=alertType("under_attack"),
-	      ['alert_severity']=alertSeverity("warning"),
-	      ['seen']=os.time(), ['msg']="this is a test alert"})
-
-fire_alert(0, {['ifid']=0, ['alert_type']=2, ['alert_severity']=1, ['custom_field']=os.time(), ['custom_info']="test"})
 --]]
 
 dirs = ntop.getDirs()
@@ -53,5 +44,4 @@ end
 
 --fire_alert(0, {['ifid']=0, ['alert_type']=2, ['alert_severity']=1, ['seen']=os.time(), ['msg']="simone"})
 --tprint(alertSeverity("warning"))
---tprint(alertType("under_attack"))
 

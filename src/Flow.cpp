@@ -89,7 +89,7 @@ Flow::Flow(NetworkInterface *_iface,
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   //bytes_rate = new TimeSeries<float>(4096);
-  protocol_processed = false, blacklist_alarm_emitted = false;
+  protocol_processed = false;
 
   synTime.tv_sec = synTime.tv_usec = 0,
     ackTime.tv_sec = ackTime.tv_usec = 0,
@@ -193,17 +193,16 @@ Flow::~Flow() {
 void Flow::dumpFlowAlert() {
   FlowStatus status = getFlowStatus();
 
-  if((!isFlowAlerted()) && (status != status_normal)) {
-    char buf[128], *f = print(buf, sizeof(buf));
-    AlertType aType;
-    const char *msg = Utils::flowStatus2str(status, &aType);
+  if(!isFlowAlerted() && status != status_normal) {
     bool do_dump = true;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
 
     switch(status) {
     case status_normal:
       do_dump = false;
+      break;
+
+    case status_blacklisted:
+      do_dump = true;
       break;
 
     case status_slow_tcp_connection: /* 1 */
@@ -238,110 +237,8 @@ void Flow::dumpFlowAlert() {
       break;
     }
 
-
-
-    if(do_dump && cli_host && srv_host) {
-      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
-      char cli_name[64], srv_name[64];
-
-      c = cli_host->get_hostkey(c_buf, sizeof(c_buf));
-      s = srv_host->get_hostkey(s_buf, sizeof(s_buf));
-
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> &gt; "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> [%s]",
-	       msg, /* TODO: remove string and save numeric status */
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_id(),
-	       cli_host->get_visual_name(cli_name, sizeof(cli_name)),
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_id(),
-	       srv_host->get_visual_name(srv_name, sizeof(srv_name)),
-	       print(fbuf, sizeof(fbuf)));
-
-      iface->getAlertsManager()->storeFlowAlert(this, aType, alert_level_warning, alert_msg);
-    }
-
-    setFlowAlerted();
-  }
-}
-
-/* *************************************** */
-
-void Flow::checkBlacklistedFlow() {
-  if(cli_host
-       && srv_host
-       && (cli_host->isBlacklisted()
-	   || srv_host->isBlacklisted())) {
-    char c_buf[64], s_buf[64], *c, *s;
-    char c_name[64], s_name[64];
-
-    c = cli_host->get_hostkey(c_buf, sizeof(c_buf));
-    s = srv_host->get_hostkey(s_buf, sizeof(s_buf));
-
-    /* Checks to generate the flow alert */
-    if(!blacklist_alarm_emitted) {
-      char fbuf[256], alert_msg[1024];
-
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> contacted %s "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> [%s]",
-	       cli_host->isBlacklisted() ? "blacklisted host" : "host",
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_id(),
-	       cli_host->get_visual_name(c_name, sizeof(c_name)),
-	       srv_host->isBlacklisted() ? "blacklisted host" : "host",
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_id(),
-	       srv_host->get_visual_name(s_name, sizeof(s_name)),
-	       print(fbuf, sizeof(fbuf)));
-
-      iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
-						alert_level_error, alert_msg);
-
-      blacklist_alarm_emitted = true;
-    }
-
-    /* TODO
-     * the host alerts are temporary disabled because, as soon as the host
-     * stays in memory, at most 1 alerts would be generated even if the host
-     * was/contacted by many hosts.
-     */
-#if 0
-    /* Checks to generate the host alert */
-    if (cli_host->isBlacklisted() && !cli_host->isBlacklistedAlarmEmitted()) {
-      char msg[1024];
-      snprintf(msg, sizeof(msg), "Blacklisted host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> "
-	       "contacted <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_id(),
-	       cli_host->get_visual_name(c_name, sizeof(c_name)),
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_id(),
-	       srv_host->get_visual_name(s_name, sizeof(s_name)));
-      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
-      iface->getAlertsManager()->storeHostAlert(cli_host, alert_malware_detection, alert_level_error, msg, cli_host, srv_host);
-      cli_host->setBlacklistedAlarmEmitted();
-    }
-
-    if (srv_host->isBlacklisted() && !srv_host->isBlacklistedAlarmEmitted()) {
-      char msg[1024];
-      snprintf(msg, sizeof(msg), "Blacklisted host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A> "
-	       "was contacted by <A HREF='%s/lua/host_details.lua?host=%s&ifid=%d&page=alerts'>%s</A>",
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_id(),
-	       srv_host->get_visual_name(s_name, sizeof(s_name)),
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_id(),
-	       cli_host->get_visual_name(c_name, sizeof(c_name)));
-      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
-      iface->getAlertsManager()->storeHostAlert(srv_host, alert_malware_detection, alert_level_error, msg, srv_host, cli_host);
-      srv_host->setBlacklistedAlarmEmitted();
-    }
-#endif
-
+    if(do_dump)
+      iface->getAlertsManager()->storeFlowAlert(this);
   }
 }
 
@@ -1225,12 +1122,9 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       last_db_dump.last_dump = last_seen;
   }
 
-  checkBlacklistedFlow();
-
   if(!is_idle_flow)
     iface->luaEvalFlow(this, callback_flow_update);
   else {
-    checkBlacklistedFlow();
     iface->luaEvalFlow(this, callback_flow_delete);
   }
 
@@ -1470,6 +1364,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
 
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
+      lua_push_bool_table_entry(vm, "cli.blacklisted", src->isBlacklisted());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
       lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
       lua_push_int_table_entry(vm, "cli.pool_id", src->get_host_pool());
@@ -1482,6 +1377,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_int_table_entry(vm, "srv.source_id", 0 /* was never set by src->getSourceId() */);
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
+      lua_push_bool_table_entry(vm, "srv.blacklisted", dst->isBlacklisted());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
       lua_push_int32_table_entry(vm, "srv.network_id", dst->get_local_network_id());
       lua_push_int_table_entry(vm, "srv.pool_id", dst->get_host_pool());
@@ -3024,6 +2920,9 @@ FlowStatus Flow::getFlowStatus() {
   u_int32_t threshold;
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+  if(isBlacklistedFlow())
+    return status_blacklisted;
+
   /* All flows */
   threshold = cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO;
   if((tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost) > threshold)
@@ -3090,7 +2989,9 @@ FlowStatus Flow::getFlowStatus() {
     }
   }
 
-  if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost())
+  if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
+     && ! cli_host->get_ip()->isBroadcastAddress()
+     && ! srv_host->get_ip()->isBroadcastAddress())
     return status_remote_to_remote;
 
   if(iface->getAlertLevel() > 0)

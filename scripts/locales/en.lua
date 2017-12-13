@@ -1386,6 +1386,7 @@ local  en = {
       ssl_certificate_mismatch = "SSL Certificate Mismatch",
       dns_invalid_query = "Invalid DNS query",
       remote_to_remote = "Remote client and remote server",
+      blacklisted_flow = "Client or server blacklisted (or both)",
       unknown_status = "Unknown status (%{status})",
       sip_protocol_information = "SIP Protocol Information",
       call_id = "Call-ID",

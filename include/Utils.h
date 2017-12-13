@@ -89,7 +89,7 @@ class Utils {
   static u_int32_t timeval2usec(const struct timeval *tv);
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
-  static const char* flowStatus2str(FlowStatus s, AlertType *aType);
+  static const char* flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aLevel);
   static char* formatMac(u_int8_t *mac, char *buf, u_int buf_len);
   static void  parseMac(u_int8_t *mac, const char *symMac);
   static u_int32_t macHash(u_int8_t *mac);

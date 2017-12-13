@@ -1162,12 +1162,18 @@ function getFlowLabel(flow, show_macs, add_hyperlinks)
       if(flow["cli.systemhost"] == true) then
 	 cli_name = cli_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
       end
+      if(flow["cli.blacklisted"] == true) then
+	 cli_name = cli_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
+      end
       cli_name = cli_name.."</A>"
 
       srv_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"srv") .. "\">"
       srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
       if(flow["srv.systemhost"] == true) then
 	 srv_name = srv_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+      end
+      if(flow["srv.blacklisted"] == true) then
+	 srv_name = srv_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
       end
       srv_name = srv_name.."</A>"
 
