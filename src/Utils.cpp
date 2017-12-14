@@ -392,6 +392,10 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_blacklisted:
     *aType = alert_flow_blacklisted;
     return("Client or server blacklisted (or both)");
+  case status_dropped_by_bridge:
+    *aLevel = alert_level_info;
+    *aType = alert_flow_dropped_by_bridge;
+    return("Flow dropped by bridge");
   default:
     return("Unknown status");
     break;

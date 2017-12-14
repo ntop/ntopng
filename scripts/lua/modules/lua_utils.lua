@@ -530,6 +530,7 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",            5, "flow_misbehaviour"          },
   { "<i class='fa fa-exclamation'></i> Remote to Remote Flow",        6, "flow_remote_to_remote"      },
   { "<i class='fa fa-exclamation'></i> Blacklisted Flow",             7, "flow_blacklisted"           },
+  { "<i class='fa fa-ban'></i> Dropped Flow",                         8, "flow_dropped_by_bridge"     },
 }
 
 local alert_entity_keys = {
@@ -2701,6 +2702,7 @@ function getFlowStatus(status)
   elseif(status == 11) then return("<font color=orange>"..i18n("flow_details.dns_invalid_query").."</font>")
   elseif(status == 12) then return("<font color=orange>"..i18n("flow_details.remote_to_remote").."</font>")
   elseif(status == 13) then return("<font color=orange>"..i18n("flow_details.blacklisted_flow").."</font>")
+  elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end

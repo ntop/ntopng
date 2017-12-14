@@ -57,6 +57,7 @@ typedef enum {
   alert_flow_misbehaviour,
   alert_flow_remote_to_remote,
   alert_flow_blacklisted,
+  alert_flow_dropped_by_bridge
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -233,6 +234,7 @@ typedef enum {
   status_dns_invalid_query /* 11 */,
   status_remote_to_remote /* 12 */,
   status_blacklisted /* 13 */,
+  status_dropped_by_bridge /* 14 */,
 } FlowStatus;
 
 typedef enum {

@@ -2920,6 +2920,9 @@ FlowStatus Flow::getFlowStatus() {
   u_int32_t threshold;
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+  if(iface->is_bridge_interface() && !isPassVerdict())
+    return status_dropped_by_bridge;
+
   if(isBlacklistedFlow())
     return status_blacklisted;
 
