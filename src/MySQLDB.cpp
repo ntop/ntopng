@@ -22,6 +22,7 @@
 #include "ntop_includes.h"
 
 #ifdef HAVE_MYSQL
+
 /* **************************************************** */
 
 static void* queryLoop(void* ptr) {

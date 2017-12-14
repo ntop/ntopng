@@ -63,4 +63,7 @@
 __inline int round(double a){int x = (a + 0.5); return x;}
 #endif
 
+/* ntop */
+#define HAVE_MYSQL  1
+
 #endif                          /* CONFIG_H */
