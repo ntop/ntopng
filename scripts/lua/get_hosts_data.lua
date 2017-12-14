@@ -362,8 +362,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 
    -- exists only for bridged interfaces
-   if value["flows.dropped"] then
-      print ("\", \"column_num_dropped_flows\" : \""..value["flows.dropped"])
+   if isBridgeInterface(interface.getStats()) then
+      print ("\", \"column_num_dropped_flows\" : \""..(value["flows.dropped"] or 0))
    end
    
    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)

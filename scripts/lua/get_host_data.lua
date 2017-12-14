@@ -114,6 +114,11 @@ else
    end
 
    print ("\"column_num_flows\" : \""..host["active_flows.as_client"]+host["active_flows.as_server"].."\",")
+
+   if isBridgeInterface(interface.getStats()) then
+      print ("\"column_num_dropped_flows\" : \""..(host["flows.dropped"] or 0).."\",")
+   end
+
    print ("\"column_alerts\" : \"")
    if((host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)) then
       print(""..host["num_alerts"].."\",")

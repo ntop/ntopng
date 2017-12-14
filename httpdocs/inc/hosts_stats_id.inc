@@ -61,6 +61,7 @@ function row_update(host_key) {
       $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
       $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
       $('td[id="'+host_key+'_num_flows"]').html(data.column_num_flows);
+      $('td[id="'+host_key+'_num_dropped_flows"]').html(data.column_num_dropped_flows);
     },
     error: function(content) {
       console.log("error");
