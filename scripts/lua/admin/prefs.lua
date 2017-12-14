@@ -203,6 +203,15 @@ function printAlerts()
     hidden = not showElements,
   })
 
+  if hasBridgeInterfaces(false) then
+     prefsToggleButton({
+        field = "toggle_dropped_flows_alerts",
+	pref = "dropped_flows_alerts",
+	default = "0",
+	hidden = not showElements,
+     })
+  end
+
   prefsToggleButton({
     field = "toggle_malware_probing",
     pref = "host_blacklist",

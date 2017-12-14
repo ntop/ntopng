@@ -62,6 +62,7 @@ class Prefs {
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,
 	  enable_probing_alerts, enable_ssl_alerts;
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
+  bool enable_dropped_flows_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
@@ -277,8 +278,9 @@ class Prefs {
   inline bool are_ssl_alerts_enabled()                   { return(enable_ssl_alerts);                   };
   inline bool are_dns_alerts_enabled()                   { return(enable_dns_alerts);                   };
   inline bool are_remote_to_remote_alerts_enabled()      { return(enable_remote_to_remote_alerts);      };
+  inline bool are_dropped_flows_alerts_enabled()         { return(enable_dropped_flows_alerts);         };
   inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };
-  inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);  };
+  inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);         };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
 
   inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };

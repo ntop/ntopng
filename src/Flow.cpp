@@ -235,6 +235,12 @@ void Flow::dumpFlowAlert() {
     case status_remote_to_remote:
       do_dump = ntop->getPrefs()->are_remote_to_remote_alerts_enabled();
       break;
+
+#ifdef NTOPNG_PRO
+    case status_dropped_by_bridge:
+      do_dump = ntop->getPrefs()->are_dropped_flows_alerts_enabled();
+      break;
+#endif
     }
 
     if(do_dump)
@@ -2920,8 +2926,10 @@ FlowStatus Flow::getFlowStatus() {
   u_int32_t threshold;
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+#ifdef NTOPNG_PRO
   if(iface->is_bridge_interface() && !isPassVerdict())
     return status_dropped_by_bridge;
+#endif
 
   if(isBlacklistedFlow())
     return status_blacklisted;

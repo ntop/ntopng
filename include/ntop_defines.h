@@ -346,6 +346,7 @@
 #define CONST_DEFAULT_ALERT_SSL_ENABLED                   0
 #define CONST_DEFAULT_ALERT_DNS_ENABLED                   0
 #define CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED      0
+#define CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED         0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
@@ -458,6 +459,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_DNS                  "ntopng.prefs.dns_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE     "ntopng.prefs.remote_to_remote_alerts"
+#define CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS        "ntopng.prefs.dropped_flows_alerts"
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        "ntopng.prefs.alerts_global.min.local_hosts"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
 #define CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY      "syn_victim_threshold"
