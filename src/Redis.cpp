@@ -41,6 +41,8 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
   reconnectRedis();
   stringCache = NULL, numCached = 0;
   l = new Mutex();
+
+  getRedisVersion();
 }
 
 /* **************************************** */
@@ -50,8 +52,10 @@ Redis::~Redis() {
   redisFree(redis);
   // flushCache();
   delete l;
+  
   if(redis_host)     free(redis_host);
   if(redis_password) free(redis_password);
+  if(redis_version)  free(redis_version);
 }
 
 /* **************************************** */
@@ -960,9 +964,11 @@ int Redis::setResolvedAddress(char *numeric_ip, char *symbolic_ip) {
 
 /* **************************************** */
 
-char* Redis::getVersion(char *str, u_int str_len) {
+char* Redis::getRedisVersion() {
   redisReply *reply;
-
+  char str[32];
+  int a, b, c;
+  
   l->lock(__FILE__, __LINE__);
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "INFO");
@@ -970,7 +976,7 @@ char* Redis::getVersion(char *str, u_int str_len) {
   if(reply && (reply->type == REDIS_REPLY_ERROR))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
-  snprintf(str, str_len, "%s" , "????");
+  snprintf(str, sizeof(str), "%s" , "????");
 
   if(reply) {
     if(reply->str) {
@@ -980,7 +986,7 @@ char* Redis::getVersion(char *str, u_int str_len) {
 
       while(line != NULL) {
 	if(!strncmp(line, tofind, tofind_len)) {
-	  snprintf(str, str_len, "%s" , &line[tofind_len]);
+	  snprintf(str, sizeof(str), "%s" , &line[tofind_len]);
 	  break;
 	}
 
@@ -990,9 +996,13 @@ char* Redis::getVersion(char *str, u_int str_len) {
 
     freeReplyObject(reply);
   }
+  
   l->unlock(__FILE__, __LINE__);
+  redis_version = strdup(str);
+  sscanf(redis_version, "%d.%d.%d", &a, &b, &c);
+  num_redis_version = (a << 16) + (b << 8) + c;
 
-  return(str);
+  return(redis_version);
 }
 
 /* **************************************** */

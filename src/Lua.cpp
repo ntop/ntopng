@@ -4733,7 +4733,7 @@ static int ntop_get_info(lua_State* vm) {
 
   if(verbose) {
     lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
-    lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion(rsp, sizeof(rsp)));
+    lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion());
     lua_push_str_table_entry(vm, "version.httpd", (char*)mg_version());
     lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
     lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
@@ -5743,17 +5743,21 @@ static int ntop_redis_dump(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  dump = redis->dump(key);
-
-  if(dump) {
-    lua_pushfstring(vm, "%s", dump);
-    free(dump);
-  } else
-    return(CONST_LUA_ERROR);
-
+  if(!redis->haveRedisDump())
+    lua_pushnil(vm); /* This is old redis */
+  else {
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+    
+    dump = redis->dump(key);
+    
+    if(dump) {
+      lua_pushfstring(vm, "%s", dump);
+      free(dump);
+    } else
+      return(CONST_LUA_ERROR);
+  }
+  
   return(CONST_LUA_OK);
 }
 
@@ -5765,13 +5769,18 @@ static int ntop_redis_restore(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((dump = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  return((redis->restore(key, dump) != 0) ? CONST_LUA_ERROR : CONST_LUA_OK);
+  if(!redis->haveRedisDump()) {    
+    lua_pushnil(vm); /* This is old redis */
+    return(CONST_LUA_OK);
+  } else {
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((dump = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+    
+    return((redis->restore(key, dump) != 0) ? CONST_LUA_ERROR : CONST_LUA_OK);
+  }
 }
 
 /* ****************************************** */
