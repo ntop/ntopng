@@ -164,17 +164,20 @@ int8_t Grouper::incStats(Host *h) {
   if(h == NULL || !inGroup(h))
     return -1;
 
-  stats.num_hosts++;
-  stats.bytes_sent += h->getNumBytesSent();
-  stats.bytes_rcvd += h->getNumBytesRcvd();
+  stats.num_hosts++,
+    stats.bytes_sent += h->getNumBytesSent(),
+    stats.bytes_rcvd += h->getNumBytesRcvd(),
+    stats.num_flows += h->getNumActiveFlows(),
+    stats.num_dropped_flows += h->getNumDroppedFlows(),
+    stats.num_alerts += h->getNumAlerts(),
+    stats.throughput_bps += h->getBytesThpt(),
+    stats.throughput_pps += h->getPacketsThpt(),
+    stats.throughput_trend_bps_diff += h->getThptTrendDiff();
+
   if(stats.first_seen == 0 || h->get_first_seen() < stats.first_seen)
     stats.first_seen = h->get_first_seen();
   if(h->get_last_seen() > stats.last_seen)
-    stats.last_seen = h->get_last_seen();
-  stats.num_alerts += h->getNumAlerts();
-  stats.throughput_bps += h->getBytesThpt();
-  stats.throughput_pps += h->getPacketsThpt();
-  stats.throughput_trend_bps_diff += h->getThptTrendDiff();
+    stats.last_seen = h->get_last_seen();  
  
   if(c) strncpy(stats.country, c, sizeof(stats.country));
 
@@ -192,6 +195,8 @@ void Grouper::lua(lua_State* vm) {
   lua_push_int_table_entry(vm,   "seen.first", stats.first_seen);
   lua_push_int_table_entry(vm,   "seen.last", stats.last_seen);
   lua_push_int_table_entry(vm,   "num_hosts", stats.num_hosts);
+  lua_push_int_table_entry(vm,   "num_flows", stats.num_flows);
+  lua_push_int_table_entry(vm,   "num_dropped_flows", stats.num_dropped_flows);
   lua_push_int_table_entry(vm,   "num_alerts", stats.num_alerts);
   lua_push_float_table_entry(vm, "throughput_bps", max_val(stats.throughput_bps, 0));
   lua_push_float_table_entry(vm, "throughput_pps", max_val(stats.throughput_pps, 0));

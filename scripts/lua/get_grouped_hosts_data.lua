@@ -202,6 +202,12 @@ function print_single_group(value)
 
    print('"column_hosts" : "' .. formatValue(value["num_hosts"]) ..'",')
 
+   print('"column_num_flows" : "' .. formatValue(value["num_flows"]) ..'",')
+
+   if isBridgeInterface(ifstats) then
+      print('"column_num_dropped_flows" : "' .. formatValue(value["num_dropped_flows"] or 0) ..'",')
+   end
+
    print ("\"column_alerts\" : \"")
    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
       print("<font color=#B94A48>"..formatValue(value["num_alerts"]).."</font>")
@@ -312,6 +318,10 @@ for key,value in pairs(stats_by_group_col) do
 	 vals[key] = v["name"]
       elseif(sortColumn == "column_hosts") then
 	 vals[key] = v["num_hosts"]
+      elseif(sortColumn == "column_num_flows") then
+	 vals[key] = v["num_flows"]
+      elseif(sortColumn == "column_num_dropped_flows") then
+	 vals[key] = v["num_dropped_flows"]
       elseif(sortColumn == "column_since") then
 	 vals[key] = (now-v["seen.first"])
       elseif(sortColumn == "column_alerts") then

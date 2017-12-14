@@ -266,6 +266,7 @@ typedef enum {
   column_mac,
   column_os,
   column_num_flows, /* = column_incomingflows + column_outgoingflows */
+  column_num_dropped_flows, /* for bridge interfaces */
   /* column_thpt, */
   column_traffic,
   /* sort criteria */

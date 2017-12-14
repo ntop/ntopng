@@ -2,7 +2,7 @@
 -- (C) 2017 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -11,7 +11,7 @@ sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-active_page = "hosts"
+local active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print [[
@@ -78,6 +78,31 @@ print [[
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
 				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+			     {
+			     title: "]] print(i18n("flows")) print[[",
+				 field: "column_num_flows",
+				 sortable: true,
+                             css: {
+			        textAlign: 'center'
+			     }
+
+				 },
+			     {
+			     title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+				 field: "column_num_dropped_flows",
+				 sortable: true,
+                                 hidden: ]]
+if isBridgeInterface(interface.getStats()) then
+   print("false")
+else
+   print("true")
+end
+print[[,
                              css: {
 			        textAlign: 'center'
 			     }

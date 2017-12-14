@@ -355,6 +355,21 @@ print [[
 			     }
 
 				 },  {
+			     title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+				 field: "column_num_dropped_flows",
+				 sortable: true,
+                                 hidden: ]]
+if isBridgeInterface(ifstats) then
+   print("false")
+else
+   print("true")
+end
+print[[,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },  {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
 				 sortable: true,
@@ -379,19 +394,9 @@ print [[
 	 	             css: { 
 			        textAlign: 'center'
 			     }
-
-				 },  {
-			     title: "]] print(i18n("asn")) print[[",
-				 field: "column_asn",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-
 				 },
 
 ]]
-
 
 if(prefs.is_httpbl_enabled) then
 print [[

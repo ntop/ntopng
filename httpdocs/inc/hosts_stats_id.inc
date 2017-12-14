@@ -24,10 +24,10 @@ function host_table_setID (row) {
   // hosts_stats_top
   row.find("td").eq(index++).attr('id', host_key+"_location");
   row.find("td").eq(index++).attr('id', host_key+"_num_flows");
+  row.find("td").eq(index++).attr('id', host_key+"_num_dropped_flows");
   row.find("td").eq(index++).attr('id', host_key+"_alerts");
   row.find("td").eq(index++).attr('id', host_key+"_name");
   row.find("td").eq(index++).attr('id', host_key+"_since");
-  row.find("td").eq(index++).attr('id', host_key+"_asn");
   
   //custom
   if (host_rows_option["httpbl"]) row.find("td").eq(index++).attr('id', host_key+"_httpbl");

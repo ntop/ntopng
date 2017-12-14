@@ -3400,6 +3400,10 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     r->elems[r->actNumEntries++].numericValue = h->getNumActiveFlows();
     break;
 
+  case column_num_dropped_flows:
+    r->elems[r->actNumEntries++].numericValue = h->getNumDroppedFlows();
+    break;
+
   case column_traffic:
     r->elems[r->actNumEntries++].numericValue = h->getNumBytes();
     break;
@@ -4072,6 +4076,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_asn")) retriever->sorter = column_asn, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_num_flows")) retriever->sorter = column_num_flows, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_num_dropped_flows")) retriever->sorter = column_num_dropped_flows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_local_network_id")) retriever->sorter = column_local_network_id, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_local_network")) retriever->sorter = column_local_network, sorter = ipNetworkSorter;

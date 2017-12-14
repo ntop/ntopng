@@ -28,6 +28,7 @@ class Host;
 
 struct groupStats{
   u_int32_t num_hosts;
+  u_int32_t num_flows, num_dropped_flows;
   u_int64_t bytes_sent;
   u_int64_t bytes_rcvd;
   time_t first_seen;

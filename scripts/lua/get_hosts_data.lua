@@ -131,7 +131,6 @@ if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
-
 if(all ~= nil) then
    perPage = 0
    currentPage = 0
@@ -169,14 +168,15 @@ if(hosts_stats ~= nil) then
 	 elseif(sortColumn == "column_httpbl") then
 	    if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
 	    vals[hosts_stats[key]["httpbl"]..postfix] = key
-	 elseif(sortColumn == "column_asn") then
-	    vals[hosts_stats[key]["asn"]..postfix] = key
 	 elseif(sortColumn == "column_country") then
 	    vals[hosts_stats[key]["country"]..postfix] = key
 	 elseif(sortColumn == "column_vlan") then
 	    vals[hosts_stats[key]["vlan"]..postfix] = key
 	 elseif(sortColumn == "column_num_flows") then
 	    local t = hosts_stats[key]["active_flows.as_client"]+hosts_stats[key]["active_flows.as_server"]
+	    vals[t+postfix] = key
+	 elseif(sortColumn == "column_num_dropped_flows") then
+	    local t = hosts_stats[key]["flows.dropped"] or 0
 	    vals[t+postfix] = key
 	 elseif(sortColumn == "column_traffic") then
 	    vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
@@ -303,14 +303,6 @@ for _key, _value in pairsByKeys(vals, funct) do
       print("\", \"column_vlan\" : \"\"")
    end
 
-   if(value["asn"] ~= nil) then
-      if(value["asn"] == 0) then
-	 print(", \"column_asn\" : 0")
-      else
-	 print(", \"column_asn\" : \"<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. value["asn"] .."'>"..value["asname"].."</A>\"")
-      end
-   end
-
    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
 
@@ -367,6 +359,12 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    print ("\", \"column_num_flows\" : \""..value["active_flows.as_client"]+value["active_flows.as_server"])
+
+
+   -- exists only for bridged interfaces
+   if value["flows.dropped"] then
+      print ("\", \"column_num_dropped_flows\" : \""..value["flows.dropped"])
+   end
    
    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
    print ("\", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "

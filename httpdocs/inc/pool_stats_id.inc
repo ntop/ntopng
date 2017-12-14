@@ -14,6 +14,8 @@ function pool_table_setID (row) {
   // pool_stats_top
   row.find("td").eq(index++).attr('id', pool_key+"_chart");
   row.find("td").eq(index++).attr('id', pool_key+"_hosts");
+  row.find("td").eq(index++).attr('id', pool_key+"_num_flows");
+  row.find("td").eq(index++).attr('id', pool_key+"_num_dropped_flows");
   row.find("td").eq(index++).attr('id', pool_key+"_alerts");
   row.find("td").eq(index++).attr('id', pool_key+"_since");
 

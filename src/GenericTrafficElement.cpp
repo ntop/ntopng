@@ -104,13 +104,14 @@ void GenericTrafficElement::lua(lua_State* vm, bool host_details) {
   lua_push_float_table_entry(vm, "last_throughput_pps", last_pkts_thpt);
   lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
 
+  total_num_dropped_flows = 1; /* TODO: remove */
+  if(total_num_dropped_flows)
+    lua_push_int_table_entry(vm, "flows.dropped", total_num_dropped_flows);
+
   if(host_details) {
     lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
     lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
     lua_push_int_table_entry(vm, "packets.sent", sent.getNumPkts());
     lua_push_int_table_entry(vm, "packets.rcvd", rcvd.getNumPkts());
-
-    if(total_num_dropped_flows)
-      lua_push_int_table_entry(vm, "flows.dropped", total_num_dropped_flows);
   }
 }

@@ -49,7 +49,8 @@ class GenericTrafficElement {
   };
   inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
-  inline void incNumDroppedFlows() { total_num_dropped_flows++;      };
+  inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
+  inline u_int32_t getNumDroppedFlows()    { return total_num_dropped_flows; };
   virtual void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 
