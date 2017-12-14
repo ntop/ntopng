@@ -94,6 +94,8 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 #ifdef HAVE_NEDGE
 #ifndef HAVE_NEDGE2
     { UPGRADE_SCRIPT_PATH,      10,    false, 1           },
+#else
+    { PINGER_SCRIPT_PATH,       1,     false, 1           },
 #endif
 #endif
     { NULL, 0, false}

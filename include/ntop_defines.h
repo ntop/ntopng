@@ -701,6 +701,7 @@
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
 #define DISCOVER_SCRIPT_PATH       "discover.lua"
 #define UPGRADE_SCRIPT_PATH        "upgrade.lua"
+#define PINGER_SCRIPT_PATH         "pinger.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
 #define MINUTE_SCRIPT_PATH         "minute.lua"
 #define FIVE_MINUTES_SCRIPT_PATH   "5min.lua"
