@@ -535,7 +535,7 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
   case alert_flow_misbehaviour:      return("Flow Misbehaviour");
   case alert_flow_remote_to_remote:  return("Remote-To-Remote Flow");
   case alert_flow_blacklisted:       return("Blacklisted Flow");
-  case alert_flow_dropped_by_bridge: return("Flow dropped by bridge");
+  case alert_flow_blocked:           return("Flow blocked");
   }
 
   return(""); /* NOTREACHED */

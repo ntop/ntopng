@@ -530,7 +530,7 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",            5, "flow_misbehaviour"          },
   { "<i class='fa fa-exclamation'></i> Remote to Remote Flow",        6, "flow_remote_to_remote"      },
   { "<i class='fa fa-exclamation'></i> Blacklisted Flow",             7, "flow_blacklisted"           },
-  { "<i class='fa fa-ban'></i> Dropped Flow",                         8, "flow_dropped_by_bridge"     },
+  { "<i class='fa fa-ban'></i> Blocked Flow",                         8, "flow_blocked"               },
 }
 
 local alert_entity_keys = {

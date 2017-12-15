@@ -141,7 +141,8 @@ function printAlerts()
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
   "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
-  "row_toggle_ssl_alerts", "row_toggle_dns_alerts"}
+  "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
+  "row_toggle_dropped_flows_alerts"}
 
   prefsToggleButton({
     field = "disable_alerts_generation",

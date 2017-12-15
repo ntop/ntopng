@@ -237,7 +237,7 @@ void Flow::dumpFlowAlert() {
       break;
 
 #ifdef NTOPNG_PRO
-    case status_dropped_by_bridge:
+    case status_blocked:
       do_dump = ntop->getPrefs()->are_dropped_flows_alerts_enabled();
       break;
 #endif
@@ -2928,7 +2928,7 @@ FlowStatus Flow::getFlowStatus() {
 
 #ifdef NTOPNG_PRO
   if(iface->is_bridge_interface() && !isPassVerdict())
-    return status_dropped_by_bridge;
+    return status_blocked;
 #endif
 
   if(isBlacklistedFlow())
