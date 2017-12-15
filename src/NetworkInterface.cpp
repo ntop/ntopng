@@ -6382,17 +6382,21 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
   bool src2dst_direction;
   IpAddress src_ip, dst_ip;
   Flow *f;
+  struct tm now;
+  time_t t_now = time(NULL);
 #ifdef DEBUG
   char buf[32], buf1[32];
   const char *msg;
 #endif
 
+  localtime_r(&t_now, &now);
   src_ip.set(srcHost), dst_ip.set(dstHost);
   f = flows_hash->find(&src_ip, &dst_ip, sport, dport,
 		       0 /* vlanId */, protocol, &src2dst_direction);
 
   if(f) {
-    f->setPacketsBytes(s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
+    f->setPacketsBytes(t_now, s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
+    f->recheckQuota(&now);
 #ifdef DEBUG
     msg = "Updated ";
 #endif

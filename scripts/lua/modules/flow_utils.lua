@@ -1791,6 +1791,8 @@ function getFlowQuota(ifid, info, as_client)
   end
 
   local master_proto, app_proto = splitProtocol(info["proto.ndpi"])
+  app_proto = app_proto or master_proto
+
   local pools_stats = interface.getHostPoolsStats()
   local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 

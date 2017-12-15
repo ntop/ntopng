@@ -2669,6 +2669,20 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 #ifdef NTOPNG_PRO
 
+bool Flow::isPassVerdict() {
+  if(!passVerdict)
+    return(false);
+
+  if(cli_host && srv_host)
+    return((!quota_exceeded)
+	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
+	   && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
+  else
+    return(true);
+}
+
+/* *************************************** */
+
 bool Flow::checkPassVerdict(const struct tm *now) {
   if(!passVerdict)
     return(false);
@@ -2677,13 +2691,7 @@ bool Flow::checkPassVerdict(const struct tm *now) {
     return(true); /* Always pass until detection is completed */
 
   recheckQuota(now);
-
-  if(cli_host && srv_host)
-    return((!quota_exceeded)
-	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
-	   && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
-  else
-    return(true);
+  return isPassVerdict();
 }
 
 #endif
@@ -3032,10 +3040,9 @@ void Flow::fixAggregatedFlowFields() {
 
 /* ***************************************************** */
 
-void Flow::setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts,
+void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
 #ifdef NTOPNG_PRO
-  time_t now = time(0);
   u_int16_t eth_proto = ETHERTYPE_IP;
   u_int overhead = 0;
 
