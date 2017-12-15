@@ -6396,7 +6396,9 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
 
   if(f) {
     f->setPacketsBytes(t_now, s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
+#ifdef HAVE_NEDGE
     f->recheckQuota(&now);
+#endif
 #ifdef DEBUG
     msg = "Updated ";
 #endif
