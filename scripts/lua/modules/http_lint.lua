@@ -637,6 +637,10 @@ local function validateTopModule(m)
    return validateSingleWord(m)
 end
 
+local function validateDnsEnforcement(m)
+  return validateChoice({"none", "child_safe", "global"}, m)
+end
+
 -- #################################################################
 
 -- NOTE: Put here al the parameters to validate
@@ -988,6 +992,7 @@ local known_parameters = {
    ["safe_search"]             =  validateOnOff,                 -- users
    ["forge_global_dns"]        =  validateOnOff,                 -- users
    ["default_policy"]          =  validateNumber,                -- users
+   ["dns_enforcement"]         =  validateDnsEnforcement,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
