@@ -16,6 +16,7 @@ local top_rrds = {
    {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
    {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
+   {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
    {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows")},
    {separator=1},
    {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
@@ -682,7 +683,7 @@ print [[
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
@@ -1066,7 +1067,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       prefixLabel = "Traffic"
    end
 
-   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
+   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
       -- do not scale number, packets, and drops
       scaling_factor = 1
    end

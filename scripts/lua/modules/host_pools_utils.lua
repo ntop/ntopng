@@ -451,7 +451,7 @@ end
 
 function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
   -- NOTE: requires graph_utils
-  for pool_id, pool_stats in pairs(interface.getHostPoolsStats()) do
+  for pool_id, pool_stats in pairs(interface.getHostPoolsStats() or {}) do
     local pool_base = host_pools_utils.getRRDBase(ifid, pool_id)
 
     if(not(ntop.exists(pool_base))) then
@@ -462,6 +462,14 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     local rrdpath = os_utils.fixPath(pool_base .. "/bytes.rrd")
     createRRDcounter(rrdpath, 300, verbose)
     ntop.rrd_update(rrdpath, nil, tolongint(pool_stats["bytes.sent"]), tolongint(pool_stats["bytes.rcvd"]))
+
+    if pool_id ~= tonumber(host_pools_utils.DEFAULT_POOL_ID) then
+       local flows_dropped = pool_stats["flows.dropped"] or 0
+
+       rrdpath = os_utils.fixPath(pool_base .. "/blocked_flows.rrd")
+       createSingleRRDcounter(rrdpath, 300, verbose)
+       ntop.rrd_update(rrdpath, nil, tolongint(flows_dropped))
+    end
 
     -- nDPI stats
     if dump_ndpi then

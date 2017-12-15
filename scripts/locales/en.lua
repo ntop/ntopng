@@ -116,6 +116,7 @@ local  en = {
       arp_requests = "ARP Requests",
       arp_replies = "ARP Replies",
       packet_drops = "Packet Drops",
+      blocked_flows = "Blocked Flows",
       active_flows = "Active Flows",
       active_hosts = "Active Hosts",
       active_devices = "Active Devices",
