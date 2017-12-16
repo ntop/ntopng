@@ -156,6 +156,7 @@ esac
 %endif
 
 %preun
+if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} != 7
 case "$1" in
   0)
@@ -168,7 +169,6 @@ case "$1" in
 esac
 %endif
 
-if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
   /bin/systemctl stop ntopng.service
@@ -180,4 +180,3 @@ fi
 if [ $1 == 0 ] ; then
     rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi
-
