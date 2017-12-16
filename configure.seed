@@ -16,20 +16,11 @@ MACHINE=`uname -m`
 SYSTEM=`uname -s`
 
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
-AC_ARG_WITH(nedge2,         [  --with-nedge2          Enable nEdge 2 device build - requires nEdge build])
-
 
 NEDGE=0
 if test "${with_nedge+set}" = set; then
    AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
    NEDGE=1
-fi
-	    
-
-NEDGE2=0
-if test "${with_nedge2+set}" = set; then
-   AC_DEFINE(HAVE_NEDGE2, 1, [nedge 2 support is present])
-   NEDGE2=1
 fi
 
 #
@@ -346,11 +337,11 @@ if test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
-else	
+else
   if test $SYSTEM = "Linux"; then
     if [ test -f /etc/redhat-release ]; then
         OS=`cat /etc/redhat-release`
-    else  
+    else
         if [ test -f /usr/bin/lsb_release ]; then
          OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
         fi
@@ -522,7 +513,6 @@ AC_SUBST(MYSQL_DEP)
 AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
 AC_SUBST(NEDGE)
-AC_SUBST(NEDGE2)
 AC_SUBST(SERVICE_AFTER)
 AC_SUBST(SERVICE_REQUIRES)
 AC_CONFIG_HEADERS(include/config.h)
