@@ -91,8 +91,8 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { DAILY_SCRIPT_PATH,        86400, true,  1           },
     { HOUSEKEEPING_SCRIPT_PATH, 3,     false, num_threads },
     { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
-#ifdef HAVE_NEDGE
-#ifndef HAVE_NEDGE2
+#ifdef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
     { UPGRADE_SCRIPT_PATH,      10,    false, 1           },
 #else
     { PINGER_SCRIPT_PATH,       5,     false, 1           },

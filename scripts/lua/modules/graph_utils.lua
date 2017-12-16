@@ -1708,7 +1708,7 @@ function printPoolChangeDropdown(pool_id)
 
    output[#output + 1] = poolDropdown(pool_id)
 
-   local edit_pools_link = ternary(haveNedge2(), "/lua/pro/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
+   local edit_pools_link = ternary(haveNedge(), "/lua/pro/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
 
    output[#output + 1] = [[
             </select>&nbsp;

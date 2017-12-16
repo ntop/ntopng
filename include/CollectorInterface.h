@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 
 class Lua;
 
@@ -63,7 +63,7 @@ class CollectorInterface : public ParserInterface {
   virtual void lua(lua_State* vm);
 };
 
-#endif /* HAVE_NEDGE */
+#endif /* HAVE_OLD_NEDGE */
 
 #endif /* _COLLECTOR_INTERFACE_H_ */
 

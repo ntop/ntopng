@@ -78,7 +78,7 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   FlowProfile *trafficProfile;
 #endif
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
@@ -408,7 +408,7 @@ class Flow : public GenericHashEntry {
   void setDumpFlowTraffic(bool what)   { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)        { return dump_flow_traffic; }
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif

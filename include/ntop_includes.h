@@ -175,7 +175,7 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "CountMinSketch.h"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
 #endif
@@ -226,7 +226,7 @@ using namespace std;
 #include "Nseries.h"
 #endif
 #include "NetworkInterface.h"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "PcapInterface.h"
 #endif
 #include "ViewInterface.h"
@@ -240,7 +240,7 @@ using namespace std;
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
 #include "Redis.h"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "ElasticSearch.h"
 #include "Logstash.h"
 #endif
@@ -272,7 +272,7 @@ using namespace std;
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include "DivertInterface.h"
 #endif
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
 #include "ZCCollectorInterface.h"

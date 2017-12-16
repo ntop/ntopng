@@ -1144,7 +1144,7 @@ void Host::decNumFlows(bool as_client) {
 
 #ifdef NTOPNG_PRO
 
-#ifdef HAVE_NEDGE2
+#ifdef HAVE_NEDGE
 
 /* We have to differentiate between category shaper and protocol shaper to handle default properly */
 static void getCategoryAndProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy,
@@ -1210,7 +1210,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   HostPools *hp;
   TrafficShaper *ts = NULL, **shapers = NULL;
   u_int8_t shaper_id = DEFAULT_SHAPER_ID;
-#ifdef HAVE_NEDGE2
+#ifdef HAVE_NEDGE
   u_int8_t category_shaper_id = DEFAULT_SHAPER_ID;
   bool proto_set = false;
   bool cat_set = false;
@@ -1224,7 +1224,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
     /* Use the pool shaper */;
   } else if (policy) {
     // Set a default (fallback) shaper
-#ifdef HAVE_NEDGE2
+#ifdef HAVE_NEDGE
     if (iface->getL7Policer()) {
        L7Policy_t *default_policy = iface->getL7Policer()->getIpPolicy(NO_HOST_POOL_ID);
 

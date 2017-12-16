@@ -3378,7 +3378,7 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
-function haveNedge2()
+function haveNedge()
    local ifstats = interface.getStats()
 
    if ifstats.type == "netfilter" then
@@ -3410,7 +3410,7 @@ end
 
 -- Returns true if the captive portal can be started with the current configuration
 function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
-   if not ntop.isEnterprise() and not haveNedge2() then
+   if not ntop.isEnterprise() and not haveNedge() then
       return false
    end
 

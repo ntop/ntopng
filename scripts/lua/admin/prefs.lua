@@ -9,7 +9,7 @@ require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
 local template = require "template_utils"
-local have_nedge2 = haveNedge2()
+local have_nedge = haveNedge()
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
@@ -381,7 +381,7 @@ function printBridgingPrefs()
 
   print('<table class="table">')
 
-  if show_advanced_prefs and not have_nedge2 then
+  if show_advanced_prefs and not have_nedge then
     print('<tr><th colspan=2 class="info">'..i18n("traffic_policy")..'</th></tr>')
 
     prefsToggleButton({
@@ -1114,7 +1114,7 @@ if(tab == "discovery") then
 end
 
 if(tab == "bridging") then
-  if(info["version.enterprise_edition"] or have_nedge2) then
+  if(info["version.enterprise_edition"] or have_nedge) then
      printBridgingPrefs()
   end
 end

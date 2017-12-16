@@ -107,7 +107,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_proto = NULL;
   has_cmdl_trace_lvl = false;
 
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
   disable_dns_resolution();
   disable_dns_responses_decoding();
 #endif
@@ -181,7 +181,7 @@ void usage() {
 	 "  or\n"
 	 "  ntopng <command line options> \n\n"
 	 "Options:\n"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	 "[--dns-mode|-n] <mode>              | DNS address resolution mode\n"
 	 "                                    | 0 - Decode DNS responses and resolve\n"
 	 "                                    |     local numeric IPs only (default)\n"
@@ -271,7 +271,7 @@ void usage() {
 #endif
 
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 #ifdef HAVE_NDB
 	 "                                    | ndb           Dump in nDB\n"
@@ -349,7 +349,7 @@ void usage() {
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
 	 "[--help|-h]                         | Help\n",
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
 	 "edge "
 #else
 	 ""
@@ -604,7 +604,7 @@ static const struct option long_options[] = {
   { "help",                              no_argument,       NULL, 'h' },
   { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   { "dns-mode",                          required_argument, NULL, 'n' },
 #endif
   { "traffic-filtering",                 required_argument, NULL, 'k' },
@@ -770,7 +770,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     local_networks_set = true;
     break;
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   case 'n':
     dns_mode = atoi(optarg);
     switch(dns_mode) {
@@ -989,7 +989,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
     if(strncmp(optarg, "ndb", 2) == 0) {
 	dump_flows_on_ndb = true;
@@ -1112,7 +1112,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #ifdef NTOPNG_PRO
 	   "Enterprise/Professional"
 #else

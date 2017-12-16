@@ -86,7 +86,7 @@ class NetworkInterface : public Checkpointable {
   bool bridge_interface, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
 #endif
   FlowInterfacesStats *flow_interfaces_stats;
@@ -314,7 +314,7 @@ class NetworkInterface : public Checkpointable {
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead, bool conntrack_update=false) {
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
     if(! conntrack_update)
       return;
 #endif
@@ -533,7 +533,7 @@ class NetworkInterface : public Checkpointable {
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif

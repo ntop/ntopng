@@ -198,7 +198,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
@@ -304,7 +304,7 @@ void NetworkInterface::init() {
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   flow_profiles = shadow_flow_profiles = NULL;
 #endif
 
@@ -656,7 +656,7 @@ NetworkInterface::~NetworkInterface() {
 
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   if(flow_profiles) delete(flow_profiles);
   if(shadow_flow_profiles) delete(shadow_flow_profiles);
 #endif
@@ -685,7 +685,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 /* **************************************************** */
 
 int NetworkInterface::dumpLsFlow(time_t when, Flow *f) {
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   char *json = f->serialize(true);
   int rc;
 
@@ -705,7 +705,7 @@ int NetworkInterface::dumpLsFlow(time_t when, Flow *f) {
 /* **************************************************** */
 
 int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   char *json = f->serialize(true);
   int rc;
 
@@ -937,7 +937,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 	  */
 
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	  if(ret->get_packets_cli2srv() == 1 /* first packet */)
 	    srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
 #endif
@@ -980,7 +980,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 /* **************************************************** */
 
 NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool parser_interface) {
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   FlowHashing *h = NULL;
 
   HASH_FIND_INT(flowHashing, &criteria, h);
@@ -1387,7 +1387,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if((srcMac = getMac(eth->h_source, vlan_id, true))) {
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     srcMac->incSentStats(1, rawsize);
 #endif
     srcMac->setSeenIface(bridge_iface_idx);
@@ -1412,7 +1412,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if((dstMac = getMac(eth->h_dest, vlan_id, true))) {
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     dstMac->incRcvdStats(1, rawsize);
 #endif
 }
@@ -1601,7 +1601,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
     }
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #ifdef __OpenBSD__
     struct timeval tv_ts;
     tv_ts.tv_sec  = h->ts.tv_sec;
@@ -1847,7 +1847,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
 
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	if(pass_verdict) {
 	  /* Update pools stats inline only for bridge interfaces! */
 	  if(src2dst_direction)
@@ -2280,7 +2280,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
 
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     if(srcMac) srcMac->incSentStats(1, rawsize);
     if(dstMac) dstMac->incRcvdStats(1, rawsize);
 #endif
@@ -2697,7 +2697,7 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data, bool 
 
   *matched = true;
   f->updateFlowShapers();
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   f->updateProfile();
 #endif
   return(false); /* false = keep on walking */
@@ -2952,7 +2952,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
 #ifdef NTOPNG_PRO
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 static bool update_flow_profile(GenericHashEntry *h, void *user_data, bool *matched) {
   Flow *flow = (Flow*)h;
 
@@ -4818,7 +4818,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
   */
@@ -4840,7 +4840,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "bytes",       getNumBytes() - getCheckPointNumBytes());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops() - getCheckPointNumPacketDrops());
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
@@ -4891,7 +4891,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(!isView()) {
     if(pkt_dumper)    pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     if(flow_profiles) flow_profiles->lua(vm);
 #endif
 #endif
@@ -5108,7 +5108,7 @@ bool NetworkInterface::findHostsByName(lua_State* vm,
 /* **************************************************** */
 
 bool NetworkInterface::validInterface(char *name) {
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
   return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
 #else
   if(name &&
@@ -5506,7 +5506,7 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
   }
   checkpointPktDropCount = getNumPacketDrops();
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
@@ -6396,7 +6396,7 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
 
   if(f) {
     f->setPacketsBytes(t_now, s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
     f->recheckQuota(&now);
 #endif
 #ifdef DEBUG

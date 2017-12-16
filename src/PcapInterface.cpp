@@ -25,7 +25,7 @@
 #include <uuid/uuid.h>
 #endif
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 
 /* **************************************************** */
 

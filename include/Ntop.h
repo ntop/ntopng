@@ -50,7 +50,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
   ExportInterface *export_interface;
@@ -377,7 +377,7 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Logstash*         getLogstash()             { return(logstash);            };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };

@@ -103,7 +103,7 @@ Flow::Flow(NetworkInterface *_iface,
     last_update_time.tv_sec = (long)first_seen;
 
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   trafficProfile = NULL;
 #endif
   memset(&flowShaperIds, 0, sizeof(flowShaperIds));
@@ -475,7 +475,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   // Indeed, even if the L7 detection is not yet completed
   // the flow already carries information on all the other fields,
   // e.g., IP src and DST, vlan, L4 proto, etc
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   updateProfile();
 #endif
 #endif
@@ -709,12 +709,12 @@ bool Flow::dumpFlow(bool idle_flow) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->getPrefs()->do_dump_flows_on_ls()
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
      || ntop->get_export_interface()
 #endif
      ) {
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
       /* force profile detection even if the L7 Protocol has not been detected */
      updateProfile();
@@ -757,7 +757,7 @@ bool Flow::dumpFlow(bool idle_flow) {
         cli_host->getInterface()->dumpLsFlow(last_seen, this);
     }
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     if(ntop->get_export_interface()) {
       char *json = serialize(false);
 
@@ -879,7 +879,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	  srv_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
           srv_host->getMac()->incSentStats(diff_rcvd_packets, diff_rcvd_bytes);
           srv_host->getMac()->incRcvdStats(diff_sent_packets, diff_sent_bytes);
 #endif
@@ -888,7 +888,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	  cli_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
           cli_host->getMac()->incSentStats(diff_sent_packets, diff_sent_bytes);
           cli_host->getMac()->incRcvdStats(diff_rcvd_packets, diff_rcvd_bytes);
 #endif
@@ -898,7 +898,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 #ifdef NTOPNG_PRO
       if(ntop->getPro()->has_valid_license()) {
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	if(trafficProfile)
 	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 #endif
@@ -1410,7 +1410,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     if((!mask_flow) && trafficProfile && ntop->getPro()->has_valid_license())
       lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
 #endif
@@ -1875,7 +1875,7 @@ json_object* Flow::flow2json() {
   }
 
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   // Traffic profile information, if any
   if(trafficProfile && trafficProfile->getName())
     json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));

@@ -395,7 +395,7 @@ print [[
       <li><a href="]]
 
 user_group = ntop.getUserGroup()
-local have_nedge_2 = haveNedge2()
+local have_nedge_2 = haveNedge()
 
 if(user_group == "administrator") then
   print(ntop.getHttpPrefix())
