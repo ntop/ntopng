@@ -2590,9 +2590,13 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	    if(payload[offset] == 0)
 	      break;
 	    else if(payload[offset] == 0xC0) {
-	      i_save = i;
-	      i = offset;
-	      goto nested_dns_definition;
+	      if(i != i_save) {
+		i_save = i;
+		i = offset;
+		goto nested_dns_definition;
+	      } else
+		ntop->getTrace()->traceEvent(TRACE_WARNING,
+					     "MDNS Loop detected [offset=%u][i=%u]", offset, i);
 	      break;
 	    } else if(payload[offset] < 32) {
 	      if(j > 0)	name[j++] = '.';
