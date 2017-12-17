@@ -395,7 +395,7 @@ print [[
       <li><a href="]]
 
 user_group = ntop.getUserGroup()
-local have_nedge_2 = haveNedge()
+local have_nedge_2 = ntop.isnEdge()
 
 if(user_group == "administrator") then
   print(ntop.getHttpPrefix())
@@ -403,7 +403,7 @@ if(user_group == "administrator") then
    print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
   else
-   print [[/lua/pro/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
+   print [[/lua/pro/nedge/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
   end
 else

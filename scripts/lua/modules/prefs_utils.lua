@@ -10,7 +10,7 @@ local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
 show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
-local have_nedge = haveNedge()
+local have_nedge = ntop.isnEdge()
 
 -- ############################################
 

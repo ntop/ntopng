@@ -4386,6 +4386,14 @@ static int ntop_is_enterprise(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_nedge(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_nedge_edition());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_host_pools(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -6814,9 +6822,9 @@ static const luaL_Reg ntop_reg[] = {
 #endif
 #endif
 
-  /* Pro */
   { "isPro",                  ntop_is_pro },
   { "isEnterprise",           ntop_is_enterprise },
+  { "isnEdge",                ntop_is_nedge },
 
   /* Historical database */
   { "insertMinuteSampling",          ntop_stats_insert_minute_sampling },

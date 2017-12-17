@@ -24,7 +24,7 @@ require "alert_utils"
 require "db_utils"
 require "rrd_utils"
 
-local have_nedge_2 = haveNedge() -- requires lua_utils
+local have_nedge_2 = ntop.isnEdge()
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")

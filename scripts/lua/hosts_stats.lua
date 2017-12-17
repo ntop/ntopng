@@ -158,8 +158,8 @@ if(_GET["pool"] ~= nil) then
    if _GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID then
       local pool_link
 
-      if haveNedge() then
-         pool_link = "/lua/pro/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+      if ntop.isnEdge() then
+         pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
       else
          pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
       end

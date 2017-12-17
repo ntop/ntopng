@@ -9,7 +9,7 @@ require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
 local template = require "template_utils"
-local have_nedge = haveNedge()
+local have_nedge = ntop.isnEdge()
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path

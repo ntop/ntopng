@@ -1552,6 +1552,18 @@ bool Prefs::is_enterprise_edition() {
 
 /* *************************************** */
 
+bool Prefs::is_nedge_edition() {
+  return
+#if defined(HAVE_OLD_NEDGE) || defined(HAVE_NEDGE)
+    ntop->getPro()->has_valid_license()
+#else
+  false
+#endif
+    ;
+}
+
+/* *************************************** */
+
 time_t Prefs::pro_edition_demo_ends_at() {
   return
 #ifdef NTOPNG_PRO

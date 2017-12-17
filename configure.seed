@@ -19,6 +19,7 @@ AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
 
 NEDGE=0
 if test "${with_nedge+set}" = set; then
+   AC_DEFINE(HAVE_OLD_NEDGE, 1, [old nedge support is present])
    AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
    NEDGE=1
 fi

@@ -131,6 +131,7 @@ class Prefs {
 
   bool is_pro_edition();
   bool is_enterprise_edition();
+  bool is_nedge_edition();
 
   void bind_http_to_address(char *addr)  { if(http_binding_address)  free(http_binding_address);  http_binding_address  = strdup(addr); };
   void bind_https_to_address(char *addr) { if(https_binding_address) free(https_binding_address); https_binding_address = strdup(addr); };
