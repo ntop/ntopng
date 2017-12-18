@@ -2300,6 +2300,10 @@ local  en = {
       system_setup = "System Setup",
       setup_mode = "Mode",
       setup_network = "Network",
+      setup_config_edited_title = "System configuration edited!",
+      setup_config_edited_descr = "Apply changes to make the new configuration effective or discard to keep using the current one.",
+      setup_apply = "Apply",
+      setup_discard = "Discard",
    },
 }
 

@@ -310,6 +310,12 @@ local function validateReportMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validatenEdgeAction(mode)
+   local modes = {"apply", "discard"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateNboxAction(mode)
    local modes = {"status", "schedule"}
 
@@ -922,6 +928,7 @@ local known_parameters = {
    ["report"]                  =  validateReportMode,            -- A mode for traffic report
    ["report_zoom"]             =  validateBool,                  -- True if we are zooming in the report
    ["format"]                  =  validatePrintFormat,           -- a print format
+   ["nedge_config_action"]     =  validatenEdgeAction,           -- system_setup_utils.lua
    ["nbox_action"]             =  validateNboxAction,            -- get_nbox_data.lua
    ["fav_action"]              =  validateFavouriteAction,       -- get_historical_favourites.lua
    ["favourite_type"]          =  validateFavouriteType,         -- get_historical_favourites.lua

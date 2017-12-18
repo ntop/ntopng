@@ -2583,6 +2583,16 @@ function get_manufacturer_mac(mac_address)
   return ret
 end
 
+function file_exists(name)
+   local f = io.open(name,"r")
+
+   if f ~= nil then io.close(f)
+      return true
+   end
+
+   return false
+end
+
 -- rrd_exists
 function rrd_exists(host_ip, rrdname)
 if(host_ip == nil) then return false end
