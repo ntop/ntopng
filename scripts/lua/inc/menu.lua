@@ -395,16 +395,19 @@ print [[
       <li><a href="]]
 
 user_group = ntop.getUserGroup()
-local have_nedge_2 = ntop.isnEdge()
+local have_nedge = ntop.isnEdge()
 
 if(user_group == "administrator") then
   print(ntop.getHttpPrefix())
-  if not have_nedge_2 then
-   print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
+  if not have_nedge then
+     print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
   else
-   print [[/lua/pro/nedge/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
-      ]]
+     print [[/lua/pro/nedge/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>]]
+
+     print [[<li><a href="]]
+     print(ntop.getHttpPrefix())
+     print[[/lua/pro/nedge/system_setup/mode.lua"><i class="fa fa-microchip"></i> System Setup</a></li>]]
   end
 else
   print [[#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>
@@ -414,7 +417,7 @@ end
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a></li>\n")
 
-   if is_bridge_interface and ntop.isEnterprise() and not have_nedge_2 then
+   if is_bridge_interface and ntop.isEnterprise() and not have_nedge then
       print[[<form id="go_show_bridge_wizard" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua">]]
       print[[<input name="show_wizard" type="hidden" value="" />]]
       print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
@@ -423,7 +426,7 @@ if(user_group == "administrator") then
    end
 
    if(ntop.isPro()) then
-      if not have_nedge_2 then
+      if not have_nedge then
          print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")
       end
       if(false) then

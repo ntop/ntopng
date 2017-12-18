@@ -2294,8 +2294,13 @@ local  en = {
    flow_search_from_aggregated = "(Aggregated)",
    summary = "Summary",
    date_from = "Begin Date/Time:",
-   date_to    = "End Date/Time:"
+   date_to    = "End Date/Time:",
 
+   nedge = {
+      system_setup = "System Setup",
+      setup_mode = "Mode",
+      setup_network = "Network",
+   },
 }
 
 return {en = en}
