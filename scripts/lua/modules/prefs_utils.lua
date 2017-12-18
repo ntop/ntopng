@@ -438,13 +438,13 @@ end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
-                                  javascriptAfterSwitch, showElement)
+                                  javascriptAfterSwitch, showElement, initialValue)
   if(_POST[submit_field] ~= nil) then
     ntop.setPref(redis_key, _POST[submit_field])
     value = _POST[submit_field]
     notifyNtopng(submit_field)
   else
-    value = ntop.getPref(redis_key)
+    value = initialValue or ntop.getPref(redis_key)
     if(value == "") then
       if(default_value ~= nil) then
         ntop.setPref(redis_key, default_value)
@@ -564,4 +564,12 @@ function loggingSelector(label, comment, submit_field, redis_key)
           logging_keys, logging_values, value, color_map, submit_field, redis_key)
 
   return(value)
+end
+
+function printPageSection(section_name)
+   print('<tr><th colspan=2 class="info">'..section_name..'</th></tr>')
+end
+
+function printSaveButton()
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 end
