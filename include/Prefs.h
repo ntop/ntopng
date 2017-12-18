@@ -66,6 +66,7 @@ class Prefs {
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
+  bool routing_mode_enabled;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   char *redirection_url, *redirection_url_shadow;
@@ -221,6 +222,7 @@ class Prefs {
   void add_network_interface(char *name, char *description);
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
+  inline void set_routing_mode(bool enabled)                  { routing_mode_enabled = enabled;          };  
   virtual void lua(lua_State* vm);
   void reloadPrefsFromRedis();
   void loadInstanceNameDefaults();
@@ -302,6 +304,7 @@ class Prefs {
   inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
   inline HostMask getHostMask()                  { return(hostMask);                                    };
   inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
+  inline u_int16_t is_routing_mode()             { return(routing_mode_enabled);                        };
   void validate();
 };
 

@@ -80,6 +80,7 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
+  routing_mode_enabled = false;
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
   dump_flows_on_ndb = false;
 #endif
