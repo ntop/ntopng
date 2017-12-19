@@ -2304,6 +2304,13 @@ local  en = {
       setup_config_edited_descr = "Apply changes to make the new configuration effective or discard to keep using the current one.",
       setup_apply = "Apply",
       setup_discard = "Discard",
+      lan = "LAN",
+      wan = "WAN",
+      gateways = "Gateways",
+      routing = "Routing",
+      single_port_router = "Single Port Router",
+      router = "Router",
+      set_the_device_mode = "Set the device mode.",
    },
 }
 
