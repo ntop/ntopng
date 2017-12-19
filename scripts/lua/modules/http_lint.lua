@@ -311,7 +311,7 @@ local function validateReportMode(mode)
 end
 
 local function validatenEdgeAction(mode)
-   local modes = {"apply", "make_permanent"}
+   local modes = {"discard", "make_permanent"}
 
    return validateChoice(modes, mode)
 end
