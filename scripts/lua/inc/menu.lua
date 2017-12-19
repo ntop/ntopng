@@ -483,15 +483,10 @@ print(
 )
 print("</li>")
 
-function file_exists(name)
-   local f=io.open(name,"r")
-   if f~=nil then io.close(f) return true else return false end
-end
-
 print("</ul>\n<h3 class=\"muted\"><A href=\"http://www.ntop.org\">")
 
 if(false) then
-if(file_exists(dirs.installdir .. "/httpdocs/img/custom_logo.jpg")) then
+if(ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.jpg")) then
    logo_path = ntop.getHttpPrefix().."/img/custom_logo.jpg"
 else
    logo_path = ntop.getHttpPrefix().."/img/logo.png"
