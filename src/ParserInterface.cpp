@@ -626,7 +626,9 @@ void ParserInterface::parseSingleFlow(json_object *o,
   IpAddress ip_aux; /* used to check empty IPs */
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
-
+  u_int8_t flow_ip_version = 0;
+  bool invalid_flow = false;
+  
   /* Reset data */
   memset(&flow, 0, sizeof(flow));
   flow.additional_fields = json_object_new_object();
@@ -696,6 +698,10 @@ void ParserInterface::parseSingleFlow(json_object *o,
 					 "Check exported fields");
 	}
 	break;
+      case IP_PROTOCOL_VERSION:
+	flow_ip_version = atoi(value);
+      break;
+      
       case IPV4_DST_ADDR:
       case IPV6_DST_ADDR:
 	if(flow.core.dst_ip.isEmpty()) {
@@ -936,25 +942,26 @@ void ParserInterface::parseSingleFlow(json_object *o,
   } // while json_object_iter_equal
 
   /* Handle zero IPv4/IPv6 discrepacies */
-  bool invalid_flow = false;
-
-  if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
-    if(flow.core.dst_ip.isIPv4() && flow.core.src_ip.isIPv6() && flow.core.src_ip.isEmpty())
-      flow.core.src_ip.setVersion(4);
-    else if(flow.core.src_ip.isIPv4() && flow.core.dst_ip.isIPv6() && flow.core.dst_ip.isEmpty())
-      flow.core.dst_ip.setVersion(4);
-    else if(flow.core.dst_ip.isIPv6() && flow.core.src_ip.isIPv4() && flow.core.src_ip.isEmpty())
-      flow.core.src_ip.setVersion(6);
-    else if(flow.core.src_ip.isIPv6() && flow.core.dst_ip.isIPv4() && flow.core.dst_ip.isEmpty())
-      flow.core.dst_ip.setVersion(6);
-    else {
-      invalid_flow = true;
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                         "IP version mismatch: client:%d server:%d - flow will be ignored",
-					 flow.core.src_ip.getVersion(), flow.core.dst_ip.getVersion());
+  if(flow_ip_version == 0) {
+    if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
+      if(flow.core.dst_ip.isIPv4() && flow.core.src_ip.isIPv6() && flow.core.src_ip.isEmpty())
+	flow.core.src_ip.setVersion(4);
+      else if(flow.core.src_ip.isIPv4() && flow.core.dst_ip.isIPv6() && flow.core.dst_ip.isEmpty())
+	flow.core.dst_ip.setVersion(4);
+      else if(flow.core.dst_ip.isIPv6() && flow.core.src_ip.isIPv4() && flow.core.src_ip.isEmpty())
+	flow.core.src_ip.setVersion(6);
+      else if(flow.core.src_ip.isIPv6() && flow.core.dst_ip.isIPv4() && flow.core.dst_ip.isEmpty())
+	flow.core.dst_ip.setVersion(6);
+      else {
+	invalid_flow = true;
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "IP version mismatch: client:%d server:%d - flow will be ignored",
+				     flow.core.src_ip.getVersion(), flow.core.dst_ip.getVersion());
+      }
     }
-  }
-
+  } else
+    flow.core.src_ip.setVersion(flow_ip_version), flow.core.dst_ip.setVersion(flow_ip_version);
+  
   if(!invalid_flow) {
     /* Process Flow */
     iface->processFlow(&flow);
