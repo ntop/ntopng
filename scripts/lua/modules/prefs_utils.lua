@@ -439,7 +439,8 @@ end
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
                                   javascriptAfterSwitch, showElement, initialValue)
-  if(_POST[submit_field] ~= nil) then
+   local value
+   if(_POST[submit_field] ~= nil) then
     ntop.setPref(redis_key, _POST[submit_field])
     value = _POST[submit_field]
     notifyNtopng(submit_field)
