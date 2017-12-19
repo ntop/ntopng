@@ -1000,6 +1000,8 @@ local known_parameters = {
    ["forge_global_dns"]        =  validateOnOff,                 -- users
    ["default_policy"]          =  validateNumber,                -- users
    ["dns_enforcement"]         =  validateDnsEnforcement,
+   ["lan_interfaces"]          =  validateListOfTypeInline(validateSingleWord),
+   ["wan_interfaces"]          =  validateListOfTypeInline(validateSingleWord),
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
