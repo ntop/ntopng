@@ -6,13 +6,13 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: @PFRING_DEP@, libsqlite3-0, libgeoip1, redis-server, @LIBRRD@ logrotate, libcurl3, libpcap0.8, libldap-2.4-2, libhiredis0.10, libssl1.0.0, libmysqlclient18, lsb-release, ethtool, libcap2, bridge-utils, udev @EXTRA_DEPS@
+Depends: @PFRING_DEP@, libsqlite3-0, libgeoip1, redis-server, @LIBRRD@ logrotate, libcurl3, libpcap0.8, libldap-2.4-2, libhiredis0.10, libssl1.0.0, libmysqlclient18, lsb-release, ethtool, libcap2, bridge-utils, udev, libnetfilter-conntrack3, udev @EXTRA_DEPS@
 Package: ntopng
 Architecture: @EXTN@
-Recommends: ntopng-data, pfring-dkms
+Recommends: ntopng-data
 Suggests: ntopng-data
 Pre-Depends:
 Conflicts:
 Provides:
-Replaces: ntop, nedge
+Replaces: ntop
 Description: Web-based traffic monitoring.
