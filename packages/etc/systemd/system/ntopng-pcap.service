@@ -1,7 +1,7 @@
 [Unit]
-Description=ntopng high-speed web-based traffic monitoring and analysis tool
-After=@SERVICE_AFTER@
-Requires=@SERVICE_REQUIRES@
+Description=ntopng high-speed web-based traffic monitoring and analysis tool (libpcap)
+After=network.target syslog.target redis.service
+Requires=
 
 [Service]
 Type=simple

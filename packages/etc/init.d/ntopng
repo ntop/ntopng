@@ -14,12 +14,6 @@
 # Short-Description: Start/stop ntopng web
 ### END INIT INFO
 
-if hash systemctl 2>/dev/null; then
-    echo "This host is systemd based."
-    echo "Please used systemctl <command> instead of init.d scripts"
-    exit 0
-fi
-
 #Needed to skip systemctl redirect
 _SYSTEMCTL_SKIP_REDIRECT=yes
 

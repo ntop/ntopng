@@ -28,11 +28,10 @@ if [ -d /usr/local/share/ntopng ] ; then
     mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled
 fi
 
-if [ -f /.dockerenv ]; then exit 0; fi
 
 # Start service after upgrade/install
 echo "(Re)Starting ntopng..."
-if hash systemctl 2>/dev/null; then
+if grep -q systemd /proc/1/comm; then
     systemctl daemon-reload
     systemctl reset-failed
     systemctl enable ntopng
@@ -40,6 +39,7 @@ if hash systemctl 2>/dev/null; then
 elif [ -f /etc/init.d/ntopng ]; then
     update-rc.d ntopng defaults 93 >/dev/null
     /etc/init.d/ntopng restart
+# else we are on a system with no systemd (e.g. docker)
 fi
 
 exit 0
