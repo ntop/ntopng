@@ -49,8 +49,8 @@ binary-arch: build install
 # install the files into debian/@APP@.
 	mkdir -p ./debian/@APP@
 	cp -r ./usr/ ./debian/@APP@
-	if test "@APP@" = "nedge"; then cp -r ../../nedge/packages/etc/ ./debian/@APP@; else cp -r ../etc/ ./debian/@APP@; fi
-	-rm ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
+	cp -r ../etc/ ./debian/@APP@;
+	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
 	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*#' -exec /bin/rm -rf {} ';'
