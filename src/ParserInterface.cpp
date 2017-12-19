@@ -935,8 +935,30 @@ void ParserInterface::parseSingleFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
-  /* Process Flow */
-  iface->processFlow(&flow);
+  /* Handle zero IPv4/IPv6 discrepacies */
+  bool invalid_flow = false;
+
+  if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
+    if(flow.core.dst_ip.isIPv4() && flow.core.src_ip.isIPv6() && flow.core.src_ip.isEmpty())
+      flow.core.src_ip.setVersion(4);
+    else if(flow.core.src_ip.isIPv4() && flow.core.dst_ip.isIPv6() && flow.core.dst_ip.isEmpty())
+      flow.core.dst_ip.setVersion(4);
+    else if(flow.core.dst_ip.isIPv6() && flow.core.src_ip.isIPv4() && flow.core.src_ip.isEmpty())
+      flow.core.src_ip.setVersion(6);
+    else if(flow.core.src_ip.isIPv6() && flow.core.dst_ip.isIPv4() && flow.core.dst_ip.isEmpty())
+      flow.core.dst_ip.setVersion(6);
+    else {
+      invalid_flow = true;
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                         "IP version mismatch: client:%d server:%d - flow will be ignored",
+					 flow.core.src_ip.getVersion(), flow.core.dst_ip.getVersion());
+    }
+  }
+
+  if(!invalid_flow) {
+    /* Process Flow */
+    iface->processFlow(&flow);
+  }
 
   /* Dispose memory */
   if(flow.dns_query) free(flow.dns_query);
