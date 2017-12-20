@@ -407,7 +407,7 @@ if(user_group == "administrator") then
 
      print [[<li><a href="]]
      print(ntop.getHttpPrefix())
-     print[[/lua/pro/nedge/system_setup/mode.lua"><i class="fa fa-microchip"></i> System Setup</a></li>]]
+     print[[/lua/pro/nedge/system_setup/interfaces.lua"><i class="fa fa-microchip"></i> System Setup</a></li>]]
   end
 else
   print [[#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>

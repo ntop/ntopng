@@ -360,7 +360,7 @@ end
 
 function host_pools_utils.getRoutingPolicyId(ifid, pool_id)
   local routing_policy_id = host_pools_utils.getPoolDetail(ifid, pool_id, "routing_policy_id")
-  if isEmptyString(routing_policy_id) then routing_policy_id = "0" end
+  if isEmptyString(routing_policy_id) then routing_policy_id = host_pools_utils.DEFAULT_ROUTING_POLICY_ID end
   return routing_policy_id
 end
 

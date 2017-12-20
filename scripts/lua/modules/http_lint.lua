@@ -660,6 +660,10 @@ local function validateNetworkInterface(m)
    return validateSingleWord(m)
 end
 
+local function validateRoutingPolicyName(m)
+   return validateUnquoted(m)
+end
+
 -- #################################################################
 
 local function validateInterfaceConfMode(m)
@@ -1022,6 +1026,9 @@ local known_parameters = {
    ["wan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["gateway_name"]            =  validateGatewayName,
    ["delete_gateway"]          =  validateGatewayName,
+   ["ping_address"]            =  validateIPV4,
+   ["policy_name"]             =  validateRoutingPolicyName,
+   ["delete_policy"]           =  validateRoutingPolicyName,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
