@@ -50,6 +50,8 @@ local  en = {
    any = "any",
    interface_ifname = "Interface %{ifname}",
    ip_address = "IP Address",
+   netmask = "Netmask",
+   gateway = "Gateway",
    info = "Info",
    os = "Operating System",
    ipv4 = "IPv4",
@@ -2327,6 +2329,13 @@ local  en = {
       gateway_interface_descr = "Specify the network interface to use to determine the gateway IP address",
       delete_gateway = "Delete Gateway",
       confirm_delete_gateway = "Do you really want to delete gateway \"%{gw}\" ?",
+      network_conf_static = "Static",
+      network_conf_dhcp = "DHCP",
+      network_conf_iface_title = "%{ifpos} Interface %{ifn}",
+      network_conf_iface_descr = "Chose a configuration for the interface",
+      network_conf_iface_ip = "IP address of the interface (e.g., 192.168.1.10).",
+      network_conf_iface_nmask = "Network mask for the interface IP address (e.g., 255.255.255.0).",
+      network_conf_iface_gw = "IP address of the default gateway for the interface (e.g., 192.168.1.1).",
    },
 }
 

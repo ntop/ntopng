@@ -662,6 +662,11 @@ end
 
 -- #################################################################
 
+local function validateInterfaceConfMode(m)
+   return validateChoice({"dhcp", "static"}, m)
+end
+
+-- #################################################################
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
@@ -1050,7 +1055,14 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["gateway_iface_"]          =  {validateGatewayName, validateNetworkInterface},
    ["gateway_address_"]        =  {validateGatewayName, validateIPV4},
 
--- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
+-- Network Configuration
+   ["conf_iface_mode_"]        =  {validateNetworkInterface, validateInterfaceConfMode},
+   ["conf_iface_ip_"]          =  {validateNetworkInterface, validateIPV4},
+   ["conf_iface_gw_"]          =  {validateNetworkInterface, validateIPV4},
+   ["conf_iface_nmask_"]       =  {validateNetworkInterface, validateIPV4},
+   ["conf_iface_name"]         =  {validateNetworkInterface},
+
+   -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
    ["val_"]                    =  {validateNumber,   validateUnchecked},       -- key: an index, value: the pair value
 }
