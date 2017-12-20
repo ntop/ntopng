@@ -2325,6 +2325,8 @@ local  en = {
       gateways_status = "Gateways status",
       add_gateway = "Add Gateway",
       gateway_interface_descr = "Specify the network interface to use to determine the gateway IP address",
+      delete_gateway = "Delete Gateway",
+      confirm_delete_gateway = "Do you really want to delete gateway \"%{gw}\" ?",
    },
 }
 

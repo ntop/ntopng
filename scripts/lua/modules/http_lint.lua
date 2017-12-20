@@ -1016,6 +1016,7 @@ local known_parameters = {
    ["lan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["gateway_name"]            =  validateGatewayName,
+   ["delete_gateway"]          =  validateGatewayName,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
