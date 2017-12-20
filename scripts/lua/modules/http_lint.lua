@@ -1002,6 +1002,7 @@ local known_parameters = {
    ["dns_enforcement"]         =  validateDnsEnforcement,
    ["lan_interfaces"]          =  validateListOfTypeInline(validateSingleWord),
    ["wan_interfaces"]          =  validateListOfTypeInline(validateSingleWord),
+   ["gateway_name"]            =  validateUnquoted,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

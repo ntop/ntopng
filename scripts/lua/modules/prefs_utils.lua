@@ -515,8 +515,10 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
           if elementToSwitch ~= nil then
             for element = 1, #elementToSwitch do
               if (showElementArray[indexSwitch] == true) then
+                --tprint("SHOW " .. elementToSwitch[element])
                 print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
               else
+                --tprint("HIDE " .. elementToSwitch[element])
                 print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
               end
             end
