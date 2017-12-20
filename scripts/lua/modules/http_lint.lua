@@ -647,6 +647,19 @@ local function validateDnsEnforcement(m)
   return validateChoice({"none", "child_safe", "global"}, m)
 end
 
+local function validateGatewayName(m)
+   -- NOTE: no space allowed right now
+   return validateSingleWord(m)
+end
+
+local function validateGatewayMode(m)
+   return validateChoice({"interface", "ip_address"}, m)
+end
+
+local function validateNetworkInterface(m)
+   return validateSingleWord(m)
+end
+
 -- #################################################################
 
 -- NOTE: Put here al the parameters to validate
@@ -1000,9 +1013,9 @@ local known_parameters = {
    ["forge_global_dns"]        =  validateOnOff,                 -- users
    ["default_policy"]          =  validateNumber,                -- users
    ["dns_enforcement"]         =  validateDnsEnforcement,
-   ["lan_interfaces"]          =  validateListOfTypeInline(validateSingleWord),
-   ["wan_interfaces"]          =  validateListOfTypeInline(validateSingleWord),
-   ["gateway_name"]            =  validateUnquoted,
+   ["lan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
+   ["wan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
+   ["gateway_name"]            =  validateGatewayName,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
@@ -1030,6 +1043,11 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- Protocol to categories match
    ["proto_"]                  =  {validateProtocolId, validateCategory},
+
+-- Gateways
+   ["gateway_mode_"]           =  {validateGatewayName, validateGatewayMode},
+   ["gateway_iface_"]          =  {validateGatewayName, validateNetworkInterface},
+   ["gateway_address_"]        =  {validateGatewayName, validateIPV4},
 
 -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key

@@ -438,7 +438,7 @@ end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
-                                  javascriptAfterSwitch, showElement, initialValue)
+                                  javascriptAfterSwitch, showElement, initialValue, toggleElementArray)
    local value
    if(_POST[submit_field] ~= nil) then
     ntop.setPref(redis_key, _POST[submit_field])
@@ -509,22 +509,40 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
       end
 
+      -- Show/Hide all the elementToSwitch items at once
       if (showElementArray ~= nil) then
-      for indexSwitch = 1, #showElementArray do
-        if (indexSwitch == nameCount) then
-          if elementToSwitch ~= nil then
-            for element = 1, #elementToSwitch do
-              if (showElementArray[indexSwitch] == true) then
-                --tprint("SHOW " .. elementToSwitch[element])
-                print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
-              else
-                --tprint("HIDE " .. elementToSwitch[element])
-                print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
+        for indexSwitch = 1, #showElementArray do
+          if (indexSwitch == nameCount) then
+            if elementToSwitch ~= nil then
+              for element = 1, #elementToSwitch do
+                if (showElementArray[indexSwitch] == true) then
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
+                else
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
+                end
               end
             end
           end
         end
-      end
+      -- Show/Hide all the elementToSwitch selectively
+      elseif (toggleElementArray ~= nil) then
+        for indexSwitch = 1, #toggleElementArray do
+          if (indexSwitch == nameCount) then
+            if elementToSwitch ~= nil then
+              for element = 1, #elementToSwitch do
+                if (toggleElementArray[indexSwitch][element] == true) then
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
+                else
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
+                end
+              end
+            end
+          end
+        end
       end
 
       if javascriptAfterSwitch ~= nil then

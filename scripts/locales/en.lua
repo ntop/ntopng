@@ -2323,6 +2323,8 @@ local  en = {
       gateway_type = "Mode",
       gateway_exists = "Gateway %{gw} already exists.",
       gateways_status = "Gateways status",
+      add_gateway = "Add Gateway",
+      gateway_interface_descr = "Specify the network interface to use to determine the gateway IP address",
    },
 }
 
