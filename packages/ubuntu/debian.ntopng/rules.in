@@ -50,6 +50,7 @@ binary-arch: build install
 	mkdir -p ./debian/@APP@
 	cp -r ./usr/ ./debian/@APP@
 	cp -r ../etc/ ./debian/@APP@;
+	if test "@APP@" = "nedge"; then cp ../etc/ntopng/nedge.conf  ./debian/@APP@/etc/ntopng/ntopng.conf; fi
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
 	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'
