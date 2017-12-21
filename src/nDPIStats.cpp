@@ -293,6 +293,29 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 
 /* *************************************** */
 
+static void addProtoJson(json_object *my_object, ProtoCounter *counter, const char *name) {
+  json_object *inner, *inner1;
+
+  inner = json_object_new_object();
+  if(! inner) return;
+
+  json_object_object_add(inner, "duration", json_object_new_int64(counter->duration));
+  
+  inner1 = json_object_new_object();
+  if(! inner1) { json_object_put(inner); return; }
+  json_object_object_add(inner1, "sent", json_object_new_int64(counter->bytes.sent));
+  json_object_object_add(inner1, "rcvd", json_object_new_int64(counter->bytes.rcvd));
+  json_object_object_add(inner, "bytes", inner1);
+
+  inner1 = json_object_new_object();
+  if(! inner1) { json_object_put(inner); return; }
+  json_object_object_add(inner1, "sent", json_object_new_int64(counter->packets.sent));
+  json_object_object_add(inner1, "rcvd", json_object_new_int64(counter->packets.rcvd));
+  json_object_object_add(inner, "packets", inner1);
+
+  json_object_object_add(my_object, name, inner);
+} 
+
 json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   char *unknown = iface->get_ndpi_proto_name(NDPI_PROTOCOL_UNKNOWN);
   json_object *my_object;
@@ -306,22 +329,8 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
       
       if((proto_id > 0) && (name == unknown)) break;
 
-      if(name != NULL) {
-	inner = json_object_new_object();
-	json_object_object_add(inner, "duration", json_object_new_int64(counters[proto_id]->duration));
-	
-	inner1 = json_object_new_object();
-	json_object_object_add(inner1, "sent", json_object_new_int64(counters[proto_id]->bytes.sent));
-	json_object_object_add(inner1, "rcvd", json_object_new_int64(counters[proto_id]->bytes.rcvd));
-	json_object_object_add(inner, "bytes", inner1);
-
-	inner1 = json_object_new_object();
-	json_object_object_add(inner1, "sent", json_object_new_int64(counters[proto_id]->packets.sent));
-	json_object_object_add(inner1, "rcvd", json_object_new_int64(counters[proto_id]->packets.rcvd));
-	json_object_object_add(inner, "packets", inner1);
-
-	json_object_object_add(my_object, name, inner);
-      }
+      if(name != NULL)
+        addProtoJson(my_object, counters[proto_id], name);
     }
   }
 
@@ -341,6 +350,38 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   json_object_object_add(my_object, "categories", inner);
 
   return(my_object);
+}
+
+/* *************************************** */
+
+json_object* nDPIStats::getJSONObjectForCheckpoint(NetworkInterface *iface) {
+  json_object *my_object;
+  char *name;
+
+  my_object = json_object_new_object();
+  if(my_object == NULL) return NULL;
+
+  if (counters[NDPI_PROTOCOL_DNS] != NULL) {
+    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_DNS);
+    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_DNS], name);
+  }
+
+  if (counters[NDPI_PROTOCOL_EDONKEY] != NULL) {
+    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_EDONKEY);
+    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_EDONKEY], name);
+  }
+
+  if (counters[NDPI_PROTOCOL_BITTORRENT] != NULL) {
+    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_BITTORRENT);
+    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_BITTORRENT], name);
+  }
+
+  if (counters[NDPI_PROTOCOL_SKYPE] != NULL) {
+    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_SKYPE);
+    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_SKYPE], name);
+  }
+
+  return my_object;
 }
 
 /* *************************************** */

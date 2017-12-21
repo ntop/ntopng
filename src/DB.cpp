@@ -53,5 +53,15 @@ int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_
 /* ******************************************* */
 
 void DB::startDBLoop() {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Internal error ***");
 }
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
+bool DB::dumpAggregatedFlow(AggregatedFlow *f) {
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+  return(false);
+}
+#endif
+

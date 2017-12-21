@@ -6,13 +6,13 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
+require "lua_utils"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
 end
 
-require "lua_utils"
 require "historical_utils"
 require "flow_utils"
 require "voip_utils"
@@ -560,7 +560,7 @@ else
 	 end
 	 
 	 if(value ~= "") then
-	    print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value) .. "</td></tr>\n")
+	    print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value, snmpdevice) .. "</td></tr>\n")
 	 end
 
 	 num = num + 1

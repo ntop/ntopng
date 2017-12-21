@@ -37,8 +37,19 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
+  enable_flow_device_port_rrd_creation = false;
+  enable_top_talkers = false, enable_idle_local_hosts_cache = false;
+  enable_active_local_hosts_cache = false, enable_tiny_flows_export = true,
+  enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
+  enable_remote_to_remote_alerts = true,
+  enable_dropped_flows_alerts = true,
+  enable_syslog_alerts = false, enable_captive_portal = false,
+  slack_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
+  override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
+  hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
+  default_l7policy = PASS_ALL_SHAPER_ID;
 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -69,6 +80,10 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
+  routing_mode_enabled = false;
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  dump_flows_on_ndb = false;
+#endif
   read_flows_from_mysql = false;
   enable_taps = false;
   memset(ifNames, 0, sizeof(ifNames));
@@ -93,7 +108,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_proto = NULL;
   has_cmdl_trace_lvl = false;
 
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
   disable_dns_resolution();
   disable_dns_responses_decoding();
 #endif
@@ -167,7 +182,7 @@ void usage() {
 	 "  or\n"
 	 "  ntopng <command line options> \n\n"
 	 "Options:\n"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	 "[--dns-mode|-n] <mode>              | DNS address resolution mode\n"
 	 "                                    | 0 - Decode DNS responses and resolve\n"
 	 "                                    |     local numeric IPs only (default)\n"
@@ -257,8 +272,11 @@ void usage() {
 #endif
 
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
+#ifdef HAVE_NDB
+	 "                                    | ndb           Dump in nDB\n"
+#endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   es;<idx type>;<idx name>;<es URL>;<http auth>\n"
@@ -332,7 +350,7 @@ void usage() {
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
 	 "[--help|-h]                         | Help\n",
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
 	 "edge "
 #else
 	 ""
@@ -360,9 +378,14 @@ void usage() {
 /* ******************************************* */
 
 void Prefs::setTraceLevelFromRedis(){
-  char lvlStr[CONST_MAX_LEN_REDIS_VALUE];
+  char *lvlStr;
+
+  if((lvlStr = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
+    ;
+
   if(!hasCmdlTraceLevel()
-     && ntop->getRedis()->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL, lvlStr, sizeof(lvlStr)) == 0){
+     && ntop->getRedis()->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL,
+			      lvlStr, CONST_MAX_LEN_REDIS_VALUE) == 0){
     if(!strcmp(lvlStr, "trace")){
       ntop->getTrace()->set_trace_level(TRACE_LEVEL_TRACE);
     }
@@ -382,6 +405,8 @@ void Prefs::setTraceLevelFromRedis(){
       ntop->getTrace()->set_trace_level(TRACE_LEVEL_ERROR);
     }
   }
+
+  free(lvlStr);
 }
 
 /* ******************************************* */
@@ -469,7 +494,11 @@ void Prefs::reloadPrefsFromRedis() {
     enable_probing_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING, CONST_DEFAULT_ALERT_PROBING_ENABLED),
     enable_ssl_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL, CONST_DEFAULT_ALERT_SSL_ENABLED),
     enable_dns_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DNS, CONST_DEFAULT_ALERT_DNS_ENABLED),
-    enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
+    enable_remote_to_remote_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE,
+							       CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED),
+    enable_dropped_flows_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS,
+							       CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED),
+    enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     slack_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
 
@@ -482,6 +511,7 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
 
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
+    default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
     hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
@@ -575,7 +605,7 @@ static const struct option long_options[] = {
   { "help",                              no_argument,       NULL, 'h' },
   { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   { "dns-mode",                          required_argument, NULL, 'n' },
 #endif
   { "traffic-filtering",                 required_argument, NULL, 'k' },
@@ -741,7 +771,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     local_networks_set = true;
     break;
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   case 'n':
     dns_mode = atoi(optarg);
     switch(dns_mode) {
@@ -762,7 +792,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
     break;
 #endif
-    
+
   case 'p':
     ndpi_proto_path = strdup(optarg);
     ntop->setCustomnDPIProtos(ndpi_proto_path);
@@ -960,6 +990,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
+#ifndef HAVE_OLD_NEDGE
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+    if(strncmp(optarg, "ndb", 2) == 0) {
+	dump_flows_on_ndb = true;
+    } else
+#endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL, *tmp = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
@@ -1055,7 +1091,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F logstash;....");
       }
     } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Discarding -F %s: value out of range", optarg);
+#endif
     break;
 
 #ifndef WIN32
@@ -1075,7 +1113,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #ifdef NTOPNG_PRO
 	   "Enterprise/Professional"
 #else
@@ -1515,6 +1553,18 @@ bool Prefs::is_enterprise_edition() {
 
 /* *************************************** */
 
+bool Prefs::is_nedge_edition() {
+  return
+#if defined(HAVE_OLD_NEDGE) || defined(HAVE_NEDGE)
+    ntop->getPro()->has_valid_license()
+#else
+  false
+#endif
+    ;
+}
+
+/* *************************************** */
+
 time_t Prefs::pro_edition_demo_ends_at() {
   return
 #ifdef NTOPNG_PRO
@@ -1523,4 +1573,19 @@ time_t Prefs::pro_edition_demo_ends_at() {
     0
 #endif
     ;
+}
+
+/* *************************************** */
+
+/* Perform here post-initialization validations */
+
+void Prefs::validate() {
+#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+  if(dump_flows_on_ndb) {
+    if(!ntop->getPro()->is_ndb_in_use()) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignored '-F ndb' as nDB is not in use");
+      dump_flows_on_ndb = false;
+    }
+  }
+#endif
 }

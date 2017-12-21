@@ -60,8 +60,12 @@ class ViewInterface : public NetworkInterface {
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
 
-  virtual bool walker(WalkerType wtype, bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
-
+  virtual bool walker(u_int32_t *begin_slot, bool walk_all,
+		      WalkerType wtype,		      
+		      bool (*walker)(GenericHashEntry *h,
+				     void *user_data, bool *entryMatched),
+		      void *user_data);
+  
   virtual void lua(lua_State* vm);
 };
 

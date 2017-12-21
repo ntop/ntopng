@@ -64,10 +64,6 @@ Host::~Host() {
 
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  for(int i = 0; i < CONST_MAX_NUM_CHECKPOINTS; i++) {
-    if(checkpoints[i]) free(checkpoints[i]);
-  }
-
   if(mac)           mac->decUses();
   if(as)            as->decUses();
   if(vlan)          vlan->decUses();
@@ -84,8 +80,6 @@ Host::~Host() {
     free(host_traffic_shapers);
   }
 
-  if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
-  if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
 #endif
   if(icmp)            delete icmp;
   if(dns)             delete dns;
@@ -141,7 +135,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64], host[96];
 
 #ifdef NTOPNG_PRO
-  l7Policy = l7PolicyShadow = NULL;
   has_blocking_quota = has_blocking_shaper = false;
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
   host_traffic_shapers = NULL;
@@ -168,13 +161,14 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   flow_flood_victim_alert = new AlertCounter(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
   host_label_set = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false, blacklisted_alarm_emitted = false;
-  memset(&checkpoints, 0, sizeof(checkpoints));
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
     trigger_host_alerts = false;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
   nextSitesUpdate = 0;
+  checkpoint_set = false;
+  checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
@@ -265,7 +259,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   
   if(!host_serial) computeHostSerial();
   updateHostPool(true /* inline with packet processing */);
-  updateHostL7Policy();
 }
 
 /* *************************************** */
@@ -335,38 +328,6 @@ void Host::updateHostTrafficPolicy(char *key) {
     else
       dump_host_traffic = true;
   }
-}
-
-/* *************************************** */
-
-void Host::updateHostL7Policy() {
-#ifdef NTOPNG_PRO
-    if(!iface->is_bridge_interface() && !iface->getL7Policer())
-      return;
-
-    if(ntop->getPro()->has_valid_license()) {
-
-	if(l7PolicyShadow) {
-	    free_ptree_l7_policy_data((void*)l7PolicyShadow);
-	    l7PolicyShadow = NULL;
-	}
-
-	l7PolicyShadow = l7Policy;
-
-#ifdef SHAPER_DEBUG
-	{
-	    char buf[64];
-
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "Updating host policy %s",
-					 ip.print(buf, sizeof(buf)));
-	}
-#endif
-
-	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool_id);
-	resetBlockedTrafficStatus();
-    }
-#endif
 }
 
 /* *************************************** */
@@ -507,8 +468,7 @@ void Host::set_mac(char *m) {
 
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
-	       bool returnHost, bool asListElement,
-	       bool exclude_deserialized_bytes) {
+	       bool returnHost, bool asListElement) {
   char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net, *host_id = buf_id;
   bool mask_host = Utils::maskHost(localHost);
   Mac *m = mac; /* Cache macs as they can be swapped/updated */
@@ -536,10 +496,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
-  lua_push_int_table_entry(vm, "bytes.sent",
-			   sent.getNumBytes() - (exclude_deserialized_bytes ? sent.getNumDeserializedBytes() : 0));
-  lua_push_int_table_entry(vm, "bytes.rcvd",
-			   rcvd.getNumBytes() - (exclude_deserialized_bytes ? rcvd.getNumDeserializedBytes() : 0));
+  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
+  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
 
@@ -1186,55 +1144,128 @@ void Host::decNumFlows(bool as_client) {
 
 #ifdef NTOPNG_PRO
 
+#ifdef HAVE_NEDGE
+
+/* We have to differentiate between category shaper and protocol shaper to handle default properly */
+static void getCategoryAndProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy,
+      u_int8_t *protocol_shaper, u_int8_t *category_shaper, bool *proto_set, bool *cat_set) {
+  ShaperDirection_t *sd = NULL;
+  int protocol;
+
+  if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
+    protocol = ndpiProtocol.app_protocol;
+  else
+    protocol = ndpiProtocol.master_protocol;
+
+  HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+  if(!sd && protocol != ndpiProtocol.master_protocol) {
+    protocol = ndpiProtocol.master_protocol;
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+  }
+
+  if(sd) {
+    if(sd->protocol_shapers.enabled && sd->protocol_shapers.egress != NEDGE_USER_DEFAULT_POLICY_SHAPER_ID) {
+      *protocol_shaper = sd->protocol_shapers.egress;
+      *proto_set = true;
+    }
+    if(sd->category_shapers.enabled && sd->category_shapers.egress != NEDGE_USER_DEFAULT_POLICY_SHAPER_ID) {
+      *category_shaper = sd->category_shapers.egress;
+      *cat_set = true;
+    }
+  }
+}
+#else
+static bool getProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy, u_int8_t *shaper_id, bool isIngress) {
+  ShaperDirection_t *sd = NULL;
+  int protocol;
+  bool shaper_set = false;
+
+  if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
+    protocol = ndpiProtocol.app_protocol;
+  else
+    protocol = ndpiProtocol.master_protocol;
+
+  HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+  if(!sd && protocol != ndpiProtocol.master_protocol) {
+    protocol = ndpiProtocol.master_protocol;
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+  }
+
+  if(sd) {
+    /* A protocol shaper has priority over the category shaper */
+    if(sd->protocol_shapers.enabled) {
+      *shaper_id = isIngress ? sd->protocol_shapers.ingress : sd->protocol_shapers.egress;
+      shaper_set = true;
+    } else if(sd->category_shapers.enabled) {
+      *shaper_id = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
+      shaper_set = true;
+    }
+  }
+
+  return shaper_set;
+}
+#endif
+
 TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   HostPools *hp;
   TrafficShaper *ts = NULL, **shapers = NULL;
   u_int8_t shaper_id = DEFAULT_SHAPER_ID;
-  ShaperDirection_t *sd = NULL;
-  L7Policy_t *policy = l7Policy; /*
-				    Cache value so that even if updateHostL7Policy()
-				    runs in the meantime, we're consistent with the policer
-				 */
+#ifdef HAVE_NEDGE
+  u_int8_t category_shaper_id = DEFAULT_SHAPER_ID;
+  bool proto_set = false;
+  bool cat_set = false;
+#endif
+  L7Policy_t *policy = NULL;
 
+  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
   hp = iface->getHostPools();
-
+ 
   if(hp && ((shaper_id = hp->getPoolShaper(get_host_pool())) != PASS_ALL_SHAPER_ID)) {
     /* Use the pool shaper */;
   } else if (policy) {
-    int protocol;
+    // Set a default (fallback) shaper
+#ifdef HAVE_NEDGE
+    if (iface->getL7Policer()) {
+       L7Policy_t *default_policy = iface->getL7Policer()->getIpPolicy(NO_HOST_POOL_ID);
 
-    if(!ndpi_is_subprotocol_informative(NULL, ndpiProtocol.master_protocol))
-      protocol = ndpiProtocol.app_protocol;
-    else
-      protocol = ndpiProtocol.master_protocol;
-
-    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
-    if(!sd && protocol != ndpiProtocol.master_protocol) {
-      protocol = ndpiProtocol.master_protocol;
-      HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
+       if (default_policy) {
+         getCategoryAndProtocolShaper(ndpiProtocol, default_policy, &shaper_id, &category_shaper_id, &proto_set, &cat_set);
+#ifdef SHAPER_DEBUG
+         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DEFAULT] proto_shaper=%d cat_shaper=%d - use_proto=%d use_cat=%d\n", shaper_id, category_shaper_id, proto_set, cat_set);
+#endif
+       }
     }
 
+    // Try to get a specific shaper
+    getCategoryAndProtocolShaper(ndpiProtocol, policy, &shaper_id, &category_shaper_id, &proto_set, &cat_set);
+#ifdef SHAPER_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SPECIFIC] proto_shaper=%d cat_shaper=%d - use_proto=%d use_cat=%d\n", shaper_id, category_shaper_id, proto_set, cat_set);
+#endif
+    // prefer protocol shaper, then category shaper
+    if(!proto_set) {
+      if(cat_set)
+        shaper_id = category_shaper_id;
+      else
+        shaper_id = ntop->getPrefs()->getDefaultl7Policy(); // Global default policy from user preference
+    }
+#else
     shaper_id = isIngress ? policy->default_shapers.ingress : policy->default_shapers.egress;
 
-    if(sd) {
-      /* A protocol shaper has priority over the category shaper */
-      if(sd->protocol_shapers.enabled)
-	shaper_id = isIngress ? sd->protocol_shapers.ingress : sd->protocol_shapers.egress;
-      else if(sd->category_shapers.enabled)
-	shaper_id = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
-    }
+    // Try to get a specific shaper
+    getProtocolShaper(ndpiProtocol, policy, &shaper_id, isIngress);
+#endif
   }
 
 #ifdef SHAPER_DEBUG
   {
     char buf[64], buf1[64];
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [%s@%u][ndpiProtocol=%d/%s] => [policer=%p][shaper_id=%d]%s",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [%s@%u][ndpiProtocol=%d/%s] => [policer=%p][shaper_id=%d]",
 				 isIngress ? "INGRESS" : "EGRESS",
 				 ip.print(buf, sizeof(buf)), vlan_id,
 				 ndpiProtocol.app_protocol,
 				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
-				 policy ? policy : NULL, shaper_id, sd ? "" : " [DEFAULT]");
+				 policy ? policy : NULL, shaper_id);
   }
 #endif
 
@@ -1273,16 +1304,15 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 /* *************************************** */
 
 void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category) {
-  L7Policy_t *policy = l7Policy; /*
-				    Cache value so that even if updateHostL7Policy()
-				    runs in the meantime, we're consistent with the policer
-				 */
   ShaperDirection_t *sd = NULL;
   u_int64_t bytes = 0;  /* Default: no quota */
   u_int32_t secs = 0;   /* Default: no quota */
   bool category = false; /* Default: no category */
   u_int32_t schedule = 0xFFFFFFFF; /* Default: all day */
   int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
+  L7Policy_t *policy = NULL;
+
+  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
 
   if(policy) {
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol32, sd);
@@ -1392,10 +1422,12 @@ bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *no
 
 bool Host::checkCrossApplicationQuota() {
   HostPools *pools = getInterface()->getHostPools();
-  L7Policy_t *policy = l7Policy; /* Cache it! */
   u_int64_t cur_bytes = 0;
   u_int32_t cur_duration = 0;
   bool is_above = false;
+  L7Policy_t *policy = NULL;
+
+  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
 
   if(pools && policy
      && (policy->cross_application_quotas.bytes_quota > 0
@@ -1513,32 +1545,46 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 
 /* *************************************** */
 
-void Host::checkpoint(lua_State* vm, u_int8_t checkpoint_id) {
-  if(checkpoint_id >= CONST_MAX_NUM_CHECKPOINTS) {
-    if(vm) lua_pushnil(vm);
-    return;
+bool Host::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
+  json_object_object_add(my_object, "sent", sent.getJSONObject());
+  json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
+
+  if (details_level >= details_high) {
+    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
+    json_object_object_add(my_object, "seen.last", json_object_new_int64(last_seen));
+    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObjectForCheckpoint(iface));
+    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
+    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
   }
 
-  if(vm) {
+  return true;
+}
+
+/* *************************************** */
+
+void Host::checkPointHostTalker(lua_State *vm) {
+  lua_newtable(vm);
+
+  if (! checkpoint_set) {
+    checkpoint_set = true;
+  } else {
     lua_newtable(vm);
-
-    if(checkpoints[checkpoint_id])
-      lua_push_str_table_entry(vm, (char*)"previous", checkpoints[checkpoint_id]);
+    lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
+    lua_push_int_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
+    lua_pushstring(vm, "previous");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 
-  if(checkpoints[checkpoint_id])
-    free(checkpoints[checkpoint_id]);
+  checkpoint_sent_bytes = sent.getNumBytes();
+  checkpoint_rcvd_bytes = sent.getNumBytes();
 
-  checkpoints[checkpoint_id] = serialize();
-
-  if(vm) {
-    if(checkpoints[checkpoint_id])
-      lua_push_str_table_entry(vm, (char*)"current", checkpoints[checkpoint_id]);
-  }
-
-  // char buf[64];
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "checkpoint for %s [host: %s]",
-  // 			       iface->get_name(), get_string_key(buf, sizeof(buf)));
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
+  lua_push_int_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
+  lua_pushstring(vm, "current");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -1665,11 +1711,6 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     ntop->getPrefs()->get_http_prefix(),
 	     c, iface->get_id(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
-
-    // iface->getAlertsManager()->engageHostAlert(this,
-    // 					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
-    // 					       asClient ? alert_host_under_attack : alert_host_attacker,
-    // 					       alert_level_error, msg);
 #endif
     good_low_flow_detected = true;
   }
@@ -1687,12 +1728,7 @@ void Host::decLowGoodputFlows(bool asClient) {
   }
 
   if(alert && good_low_flow_detected) {
-    /* TODO: send end of alert
-       iface->getAlertsManager()->releaseHostAlert(this,
-       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
-       asClient ? alert_host_under_attack : alert_host_attacker,
-       alert_level_error, msg);
-    */
+    /* TODO: send end of alert  */
     good_low_flow_detected = false;
   }
 }

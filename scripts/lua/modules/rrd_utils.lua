@@ -1,6 +1,9 @@
+local os_utils = require "os_utils"
 
 SECONDS_IN_A_HOUR = 3600
 SECONDS_IN_A_DAY = SECONDS_IN_A_HOUR*24
+
+local rrd_utils = {}
 
 --------------------------------------------------------------------------------
 
@@ -332,3 +335,68 @@ end
 function interface_rrd_creation_enabled(ifId)
    return not (ntop.getPref(get_interface_rrd_creation_key(ifId)) == "false")
 end
+
+-- ########################################################
+
+local function create_rrd(name, step, ds)
+   step = tonumber(step)
+   if step == nil or step <= 1 then step = 1 end
+   if(not(ntop.exists(name))) then
+      if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
+      local prefs = ntop.getPrefs()
+      ntop.rrd_create(
+	 name,
+	 step,   -- step
+	 'DS:' .. ds .. ':DERIVE:'.. step * 5 .. ':U:U',
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
+	 'RRA:AVERAGE:0.5:'..(60/step)..':'..tostring(prefs.intf_rrd_1min_days*24*60),   -- 1 min resolution = 1 month
+	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:'..(86400)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
+	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
+      )
+   end
+end
+
+-- ########################################################
+
+local function create_rrd_num(name, ds, step)
+   step = tonumber(step)
+   if step == nil or step <= 1 then step = 1 end
+   if(not(ntop.exists(name))) then
+      if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
+      local prefs = ntop.getPrefs()
+      ntop.rrd_create(
+	 name,
+	 step,   -- step
+	 'DS:' .. ds .. ':GAUGE:' .. step * 5 .. ':0:U',
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
+	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:'..(86400/step)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
+	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
+      )
+   end
+end
+
+-- ########################################################
+
+function rrd_utils.makeRRD(basedir, when, if_id, key, rrdname, step, value)
+   local name = os_utils.fixPath(basedir .. "/" .. rrdname .. ".rrd")
+
+   if rrdname:find("^num_") then
+      create_rrd_num(name, rrdname, step)
+   else
+      create_rrd(name, step, rrdname)
+   end
+
+   ntop.rrd_update(name, nil, string.format("%u", value or 0))
+
+   local tskey = if_id
+   if(key ~= nil) then tskey = tskey ..":"..key end
+   ntop.tsSet(when, if_id, tonumber(step), "iface", nil, rrdname, tonumber(value), 0)
+
+   if(enable_second_debug) then
+      io.write('Updating RRD ['.. if_id..'] '.. name .. " " .. value ..'\n')
+   end
+end
+
+return rrd_utils

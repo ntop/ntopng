@@ -70,6 +70,7 @@
 #include <netdb.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <sys/select.h>
 #endif
 
 #ifdef linux
@@ -97,7 +98,6 @@
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif
-#include <sys/select.h>
 #ifdef __APPLE__
 #include <uuid/uuid.h>
 #endif
@@ -150,6 +150,7 @@ extern "C" {
 #include <string>
 #include <sstream>
 #include <queue>
+#include <typeinfo>
 
 using namespace std;
 
@@ -157,7 +158,6 @@ using namespace std;
 #include "patricia.h"
 #include "ntop_defines.h"
 #include "Mutex.h"
-#include "ConditionalVariable.h"
 #include "RwLock.h"
 #include "MDNS.h"
 #include "AddressTree.h"
@@ -166,6 +166,7 @@ using namespace std;
 #include "ntop_typedefs.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
+#include "Checkpointable.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
 #include "GenericTrafficElement.h"
@@ -174,7 +175,7 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "CountMinSketch.h"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
 #endif
@@ -221,10 +222,11 @@ using namespace std;
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+#include "ndb_api.h"
 #include "Nseries.h"
 #endif
 #include "NetworkInterface.h"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "PcapInterface.h"
 #endif
 #include "ViewInterface.h"
@@ -238,7 +240,7 @@ using namespace std;
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
 #include "Redis.h"
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "ElasticSearch.h"
 #include "Logstash.h"
 #endif
@@ -270,7 +272,7 @@ using namespace std;
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include "DivertInterface.h"
 #endif
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
 #include "ZCCollectorInterface.h"
@@ -293,6 +295,9 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
+#ifdef HAVE_NDB
+#include "NDBFlowDB.h"
+#endif
 #endif
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"

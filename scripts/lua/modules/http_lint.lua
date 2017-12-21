@@ -172,12 +172,6 @@ local function validateMode(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateNetworkMode(mode)
-   local modes = { "router","transparent_bridge"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateOperator(mode)
    local modes = {"gt", "eq", "lt"}
 
@@ -312,6 +306,12 @@ end
 
 local function validateReportMode(mode)
    local modes = {"daily", "weekly", "monthly"}
+
+   return validateChoice(modes, mode)
+end
+
+local function validatenEdgeAction(mode)
+   local modes = {"discard", "make_permanent"}
 
    return validateChoice(modes, mode)
 end
@@ -557,6 +557,17 @@ local function validateZoom(zoom)
    end
 end
 
+local function validateCategory(cat)
+   if starts(cat, "cat_") then
+      local id = split(cat, "cat_")[2]
+      return validateNumber(id)
+   else
+      return validateChoiceByKeys(ndpi_categories, cat)
+   end
+
+   return false
+end
+
 local function validateShapedElement(elem_id)
    local id
    if starts(elem_id, "cat_") then
@@ -605,6 +616,12 @@ local function validateHostsList(l)
    return validateListOfType(l, validateHost)
 end
 
+local function validateListOfTypeInline(t)
+   return function(l)
+      return validateListOfType(l, t)
+   end
+end
+
 local function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
       return true
@@ -626,8 +643,48 @@ local function validateTopModule(m)
    return validateSingleWord(m)
 end
 
+local function validateDnsEnforcement(m)
+  return validateChoice({"none", "child_safe", "global"}, m)
+end
+
+local function validateGatewayName(m)
+   -- NOTE: no space allowed right now
+   return validateSingleWord(m)
+end
+
+local function validateGatewayMode(m)
+   return validateChoice({"interface", "ip_address"}, m)
+end
+
+local function validateNetworkInterface(m)
+   return validateSingleWord(m)
+end
+
+local function validateRoutingPolicyName(m)
+   return validateUnquoted(m)
+end
+
+function validateRoutingPolicyGateway(m)
+   -- this is in the form "policyid_gwid"
+   local parts = string.split(m, "_")
+
+   if parts and #parts == 2 then
+      local policy_id = parts[1]
+      local gw_id = parts[2]
+
+      return validateNumber(policy_id) and validateNumber(gw_id)
+   end
+
+   return false
+end
+
 -- #################################################################
 
+local function validateInterfaceConfMode(m)
+   return validateChoice({"dhcp", "static"}, m)
+end
+
+-- #################################################################
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
@@ -637,7 +694,6 @@ local known_parameters = {
    ["query"]                   =  validateUnchecked,           -- This field should be used to perform partial queries.
                                                                -- It up to the script to implement proper validation.
                                                                -- In NO case query should be executed directly without validation.
-
 -- UNQUOTED (Not Generally dangerous)
    ["referer"]                 =  validateUnquoted,             -- An URL referer
    ["url"]                     =  validateUnquoted,             -- An URL
@@ -685,6 +741,7 @@ local known_parameters = {
 
 -- NDPI
    ["application"]             =  validateApplication,           -- An nDPI application protocol name
+   ["category"]                =  validateCategory,              -- An nDPI protocol category name
    ["breed"]                   =  validateBool,                  -- True if nDPI breed should be shown
    ["ndpi_category"]           =  validateBool,                  -- True if nDPI category should be shown
    ["ndpistats_mode"]          =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
@@ -748,6 +805,7 @@ local known_parameters = {
 
 -- OTHER
    ["_"]                       =  validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
+   ["__"]                      =  validateUnquoted,              -- see LDAP prefs page
    ["ifid"]                    =  validateInterface,             -- An ntopng interface ID
    ["iffilter"]                =  validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    =  validateMode,                  -- Remote or Local users
@@ -809,6 +867,8 @@ local known_parameters = {
    ["toggle_flow_alerts_iface"]                    =  validateBool,
    ["toggle_ssl_alerts"]                           =  validateBool,
    ["toggle_dns_alerts"]                           =  validateBool,
+   ["toggle_remote_to_remote_alerts"]              =  validateBool,
+   ["toggle_dropped_flows_alerts"]                 =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,
    ["toggle_flow_db_dump_export"]                  =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
@@ -819,6 +879,7 @@ local known_parameters = {
    ["toggle_nbox_integration"]                     =  validateBool,
    ["toggle_autologout"]                           =  validateBool,
    ["toggle_ldap_anonymous_bind"]                  =  validateBool,
+   ["toggle_local"]                                =  validateBool,
    ["toggle_local_host_cache_enabled"]             =  validateBool,
    ["toggle_active_local_host_cache_enabled"]      =  validateBool,
    ["toggle_network_discovery"]                    =  validateBool,
@@ -903,6 +964,7 @@ local known_parameters = {
    ["report"]                  =  validateReportMode,            -- A mode for traffic report
    ["report_zoom"]             =  validateBool,                  -- True if we are zooming in the report
    ["format"]                  =  validatePrintFormat,           -- a print format
+   ["nedge_config_action"]     =  validatenEdgeAction,           -- system_setup_utils.lua
    ["nbox_action"]             =  validateNboxAction,            -- get_nbox_data.lua
    ["fav_action"]              =  validateFavouriteAction,       -- get_historical_favourites.lua
    ["favourite_type"]          =  validateFavouriteType,         -- get_historical_favourites.lua
@@ -957,6 +1019,8 @@ local known_parameters = {
    ["lifetime_unlimited"]      =  validateEmptyOr(validateOnOff), -- set if user should have an unlimited lifetime
    ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
+   ["edit_policy"]             =  validateEmpty,                 -- set when editing policy
+   ["delete_user"]             =  validateSingleWord,
    ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            =  validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             =  validateFlowStatus,            -- flows_stats.lua
@@ -968,9 +1032,18 @@ local known_parameters = {
    ["create_guests_pool"]      =  validateOnOff,                 -- bridge wizard
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
    ["delete_all_policies"]     =  validateEmpty,                 -- traffic policies
-
-   -- ntopng Box
-   ["nbox_network_mode"]       =  validateNetworkMode,           -- bridge wizard
+   ["safe_search"]             =  validateOnOff,                 -- users
+   ["forge_global_dns"]        =  validateOnOff,                 -- users
+   ["default_policy"]          =  validateNumber,                -- users
+   ["dns_enforcement"]         =  validateDnsEnforcement,
+   ["lan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
+   ["wan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
+   ["gateway_name"]            =  validateGatewayName,
+   ["delete_gateway"]          =  validateGatewayName,
+   ["ping_address"]            =  validateIPV4,
+   ["policy_name"]             =  validateRoutingPolicyName,
+   ["delete_policy"]           =  validateRoutingPolicyName,
+   ["policy_id"]               =  validateNumber,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
@@ -990,12 +1063,33 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["qtraffic_"]               =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: traffic quota
    ["qtime_"]                  =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: time quota
    ["oldrule_"]                =  {validateShapedElement,     validateEmpty},       -- key: category or protocol ID, value: empty
+   ["policy_"]                 =  {validateShapedElement,     validateListOfTypeInline(validateNumber)},      -- key: category or protocol ID, value: shaper,bytes_quota,secs_quota
 
 -- ALERTS (see alert_utils.lua)
    ["op_"]                     =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
    ["value_"]                  =  {validateAlertDescriptor,   validateEmptyOr(validateNumber)}, -- key: an alert descriptor, value: alert value
 
--- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
+-- Protocol to categories match
+   ["proto_"]                  =  {validateProtocolId, validateCategory},
+
+-- Gateways
+   ["gateway_mode_"]           =  {validateGatewayName, validateGatewayMode},
+   ["gateway_iface_"]          =  {validateGatewayName, validateNetworkInterface},
+   ["gateway_address_"]        =  {validateGatewayName, validateIPV4},
+   ["gw_id_"]                  =  {validateNumber, validateGatewayName},
+   ["pol_id_"]                 =  {validateNumber, validateRoutingPolicyName},
+   ["routing_"]                =  {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
+
+-- Network Configuration
+   ["iface_mode_"]             =  {validateNetworkInterface, validateInterfaceConfMode},
+   ["iface_ip_"]               =  {validateNetworkInterface, validateIPV4},
+   ["iface_gw_"]               =  {validateNetworkInterface, validateIPV4},
+   ["iface_netmask_"]          =  {validateNetworkInterface, validateIPV4},
+   ["iface_id_"]               =  {validateNumber, validateNetworkInterface},
+   ["iface_up_"]               =  {validateNumber, validateNumber},
+   ["iface_down_"]             =  {validateNumber, validateNumber},
+
+   -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
    ["val_"]                    =  {validateNumber,   validateUnchecked},       -- key: an index, value: the pair value
 }

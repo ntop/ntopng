@@ -128,6 +128,12 @@ local menu_subpages = {
     }, toggle_dns_alerts = {
       title       = i18n("prefs.toggle_dns_alerts_title"),
       description = i18n("prefs.toggle_dns_alerts_description"),
+    }, toggle_remote_to_remote_alerts = {
+      title       = i18n("prefs.toggle_remote_to_remote_alerts_title"),
+      description = i18n("prefs.toggle_remote_to_remote_alerts_description"),
+    }, toggle_dropped_flows_alerts = {
+      title       = i18n("prefs.toggle_dropped_flows_alerts_title"),
+      description = i18n("prefs.toggle_dropped_flows_alerts_description"),
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
       description = i18n("prefs.toggle_malware_probing_description", {url="https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"}),

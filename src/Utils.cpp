@@ -342,12 +342,14 @@ bool Utils::mkdir_tree(char *path) {
 
 /* **************************************************** */
 
-const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
+const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aLevel) {
   *aType = alert_flow_misbehaviour; /* Default */
+  *aLevel = alert_level_warning;
 
   switch(s) {
   case status_normal:
     *aType = alert_none;
+    *aLevel = alert_level_none;
     return("Normal");
     break;
   case status_slow_tcp_connection:
@@ -384,6 +386,16 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
   case status_dns_invalid_query:
     *aType = alert_suspicious_activity;
     return("Invalid DNS query");
+  case status_remote_to_remote:
+    *aType = alert_flow_remote_to_remote;
+    return("Remote client and remote server");
+  case status_blacklisted:
+    *aType = alert_flow_blacklisted;
+    return("Client or server blacklisted (or both)");
+  case status_blocked:
+    *aLevel = alert_level_info;
+    *aType = alert_flow_blocked;
+    return("Flow blocked");
   default:
     return("Unknown status");
     break;
@@ -419,6 +431,7 @@ int Utils::dropPrivileges() {
 #ifndef WIN32
   struct passwd *pw = NULL;
   const char *username;
+  int rv;
 
   if(getgid() && getuid()) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
@@ -440,6 +453,13 @@ int Utils::dropPrivileges() {
   }
 
   if(pw != NULL) {
+    if(ntop->getPrefs()->get_pid_path() != NULL) {
+      /* Change PID file ownership to be able to delete it on shutdown */
+      rv = chown(ntop->getPrefs()->get_pid_path(), pw->pw_uid, pw->pw_gid);
+      if(rv != 0)
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change owner to PID in file %s", ntop->getPrefs()->get_pid_path());
+    }
+
     /* Drop privileges */
     if((setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]",
@@ -1603,10 +1623,12 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 /* **************************************** */
 
 u_int32_t Utils::readIPv4(char *ifname) {
+ u_int32_t ret_ip = 0;
+
+#ifndef WIN32
   struct ifreq ifr;
   int fd;
-  u_int32_t ret_ip = 0;
-
+  
   memset(&ifr, 0, sizeof(ifr));
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
   ifr.ifr_addr.sa_family = AF_INET;
@@ -1621,6 +1643,7 @@ u_int32_t Utils::readIPv4(char *ifname) {
 
     closesocket(fd);
   }
+#endif
 
   return(ret_ip);
 }
@@ -2332,6 +2355,9 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 /* ****************************************************** */
 
 int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
+#ifdef WIN32
+	return(-1);
+#else
   struct ifaddrs* pList = NULL;
   struct ifaddrs* pAdapter = NULL;
   struct ifaddrs* pAdapterFound = NULL;
@@ -2361,6 +2387,7 @@ int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 
   freeifaddrs(pList);
   return bindresult;
+#endif
 }
 
 /* ****************************************************** */
@@ -2488,7 +2515,7 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
   socklen_t len = sizeof(rcv_buffsize_base);
   int buf_type = rx_buffer ? SO_RCVBUF /* RX */ : SO_SNDBUF /* TX */;
     
-  if(getsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize_base, &len) < 0) {
+  if(getsockopt(sock_fd, SOL_SOCKET, buf_type, (char*)&rcv_buffsize_base, &len) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read socket receiver buffer size [%s]",
 				 strerror(errno));
     return;
@@ -2502,7 +2529,7 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
     rcv_buffsize = i * rcv_buffsize_base;
     if(rcv_buffsize > max_buf_size) break;
 
-    if(setsockopt(sock_fd, SOL_SOCKET, buf_type, &rcv_buffsize, sizeof(rcv_buffsize)) < 0) {
+    if(setsockopt(sock_fd, SOL_SOCKET, buf_type, (const char*)&rcv_buffsize, sizeof(rcv_buffsize)) < 0) {
       if(debug) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set socket %s buffer size [%s]",
 					     buf_type == SO_RCVBUF ? "receive" : "send",
 					     strerror(errno));
@@ -2514,3 +2541,72 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
   }
 }
 
+/* ****************************************************** */
+
+char* Utils::formatTraffic(float numBits, bool bits, char *buf) {
+  char unit;
+
+  if(bits)
+    unit = 'b';
+  else
+    unit = 'B';
+
+  if(numBits < 1024) {
+    snprintf(buf, 32, "%lu %c", (unsigned long)numBits, unit);
+  } else if(numBits < 1048576) {
+    snprintf(buf, 32, "%.2f K%c", (float)(numBits)/1024, unit);
+  } else {
+    float tmpMBits = ((float)numBits)/1048576;
+
+    if(tmpMBits < 1024) {
+      snprintf(buf, 32, "%.2f M%c", tmpMBits, unit);
+    } else {
+      tmpMBits /= 1024;
+
+      if(tmpMBits < 1024) {
+	snprintf(buf, 32, "%.2f G%c", tmpMBits, unit);
+      } else {
+	snprintf(buf, 32, "%.2f T%c", (float)(tmpMBits)/1024, unit);
+      }
+    }
+  }
+
+  return(buf);
+}
+
+/* ****************************************************** */
+
+char* Utils::formatPackets(float numPkts, char *buf) {
+  if(numPkts < 1000) {
+    snprintf(buf, 32, "%.2f", numPkts);
+  } else if(numPkts < 1000000) {
+    snprintf(buf, 32, "%.2f K", numPkts/1000);
+  } else {
+    numPkts /= 1000000;
+    snprintf(buf, 32, "%.2f M", numPkts);
+  }
+
+  return(buf);
+}
+
+/* ****************************************************** */
+
+bool Utils::str2DetailsLevel(const char *details, DetailsLevel *out) {
+  bool rv = false;
+
+  if(!strcmp(details, "normal")) {
+    *out = details_normal;
+    rv = true;
+  } else if(!strcmp(details, "high")) {
+    *out = details_high;
+    rv = true;
+  } else if(!strcmp(details, "higher")) {
+    *out = details_higher;
+    rv = true;
+  } else if(!strcmp(details, "max")) {
+    *out = details_max;
+    rv = true;
+  }
+
+  return rv;
+}

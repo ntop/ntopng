@@ -231,7 +231,7 @@ print[[
 
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Language</label>
+      <label class="form-label">]] print(i18n("language")) print[[</label>
       <div class="input-group">
         <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
         <select name="user_language" id="user_language" class="form-control">]]

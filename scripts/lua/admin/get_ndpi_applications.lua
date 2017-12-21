@@ -14,6 +14,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
+local proto_filter = _GET["l7proto"]
 
 local sortPrefs = "ndpi_application_category"
 
@@ -79,11 +80,23 @@ for app_name, app_id in pairs(applications) do
    ::continue::
 end
 
+local categories = interface.getnDPICategories()
+
 local res_formatted = {}
+
+if not isEmptyString(proto_filter) then
+   num_apps = 1
+end
 
 local cur_num = 0
 for app, _ in pairsByValues(sorter, sOrder) do
    app = applications[app]
+
+   if not isEmptyString(proto_filter) then
+     if tostring(app["app_id"]) ~= proto_filter then
+       goto continue
+     end
+   end
 
    cur_num = cur_num + 1
    if cur_num <= to_skip then
@@ -96,7 +109,18 @@ for app, _ in pairsByValues(sorter, sOrder) do
    record["column_ndpi_application_id"] = tostring(app["app_id"])
    record["column_ndpi_application_category_id"] = tostring(app["cat"]["id"])
    record["column_ndpi_application"] = app["app_name"]
-   record["column_ndpi_application_category"] = app["cat"]["name"]
+
+   cat_select_dropdown = '<select class="form-control" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
+   local current_id = tostring(app["cat"]["id"])
+   
+   for cat_name, cat_id in pairs(categories) do
+      cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [["]] ..
+         ternary(cat_id == current_id, " selected", "") .. [[>]] ..
+         cat_name .. [[</option>]]
+   end
+   cat_select_dropdown = cat_select_dropdown .. "</select>"
+
+   record["column_ndpi_application_category"] = cat_select_dropdown
 
    res_formatted[#res_formatted + 1] = record
    ::continue::

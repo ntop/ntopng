@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 
 /* **************************************************** */
 
@@ -492,7 +492,8 @@ int ParserInterface::getKeyId(char *sym) {
 
 /* **************************************************** */
 
-u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
+				     u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface * iface = (NetworkInterface*)data;
@@ -544,15 +545,21 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
     if(json_object_object_get_ex(o, "drops", &w)) {
       if(json_object_object_get_ex(w, "export_queue_too_long", &z))
 	zrs->export_queue_too_long = (u_int32_t)json_object_get_int64(z);
+
       if(json_object_object_get_ex(w, "too_many_flows", &z))
 	zrs->too_many_flows = (u_int32_t)json_object_get_int64(z);
+
       if(json_object_object_get_ex(w, "elk_flow_drops", &z))
 	zrs->elk_flow_drops = (u_int32_t)json_object_get_int64(z);
+
+      if(json_object_object_get_ex(w, "sflow_pkt_sample_drops", &z))
+	zrs->sflow_pkt_sample_drops = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "zmq", &w)) {
       if(json_object_object_get_ex(w, "num_flow_exports", &z))
 	zrs->num_flow_exports = (u_int64_t)json_object_get_int64(z);
+
       if(json_object_object_get_ex(w, "num_exporters", &z))
 	zrs->num_exporters = (u_int8_t)json_object_get_int(z);
     }
@@ -578,8 +585,10 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
     static_cast<ParserInterface*>(iface)->setRemoteStats(zrs);
     if(flowHashing) {
       FlowHashing *current, *tmp;
+
       HASH_ITER(hh, flowHashing, current, tmp) {
 	ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
+
 	if(zrscopy)
 	  memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
 
@@ -591,7 +600,7 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
     json_object_put(o);
   } else {
     // if o != NULL
-    if(!once){
+    if(!once) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: "
 				   "your nProbe sender is outdated, data encrypted, invalid JSON, or oom?");
@@ -617,7 +626,9 @@ void ParserInterface::parseSingleFlow(json_object *o,
   IpAddress ip_aux; /* used to check empty IPs */
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
-
+  u_int8_t flow_ip_version = 0;
+  bool invalid_flow = false;
+  
   /* Reset data */
   memset(&flow, 0, sizeof(flow));
   flow.additional_fields = json_object_new_object();
@@ -687,6 +698,10 @@ void ParserInterface::parseSingleFlow(json_object *o,
 					 "Check exported fields");
 	}
 	break;
+      case IP_PROTOCOL_VERSION:
+	flow_ip_version = atoi(value);
+      break;
+      
       case IPV4_DST_ADDR:
       case IPV6_DST_ADDR:
 	if(flow.core.dst_ip.isEmpty()) {
@@ -926,8 +941,31 @@ void ParserInterface::parseSingleFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
-  /* Process Flow */
-  iface->processFlow(&flow);
+  /* Handle zero IPv4/IPv6 discrepacies */
+  if(flow_ip_version == 0) {
+    if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
+      if(flow.core.dst_ip.isIPv4() && flow.core.src_ip.isIPv6() && flow.core.src_ip.isEmpty())
+	flow.core.src_ip.setVersion(4);
+      else if(flow.core.src_ip.isIPv4() && flow.core.dst_ip.isIPv6() && flow.core.dst_ip.isEmpty())
+	flow.core.dst_ip.setVersion(4);
+      else if(flow.core.dst_ip.isIPv6() && flow.core.src_ip.isIPv4() && flow.core.src_ip.isEmpty())
+	flow.core.src_ip.setVersion(6);
+      else if(flow.core.src_ip.isIPv6() && flow.core.dst_ip.isIPv4() && flow.core.dst_ip.isEmpty())
+	flow.core.dst_ip.setVersion(6);
+      else {
+	invalid_flow = true;
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "IP version mismatch: client:%d server:%d - flow will be ignored",
+				     flow.core.src_ip.getVersion(), flow.core.dst_ip.getVersion());
+      }
+    }
+  } else
+    flow.core.src_ip.setVersion(flow_ip_version), flow.core.dst_ip.setVersion(flow_ip_version);
+  
+  if(!invalid_flow) {
+    /* Process Flow */
+    iface->processFlow(&flow);
+  }
 
   /* Dispose memory */
   if(flow.dns_query) free(flow.dns_query);
@@ -953,6 +991,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
   f = json_tokener_parse_verbose(payload, &jerr);
   
   if(f != NULL) {
+    int rc;
+    
     if(json_object_get_type(f) == json_type_array) {
       /* Flow array */
       int id, num_elements = json_object_array_length(f);
@@ -960,15 +1000,17 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
       for(id = 0; id < num_elements; id++)
 	parseSingleFlow(json_object_array_get_idx(f, id), source_id, iface);
 
-      json_object_put(f);
-      return(num_elements);
+      rc = num_elements;
     } else {
       parseSingleFlow(f, source_id, iface);
-      return(1);
+      rc = 1;
     }
+
+    json_object_put(f);
+    return(rc);
   } else {
     // if o != NULL
-    if(!once){
+    if(!once) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
@@ -1036,7 +1078,7 @@ u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t
     json_object_put(o);
   } else {
     // if o != NULL
-    if(!once){
+    if(!once) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
@@ -1073,6 +1115,7 @@ void ParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
   zmq_remote_stats_shadow = zmq_remote_stats;
   zmq_remote_stats = zrs;
+  
   /*
    * Don't override ethStats here, these stats are properly updated
    * inside NetworkInterface::processFlow for ZMQ interfaces.
@@ -1087,6 +1130,7 @@ void ParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
 
 void ParserInterface::lua(lua_State* vm) {
   ZMQ_RemoteStats *zrs = zmq_remote_stats;
+
   NetworkInterface::lua(vm);
 
   if(zrs) {

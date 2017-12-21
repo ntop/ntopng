@@ -7,12 +7,30 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.
 
 local ntop_info = ntop.getInfo()
 
+local os_utils = require "os_utils"
+
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
 host_pools_utils.DEFAULT_ROUTING_POLICY_ID = "0"
 host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
+
+--
+-- BEGIN NEDGE specific code
+--
+function host_pools_utils.usernameToPoolId(username)
+  local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
+  return ternary(not isEmptyString(res), res, nil)
+end
+
+function host_pools_utils.poolIdToUsername(pool_id)
+  local ifid = getInterfaceId(ifname)
+  return host_pools_utils.getPoolName(ifid, pool_id)
+end
+--
+-- END NEDGE specific code
+--
 
 host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"] or 5
 -- this takes into account the special pools
@@ -53,7 +71,13 @@ function host_pools_utils.setPoolDetail(ifid, pool_id, detail, value)
   return ntop.setHashCache(details_key, detail, tostring(value))
 end
 
-local function addMemberToRedisPool(members_key, member_key)
+local function addMemberToRedisPool(ifid, pool_id, member_key)
+  if pool_id == host_pools_utils.DEFAULT_POOL_ID then
+    -- avoid adding default pool members explicitly
+    return true
+  end
+
+  local members_key = get_pool_members_key(ifid, pool_id)
   local n = table.len(ntop.getMembersCache(members_key) or {})
 
   if n >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
@@ -82,6 +106,7 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
   ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
   ntop.setHashCache(details_key, "enforce_quotas_per_pool_member",  tostring(enforce_quotas_per_pool_member  or false))
   ntop.setHashCache(details_key, "enforce_shapers_per_pool_member", tostring(enforce_shapers_per_pool_member or false))
+  ntop.setHashCache(details_key, "forge_global_dns", "true")
   return true
 end
 
@@ -165,7 +190,6 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
     end
   end
 
-  local members_key = get_pool_members_key(ifid, new_pool)
   local member_exists, info = getMembershipInfo(member_and_vlan)
   local prev_pool
 
@@ -182,18 +206,17 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
   end
 
   host_pools_utils.deletePoolMember(ifid, prev_pool, info.key)
-  addMemberToRedisPool(members_key, info.key)
+  addMemberToRedisPool(ifid, new_pool, info.key)
   return true
 end
 
 function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
-  local members_key = get_pool_members_key(ifid, pool_id)
   local member_exists, info = getMembershipInfo(member_and_vlan)
 
   if member_exists then
     return false, info
   else
-    local rv = addMemberToRedisPool(members_key, info.key)
+    local rv = addMemberToRedisPool(ifid, pool_id, info.key)
     return rv, info
   end
 end
@@ -323,9 +346,21 @@ function host_pools_utils.getChildrenSafe(ifid, pool_id)
   return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "children_safe"))
 end
 
+function host_pools_utils.setChildrenSafe(ifid, pool_id, value)
+  host_pools_utils.setPoolDetail(ifid, pool_id, "children_safe", ternary(value, "true", "false"))
+end
+
+function host_pools_utils.getForgeGlobalDNS(ifid, pool_id)
+  return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "forge_global_dns"))
+end
+
+function host_pools_utils.setForgeGlobalDNS(ifid, pool_id, value)
+  host_pools_utils.setPoolDetail(ifid, pool_id, "forge_global_dns", ternary(value, "true", "false"))
+end
+
 function host_pools_utils.getRoutingPolicyId(ifid, pool_id)
   local routing_policy_id = host_pools_utils.getPoolDetail(ifid, pool_id, "routing_policy_id")
-  if isEmptyString(routing_policy_id) then routing_policy_id = "0" end
+  if isEmptyString(routing_policy_id) then routing_policy_id = host_pools_utils.DEFAULT_ROUTING_POLICY_ID end
   return routing_policy_id
 end
 
@@ -411,12 +446,12 @@ end
 
 function host_pools_utils.getRRDBase(ifid, pool_id)
   local dirs = ntop.getDirs()
-  return fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
+  return os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
 end
 
 function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
   -- NOTE: requires graph_utils
-  for pool_id, pool_stats in pairs(interface.getHostPoolsStats()) do
+  for pool_id, pool_stats in pairs(interface.getHostPoolsStats() or {}) do
     local pool_base = host_pools_utils.getRRDBase(ifid, pool_id)
 
     if(not(ntop.exists(pool_base))) then
@@ -424,14 +459,22 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     end
 
     -- Traffic stats
-    local rrdpath = fixPath(pool_base .. "/bytes.rrd")
+    local rrdpath = os_utils.fixPath(pool_base .. "/bytes.rrd")
     createRRDcounter(rrdpath, 300, verbose)
     ntop.rrd_update(rrdpath, nil, tolongint(pool_stats["bytes.sent"]), tolongint(pool_stats["bytes.rcvd"]))
+
+    if pool_id ~= tonumber(host_pools_utils.DEFAULT_POOL_ID) then
+       local flows_dropped = pool_stats["flows.dropped"] or 0
+
+       rrdpath = os_utils.fixPath(pool_base .. "/blocked_flows.rrd")
+       createSingleRRDcounter(rrdpath, 300, verbose)
+       ntop.rrd_update(rrdpath, nil, tolongint(flows_dropped))
+    end
 
     -- nDPI stats
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
-        local ndpiname = fixPath(pool_base.."/"..proto..".rrd")
+        local ndpiname = os_utils.fixPath(pool_base.."/"..proto..".rrd")
         createRRDcounter(ndpiname, 300, verbose)
         ntop.rrd_update(ndpiname, nil, tolongint(v["bytes.sent"]), tolongint(v["bytes.rcvd"]))
       end

@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "alert_utils"
+require "flow_utils"
+
 local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
@@ -41,6 +43,47 @@ local alert_options = _GET
 local num_alerts = tonumber(_GET["totalRows"])
 if num_alerts == nil then
    num_alerts = getNumAlerts(status, alert_options)
+end
+
+local function record_to_description(alert_entity, record)
+   -- pretend record is a flow to reuse getFlowLabel
+   local flow = ""
+   if alert_entity == "flow" then
+      flow = {
+	 ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
+	 ["cli.blacklisted"] = record["cli_blacklisted"] == "1",
+	 ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
+	 ["srv.blacklisted"] = record["srv_blacklisted"] == "1",
+	 ["vlan"] = record["vlan_id"]}
+
+      local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+
+      flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
+
+      if not isEmptyString(l7proto_name) then
+	 flow = flow.."["..i18n("application")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
+      end
+   end
+
+   local column_msg      = json.decode(record["alert_json"])
+   if column_msg == nil then
+      column_msg = string.gsub(record["alert_json"], '"', "'")
+   else
+      -- render the json
+      local msg = ""
+      if not isEmptyString(record["flow_status"]) then
+	 msg = msg..getFlowStatus(tonumber(record["flow_status"])).." "
+      end
+      if not isEmptyString(flow) then
+	 msg = msg..flow.." "
+      end
+      if not isEmptyString(column_msg["info"]) then
+	 msg = msg.."["..i18n("info")..": "..column_msg["info"].."] "
+      end
+      column_msg = msg
+   end
+
+   return column_msg
 end
 
 local alerts = getAlerts(status, alert_options)
@@ -83,7 +126,8 @@ for _key,_value in ipairs(alerts) do
 
    local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
    local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
-   local column_msg      = string.gsub(_value["alert_json"], '"', "'")
+
+   local column_msg      = record_to_description(alert_entity, _value) or ""
 
    local column_id = tostring(alert_id)
 

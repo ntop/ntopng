@@ -10,6 +10,7 @@ local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
 show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
+local have_nedge = ntop.isnEdge()
 
 -- ############################################
 
@@ -41,7 +42,7 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   if (subpage.disabled) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
-     ((subpage.enterprise_only) and (not info["version.enterprise_edition"])) then
+     ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) then
     return false
   end
 
@@ -82,7 +83,7 @@ end
 function printMenuSubpages(tab)
   for _, subpage in ipairs(menu_subpages) do
     if not subpage.disabled then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item menu-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
     end
   end
 end
@@ -107,7 +108,7 @@ end
 local options_script_loaded = false
 local options_ctr = 0
 
-function prefsResolutionButtons(fmt, value, fixed_id)
+function prefsResolutionButtons(fmt, value, fixed_id, format_spec)
   local ctrl_id
   if fixed_id ~= nil then
     ctrl_id = fixed_id
@@ -116,7 +117,7 @@ function prefsResolutionButtons(fmt, value, fixed_id)
     options_ctr = options_ctr + 1
   end
 
-  local res = makeResolutionButtons(FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"pull-right"}})
+  local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"pull-right"}})
 
   print(res.html)
   print("<script>")
@@ -212,6 +213,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   if (_input_type == "number") then
     attributes["required"] = "required"
+  elseif (_input_type == "password") then
+    -- disable chrome autocomplete
+    attributes["autocomplete"] = "new-password"
   end
 
   local input_type = "text"
@@ -229,7 +233,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
           <td width="100%;"></td>
           <td style="vertical-align:top;">]]
       if extra.tformat ~= nil then
-        value = prefsResolutionButtons(extra.tformat, value)
+        value = prefsResolutionButtons(extra.tformat, value, nil, extra.format_spec)
       end
 
       if extra.width == nil then
@@ -434,13 +438,14 @@ end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
-                                  javascriptAfterSwitch, showElement)
-  if(_POST[submit_field] ~= nil) then
+                                  javascriptAfterSwitch, showElement, initialValue, toggleElementArray)
+   local value
+   if(_POST[submit_field] ~= nil) then
     ntop.setPref(redis_key, _POST[submit_field])
     value = _POST[submit_field]
     notifyNtopng(submit_field)
   else
-    value = ntop.getPref(redis_key)
+    value = initialValue or ntop.getPref(redis_key)
     if(value == "") then
       if(default_value ~= nil) then
         ntop.setPref(redis_key, default_value)
@@ -504,20 +509,40 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
       end
 
+      -- Show/Hide all the elementToSwitch items at once
       if (showElementArray ~= nil) then
-      for indexSwitch = 1, #showElementArray do
-        if (indexSwitch == nameCount) then
-          if elementToSwitch ~= nil then
-            for element = 1, #elementToSwitch do
-              if (showElementArray[indexSwitch] == true) then
-                print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
-              else
-                print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
+        for indexSwitch = 1, #showElementArray do
+          if (indexSwitch == nameCount) then
+            if elementToSwitch ~= nil then
+              for element = 1, #elementToSwitch do
+                if (showElementArray[indexSwitch] == true) then
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
+                else
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
+                end
               end
             end
           end
         end
-      end
+      -- Show/Hide all the elementToSwitch selectively
+      elseif (toggleElementArray ~= nil) then
+        for indexSwitch = 1, #toggleElementArray do
+          if (indexSwitch == nameCount) then
+            if elementToSwitch ~= nil then
+              for element = 1, #elementToSwitch do
+                if (toggleElementArray[indexSwitch][element] == true) then
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
+                else
+                  -- NOTE: this is executed into the js change callback
+                  print('$("#'..elementToSwitch[element]..'").css("display","none");\n')
+                end
+              end
+            end
+          end
+        end
       end
 
       if javascriptAfterSwitch ~= nil then
@@ -560,4 +585,12 @@ function loggingSelector(label, comment, submit_field, redis_key)
           logging_keys, logging_values, value, color_map, submit_field, redis_key)
 
   return(value)
+end
+
+function printPageSection(section_name)
+   print('<tr><th colspan=2 class="info">'..section_name..'</th></tr>')
+end
+
+function printSaveButton()
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 end

@@ -6,10 +6,9 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+
 local discover = require "discover_utils"
-
 local ifId = getInterfaceId(ifname)
-
 local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></small>'
 
 if _GET["request_discovery"] == "true" then
@@ -21,6 +20,16 @@ local discovery_requested = discover.networkDiscoveryRequested(ifId)
 
 if discovery_requested then
    refresh_button = ""
+end
+
+local doa_fd = nil
+local doa = nil
+
+local enable_doa = false
+
+if(enable_doa) then
+   local doa = require "doa"
+   doa_fd = doa.init("/tmp/doa.update")
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -52,6 +61,10 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print("<tr><th>"..i18n("ip_address").."</th><th>"..i18n("name").."</th><th>"..i18n("mac_stats.manufacturer").."</th><th>"..i18n("mac_address").."</th>")
    print("<th>"..i18n("os").."</th><th>"..i18n("info").."</th><th>"..i18n("discover.device").."</th></tr>")
 
+   if(enable_doa) then
+      doa.header(doa_fd)
+   end
+   
    for _, el in ipairs(discovered["devices"] or {}) do
       print("<tr>")
       -- IP
@@ -91,7 +104,13 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       -- OS
       print("<td align=\"center\">")
       local mac_info = interface.getMacInfo(el.mac, 0) -- 0 = vlanId
-      if(mac_info ~= nil) then print(getOperatingSystemIcon(mac_info.operatingSystem)) else print("&nbsp;") end
+      if(mac_info ~= nil) then
+	 el.operatingSystem = getOperatingSystemName(mac_info.operatingSystem)
+	 print(getOperatingSystemIcon(mac_info.operatingSystem))
+      else
+	 el.operatingSystem = nil
+	 print("&nbsp;")
+      end
       print("</td>\n")
       
       -- Information
@@ -112,6 +131,15 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       print("</td>\n")
 
       print("</tr>")
+
+      if(enable_doa) then
+	 doa.device2DOA(doa_fd, el)
+      end
+   end
+
+   if(enable_doa) then
+      doa.footer(doa_fd)
+      doa.term(doa_fd)
    end
 end
 print("</table>\n")

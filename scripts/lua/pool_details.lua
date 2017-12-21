@@ -99,7 +99,7 @@ elseif page == "historical" then
     end
 
     local host_url = getPageUrl(base_url, page_params)
-    drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+    drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
   end
 end
 

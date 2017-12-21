@@ -9,13 +9,13 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
-   require "common"
    require "snmp_utils"
 end
 
 local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
+local os_utils = require "os_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -23,6 +23,8 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 require "rrd_utils"
+
+local have_nedge_2 = ntop.isnEdge()
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
@@ -39,17 +41,13 @@ ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class)
-   print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value.."") end
-      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">]] print(i18n("save")) print[[</button>]]
+      print[[">]]
    else
       if(value ~= nil) then print(value) end
    end
-   print("</form>\n")
 end
 
 if(_POST["switch_interface"] ~= nil) then
@@ -103,70 +101,37 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 if (isAdministrator()) then
-   if(_POST["custom_name"] ~=nil) then
-	 -- TODO move keys to new schema: replace ifstats.name with ifid
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
-   end
+   if (page == "config") and (_SERVER["REQUEST_METHOD"] == "POST") then
+      -- TODO move keys to new schema: replace ifstats.name with ifid
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
 
-   if(_POST["ifSpeed"] ~= nil) then
       local ifspeed_cache = 'ntopng.prefs.'..ifstats.name..'.speed'
       if isEmptyString(_POST["ifSpeed"]) then
          ntop.delCache(ifspeed_cache)
       else
          ntop.setCache(ifspeed_cache, _POST["ifSpeed"])
       end
-   end
 
-   if(_POST["ifRate"] ~= nil) then
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
+
+      local sf = tonumber(_POST["scaling_factor"])
+      if(sf == nil) then sf = 1 end
+      ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
+      interface.loadScalingFactorPrefs()
    end
 
-   if(_POST["scaling_factor"] ~= nil) then
-	 local sf = tonumber(_POST["scaling_factor"])
-	 if(sf == nil) then sf = 1 end
-	 ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
-	 interface.loadScalingFactorPrefs()
-   end
+   if is_packetdump_enabled and (page == "packetdump") and (_SERVER["REQUEST_METHOD"] == "POST") then
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic', ternary(isEmptyString(_POST["dump_all_traffic"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap', ternary(isEmptyString(_POST["dump_traffic_to_tap"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk', ternary(isEmptyString(_POST["dump_traffic_to_disk"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic', ternary(isEmptyString(_POST["dump_unknown_to_disk"]), "false", "true"))
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', _POST["sampling_rate"])
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file', _POST["max_pkts_file"])
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
+      local max_files = ternary(not isEmptyString(_POST["max_files"]), _POST["max_files"], 500)
+      max_files = tonumber(max_files) * 1e6
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files))
 
-   if is_packetdump_enabled then
-      if(_POST["dump_all_traffic"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_POST["dump_all_traffic"])
-      end
-      if(_POST["dump_traffic_to_tap"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_POST["dump_traffic_to_tap"])
-      end
-      if(_POST["dump_traffic_to_disk"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_POST["dump_traffic_to_disk"])
-      end
-      if(_POST["dump_unknown_to_disk"] ~= nil) then
-	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic',_POST["dump_unknown_to_disk"])
-      end
-
-      if(_POST["sampling_rate"] ~= nil) then
-	 page = "packetdump"
-	 local val = ternary(not isEmptyString(_POST["sampling_rate"]), _POST["sampling_rate"], "1")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
-      end
-      if(_POST["max_pkts_file"] ~= nil) then
-	 page = "packetdump"
-	 local val = ternary(not isEmptyString(_POST["max_pkts_file"]), _POST["max_pkts_file"], "1000000")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file', val)
-      end
-      if(_POST["max_sec_file"] ~= nil) then
-	 page = "packetdump"
-	 local val = ternary(not isEmptyString(_POST["max_sec_file"]), _POST["max_sec_file"], "300")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
-      end
-      if(_POST["max_files"] ~= nil) then
-	 page = "packetdump"
-	 local max_files = ternary(not isEmptyString(_POST["max_files"]), _POST["max_files"], 500)
-	 max_files = tonumber(max_files) * 1e6
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files))
-      end
       interface.loadDumpPrefs()
    end
 end
@@ -174,13 +139,14 @@ end
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
-active_page = "if_stats"
-
+if page == "filtering" then
+   print('<script type="text/javascript" src="'..ntop.getHttpPrefix()..'/js/quotas_utils.js"></script>')
+end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(msg)
 
-rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
+rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
 url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
@@ -247,7 +213,7 @@ if(ntop.exists(rrdname) and not is_historical) then
 end
 
 
-if(table.len(ifstats.profiles) > 0) then
+if have_nedge_2 and (table.len(ifstats.profiles) > 0) then
   if(page == "trafficprofiles") then
     print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   else
@@ -304,10 +270,12 @@ if isAdministrator() and (not ifstats.isView) then
       label = ""
    end
 
-   if(page == "pools") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
+   if not have_nedge_2 then
+      if(page == "pools") then
+         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
+      else
+         print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
+      end
    end
 end
 
@@ -319,7 +287,7 @@ if(hasSnmpDevices(ifstats.id) and is_packet_interface and false --[[disabled: no
    end
 end
 
-if(ifstats.inline and isAdministrator()) then
+if(ifstats.inline and isAdministrator() and not have_nedge_2) then
    if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">"..i18n('traffic_policy').."</a></li>")
    else
@@ -416,7 +384,7 @@ if((page == "overview") or (page == nil)) then
    else
       print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
 
-      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() then
+      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() and not have_nedge_2 then
          print[[ <a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-sm fa-magic" aria-hidden="true" title=]] print('\"'..i18n("bridge_wizard.bridge_wizard")..'\"') print[[></i></a>]]
          show_bridge_wizard = true
       end
@@ -513,10 +481,10 @@ print("</script>\n")
 
    if(ifstats.zmqRecvStats ~= nil) then
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
-   print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
-   -- print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
-   print("<th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></tr>")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
+   print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
+   print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
@@ -528,7 +496,7 @@ print("</script>\n")
 
       print(i18n("if_stats_overview.dropped_packets").."</th>")
 
-      print("<td width=20% colspan=2><span id=if_drops>")
+      print("<td width=20% colspan=3><span id=if_drops>")
 
       if(ifstats.stats.drops > 0) then
 	 print('<span class="label label-danger">')
@@ -542,9 +510,13 @@ print("</script>\n")
       end
 
       if(ifstats.stats.drops > 0) then print('</span>') end
+      print("</span>&nbsp;<span id=drops_trend></span>")
 
-      print("</span>&nbsp;<span id=drops_trend></span></td>")
-
+      if(ifstats.zmqRecvStats ~= nil) then
+	 print("<p><small> <b>"..i18n("if_stats_overview.note").."</b>:<br>".. i18n("if_stats_overview.note_drops_sflow").."</small>")
+      end
+      
+      print("</td>")
    else
       print("<td width=20% colspan=3>")
       print("<small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic").."</small>")
@@ -869,10 +841,9 @@ elseif(page == "historical") then
    rrd_file = _GET["rrd_file"]
    selected_epoch = _GET["epoch"]
    if(selected_epoch == nil) then selected_epoch = "" end
-   topArray = makeTopStatsScriptsArray()
 
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
-   drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
+   drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch)
    --drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 
    if ntop.isPro() then
@@ -897,7 +868,7 @@ elseif(page == "trafficprofiles") then
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
-     local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
+     local rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
      local statschart_icon = ''
      if ntop.exists(rrdname) then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
@@ -977,51 +948,36 @@ if is_packetdump_enabled then
     dump_traffic_tap_value = "true" -- Opposite
   end
 
+   print("<form id=\"packetdump_form\" class=\"form-inline\" method=\"post\">")
    print("<table class=\"table table-striped table-bordered\">\n")
-
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
    print("<tr><th rowspan=2 width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">'..' '..i18n("packetdump_page.dump_all_traffic"))
+	       print('<input name="dump_all_traffic" type="checkbox" value="1" '..dump_all_traffic_checked..'>'..' '..i18n("packetdump_page.dump_all_traffic"))
 	       print('</input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> '..i18n("packetdump_page.dump_unknown_traffic")..' </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
+	       print('<input name="dump_unknown_to_disk" type="checkbox" value="1" '..dump_unknown_checked..'> '..i18n("packetdump_page.dump_unknown_traffic")..' </input>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump_to_disk").. "</th><td>")
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
+	       print('<input name="dump_traffic_to_disk" type="checkbox" value="1" '..dump_traffic_checked..'> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
 	       if(dump_traffic_checked ~= "") then
 		 local dumped = interface.getInterfacePacketsDumpedFile()
 	         print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print('</input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th>" .. i18n("packetdump_page.packet_dump_to_tap") .. "</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
-   print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	       print('<input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
+	       print('<input name="dump_traffic_to_tap" type="checkbox" value="1" '..dump_traffic_tap_checked..'> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
  		 print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
 	       end
 	       print(' </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
    else
       print(i18n("packetdump_page.packet_dump_to_tap_disabled_message"))
 end
@@ -1030,14 +986,10 @@ end
    print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
    print [[<td>]]
 
-   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print [[<input type="number" class="form-control" name="sampling_rate" placeholder="" min="1" step="1" max="100000000" value="]]
+   print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="sampling_rate" placeholder="" min="1" step="1" max="100000000" value="]]
    local srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
    if not isEmptyString(srate) then print(srate) else print("1") end
    print [["></input>
-      &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
     </td></tr>
        ]]
 
@@ -1046,56 +998,49 @@ end
    pcapdir = dirs.workingdir .."/"..ifstats.id.."/pcap/"
    print(pcapdir.."</td></tr>\n")
    print("<tr><th width=250>" .. i18n("packetdump_page.max_packets_per_file") .. "</th>\n")
-   print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" class="form-control" name="max_pkts_file" placeholder="" min="1" step="1" max="100000000" value="]]
+   print [[<td>]]
+      print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="max_pkts_file" placeholder="" min="1" step="1" max="100000000" value="]]
       local max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
       if(max_pkts_file ~= nil and max_pkts_file ~= "") then
 	 print(max_pkts_file.."")
       else
 	 print(interface.getInterfaceDumpMaxPkts().."")
       end
-      print [["></input> pkts &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
+      print [["></input> pkts<br>
     <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
     </td></tr>
        ]]
    print("<tr><th width=250>" .. i18n("packetdump_page.max_duration_file") .. "</th>\n")
-   print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" class="form-control" name="max_sec_file" placeholder="" min="60" step="60" max="100000000" value="]]
+   print [[<td>]]
+      print [[<input type="number" class="form-control" style="width:127px;display:inline;" name="max_sec_file" placeholder="" min="60" step="60" max="100000000" value="]]
       local max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
       if not isEmptyString(max_sec_file) then
 	 print(max_sec_file.."")
       else
 	 print(interface.getInterfaceDumpMaxSec().."")
       end
-      print [["></input>
-		  &nbsp;sec &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
+      print [["></input> sec<br>
     <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
     </td></tr>
        ]]
    print("<tr><th width=250>" .. i18n("packetdump_page.max_dump_files") .. "</th>\n")
-   print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" class="form-control" name="max_files" placeholder="" min="1" step="1" max="10000" value="]]
+   print [[<td>]]
+      print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="max_files" placeholder="" min="1" step="1" max="500000000" value="]]
       local max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
       if not isEmptyString(max_files) then
 	 print((max_files / 1e6).."")
       else
 	 print(interface.getInterfaceDumpMaxFiles().."")
       end
-      print [["></input>
-		  &nbsp; MB &nbsp; <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-    </form>
+      print [["></input> MB<br>
     <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
-    </td></tr>
-      ]]
+    </td>]]
    print("</table>")
+   print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>]]
+   print("</form>")
+   print[[<script>
+      aysHandleForm("#packetdump_form");
+   </script>]]
 end
 elseif(page == "alerts") then
 
@@ -1110,6 +1055,8 @@ elseif(page == "config") then
    end
 
    print[[
+   <form id="iface_config" lass="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">]]
 
    if ((not interface.isPcapDumpInterface()) and
@@ -1176,8 +1123,8 @@ elseif(page == "config") then
    local trigger_alerts = true
    local trigger_alerts_checked = "checked"
 
-   if (_POST["trigger_alerts"] ~= nil) then
-      if _POST["trigger_alerts"] ~= "true" then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if _POST["trigger_alerts"] ~= "1" then
          trigger_alerts = false
          trigger_alerts_checked = ""
       end
@@ -1194,12 +1141,7 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.trigger_interface_alerts")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
+            <input name="trigger_alerts" type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[>
          </td>
       </tr>]]
 
@@ -1207,8 +1149,8 @@ elseif(page == "config") then
    local interface_rrd_creation = true
    local interface_rrd_creation_checked = "checked"
 
-   if (_POST["interface_rrd_creation"] ~= nil) then
-      if _POST["interface_rrd_creation"] ~= "true" then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if _POST["interface_rrd_creation"] ~= "1" then
          interface_rrd_creation = false
          interface_rrd_creation_checked = ""
       end
@@ -1226,12 +1168,7 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
          <td>
-            <form id="rrd_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="interface_rrd_creation" value="]] print(not interface_rrd_creation) print[[">
-               <input type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[ onclick="this.form.submit();">
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
+            <input name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
          </td>
       </tr>]]
 
@@ -1242,8 +1179,8 @@ elseif(page == "config") then
       local interface_network_discovery = true
       local interface_network_discovery_checked = "checked"
 
-      if (_POST["interface_network_discovery"] ~= nil) then
-	 if _POST["interface_network_discovery"] ~= "true" then
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+	 if _POST["interface_network_discovery"] ~= "1" then
 	    interface_network_discovery = false
 	    interface_network_discovery_checked = ""
 	 end
@@ -1261,18 +1198,18 @@ elseif(page == "config") then
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.interface_network_discovery")) print[[</th>
 	 <td>
-	    <form id="rrd_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-	       <input type="hidden" name="interface_network_discovery" value="]] print(not interface_network_discovery) print[[">
-	       <input type="checkbox" value="1" ]] print(interface_network_discovery_checked) print[[ onclick="this.form.submit();">
-	       </input>
-	       <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-	    </form>
+      <input type="checkbox" name="interface_network_discovery" value="1" ]] print(interface_network_discovery_checked) print[[>
 	 </td>
       </tr>]]
    end
 
       print[[
-   </table>]]
+   </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+   </form>
+   <script>
+      aysHandleForm("#iface_config");
+   </script>]]
 
 elseif(page == "snmp_bind") then
    if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then
@@ -1447,33 +1384,6 @@ elseif(page == "filtering") then
    -- possibly decode parameters pairs
    local _POST = paramsPairsDecode(_POST)
 
-function get_shapers_from_parameters(callback)
-   local done = {}
-
-   for option,value in pairs(_POST) do
-      local sp = split(option, "ishaper_")
-      local k = nil
-
-      if #sp == 2 then
-         k = sp[2]
-      else
-         sp = split(option, "eshaper_")
-         if #sp == 2 then
-            k = sp[2]
-         end
-      end
-
-      if k ~= nil then
-         if not done[k] then
-            local qtraffic = _POST["qtraffic_"..k]
-            local qtime = _POST["qtime_"..k]
-
-            done[k] = true;
-            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k], qtraffic or "0", qtime or "0")
-         end
-      end
-   end
-end
    local perPageProtos
    if tonumber(tablePreferences("protocolShapers")) == nil then
       perPageProtos = "10"
@@ -1551,7 +1461,7 @@ end
             end
          end
 
-         get_shapers_from_parameters(function(proto_id)
+         shaper_utils.get_shapers_from_parameters(function(proto_id)
             -- A new rule will be set for the protocol, no need to delete it
             rules_to_delete[proto_id] = nil
          end)
@@ -1561,7 +1471,7 @@ end
          end
 
          -- set protocols policy for the pool
-         get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
+         shaper_utils.get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
             if proto_id == "default" then
                -- This is not the default protocol quota but the overall quota
                shaper_utils.setCrossApplicationQuotas(ifid, target_pool, traffic_quota, time_quota)
@@ -1822,50 +1732,6 @@ var rowid_prefix = "proto_policy_row_";
 var oldid_prefix = rowid_prefix + "old_";
 var newid_prefix = rowid_prefix + "new_";
 
-function replaceCtrlId(v, with_this) {
-   return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, with_this);
-}
-
-function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, input_name, extra) {
-   var extra = extra || {};
-   var value = (extra.value !== undefined) ? (extra.value) : (td_object.html());
-   var disabled = extra.disabled;
-   var hidden = extra.hidden;
-   var maxvalue = extra.max_value;
-   var minvalue = extra.min_value;
-
-   // fix ctrl id
-   var buttons = $(replaceCtrlId(template_html, input_name));
-   var div = $('<div class="text-center form-group" style="padding:0; margin:0;"></div>');
-   td_object.html("");
-   div.appendTo(td_object);
-   buttons.appendTo(div);
-
-   var input = $('<input name="' + input_name + '" class="form-control" type="number" style="width:6em; text-align:right; margin-left:0.5em; display:inline;" required/>');
-   if (maxvalue !== null)
-      input.attr("data-max", maxvalue);
-
-   input.attr("data-min", (minvalue !== null) ? minvalue : -1);
-   input.appendTo($("td:first", div));
-
-   if (disabled) {
-      input.attr("disabled", "disabled");
-      buttons.find("label").attr("disabled", "disabled");
-   }
-
-   // Add steps if available
-   for (resol in extra.steps)
-      input.attr("data-step-"+resol, extra.steps[resol]);
-
-   // execute group specific code
-   eval(replaceCtrlId(template_js, input_name));
-
-   // set initial value
-   resol_selector_set_value(input, value);
-
-   return input;
-}
-
 function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
@@ -1955,75 +1821,8 @@ print[[
 
    var new_row_ctr = 0;
    var protocol_categories = ]] print(json.encode(protocol_categories)) print[[;
-   var quota_update = null;
-   var quota_update_xhr = null;
 
-   function quotaUpdateCallback() {
-      if (quota_update_xhr !== null) {
-         quota_update_xhr.abort();
-         quota_update_xhr = null;
-      }
-
-      quota_update_xhr = $.ajax({
-         type: "GET",
-         url: "]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua",
-         data: {pool: ]] print(selected_pool.id) print[[, include_unlimited:true},
-         success: function(response) {
-            var rsp = $("<table>"+response+"</table>");
-
-            $("#table-protos > div > table > tbody > tr").each(function() {
-               var proto_id = $("td:first select", $(this)).val() || "default";
-
-               if (typeof(proto_id) !== "undefined") {
-                  var tr_quota = $("tr[data-protocol='" + proto_id + "']", rsp);
-                  var traffic_quota = $("td:nth-child(4) div.progress", $(this)).parent();
-                  var time_quota = $("td:nth-child(5) div.progress", $(this)).parent();
-
-                  if (tr_quota.length === 1) {
-                     var input_traffic_bar = $("div.progress:first", tr_quota);
-                     var traffic_label = input_traffic_bar.closest("td").find("> span");
-                     traffic_quota.html("<small>" + traffic_label.html() + "</small>");
-                     input_traffic_bar
-                        .css("height", "20px")
-                        .css("margin", "2px 0 12px 0")
-                        .appendTo(traffic_quota);
-
-                     var input_time_bar = $("div.progress:last", tr_quota);
-                     var time_label = input_time_bar.closest("td").find("> span");
-                     time_quota.html("<small>" + time_label.html() + "</small>");
-                     input_time_bar
-                        .css("height", "20px")
-                        .css("margin", "2px 0 12px 0")
-                        .appendTo(time_quota);
-                  } else {
-                     traffic_quota.html(']] print(empty_quota_bar) print[[');
-                     time_quota.html(']] print(empty_quota_bar) print[[');
-                  }
-               }
-            });
-         }
-      });
-
-      /* Periodic timeout */
-      quota_update = setTimeout(quotaUpdateCallback, 5000);
-   }
-
-   function refreshQuotas() {]]
-
-   if not ntop.isEnterprise() then
-      -- no need to update quotas as they are not supported
-      print("return;")
-   end
-
-   print[[
-      if (quota_update !== null) {
-         clearTimeout(quota_update);
-         quota_update = null;
-      }
-
-      /* Reduced timeout (only once) */
-      quota_update = setTimeout(quotaUpdateCallback, 100);
-   }
+   initQuotaUtils("]] print(ntop.getHttpPrefix()) print[[/lua/pro/pool_details_ndpi.lua", ]] print(selected_pool.id) print[[, ']] print(empty_quota_bar) print[[', ]] print(not ntop.isEnterprise()) print[[, 100);
    refreshQuotas();
 
    function addNewShapedProto() {
@@ -2164,20 +1963,6 @@ print[[
 
       if ((name !== "new_protocol_id"))
          $("option[value='"+name+"']", input).prop('selected', true);
-   }
-
-   function makeTrafficQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(4)", tr_obj), traffic_buttons_html, traffic_buttons_code, "qtraffic_" + proto_id, {
-         max_value: 100*1024*1024*1024 /* 100 GB */,
-         min_value: 0,
-      });
-   }
-
-   function makeTimeQuotaButtons(tr_obj, proto_id) {
-      makeResolutionButtonsAtRuntime($("td:nth-child(5)", tr_obj), time_buttons_html, time_buttons_code, "qtime_" + proto_id, {
-         max_value: 23*60*60 /* 23 hours */,
-         min_value: 0,
-      });
    }
 
    $("#table-protos").datatable({
@@ -2510,7 +2295,7 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
    print("var last_zmq_msg_drops = ".. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
 
-   print("var last_probe_zmq_exported_flows = ".. ifstats["zmq.num_flow_exports"] .. ";\n")
+   print("var last_probe_zmq_exported_flows = ".. (ifstats["zmq.num_flow_exports"] or 0) .. ";\n")
 end
 
 print [[

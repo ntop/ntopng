@@ -106,7 +106,7 @@ if page == "historical" then
     end
 
     host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
-    drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+    drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
 
 elseif (page == "config") then
     if(not isAdministrator()) then
@@ -114,43 +114,51 @@ elseif (page == "config") then
    end
 
    print[[
+   <form id="network_config" class="form-inline" style="margin-bottom: 0px;" method="post">
+   <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
    <table class="table table-bordered table-striped">]]
 
    -- Alerts
-   local trigger_alerts = true
-   local trigger_alerts_checked = "checked"
+   local trigger_alerts
+   local trigger_alerts_checked
 
-   if (_POST["trigger_alerts"] ~= nil) then
-      if _POST["trigger_alerts"] ~= "true" then
+    if _SERVER["REQUEST_METHOD"] == "POST" then
+      if _POST["trigger_alerts"] ~= "1" then
          trigger_alerts = false
-         trigger_alerts_checked = ""
+      else
+         trigger_alerts = true
       end
 
       ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name, tostring(trigger_alerts))
-   else
+    end
+
       trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name)
+
       if trigger_alerts == "false" then
          trigger_alerts = false
          trigger_alerts_checked = ""
+      else
+         trigger_alerts = true
+         trigger_alerts_checked = "checked"
       end
-   end
 
       print [[<tr>
          <th>]] print(i18n("network_alert_config.trigger_network_alerts")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
                   ]] print(i18n("network_alert_config.trigger_alerts_for_network",{network=network_name})) print[[
                </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
          </td>
       </tr>]]
 
    print[[
-   </table>]]
+   </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+   </form>
+   <script>
+     aysHandleForm("#network_config");
+   </script>]]
 
 elseif(page == "alerts") then
 

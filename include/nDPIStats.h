@@ -68,6 +68,7 @@ class nDPIStats {
   void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false);
   char* serialize(NetworkInterface *iface);
   json_object* getJSONObject(NetworkInterface *iface);
+  json_object* getJSONObjectForCheckpoint(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
   void sum(nDPIStats *s);
 

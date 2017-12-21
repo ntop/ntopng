@@ -21,6 +21,13 @@
 
 #include "ntop_includes.h"
 
+typedef struct _activity_descr {
+  const char *path;
+  u_int32_t periodicity;
+  bool align_to_localtime;
+  u_int8_t thread_pool_size;
+} activity_descr;
+
 /* ******************************************* */
 
 PeriodicActivities::PeriodicActivities() {
@@ -47,7 +54,8 @@ PeriodicActivities::~PeriodicActivities() {
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;
-
+  static u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
+    
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
   if(stat(ntop->get_callbacks_dir(), &buf) != 0) {
@@ -59,37 +67,49 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     exit(0);
   }
 
-  if((startup_activity = new ThreadedActivity(STARTUP_SCRIPT_PATH))) {
-    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+  if((startup_activity = new ThreadedActivity(STARTUP_SCRIPT_PATH, false))) {
+    /*
+      Don't call run() as by the time the script will be run
+      the delete below will free the memory 
+    */
     startup_activity->runScript();
     delete startup_activity;
     startup_activity = NULL;
   }
 
-  typedef struct _activity_descr {
-    const char *path;
-    u_int32_t periodicity;
-    bool align_to_localtime;
-  } activity_descr;
+  if(num_threads < ntop->get_num_interfaces())
+    num_threads = ntop->get_num_interfaces();
 
+  if(num_threads > MAX_THREAD_POOL_SIZE)
+    num_threads = MAX_THREAD_POOL_SIZE;
+  
   static activity_descr ad[] = {
-    { SECOND_SCRIPT_PATH,       1,     false },
-    { MINUTE_SCRIPT_PATH,       60,    false },
-    { FIVE_MINUTES_SCRIPT_PATH, 300,   false },
-    { HOURLY_SCRIPT_PATH,       3600,  false },
-    { DAILY_SCRIPT_PATH,        86400, true  },
-    { HOUSEKEEPING_SCRIPT_PATH, 3,     false },
-    { DISCOVER_SCRIPT_PATH,     5,     false },
-#ifdef HAVE_NEDGE
-    { UPGRADE_SCRIPT_PATH,      10,    false },
+    { SECOND_SCRIPT_PATH,       1,     false, 1           },
+    { MINUTE_SCRIPT_PATH,       60,    false, num_threads },
+    { FIVE_MINUTES_SCRIPT_PATH, 300,   false, num_threads },
+    { HOURLY_SCRIPT_PATH,       3600,  false, num_threads },
+    { DAILY_SCRIPT_PATH,        86400, true,  1           },
+    { HOUSEKEEPING_SCRIPT_PATH, 3,     false, num_threads },
+    { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
+#ifdef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
+    { UPGRADE_SCRIPT_PATH,      10,    false, 1           },
+#else
+    { PINGER_SCRIPT_PATH,       5,     false, 1           },
+#endif
 #endif
     { NULL, 0, false}
   };
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);
+  
   activity_descr *d = ad;
+  
   while(d->path) {
-    ThreadedActivity *ta = new ThreadedActivity(d->path, NULL, d->periodicity, d->align_to_localtime);
-
+    ThreadedActivity *ta = new ThreadedActivity(d->path,
+						d->periodicity,
+						d->align_to_localtime,
+						d->thread_pool_size);
     if(ta) {
       activities[num_activities++] = ta;
       ta->run();

@@ -29,7 +29,6 @@
  */
 
 class NtopPro;
-class ThreadPool;
 
 /** @class Ntop
  *  @brief Main class of ntopng.
@@ -51,7 +50,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
   ExportInterface *export_interface;
@@ -63,7 +62,6 @@ class Ntop {
   MacManufacturers *mac_manufacturers;
   void *trackers_automa;
   HTTPBL *httpbl;
-  ThreadPool *periodicTaskPool;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
@@ -75,6 +73,9 @@ class Ntop {
   NagiosManager *nagios_manager;
 #endif
   FlowChecker *flow_checker;
+#endif
+#ifdef HAVE_NDB
+  Nseries *nseries[NUM_NSERIES];
 #endif
   AddressTree *hostBlacklist, *hostBlacklistShadow;
 
@@ -376,7 +377,7 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Logstash*         getLogstash()             { return(logstash);            };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
@@ -426,7 +427,7 @@ class Ntop {
   inline char* getLocalNetworkName(int16_t local_network_id) {
     return(address->get_local_network((u_int8_t)local_network_id));
   };
-  IpAddress* getLocalNetworkIp(int16_t local_network_id);
+  void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
   void createExportInterface();
   void initNetworkInterfaces();
   void initElasticSearch();
@@ -453,11 +454,22 @@ class Ntop {
   bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(char *name);
   inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
-  inline ThreadPool* getPeriodicTaskPool()     { return(periodicTaskPool); }
+  inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
 #ifdef NTOPNG_PRO
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
-#endif
+#ifdef HAVE_NDB
+  inline void tsSet(u_int8_t series_id, u_int32_t tsSec, bool isCounter,
+		    u_int8_t ifaceId, u_int16_t step, const char *label,
+		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
+    nseries[series_id]->set(tsSec, isCounter, ifaceId, step, label ? label : "",
+			    key ? key : "", metric ? metric : "", sent, rcvd);
+  }
+  
+  inline void tsFlush(u_int8_t series_id) { nseries[series_id]->flush(); }
+#endif /* HAVE_NDB */
+#endif /* NTOPNG_PRO */
+  
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
 };
 

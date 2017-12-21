@@ -14,8 +14,12 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+-- nDPI application and category
 local application = _GET["application"]
 local application_filter = ""
+local category = _GET["category"]
+local category_filter = ""
+
 local hosts = _GET["hosts"]
 local host = _GET["host"]
 local vhost = _GET["vhost"]
@@ -49,6 +53,7 @@ local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
 local ndpistats = interface.getnDPIStats()
+local ndpicatstats = ifstats["ndpi_categories"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
@@ -94,9 +99,14 @@ print [[
 	 <script>
    var url_update = "]]
 
-if(application ~= nil) then
+if(category ~= nil) then
+   page_params["category"] = category
+   category_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   application_filter = ""
+elseif(application ~= nil) then
    page_params["application"] = application
    application_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   category_filter = ""
 end
 
 if(host ~= nil) then
@@ -178,13 +188,16 @@ if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
    print [[
 	 var table = $("#table-flows").datatable({
-			url: url_update , ]]
-print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
-
+			url: url_update ,
+         rowCallback: function(row) { return flow_table_setID(row); },
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+   print(i18n('flows_page.idle_flows_not_listed'))
+   print[['); },
+]]
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
-local filter_msg = (application or vhost or firstToUpper(flow_status or ""))
+local filter_msg = (application or category or vhost or firstToUpper(flow_status or ""))
 local active_msg
 
 if not interface.isPacketInterface() then
@@ -197,6 +210,18 @@ end
 
 if(network_name ~= nil) then
    active_msg = active_msg .. i18n("network", {network=network_name})
+end
+
+if(inIfIdx ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.inIfIdx").." "..inIfIdx.."]"
+end
+
+if(outIfIdx ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.outIfIdx").." "..outIfIdx.."]"
+end
+
+if(deviceIP ~= nil) then
+   active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." "..deviceIP.."]"
 end
 
 print(" title: \""..active_msg)
@@ -289,26 +314,53 @@ print[[\
    </div>\
 ']]
 
--- L7 Application
-print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
-print('<li><a href="')
-local application_filter_params = table.clone(page_params)
-application_filter_params["application"] = nil
-print(getPageUrl(base_url, application_filter_params))
-print('">'..i18n("flows_page.all_proto")..'</a></li>')
-
-for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
-   class_active = ''
-   if(key == application) then
-      class_active = ' class="active"'
-   end
-   print('<li '..class_active..'><a href="')
-   application_filter_params["application"] = key
+if not category then
+   -- L7 Application
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. application_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+   print('<li><a href="')
+   local application_filter_params = table.clone(page_params)
+   application_filter_params["application"] = nil
    print(getPageUrl(base_url, application_filter_params))
-   print('">'..key..'</a></li>')
+   print('">'..i18n("flows_page.all_proto")..'</a></li>')
+
+   for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
+      local class_active = ''
+      if(key == application) then
+	 class_active = ' class="active"'
+      end
+      print('<li '..class_active..'><a href="')
+      application_filter_params["application"] = key
+      print(getPageUrl(base_url, application_filter_params))
+      print('">'..key..'</a></li>')
+   end
+
+   print("</ul> </div>'")
+
 end
 
-print("</ul> </div>'")
+if not application then
+   -- L7 Application Category
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. category_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+   print('<li><a href="')
+   local category_filter_params = table.clone(page_params)
+   category_filter_params["category"] = nil
+   print(getPageUrl(base_url, category_filter_params))
+   print('">'..i18n("flows_page.all_categories")..'</a></li>')
+
+   for key, value in pairsByKeys(ndpicatstats, asc) do
+      local class_active = ''
+      if(key == category) then
+	 class_active = ' class="active"'
+      end
+      print('<li '..class_active..'><a href="')
+      category_filter_params["category"] = key
+      print(getPageUrl(base_url, category_filter_params))
+      print('">'..key..'</a></li>')
+   end
+
+   print("</ul> </div>'")
+
+end
 
 -- Ip version selector
 local ipversion_params = table.clone(page_params)

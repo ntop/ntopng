@@ -5,7 +5,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "snmp_utils"
@@ -26,6 +25,7 @@ local debug_hosts = false
 local page        = _GET["page"]
 local protocol_id = _GET["protocol"]
 local application = _GET["application"]
+local category    = _GET["category"]
 local host_info   = url2hostinfo(_GET)
 local host_ip     = host_info["host"]
 local host_name   = hostinfo2hostkey(host_info)
@@ -99,6 +99,7 @@ if (host ~= nil) then
 end
 
 if(host == nil) then
+   -- NOTE: this features is not currently enabled as it may incur into thread concurrency issues
    if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
       page = "historical"
       only_historical = true
@@ -1245,6 +1246,8 @@ print [[/lua/get_flows_data.lua?ifid=]]
 print(ifId.."&")
 if (application ~= nil) then
    print("application="..application.."&")
+elseif (category ~= nil) then
+   print("category="..category.."&")
 end
 print (hostinfo2url(host_info)..'";')
 
@@ -1263,24 +1266,48 @@ elseif interface.isPcapDumpInterface() then
    active_flows_msg = i18n("flows")
 end
 
-local application_filter = ''
-if(application ~= nil) then
-   application_filter = '<span class="glyphicon glyphicon-filter"></span>'
-end
-local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
-dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
+local dt_buttons = ''
 
-local ndpi_stats = interface.getnDPIStats(host_info["host"], host_vlan)
-
-for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
-   local class_active = ''
-   if(key == application) then
-      class_active = ' class="active"'
+if not category then
+   local application_filter = ''
+   if(application ~= nil) then
+      application_filter = '<span class="glyphicon glyphicon-filter"></span>'
    end
-   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
+   dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
+
+   for key, value in pairsByKeys(host["ndpi"] or {}, asc) do
+      local class_active = ''
+      if(key == application) then
+	 class_active = ' class="active"'
+      end
+      dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   end
+
+   dt_buttons = dt_buttons .. "</ul></div>',"
 end
 
-dt_buttons = dt_buttons .. "</ul></div>']"
+if not application then
+   local category_filter = ''
+   if(category ~= nil) then
+      category_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   end
+   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("users.categories").. " " .. category_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu pull-right\" role=\"menu\" >"
+   dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_categories")..'</a></li>'
+
+   for key, value in pairsByKeys(host["ndpi_categories"] or {}, asc) do
+      local class_active = ''
+      if(key == category) then
+	 class_active = ' class="active"'
+      end
+      dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&category='..key..'">'..key..'</a></li>'
+   end
+
+   dt_buttons = dt_buttons .. "</ul></div>',"
+
+end
+
+dt_buttons = "["..dt_buttons.."]"
 
 if(show_sprobe) then
 print [[
@@ -1288,9 +1315,12 @@ print [[
    flow_rows_option["sprobe"] = true;
    flow_rows_option["type"] = 'host';
    $("#table-flows").datatable({
-      url: url_update ,
+      url: url_update,
       buttons: ]] print(dt_buttons) print[[,
       rowCallback: function ( row ) { return flow_table_setID(row); },
+      tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+   print(i18n('flows_page.idle_flows_not_listed'))
+   print[['); },
          showPagination: true,
 ]]
 -- Set the preference table
@@ -1400,7 +1430,10 @@ print [[
          url: url_update,
          buttons: ]] print(dt_buttons) print[[,
          rowCallback: function ( row ) { return flow_table_setID(row); },
-	       showPagination: true,
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+print(i18n('flows_page.idle_flows_not_listed'))
+print[['); },
+         showPagination: true,
 	       ]]
 
   print('title: "'..active_flows_msg..'",')
@@ -1679,7 +1712,7 @@ elseif(page == "alerts") then
 
    drawAlertSourceSettings("host", hostkey,
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
-      "host_details.lua", {ifid=ifId, host=host_ip},
+      "host_details.lua", {ifid=ifId, host=hostkey},
       host_name, "host", {host_ip=host_ip, host_vlan=host_vlan})
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
@@ -1687,16 +1720,16 @@ elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then
+   local dump_status = host["dump_host_traffic"]
+   local trigger_alerts = true
 
    if(not isAdministrator()) then
       return
    end
 
-   if(host["localhost"] == true and is_packetdump_enabled) then
-      local dump_status = host["dump_host_traffic"]
-
-      if(_POST["dump_traffic"] ~= nil) then
-         if(_POST["dump_traffic"] == "true") then
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if(host["localhost"] == true and is_packetdump_enabled) then
+         if(_POST["dump_traffic"] == "1") then
             dump_status = true
          else
             dump_status = false
@@ -1704,6 +1737,34 @@ elseif (page == "config") then
          interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
       end
 
+      if host["localhost"] == true then
+         if _POST["trigger_alerts"] ~= "1" then
+            trigger_alerts = false
+         else
+            trigger_alerts = true
+         end
+
+         ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
+
+         interface.select(ifname)
+         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      end
+
+      if(ifstats.inline and (host.localhost or host.systemhost)) then
+         local drop_host_traffic = _POST["drop_host_traffic"]
+         local host_key = hostinfo2hostkey(host_info)
+
+         if(drop_host_traffic ~= "1") then
+            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
+         else
+            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, "true")
+         end
+
+         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+      end
+   end
+
+   if(host["localhost"] == true and is_packetdump_enabled) then
       if(dump_status) then
          dump_traffic_checked = 'checked="checked"'
          dump_traffic_value = "false" -- Opposite
@@ -1713,43 +1774,32 @@ elseif (page == "config") then
       end
    end
 
-   local trigger_alerts = true
-   local trigger_alerts_checked = "checked"
+   local trigger_alerts_checked
 
    if host["localhost"] == true then
-      if (_POST["trigger_alerts"] ~= nil) then
-         if _POST["trigger_alerts"] ~= "true" then
-            trigger_alerts = false
-            trigger_alerts_checked = ""
-         end
+      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
 
-         ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey, tostring(trigger_alerts))
-
-         interface.select(ifname)
-         interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      if trigger_alerts == "false" then
+         trigger_alerts = false
+         trigger_alerts_checked = ""
       else
-         trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
-         if trigger_alerts == "false" then
-            trigger_alerts = false
-            trigger_alerts_checked = ""
-         end
+         trigger_alerts = true
+         trigger_alerts_checked = "checked"
       end
    end
 
    print[[
+   <form id="host_config" class="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">
       <tr>
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>
-            <form class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
+               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
    if(host["label"] ~= nil) then print(host["label"]) end
    print[["></input> ]]
 
    print [[
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
-            </form>
          </td>
       </tr>]]
 
@@ -1761,14 +1811,10 @@ elseif (page == "config") then
       print [[<tr>
          <th>]] print(i18n("host_config.trigger_host_alerts")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
                   ]] print(i18n("host_config.trigger_alerts_for_host",{host=host["name"]})) print[[
                </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>
          </td>
       </tr>]]
    end
@@ -1777,14 +1823,10 @@ elseif (page == "config") then
       print [[<tr>
          <th>]] print(i18n("host_config.dump_host_traffic")) print[[</th>
          <td>
-            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
-               <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
-               <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
+               <input type="checkbox" name="dump_traffic" value="1" ]] print(dump_traffic_checked) print[[>
                   <i class="fa fa-hdd-o fa-lg"></i>
                   <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">]] print(i18n("host_config.dump_traffic")) print[[</a>
-               </input>
-               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
-            </form>]]
+               </input>]]
 
       local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
       local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
@@ -1804,25 +1846,12 @@ elseif (page == "config") then
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy
-      drop_host_traffic = _POST["drop_host_traffic"]
-      host_key = hostinfo2hostkey(host_info)
-      if(drop_host_traffic ~= nil) then
-         if(drop_host_traffic == "false") then
-            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         else
-            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
-         end
-
-         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
-      else
-         drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-         if(drop_host_traffic == nil) then drop_host_traffic = "false" end
-      end
-
       print("<tr><th>" .. i18n("host_config.host_traffic_policy") .. "</th><td>")
 
       if(host["localhost"] == true) then
+         local host_key = hostinfo2hostkey(host_info)
          drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+
          if(drop_traffic == "true") then
             drop_traffic_checked = 'checked="checked"'
             drop_traffic_value = "false" -- Opposite
@@ -1831,10 +1860,7 @@ elseif (page == "config") then
             drop_traffic_value = "true" -- Opposite
          end
 
-         print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
-         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> '..i18n("host_config.drop_all_host_traffic")..'</input>')
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('</form>')
+         print('<input type="checkbox" name="drop_host_traffic" value="1" '..drop_traffic_checked..'"> '..i18n("host_config.drop_all_host_traffic")..'</input> &nbsp;')
       end
 
       print[[<a class="btn btn-default btn-sm" href="]]
@@ -1849,7 +1875,12 @@ elseif (page == "config") then
    end
 
    print[[
-   </table>]]
+   </table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+   </form>
+   <script>
+      aysHandleForm("#host_config");
+   </script>]]
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then
@@ -1865,7 +1896,7 @@ if(host_vlan and (host_vlan > 0)) then
    host_key = host_key.."@"..host_vlan
 end
 
-drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"])
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 elseif(page == "sprobe") then

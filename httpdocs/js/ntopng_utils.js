@@ -126,6 +126,17 @@ function fpackets(pps) {
     return Math.round(pps / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i];
 }
 
+function fflows(fps) {
+    var sizes = ['fps', 'Kfps', 'Mfps', 'Gfps', 'Tfps'];
+    if(fps == 0) return '0';
+    var i = parseInt(Math.floor(Math.log(fps) / Math.log(1000)));
+    if (i < 0 || isNaN(i)) {
+	i = 0;
+    }
+    // Round to two decimal digits
+    return Math.round(fps / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i];
+}
+
 function fint(value) {
     var x = Math.round(value);
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");

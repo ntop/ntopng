@@ -5,6 +5,7 @@ require "lua_utils"
 require "db_utils"
 require "historical_utils"
 local host_pools_utils = require "host_pools_utils"
+local os_utils = require "os_utils"
 
 local top_rrds = {
    {rrd="num_flows.rrd",               label=i18n("graphs.active_flows")},
@@ -15,6 +16,7 @@ local top_rrds = {
    {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
    {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
+   {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
    {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows")},
    {separator=1},
    {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
@@ -39,7 +41,7 @@ end
 
 function getProtoVolume(ifName, start_time, end_time)
    ifId = getInterfaceId(ifName)
-   path = fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
+   path = os_utils.fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
    rrds = ntop.readdir(path)
    
    ret = { }
@@ -97,7 +99,7 @@ function navigatedir(url, label, base, path, print_html, ifid, host, start_time,
 
    for k,v in pairsByKeys(rrds, asc) do
       if(v ~= nil) then
-	 local p = fixPath(path .. "/" .. v)
+	 local p = os_utils.fixPath(path .. "/" .. v)
 
 	 if not ntop.isdir(p) then
 	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
@@ -188,41 +190,41 @@ end
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
       host_or_network = string.gsub(host_or_network, 'net:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
       host_or_network = string.gsub(host_or_network, 'profile:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
       host_or_network = string.gsub(host_or_network, 'pool:', '')
       rrdname = host_pools_utils.getRRDBase(ifid, "")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'snmp:') then
       host_or_network = string.gsub(host_or_network, 'snmp:', '')
       -- snmpstats are ntopng-wide so ifid is ignored
-      rrdname = fixPath(dirs.workingdir .. "/snmpstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/snmpstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
       host_or_network = string.gsub(host_or_network, 'flow_device:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'sflow:') then
       host_or_network = string.gsub(host_or_network, 'sflow:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
    else
-      rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
 
    if(host_or_network ~= nil) then
       rrdname = rrdname .. getPathFromKey(host_or_network) .. "/"
    end
 
-   return fixPath(rrdname..(rrdFile or ''))
+   return os_utils.fixPath(rrdname..(rrdFile or ''))
 end
 
 -- ########################################################
@@ -454,7 +456,7 @@ end
 -- ########################################################
 
 function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
-		 selectedEpoch, selected_epoch_sanitized, topArray)
+		 selectedEpoch, selected_epoch_sanitized)
    local debug_rrd = false
 
    if(zoomLevel == nil) then zoomLevel = "1h" end
@@ -487,7 +489,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
+      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized)
       return
    end
 
@@ -592,7 +594,7 @@ if(show_timeseries == 1) then
       p = p .. getPathFromKey(host)
    end
 
-   local d = fixPath(p)
+   local d = os_utils.fixPath(p)
 
    -- nDPI protocols
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
@@ -675,18 +677,18 @@ end
 
 rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
-if (topArray ~= nil) then
 print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(rrd.average, 2)) .. '</td></tr>\n')
+   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(rrd.percentile, 2)) .. '</td></tr>\n')
    print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(rrd.totalval)) .. '</td></tr>\n')
 else
    formatter_fctn = "fbits"
@@ -694,6 +696,7 @@ else
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. bitsToSize(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. bitsToSize(rrd.lastval)  .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(rrd.average*8) .. '</td></tr>\n')
+   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(rrd.percentile) .. '</td></tr>\n')
    print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(rrd.totalval) .. '</td></tr>\n')
 end
 
@@ -704,7 +707,6 @@ print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=t
 print [[
    </table>
 ]]
-end -- topArray ~= nil
 
 print[[</div></td></tr></table>
 
@@ -815,14 +817,13 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 		var infoHTML = "";
 ]]
 
-if(topArray ~= nil and topArray["top_talkers"] ~= nil) then
 print[[
 
 infoHTML += "<ul>";
 $.ajax({
 	  type: 'GET',
 	  url: ']]
-	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?module=top_talkers&epoch='+point.value.x+'&addvlan=true")
+	  print(ntop.getHttpPrefix().."/lua/get_top_talkers.lua?epoch='+point.value.x+'&addvlan=true")
 	    print [[',
 		  data: { epoch: point.value.x },
 		  async: false,
@@ -852,7 +853,7 @@ $.ajax({
 	   }
    });
 infoHTML += "</ul>";]]
-end -- topArray
+
 print [[
 		this.element.innerHTML = '';
 		this.element.style.left = graph.x(point.value.x) + 'px';
@@ -931,70 +932,11 @@ else
 end
 end
 
--- ########################################################
-
-function create_rrd(name, step, ds)
-   step = tonumber(step)
-   if step == nil or step <= 1 then step = 1 end
-   if(not(ntop.exists(name))) then
-      if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
-      local prefs = ntop.getPrefs()
-      ntop.rrd_create(
-	 name,
-	 step,   -- step
-	 'DS:' .. ds .. ':DERIVE:'.. step * 5 .. ':U:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
-	 'RRA:AVERAGE:0.5:'..(60/step)..':'..tostring(prefs.intf_rrd_1min_days*24*60),   -- 1 min resolution = 1 month
-	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:'..(86400)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
-	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
-      )
-   end
-end
-
-function create_rrd_num(name, ds, step)
-   step = tonumber(step)
-   if step == nil or step <= 1 then step = 1 end
-   if(not(ntop.exists(name))) then
-      if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
-      local prefs = ntop.getPrefs()
-      ntop.rrd_create(
-	 name,
-	 step,   -- step
-	 'DS:' .. ds .. ':GAUGE:' .. step * 5 .. ':0:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
-	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:'..(86400/step)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
-	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
-      )
-   end
-end
-
-function makeRRD(basedir, when, ifname, key, rrdname, step, value)
-   local name = fixPath(basedir .. "/" .. rrdname .. ".rrd")
-
-   if(string.contains(rrdname, "num_")) then
-      create_rrd_num(name, rrdname, step)
-   else
-      create_rrd(name, step, rrdname)
-   end
-
-   ntop.rrd_update(name, nil, tolongint(value))
-
-   local tskey = ifname
-   if(key ~= nil) then tskey = tskey ..":"..key end
-   ntop.tsSet(when, ifname, tonumber(step), "iface", nil, rrdname, tonumber(value), 0)
-   
-   if(enable_second_debug) then 
-      io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n')
-   end
-end
-
 function createRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2 -- Default hb = 2 minutes
+      local hb = step * 5 -- keep it aligned with rrd_utils.makeRRD
       ntop.rrd_create(
 	 path,
 	 step, -- step
@@ -1014,7 +956,7 @@ function createSingleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2 -- Default hb = 2 minutes
+      local hb = step * 5 -- keep it aligned with rrd_utils.makeRRD
       ntop.rrd_create(
 	 path,
 	 step, -- step
@@ -1033,7 +975,7 @@ function createTripleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then io.write('Creating RRD '..path..'\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2 -- Default hb = 2 minutes
+      local hb = step * 5 -- keep it aligned with rrd_utils.makeRRD
       ntop.rrd_create(
 	 path,
 	 step, -- step
@@ -1078,14 +1020,29 @@ function touchRRD(rrdname)
       local tdiff = now - 1800 -- This avoids to set the update continuously
 
       if(ds_count == 1) then
-	 ntop.rrd_update(rrdname, tdiff.."", 0)
+	 ntop.rrd_update(rrdname, tdiff.."", "0")
       elseif(ds_count == 2) then
-	 ntop.rrd_update(rrdname, tdiff.."", 0, 0)
+	 ntop.rrd_update(rrdname, tdiff.."", "0", "0")
       elseif(ds_count == 3) then
-	 ntop.rrd_update(rrdname, tdiff.."", 0, 0, 0)
+	 ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
       end
 
    end
+end
+
+-- ########################################################
+
+-- Find the percentile of a list of values
+-- N - A list of values.  N must be sorted.
+-- P - A float value from 0.0 to 1.0
+local function percentile(N, P)
+   local n = math.floor(math.floor(P * #N + 0.5))
+   return(N[n-1])
+end
+
+local function ninetififthPercentile(N)
+   table.sort(N) -- <<== Sort first
+   return(percentile(N, 0.95))
 end
 
 -- ########################################################
@@ -1110,7 +1067,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       prefixLabel = "Traffic"
    end
 
-   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
+   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
       -- do not scale number, packets, and drops
       scaling_factor = 1
    end
@@ -1189,12 +1146,17 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
     end
 
    local minval, maxval, lastval = 0, 0, 0
-   local maxval_time, minval_time, lastval_time  = nil, nil, nil
+   local maxval_time, minval_time, lastval_time = nil, nil, nil
+   local first_time, last_time = nil, nil
    local sampling = 1
    local s = {}
    local totalval, avgval = {}, {}
+   local now = os.time()
+
    for i, v in ipairs(fdata) do
-      local instant = fstart + (i-1)*fstep  -- this is the instant in time corresponding to the datapoint
+      local instant = fstart + i * fstep  -- this is the instant in time corresponding to the datapoint
+      if instant > now then break end
+
       s[0] = instant  -- s holds the instant and all the values
       totalval[instant] = 0  -- totalval holds the sum of all values of this instant
       avgval[instant] = 0
@@ -1206,7 +1168,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    -- This is a NaN
 	    w = 0
 	 else
-	    --io.write(w.."\n")
+	    -- io.write(w.."\n")
 	    w = tonumber(w)
 	    if(w < 0) then
 	       w = 0
@@ -1226,6 +1188,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 elemId = elemId + 1
       end
 
+      last_time = instant
+      if(first_time == nil) then first_time = instant end
+	 
       -- stops every sample_rate samples, or when there are no more points
       if(sampling == sample_rate or num_points_found == i) then
 	 local sample_sum = 0
@@ -1258,13 +1223,28 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    end
 
    local tot = 0
-   for k, v in pairs(totalval) do tot = tot + v end
+   for k, v in pairs(totalval) do
+      tot = tot + v
+   end
+
+   local vals = {}
+   for k, v in pairs(series) do
+      if(v[2] ~= nil) then
+	 -- io.write(v[1]+v[2].."\n")
+	 table.insert(vals, v[1]+v[2])
+      else
+	 -- io.write(v[1].."\n")
+	 table.insert(vals, v[1])
+      end
+   end
+   
    totalval = tot
    tot = 0
    for k, v in pairs(avgval) do tot = tot + v end
    local average = tot / num_points_found
+   local percentile = ninetififthPercentile(vals)
 
-   local percentile = 0.95*maxval
+   -- io.write("percentile="..percentile.."\n")
    local colors = {
       '#1f77b4',
       '#ff7f0e',
@@ -1406,6 +1386,12 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    ret.percentile = round(percentile, 0)
    ret.average = round(average, 0)
    ret.json = json_ret
+
+   if(last_time ~= nil) then
+     ret.duration = last_time - first_time
+   else
+     ret.duration = 1
+   end
 
   return(ret)
 end
@@ -1718,17 +1704,15 @@ function printPoolChangeDropdown(pool_id)
    output[#output + 1] = [[<tr>
       <th>]] .. i18n("host_config.host_pool") .. [[</th>
       <td>
-         <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
             <select name="pool" class="form-control" style="width:20em; display:inline;">]]
 
    output[#output + 1] = poolDropdown(pool_id)
 
+   local edit_pools_link = ternary(ntop.isnEdge(), "/lua/pro/nedge/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
+
    output[#output + 1] = [[
             </select>&nbsp;
-            <input id="csrf" name="csrf" type="hidden" value="]] .. ntop.getRandomCSRFValue() ..[[" />
-            <button type="submit" class="btn btn-default">]] .. i18n("save") ..  [[</button>
-         </form> 
-        <A HREF=/lua/if_stats.lua?page=pools#create><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
+        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
    .. i18n("host_pools.edit_host_pools") .. [[</A>
    </tr>]]
 

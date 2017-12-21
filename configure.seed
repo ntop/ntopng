@@ -17,13 +17,12 @@ SYSTEM=`uname -s`
 
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
 
-
 NEDGE=0
 if test "${with_nedge+set}" = set; then
+   AC_DEFINE(HAVE_OLD_NEDGE, 1, [old nedge support is present])
    AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
    NEDGE=1
 fi
-	    
 
 #
 # On CentOS 6 `git rev-list HEAD --count` does not work
@@ -387,11 +386,11 @@ if test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
-else	
+else
   if test $SYSTEM = "Linux"; then
     if [ test -f /etc/redhat-release ]; then
         OS=`cat /etc/redhat-release`
-    else  
+    else
         if [ test -f /usr/bin/lsb_release ]; then
          OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
         fi

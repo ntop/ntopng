@@ -9,6 +9,10 @@ require "lua_utils"
 
 local error_msg
 
+if not isEmptyString(_POST["user_language"]) then
+  ntop.changeUserLanguage(_SESSION["user"], _POST["user_language"])
+end
+
 if (_POST["new_password"] ~= nil) and (_SESSION["user"] == "admin") then
   local new_password = _POST["new_password"]
   local confirm_new_password = _POST["confirm_password"]
@@ -94,7 +98,23 @@ print[[
   ]]
 
 print[[
-    <button class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.change_password")) print[[</button>
+  <div class="form-group">
+      <label class="form-label">]] print(i18n("language")) print[[</label>
+      <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
+        <select name="user_language" id="user_language" class="form-control">]]
+
+for _, lang in pairs(locales_utils.getAvailableLocales()) do
+   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+end
+
+print[[
+        </select>
+      </div>
+    </div>]]
+
+print[[
+    <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">

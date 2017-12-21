@@ -12,6 +12,10 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#if defined(_MSC_VER)
+/* ntop */
+#include <windows.h>
+#endif
 
 #include "luaconf.h"
 

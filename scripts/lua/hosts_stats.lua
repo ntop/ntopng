@@ -153,9 +153,21 @@ end
 if(_GET["pool"] ~= nil) then
    local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
    local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+   local pool_edit = ""
 
-   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>"..
-      "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=pools&pool=".._GET["pool"].."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"..
+   if _GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID then
+      local pool_link
+
+      if ntop.isnEdge() then
+         pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+      else
+         pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+      end
+
+      pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
+   end
+
+   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>".. pool_edit ..
       ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
       "</small>"
 end
@@ -190,6 +202,12 @@ end
 
 print('title: "'..getPageTitle()..'",\n')
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
+
+print [[
+       tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+print(i18n('hosts_stats.idle_hosts_not_listed'))
+print[['); },
+]]
 
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])
@@ -278,17 +296,23 @@ print [[
          			field: "key",
          			hidden: true,
          			css: {
-              textAlign: 'center'
-           }
-         		},
-         		{
+                                  textAlign: 'center'
+                                }
+         		},{
+			     title: "",
+				 field: "column_info",
+				 sortable: false,
+	 	             css: {
+			        textAlign: 'center'
+			     }
+         		},{
 			     title: "]] print(i18n("ip_address")) print[[",
 				 field: "column_ip",
 				 sortable: true,
 	 	             css: {
 			        textAlign: 'left'
 			     }
-				 },
+                        },
 			  ]]
 
 if(show_vlan) then
@@ -331,6 +355,21 @@ print [[
 			     }
 
 				 },  {
+			     title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+				 field: "column_num_dropped_flows",
+				 sortable: true,
+                                 hidden: ]]
+if isBridgeInterface(ifstats) then
+   print("false")
+else
+   print("true")
+end
+print[[,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },  {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
 				 sortable: true,
@@ -355,19 +394,9 @@ print [[
 	 	             css: { 
 			        textAlign: 'center'
 			     }
-
-				 },  {
-			     title: "]] print(i18n("asn")) print[[",
-				 field: "column_asn",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-
 				 },
 
 ]]
-
 
 if(prefs.is_httpbl_enabled) then
 print [[

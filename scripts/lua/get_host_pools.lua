@@ -143,7 +143,7 @@ if((ifid ~= nil) and (isAdministrator())) then
           column_children_safe = pool.children_safe,
           column_enforce_quotas_per_pool_member = pool.enforce_quotas_per_pool_member,
 	  column_enforce_shapers_per_pool_member = pool.enforce_shapers_per_pool_member,
-          column_pool_link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool.id
+          column_pool_link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=pools&pool=" .. pool.id
         }
       end
 

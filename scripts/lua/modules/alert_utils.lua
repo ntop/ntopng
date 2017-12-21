@@ -498,11 +498,12 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
   local value
 
   if entity_type == "host" then
-    value = resolveAddress(hostkey2hostinfo(entity_value))
+    local host_info = hostkey2hostinfo(entity_value)
+    value = resolveAddress(host_info)
 
-    if entity_info ~= nil then
+    if host_info ~= nil then
       value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid
-      .."&host="..hostinfo2hostkey({host=entity_info.ip.ip, vlan=entity_info.vlan_id}).."'>"..value.."</a>"
+      .."&host="..hostinfo2hostkey(host_info).."'>"..value.."</a>"
     end
   elseif entity_type == "interface" then
     value = getInterfaceName(ifid)
@@ -1520,6 +1521,16 @@ end
 
 -- #################################
 
+-- Check for checkpoint expiration. This could occurr, for example, if the
+-- user disables then re-enables alerts
+local function checkpointExpired(checkpoint, working_status)
+   local tdiff = working_status.now - checkpoint.timestamp
+
+   return tdiff > 1.9 * working_status.interval
+end
+
+-- #################################
+
 local function getEngagedAlertsCacheKey(ifid, granularity)
    return "ntopng.cache.engaged_alerts_cache_ifid_"..ifid.."_".. granularity
 end
@@ -1716,7 +1727,7 @@ local function getEngagedAlertsCache(ifid, granularity)
 
   if isEmptyString(engaged_cache) then
     engaged_cache = {}
-    local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)})
+    local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)}) or {}
 
     for _, res in pairs(sql_res) do
       local entity_type = alertEntityRaw(res.alert_entity)
@@ -1835,71 +1846,86 @@ end
 
 -- #################################
 
-local function entity_threshold_status_rw(granularity, ifname_id, fname, to_write --[[nil if it's a read]], additional_path)
-   local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. granularity .. (additional_path and ("/"..additional_path) or ""))
-   local fpath = fixPath(basedir.."/"..fname)
-
-   if to_write ~= nil then
-      if not(ntop.exists(basedir)) then
-         ntop.mkdir(basedir)
-      end
-
-      -- Write new version
-      persistence.store(fpath, to_write)
-   elseif ntop.exists(fpath) then
-      -- Read old version
-      return persistence.load(fpath)
-   end
-end
-
--- #################################
-
-local function interface_threshold_status_rw(granularity, ifid,  to_write)
-   return entity_threshold_status_rw(granularity, ifid, "iface_"..ifid.."_lastdump", to_write)
-end
-
-local function network_threshold_status_rw(granularity, ifid, network, to_write)
-   return entity_threshold_status_rw(granularity, ifid, "alarmed_subnet_stats_lastdump", to_write, getPathFromKey(network))
-end
-
-local function host_threshold_status_rw(granularity, ifid, to_write)
-   return entity_threshold_status_rw(granularity, ifid, "hosts.json", to_write)
-end
-
--- #################################
-
-local function check_interface_alerts(ifid, working_status)
+function check_interface_alerts(ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
-   
-   local old_entity_info = interface_threshold_status_rw(working_status.granularity, ifid) -- read old json
-   local new_entity_info = ifstats
 
-   if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil) and (old_entity_info.stats.bytes ~= nil) then
+   if (working_status.configured_thresholds[entity_value] == nil)
+         and (working_status.configured_thresholds["interfaces"] == nil) then
+      -- no threshold configured, no need to checkpoint
+      return
+   end
+
+   local checkpoints = interface.checkpointInterface(ifid, working_status.checkpoint_id, "high") or {}
+   local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+   local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+
+   if new_entity_info == nil then
+      if warning_shown == false then
+         print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+         tprint({
+            old_entity_info = old_entity_info,
+            granularity = working_status.granularity,
+            entity_value = entity_value,
+            ifname=getInterfaceName(ifid)})
+      end
+      return
+   end
+
+   if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil)
+            and (old_entity_info.stats.bytes ~= nil)
+            and not checkpointExpired(old_entity_info, working_status) then
       -- wrap check
       if old_entity_info.stats.bytes > ifstats.stats.bytes then
          -- reset
          if(verbose) then print("entity '"..entity_value.."' stats reset("..working_status.granularity..")") end
-         old_entity_info = {}
+         old_entity_info = nil
       end
    else
-      -- empty
-      old_entity_info = {}
+      -- reset
+      old_entity_info = nil
    end
 
    check_entity_alerts(ifid, "interface", entity_value, working_status, old_entity_info, new_entity_info)
-
-   interface_threshold_status_rw(working_status.granularity, ifid, new_entity_info) -- write new json
 end
 
-local function check_networks_alerts(ifid, working_status)
+function check_networks_alerts(ifid, working_status)
    local subnet_stats = interface.getNetworksStats()
+   local warning_shown = false
 
    for subnet, sstats in pairs(subnet_stats) do
-      local old_entity_info = network_threshold_status_rw(working_status.granularity, ifid, subnet) -- read old json
-      local new_entity_info = sstats
+      local entity_value = subnet
 
-      if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil) then
+      if (working_status.configured_thresholds[subnet] == nil)
+         and (working_status.configured_thresholds["local_networks"] == nil) then
+         -- no threshold configured, no need to checkpoint
+         goto continue
+      end
+
+      local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.checkpoint_id, "high") or {}
+
+      local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+      local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+
+      if new_entity_info == nil then
+         if warning_shown == false then
+            print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+            tprint({
+               old_entity_info = old_entity_info,
+               granularity = working_status.granularity,
+               entity_value = entity_value, network_id = network_id,
+               ifname=getInterfaceName(ifid)})
+            warning_shown = true
+         end
+         goto continue
+      end
+
+      new_entity_info["network_id"] = sstats.network_id
+
+      if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil)
+               and not checkpointExpired(old_entity_info, working_status) then
+         old_entity_info["network_id"] = sstats.network_id
+
          -- wrap check
          if (old_entity_info["egress"] > new_entity_info["egress"])
           or (old_entity_info["ingress"] > new_entity_info["ingress"])
@@ -1909,89 +1935,88 @@ local function check_networks_alerts(ifid, working_status)
             old_entity_info = nil
          end
       else
-         -- empty
+         -- reset
          old_entity_info = nil
       end
 
       check_entity_alerts(ifid, "network", subnet, working_status, old_entity_info, new_entity_info)
-
-      network_threshold_status_rw(working_status.granularity, ifid, subnet, new_entity_info) -- write new json
+      ::continue::
    end
 end
 
-local function check_hosts_alerts(ifid, working_status)
-   local hosts = interface.getLocalHostsInfo(false) or {}
-   hosts = hosts["hosts"] or {}
-   local warning_shown = false
+function check_host_alerts(ifid, working_status, host)
+   local entity_value = hostinfo2hostkey(hostkey2hostinfo(host), nil, true --[[force vlan]])
+   local old_entity_info, new_entity_info
 
-   for host, _ in pairs(hosts) do
-      local hoststats = interface.getHostInfo(host) or {}
-      -- we only care about anomalies as diffs are retrieved using checkpoints
-      hosts[host] = { anomalies = hoststats["anomalies"] or {} }
+   if (working_status.configured_thresholds[entity_value] ~= nil)
+      or (working_status.configured_thresholds["local_hosts"] ~= nil) then
 
+      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.checkpoint_id, "high") or {}
+
+      old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
+      new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+   else
+      -- no threshold configured, no need to checkpoint
+      new_entity_info = {}
    end
 
-   for host, new_entity_info in pairs(hosts) do
-      local entity_value = hostinfo2hostkey(hostkey2hostinfo(host), nil, true --[[force vlan]])
+   -- attach anomalies to the new entity info (no need to attach them to the old)
+   if new_entity_info ~= nil then
+      local host_stats = interface.getHostInfo(host) or {}
+      new_entity_info["anomalies"] = host_stats["anomalies"] or {}
+   end
 
-      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.engine) or {}
+   if (new_entity_info == nil) then
+    print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+    tprint({new_entity_info = new_entity_info,
+       old_entity_info = old_entity_info,
+       granularity = working_status.granularity,
+       entity_value = entity_value, host = host,
+       ifname=getInterfaceName(ifid)})
+    return
+   end
 
-      local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
-      local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+   if (old_entity_info ~= nil) and checkpointExpired(old_entity_info, working_status) then
+      -- reset
+      old_entity_info = nil
+   end
 
-      -- attach anomalies to the new entity info (no need to attach them to the old)
-      if new_entity_info then
-	 new_entity_info["anomalies"] = hosts[host]["anomalies"]
-      end
+   check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
+end
 
-      if (new_entity_info == nil) then
-	 if warning_shown == false then
-	    print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
-	    tprint({new_entity_info = new_entity_info,
-		    old_entity_info = old_entity_info,
-		    granularity = working_status.granularity,
-		    entity_value = entity_value, host = host,
-		    ifname=getInterfaceName(ifid)})
-	    warning_shown = true
-	 end
-	 goto continue
-      end
+function check_hosts_alerts(ifid, working_status)
+   local hosts_iterator = callback_utils.getLocalHostsIterator(false --[[no details]])
 
-      check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
-      ::continue::
+   for host, _ in hosts_iterator do
+      check_host_alerts(ifid, working_status, host)
    end
 end
 
 -- #################################
 
-function scanAlerts(granularity, ifstats)
-   local ifname = ifstats["name"]
-
-   -- can't alert on view interfaces as checkpoints will collide for their underlying real interfaces
-   if not areAlertsEnabled() or ifstats["isView"] then return end
-
-   if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
-   local ifid = getInterfaceId(ifname)
-
-   local working_status = {
+function newAlertsWorkingStatus(ifstats, granularity)
+   local res = {
       granularity = granularity,
       engine = alertEngine(granularity),
-      engaged_cache = getEngagedAlertsCache(ifid, granularity),
-      configured_thresholds = getConfiguredAlertsThresholds(ifname, granularity),
+      checkpoint_id = checkpointId(granularity),
+      ifid = ifstats.id,
+      engaged_cache = getEngagedAlertsCache(ifstats.id, granularity),
+      configured_thresholds = getConfiguredAlertsThresholds(ifstats.name, granularity),
       dirty_cache = false,
+      now = os.time(),
+      interval = granularity2sec(granularity),
    }
+   return res
+end
 
-   check_interface_alerts(ifid, working_status)
-   check_networks_alerts(ifid, working_status)
-   check_hosts_alerts(ifid, working_status)
-
+function finalizeAlertsWorkingStatus(working_status)
    -- Process the remaining alerts to release, e.g. related to expired hosts
    for entity_type, entity_values in pairs(working_status.engaged_cache) do
       for entity_value, alert_types in pairs(entity_values) do
          for atype, alert_keys in pairs(alert_types) do
             for akey, status in pairs(alert_keys) do
                if status ~= "processed" then
-                  releaseAlert(ifid, working_status.engine, entity_type, entity_value, atype, akey, {}, {})
+                  releaseAlert(working_status.ifid, working_status.engine, entity_type, entity_value, atype, akey, {}, {})
                   working_status.dirty_cache = true
                end
             end
@@ -2000,10 +2025,28 @@ function scanAlerts(granularity, ifstats)
    end
 
    if working_status.dirty_cache then
-      invalidateEngagedAlertsCache(ifid)
+      invalidateEngagedAlertsCache(working_status.ifid)
    end
 end
 
+-- #################################
+
+function scanAlerts(granularity, ifstats)
+   if not mustScanAlerts(ifstats) then return end
+
+   local ifname = ifstats["name"]
+   local ifid = getInterfaceId(ifname)
+
+   if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
+
+   local working_status = newAlertsWorkingStatus(ifstats, granularity)
+
+   check_interface_alerts(ifid, working_status)
+   check_networks_alerts(ifid, working_status)
+   check_hosts_alerts(ifid, working_status)
+
+   finalizeAlertsWorkingStatus(working_status)
+end
 
 -- #################################
 

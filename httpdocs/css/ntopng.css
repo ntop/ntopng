@@ -245,6 +245,23 @@ table, tr, td, th, tbody, thead, tfoot {
   top: -8px;
   right: 2px;
 }
+.menu-item {
+  border: 1px solid #ddd !important;
+}
+
+tr.quotas > td {
+  padding: 0px;
+}
+
+.overall_quota {
+  width: 400px;
+  text-align: left;
+  margin-left: 1px;
+}
+
+.overall_quota label.btn {
+  width: 55px;
+}
 
 .table-borderless tbody tr td,
 .table-borderless tbody tr th,

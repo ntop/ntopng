@@ -10,20 +10,20 @@ local host_pools_utils = require "host_pools_utils"
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
-all = _GET["all"]
-currentPage = _GET["currentPage"]
-perPage     = _GET["perPage"]
-sortColumn  = _GET["sortColumn"]
-sortOrder   = _GET["sortOrder"]
+local all = _GET["all"]
+local currentPage = _GET["currentPage"]
+local perPage     = _GET["perPage"]
+local sortColumn  = _GET["sortColumn"]
+local sortOrder   = _GET["sortOrder"]
 
-group_col   = _GET["grouped_by"]
-as_n        = _GET["asn"]
-vlan_n      = _GET["vlan"]
-network_n   = _GET["network"]
-country_n   = _GET["country"]
-os_n        = _GET["os"]
-pool_n      = _GET["pool"]
-ipver_n     = _GET["version"]
+local group_col   = _GET["grouped_by"]
+local as_n        = _GET["asn"]
+local vlan_n      = _GET["vlan"]
+local network_n   = _GET["network"]
+local country_n   = _GET["country"]
+local os_n        = _GET["os"]
+local pool_n      = _GET["pool"]
+local ipver_n     = _GET["version"]
 
 interface.select(ifname)
 local ifstats = interface.getStats()
@@ -33,7 +33,7 @@ if (group_col == nil) then
 end
 
 -- Get from redis the throughput type bps or pps
-throughput_type = getThroughputType()
+local throughput_type = getThroughputType()
 
 if ((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort(group_col)
@@ -65,7 +65,7 @@ else
    tablePreferences("rows_number",perPage)
 end
 
-to_skip = (currentPage-1) * perPage
+local to_skip = (currentPage-1) * perPage
 
 if (all ~= nil) then
    perPage = 0
@@ -75,15 +75,15 @@ end
 if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 end
-num = 0
-total = 0
+local num = 0
+local total = 0
 
-now = os.time()
-vals = {}
+local now = os.time()
+local vals = {}
 
-stats_by_group_col = {}
+local stats_by_group_col = {}
 
-stats_by_group_key = interface.getGroupedHosts(false, -- do not show details
+local stats_by_group_key = interface.getGroupedHosts(false, -- do not show details
    "column_"..group_col, -- group column
    country_n,            -- country filter
    os_n,                 -- OS filter
@@ -202,6 +202,12 @@ function print_single_group(value)
 
    print('"column_hosts" : "' .. formatValue(value["num_hosts"]) ..'",')
 
+   print('"column_num_flows" : "' .. formatValue(value["num_flows"]) ..'",')
+
+   if isBridgeInterface(ifstats) then
+      print('"column_num_dropped_flows" : "' .. formatValue(value["num_dropped_flows"] or 0) ..'",')
+   end
+
    print ("\"column_alerts\" : \"")
    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
       print("<font color=#B94A48>"..formatValue(value["num_alerts"]).."</font>")
@@ -312,6 +318,10 @@ for key,value in pairs(stats_by_group_col) do
 	 vals[key] = v["name"]
       elseif(sortColumn == "column_hosts") then
 	 vals[key] = v["num_hosts"]
+      elseif(sortColumn == "column_num_flows") then
+	 vals[key] = v["num_flows"]
+      elseif(sortColumn == "column_num_dropped_flows") then
+	 vals[key] = v["num_dropped_flows"]
       elseif(sortColumn == "column_since") then
 	 vals[key] = (now-v["seen.first"])
       elseif(sortColumn == "column_alerts") then

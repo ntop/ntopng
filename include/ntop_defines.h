@@ -301,6 +301,7 @@
 #define PASS_ALL_SHAPER_ID             0
 #define DROP_ALL_SHAPER_ID             1
 #define DEFAULT_SHAPER_ID              PASS_ALL_SHAPER_ID
+#define NEDGE_USER_DEFAULT_POLICY_SHAPER_ID  4 /* see shaper_utils.nedge_shapers default */
 #define DEFAULT_ROUTING_TABLE_ID       0
 #define NUM_TRAFFIC_SHAPERS           16
 #define NUM_TC_TRAFFIC_SHAPERS         8
@@ -333,7 +334,7 @@
 #endif
 
 #define CONST_MAX_LEN_REDIS_KEY      256
-#define CONST_MAX_LEN_REDIS_VALUE   4096
+#define CONST_MAX_LEN_REDIS_VALUE  65526
 
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
@@ -344,6 +345,8 @@
 #define CONST_DEFAULT_ALERT_PROBING_ENABLED               0
 #define CONST_DEFAULT_ALERT_SSL_ENABLED                   0
 #define CONST_DEFAULT_ALERT_DNS_ENABLED                   0
+#define CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED      0
+#define CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED         0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
@@ -392,6 +395,7 @@
 #define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       "ntopng.prefs.alerts.ifid_%d"
+#define CONST_USE_NDB                      "ntopng.prefs.use_ndb"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
 #define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"
@@ -400,9 +404,9 @@
 #define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
 #define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
 #endif
-#define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
-#define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
-#define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
+#define CONST_NBOX_USER                     "ntopng.prefs.nbox_user"
+#define CONST_NBOX_PASSWORD                 "ntopng.prefs.nbox_password"
+#define CONST_IFACE_ID_PREFS                "ntopng.prefs.iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
 #define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"
@@ -424,6 +428,7 @@
 #define CONST_PROFILES_PREFS                "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
+#define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
 #define CONST_PREFS_REDIRECTION_URL         "ntopng.prefs.redirection_url"
 #define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
@@ -453,6 +458,8 @@
 #define CONST_RUNTIME_PREFS_ALERT_PROBING              "ntopng.prefs.probing_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_DNS                  "ntopng.prefs.dns_alerts"   /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE     "ntopng.prefs.remote_to_remote_alerts"
+#define CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS        "ntopng.prefs.dropped_flows_alerts"
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        "ntopng.prefs.alerts_global.min.local_hosts"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
 #define CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY      "syn_victim_threshold"
@@ -654,6 +661,13 @@
 #define MYSQL_INSERT_VALUES_V6 "('%u','%u','%s','%u','%s','%u','%u'," \
   "'%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'" MYSQL_PROFILE_VALUE ")"
 
+
+#define NSERIES_DATA_RETENTION             365 /* 1 year */
+#define NSERIES_ID_SECOND                    0
+#define NSERIES_ID_MINUTE                    1
+#define NSERIES_ID_5_MINUTES                 2
+#define NUM_NSERIES                          (NSERIES_ID_5_MINUTES+1)
+
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY              1024
 #define STORE_MANAGER_MAX_KEY                20
@@ -665,7 +679,7 @@
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v5.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v7.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.prefs.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.prefs.alerts.ifid_%i.make_room_flow_alerts"
@@ -687,6 +701,7 @@
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
 #define DISCOVER_SCRIPT_PATH       "discover.lua"
 #define UPGRADE_SCRIPT_PATH        "upgrade.lua"
+#define PINGER_SCRIPT_PATH         "pinger.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
 #define MINUTE_SCRIPT_PATH         "minute.lua"
 #define FIVE_MINUTES_SCRIPT_PATH   "5min.lua"
@@ -766,6 +781,7 @@
 #define CONST_HELLO_HOST                "hello"
 
 #define CONST_CHILDREN_SAFE                    "children_safe"
+#define CONST_FORGE_GLOBAL_DNS                 "forge_global_dns"
 #define CONST_ROUTING_POLICY_ID                "routing_policy_id"
 #define CONST_POOL_SHAPER_ID                   "pool_shaper_id"
 #define CONST_SCHEDULE_BITMAP                  "daily_schedule"
@@ -790,18 +806,30 @@
 #define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
 #define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)G(a)->userdata)->b
 
-/* 
+/*
    We assume that a host with more than CONST_MAX_NUM_HOST_USES
    MACs associated is a router
 */
 #define CONST_MAX_NUM_HOST_USES    8
 
-#define MAX_VALID_DNS_QUERY_LEN   96
+#define MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE 1024
+#define MAX_VALID_DNS_QUERY_LEN     96
 
 /* Keep in sync with nProbe */
-#define MAX_ZMQ_FLOW_BUF          4096
+#define MAX_ZMQ_FLOW_BUF             4096
 
-#define PERIODIC_TASK_POOL_SIZE   8 /* Threads */
+#define PERIODIC_TASK_POOL_SIZE      8 /* Threads */
 
+#define MIN_NUM_HASH_WALK_ELEMS      512
+
+
+#if defined(__arm__) || defined(__mips__)
+#define DEFAULT_THREAD_POOL_SIZE     1
+#define MAX_THREAD_POOL_SIZE         1
+#else
+#define DEFAULT_THREAD_POOL_SIZE     2
+#define MAX_THREAD_POOL_SIZE         5
+#endif
+
+#define MIN_TIME_SPAWN_THREAD_POOL   10 /* sec */
 #endif /* _NTOP_DEFINES_H_ */
-

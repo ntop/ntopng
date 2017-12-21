@@ -17,6 +17,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "graph_utils"
+local os_utils = require "os_utils"
 
 host_ip     = _GET["host"]
 mode        = _GET["mode"]
@@ -32,7 +33,7 @@ host        = _GET["host"]
 
 t = os.time() -- -86400
 when = os.date("%y%m%d", t)
-dump_dir = fixPath(dirs.workingdir .. "/datadump/")
+dump_dir = os_utils.fixPath(dirs.workingdir .. "/datadump/")
 db_name = dump_dir.."20"..when..".sqlite"
 
 if(currentPage == nil) then

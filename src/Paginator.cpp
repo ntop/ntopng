@@ -36,7 +36,7 @@ Paginator::Paginator() {
   /* int */
   max_hits = CONST_MAX_NUM_HITS;
   to_skip = 0;
-  l7proto_filter = -1;
+  l7proto_filter = l7category_filter = -1;
   port_filter = 0;
   local_network_filter = 0;
   vlan_id_filter = 0;
@@ -121,19 +121,7 @@ void Paginator::readOptions(lua_State *L, int index) {
 	    server_mode = location_all;
 	} else if(!strcmp(key, "detailsLevel")) {
 	  const char* value = lua_tostring(L, -1);
-	  if(!strcmp(value, "normal")) {
-	    details_level = details_normal;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "high")) {
-	    details_level = details_high;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "higher")) {
-	    details_level = details_higher;
-	    details_level_set = true;
-	  } else if(!strcmp(value, "max")) {
-	    details_level = details_max;
-	    details_level_set = true;
-	  }
+	  details_level_set = Utils::str2DetailsLevel(value, &details_level);
 	} else if(!strcmp(key, "macFilter")) {
 	  const char* value = lua_tostring(L, -1);
 	  if(mac_filter) free(mac_filter);
@@ -150,6 +138,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  to_skip = lua_tointeger(L, -1);
 	else if(!strcmp(key, "l7protoFilter"))
 	  l7proto_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "l7categoryFilter"))
+	  l7category_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "portFilter"))
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))

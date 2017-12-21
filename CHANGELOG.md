@@ -1,5 +1,46 @@
 # Changelog
 
+#### ntopng 3.2 (December 2017)
+
+
+## New features
+
+* Support for the official ntopng Grafana datasource plugin
+  * Plugin available at: https://grafana.com/plugins/ntop-ntopng-datasource
+* Newtork devices discovery
+  * Discovery of smartphones, laptops, IoT devices, routers, smart TVs, etc
+  * Device type and operating system detection
+  * ARP scan, SSDP dissection, Multicast DNS (MDNS) resolution
+  * DHCP fingerprinting
+* Adds an active flows page to the AS details
+* Bridge mode
+  * Enforcement of global per-pool time and byte quotas
+  * Support of per-host traffic shapers
+  * Added support for banned sites detection with informative splash screen
+  * Implement per-host/mac/pool flow drop count
+* nDPI traffic categories and RRDs
+* Implements MySQL database interoperability between ntopng and nProbe
+
+
+## Improvements
+
+* Flows sent by nProbe over ZMQ:
+  * Batched, compressed ZMQ flow format to optimize data exchange
+  * Use of post-nat src/dst addresses and ports
+  * Handles multiple balanced ZMQ endpoints
+* Periodic tasks performed by a thread-pool to optimize cores utilization
+* Hosts and devices are walked in batches to greatly reduce Lua VM memory
+* Full systemd support for Debian, Ubuntu, Centos, and Raspbian
+* Extended sFlow support to include sample packet drops and counter stats in interface views
+* Stacked applications and categories charts for ASes, Networks, etc
+
+## Security Fixes
+
+* More restrictive permissions for created files and directories
+* Fix of a possible dissectHTTP reads beyond end of payload
+
+----------------------------------------------------------------
+
 #### ntopng 3.0 (May 2017)
 
 

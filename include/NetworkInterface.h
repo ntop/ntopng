@@ -62,12 +62,14 @@ typedef struct {
  *  @ingroup NetworkInterface
  *
  */
-class NetworkInterface {
+class NetworkInterface : public Checkpointable {
  protected:
   char *ifname, *ifDescription;
+  bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
   u_int8_t alertLevel, purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
+  u_int32_t num_hashes;
   
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
@@ -81,13 +83,10 @@ class NetworkInterface {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, forcePoolReload, is_dynamic_interface;
+  bool bridge_interface, is_dynamic_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
-#ifdef HAVE_NDB
-  Nseries *nseries;
-#endif
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
 #endif
   FlowInterfacesStats *flow_interfaces_stats;
@@ -153,6 +152,7 @@ class NetworkInterface {
   PacketDumperTuntap *pkt_dumper_tap;
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
+  char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
 
   lua_State* initUserScriptsInterpreter(const char *lua_file, const char *context);
   void termLuaInterpreter();
@@ -168,7 +168,9 @@ class NetworkInterface {
 		time_t first_seen, time_t last_seen,
 		u_int32_t rawsize,
 		bool *new_flow);
-  int sortHosts(struct flowHostRetriever *retriever,
+  int sortHosts(u_int32_t *begin_slot,
+		bool walk_all,
+		struct flowHostRetriever *retriever,
 		u_int8_t bridge_iface_idx,
 		AddressTree *allowed_hosts,
 		bool host_details,
@@ -182,19 +184,23 @@ class NetworkInterface {
 	       char *sortColumn);
   int sortVLANs(struct flowHostRetriever *retriever,
 		char *sortColumn);
-  int sortMacs(struct flowHostRetriever *retriever,
+  int sortMacs(u_int32_t *begin_slot,
+	       bool walk_all,
+	       struct flowHostRetriever *retriever,
 	       u_int8_t bridge_iface_idx,
 	       u_int16_t vlan_id, bool sourceMacsOnly,	       
 	       bool hostMacsOnly, bool dhcpMacsOnly,
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter);
-  int sortFlows(struct flowHostRetriever *retriever,
-	       AddressTree *allowed_hosts,
-	       Host *host,
-	       Paginator *p,
-	       const char *sortColumn);
-
+  int sortFlows(u_int32_t *begin_slot,
+		bool walk_all,
+		struct flowHostRetriever *retriever,
+		AddressTree *allowed_hosts,
+		Host *host,
+		Paginator *p,
+		const char *sortColumn);
+  
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
@@ -207,9 +213,6 @@ class NetworkInterface {
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
-
-  Host* findHostsByIP(AddressTree *allowed_hosts,
-		      char *host_ip, u_int16_t vlan_id);
 
   void topItemsCommit(const struct timeval *when);
   
@@ -224,20 +227,26 @@ class NetworkInterface {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
+  void finishInitialization();
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getVLANsHashSize();
   virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
 
-  virtual bool walker(WalkerType wtype, bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  virtual bool walker(u_int32_t *begin_slot,
+		      bool walk_all,
+		      WalkerType wtype,
+		      bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
+		      void *user_data);
 
   void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
+  inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();
-  virtual char *getScriptName()                { return NULL;   }
+  virtual char *getScriptName()                { return NULL;   };
   virtual char *getEndpoint(u_int8_t id)       { return NULL;   };
   virtual bool set_packet_filter(char *filter) { return(false); };
   virtual void incrDrops(u_int32_t num)        { ; }
@@ -260,6 +269,7 @@ class NetworkInterface {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
+  inline int   get_ndpi_category_id(char *cat) { return(ndpi_get_category_id(ndpi_struct, cat));     };
   inline char* get_ndpi_proto_breed_name(u_int id) {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
@@ -279,7 +289,8 @@ class NetworkInterface {
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
-  int dumpAggregatedFlow(AggregatedFlow *f);
+  int  dumpAggregatedFlow(AggregatedFlow *f);
+  void flushFlowDump();
 #endif
   int dumpDBFlow(time_t when, Flow *f);
   int dumpEsFlow(time_t when, Flow *f);
@@ -288,8 +299,13 @@ class NetworkInterface {
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
-  bool checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id, char *host_ip, u_int16_t vlan_id);
+  bool checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id, char *host_ip, u_int16_t vlan_id, DetailsLevel details_level);
+  bool checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id, u_int8_t network_id, DetailsLevel details_level);
+  bool checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
+  inline bool checkPointInterfaceCounters(lua_State* vm, u_int8_t checkpoint_id, DetailsLevel details_level) { return checkpoint(vm, this, checkpoint_id, details_level); }
+  inline char* getCheckpointCompressionBuffer(u_int8_t checkpoint_id) { return (checkpoint_id<CONST_MAX_NUM_CHECKPOINTS) ? checkpoint_compression_buffer[checkpoint_id] : NULL; };
   void checkPointCounters(bool drops_only);
+  bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
 
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();
@@ -298,7 +314,7 @@ class NetworkInterface {
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead, bool conntrack_update=false) {
-#ifdef HAVE_NEDGE
+#ifdef HAVE_OLD_NEDGE
     if(! conntrack_update)
       return;
 #endif
@@ -354,23 +370,9 @@ class NetworkInterface {
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
 
-  /**
-   * @brief Returns host statistics during latest activity
-   * @details Local hosts statistics may be flushed to redis when they become inactive.
-   *          When they become active again, redis-stored statistics are restored.
-   *          There is a limited number of cases that only need host statistics during
-   *          the latest activity. This is for example true when computing
-   *          minute-by-minute top statistics.
-   *
-   *          The function is handy to retrieve compact, unsorted host statistics
-   *          without including deserialized values for total local host bytes (sent and received).
-   *
-   * @param vm The lua state.
-   * @param allowed_hosts A patricia tree containing allowed hosts.
-   */
-  int getLatestActivityHostsList(lua_State* vm,
-				 AddressTree *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
+			 u_int32_t *begin_slot,
+			 bool walk_all,
 			 u_int8_t bridge_iface_idx,
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
@@ -381,6 +383,8 @@ class NetworkInterface {
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
+			  u_int32_t *begin_slot,
+			  bool walk_all,
 			  AddressTree *allowed_hosts,
 			  bool host_details, LocationPolicy location,
 			  char *countryFilter,
@@ -394,6 +398,8 @@ class NetworkInterface {
 			u_int32_t toSkip, bool a2zSortOrder,
 			DetailsLevel details_level);
   int getActiveMacList(lua_State* vm,
+		       u_int32_t *begin_slot,
+		       bool walk_all,
 		       u_int8_t bridge_iface_idx,
 		       u_int16_t vlan_id,
 		       bool sourceMacsOnly,
@@ -527,7 +533,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif
@@ -635,13 +641,7 @@ class NetworkInterface {
 		       u_int32_t dstHost, u_int16_t dport,
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
-#ifdef HAVE_NDB
-  inline void tsSet(u_int32_t tsSec, bool isCounter, u_int8_t ifaceId, u_int16_t step, const char *label,
-		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
-    nseries->set(tsSec, isCounter, ifaceId, step, label ? label : "",
-		 key ? key : "", metric ? metric : "", sent, rcvd);
-  }
-#endif
+  Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

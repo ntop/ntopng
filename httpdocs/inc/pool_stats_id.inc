@@ -14,6 +14,8 @@ function pool_table_setID (row) {
   // pool_stats_top
   row.find("td").eq(index++).attr('id', pool_key+"_chart");
   row.find("td").eq(index++).attr('id', pool_key+"_hosts");
+  row.find("td").eq(index++).attr('id', pool_key+"_num_flows");
+  row.find("td").eq(index++).attr('id', pool_key+"_num_dropped_flows");
   row.find("td").eq(index++).attr('id', pool_key+"_alerts");
   row.find("td").eq(index++).attr('id', pool_key+"_since");
 
@@ -36,6 +38,8 @@ function pool_row_update(pool_key) {
     success: function(content) {
       var data = jQuery.parseJSON(content);
       $("#"+pool_key+'_hosts').html(data.column_hosts);
+      $("#"+pool_key+'_num_flows').html(data.column_num_flows);
+      $("#"+pool_key+'_num_dropped_flows').html(data.column_num_dropped_flows);
       $("#"+pool_key+'_alerts').html(data.column_alerts);
       $("#"+pool_key+'_since').html(data.column_since);
       $("#"+pool_key+'_breakdown').html(data.column_breakdown);

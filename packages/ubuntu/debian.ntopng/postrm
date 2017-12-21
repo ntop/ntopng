@@ -3,11 +3,8 @@
 set -e
 
 case "$1" in
-    purge|remove)
-     if [ ! -f /bin/systemctl ] ; then     
-	update-rc.d ntopng remove >/dev/null
-    fi
-    ;;
+	purge|remove)
+	;;
 esac
 
 exit 0

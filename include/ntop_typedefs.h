@@ -52,18 +52,12 @@ typedef enum {
   alert_syn_flood = 0,
   alert_flow_flood,
   alert_threshold_exceeded,
-  alert_dangerous_host,
-  alert_periodic_activity,
-  alert_quota,
-  alert_malware_detection,
-  alert_host_under_attack,
-  alert_host_attacker,
-  alert_app_misconfiguration,
   alert_suspicious_activity,
-  alert_too_many_alerts,
-  alert_db_misconfiguration,
   alert_interface_alerted,
-  alert_flow_misbehaviour
+  alert_flow_misbehaviour,
+  alert_flow_remote_to_remote,
+  alert_flow_blacklisted,
+  alert_flow_blocked
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -78,9 +72,10 @@ typedef enum {
 } SlackNotificationChoice;
 
 typedef enum {
+  alert_level_none = -1,
   alert_level_info = 0,
   alert_level_warning,
-  alert_level_error,
+  alert_level_error
 } AlertLevel;
 
 typedef enum {
@@ -195,7 +190,7 @@ typedef struct zmq_remote_stats {
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
-  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops;
+  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops, sflow_pkt_sample_drops;
 } ZMQ_RemoteStats;
 
 struct vm_ptree {
@@ -237,6 +232,9 @@ typedef enum {
   status_tcp_connection_refused /* 9 */,
   status_ssl_certificate_mismatch /* 10 */,
   status_dns_invalid_query /* 11 */,
+  status_remote_to_remote /* 12 */,
+  status_blacklisted /* 13 */,
+  status_blocked /* 14 */,
 } FlowStatus;
 
 typedef enum {
@@ -270,6 +268,7 @@ typedef enum {
   column_mac,
   column_os,
   column_num_flows, /* = column_incomingflows + column_outgoingflows */
+  column_num_dropped_flows, /* for bridge interfaces */
   /* column_thpt, */
   column_traffic,
   /* sort criteria */

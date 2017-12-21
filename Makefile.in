@@ -41,7 +41,7 @@ LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
 HAS_LIBRRDTOOL=$(shell pkg-config --atleast-version=1.4.8 librrd; echo $$?)
 ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_INC = $(shell pkg-config --cflags librrd)
-	LIBRRDTOOL_LIB = $(shell pkg-config --libs librrd)
+	LIBRRDTOOL_LIB = $(shell pkg-config --libs librrd) # -lrrd_th
 else
 	LIBRRDTOOL_INC=-I$(LIBRRDTOOL_HOME)/src/
 	ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
@@ -99,7 +99,7 @@ endif
 
 ######
 TARGET = ntopng
-LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
+NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
 CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SODIUM_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INCS@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
@@ -108,11 +108,12 @@ REVISION = @GIT_RELEASE@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 NTOPNG_VERSION = @NTOPNG_VERSION@
 RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
+RPM_PCAP_PKG = $(TARGET)-pcap-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
 RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@REVISION@.noarch.rpm
 ######
 
 ifeq ($(OS),Darwin)
-LIBS += -lstdc++.6
+NLIBS += -lstdc++.6
 endif
 
 LIB_TARGETS =
@@ -153,7 +154,7 @@ HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS) $(LIBRRDTOOL) Makefile
-	$(GPP) $(OBJECTS) -Wall $(LIBS) -o $@
+	$(GPP) $(OBJECTS) -Wall $(NLIBS) -o $@
 
 $(LUAJIT_LIB):
 	cd $(LUAJIT_HOME); @GMAKE@
@@ -208,11 +209,14 @@ protools:
 build-rpm-ntopng: ntopng protools
 	rpmbuild -bb ./packages/ntopng.spec
 	@./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
+	@if test -f $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG) ; then \
+	 ./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG); \
+	fi
 	@echo ""
 	@echo "Package contents:"
 	@rpm -qpl $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)"
-
+	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PCAP_PKG)"
 
 build-rpm-ntopng-data: geoip
 	rpmbuild -bb ./packages/ntopng-data.spec
@@ -251,6 +255,9 @@ uninstall:
 
 Makefile: configure Makefile.in
 	./configure
+
+minify:
+	cd httpdocs/js; make minify
 
 # Disabled to avoid too many recompilations
 #configure: @GIT_INDEX@

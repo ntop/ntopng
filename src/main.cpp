@@ -61,8 +61,10 @@ void sigproc(int sig) {
 #ifndef WIN32
   if(ntop->getPrefs()->get_pid_path() != NULL) {
     int rc = unlink(ntop->getPrefs()->get_pid_path());
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s [rc: %d]",
-				 ntop->getPrefs()->get_pid_path(), rc);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s: [rc: %d][%s]",
+				 ntop->getPrefs()->get_pid_path(),
+				 rc, strerror(errno));
   }
 #endif
 
@@ -156,6 +158,7 @@ int main(int argc, char *argv[])
 #endif
 
   prefs->reloadPrefsFromRedis();
+  prefs->validate();
   
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
@@ -177,7 +180,7 @@ int main(int argc, char *argv[])
 
     try {
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
       if(!strcmp(ifName, "dummy")) {
 	iface = new DummyInterface();
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
@@ -215,32 +218,29 @@ int main(int argc, char *argv[])
 #endif
 	
 #ifdef HAVE_PF_RING
-	if(iface == NULL)
+	if((iface == NULL) && (!strstr(ifName, ".pcap")))
 	  iface = new PF_RINGInterface(ifName);
 #endif
       }
     } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during interface creation: %s. Falling back to pcap", ifName);
+      if(iface) delete iface;
       iface = NULL;
     }
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
     if(iface == NULL) {
       try {
 	iface = new PcapInterface(ifName);
       } catch(...) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during interface creation: %s", ifName);
+	if(iface) delete iface;
 	iface = NULL;
       }
     }
 #endif
 
-    if(iface) {
-#if 0
-      /* Handle tagged interfaces whose name is enp65s0.3 */
-      char *dot = strchr(ifName, '.'); 
-      u_int vlan_id = dot ? atoi(&dot[1]) : 0;
-#endif
-      
+    if(iface) {      
       if(affinity != NULL) {
 	char *tmp;
 	
@@ -258,17 +258,6 @@ int main(int argc, char *argv[])
 	iface->setCPUAffinity(core_id);
       }
 
-#if 0
-      if(vlan_id != 0) {
-	char filter[4096];
-
-	snprintf(filter, sizeof(filter), "%s%s(vlan %u)",
-		 prefs->get_packet_filter() ? prefs->get_packet_filter()  : "",
-		 prefs->get_packet_filter() ? " and " : "", vlan_id);
-
-	iface->set_packet_filter(filter);	  
-      } else
-#endif
       if(prefs->get_packet_filter())
 	iface->set_packet_filter(prefs->get_packet_filter());
 
@@ -287,7 +276,7 @@ int main(int argc, char *argv[])
       ntop->registerInterface(iface);
   }
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   ntop->createExportInterface();
   ntop->getElasticSearch()->startFlowDump();
   ntop->getLogstash()->startFlowDump();
@@ -315,8 +304,8 @@ int main(int argc, char *argv[])
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "The PID file %s is empty: is your disk full perhaps ?",
 				     prefs->get_pid_path());
     } else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s",
-				   prefs->get_pid_path());
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s: %s",
+				   prefs->get_pid_path(), strerror(errno));
   }
 #endif
 

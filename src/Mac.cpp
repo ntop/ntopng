@@ -170,6 +170,8 @@ static const char* location2str(MacLocation location) {
   }
 }
 
+/* *************************************** */
+
 void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   char buf[32], *m;
 
@@ -231,6 +233,8 @@ char* Mac::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", rsp);
+  
   /* Free memory */
   json_object_put(my_object);
 
@@ -243,6 +247,8 @@ void Mac::deserialize(char *key, char *json_str) {
   json_object *o, *obj;
   enum json_tokener_error jerr = json_tokener_success;
 
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json_str);
+  
   if((o = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
 				 json_tokener_error_desc(jerr),
@@ -420,6 +426,4 @@ void Mac::checkDeviceTypeFromManufacturer() {
        )
       setDeviceType(device_workstation); /* VM */
   }
-
-
 }

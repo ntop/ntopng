@@ -56,6 +56,7 @@ For example:
 
 The configuration needed is:
 
+```
 # 1 - Enable forwarding and NAT (for example private network: 192.168.1.0/24):
 	# echo 1 > /proc/sys/net/ipv4/ip_forward
         # iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -j MASQUERADE
@@ -68,42 +69,12 @@ The configuration needed is:
 
 # 3 - Run ntopng:
 	# ntopng -i nf:0
+```
 
 Now you can to to ntopng and filter/shaping the traffic.
  
 The configuration above works and was tested on ubuntu 14.04 and 16.04. Commands may slightly change on
 other distributions.
-
-
-Optimizing NetFilter Performance
---------------------------------
-Instead of sending ntopng all packets, it is possible to tell netfilter NOT to send ntopng
-packets once a pass/drop verdict is reached, thus increasing the performance. The script below
-illlustrates how to do this (this is a simple example that analyzes only TCP port 80 traffic).
-
-============
-#!/bin/bash -x
-
-iptables -F
-iptables -t mangle -F
-
-# Read CONNMARK and set it in mark
-iptables -A OUTPUT -t mangle -j CONNMARK --restore-mark
-
-# Set default actions for markers
-iptables -A OUTPUT -t mangle -m mark --mark 1 -j ACCEPT
-iptables -A OUTPUT -t mangle -m mark --mark 2 -j DROP
-
-# Send traffic to ntopng. In this example only TCP/80 is analyzed.
-iptables -A OUTPUT -t mangle -m mark --mark 0 -p tcp --destination-port 80 -j NFQUEUE --queue-num 0
-
-# Save mark into CONNMARK
-# NOTE: Use POSTROUTING instead of OUTPUT as explained
-# in http://serverfault.com/questions/839132/how-to-pass-to-nfqueue-only-the-initial-connection-packets
-iptables -A POSTROUTING -t mangle -j CONNMARK --save-mark
-============
-
-
 
 NOTE
 ----
@@ -111,3 +82,37 @@ When you send traffic to NFQUEUE if ntopng is NOT running, packets will be
 blocked in the IP stack as they don't get processed. So make sure ntopng
 is running all the time before using this mechanism.
 
+In order to avoid this, you can add `--queue-bypass` to the NFQUEUE target.
+
+Captive portal and secure DNS
+-----------------------------
+
+When running on a netfilter interface, it is possible to activate the captive portal
+and the DNS enforcement from the ntopng gui as you normally do with ntopng in inline mode.
+
+This requires a modification of the iptables rules. In particular, jumping to NFQUEUE
+must be performed on the PREROUTING chain, not on the FORWARD chain as seen above.
+
+You can do this with the following rule:
+
+```
+iptables -A PREROUTING -t mangle -i eth2 -j NFQUEUE --queue-num 0
+```
+
+Moreover, the following nat rules must be added:
+
+```
+# Captive Portal redirection
+iptables -t nat -A PREROUTING -m mark --mark 1027 -j DNAT --to-destination 192.168.1.1
+
+# Local child-safe DNS requests, for captive portal
+iptables -t nat -A PREROUTING -p udp --dport 53 -m mark --mark 1024 -j DNAT --to-destination 192.168.1.1
+
+# Child-safe DNS - Norton ConnectSafe with pornography block
+iptables -t nat -A PREROUTING -p udp --dport 53 -m mark --mark 1025 -j DNAT --to-destination 199.85.126.20
+
+# Global DNS - Norton ConnectSafe
+iptables -t nat -A PREROUTING -p udp --dport 53 -m mark --mark 1026 -j DNAT --to-destination 199.85.126.10
+```
+
+This assumes your interface private address is `192.168.1.1`

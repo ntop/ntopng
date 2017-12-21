@@ -5,10 +5,11 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "template"
 require "lua_utils"
 
-function initPrefs()
+local pr = nil
+
+local function initPrefs()
    if pr == nil then
       pr = ntop.getPrefs()
    end

@@ -19,14 +19,9 @@ local icon_root = ntop.getHttpPrefix() .. '/img/interaction-graph-icons/'
 local icon_extension = '.png'
 links = {}
 
-function file_exists(path)
-   local f=io.open(path,"r")
-   if f~=nil then io.close(f) return true else return false end
-end
-
 function get_icon_url(name)
    local icon_url = icon_root..name..icon_extension
-   if (file_exists(httpdocs..icon_url)) then return icon_url else return '' end
+   if (ntop.exists(httpdocs..icon_url)) then return icon_url else return '' end
 end
 
 is_loopback = isLoopback(ifname)

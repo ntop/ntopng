@@ -7,25 +7,8 @@
     <link href="@HTTP_PREFIX@/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/font-awesome/css/font-awesome.css" rel="stylesheet">
-    <script src="@HTTP_PREFIX@/js/jquery.js"></script>
-    <script src="@HTTP_PREFIX@/js/jquery-ui.js"></script>
-    <script src="@HTTP_PREFIX@/bootstrap/js/bootstrap.js"></script>
-    <script src="@HTTP_PREFIX@/js/bootstrap-datatable.js"></script>
-    <script src="@HTTP_PREFIX@/js/datatable_utils.js"></script>
-    <script src="@HTTP_PREFIX@/js/bootstrap3-typeahead.js"></script>
-    <script charset="utf-8" src="@HTTP_PREFIX@/js/d3.v3.js"></script>
-    <script src="@HTTP_PREFIX@/js/jquery.peity.js"></script>
-
-    <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/jquery-ui.css">
     <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/rickshaw.css">
-
-    <script src="@HTTP_PREFIX@/js/rickshaw.js"></script>
-
-    <script src="@HTTP_PREFIX@/js/pie-chart.js"></script>
-    <script src="@HTTP_PREFIX@/js/gauge.js"></script>
-    <script src="@HTTP_PREFIX@/js/crossfilter.js"></script>
-    <script src="@HTTP_PREFIX@/js/validator.js"></script>
-    <script src="@HTTP_PREFIX@/js/dc.js"></script>
+    <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/jquery-ui.css">
     <link href="@HTTP_PREFIX@/css/dc.css" rel="stylesheet">
 
 <style>
@@ -42,36 +25,22 @@
     <link href="@HTTP_PREFIX@/css/pie-chart.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/css/rickshaw.css" rel="stylesheet">
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
-    <script src="@HTTP_PREFIX@/js/cal-heatmap.js"></script>
     <link href="@HTTP_PREFIX@/css/cal-heatmap.css" rel="stylesheet">
-    <script src="@HTTP_PREFIX@/js/springy-ntop.js"></script>
-    <script src="@HTTP_PREFIX@/js/springyui-ntop.js"></script>
-    <script src="@HTTP_PREFIX@/js/c3.js"></script>
-    <link href="@HTTP_PREFIX@/css/c3.css" rel="stylesheet">
-    <script src="@HTTP_PREFIX@/js/nv.d3.js"></script>
     <link href="@HTTP_PREFIX@/css/nv.d3.css" rel="stylesheet">
-    <script src="@HTTP_PREFIX@/js/jquery.bootstrap-duallistbox.js"></script>
-    <script src="@HTTP_PREFIX@/js/jquery.are-you-sure.js"></script>
-    <script src="@HTTP_PREFIX@/js/ays_utils.js"></script>
     <link href="@HTTP_PREFIX@/css/bootstrap-duallistbox.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/css/bootstrap-slider.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/css/bootstrap-nav-wizard.css" rel="stylesheet">
-    <script type="text/javascript" src="@HTTP_PREFIX@/js/bootstrap-slider.js"></script>
 
     <!--[if lt IE 9]>
       <script src="@HTTP_PREFIX@/js/html5shiv.js"></script>
     <![endif]-->
 
     <link href="@HTTP_PREFIX@/css/ntopng.css" rel="stylesheet">
+    <link rel="stylesheet" href="@HTTP_PREFIX@/css/bootstrap-datetimepicker.css" />
 
-    <!-- <script type="text/javascript" src="@HTTP_PREFIX@/js/pdfmake.js"></script> -->
-    <!-- <script type="text/javascript" src="@HTTP_PREFIX@/js/vfs_fonts.js"></script> -->
-
-    <script type="text/javascript" src="@HTTP_PREFIX@/js/moment.js"></script>
-    <script type="text/javascript" src="@HTTP_PREFIX@/js/bootstrap-datetimepicker.js"></script> 
-    <link rel="stylesheet" href="@HTTP_PREFIX@/css/bootstrap-datetimepicker.css" />  
-
-    <script type="text/javascript" src="@HTTP_PREFIX@/js/ntopng_utils.js?@NTOP_STARTUP_EPOCH@"></script>
+    <script type="text/javascript" src="@HTTP_PREFIX@/js/jquery_bootstrap.min.js?@NTOP_STARTUP_EPOCH@"></script>
+    <script type="text/javascript" src="@HTTP_PREFIX@/js/deps.min.js?@NTOP_STARTUP_EPOCH@"></script>
+    <script type="text/javascript" src="@HTTP_PREFIX@/js/ntop.min.js?@NTOP_STARTUP_EPOCH@"></script>
   </head>
 <body>
 

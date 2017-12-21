@@ -96,6 +96,10 @@ end
 print('title: "'..title..'",\n')
 
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
+print[[
+        tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+print(i18n('mac_stats.idle_devices_not_listed'))
+print[['); },]]
 
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])

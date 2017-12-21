@@ -24,18 +24,30 @@
 
 #include "ntop_includes.h"
 
+class QueuedThreadData {
+ public:
+  ThreadedActivity *j;
+  char *script_path;
+  NetworkInterface *iface;
+
+  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface) {
+    j = _j, script_path = strdup(_path), iface = _iface;
+  }
+
+  ~QueuedThreadData() { if(script_path) free(script_path); }
+};
+	
 class ThreadPool {
  private:
   bool terminating;
   u_int8_t pool_size;
   u_int16_t queue_len;
-  ConditionalVariable *c;
+  pthread_cond_t condvar;
   Mutex *m;
   pthread_t *threadsState;
-  std::queue <ThreadedActivity*> threads;
+  std::queue <QueuedThreadData*> threads;
 
-  bool queueJob(ThreadedActivity *j);
-  ThreadedActivity* dequeueJob(bool waitIfEmpty);
+  QueuedThreadData* dequeueJob(bool waitIfEmpty);
   
  public:
   ThreadPool(u_int8_t _pool_size);
@@ -43,9 +55,9 @@ class ThreadPool {
 
   void shutdown();
 
-  inline bool scheduleJob(ThreadedActivity *j) { return(queueJob(j)); }
   void run();
-}
-;
+  bool queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface);
+};
+
 
 #endif /* _THREAD_POOL_H_ */

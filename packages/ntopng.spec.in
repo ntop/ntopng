@@ -3,8 +3,8 @@ Name: ntopng
 Version: @NTOPNG_VERSION@
 Release: @REVISION@
 License: GPL
-Group: Networking/Utilities
 URL: http://www.ntop.org/
+Group: Networking/Utilities
 Source: ntopng-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
@@ -14,6 +14,7 @@ Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, GeoIP 
 AutoReqProv: no
 
 %description
+ntopng high-speed web-based traffic monitoring and analysis tool (libpcap)
 Web-based traffic monitoring
 
 %setup -q
@@ -57,9 +58,9 @@ if test -d "$HOME/ntopng/pro"; then
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.luar" | xargs rename .luar .lua
 fi
 
-if grep -q systemd /proc/1/comm; then
-   mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
-   cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
+if hash systemctl 2>/dev/null; then
+   mkdir -p $RPM_BUILD_ROOT/usr/lib/systemd/system/
+   cp $HOME/ntopng/packages/etc/systemd/system/ntopng*.service $RPM_BUILD_ROOT/usr/lib/systemd/system/
 else
    cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
@@ -85,7 +86,7 @@ rm -fr $RPM_BUILD_ROOT
 /usr/share/man/man8/ntopng.8.gz
 %config(noreplace) /etc/ntopng/ntopng.conf
 %if 0%{?centos_ver} == 7
-/etc/systemd/system/ntopng.service
+/usr/lib/systemd/system/ntopng.service
 %else
 /etc/init.d/ntopng
 %endif
@@ -130,12 +131,16 @@ echo 'Setting up redis auto startup'
 echo 'Creating link under /usr/local/bin'
 if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/ntopng ; fi
 if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
+
+if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} == 7
 /bin/systemctl daemon-reload
 /bin/systemctl enable ntopng.service
+/bin/systemctl restart ntopng.service
 %else
 /sbin/chkconfig --add ntopng
 %endif
+fi
 
 %if 0%{?centos_ver} != 7
 case "$1" in
@@ -151,6 +156,7 @@ esac
 %endif
 
 %preun
+if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} != 7
 case "$1" in
   0)
@@ -165,9 +171,12 @@ esac
 
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
+  /bin/systemctl stop ntopng.service
 %else
   /sbin/chkconfig --del ntopng
 %endif
+fi
+
 if [ $1 == 0 ] ; then
     rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi

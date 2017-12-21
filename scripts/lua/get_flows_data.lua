@@ -25,6 +25,7 @@ local sortOrder   = _GET["sortOrder"]
 local host_info   = url2hostinfo(_GET)
 local port        = _GET["port"]
 local application = _GET["application"]
+local category    = _GET["category"]
 local network_id  = _GET["network"]
 local vlan        = _GET["vlan"]
 
@@ -102,6 +103,10 @@ local pageinfo = {
 
 if application ~= nil and application ~= "" then
    pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+end
+
+if category ~= nil and category ~= "" then
+   pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
 end
 
 if not isEmptyString(flowhosts_type) then
@@ -364,7 +369,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
 
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar progress-bar-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>"
-   record["column_info"] = "ciao"
 
    local info = value["info"]
 

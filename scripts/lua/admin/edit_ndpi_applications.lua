@@ -6,17 +6,101 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
+local template = require "template_utils"
 sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print [[
-<hr>
-  <div id="table-edit-ndpi-applications"></div>
+local proto_filter = _GET["l7proto"]
+
+local ifId = interface.name2id(ifname)
+
+if not haveAdminPrivileges() then
+  return
+end
+
+if not table.empty(_POST) then
+  local custom_categories = getCustomnDPIProtoCategories(ifname)
+
+  for k, new_cat in pairs(_POST) do
+    if starts(k, "proto_") then
+      local id = split(k, "proto_")[2]
+      local old_cat
+      new_cat = tonumber(split(new_cat, "cat_")[2])
+
+      -- get the current category
+      if custom_categories[id] ~= nil then
+        old_cat = custom_categories[id]
+      else
+        old_cat = interface.getnDPIProtoCategory(tonumber(id))
+        old_cat = old_cat and old_cat.id or 0
+      end
+
+      if old_cat ~= new_cat then
+        -- io.write("Changing nDPI category for " .. id .. ": " .. old_cat .. " -> " .. new_cat .. "\n")
+        setCustomnDPIProtoCategory(ifname, tonumber(id), new_cat)
+      end
+    end
+  end
+end
+
+print [[<hr>
+<table><tbody><tr>
+  <td style="white-space:nowrap; padding-right:1em;">
+    <h2>]] print(i18n("applications")) print[[</h2>
+  </td>]]
+
+if not isEmptyString(proto_filter) then
+  local proto_name = interface.getnDPIProtoName(tonumber(proto_filter))
+
+  print[[<td style="padding-top: 15px;">
+    <form>
+      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
+      </button>
+    </form>
+  </td>]]
+end
+
+print[[
+<td style="width:100%"></td>
+<td>
+]]
+
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "t_app",
+      action      = ntop.getHttpPrefix() .. "/lua/admin/edit_ndpi_applications.lua",
+      parameters  = {
+                      ifid = tostring(ifId),
+                    },
+      json_key    = "key",
+      query_field = "l7proto",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_app.lua",
+      query_title = i18n("categories_page.search_application"),
+      style       = "margin-left:1em; width:25em;",
+    }
+  })
+)
+
+print[[
+  </td>
+  </tr>
+  </table>
+  <form id="protos_cat_form" lass="form-inline" style="margin-bottom: 0px;" method="post">
+    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
+    <div id="table-edit-ndpi-applications"></div>
+    <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+  </form>
+  <br/><br/>
+
   <script type="text/javascript">
+    aysHandleForm("#protos_cat_form", {
+      handle_datatable: true,
+    });
 
   var change_cat_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
@@ -31,14 +115,16 @@ print[[
 
   };
 
-  var url_update = "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_ndpi_applications.lua";
+  var url_update = "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_ndpi_applications.lua]]
+  if not isEmptyString(proto_filter) then
+    print("?l7proto=" .. proto_filter)
+  end
+  print[[";
 
   $("#table-edit-ndpi-applications").datatable({
     url: url_update ,
     class: "table table-striped table-bordered table-condensed",
 ]]
-
-print('title: "' .. i18n("applications") .. '",')
 
 -- Set the preference table
 local preference = tablePreferences("rows_number",_GET["perPage"])
@@ -49,88 +135,9 @@ print ('sort: [ ["' .. getDefaultTableSort("ndpi_application_category") ..'","' 
 
 
 print [[
-	       showPagination: true,
-               rowCallback: function(row){
-                 var app_id = $("td:eq(0)", row[0]).text();
-                 var cat_id = $("td:eq(1)", row[0]).text();
-
-                 var app_cat_name_span_id   = "cat_name_app_" + app_id;
-                 var app_cat_name_select_id = "select_category_app_id_" + app_id;
-
-                 $("td:eq(3)", row[0]).wrapInner("<span id='"+ app_cat_name_span_id +"'></span>")
-
-
-                 /* ADD AN HIDDEN DROPDOWN */
-                 var selectList = document.createElement("select");
-                 $(selectList)
-                  .width("280px")
-                  .addClass("form-control");
-                 $(selectList).change(function(){
-                   var new_cat_id = $(this).val();
-
-                   $.ajax({
-                     type: 'POST',]] print("url: '"..ntop.getHttpPrefix().."/lua/admin/change_ndpi_category.lua',") print [[
-                     data: { l7proto: app_id, ndpi_new_cat_id: new_cat_id, ndpi_old_cat_id: cat_id, csrf: change_cat_csrf},
-                     error: function(content) { console.log(content); },
-                     success: function(content) {
-                       $('#' + app_cat_name_span_id).text(select_data[new_cat_id]).show();
-                       $(selectList).hide();
-                       $(edit_category).show();
-                       $(undo_edit).hide();
-                       change_cat_csrf = content.new_csrf;
-                     }
-                   });
-                 }).hide();
-                 selectList.id = app_cat_name_select_id;
-
-                 $("td:eq(3)", row[0]).append(selectList);
-
-                 $.each(select_data, function(_cat_id, _cat_name){
-                   var option = document.createElement("option");
-                   option.value = _cat_id;
-                   option.text = _cat_name;
-                   if(_cat_id == cat_id) {
-                     option.selected = "true";
-                   }
-                   selectList.appendChild(option);
-                 });
-
-                 /* PREPARE THE ACTION BUTTONS */
-                 var edit_category = document.createElement("a");
-                 var undo_edit = document.createElement("a");
-
-                 $(edit_category).attr("href", "javascript:void(0)")
-                                 .addClass("add-on btn")
-                                 .attr("role", "button")
-                                 .click(function(){
-                                   $('#' + app_cat_name_span_id).hide();
-                                   $(selectList).show();
-                                   $(this).hide();
-                                   $(undo_edit).show();
-                                 })
-                                 .append($(document.createElement("span"))
-                                                   .addClass("label label-info")
-                                                   .text("Edit"));
-
-                 $(undo_edit).attr("href", "javascript:void(0)")
-                              .addClass("add-on btn")
-                              .hide()
-                              .attr("role", "button")
-                              .click(function(){
-                                $('#' + app_cat_name_span_id).show();
-                                $(selectList).hide();
-                                $(this).hide();
-                                $(edit_category).show();
-                              })
-                              .append($(document.createElement("span"))
-                                                .addClass("label label-default")
-                                                .text("Undo"));
-
-                 $("td:eq(4)", row[0]).append(edit_category);
-                 $("td:eq(4)", row[0]).append(undo_edit);
-
-                 return row;
-               },
+         tableCallback: function() {
+          aysResetForm("#protos_cat_form");
+         }, showPagination: true, title:"",
 	        columns: [
            {
               title: "",
@@ -156,13 +163,6 @@ print [[
               sortable: true,
                 css: {
                   textAlign: 'left'
-              }
-            },{
-              title: "]] print(i18n("actions")) print[[",
-              field: "column_actions",
-              sortable: false,
-                css: {
-                  textAlign: 'center'
               }
             }
           ]

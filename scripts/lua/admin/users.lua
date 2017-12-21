@@ -6,8 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
---[[ Note: keep the old iso-8859-1 encoding to avoid breaking existing passwords ]]
-sendHTTPContentTypeHeader('text/html', nil, 'iso-8859-1')
+sendHTTPContentTypeHeader('text/html')
 
 if(haveAdminPrivileges()) then
    interface.select(ifname)

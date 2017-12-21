@@ -51,22 +51,28 @@ class Prefs {
     flow_aggregation_enabled,
     enable_mac_ndpi_stats;
 
-  u_int32_t non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
+  u_int32_t non_local_host_max_idle, local_host_cache_duration,
+	  local_host_max_idle, flow_max_idle;
   u_int32_t active_local_hosts_cache_interval;
   u_int32_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t housekeeping_frequency;
-  bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache, enable_active_local_hosts_cache;
-  bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation, enable_probing_alerts, enable_ssl_alerts;
-  bool enable_dns_alerts;
+  bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
+	  enable_active_local_hosts_cache;
+  bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,
+	  enable_probing_alerts, enable_ssl_alerts;
+  bool enable_dns_alerts, enable_remote_to_remote_alerts;
+  bool enable_dropped_flows_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
+  bool routing_mode_enabled;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   char *redirection_url, *redirection_url_shadow;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   u_int32_t max_ui_strlen;
+  u_int8_t default_l7policy;
   HostMask hostMask;
 
   LocationPolicy dump_hosts_to_db, sticky_hosts;
@@ -77,13 +83,14 @@ class Prefs {
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
-  bool dump_flows_on_es, dump_flows_on_mysql,dump_flows_on_ls;
+  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_ndb;
   bool read_flows_from_mysql;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans;
-  char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *prefs_dir, *export_endpoint;
+  char *data_dir, *install_dir, *docs_dir, *scripts_dir,
+	  *callbacks_dir, *prefs_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
   char *zmq_encryption_pwd;
@@ -104,7 +111,8 @@ class Prefs {
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   int mysql_port;
   char *ls_host,*ls_port,*ls_proto;
-  bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
+  bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
+			      has been provided on the command line.*/
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -124,6 +132,7 @@ class Prefs {
 
   bool is_pro_edition();
   bool is_enterprise_edition();
+  bool is_nedge_edition();
 
   void bind_http_to_address(char *addr)  { if(http_binding_address)  free(http_binding_address);  http_binding_address  = strdup(addr); };
   void bind_https_to_address(char *addr) { if(https_binding_address) free(https_binding_address); https_binding_address = strdup(addr); };
@@ -164,6 +173,8 @@ class Prefs {
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
+  inline bool  do_dump_flows_on_ndb()                   { return(dump_flows_on_ndb);      };
+    
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
@@ -211,6 +222,7 @@ class Prefs {
   void add_network_interface(char *name, char *description);
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
+  inline void set_routing_mode(bool enabled)                  { routing_mode_enabled = enabled;          };  
   virtual void lua(lua_State* vm);
   void reloadPrefsFromRedis();
   void loadInstanceNameDefaults();
@@ -265,17 +277,20 @@ class Prefs {
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);  };
   inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation); };
 
-  inline bool  are_probing_alerts_enabled()              { return(enable_probing_alerts);            };
-  inline bool  are_ssl_alerts_enabled()                  { return(enable_ssl_alerts);                };
-  inline bool  are_dns_alerts_enabled()                  { return(enable_dns_alerts);                };
-  inline bool  are_alerts_syslog_enabled()               { return(enable_syslog_alerts);             };
-  inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);  };
+  inline bool are_probing_alerts_enabled()               { return(enable_probing_alerts);               };
+  inline bool are_ssl_alerts_enabled()                   { return(enable_ssl_alerts);                   };
+  inline bool are_dns_alerts_enabled()                   { return(enable_dns_alerts);                   };
+  inline bool are_remote_to_remote_alerts_enabled()      { return(enable_remote_to_remote_alerts);      };
+  inline bool are_dropped_flows_alerts_enabled()         { return(enable_dropped_flows_alerts);         };
+  inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };
+  inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);         };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
 
   inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };
   inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
 
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);  }
+  inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
 
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
   inline int32_t   get_max_num_flow_alerts()             { return(max_num_flow_alerts); };
@@ -289,6 +304,9 @@ class Prefs {
   inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
   inline HostMask getHostMask()                  { return(hostMask);                                    };
   inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
+  inline u_int16_t is_routing_mode()             { return(routing_mode_enabled);                        };
+  void validate();
 };
 
 #endif /* _PREFS_H_ */
+

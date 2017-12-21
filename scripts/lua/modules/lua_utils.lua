@@ -5,12 +5,10 @@
 dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
---package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
 require "lua_trace"
 locales_utils = require "locales_utils"
-
+local os_utils = require "os_utils"
 
 -- ##############################################
 
@@ -491,34 +489,51 @@ function l4Label(proto)
   return(_handleArray(l4_keys, proto))
 end
 
+-- ##############################################
+
+-- Note: make sure the maximum id for checkpoint_keys honours CONST_MAX_NUM_CHECKPOINTS
+local checkpoint_keys = {
+   -- following checkpoints are used for alerts
+   {0, "min"},
+   {1, "5mins"},
+   {2, "hour"},
+   {3, "day"},
+}
+
+function checkpointId(v)
+   local checkpointtable = {}
+   for i, t in ipairs(checkpoint_keys) do
+      checkpointtable[#checkpointtable + 1] = {t[1], t[2]}
+   end
+   return(_handleArray(checkpointtable, v))
+end
+
+-- ##############################################
+
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string"}
 alert_level_keys = {
+  { "<span class='label label-info'>None</span>",      -1, "none"   },
   { "<span class='label label-info'>Info</span>",       0, "info"    },
   { "<span class='label label-warning'>Warning</span>", 1, "warning" },
   { "<span class='label label-danger'>Error</span>",    2, "error"   }
 }
 
 alert_type_keys = {
-  { "<i class='fa fa-life-ring'></i> TCP SYN Flood",                       0, "tcp_syn_flood"              },
-  { "<i class='fa fa-life-ring'></i> Flows Flood",                         1, "flows_flood"                },
-  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",               2, "threshold_cross"            },
-  { "<i class='fa fa-frown-o'></i> Blacklisted Host",                      3, "blacklist_host"             },
-  { "<i class='fa fa-clock-o'></i> Periodic Activity",                     4, "periodic_activity"          },
-  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",                       5, "quota_exceeded"             },
-  { "<i class='fa fa-ban'></i> Malware Detected",                          6, "malware_detected"           },
-  { "<i class='fa fa-bomb'></i> Ongoing Attacker",                         7, "ongoing_attacker"           },
-  { "<i class='fa fa-bomb'></i> Under Attack",                             8, "under_attack"               },
-  { "<i class='fa fa-exclamation'></i> Misconfigured App",                 9, "misconfigured_app"          },
-  { "<i class='fa fa-exclamation'></i> Suspicious Activity",              10, "suspicious_activity"        },
-  { "<i class='fa fa-exclamation'></i> Too Many Alerts",                  11, "too_many_alerts"            },
-  { "<i class='fa fa-exclamation'></i> MySQL open_files_limit too small", 12, "open_files_limit_too_small" },
-  { "<i class='fa fa-exclamation'></i> Interface Alerted",                13, "interface_alerted"          },
-  { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",                14, "flow_misbehaviour"          },
+  { "<i class='fa fa-ok'></i> No alert",                             -1, "alert_none"                 },
+  { "<i class='fa fa-life-ring'></i> TCP SYN Flood",                  0, "tcp_syn_flood"              },
+  { "<i class='fa fa-life-ring'></i> Flows Flood",                    1, "flows_flood"                },
+  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",          2, "threshold_cross"            },
+  { "<i class='fa fa-exclamation'></i> Suspicious Activity",          3, "suspicious_activity"        },
+  { "<i class='fa fa-exclamation'></i> Interface Alerted",            4, "interface_alerted"          },
+  { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",            5, "flow_misbehaviour"          },
+  { "<i class='fa fa-exclamation'></i> Remote to Remote Flow",        6, "flow_remote_to_remote"      },
+  { "<i class='fa fa-exclamation'></i> Blacklisted Flow",             7, "flow_blacklisted"           },
+  { "<i class='fa fa-ban'></i> Blocked Flow",                         8, "flow_blocked"               },
 }
 
-alert_entity_keys = {
+local alert_entity_keys = {
   { "Interface",       0, "interface"     },
   { "Host",            1, "host"          },
   { "Network",         2, "network"       },
@@ -526,10 +541,7 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
--- Note: make sure the number of alert_engine_keys honours CONST_MAX_NUM_CHECKPOINTS
--- and make sure engines with these ids are reserved only to handle alert-related
--- checkpoints
-alert_engine_keys = {
+local alert_engine_keys = {
    {i18n("show_alerts.minute"),       0, "min"    },
    {i18n("show_alerts.five_minutes"), 1, "5mins"  },
    {i18n("show_alerts.hourly"),       2, "hour"   },
@@ -650,6 +662,11 @@ function areAlertsEnabled()
   return (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
 end
 
+function mustScanAlerts(ifstats)
+   -- can't alert on view interfaces as checkpoints will collide for their underlying real interfaces
+   return areAlertsEnabled() and not ifstats["isView"]
+end
+
 function hasAlertsDisabled()
   return ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
@@ -717,7 +734,10 @@ end
 --   print(_key .. "=" .. _value .. "\n")
 --end
 
-function round(num, idp)         return tonumber(string.format("%." .. (idp or 0) .. "f", num)) end
+function round(num, idp)
+   if(num == nil) then return(0) end
+   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
+end
 --function round(num) return math.floor(num+.5) end
 
 -- Note that the function below returns a string as returning a number
@@ -1259,23 +1279,6 @@ function purifyInterfaceName(interface_name)
   return(interface_name)
 end
 
-function getPathDivider()
-   if(ntop.isWindows()) then
-      return "\\"
-   else
-      return "/"
-   end
-end
-
--- Fix path format Unix <-> Windows
-function fixPath(path)
-   if(ntop.isWindows() and (string.len(path) > 2)) then
-      path = string.gsub(path, "/", getPathDivider())
-   end
-
-  return(path)
-end
-
 -- See datatype AggregationType in ntop_typedefs.h
 function aggregation2String(value)
   if(value == 0) then return("Client Name")
@@ -1286,8 +1289,6 @@ function aggregation2String(value)
   else return(value)
   end
 end
-
--- #################################
 
 -- #################################
 
@@ -1385,12 +1386,30 @@ end
 
 -- #################################
 
+function getOperatingSystemName(id)
+   if(id == 1) then return("Linux")
+   elseif(id == 2) then return("Windows")
+   elseif(id == 3) then return("MacOS")
+   elseif(id == 4) then return("iOS")
+   elseif(id == 5) then return("Android")
+   elseif(id == 6) then return("LaserJET")
+   elseif(id == 7) then return("AppleAirport")
+   else
+      return("") -- Unknown
+   end
+end
+
+-- #################################
+
 function getOperatingSystemIcon(id)
    if(id == 1) then return(' <i class=\'fa fa-linux fa-lg\'></i>')
    elseif(id == 2) then return(' <i class=\'fa fa-windows fa-lg\'></i>')
    elseif(id == 3) then return(' <i class=\'fa fa-apple fa-lg\'></i>')
    elseif(id == 4) then return(' <i class=\'fa fa-apple fa-lg\'></i>')
    elseif(id == 5) then return(' <i class=\'fa fa-android fa-lg\'></i>')
+   elseif(id == 6) then return(' LasetJET')
+   elseif(id == 7) then return(' Apple Airport')
+
    else return("")
    end
 end
@@ -2008,10 +2027,10 @@ function getPathFromIPv6(addr)
    -- most significant part of the address goes in a hierarchical structure
    local res = table.concat(most_significant, "/")
    -- the interface identifies goes as-is because it is non structured
-   res = fixPath(res.."/"..table.concat(interface_identifier, "_"))
+   res = os_utils.fixPath(res.."/"..table.concat(interface_identifier, "_"))
 
    if not isEmptyString(subnet) then
-      res = fixPath(res.."/"..subnet)
+      res = os_utils.fixPath(res.."/"..subnet)
    end
 
    return res
@@ -2031,9 +2050,9 @@ function getPathFromMac(addr)
    local nic = {mac[4], mac[5], mac[6]}
 
    -- each manufacturer has its own directory
-   local res = fixPath("macs/"..table.concat(manufacturer, "_"))
+   local res = os_utils.fixPath("macs/"..table.concat(manufacturer, "_"))
    -- the nic identifier goes as-is because it is non structured
-   res = fixPath(res.."/"..table.concat(nic, "/"))
+   res = os_utils.fixPath(res.."/"..table.concat(nic, "/"))
    -- finally the vlan
    res = res..vlan
 
@@ -2051,7 +2070,7 @@ function getPathFromKey(key)
 
    key = tostring(key):gsub("[%.:]", "/")
 
-   return fixPath(key)
+   return os_utils.fixPath(key)
 end
 
 function getRedisIfacePrefix(ifid)
@@ -2118,14 +2137,14 @@ function getDefaultTableSort(table_type)
   return(value)
 end
 
-function getDefaultTableSortOrder(table_type)
+function getDefaultTableSortOrder(table_type, force_get)
    local table_key = getRedisPrefix("ntopng.prefs.table")
    local value = nil
 
   if(table_type ~= nil) then
     value = ntop.getHashCache(table_key, "sort_order_"..table_type)
   end
-  if((value == nil) or (value == "")) then value = 'desc' end
+  if((value == nil) or (value == "")) and (force_get ~= true) then value = 'desc' end
   return(value)
 end
 
@@ -2136,10 +2155,10 @@ function getDefaultTableSize()
   return(tonumber(value))
 end
 
-function tablePreferences(key, value)
+function tablePreferences(key, value, force_set)
   table_key = getRedisPrefix("ntopng.prefs.table")
 
-  if((value == nil) or (value == "")) then
+  if((value == nil) or (value == "")) and (force_set ~= true) then
     -- Get preferences
     return ntop.getHashCache(table_key, key)
   else
@@ -2295,7 +2314,7 @@ function harvestUnusedDir(path, min_epoch)
 
    for k,v in pairs(files) do
       if(v ~= nil) then
-	 local p = fixPath(path .. "/" .. v)
+	 local p = os_utils.fixPath(path .. "/" .. v)
 	 if(ntop.isdir(p)) then
 	    harvestUnusedDir(p, min_epoch)
 	 else
@@ -2319,10 +2338,10 @@ function harvestJSONTopTalkers(days)
       interface.select(ifname)
       local _ifstats = interface.getStats()
       local dirs = ntop.getDirs()
-      local basedir = fixPath(dirs.workingdir .. "/" .. _ifstats.id)
+      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. _ifstats.id)
 
-      harvestUnusedDir(fixPath(basedir .. "/top_talkers"), when)
-      harvestUnusedDir(fixPath(basedir .. "/flows"), when)
+      harvestUnusedDir(os_utils.fixPath(basedir .. "/top_talkers"), when)
+      harvestUnusedDir(os_utils.fixPath(basedir .. "/flows"), when)
    end
 end
 
@@ -2479,7 +2498,7 @@ function maxRateToString(max_rate)
 end
 
 function getPasswordInputPattern()
-  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{5,}$]]
+  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,}$]]
 end
 
 function getIPv4Pattern()
@@ -2488,33 +2507,6 @@ end
 
 function getURLPattern()
   return "^https?://.+$"
-end
-
--- makeTopStatsScriptsArray
-function makeTopStatsScriptsArray()
-   path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
-   path = fixPath(path)
-   local files = ntop.readdir(path)
-   topArray = {}
-
-   for k,v in pairs(files) do
-      if(string.ends(k, ".lua")) then
-	 if(v ~= nil) then
-	    value = {}
-	    fn,ext = v:match("([^.]+).([^.]+)")
-	    mod = require("top_scripts."..fn)
-	    if(type(mod) ~= type(true)) then
-	       value["name"] = mod.name
-	       value["script"] = mod.infoScript
-	       value["key"] = mod.infoScriptKey
-	       value["levels"] = mod.numLevels
-	       topArray[fn] = value
-	    end
-	 end
-      end
-   end
-
-   return(topArray)
 end
 
 -- get_mac_classification
@@ -2708,6 +2700,9 @@ function getFlowStatus(status)
   elseif(status == 9)  then return("<font color=orange>"..i18n("flow_details.tcp_connection_refused").."</font>")
   elseif(status == 10) then return("<font color=orange>"..i18n("flow_details.ssl_certificate_mismatch").."</font>")
   elseif(status == 11) then return("<font color=orange>"..i18n("flow_details.dns_invalid_query").."</font>")
+  elseif(status == 12) then return("<font color=orange>"..i18n("flow_details.remote_to_remote").."</font>")
+  elseif(status == 13) then return("<font color=orange>"..i18n("flow_details.blacklisted_flow").."</font>")
+  elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end
@@ -3067,6 +3062,11 @@ function table.clone(t, filter)
    return clone
 end
 
+function table.deepcopy(t)
+   local json = require("dkjson")
+   return json.decode(json.encode(t))
+end
+
 function toboolean(s)
   if s == "true" then
     return true
@@ -3383,7 +3383,7 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
-function hasBridgeInterfaces()
+function hasBridgeInterfaces(skip_netfilter)
   local curif = ifname
   local ifnames = interface.getIfNames()
   local found = false
@@ -3392,7 +3392,8 @@ function hasBridgeInterfaces()
     interface.select(ifname)
 
     local ifstats = interface.getStats()
-    if isBridgeInterface(ifstats) then
+    if isBridgeInterface(ifstats)
+        and (skip_netfilter~=true or ifstats.type ~= "netfilter") then
       found = true
       break
     end
@@ -3404,7 +3405,7 @@ end
 
 -- Returns true if the captive portal can be started with the current configuration
 function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
-   if not ntop.isEnterprise() then
+   if not ntop.isEnterprise() and not ntop.isnEdge() then
       return false
    end
 
@@ -3531,48 +3532,6 @@ function path_get_page(path)
    end
 
    return path
-end
-
--- ###########################################
-
-function savePrefsToDisk()
-   local dirs = ntop.getDirs()
-   local where = fixPath(dirs.workingdir.."/runtimeprefs.json")
-   local keys = ntop.getKeysCache("ntopng.prefs.*")
-
-   local out = {}
-   for k in pairs(keys or {}) do
-      out[k] = ntop.dumpCache(k)
-   end
-
-   local json = require("dkjson")
-   local dump = json.encode(out, nil, 1)
-
-   local file = io.open(where, "w")
-   file:write(dump)
-   file:close()
-end
-
--- ###########################################
-
-function readPrefsFromDisk()
-   local dirs = ntop.getDirs()
-   local where = fixPath(dirs.workingdir.."/runtimeprefs.json")
-   local file = io.open(where, "r")
-
-   if(file ~= nil) then
-      local dump = file:read()
-      file:close()
-
-      local json = require("dkjson")
-      local restore = json.decode(dump, 1, nil)
-
-      for k,v in pairs(restore or {}) do
-	 -- print(k.."\n")
-	 ntop.delCache(k)
-	 ntop.restoreCache(k,v)
-      end
-   end
 end
 
 -- ###########################################

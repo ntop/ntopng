@@ -69,7 +69,9 @@ const char *win_inet_ntop(int af, const void *src, char *dst,socklen_t size);
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 
 typedef HANDLE pthread_mutex_t;
+typedef struct { HANDLE signal, broadcast; } pthread_cond_t;
 typedef HANDLE pthread_t;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +83,12 @@ extern int pthread_mutex_lock(pthread_mutex_t *);
 extern int pthread_mutex_unlock(pthread_mutex_t *);
 extern int pthread_mutex_init(pthread_mutex_t *mutex, void *unused);
 extern void pthread_mutex_destroy(pthread_mutex_t *mutex);
+extern int pthread_cond_init(pthread_cond_t *cv, const void *unused);
+extern int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex);
+extern int pthread_cond_signal(pthread_cond_t *cv);
+extern int pthread_cond_broadcast(pthread_cond_t *cv);
+extern int pthread_cond_destroy(pthread_cond_t *cv);
+
 extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
 extern char* strtok_r(char *s, const char *delim, char **save_ptr);
 extern int win_inet_pton(int af, const char *src, void *dst);
@@ -108,6 +116,7 @@ struct dirent {
 #ifndef DT_DIR
 #define DT_UNKNOWN       0
 #define DT_DIR           4
+#define DT_REG			 8
 #endif
 
 
@@ -118,6 +127,7 @@ typedef struct DIR {
   char dir_path[MAX_PATH];
 } DIR;
 
+extern int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 extern struct dirent *readdir(DIR *dir);
 extern int closedir(DIR *dir);
 extern DIR * opendir(const char *name);

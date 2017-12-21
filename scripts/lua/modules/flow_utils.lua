@@ -483,12 +483,27 @@ local mobile_country_code = {
 
 -- #######################
 
-function handleCustomFlowField(key, value)
+function formatInterfaceId(id, idx, snmpdevice)
+   if(id == 65535) then
+      return("Unknown")
+   else
+      if(snmpdevice ~= nil) then
+	 return('<A HREF="/lua/flows_stats.lua?deviceIP='..snmpdevice..'&'..idx..'='..id..'">'..id..'</A>')
+      else
+	 return(id)
+      end
+   end
+end
+
+-- #######################
+
+function handleCustomFlowField(key, value, snmpdevice)
    if((key == 'TCP_FLAGS') or (key == '6')) then
       return(formatTcpFlags(value))
-   elseif((key == 'INPUT_SNMP') or (key == '10')
-	     or (key == 'OUTPUT_SNMP') or (key == '14')) then
-      return(formatInterfaceId(value))
+   elseif((key == 'INPUT_SNMP') or (key == '10')) then
+      return(formatInterfaceId(value, "inIfIdx", snmpdevice))
+   elseif((key == 'OUTPUT_SNMP') or (key == '14')) then
+      return(formatInterfaceId(value, "outIfIdx", snmpdevice))
    elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == 'NPROBE_IPV4_ADDRESS') or (key == '130') or (key == '57943')) then
       local res = getResolvedAddress(hostkey2hostinfo(value))
 
@@ -568,16 +583,6 @@ function formatTcpFlags(flags)
    if(bit.band(flags, 8) == 8 )  then rsp = rsp .. " PUSH " end
 
    return(rsp .. "</A>")
-end
-
--- #######################
-
-function formatInterfaceId(id)
-   if(id == 65535) then
-      return("Unknown")
-   else
-      return(id)
-   end
 end
 
 -- #######################
@@ -1157,12 +1162,18 @@ function getFlowLabel(flow, show_macs, add_hyperlinks)
       if(flow["cli.systemhost"] == true) then
 	 cli_name = cli_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
       end
+      if(flow["cli.blacklisted"] == true) then
+	 cli_name = cli_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
+      end
       cli_name = cli_name.."</A>"
 
       srv_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"srv") .. "\">"
       srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
       if(flow["srv.systemhost"] == true) then
 	 srv_name = srv_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+      end
+      if(flow["srv.blacklisted"] == true) then
+	 srv_name = srv_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
       end
       srv_name = srv_name.."</A>"
 
@@ -1713,7 +1724,7 @@ function getRTPTableRows(info)
 	 else
 	    rtp_payload_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"payload_id_tr\" "..rtp_payload_hide.."><th style=\"text-align:right\">Payload Type</th><td><div id=payload_type_in>"..rtp_payload_in_var.."</div></td><td><div id=payload_type_out>"..rtp_payload_out_var.."</div></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"payload_id_tr\" "..rtp_payload_hide.."><th style=\"text-align:right\">"..i18n("flow_details.payload_type").."</th><td><div id=payload_type_in>"..rtp_payload_in_var.."</div></td><td><div id=payload_type_out>"..rtp_payload_out_var.."</div></td></tr>\n"
       end
 	    
       -- MOS
@@ -1780,6 +1791,8 @@ function getFlowQuota(ifid, info, as_client)
   end
 
   local master_proto, app_proto = splitProtocol(info["proto.ndpi"])
+  app_proto = app_proto or master_proto
+
   local pools_stats = interface.getHostPoolsStats()
   local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 

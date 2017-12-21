@@ -69,7 +69,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
-  bool detection_completed, protocol_processed, blacklist_alarm_emitted,
+  bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
@@ -78,7 +78,7 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   FlowProfile *trafficProfile;
 #endif
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
@@ -190,13 +190,15 @@ class Flow : public GenericHashEntry {
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   void processLua(lua_State* vm, ProcessInfo *proc, bool client);
   void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
-  void checkBlacklistedFlow();
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
+  inline bool isBlacklistedFlow() {
+    return(cli_host && srv_host && (cli_host->isBlacklisted() || srv_host->isBlacklisted()));
+  };
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
     return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
@@ -215,6 +217,18 @@ class Flow : public GenericHashEntry {
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
        time_t _first_seen, time_t _last_seen);
   ~Flow();
+
+  virtual void set_to_purge() { /* Saves 1 extra-step of purge idle */
+    if(cli_host) {
+      cli_host->decNumFlows(true);
+      if(good_low_flow_detected) cli_host->decLowGoodputFlows(true);
+    }
+    if(srv_host) {
+      srv_host->decNumFlows(false);
+      if(good_low_flow_detected) srv_host->decLowGoodputFlows(false);
+    }
+    GenericHashEntry::set_to_purge();
+  };
 
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
@@ -238,7 +252,7 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
 #ifdef NTOPNG_PRO
   bool checkPassVerdict(const struct tm *now);
-  inline bool isPassVerdict()            { return passVerdict;  };
+  bool isPassVerdict();
 #endif
   inline void setDropVerdict()           { passVerdict = false; };
   void incFlowDroppedCounters();
@@ -283,6 +297,8 @@ class Flow : public GenericHashEntry {
   inline void* get_srv_id()                       { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()                 { return(cli_host->get_ip()->get_ipv4());  };
   inline u_int32_t get_srv_ipv4()                 { return(srv_host->get_ip()->get_ipv4());  };
+  inline struct ndpi_in6_addr* get_cli_ipv6()     { return(cli_host->get_ip()->get_ipv6());  };
+  inline struct ndpi_in6_addr* get_srv_ipv6()     { return(srv_host->get_ip()->get_ipv6());  };
   inline u_int16_t get_cli_port()                 { return(ntohs(cli_port));                 };
   inline u_int16_t get_srv_port()                 { return(ntohs(srv_port));                 };
   inline u_int16_t get_vlan_id()                  { return(vlanId);                          };
@@ -392,7 +408,7 @@ class Flow : public GenericHashEntry {
   void setDumpFlowTraffic(bool what)   { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)        { return dump_flow_traffic; }
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
@@ -433,7 +449,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
-  void setPacketsBytes(u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int32_t s2d_bytes, u_int32_t d2s_bytes);  
+  void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int32_t s2d_bytes, u_int32_t d2s_bytes);  
 
 #ifdef NTOPNG_PRO
   void getFlowShapers(bool src2dst_direction, TrafficShaper **shaper_ingress, TrafficShaper **shaper_egress) {

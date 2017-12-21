@@ -5,16 +5,9 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-require "flow_aggregation_utils"
+local os_utils = require "os_utils"
 
 local callback_utils = {}
-
--- ########################################################
-
-function callback_utils.print(file, line, message)
-   print("["..file.."]:["..line.."] "..message)
-end
 
 -- ########################################################
 
@@ -39,42 +32,135 @@ end
 
 -- ########################################################
 
--- Iterates each active host on the ifname interface.
+-- An iterator on the C batched API
+--
+--    batched_function: the function to call
+--    field: a string to get the value from a slot
+--    function_params : parameters to pass to the function
+--
+local function getBatchedIterator(batched_function, field, function_params)
+   local debug_enabled = false
+   local loaded_elems = nil
+   local nextSlot = 0
+   local iterator_finished = false
+   local first_iteration = true
+   function_params = function_params or {}
+
+   return function()
+      if (loaded_elems == nil) or table.empty(loaded_elems) then
+         if loaded_elems ~= nil then
+            -- that was the first iteration
+            first_iteration = false
+         end
+
+         if ((nextSlot == 0) or (nextSlot == nil)) and not first_iteration then
+            iterator_finished = true
+         end
+
+         if iterator_finished then return nil end
+
+         -- we need to load new slots from C
+         if(debug_enabled) then
+            io.write("getBatchedIterator["..field.."](curSlot=".. nextSlot ..")\n")
+         end
+
+         -- Assumption: nextSlot is always the first parameter
+         local slot = batched_function(nextSlot, unpack(function_params))
+
+         if slot == nil then
+            iterator_finished = true
+            return nil
+         end
+
+         nextSlot = slot.nextSlot
+         loaded_elems = slot[field]
+
+         if(debug_enabled) then
+            io.write("getBatchedIterator["..field.."](numElems=".. table.len(loaded_elems) ..", nextSlot=".. nextSlot ..")\n")
+         end
+      end
+
+      for key, value in pairs(loaded_elems) do
+         loaded_elems[key] = nil -- pop
+         return key, value
+      end
+   end
+end
+
+-- A batched iterator over the local hosts
+function callback_utils.getLocalHostsIterator(...)
+   return getBatchedIterator(interface.getBatchedLocalHostsInfo, "hosts", { ... })
+end
+
+-- A batched iterator over the hosts (both local and remote)
+function callback_utils.getHostsIterator(...)
+   return getBatchedIterator(interface.getBatchedHostsInfo, "hosts", { ... })
+end
+
+-- A batched iterator over the l2 devices
+function callback_utils.getDevicesIterator(...)
+   return getBatchedIterator(interface.getBatchedMacsInfo, "macs", { ... })
+end
+
+-- ########################################################
+
+-- Iterates each active host on the ifname interface for RRD creation.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalHost(ifname, deadline, callback)
+function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
    local hostbase
 
    interface.select(ifname)
 
-   local hosts_stats = interface.getLocalHostsInfo(false)
+   local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
 
-   if hosts_stats == nil then
-      hosts_stats = {hosts = {}}
-   end
+   for hostname, hoststats in iterator do
+    -- Note: this is expensive
+	 local host = interface.getHostInfo(hostname)
 
-   hosts_stats = hosts_stats["hosts"]
+	 if ((deadline ~= nil) and (os.time() >= deadline)) then
+	    -- Out of time
+	    return false
+	 end
+	 
+	 if host ~= nil then
+	    if(host.localhost) then
+	       local keypath = getPathFromKey(hostname)
+	       hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
 
-   for hostname, hoststats in pairs(hosts_stats) do
-      local host = interface.getHostInfo(hostname)
-
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
-         -- Out of time
-         return false
+          -- NOTE: filesystem activity here
+	       if(not(ntop.exists(hostbase))) then
+		  ntop.mkdir(hostbase)
+	       end
+	    end
+	    
+	    if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
+	       return false
+	    end
+	 end
       end
 
-      if host ~= nil then
-         if(host.localhost) then
-            local keypath = getPathFromKey(hostname)
-            hostbase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+   return true
+end
 
-            if(not(ntop.exists(hostbase))) then
-               ntop.mkdir(hostbase)
-            end
-         end
+-- ########################################################
 
-         if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
-            return false
-         end
+-- Iterates each active host on the ifname interface.
+-- Each host is passed to the callback with some more information.
+function callback_utils.foreachHost(ifname, deadline, callback)
+   local hostbase
+
+   interface.select(ifname)
+
+   local iterator = callback_utils.getHostsIterator(false --[[ no details ]])
+
+   for hostname, hoststats in iterator do
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+	 -- Out of time
+	 return false
+      end
+
+      if callback(hostname, hoststats) == false then
+	 return false
       end
    end
 
@@ -86,12 +172,9 @@ end
 function callback_utils.foreachDevice(ifname, deadline, callback)
    interface.select(ifname)
 
-   local devices_stats = interface.getMacsInfo()
-   if devices_stats == nil or devices_stats["macs"] == nil then
-      devices_stats = {macs = {}}
-   end
+   local devices_stats = callback_utils.getDevicesIterator()
 
-   for devicename, devicestats in pairs(devices_stats["macs"]) do
+   for devicename, devicestats in devices_stats do
       devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
 
       if ((deadline ~= nil) and (os.time() >= deadline)) then
@@ -100,7 +183,7 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
       end
 
       local keypath = getPathFromKey(devicename)
-      local devicebase = fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+      local devicebase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
 
       if(not(ntop.exists(devicebase))) then
 	 ntop.mkdir(devicebase)
@@ -112,26 +195,6 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
    end
 
    return true
-end
-
--- ########################################################
-
-function callback_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
-   interface.select(ifname)
-
-   local dbtables = {"flowsv4", "flowsv6"}
-   if useAggregatedFlows() then
-      dbtables[#dbtables+1] = "aggrflowsv4"
-      dbtables[#dbtables+1] = "aggrflowsv6"
-   end
-
-   for _, tb in pairs(dbtables) do
-      local sql = "DELETE FROM "..tb.." where FIRST_SWITCHED < "..mysql_retention
-      sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
-      sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
-      interface.execSQLQuery(sql)
-      if(verbose) then io.write(sql.."\n") end
-   end
 end
 
 -- ########################################################

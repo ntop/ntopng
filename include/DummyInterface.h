@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-#ifndef HAVE_NEDGE
+#ifndef HAVE_OLD_NEDGE
 
 class DummyInterface : public ParserInterface {
  private:
