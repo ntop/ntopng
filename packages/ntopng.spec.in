@@ -59,8 +59,8 @@ if test -d "$HOME/ntopng/pro"; then
 fi
 
 if hash systemctl 2>/dev/null; then
-   mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
-   cp $HOME/ntopng/packages/etc/systemd/system/ntopng*.service    $RPM_BUILD_ROOT/etc/systemd/system/
+   mkdir -p $RPM_BUILD_ROOT/usr/lib/systemd/system/
+   cp $HOME/ntopng/packages/etc/systemd/system/ntopng*.service $RPM_BUILD_ROOT/usr/lib/systemd/system/
 else
    cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
@@ -86,7 +86,7 @@ rm -fr $RPM_BUILD_ROOT
 /usr/share/man/man8/ntopng.8.gz
 %config(noreplace) /etc/ntopng/ntopng.conf
 %if 0%{?centos_ver} == 7
-/etc/systemd/system/ntopng.service
+/usr/lib/systemd/system/ntopng.service
 %else
 /etc/init.d/ntopng
 %endif
