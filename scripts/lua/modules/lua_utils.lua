@@ -3062,6 +3062,11 @@ function table.clone(t, filter)
    return clone
 end
 
+function table.deepcopy(t)
+   local json = require("dkjson")
+   return json.decode(json.encode(t))
+end
+
 function toboolean(s)
   if s == "true" then
     return true

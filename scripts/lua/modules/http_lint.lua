@@ -664,6 +664,20 @@ local function validateRoutingPolicyName(m)
    return validateUnquoted(m)
 end
 
+function validateRoutingPolicyGateway(m)
+   -- this is in the form "policyid_gwid"
+   local parts = string.split(m, "_")
+
+   if parts and #parts == 2 then
+      local policy_id = parts[1]
+      local gw_id = parts[2]
+
+      return validateNumber(policy_id) and validateNumber(gw_id)
+   end
+
+   return false
+end
+
 -- #################################################################
 
 local function validateInterfaceConfMode(m)
@@ -1061,6 +1075,9 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["gateway_mode_"]           =  {validateGatewayName, validateGatewayMode},
    ["gateway_iface_"]          =  {validateGatewayName, validateNetworkInterface},
    ["gateway_address_"]        =  {validateGatewayName, validateIPV4},
+   ["gw_id_"]                  =  {validateNumber, validateGatewayName},
+   ["pol_id_"]                 =  {validateNumber, validateRoutingPolicyName},
+   ["routing_"]                =  {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
 
 -- Network Configuration
    ["conf_iface_mode_"]        =  {validateNetworkInterface, validateInterfaceConfMode},
