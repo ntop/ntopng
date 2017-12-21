@@ -2354,6 +2354,7 @@ local  en = {
       download_description = "The maximum download speed for the interface.",
       download_speed = "Download Speed",
       upload_speed = "Upload Speed",
+      interfaces_configuration = "Interfaces Configuration",
    },
 }
 

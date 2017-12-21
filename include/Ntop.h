@@ -428,6 +428,7 @@ class Ntop {
     return(address->get_local_network((u_int8_t)local_network_id));
   };
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
+  inline void addLocalNetwork(const char *network)           { address->setLocalNetwork((char*)network); }
   void createExportInterface();
   void initNetworkInterfaces();
   void initElasticSearch();

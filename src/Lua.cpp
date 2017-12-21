@@ -5926,6 +5926,25 @@ static int ntop_redis_get_id_to_host(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_add_local_network(lua_State* vm) {
+  char *local_network;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+    !Utils::isUserAdministrator(vm))
+      return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((local_network = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  ntop->addLocalNetwork(local_network);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -6804,6 +6823,7 @@ static const luaL_Reg ntop_reg[] = {
   { "restoreCache",      ntop_redis_restore },
   { "getHostId",         ntop_redis_get_host_id },
   { "getIdToHost",       ntop_redis_get_id_to_host },
+  { "addLocalNetwork",   ntop_add_local_network },
 
   /* Redis Preferences */
   { "setPref",           ntop_set_preference },
