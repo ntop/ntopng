@@ -1043,6 +1043,7 @@ local known_parameters = {
    ["ping_address"]            =  validateIPV4,
    ["policy_name"]             =  validateRoutingPolicyName,
    ["delete_policy"]           =  validateRoutingPolicyName,
+   ["policy_id"]               =  validateNumber,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
@@ -1080,11 +1081,13 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["routing_"]                =  {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
 
 -- Network Configuration
-   ["conf_iface_mode_"]        =  {validateNetworkInterface, validateInterfaceConfMode},
-   ["conf_iface_ip_"]          =  {validateNetworkInterface, validateIPV4},
-   ["conf_iface_gw_"]          =  {validateNetworkInterface, validateIPV4},
-   ["conf_iface_nmask_"]       =  {validateNetworkInterface, validateIPV4},
-   ["conf_iface_name"]         =  {validateNetworkInterface},
+   ["iface_mode_"]             =  {validateNetworkInterface, validateInterfaceConfMode},
+   ["iface_ip_"]               =  {validateNetworkInterface, validateIPV4},
+   ["iface_gw_"]               =  {validateNetworkInterface, validateIPV4},
+   ["iface_netmask_"]          =  {validateNetworkInterface, validateIPV4},
+   ["iface_id_"]               =  {validateNumber, validateNetworkInterface},
+   ["iface_up_"]               =  {validateNumber, validateNumber},
+   ["iface_down_"]             =  {validateNumber, validateNumber},
 
    -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
