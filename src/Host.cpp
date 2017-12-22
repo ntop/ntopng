@@ -1158,7 +1158,7 @@ static void getCategoryAndProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t 
     protocol = ndpiProtocol.master_protocol;
 
   HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
-  if(!sd && protocol != ndpiProtocol.master_protocol) {
+  if(!sd && protocol != ndpiProtocol.master_protocol && ndpiProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN) {
     protocol = ndpiProtocol.master_protocol;
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
   }
@@ -1186,7 +1186,7 @@ static bool getProtocolShaper(ndpi_protocol ndpiProtocol, L7Policy_t *policy, u_
     protocol = ndpiProtocol.master_protocol;
 
   HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
-  if(!sd && protocol != ndpiProtocol.master_protocol) {
+  if(!sd && protocol != ndpiProtocol.master_protocol && ndpiProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN) {
     protocol = ndpiProtocol.master_protocol;
     HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
   }
@@ -1216,6 +1216,13 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   bool cat_set = false;
 #endif
   L7Policy_t *policy = NULL;
+
+#ifdef HAVE_NEDGE
+  // Avoid setting drop verdicts for wan hosts policy
+  if (iface->getL7Policer() && getMac() && (getMac()->locate() != located_on_lan_interface)) {
+    return iface->getL7Policer()->getShaper(DEFAULT_SHAPER_ID);
+  }
+#endif
 
   if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
   hp = iface->getHostPools();
