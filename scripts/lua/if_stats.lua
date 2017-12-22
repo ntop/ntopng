@@ -213,7 +213,7 @@ if(ntop.exists(rrdname) and not is_historical) then
 end
 
 
-if have_nedge_2 and (table.len(ifstats.profiles) > 0) then
+if not have_nedge_2 and (table.len(ifstats.profiles) > 0) then
   if(page == "trafficprofiles") then
     print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   else
