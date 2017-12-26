@@ -34,7 +34,7 @@ LIBPCAP=-lpcap
 MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
-HAS_LUAJIT=$(shell pkg-config --exists luajit; echo $$?)
+HAS_LUAJIT=$(shell pkg-config --atleast-version=2.1.0 luajit; echo $$?)
 ifeq ($(HAS_LUAJIT), 0)
 	LUAJIT_INC = $(shell pkg-config --cflags luajit)
 	LUAJIT_LIB = $(shell pkg-config --libs luajit)
