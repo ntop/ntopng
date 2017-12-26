@@ -2833,7 +2833,7 @@ void Flow::updateFlowShapers() {
   bool cli2srv_verdict, srv2cli_verdict;
 
   /* Check if this application protocol is allowd for the specified device type */
-  if(cli_host && srv_host) {
+  if(cli_host && srv_host && cli_host->getMac() && srv_host->getMac()) {
     DeviceProtocolBitmask *cli = ntop->getDeviceAllowedProtocols(cli_host->getMac()->getDeviceType());
     DeviceProtocolBitmask *srv = ntop->getDeviceAllowedProtocols(srv_host->getMac()->getDeviceType());
 
