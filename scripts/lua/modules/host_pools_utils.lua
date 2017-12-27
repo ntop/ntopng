@@ -179,10 +179,14 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
         info = interface.getHostInfo(hostinfo["host"], hostinfo["vlan"])
       end
 
-      if not isEmptyString(info["mac"]) then
+      if not isEmptyString(info["mac"]) and (info["mac"] ~= "00:00:00:00:00:00") then
         local mac_has_pool, mac_pool_info = getMembershipInfo(info["mac"])
 
-        if mac_has_pool and mac_pool_info.existing_member_pool ~= host_pools_utils.DEFAULT_POOL_ID then
+        -- Two cases:
+        --  1. if we are moving to a well defined pool, we must set the mac pool
+        --  2. if we are moving to the default pool, we must set the mac pool only
+        --     if the mac already has a pool, otherwise we set the ip pool
+        if (new_pool ~= host_pools_utils.DEFAULT_POOL_ID) or mac_has_pool then
           -- we must change the MAC address in order to change the host pool
           member_and_vlan = info["mac"]
         end

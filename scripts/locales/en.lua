@@ -2355,6 +2355,14 @@ local  en = {
       download_speed = "Download Speed",
       upload_speed = "Upload Speed",
       interfaces_configuration = "Interfaces Configuration",
+      apply_configuration = "Apply Configuration",
+      apply_configuration_and_reboot = "You are going to apply the new configuration. The device will reboot.",
+      apply_and_reboot = "Apply and Reboot",
+      add_some_gateways_first = "No gateways defined. Please define some gateways <a href=\"%{url}\">here</a>.",
+      high_priority = "High Priority",
+      higher_priority = "Higher Priority",
+      low_priority = "Low Priority",
+      lower_priority = "Lower Priority",
    },
 }
 
