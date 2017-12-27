@@ -1584,7 +1584,7 @@ void Host::checkPointHostTalker(lua_State *vm) {
   }
 
   checkpoint_sent_bytes = sent.getNumBytes();
-  checkpoint_rcvd_bytes = sent.getNumBytes();
+  checkpoint_rcvd_bytes = rcvd.getNumBytes();
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
