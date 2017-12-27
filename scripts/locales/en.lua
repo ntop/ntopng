@@ -2379,6 +2379,12 @@ local  en = {
       lan_recovery_warning = "Please ensure that this does not collide with any other defined network.",
       lan_recovery_netmask = "LAN Recovery Netmask",
       lan_recovery_netmask_descr = "The netmask for the recovery address.",
+      dhcp_first_ip = "First IP address",
+      dhcp_first_ip_descr = "The first IP address of the DHCP address pool",
+      dhcp_last_ip = "Last IP address",
+      dhcp_last_ip_descr = "The last IP address of the DHCP address pool",
+      dhcp_server_description = "Enable the DHCP server.",
+      invalid_dhcp_range = "Invalid DHCP range. Ensure that the DHCP IP addresses are inside the LAN network range, otherwise your devices won't be able to surf the web.",
    },
 }
 
