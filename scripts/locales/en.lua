@@ -2364,6 +2364,14 @@ local  en = {
       low_priority = "Low Priority",
       lower_priority = "Lower Priority",
       dns_configuration = "DNS Configuration",
+      global_dns = "Global DNS",
+      dns_server_preset = "DNS Server Preset",
+      dns_server_preset_descr = "You can select a featured DNS servers from the list or specify your custom DNS servers.",
+      global_dns_description = "The DNS servers that your devices will use by default. You can disable DNS forging (thus allowing devices to specify their own DNS servers) from the users configuration page.",
+      safe_search_dns_description = "The DNS server to be used by Safe Search users devices.",
+      custom = "Custom",
+      the_primary_dns_server = "The Primary DNS server",
+      the_secondary_dns_server = "The Secondary DNS server",
    },
 }
 

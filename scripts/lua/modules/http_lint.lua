@@ -1044,6 +1044,12 @@ local known_parameters = {
    ["policy_name"]             =  validateRoutingPolicyName,
    ["delete_policy"]           =  validateRoutingPolicyName,
    ["policy_id"]               =  validateNumber,
+   ["global_dns_preset"]       =  validateSingleWord,
+   ["child_dns_preset"]        =  validateSingleWord,
+   ["global_primary_dns"]      =  validateIPV4,
+   ["global_secondary_dns"]    =  validateIPV4,
+   ["child_primary_dns"]       =  validateIPV4,
+   ["child_secondary_dns"]     =  validateIPV4,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
