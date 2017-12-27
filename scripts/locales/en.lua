@@ -2300,6 +2300,7 @@ local  en = {
    date_to    = "End Date/Time:",
 
    nedge = {
+      nedge = "nEdge",
       system_setup = "System Setup",
       setup_mode = "Mode",
       setup_network = "Network",
@@ -2372,6 +2373,12 @@ local  en = {
       custom = "Custom",
       the_primary_dns_server = "The Primary DNS server",
       the_secondary_dns_server = "The Secondary DNS server",
+      dhcp_server = "DHCP Server",
+      lan_recovery_ip = "LAN Recovery IP",
+      lan_recovery_ip_descr = "An additional IP address to reach the nEdge device on the LAN interface.",
+      lan_recovery_warning = "Please ensure that this does not collide with any other defined network.",
+      lan_recovery_netmask = "LAN Recovery Netmask",
+      lan_recovery_netmask_descr = "The netmask for the recovery address.",
    },
 }
 

@@ -1050,6 +1050,8 @@ local known_parameters = {
    ["global_secondary_dns"]    =  validateIPV4,
    ["child_primary_dns"]       =  validateIPV4,
    ["child_secondary_dns"]     =  validateIPV4,
+   ["lan_recovery_ip"]         =  validateIPV4,
+   ["lan_recovery_netmask"]    =  validateIPV4,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
