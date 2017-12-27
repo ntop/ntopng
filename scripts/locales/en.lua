@@ -2363,6 +2363,7 @@ local  en = {
       higher_priority = "Higher Priority",
       low_priority = "Low Priority",
       lower_priority = "Lower Priority",
+      dns_configuration = "DNS Configuration",
    },
 }
 

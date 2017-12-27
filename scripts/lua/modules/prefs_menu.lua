@@ -237,7 +237,7 @@ local menu_subpages = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
     },
-  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), entries={
+  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), nedge_hidden=true, entries={
     safe_search_dns = {
       title       = i18n("prefs.safe_search_dns_title"),
       description = i18n("prefs.safe_search_dns_description", {url="https://en.wikipedia.org/wiki/SafeSearch"}),

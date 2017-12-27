@@ -11,6 +11,7 @@ local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
 show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
 local have_nedge = ntop.isnEdge()
+local skip_redis = false
 
 -- ############################################
 
@@ -42,7 +43,8 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   if (subpage.disabled) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
-     ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) then
+     ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) or
+     (subpage.nedge_hidden) and (have_nedge) then
     return false
   end
 
@@ -144,6 +146,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     k = prekey.."."..key
   end
 
+ if not skip_redis then
   if(_POST[key] ~= nil) then
     v_s = _POST[key]
     v = tonumber(v_s)
@@ -182,6 +185,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       end
     end
   end
+ else
+   value = default_value
+ end -- skip_redis
 
   if ((showEnabled == nil) or (showEnabled == true)) then
     showEnabled = "table-row"
@@ -316,6 +322,7 @@ end
 
 function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement)
+ if not skip_redis then
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
     if ( (value == nil) or (value ~= _POST[submit_field])) then
@@ -334,6 +341,9 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
       notifyNtopng(submit_field)
     end
   end
+ else
+   value = default_value
+ end
 
   if (disabled == true) then
     disabled = 'disabled = ""'
@@ -411,7 +421,8 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
 end
 
 local function get_pref_redis_key(options)
-  return "ntopng.prefs." .. ternary(options.pref ~= nil, options.pref, options.field)
+  local prefix = options.redis_prefix or "ntopng.prefs."
+  return prefix .. ternary(options.pref ~= nil, options.pref, options.field)
 end
 
 function prefsToggleButton(params)
@@ -429,7 +440,8 @@ function prefsToggleButton(params)
   local options = table.merge(defaults, params)
   local redis_key = get_pref_redis_key(options)
 
-  return toggleTableButtonPrefs(subpage_active.entries[options.field].title, subpage_active.entries[options.field].description .. (subpage_active.entries[options.field].content or ""),
+  return toggleTableButtonPrefs(params.title or subpage_active.entries[options.field].title,
+    (params.description or subpage_active.entries[options.field].description) .. (params.content or subpage_active.entries[options.field].content or ""),
     options.on_text, options.on_value, options.on_class,
     options.off_text, options.off_value, options.off_class,
     options.field, redis_key,
@@ -440,11 +452,12 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
                                   javascriptAfterSwitch, showElement, initialValue, toggleElementArray)
    local value
+  if not skip_redis then
    if(_POST[submit_field] ~= nil) then
     ntop.setPref(redis_key, _POST[submit_field])
     value = _POST[submit_field]
     notifyNtopng(submit_field)
-  else
+   else
     value = initialValue or ntop.getPref(redis_key)
     if(value == "") then
       if(default_value ~= nil) then
@@ -452,6 +465,9 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         value = default_value
       end
     end
+   end
+  else
+    value = default_value
   end
 
   if (disabled == true) then
@@ -593,4 +609,8 @@ end
 
 function printSaveButton()
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+end
+
+function prefsSkipRedis(skip)
+  skip_redis = skip
 end

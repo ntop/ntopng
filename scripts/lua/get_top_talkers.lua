@@ -14,7 +14,6 @@ sendHTTPContentTypeHeader('text/html')
 local ifid = getInterfaceId(ifname)
 local epoch = _GET["epoch"]
 local add_vlan = _GET["addvlan"]
-local mode = _GET["senders_receivers"]
 
 -- TODO clean up
 
