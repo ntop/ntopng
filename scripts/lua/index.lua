@@ -10,6 +10,16 @@ require "lua_utils"
 
 interface.select(ifname)
 
+if(ntop.isnEdge()) then
+  package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
+  local nf_config = require("nf_config"):readable()
+
+  if nf_config.isFirstStart() then
+    print(ntop.httpRedirect(ntop.getHttpPrefix().."lua/pro/nedge/system_setup/interfaces.lua"))
+    return
+  end
+end
+
 if(ntop.isPro()) then
    if interface.isPcapDumpInterface() == false then
       print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/pro/dashboard.lua"))
