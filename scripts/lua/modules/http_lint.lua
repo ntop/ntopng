@@ -1055,6 +1055,7 @@ local known_parameters = {
    ["dhcp_server_enabled"]     =  validateBool,
    ["dhcp_first_ip"]           =  validateIPV4,
    ["dhcp_last_ip"]            =  validateIPV4,
+   ["factory_reset"]           =  validateEmpty,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

@@ -2386,6 +2386,9 @@ local  en = {
       dhcp_server_description = "Enable the DHCP server.",
       invalid_dhcp_range = "Invalid DHCP range. Ensure that the DHCP IP addresses are inside the LAN network range, otherwise your devices won't be able to surf the web.",
       needs_apply_and_reboot = "Apply the initial device configuration.",
+      factory_reset = "Factory Reset",
+      reset_and_reboot = "Reset and Reboot",
+      factory_reset_msg = "Do you really want to reset the device to its factory configuration? Any configuration and data will be lost.",
    },
 }
 
