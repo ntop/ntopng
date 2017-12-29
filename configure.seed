@@ -311,6 +311,13 @@ if test "${with_nedge+set}" != set; then
  fi
 fi
 
+UGLIFYJS=`which uglifyjs`
+if test x$UGLIFYJS != x
+then
+   UGLIFYJS_VERSION=`$UGLIFYJS --version | cut -f 2 -d" "`
+   UGLIFYJS_MAJOR_VERSION="${UGLIFYJS_VERSION%%.*}"
+fi
+
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
 AC_CHECK_LIB([rt], [clock_gettime],   [LDFLAGS="${LDFLAGS} -lrt"])
 
@@ -514,6 +521,7 @@ AC_SUBST(MYSQL_DEP)
 AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
 AC_SUBST(NEDGE)
+AC_SUBST(UGLIFYJS_MAJOR_VERSION)
 AC_SUBST(SERVICE_AFTER)
 AC_SUBST(SERVICE_REQUIRES)
 AC_CONFIG_HEADERS(include/config.h)

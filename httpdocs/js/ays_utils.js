@@ -18,6 +18,7 @@ function aysHandleForm(form_selector, options) {
     handle_submit_buttons: true,    /* If true, form submit buttons will be disabled when the form is clean, enabled when it's dirty */
     handle_datatable: false,        /* If true, datatable navigation buttons will be disabled when the form is dirty, enabled when it's clean. Note: you should call aysResetForm in the tableCallback */
     handle_tabs: false,             /* If true, navigation between bootstrap tabs will be disabled when the form is dirty, enabled when it's clean */
+    disable_on_dirty: "",           /* An additional selector of items to be disabled on form dirty */
     ays_options: {},                /* Options to pass to are-you-sure initializer */
   };
 
@@ -50,6 +51,8 @@ function aysHandleForm(form_selector, options) {
          });
       }
 
+      $(o.disable_on_dirty).addClass("disabled");
+
       o.on_dirty_callback.bind(this)();
    });
 
@@ -69,6 +72,8 @@ function aysHandleForm(form_selector, options) {
           $(this).attr("data-toggle", "tab").closest("li").removeClass("disabled");
         });
       }
+
+      $(o.disable_on_dirty).removeClass("disabled");
 
       o.on_clean_callback.bind(this)();
     });

@@ -264,7 +264,7 @@ Makefile: configure Makefile.in
 	./configure
 
 minify:
-	cd httpdocs/js; make minify
+	cd httpdocs/js; make UGLIFY_VERSION=@UGLIFYJS_MAJOR_VERSION@ minify
 
 # Disabled to avoid too many recompilations
 #configure: @GIT_INDEX@
