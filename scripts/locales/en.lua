@@ -2389,6 +2389,18 @@ local  en = {
       factory_reset = "Factory Reset",
       reset_and_reboot = "Reset and Reboot",
       factory_reset_msg = "Do you really want to reset the device to its factory configuration? Any configuration and data will be lost.",
+      filter_categories = "Filter Categories",
+      filter_protocols = "Filter Protocols",
+      not_default = "Not Default",
+      with_quota = "With Quota",
+      categories_with_a_defined_policy = "Categories with a Defined Policy",
+      categories_with_a_defined_quota = "Categories with a Defined Quota",
+      categories_with_policy_x = "Categories with %{x} Policy",
+      protocols_with_a_defined_policy = "Protocols with a Defined Policy",
+      protocols_with_a_defined_quota = "Protocols with a Defined Quota",
+      protocols_with_policy_x = "Protocols with %{x} Policy",
+      search_protocols = "Search Protocols",
+      search_categories = "Search Categories",
    },
 }
 

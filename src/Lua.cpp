@@ -533,6 +533,26 @@ static int ntop_get_ndpi_category_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_ndpi_category_name(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  nDPIStats stats;
+  ndpi_protocol_category_t category;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  category = (ndpi_protocol_category_t) lua_tonumber(vm, 1);
+
+  if(ntop_interface && category)
+    lua_pushstring(vm, ntop_interface->get_ndpi_category_name(category));
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_ndpi_protocol_category(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int proto;
@@ -6648,6 +6668,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",           ntop_get_ndpi_protocol_id },
   { "getnDPICategoryId",        ntop_get_ndpi_category_id },
+  { "getnDPICategoryName",      ntop_get_ndpi_category_name },
   { "getnDPIProtoCategory",     ntop_get_ndpi_protocol_category },
   { "setnDPIProtoCategory",     ntop_set_ndpi_protocol_category },
   { "getnDPIFlowsCount",        ntop_get_ndpi_interface_flows_count },
