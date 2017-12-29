@@ -190,7 +190,7 @@ if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 	 var table = $("#table-flows").datatable({
 			url: url_update ,
          rowCallback: function(row) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
    print(i18n('flows_page.idle_flows_not_listed'))
    print[['); },
 ]]

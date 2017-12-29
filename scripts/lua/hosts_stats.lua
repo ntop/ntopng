@@ -204,7 +204,7 @@ print('title: "'..getPageTitle()..'",\n')
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
 
 print [[
-       tableCallback: function()  { $("#dt-bottom-details > .pull-left > p")[0].append('. ]]
+       tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
 print(i18n('hosts_stats.idle_hosts_not_listed'))
 print[['); },
 ]]
