@@ -1032,11 +1032,11 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  h->iface = new NetworkInterface(buf, vIface_type);
 
 	if(h->iface) {
-	  h->iface->allocateNetworkStats();
-	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
-	  numVirtualInterfaces++;
+	  h->iface->allocateNetworkStats();
 	  h->iface->setDynamicInterface();
+	  HASH_ADD_INT(flowHashing, criteria, h);
+	  numVirtualInterfaces++;
 	}
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
