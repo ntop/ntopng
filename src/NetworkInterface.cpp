@@ -3341,7 +3341,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
 
   if((r->location == location_local_only      && !h->isLocalHost())                       ||
      (r->location == location_remote_only     && h->isLocalHost())                        ||
-     (r->vlan_id       && (r->vlan_id         != h->get_vlan_id()))                       ||
+     (r->vlan_id          != h->get_vlan_id())                                            ||
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
