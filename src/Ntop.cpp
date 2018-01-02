@@ -1492,7 +1492,7 @@ void Ntop::setLocalNetworks(char *_nets) {
 
 NetworkInterface* Ntop::getInterfaceById(int if_id) {
   for(int i=0; i<num_defined_interfaces; i++) {
-    if(iface[i]->get_id() == if_id)
+    if(iface[i] && iface[i]->get_id() == if_id)
       return(iface[i]);
   }
 
