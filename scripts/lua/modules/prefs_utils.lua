@@ -35,6 +35,21 @@ local skip_redis = false
 --    - hidden: (optional) if true, this subpage is hidden
 --
 
+-- ############################################
+
+DNS_PRESETS = {
+  {id="comodo_secure", label="Comodo Secure DNS", url="https://www.comodo.com/secure-dns/", primary_dns="8.26.56.26", secondary_dns="8.20.247.20"},
+  {id="dyn_internet_guide", label="Dyn Internet Guide", url="http://dyn.com/labs/dyn-internet-guide/", primary_dns="216.146.35.35", secondary_dns="216.146.36.36"},
+  {id="fool_dns", label="FoolDNS", url="http://www.fooldns.com/fooldns-community/english-version/", primary_dns="87.118.111.215", secondary_dns="213.187.11.62"},
+  {id="greenteam_internet", label="GreenTeam Internet", url="http://members.greentm.co.uk/", primary_dns="81.218.119.11", secondary_dns="209.88.198.133"},
+  {id="opendns", label="OpenDNS", url="https://www.opendns.com/", primary_dns="208.67.222.222", secondary_dns="208.67.220.220"},
+  {id="opendns_familyshield", label="OpenDNS - FamilyShield", url="https://www.opendns.com/setupguide/?url=familyshield", primary_dns="208.67.222.123", secondary_dns="208.67.220.123"},
+  {id="norton_connectsafe", label="Norton ConnectSafe: Security", url="https://dns.norton.com/configureRouter.html", primary_dns="199.85.126.10", secondary_dns="199.85.127.10"},
+  {id="norton_security_pornography", label="Norton ConnectSafe: Security + Pornography", url="https://dns.norton.com/", primary_dns="199.85.126.20", secondary_dns="199.85.127.20"},
+  {id="norton_security_other", label="Norton ConnectSafe: Security + Other", url="https://dns.norton.com/", primary_dns="199.85.126.30", secondary_dns="199.85.127.30"},
+  {id="quad9_security", label="Quad 9: Security", url="https://quad9.net", primary_dns="9.9.9.9", secondary_dns=""},
+}
+
 function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))

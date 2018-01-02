@@ -421,19 +421,16 @@ if hasBridgeInterfaces(true) then
         "ntopng.prefs.", "secondary_dns", prefs.secondary_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
 end
 
+  local dns_rows = {}
+  for _, dns in pairs(DNS_PRESETS) do
+    local secondary = ternary(not isEmptyString(dns.secondary_dns), dns.secondary_dns, "-")
+    dns_rows[#dns_rows + 1] = [[<tr><td><a href="]] .. dns.url .. [[">]] .. dns.label .. [[</a></td><td>]] .. dns.primary_dns .. [[</td><td>]] .. secondary .. [[</td></tr>]]
+  end
+
   prefsInformativeField(subpage_active.entries["featured_dns"].title, subpage_active.entries["featured_dns"].description..[[<br><br>
         <table class='table table-bordered table-condensed small'>
-          <tr><th>]]..i18n("prefs.dns_service")..[[</th><th>]]..i18n("prefs.primary_dns")..[[</th><th>]]..i18n("prefs.secondary_dns")..[[</th></tr>
-          <tr><td><a href="https://www.comodo.com/secure-dns/">Comodo Secure DNS</a></td><td>8.26.56.26</td><td>8.20.247.20</td></tr>
-          <tr><td><a href="http://dyn.com/labs/dyn-internet-guide/">Dyn Internet Guide</a><td>216.146.35.35</td><td>216.146.36.36</td></tr>
-          <tr><td><a href="http://www.fooldns.com/fooldns-community/english-version/">FoolDNS</a></td><td>87.118.111.215</td><td>213.187.11.62</td></tr>
-          <tr><td><a href="http://members.greentm.co.uk/">GreenTeam Internet</a></td><td>81.218.119.11</td><td>209.88.198.133</td></tr>
-          <tr><td><a href="https://www.opendns.com/">OpenDNS</a></td><td>208.67.222.222</td><td>208.67.220.220</td></tr>
-          <tr><td><a href="https://www.opendns.com/setupguide/?url=familyshield">OpenDNS - FamilyShield</a></td><td>208.67.222.123</td><td>208.67.220.123</td></tr>
-          <tr><td><a href="https://dns.norton.com/">Norton ConnectSafe - Security</a></td><td>199.85.126.10</td><td>199.85.127.10</td></tr>
-          <tr><td><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Pornography</a></td><td>199.85.126.20</td><td>199.85.127.20</td></tr>
-          <tr><td><a href="https://dns.norton.com/">Norton ConnectSafe - Security + Other</a></td><td>199.85.126.30</td><td>199.85.127.30</td></tr>
-        </table>
+          <tr><th>]]..i18n("prefs.dns_service")..[[</th><th>]]..i18n("prefs.primary_dns")..[[</th><th>]]..i18n("prefs.secondary_dns")..[[</th></tr>]] ..
+          table.concat(dns_rows, "\n") .. [[</table>
         ]], true)
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
