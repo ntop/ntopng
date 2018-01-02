@@ -1361,7 +1361,7 @@ function getSIPInfo(infoPar)
       if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
         returnString = ""
       else
-        returnString =  calling_party .. " <-> " .. called_party
+        returnString =  calling_party .. " <i class='fa fa-exchange fa-sm' aria-hidden='true'></i> " .. called_party
       end
     end
   end
