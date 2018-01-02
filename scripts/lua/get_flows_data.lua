@@ -191,9 +191,9 @@ if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
    local info = ""
-   if(flows_stats[key]["info"] ~= nil) then
+   if(not isEmptyString(flows_stats[key]["info"])) then
       info = shortenString(flows_stats[key]["info"])
-   elseif(flows_stats[key]["icmp"] ~= nil) then
+   elseif(not isEmptyString(flows_stats[key]["icmp"])) then
       info = getICMPTypeCode(flows_stats[key]["icmp"])
    elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
       info = getSIPInfo(flows_stats[key])
