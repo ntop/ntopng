@@ -636,7 +636,7 @@ class NetworkInterface : public Checkpointable {
   inline void decPoolNumL2Devices(u_int16_t id, bool isInlineCall) {
     if (host_pools) host_pools->decNumL2Devices(id, isInlineCall);
   };
-  void updateFlowStats(u_int8_t protocol,
+  bool updateFlowStats(u_int8_t protocol,
 		       u_int32_t srcHost, u_int16_t sport,
 		       u_int32_t dstHost, u_int16_t dport,
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,

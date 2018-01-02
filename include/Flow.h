@@ -412,7 +412,7 @@ class Flow : public GenericHashEntry {
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
-  void updateFlowShapers();
+  void updateFlowShapers(bool first_update=false);
   void recheckQuota(const struct tm *now);
 #endif
   inline float getFlowRTT() { return(rttSec); }

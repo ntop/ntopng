@@ -6374,7 +6374,7 @@ void NetworkInterface::topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes)
 
 /* *************************************** */
 
-void NetworkInterface::updateFlowStats(u_int8_t protocol,
+bool NetworkInterface::updateFlowStats(u_int8_t protocol,
 				       u_int32_t srcHost, u_int16_t sport,
 				       u_int32_t dstHost, u_int16_t dport,
 				       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
@@ -6415,6 +6415,8 @@ void NetworkInterface::updateFlowStats(u_int8_t protocol,
 			       Utils::intoaV4(ntohl(dstHost), buf1, sizeof(buf)), ntohs(dport),
 			       s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
 #endif
+
+  return (f != NULL);
 }
 
 /* *************************************** */

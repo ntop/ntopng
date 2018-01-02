@@ -465,7 +465,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 
   if(detection_completed) {
 #ifdef NTOPNG_PRO
-    updateFlowShapers();
+    updateFlowShapers(true);
 #endif
     iface->luaEvalFlow(this, callback_flow_proto_callback);
   }
@@ -2739,8 +2739,11 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
 
 #ifdef NTOPNG_PRO
 
-void Flow::updateFlowShapers() {
+void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
+#ifdef HAVE_NEDGE
+  bool old_verdict = passVerdict;
+#endif
 
   /* Check if this application protocol is allowd for the specified device type */
   if(cli_host && srv_host && cli_host->getMac() && srv_host->getMac()) {
@@ -2763,6 +2766,11 @@ void Flow::updateFlowShapers() {
   cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
   srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
   passVerdict = (cli2srv_verdict && srv2cli_verdict);
+
+#if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
+  if((!first_update) && (iface->getIfType() == interface_type_NETFILTER) && (old_verdict == true) && (passVerdict == false))
+   ((NetfilterInterface *) iface)->setPolicyChanged();
+#endif
   
 #ifdef SHAPER_DEBUG
   {

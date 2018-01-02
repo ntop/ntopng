@@ -3349,6 +3349,19 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+static int ntop_get_policy_change_marker(lua_State* vm) {
+#ifdef HAVE_NETFILTER
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
+    lua_pushnumber(vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
+  else
+#endif
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
 #endif
 
 /* ****************************************** */
@@ -6775,7 +6788,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Flow Devices */
   { "getFlowDevices",                  ntop_get_flow_devices     },
   { "getFlowDeviceInfo",               ntop_get_flow_device_info },
+
   { "setLanIpAddress",                 ntop_set_lan_ip_address },
+  { "getPolicyChangeMarker",           ntop_get_policy_change_marker },
 
 #endif
 
