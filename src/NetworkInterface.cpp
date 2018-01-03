@@ -6396,8 +6396,12 @@ bool NetworkInterface::updateFlowStats(u_int8_t protocol,
 
   if(f) {
     f->setPacketsBytes(t_now, s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
-#ifdef HAVE_OLD_NEDGE
-    f->recheckQuota(&now);
+#ifdef HAVE_NEDGE
+    bool old_verdict = f->isPassVerdict();
+    bool new_verdict = f->checkPassVerdict(&now);
+
+    if((old_verdict == true) && (new_verdict == false))
+      return true;
 #endif
 #ifdef DEBUG
     msg = "Updated ";
@@ -6416,7 +6420,7 @@ bool NetworkInterface::updateFlowStats(u_int8_t protocol,
 			       s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
 #endif
 
-  return (f != NULL);
+  return false;
 }
 
 /* *************************************** */
