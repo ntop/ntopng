@@ -2261,8 +2261,9 @@ local  en = {
     unchanged = "Unchanged",
     protocols = "Protocols",
     policy = "Policy",
-    edit_default_policy = "Edit Default Policy",
-    default_policy = "Default Policy",
+    edit_global_policies = "Edit Global Policies",
+    global_policies = "Global Policies",
+    fallback_policy = "Fallback Policy",
     devices = "Devices",
     total_daily_traffic_quota = "Total Daily Traffic Quota",
     total_daily_time_quota = "Total Daily Time Quota",
@@ -2401,6 +2402,10 @@ local  en = {
       protocols_with_policy_x = "Protocols with %{x} Policy",
       search_protocols = "Search Protocols",
       search_categories = "Search Categories",
+      a_zero_quota_is_unlimited = "A zero quota means unlimited traffic.",
+      protocol_policy_has_higher_priority = "A protocol policy has higher priority than the corresponding category policy.",
+      user_policies_have_priority = "A user policy has higher priority than a global policy.",
+      the_fallback_policy = "The <a href=\"%{url}\">Fallback Policy</a> is applied when both the user and the global policy for a given protocol and its corresponding category are set to \"Default\".",
    },
 }
 
