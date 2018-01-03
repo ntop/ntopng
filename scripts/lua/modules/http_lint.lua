@@ -1057,6 +1057,8 @@ local known_parameters = {
    ["dhcp_last_ip"]            =  validateIPV4,
    ["factory_reset"]           =  validateEmpty,
    ["policy_filter"]           =  validateEmptyOr(validateNumber),
+   ["hostname"]                =  validateSingleWord,
+   ["delete"]                  =  validateEmpty,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

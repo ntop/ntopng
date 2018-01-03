@@ -2406,6 +2406,16 @@ local  en = {
       protocol_policy_has_higher_priority = "A protocol policy has higher priority than the corresponding category policy.",
       user_policies_have_priority = "A user policy has higher priority than a global policy.",
       the_fallback_policy = "The <a href=\"%{url}\">Fallback Policy</a> is applied when both the user and the global policy for a given protocol and its corresponding category are set to \"Default\".",
+      static_dhcp_leases = "DHCP Server Static Leases",
+      add_static_lease = "Add Static Lease",
+      hostname = "Hostname",
+      mac_lease_exists = "A static lease for mac \"%{mac}\" already exists.",
+      hostname_lease_exists = "A static lease with hostname \"%{hostname}\" already exists.",
+      ip_lease_exists = "A static lease with ip \"%{ip}\" already exists.",
+      no_static_leases = "No Static Leases",
+      delete_static_lease = "Delete Static Lease",
+      confirm_delete_static_lease = "Do you really want to delete \"%{hostname}\" static lease?",
+      dhcp_server_not_enabled = "The DHCP server is not enabled. You can enabled it <a href=\"%{url}\">here</a>."
    },
 }
 

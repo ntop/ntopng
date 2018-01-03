@@ -391,27 +391,27 @@ print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
         <i class="fa fa-cog fa-lg"></i> <b class="caret"></b>
       </a>
-    <ul class="dropdown-menu">
-      <li><a href="]]
+    <ul class="dropdown-menu">]]
 
 user_group = ntop.getUserGroup()
 local have_nedge = ntop.isnEdge()
 
 if(user_group == "administrator") then
-  print(ntop.getHttpPrefix())
   if not have_nedge then
-     print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
-      ]]
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
+     print[[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>]]
   else
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
      print [[/lua/pro/nedge/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>]]
 
-     print [[<li><a href="]]
-     print(ntop.getHttpPrefix())
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
      print[[/lua/pro/nedge/system_setup/interfaces.lua"><i class="fa fa-microchip"></i> System Setup</a></li>]]
+
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
+     print [[/lua/pro/nedge/admin/dhcp_leases.lua"><i class="fa fa-bolt"></i> DHCP Leases</a></li>]]
   end
 else
-  print [[#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>
-      ]]
+  print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>]]
 end
 
 if(user_group == "administrator") then

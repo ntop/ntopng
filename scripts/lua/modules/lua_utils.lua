@@ -2505,6 +2505,10 @@ function getIPv4Pattern()
   return "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 end
 
+function getMacPattern()
+  return "^([0-9a-fA-F][0-9a-fA-F]:){5}[0-9a-fA-F]{2}$"
+end
+
 function getURLPattern()
   return "^https?://.+$"
 end
@@ -3545,6 +3549,17 @@ function path_get_page(path)
    end
 
    return path
+end
+
+-- ###########################################
+
+function printWarningAlert(message)
+   print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
+   print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]
+   print[[<i class="fa fa-warning fa-sm"></i> ]]
+   print[[<strong>]] print(i18n("warning")) print[[</strong> ]]
+   print(message)
+   print[[</div>]]
 end
 
 -- ###########################################
