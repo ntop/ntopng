@@ -144,6 +144,12 @@ discover.asset_icons = {
    -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
+discover.extra_asset_icons = {
+   ['lightbulb']      = '<i class="fa fa-lightbulb-o fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['phone']          = '<i class="fa fa-phone fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['health']         = '<i class="fa fa-medkit fa-lg devtype-icon" aria-hidden="true"></i>',
+}
+
 local id2label = {
    [0]  = { 'unknown', i18n("device_types.unknown") },
    [1]  = { 'printer', i18n("device_types.printer") },
@@ -386,7 +392,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
    elseif(mdns["_workstation._tcp.local"] ~= nil) then
       interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
-      return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
+      -- return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
+   else
+      interface.setMacOperatingSystem(mac, 0) -- Unknown
    end
 
    if(string.contains(friendlyName, "TV")) then
@@ -394,8 +402,15 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if((ssdp["urn:upnp-org:serviceId:AVTransport"] ~= nil)
-      or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)) then
+	 or (ssdp["urn:upnp-org:serviceId:RenderingControl"] ~= nil)
+	 or (ssdp["urn:upnp-org:serviceId:MusicServices"] ~= nil)
+      or (mdns["_airplay._tcp.local"] ~= nil)
+   ) then
       return 'multimedia', discover.asset_icons['multimedia'], nil
+   end
+
+   if(ssdp["_airport._tcp.local"] ~= nil) then
+      return 'wifi', discover.asset_icons['wifi'], nil
    end
 
    if(ssdp_entries and ssdp_entries["modelDescription"]) then
@@ -413,6 +428,10 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'printer', discover.asset_icons['printer'].. ' ('..snmpName..')', snmpName
    elseif(string.contains(manufacturer, "Hikvision")) then
       return 'video', discover.asset_icons['video'], nil
+   elseif(string.contains(manufacturer, "Synology")) then
+      return 'nas', discover.asset_icons['nas'], nil
+   elseif(string.contains(manufacturer, "Sonos")) then
+      return 'multimedia', discover.asset_icons['multimedia'], nil
    elseif(string.contains(manufacturer, "Super Micro")) then
       return 'workstation', discover.asset_icons['workstation'], nil
    elseif(string.contains(manufacturer, "Raspberry")) then
@@ -421,6 +440,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Cisco")) then
       return 'networking', discover.asset_icons['networking'], nil
+   elseif(string.contains(manufacturer, "Gigaset")) then
+      return 'phone', discover.extra_asset_icons['phone'], nil
    elseif(string.contains(manufacturer, "Palo Alto Networks")) then
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Liteon Technology")) then
@@ -441,10 +462,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    ) then
       interface.setMacOperatingSystem(mac, 5) -- 5 = Android
       return 'phone', discover.asset_icons['phone'].. ' ' ..discover.android_icon, nil
-   elseif(string.contains(manufacturer, "Hewlett Packard") and (snmpName ~= nil)) then
+   elseif((string.contains(manufacturer, "Hewlett Packard")
+	      or string.contains(manufacturer, "Hon Hai"))
+      and (snmpName ~= nil)) then
       local _snmpName  = string.lower(snmpName)
       local _snmpDescr
-
+      
       if(snmpDescr == nil) then
         -- io.write("IP "..ip.." has empty descr (".. _snmpName ..")\n")
         _snmpDescr = _snmpName
@@ -497,8 +520,33 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    end
 
+   -- Amazon devices  
    if(string.contains(mac, "F0:4F:7C") and string.contains(hostname, "kindle-")) then
       return 'tablet', discover.asset_icons['tablet']..' (Kindle)', "Kindle"
+   elseif(string.contains(mac, "40:B4:CD") -- and string.contains(hostname, "amazon-")
+   ) then
+      return 'multimedia', discover.asset_icons['multimedia'], "Alexa" -- Alexa
+   end
+
+   -- io.write("==>"..mac .. " /" .. manufacturer .. " / ".. friendlyName.. "/"..discover.extra_asset_icons['lightbulb'] .."\n")
+   
+   -- Philips Hue
+   if(string.contains(mac, "00:17:88") and string.contains(friendlyName, "hue")) then
+      return 'iot', discover.extra_asset_icons['lightbulb'], nil
+   end
+
+   -- Withings (Nokia Health)
+   if(string.contains(mac, "00:24:E4")) then
+      return 'iot', discover.extra_asset_icons['health'], nil
+   end
+   
+   -- Logitech
+   if(string.contains(manufacturer, "Logitech")) then
+      if(string.contains(friendlyName, "Harmony")) then
+	 return 'iot', discover.asset_icons['iot'], nil
+      else
+	 return 'multimedia', discover.asset_icons['multimedia'], nil
+      end      
    end
 
    if(names["gateway.local"] == ip) then
@@ -532,6 +580,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if(string.contains(manufacturer, "Ubiquity")) then
       return 'networking', discover.asset_icons['networking'], nil
    end
+
+   if((ssdp["_printer._tcp.local"] ~= nil)
+      or (ssdp["_scanner._tcp.local"] ~= nil)) then
+      return 'printer', discover.asset_icons['printer'], nil
+   end
+
 
    return 'unknown', "", nil
 end
@@ -600,7 +654,31 @@ local function analyzeSSDP(ssdp)
 
 			if(width <= lastwidth) then
 			   if((mime == "image/jpeg") or (mime == "image/png") or (mime == "image/gif")) then
+
+			      if(string.sub(v.url:value(), 1, 1) == "/") then
+				 local slash = string.split(base_url, "/")
+
+				 if(slash ~= nil) then
+				    base_url = ""
+
+				    for i,v in pairs(slash) do
+				       -- io.write(i.." =>"..v.." ["..base_url.."]\n")
+				       if(i < 4) then
+					  if(i > 1) then base_url = base_url .. "/" end
+					  base_url = base_url .. v
+				       end
+				    end
+				 end				 
+			      end
+
+			      if((string.sub(base_url, -1) ~= "/")
+				    and (string.sub(v.url:value(), 1, 1) ~= "/"))
+			      then
+				 base_url = base_url .. "/"
+			      end
+
 			      icon = "<img src="..base_url..v.url:value()..">"
+			      -- io.write(icon.."\n")
 			      lastwidth = width -- Pick the smallest icon
 			   end
 			end
@@ -716,7 +794,10 @@ function discover.discover2table(interface_name, recache)
 
 	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.5.0", 0)
 
-	 if(string.contains(manufacturer, "HP") or string.contains(manufacturer, "Hewlett Packard")) then
+	 if(string.contains(manufacturer, "HP")
+	       or string.contains(manufacturer, "Hewlett Packard")
+	    or string.contains(manufacturer, "Hon Hai")	    
+	 ) then
 	    -- Query printer model
 	    interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.25.3.2.1.3.1", 0)
 	 end
@@ -844,19 +925,25 @@ function discover.discover2table(interface_name, recache)
 
          entry["device_label_noicon"] = device_label
 	 if mac_info ~= nil then
-	    device_label = device_label .. discover.devtype2icon(mac_info.devtype)
+	    device_label = discover.devtype2icon(mac_info.devtype)
 	 end
       end
       
       interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
 
-      entry["device_type"] = device_type
+      entry["device_type"] = device_type      
       entry["device_label"] = device_label
 
       if(device_info ~= nil) then
         entry["device_info"] = device_info
       end
 
+      if(discover.debug) then 
+	 io.write("======================\n")
+	 tprint(entry)
+	 io.write("======================\n")
+      end
+      
       res[#res + 1] = entry
       ::continue::
    end

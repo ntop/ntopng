@@ -43,24 +43,42 @@ MacManufacturers::MacManufacturers(const char * const home) {
 void MacManufacturers::init() {
   struct stat buf;
   FILE *fd;
-  char line[256], *manuf = NULL, *cr;
+  char line[256], *cr;
   int _mac[3];
-  u_int8_t mac[3];
   char short_name[9];
   mac_manufacturers_t *s;
 
   if(!(stat(manufacturers_file, &buf) == 0) && (S_ISREG(buf.st_mode)))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "File %s doesn't exists or is not readable", manufacturers_file);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "File %s doesn't exists or is not readable",
+				 manufacturers_file);
 
   if((fd = fopen(manufacturers_file, "r")) == NULL)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read %s", manufacturers_file);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read %s",
+				 manufacturers_file);
 
   if(fd) {
     while(fgets(line, sizeof(line), fd)) {
-      char *tab = strchr(line, '\t');
+      char *tmp;
+      char *mac = strtok_r(line, "\t", &tmp);
+      char *shortmanuf, *manuf;
 
-      if((sscanf(line, "%02x:%02x:%02x", &_mac[0], &_mac[1], &_mac[2]) == 3)
-	 && (tab != NULL)) {
+      if(!mac)
+	continue;
+      else
+	shortmanuf = strtok_r(NULL, "\t", &tmp);
+
+      if(!shortmanuf)
+	continue;
+      else {
+	manuf = strtok_r(NULL, "\t", &tmp);
+	if(!manuf) manuf = shortmanuf;
+      }
+
+#ifdef MANUF_DEBUG
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\t%s", mac, manuf);
+#endif
+				   
+      if(sscanf(mac, "%02x:%02x:%02x", &_mac[0], &_mac[1], &_mac[2]) == 3) {	
 	// printf("Retrieved line of length %zu :\n", read);
 	// printf("%s", line);
 
@@ -68,9 +86,9 @@ void MacManufacturers::init() {
 	   00:05:02        Apple                  # Apple, Inc.
 	   So it is possible to use '# ' as the full manufacturer name separator
 	 */
-	if((manuf = strstr(line, "# ")) == NULL)
-	  continue;
-	manuf += 2;
+	tmp = strstr(manuf, "# ");
+	if(tmp)
+	  manuf = &tmp[2];
 
 	if((cr = strchr(manuf, '\n')))
 	   *cr = '\0';
@@ -104,7 +122,6 @@ void MacManufacturers::init() {
 	      s->manufacturer_name[j++] = '\0';
 	    }
 	    
-	    sscanf(tab, "%8s", short_name);
 	    s->short_name = strdup(short_name);
 	    HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
 

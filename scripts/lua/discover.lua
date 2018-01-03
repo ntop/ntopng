@@ -56,7 +56,7 @@ if discovered["status"]["code"] == "ERROR" then
 elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print("<table class=\"table table-bordered table-striped\">")
 
-   print("<tr><th>"..i18n("discover.network_discovery_datetime").."</th><td colspan=6>"..formatEpoch(discovered["discovery_timestamp"]).."</td></tr>")
+   print("<tr><th nowrap>"..i18n("discover.network_discovery_datetime").."</th><td colspan=6>"..formatEpoch(discovered["discovery_timestamp"]).."</td></tr>")
 
    print("<tr><th>"..i18n("ip_address").."</th><th>"..i18n("name").."</th><th>"..i18n("mac_stats.manufacturer").."</th><th>"..i18n("mac_address").."</th>")
    print("<th>"..i18n("os").."</th><th>"..i18n("info").."</th><th>"..i18n("discover.device").."</th></tr>")
@@ -70,7 +70,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       -- IP
       print("<td align=left nowrap>")
       print("<a href='" .. ntop.getHttpPrefix().. "/lua/host_details.lua?host="..tostring(el["ip"]).."'>"..tostring(el["ip"]).."</A>")
-      if el["icon"] then print(el["icon"] .. "&nbsp;") end
+      if el["icon"] then print("&nbsp;"..el["icon"] .. "&nbsp;") end
       if el["ghost"] then print(' <font color=red>'..discover.ghost_icon..'</font>') end
       print("</td>\n")
 
@@ -114,7 +114,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       print("</td>\n")
       
       -- Information
-      print("<td>")
+      print("<td nowrap>")
       if el["information"] then print(table.concat(el["information"], "<br>")) end
       if el["url"] then
 	 if el["information"] then
@@ -147,7 +147,5 @@ print("</table>\n")
 if(discovered["ghost_found"]) then
    print('<b>NOTE</b>: The <font color=red>'..discover.ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
 end
-
-
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
