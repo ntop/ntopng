@@ -3053,30 +3053,16 @@ function table.merge(a, b)
   return merged
 end
 
-function table.clone(t, filter)
-   local clone = {}
-   local filter = filter or function (k, v) return true end
-
-   for k, v in pairs(t) do
-      if filter(k, v) then
-         clone[k] = v
-      end
-   end
-
-   return clone
-end
-
--- TODO join the code with table.clone
-function table.deepcopy(orig)
+function table.clone(orig)
    local orig_type = type(orig)
    local copy
 
    if orig_type == 'table' then
       copy = {}
       for orig_key, orig_value in next, orig, nil do
-         copy[table.deepcopy(orig_key)] = table.deepcopy(orig_value)
+         copy[table.clone(orig_key)] = table.clone(orig_value)
       end
-      setmetatable(copy, table.deepcopy(getmetatable(orig)))
+      setmetatable(copy, table.clone(getmetatable(orig)))
    else -- number, string, boolean, etc
       copy = orig
    end
