@@ -440,38 +440,35 @@ else
       print("</td></tr>\n")
    end
 
-   if(flow["bittorrent_hash"] ~= nil) then
+   if(not isEmptyString(flow["bittorrent_hash"])) then
       print("<tr><th>"..i18n("flow_details.bittorrent_hash").."</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
    end
 
-   if(flow["protos.ssh.client_signature"] ~= nil) then
-      print("<tr><th>"..i18n("flow_details.ssh_signature").."</th><td>"..i18n("client")..": "..flow["protos.ssh.client_signature"].."</td><td>"..i18n("server")..": "..flow["protos.ssh.server_signature"].."</td></tr>\n")
+   if(not isEmptyString(flow["protos.ssh.client_signature"])) then
+      print("<tr><th>"..i18n("flow_details.ssh_signature").."</th><td><b>"..i18n("client")..":</b> "..(flow["protos.ssh.client_signature"] or '').."</td><td><b>"..i18n("server")..":</b> "..(flow["protos.ssh.server_signature"] or '').."</td></tr>\n")
    end
 
    if(flow["protos.http.last_url"] ~= nil) then
-      print("<tr><th width=30% rowspan=4>"..i18n("http").."</th><th>"..i18n("flow_details.http_method").."</th><td>"..flow["protos.http.last_method"].."</td></tr>\n")
-      print("<tr><th>"..i18n("flow_details.server_name").."</th><td>")
-      if(flow["host_server_name"] ~= nil and flow["host_server_name"] ~= "") then
+      print("<tr><th width=30% rowspan=4>"..i18n("http").."</th>")
+      print("<th>"..i18n("flow_details.http_method").."</th><td>"..(flow["protos.http.last_method"] or '').."</td>")
+      print("</tr>")
+
+      print("<tr><th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
+      local s = flowinfo2hostname(flow,"srv")
+      if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
-      else
-	 s = flowinfo2hostname(flow,"srv")
       end
       print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\">")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
-
       print("</td></tr>\n")
-      print("<tr><th>"..i18n("flow_details.url").."</th><td>")
 
-      if(flow["protos.http.last_url"] ~= "") then
-	 print("<A HREF=\"http://"..s)
-	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"]).."</A> <i class=\"fa fa-external-link\">")
-      else
-	 print(shortenString(flow["protos.http.last_url"]))
-      end
-
+      print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
+      print("<A HREF=\"http://"..s)
+      if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
+      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '').."</A> <i class=\"fa fa-external-link\">")
       print("</td></tr>\n")
-      print("<tr><th>"..i18n("flow_details.response_code").."</th><td>"..flow["protos.http.last_return_code"].."</td></tr>\n")
+
+      print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2>"..(flow["protos.http.last_return_code"] or '').."</td></tr>\n")
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
 	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")

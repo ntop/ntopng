@@ -1587,7 +1587,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_str_table_entry(vm, "info", getFlowInfo() ? getFlowInfo() : (char*)"");
     }
 
-    if(isHTTP() && protos.http.last_method && protos.http.last_url) {
+    if(isHTTP() && protos.http.last_url) {
       lua_push_str_table_entry(vm, "protos.http.last_method", protos.http.last_method);
       lua_push_int_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
     }
@@ -1617,7 +1617,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 #endif
 
     if(!mask_flow) {
-      if(isHTTP() && protos.http.last_method && protos.http.last_url)
+      if(isHTTP() && protos.http.last_url)
 	lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
 
       if(host_server_name && (!mask_flow))
@@ -2268,7 +2268,7 @@ char* Flow::getFlowInfo() {
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
 
-    else if(isHTTP() && protos.http.last_method && protos.http.last_url)
+    else if(isHTTP() && protos.http.last_url)
       return protos.http.last_url;
 
     else if(isSSL() && protos.ssl.certificate)
