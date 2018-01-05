@@ -28,7 +28,9 @@ elseif(_GET["ndpistats_mode"] == "count") then
    stats = interface.getnDPIFlowsCount()
 else
    stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
-   tot = stats["bytes.sent"] + stats["bytes.rcvd"]
+   if(stats ~= nil) then
+      tot = stats["bytes.sent"] + stats["bytes.rcvd"]
+   end
 end
 
 print "[\n"

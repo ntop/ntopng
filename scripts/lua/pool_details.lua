@@ -15,6 +15,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
+local template = require "template_utils"
 
 local pool_id     = _GET["pool"]
 local page        = _GET["page"]
@@ -27,6 +28,10 @@ interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
 local pool_name = host_pools_utils.getPoolName(ifId, pool_id)
+
+if _POST["reset_quotas"] ~= nil then
+  host_pools_utils.resetPoolsQuotas(ifId, tonumber(pool_id))
+end
 
 sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -62,7 +67,7 @@ else
   print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\"><i class='fa fa-area-chart fa-lg'></i>\n")
 end
 
-if ntop.isEnterprise() and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
+if (ntop.isEnterprise() or ntop.isnEdge()) and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
     print("<li class=\"active\"><a href=\"#\">"..i18n("quotas").."</i>\n")
   else
@@ -82,8 +87,30 @@ print [[
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
-if ntop.isEnterprise() and pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
+if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
+  print(
+    template.gen("modal_confirm_dialog.html", {
+      dialog={
+        id      = "reset_quotas_dialog",
+        action  = "$('#reset_quotas_form').submit()",
+        title   = i18n("host_pools.reset_quotas"),
+        message = i18n("host_pools.confirm_reset_pool_quotas", {pool=pool_name}),
+        confirm = i18n("host_pools.reset_quotas"),
+      }
+    })
+  )
+
+  print[[<form id="reset_quotas_form" method="POST">
+    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden"/>
+    <input name="reset_quotas" value="" type="hidden" />
+  </form>]]
+
   host_pools_utils.printQuotas(pool_id, nil, page_params)
+
+  print[[
+  <button class="btn btn-default" data-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>
+  <br/><br/>]]
+  
 elseif page == "historical" then
   local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)
 

@@ -1059,6 +1059,7 @@ local known_parameters = {
    ["policy_filter"]           =  validateEmptyOr(validateNumber),
    ["hostname"]                =  validateSingleWord,
    ["delete"]                  =  validateEmpty,
+   ["reset_quotas"]            =  validateEmpty,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

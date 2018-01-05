@@ -207,6 +207,9 @@ class Flow : public GenericHashEntry {
   inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
   bool updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
+  void update_pools_stats(const struct timeval *tv,
+			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
+			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
 #endif
   void dumpFlowAlert();
 
@@ -354,11 +357,6 @@ class Flow : public GenericHashEntry {
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
   void update_hosts_stats(struct timeval *tv);
-#ifdef NTOPNG_PRO
-  void update_pools_stats(const struct timeval *tv,
-			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
-			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
-#endif
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,

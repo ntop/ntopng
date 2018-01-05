@@ -903,11 +903,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 #endif
 	
-	/* Periodic pools stats updates only for non-bridge interfaces. For bridged interfaces,
-	   pools statistics are updated inline after a positive pass verdict. See NetworkInterface.cpp
-	*/
-	if(iface && (!iface->is_bridge_interface() || (iface->getIfType() == interface_type_NETFILTER)))
-	  update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       }
 #endif
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false))) {

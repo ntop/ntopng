@@ -2610,3 +2610,17 @@ bool Utils::str2DetailsLevel(const char *details, DetailsLevel *out) {
 
   return rv;
 }
+
+/* ****************************************************** */
+
+u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
+  now -= (now % rounder);
+  now += rounder; /* Aligned to midnight UTC */
+
+  if(offset_from_utc > 0)
+    now += 86400 - offset_from_utc;
+  else if(offset_from_utc < 0)
+    now += -offset_from_utc;
+
+  return(now);
+}

@@ -50,8 +50,8 @@ local function get_pool_details_key(ifid, pool_id)
   return "ntopng.prefs." .. ifid .. ".host_pools.details." .. pool_id
 end
 
-local function get_user_pool_dump_key(ifid)
-  return "ntopng.prefs." .. ifid .. ".host_pools.dump"
+local function get_pools_serialized_key(ifid)
+  return "ntopng.serialized_host_pools.ifid_" .. ifid
 end
 
 -- It is safe to call this multiple times
@@ -115,12 +115,12 @@ function host_pools_utils.deletePool(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
-  local dump_key = get_user_pool_dump_key(ifid)
+  local serialized_key = get_pools_serialized_key(ifid)
 
   ntop.delMembersCache(ids_key, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
-  ntop.delHashCache(dump_key, pool_id)
+  ntop.delHashCache(serialized_key, pool_id)
   ntop.rmdir(rrd_base)
 end
 
@@ -509,8 +509,12 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
   end
 
   if empty then
+    local url = ternary(not ntop.isnEdge(),
+          "/lua/if_stats.lua?page=filtering&pool="..pool_id,
+          "/lua/pro/nedge/admin/nf_edit_user.lua?page=protocols&username=" .. host_pools_utils.poolIdToUsername(pool_id))
+
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("shaping.no_quota_data")..
-      ". Create new quotas <a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?page=filtering&pool="..pool_id.."\">here</a>.</div>")
+      ". " .. i18n("host_pools.create_new_quotas_here", {url=ntop.getHttpPrefix()..url}) .. "</div>")
   else
     print[[
     <table class="table table-bordered table-striped">
@@ -568,6 +572,25 @@ function host_pools_utils.getFirstAvailablePoolId(ifid)
   end
 
   return tostring(host_pool_id)
+end
+
+function host_pools_utils.resetPoolsQuotas(ifid, pool_filter)
+  local serialized_key = get_pools_serialized_key(ifid)
+  local keys_to_del
+
+  if pool_filter ~= nil then
+    keys_to_del = {[pool_filter]=1, }
+  else
+    keys_to_del = ntop.getHashKeysCache(serialized_key)
+  end
+
+  -- Delete the redis serialization
+  for key in pairs(keys_to_del) do
+    ntop.delHashCache(serialized_key, tostring(key))
+  end
+
+  -- Delete the in-memory stats
+  interface.resetPoolsQuotas(pool_filter)
 end
 
 return host_pools_utils

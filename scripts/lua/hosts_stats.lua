@@ -155,7 +155,8 @@ if(_GET["pool"] ~= nil) then
    local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
    local pool_edit = ""
 
-   if _GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID then
+   -- TODO enable on nEdge when devices list will be implemented
+   if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not ntop.isnEdge()) then
       local pool_link
 
       if ntop.isnEdge() then

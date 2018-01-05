@@ -37,9 +37,6 @@ class ThreadedActivity {
   bool *interfaceTasksRunning;
   Mutex m;
   ThreadPool *pool;
-  
-  u_int32_t roundTime(u_int32_t now, u_int32_t rounder,
-		      int32_t offset_from_utc);
 
   void periodicActivityBody();
   void aperiodicActivityBody();

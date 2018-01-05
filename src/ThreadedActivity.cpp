@@ -190,24 +190,10 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 
 /* ******************************************* */
 
-u_int32_t ThreadedActivity::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
-  now -= (now % rounder);
-  now += rounder; /* Aligned to midnight UTC */
-
-  if(offset_from_utc > 0)
-    now += 86400 - offset_from_utc;
-  else if(offset_from_utc < 0)
-    now += -offset_from_utc;
-
-  return(now);
-}
-
-/* ******************************************* */
-
 void ThreadedActivity::periodicActivityBody() {
   u_int32_t next_run = (u_int32_t)time(NULL);
 
-  next_run = roundTime(next_run, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
+  next_run = Utils::roundTime(next_run, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
 
   if(align_to_localtime)
     next_run -= periodicity;
@@ -218,7 +204,7 @@ void ThreadedActivity::periodicActivityBody() {
     if(now >= next_run) {
       scheduleJob(pool);
 
-      next_run = roundTime(now, periodicity,
+      next_run = Utils::roundTime(now, periodicity,
 			   align_to_localtime ? ntop->get_time_offset() : 0);
     }
 

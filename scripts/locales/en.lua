@@ -556,6 +556,10 @@ local  en = {
       cannot_delete_cp = "A pool cannot be deleted if there is any Captive Portal user associated",
       per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
       per_member_shapers = "When the per-member shapers option is set, each host will its own shapers. When unset, all the hosts belonging to the same pool will share the same shapers",
+      reset_quotas = "Reset Quotas",
+      confirm_reset_quotas = "Do you really want to reset all the quotas counters?",
+      confirm_reset_pool_quotas = "Do you really want to reset the \"%{pool}\" pool couters?",
+      create_new_quotas_here = "You can create new quotas <a href=\"%{url}\">here</a>.",
    },
 
    discover = {
@@ -2415,7 +2419,8 @@ local  en = {
       no_static_leases = "No Static Leases",
       delete_static_lease = "Delete Static Lease",
       confirm_delete_static_lease = "Do you really want to delete \"%{hostname}\" static lease?",
-      dhcp_server_not_enabled = "The DHCP server is not enabled. You can enabled it <a href=\"%{url}\">here</a>."
+      dhcp_server_not_enabled = "The DHCP server is not enabled. You can enabled it <a href=\"%{url}\">here</a>.",
+      view_quotas = "View Quotas",
    },
 }
 

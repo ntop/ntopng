@@ -314,10 +314,10 @@ void HostPools::dumpToRedis() {
 
   if((!redis) || (! stats) || (! iface)) return;
 
-  snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
+  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
 
   for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
-    if(stats[i]) {
+    if(stats[i] && !stats[i]->needsReset()) {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
 
@@ -327,6 +327,10 @@ void HostPools::dumpToRedis() {
       }
     }
   }
+
+  // Save the deadline time for quota expiration, assuming quota is reset at midnight
+  snprintf(buf, sizeof(buf), "%lu", Utils::roundTime(time(0), 86400, ntop->get_time_offset()));
+  redis->hashSet(key, (char *)"deadline", buf);
 }
 
 /* *************************************** */
@@ -336,10 +340,18 @@ void HostPools::loadFromRedis() {
   json_object *obj;
   enum json_tokener_error jerr = json_tokener_success;
   Redis *redis = ntop->getRedis();
+  time_t deadline = 0;
 
-  snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
+  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
 
   if((!redis) || (!stats) || (!iface)) return;
+
+  if(redis->hashGet(key, (char *)"deadline", buf, sizeof(buf)) == 0) {
+    sscanf(buf, "%lu", &deadline);
+
+    if(time(0) > deadline)
+      return; /* Expired */
+  }
 
   if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
@@ -423,15 +435,36 @@ void HostPools::luaStats(lua_State *vm) {
 
 /* *************************************** */
 
-void HostPools::resetPoolsStats() {
-    HostPoolStats *hps;
+void HostPools::resetPoolsStats(u_int16_t pool_filter) {
+  HostPoolStats *hps;
+
+  if(stats) {
+    if(pool_filter != (u_int16_t)-1) {
+      if((hps = getPoolStats(pool_filter)))
+	hps->resetStats();
+    } else {
+      for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+	if((hps = stats[i])) {
+	  /* Must use the assigned hps as stats can be swapped
+	     and accesses such as stats[i] could yield a NULL value */
+	  hps->resetStats();
+	}
+      }
+    }
+  }
+}
+
+/* *************************************** */
+
+void HostPools::checkPoolsStatsReset() {
+  HostPoolStats *hps;
 
   if(stats) {
     for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if((hps = stats[i])) {
 	/* Must use the assigned hps as stats can be swapped
 	   and accesses such as stats[i] could yield a NULL value */
-	hps->resetStats();
+	hps->checkStatsReset();
       }
     }
   }

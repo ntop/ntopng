@@ -1845,22 +1845,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     flow->get_detected_protocol_name(buf, sizeof(buf)),
 				     shaper_ingress, shaper_egress);
 	pass_verdict = passShaperPacket(shaper_ingress, shaper_egress, (struct pcap_pkthdr*)h);
-
-/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
-#ifndef HAVE_OLD_NEDGE
-	if(pass_verdict) {
-	  /* Update pools stats inline only for bridge interfaces! */
-	  if(src2dst_direction)
-	    flow->update_pools_stats(when,
-				     1, rawsize, /* sent-only */
-				     0, 0);
-	  else
-	    flow->update_pools_stats(when,
-				     0, 0,
-				     1, rawsize /* received-only */);
-	}
-#endif
-
       } else {
 	flow->incFlowDroppedCounters();
       }
@@ -2526,6 +2510,10 @@ void NetworkInterface::periodicStatsUpdate() {
 
   gettimeofday(&tv, NULL);
 
+#ifdef NTOPNG_PRO
+  if(getHostPools()) getHostPools()->checkPoolsStatsReset();
+#endif
+
   flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
   topItemsCommit(&tv);
 
@@ -2735,31 +2723,37 @@ void NetworkInterface::updateFlowsL7Policy() {
 
 /* **************************************************** */
 
+struct resetPoolsStatsData {
+  struct tm *now;
+  u_int16_t pool_filter;
+};
+
 static bool flow_recheck_quota_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
   Flow *f = (Flow*)flow;
-  struct tm *now = (struct tm *) user_data;
+  struct tm *now = ((struct resetPoolsStatsData*)user_data)->now;
 
   *matched = true;
   f->recheckQuota(now);
-  
+
   return(false); /* false = keep on walking */
 }
-
-/* **************************************************** */
 
 static bool host_reset_quotas(GenericHashEntry *host, void *user_data, bool *matched) {
   Host *h = (Host*)host;
+  u_int16_t pool_filter = ((struct resetPoolsStatsData*)user_data)->pool_filter;
 
-  *matched = true;
-  h->resetQuotaStats();
-  h->resetBlockedTrafficStatus();
-  
+  if((pool_filter == (u_int16_t)-1) || (h->get_host_pool() == pool_filter)) {
+    *matched = true;
+    h->resetQuotaStats();
+    h->resetBlockedTrafficStatus();
+  }
+
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-void NetworkInterface::resetPoolsStats() {
+void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
   struct tm now;
   time_t t_now = time(NULL);
   localtime_r(&t_now, &now);
@@ -2767,13 +2761,17 @@ void NetworkInterface::resetPoolsStats() {
   if(host_pools) {
     u_int32_t begin_slot = 0;
     bool walk_all = true;
+    struct resetPoolsStatsData data;
+
+    data.pool_filter = pool_filter;
+    data.now = &now;
 
     disablePurge(true);
 
-    host_pools->resetPoolsStats();
-    walker(&begin_slot, walk_all,  walker_hosts, host_reset_quotas, NULL);
+    host_pools->resetPoolsStats(pool_filter);
+    walker(&begin_slot, walk_all,  walker_hosts, host_reset_quotas, &data);
     begin_slot = 0;
-    walker(&begin_slot, walk_all,  walker_flows, flow_recheck_quota_walker, &now);
+    walker(&begin_slot, walk_all,  walker_flows, flow_recheck_quota_walker, &data);
 
     enablePurge(true);
   }

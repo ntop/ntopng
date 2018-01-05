@@ -125,6 +125,9 @@ class HostPools {
   void updateStats(struct timeval *tv);
   void luaStats(lua_State *vm);
 
+  /* To be called on the same thread as incPoolStats */
+  void checkPoolsStatsReset();
+
   inline bool getProtoStats(u_int16_t host_pool_id, u_int16_t ndpi_proto, u_int64_t *bytes, u_int32_t *duration) {
     HostPoolStats *hps;
     if (!(hps = getPoolStats(host_pool_id))) return false;
@@ -149,7 +152,7 @@ class HostPools {
     return true;
   }
 
-  void resetPoolsStats();
+  void resetPoolsStats(u_int16_t pool_filter);
 
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_quotas_per_pool_member[pool_id] : false);
