@@ -73,25 +73,6 @@ function is_network_mask(what, optional_mask) {
    return null;
 }
 
-function makeUniqueValidator(items_function) {
-   return function(field) {
-      var cmp_name = field.val();
-      var count = 0;
-
-      // this will be checked separately, with 'required' argument
-      if(! cmp_name)
-         return true;
-
-      items_function(field).each(function() {
-         var name = $(this).val();
-         if (name == cmp_name)
-            count = count + 1;
-      });
-
-      return count == 1;
-   }
-}
-
 function fbits(bits) {
     var sizes = ['bps', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits <= 0) return '0';
@@ -507,13 +488,6 @@ if (typeof(Math.sign) === "undefined") {
   Math.sign = function(x) {
     return (x >= 0) ? 1 : -1;
   };
-}
-
-function memberValueValidator(input) {
-  var member = input.val();
-  if (member === "") return true;
-
-  return is_mac_address(member) || is_network_mask(member, true);
 }
 
 /* Used while searching hosts a and macs with typeahead */

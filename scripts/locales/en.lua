@@ -560,6 +560,7 @@ local  en = {
       confirm_reset_quotas = "Do you really want to reset all the quotas counters?",
       confirm_reset_pool_quotas = "Do you really want to reset the \"%{pool}\" pool couters?",
       create_new_quotas_here = "You can create new quotas <a href=\"%{url}\">here</a>.",
+      pool_name_pattern_error = "Please enter only lowercase characters, numbers or underscore",
    },
 
    discover = {
@@ -2216,6 +2217,8 @@ local  en = {
       enter_credentials = "Please enter your credentials for accessing this network.",
       internet_redirecting = "We're redirecting you to the Internet...",
       auth_success = "Authentication Successful",
+      passwords_dont_match = "Passwords don't match.",
+      password_pattern_error = "Please enter at least 5 valid characters.",
    },
 
    policy_presets = {
