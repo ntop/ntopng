@@ -386,6 +386,23 @@ local function validateUserLanguage(code)
    return validateChoice(codes, code)
 end
 
+local function validateTimeZoneName(tz)
+   local tz_utils = require("tz_utils")
+
+   local timezones = tz_utils.ListTimeZones()
+   if timezones then
+      for _, t in ipairs(timezones) do
+	 if tz == t then
+	    return true
+	 end
+      end
+      return false
+   end
+
+   -- never reached as timezones are listed in a text file
+   return false
+end
+
 -- #################################################################
 
 local function validateHost(p)
@@ -1044,6 +1061,7 @@ local known_parameters = {
    ["policy_name"]             =  validateRoutingPolicyName,
    ["delete_policy"]           =  validateRoutingPolicyName,
    ["policy_id"]               =  validateNumber,
+   ["timezone_name"]           =  validateTimeZoneName,
    ["global_dns_preset"]       =  validateSingleWord,
    ["child_dns_preset"]        =  validateSingleWord,
    ["global_primary_dns"]      =  validateIPV4,
@@ -1053,6 +1071,7 @@ local known_parameters = {
    ["lan_recovery_ip"]         =  validateIPV4,
    ["lan_recovery_netmask"]    =  validateIPV4,
    ["dhcp_server_enabled"]     =  validateBool,
+   ["ntp_sync_enabled"]        =  validateBool,
    ["dhcp_first_ip"]           =  validateIPV4,
    ["dhcp_last_ip"]            =  validateIPV4,
    ["factory_reset"]           =  validateEmpty,
