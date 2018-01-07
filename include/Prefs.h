@@ -57,7 +57,6 @@ class Prefs {
   u_int32_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t housekeeping_frequency;
-  u_int8_t policy_change_marker;
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
 	  enable_active_local_hosts_cache;
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,

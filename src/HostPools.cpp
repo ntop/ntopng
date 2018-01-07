@@ -329,7 +329,8 @@ void HostPools::dumpToRedis() {
   }
 
   // Save the deadline time for quota expiration, assuming quota is reset at midnight
-  snprintf(buf, sizeof(buf), "%lu", Utils::roundTime(time(0), 86400, ntop->get_time_offset()));
+  snprintf(buf, sizeof(buf), "%u",
+	   Utils::roundTime(time(0), 86400, ntop->get_time_offset()));
   redis->hashSet(key, (char *)"deadline", buf);
 }
 

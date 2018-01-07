@@ -754,6 +754,12 @@ end
 -- #############################################################################
 
 function discover.discover2table(interface_name, recache)
+   local snmp_community = ntop.getPref("ntopng.prefs.default_snmp_community")
+
+   if isEmptyString(snmp_community) then
+      snmp_community = "public"
+   end
+   
    interface.select(interface_name)
 
    if recache ~= true then
@@ -792,14 +798,14 @@ function discover.discover2table(interface_name, recache)
 
 	 interface.mdnsQueueNameToResolve(ip)
 
-	 interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.5.0", 0)
+	 interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.5.0", 0)
 
 	 if(string.contains(manufacturer, "HP")
 	       or string.contains(manufacturer, "Hewlett Packard")
 	    or string.contains(manufacturer, "Hon Hai")	    
 	 ) then
 	    -- Query printer model
-	    interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.25.3.2.1.3.1", 0)
+	    interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.25.3.2.1.3.1", 0)
 	 end
       else
 	 local ip_addr = mac
@@ -840,7 +846,7 @@ function discover.discover2table(interface_name, recache)
    -- Query sysDescr for the hosts that have replied
    for ip,rsp in pairsByValues(snmp, asc) do  
      -- io.write("Requesting sysDescr for "..ip.."\n")
-     interface.snmpGetBatch(ip, "public", "1.3.6.1.2.1.1.1.0", 0)
+     interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.1.0", 0)
    end
 
    if(discover.debug) then io.write("Collecting MDNS OSX responses\n") end
