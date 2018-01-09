@@ -1586,6 +1586,21 @@ static int ntop_gettimemsec(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/**
+ * @brief Refreshes the timezone after a change
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+*/
+
+static int ntop_tzset(lua_State* vm) {
+#ifndef WIN32
+  tzset();
+#endif
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 /**
@@ -6921,6 +6936,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Time */
   { "gettimemsec",      ntop_gettimemsec },
+  { "tzset",            ntop_tzset },
 
   /* Trace */
   { "verboseTrace",     ntop_verbose_trace },
