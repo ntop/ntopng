@@ -622,8 +622,8 @@ function printPageSection(section_name)
    print('<tr><th colspan=2 class="info">'..section_name..'</th></tr>')
 end
 
-function printSaveButton()
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+function printSaveButton(some_content)
+  print('<tr><td colspan=2 style="text-align:right;">' .. (some_content or "") .. '<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></td></tr>')
 end
 
 function prefsSkipRedis(skip)

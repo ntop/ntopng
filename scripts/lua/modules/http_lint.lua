@@ -669,10 +669,6 @@ local function validateGatewayName(m)
    return validateSingleWord(m)
 end
 
-local function validateGatewayMode(m)
-   return validateChoice({"interface", "ip_address"}, m)
-end
-
 local function validateNetworkInterface(m)
    return validateSingleWord(m)
 end
@@ -1056,9 +1052,11 @@ local known_parameters = {
    ["lan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["gateway_name"]            =  validateGatewayName,
+   ["old_gateway_name"]        =  validateGatewayName,
    ["delete_gateway"]          =  validateGatewayName,
    ["ping_address"]            =  validateIPV4,
    ["policy_name"]             =  validateRoutingPolicyName,
+   ["old_policy_name"]         =  validateRoutingPolicyName,
    ["delete_policy"]           =  validateRoutingPolicyName,
    ["policy_id"]               =  validateNumber,
    ["timezone_name"]           =  validateTimeZoneName,
@@ -1108,9 +1106,10 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["proto_"]                  =  {validateProtocolId, validateCategory},
 
 -- Gateways
-   ["gateway_mode_"]           =  {validateGatewayName, validateGatewayMode},
+   ["gateway_on_"]             =  {validateGatewayName, validateBool},
    ["gateway_iface_"]          =  {validateGatewayName, validateNetworkInterface},
    ["gateway_address_"]        =  {validateGatewayName, validateIPV4},
+   ["gateway_ping_"]           =  {validateGatewayName, validateIPV4},
    ["gw_id_"]                  =  {validateNumber, validateGatewayName},
    ["pol_id_"]                 =  {validateNumber, validateRoutingPolicyName},
    ["routing_"]                =  {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
