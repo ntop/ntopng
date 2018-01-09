@@ -1730,10 +1730,8 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
     return(ifSpeed);
   }
 
-  // Set the speed to edata.speed
-  ethtool_cmd_speed(&edata);
-
-  ifSpeed = edata.speed;
+  if((int32_t)ethtool_cmd_speed(&edata) != SPEED_UNKNOWN)
+    ifSpeed = ethtool_cmd_speed(&edata);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %u",
 			       ifname, edata.speed);

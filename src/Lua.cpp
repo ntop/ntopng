@@ -272,6 +272,28 @@ static int ntop_select_interface(lua_State* vm) {
 /* ****************************************** */
 
 /**
+ * @brief Find the maximum speed of a given interface
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_get_max_if_speed(lua_State* vm) {
+  char *ifname = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) {
+    ifname = (char*)lua_tostring(vm, 1);
+    lua_pushnumber(vm, Utils::getMaxIfSpeed(ifname));
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
  * @brief Get the nDPI statistics of interface.
  * @details Get the ntop interface global variable of lua, get nDpistats of interface and push it into lua stack.
  *
@@ -6693,6 +6715,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
   { "select",                   ntop_select_interface },
+  { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "getStats",                 ntop_get_interface_stats },
   { "resetCounters",            ntop_interface_reset_counters },
 
