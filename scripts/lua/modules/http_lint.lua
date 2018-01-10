@@ -660,10 +660,6 @@ local function validateTopModule(m)
    return validateSingleWord(m)
 end
 
-local function validateDnsEnforcement(m)
-  return validateChoice({"none", "child_safe", "global"}, m)
-end
-
 local function validateGatewayName(m)
    -- NOTE: no space allowed right now
    return validateSingleWord(m)
@@ -1046,9 +1042,8 @@ local known_parameters = {
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
    ["delete_all_policies"]     =  validateEmpty,                 -- traffic policies
    ["safe_search"]             =  validateOnOff,                 -- users
-   ["forge_global_dns"]        =  validateOnOff,                 -- users
+   ["forge_global_dns"]        =  validateBool,                  -- users
    ["default_policy"]          =  validateNumber,                -- users
-   ["dns_enforcement"]         =  validateDnsEnforcement,
    ["lan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"]          =  validateListOfTypeInline(validateNetworkInterface),
    ["gateway_name"]            =  validateGatewayName,

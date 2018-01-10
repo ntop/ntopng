@@ -2274,7 +2274,6 @@ local  en = {
     devices = "Devices",
     total_daily_traffic_quota = "Total Daily Traffic Quota",
     total_daily_time_quota = "Total Daily Time Quota",
-    dns_enforcement = "DNS Enforcement",
     global = "Global",
     shapers = {
        pass = "Pass",
@@ -2374,7 +2373,6 @@ local  en = {
       global_dns = "Global DNS",
       dns_server_preset = "DNS Server Preset",
       dns_server_preset_descr = "You can select a featured DNS servers from the list or specify your custom DNS servers.",
-      global_dns_description = "The DNS servers that your devices will use by default. You can disable DNS forging (thus allowing devices to specify their own DNS servers) from the users configuration page.",
       safe_search_dns_description = "The DNS server to be used by Safe Search users devices.",
       custom = "Custom",
       the_primary_dns_server = "The Primary DNS server",
@@ -2436,6 +2434,10 @@ local  en = {
       cannot_rename_policy = "Cannot rename policy.",
       you_can_use_gateways_in_policies = "You can specify gateways priorities in <a href=\"%{url}\">Routing Policies</a>.",
       you_can_assign_routing_policy = "You can assign routing policies to <a href=\"%{url}\">Users</a>.",
+      enabled_gateway = "Enable the gateway. You can disable a gateway to stop sending traffic through it.",
+      safe_search_description = "Use the Safe Search DNS to block inappropriate content.",
+      enforce_global_dns = "Enforce Global DNS",
+      enforce_global_dns_description = "Enable DNS forging to force the devices to use the specified global DNS.",
    },
 }
 

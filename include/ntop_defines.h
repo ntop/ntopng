@@ -431,6 +431,7 @@
 #define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
 #define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
 #define CONST_PREFS_REDIRECTION_URL         "ntopng.prefs.redirection_url"
+#define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED "ntopng.prefs.global_dns_forging"
 #define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY               "ntopng.prefs.%u.l7_policies.%s"

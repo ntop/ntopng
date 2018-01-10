@@ -66,7 +66,7 @@ class Prefs {
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
-  bool routing_mode_enabled;
+  bool routing_mode_enabled, global_dns_forging_enabled;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   char *redirection_url, *redirection_url_shadow;
@@ -305,6 +305,7 @@ class Prefs {
   inline HostMask getHostMask()                  { return(hostMask);                                    };
   inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
   inline u_int16_t is_routing_mode()             { return(routing_mode_enabled);                        };
+  inline bool isGlobalDnsForgingEnabled()        { return(global_dns_forging_enabled);                  };
 
   void validate();
 };

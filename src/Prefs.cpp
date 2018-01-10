@@ -81,6 +81,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   routing_mode_enabled = false;
+  global_dns_forging_enabled = true;
 #if defined(NTOPNG_PRO) && defined(HAVE_NDB)
   dump_flows_on_ndb = false;
 #endif
@@ -544,6 +545,7 @@ void Prefs::reloadPrefsFromRedis() {
   if(redirection_url_shadow) free(redirection_url_shadow);
   redirection_url_shadow = redirection_url;
   getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
+  global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, true);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
