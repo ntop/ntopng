@@ -485,17 +485,19 @@ print("</li>")
 
 print("</ul>\n<h3 class=\"muted\"><A href=\"http://www.ntop.org\">")
 
-if(false) then
-if(ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.jpg")) then
-   logo_path = ntop.getHttpPrefix().."/img/custom_logo.jpg"
+if(ntop.isnEdge()) then
+   if(ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.svg")) then
+      logo_path = ntop.getHttpPrefix().."/img/custom_logo.svg"
+   elseif(ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png")) then
+      logo_path = ntop.getHttpPrefix().."/img/custom_logo.png"
+   else
+      logo_path = ntop.getHttpPrefix().."/img/logo.svg"
+   end
+
+   print("<img class=\"logo-brand\" src=\""..logo_path.."\">")
 else
-   logo_path = ntop.getHttpPrefix().."/img/logo.png"
+   addLogoSvg()
 end
-
-print("<img src=\""..logo_path.."\">")
-end
-
-addLogoSvg()
 
 print("</A></h3>\n</div>\n")
 

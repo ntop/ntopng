@@ -40,6 +40,11 @@ body {
   padding-bottom: 20px;
 }
 
+.logo-brand {
+  width: 103px;
+  height: 50px;
+}
+
 /* Custom container */
 .container-narrow {
   margin-left: 20px;
