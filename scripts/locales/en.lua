@@ -2438,6 +2438,10 @@ local  en = {
       safe_search_description = "Use the Safe Search DNS to block inappropriate content.",
       enforce_global_dns = "Enforce Global DNS",
       enforce_global_dns_description = "Enable DNS forging to force the devices to use the specified global DNS.",
+      shapers = "Shapers",
+      adaptive_rate = "Adaptive Rate",
+      adaptive_rate_description = "When the adaptive rate is enabled, the available bandwidth will be shared across the active devices to maximize bandwidth utilization. You can disabled adaptive rate to shape a-priori regardless of the available bandwidth.",
+      you_can_assign_shapers_to_users_protocols = "You can assign shapers to <a href=\"%{url}\">Users</a> specific protocols or set them globally as a <a href=\"%{url2}\">Fallback Policy</a>.",
    },
 }
 

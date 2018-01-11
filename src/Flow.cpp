@@ -105,6 +105,8 @@ Flow::Flow(NetworkInterface *_iface,
 #ifdef NTOPNG_PRO
 #ifndef HAVE_OLD_NEDGE
   trafficProfile = NULL;
+#else
+  cli2srv_in = cli2srv_out = srv2cli_in = srv2cli_out = DEFAULT_SHAPER_ID;
 #endif
   memset(&flowShaperIds, 0, sizeof(flowShaperIds));
 #endif
@@ -772,6 +774,17 @@ bool Flow::dumpFlow(bool idle_flow) {
   }
 
   return(rc);
+}
+
+/* *************************************** */
+
+void Flow::setDropVerdict() {
+#ifdef HAVE_NEDGE
+  if((iface->getIfType() == interface_type_NETFILTER) && (passVerdict == true))
+   ((NetfilterInterface *) iface)->setPolicyChanged();
+#endif
+
+  passVerdict = false;
 }
 
 /* *************************************** */
@@ -2717,9 +2730,19 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
       *ingress_shaper = srv_host->get_ingress_shaper(ndpiDetectedProtocol),
 	*egress_shaper = cli_host->get_egress_shaper(ndpiDetectedProtocol);
 
+#ifdef HAVE_NEDGE
+      if(*ingress_shaper) srv2cli_in = (*ingress_shaper)->get_shaper_id();
+      if(*egress_shaper) cli2srv_out = (*egress_shaper)->get_shaper_id();
+#endif
+
     } else {
       *ingress_shaper = cli_host->get_ingress_shaper(ndpiDetectedProtocol),
 	*egress_shaper = srv_host->get_egress_shaper(ndpiDetectedProtocol);
+
+#ifdef HAVE_NEDGE
+      if(*ingress_shaper) cli2srv_in = (*ingress_shaper)->get_shaper_id();
+      if(*egress_shaper) srv2cli_out = (*egress_shaper)->get_shaper_id();
+#endif
     }
 
     if((*ingress_shaper && (*ingress_shaper)->shaping_enabled() && (*ingress_shaper)->get_max_rate_kbit_sec() == 0)
@@ -2739,6 +2762,11 @@ void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
 #ifdef HAVE_NEDGE
   bool old_verdict = passVerdict;
+
+  u_int16_t old_cli2srv_in = cli2srv_in,
+    old_cli2srv_out = cli2srv_out,
+    old_srv2cli_in = srv2cli_in,
+    old_srv2cli_out = srv2cli_out;
 #endif
 
   /* Check if this application protocol is allowd for the specified device type */
@@ -2764,7 +2792,12 @@ void Flow::updateFlowShapers(bool first_update) {
   passVerdict = (cli2srv_verdict && srv2cli_verdict);
 
 #if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
-  if((!first_update) && (iface->getIfType() == interface_type_NETFILTER) && (old_verdict == true) && (passVerdict == false))
+  if((!first_update) && (iface->getIfType() == interface_type_NETFILTER) &&
+           (((old_verdict != passVerdict)) ||
+            (old_cli2srv_in != cli2srv_in) ||
+            (old_cli2srv_out != cli2srv_out) ||
+            (old_srv2cli_in != srv2cli_in) ||
+            (old_srv2cli_out != srv2cli_out)))
    ((NetfilterInterface *) iface)->setPolicyChanged();
 #endif
   

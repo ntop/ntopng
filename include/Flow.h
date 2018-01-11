@@ -80,6 +80,8 @@ class Flow : public GenericHashEntry {
   u_int8_t routing_table_id;
 #ifndef HAVE_OLD_NEDGE
   FlowProfile *trafficProfile;
+#else
+  u_int16_t cli2srv_in, cli2srv_out, srv2cli_in, srv2cli_out;
 #endif
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
@@ -257,7 +259,7 @@ class Flow : public GenericHashEntry {
   bool checkPassVerdict(const struct tm *now);
   bool isPassVerdict();
 #endif
-  inline void setDropVerdict()           { passVerdict = false; };
+  void setDropVerdict();
   void incFlowDroppedCounters();
 
   u_int32_t getPid(bool client);

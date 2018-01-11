@@ -1074,6 +1074,7 @@ local known_parameters = {
    ["hostname"]                =  validateSingleWord,
    ["delete"]                  =  validateEmpty,
    ["reset_quotas"]            =  validateEmpty,
+   ["adaptive_rate"]           =  validateBool,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

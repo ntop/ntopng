@@ -3399,6 +3399,16 @@ static int ntop_get_policy_change_marker(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+static int ntop_update_flows_shapers(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface)
+    ntop_interface->updateFlowsL7Policy();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
 #endif
 
 /* ****************************************** */
@@ -6833,7 +6843,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   { "setLanIpAddress",                 ntop_set_lan_ip_address },
   { "getPolicyChangeMarker",           ntop_get_policy_change_marker },
-
+  { "updateFlowsShapers",              ntop_update_flows_shapers },
 #endif
 
   /* Network Discovery */

@@ -6398,7 +6398,7 @@ bool NetworkInterface::updateFlowStats(u_int8_t protocol,
     bool old_verdict = f->isPassVerdict();
     bool new_verdict = f->checkPassVerdict(&now);
 
-    if((old_verdict == true) && (new_verdict == false))
+    if(old_verdict != new_verdict)
       return true;
 #endif
 #ifdef DEBUG
