@@ -286,3 +286,19 @@ tr.quotas > td {
         -o-transition: opacity 0s linear;
            transition: opacity 0s linear;
  }
+
+.local-ip-selector input {
+  width: 5em;
+  display: inline-block;
+  text-align: right;
+}
+
+.local-ip-selector select {
+  width: 7em;
+  display: inline-block;
+}
+
+.local-ip-selector {
+  min-width: 22em;
+  text-align: right;
+}
