@@ -45,7 +45,6 @@ void MacManufacturers::init() {
   FILE *fd;
   char line[256], *cr;
   int _mac[3];
-  char short_name[9];
   mac_manufacturers_t *s;
 
   if(!(stat(manufacturers_file, &buf) == 0) && (S_ISREG(buf.st_mode)))
@@ -75,7 +74,7 @@ void MacManufacturers::init() {
       }
 
 #ifdef MANUF_DEBUG
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\t%s", mac, manuf);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [short: %s][full: %s]", mac, shortmanuf, manuf);
 #endif
 				   
       if(sscanf(mac, "%02x:%02x:%02x", &_mac[0], &_mac[1], &_mac[2]) == 3) {	
@@ -97,32 +96,18 @@ void MacManufacturers::init() {
 	HASH_FIND(hh, mac_manufacturers, mac, 3, s);
 	if(!s) {
 	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
-	    int i, j;
-	    
 	    memcpy(s->mac_manufacturer, mac, 3);
-	    s->manufacturer_name = (char*)malloc(strlen(manuf)+1);
+
+	    s->manufacturer_name = (char*)calloc(strlen(manuf) + 1, sizeof(char*));
+	    strcpy(s->manufacturer_name, manuf);
+	    Utils::purifyHTTPparam(s->manufacturer_name, false, false);
+
+	    s->short_name = (char*)calloc(strlen(shortmanuf) + 1, sizeof(char*));
+	    strcpy(s->short_name, shortmanuf);
+	    Utils::purifyHTTPparam(s->short_name, false, false);
 
 	    /* TODO: reduce memory usage for recurrent manufacturers */
-	    if(s->manufacturer_name) {
-	      /* 
-		 We need to zap chars like ' and " that
-		 can corrupt html
-	      */
-	      for(i=0, j=0; manuf[i] != '\0'; i++) {
-		switch(manuf[i]) {
-		case '"':
-		case '\'':
-		  break;
-		  
-		default:
-		  s->manufacturer_name[j++] = manuf[i];
-		}
-	      }
 
-	      s->manufacturer_name[j++] = '\0';
-	    }
-	    
-	    s->short_name = strdup(short_name);
 	    HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
 
 #ifdef MANUF_DEBUG
