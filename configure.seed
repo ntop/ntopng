@@ -113,6 +113,7 @@ if test "$MACHINE" = "armv7l"; then
 SERVICE_AFTER="network.target syslog.target redis.service"
 elif test "${with_nedge+set}" = "set"; then
 SERVICE_AFTER="network-online.target syslog.target redis.service"
+SERVICE_REQUIRES="nedge_pinger.service"
 else
 SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluster.service"
 SERVICE_REQUIRES="pf_ring.service cluster.service"
