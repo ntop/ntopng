@@ -2324,8 +2324,8 @@ local  en = {
       router = "Router",
       set_the_device_mode = "Set the device mode.",
       no_gateways_defined = "No gateways defined.",
-      ping_address = "Ping Address",
-      ping_address_description = "The address to ping to verify the gateway status.",
+      ping_address = "Monitor Address",
+      ping_address_description = "The address to monitor to verify the gateway status.",
       add_gateway = "Add Gateway",
       gateway_x = "Gateway %{gw}",
       gateway_name = "Gateway Name",
@@ -2339,9 +2339,11 @@ local  en = {
       network_conf_static = "Static",
       network_conf_dhcp = "DHCP",
       network_conf_iface_title = "%{ifrole} Interface %{ifname}",
-      network_conf_iface_descr = "Specify the interface ip address mode.",
+      network_conf_iface_descr = "Specify the interface IP address mode.",
       network_conf_iface_ip = "IP address of the interface (e.g. 192.168.1.10).",
       network_conf_iface_nmask = "Network mask of the interface (e.g. 255.255.255.0).",
+      lan_ip_addr = "LAN IP Address",
+      lan_ip_addr_descr = "Specify the LAN interface IP address.",
       network_conf_iface_gw = "IP address of the default gateway of the interface (e.g. 192.168.1.1).",
       no_routing_policies_defined = "No routing policies defined",
       add_routing_policy = "Add Routing Policy",
@@ -2442,6 +2444,7 @@ local  en = {
       adaptive_rate = "Adaptive Rate",
       adaptive_rate_description = "When the adaptive rate is enabled, the available bandwidth will be shared across the active devices to maximize bandwidth utilization. You can disabled adaptive rate to shape a-priori regardless of the available bandwidth.",
       you_can_assign_shapers_to_users_protocols = "You can assign shapers to <a href=\"%{url}\">Users</a> specific protocols or set them globally as a <a href=\"%{url2}\">Fallback Policy</a>.",
+      you_can_set_static_dhcp_lease_here = "You can configure static DHCP leases <a href=\"%{url}\">here</a>."
    },
 }
 
