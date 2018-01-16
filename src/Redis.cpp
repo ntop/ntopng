@@ -406,7 +406,7 @@ int Redis::set(char *key, char *value, u_int expire_secs) {
   }
   l->unlock(__FILE__, __LINE__);
 
-  if(reply == 0 && expire_secs == 0)
+  if(reply && expire_secs == 0)
     checkDumpable(key);
 
   return(rc);
