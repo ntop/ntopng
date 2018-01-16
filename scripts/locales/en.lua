@@ -2444,7 +2444,11 @@ local  en = {
       adaptive_rate = "Adaptive Rate",
       adaptive_rate_description = "When the adaptive rate is enabled, the available bandwidth will be shared across the active devices to maximize bandwidth utilization. You can disabled adaptive rate to shape a-priori regardless of the available bandwidth.",
       you_can_assign_shapers_to_users_protocols = "You can assign shapers to <a href=\"%{url}\">Users</a> specific protocols or set them globally as a <a href=\"%{url2}\">Fallback Policy</a>.",
-      you_can_set_static_dhcp_lease_here = "You can configure static DHCP leases <a href=\"%{url}\">here</a>."
+      you_can_set_static_dhcp_lease_here = "You can configure static DHCP leases <a href=\"%{url}\">here</a>.",
+      default_shaper = "Default Shaper",
+      default_shaper_descr = "The Default shaper percentage.",
+      slow_pass_shaper_descr = "The Slow Pass shaper percentage.",
+      slower_pass_shaper_descr = "The Slower Pass shaper percentage.",
    },
 }
 

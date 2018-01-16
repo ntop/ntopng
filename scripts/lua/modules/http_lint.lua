@@ -1075,6 +1075,8 @@ local known_parameters = {
    ["delete"]                  =  validateEmpty,
    ["reset_quotas"]            =  validateEmpty,
    ["adaptive_rate"]           =  validateBool,
+   ["slow_pass_shaper_perc"]   =  validateNumber,
+   ["slower_pass_shaper_perc"] =  validateNumber,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

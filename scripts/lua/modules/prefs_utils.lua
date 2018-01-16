@@ -268,16 +268,17 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         style["width"] = "15em"
       end
       style["margin-left"] = "auto"
+      style["display"] = "inline"
 
       style = table.merge(style, extra.style)
       attributes = table.merge(attributes, extra.attributes)
 
       print[[
           </td>
-          <td style="vertical-align:top; padding-left: 2em;">
+          <td style="vertical-align:top; padding-left: 2em; white-space: nowrap;">
             <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
-        print [[/>
+        print [[/>]] print(extra.append or "") print[[
           </td>
         </tr>
         <tr>
