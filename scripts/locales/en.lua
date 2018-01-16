@@ -2449,6 +2449,9 @@ local  en = {
       default_shaper_descr = "The Default shaper percentage.",
       slow_pass_shaper_descr = "The Slow Pass shaper percentage.",
       slower_pass_shaper_descr = "The Slower Pass shaper percentage.",
+      status_up = "Up",
+      status_down = "Down",
+      status_disabled = "Disabled",
    },
 }
 
