@@ -43,14 +43,14 @@ class Redis {
   char* getRedisVersion();
   void reconnectRedis();
   int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
-  int oneOperator(const char *operation, char *key);
-  int twoOperators(const char *operation, char *op1, char *op2);
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 	       bool dont_check_for_existence, bool localHost);
   int popHost(const char* ns_list, char *hostname, u_int hostname_len);
   void addToCache(char *key, char *value, u_int expire_secs);
   bool isCacheable(char *key);
   bool expireCache(char *key, u_int expire_sec);
+
+  void checkDumpable(const char * const key);
 	  
  public:
   Redis(const char *redis_host = (char*)"127.0.0.1",
@@ -70,14 +70,10 @@ class Redis {
   int hashSet(char *key, char *field, char *value);
   int delHash(char *key, char *member);
   int set(char *key, char *value, u_int expire_secs=0);
-  char* popSet(char *pop_name, char *rsp, u_int rsp_len);
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
   int hashGetAll(const char *key, char ***keys_p, char ***values_p);
   int del(char *key);
-  int zIncr(char *key, char *member);
-  int zTrim(char *key, u_int trim_len);
-  int zRevRange(const char *pattern, char ***keys_p);
   int pushHostToResolve(char *hostname, bool dont_check_for_existence, bool localHost);
   int popHostToResolve(char *hostname, u_int hostname_len);
 
@@ -93,18 +89,11 @@ class Redis {
   int setResolvedAddress(char *numeric_ip, char *symbolic_ip);
   int setTrafficFilteringAddress(char* numeric_ip, char* httpbl);
 
-  int hashIncr(char *key, char *field, u_int32_t value);
-
-  int addHostToDBDump(NetworkInterface *iface, IpAddress *ip, char *name);
-
   int sadd(const char *set_name, char *item);
   int srem(const char *set_name, char *item);
   int smembers(lua_State* vm, char *setName);
   int smembers(const char *set_name, char ***members);
 
-  void setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_int32_t id);
-  u_int32_t host_to_id(NetworkInterface *iface, char *daybuf, char *host_name, bool *new_key);
-  int id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len);
   int lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
   int rpush(const char *queue_name, char *msg, u_int queue_trim_size);
   int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
@@ -116,13 +105,6 @@ class Redis {
   int lpop(const char *queue_name, char ***elements, u_int num_elements);
   int flushDb();
   void flushCache();
-  /**
-   * @brief Increment a redis key and return its new value
-   *
-   * @param key The key whose value will be incremented.
-   */
-  u_int32_t incrKey(char *key);
-  int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
   void lua(lua_State *vm);
   char* dump(char *key);
   int restore(char *key, char *buf);

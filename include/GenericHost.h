@@ -30,15 +30,12 @@ class Flow;
 class GenericHost : public GenericHashEntry, public GenericTrafficElement {
  protected:
   bool localHost, systemHost;
-  u_int32_t host_serial;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
   u_int32_t total_activity_time /* sec */, last_epoch_update; /* useful to avoid multiple updates */
 
   /* Throughput */
   float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
   ValueTrend bytes_goodput_thpt_trend;
-
-  virtual void computeHostSerial() { ; }
 
  public:
   GenericHost(NetworkInterface *_iface);
@@ -58,8 +55,6 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
-
-  inline u_int32_t get_host_serial() { return(host_serial);                        };
 
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
   virtual bool match(AddressTree *ptree)             { return(true);       };

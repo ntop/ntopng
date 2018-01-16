@@ -74,7 +74,6 @@ class Host : public GenericHost, public Checkpointable {
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
   void refreshHTTPBL();
-  void computeHostSerial();
   json_object* getJSONObject();
   bool readDHCPCache();
   void updateLocal();

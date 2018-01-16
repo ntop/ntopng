@@ -15,11 +15,16 @@ local prefs_dump_utils = {}
 function prefs_dump_utils.savePrefsToDisk()
    local dirs = ntop.getDirs()
    local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
-   local keys = ntop.getKeysCache("ntopng.prefs.*")
+
+   local patterns = {"ntopng.prefs.*", "ntopng.user.*"}
 
    local out = {}
-   for k in pairs(keys or {}) do
-      out[k] = ntop.dumpCache(k)
+   for _, pattern in pairs(patterns) do
+      local keys = ntop.getKeysCache(pattern)
+
+      for k in pairs(keys or {}) do
+	 out[k] = ntop.dumpCache(k)
+      end
    end
 
    local json = require("dkjson")
@@ -45,7 +50,7 @@ function prefs_dump_utils.readPrefsFromDisk()
       local restore = json.decode(dump, 1, nil)
 
       for k,v in pairs(restore or {}) do
-	 -- print(k.."\n")
+	 --print(k.."\n")
 	 ntop.delCache(k)
 	 ntop.restoreCache(k,v)
       end

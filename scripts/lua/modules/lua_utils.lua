@@ -2127,7 +2127,7 @@ end
  -- Table preferences
 
 function getDefaultTableSort(table_type)
-   local table_key = getRedisPrefix("ntopng.prefs.table")
+   local table_key = getRedisPrefix("ntopng.sort.table")
    local value = nil
 
   if(table_type ~= nil) then
@@ -2138,7 +2138,7 @@ function getDefaultTableSort(table_type)
 end
 
 function getDefaultTableSortOrder(table_type, force_get)
-   local table_key = getRedisPrefix("ntopng.prefs.table")
+   local table_key = getRedisPrefix("ntopng.sort.table")
    local value = nil
 
   if(table_type ~= nil) then
@@ -2149,14 +2149,14 @@ function getDefaultTableSortOrder(table_type, force_get)
 end
 
 function getDefaultTableSize()
-  table_key = getRedisPrefix("ntopng.prefs.table")
+  table_key = getRedisPrefix("ntopng.sort.table")
   value = ntop.getHashCache(table_key, "rows_number")
   if((value == nil) or (value == "")) then value = 10 end
   return(tonumber(value))
 end
 
 function tablePreferences(key, value, force_set)
-  table_key = getRedisPrefix("ntopng.prefs.table")
+  table_key = getRedisPrefix("ntopng.sort.table")
 
   if((value == nil) or (value == "")) and (force_set ~= true) then
     -- Get preferences

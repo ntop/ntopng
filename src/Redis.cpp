@@ -177,6 +177,20 @@ bool Redis::expireCache(char *key, u_int expire_secs) {
 
 /* **************************************** */
 
+void Redis::checkDumpable(const char * const key) {
+  /* We use this function to check and possibly request a preference dump to a file.
+     This ensures settings persistance also upon redis flushes */
+  if(!strncmp(key, "ntopng.prefs.", 13)
+     || !strncmp(key, "ntopng.user.", 12)) {
+    ntop->getPrefs()->reloadPrefsFromRedis();
+    /* Tell housekeeping.lua to dump prefs to disk */
+    ntop->getRedis()->set((char*)PREFS_CHANGED, (char*)"true");
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to refresh after change of: %s", key);
+  }
+}
+
+/* **************************************** */
+
 /* NOTE: We assume that the addToCache() caller locks this instance */
 void Redis::addToCache(char *key, char *value, u_int expire_secs) {
   StringCache_t *cached = NULL;
@@ -292,6 +306,8 @@ int Redis::del(char *key){
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
 
+  if(reply) checkDumpable(key);
+
   return(rc);
 }
 
@@ -333,6 +349,8 @@ int Redis::hashSet(char *key, char *field, char *value) {
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
 
+  if(reply) checkDumpable(key);
+
   return(rc);
 }
 
@@ -354,6 +372,8 @@ int Redis::hashDel(char *key, char *field) {
   } else
     rc = -1;
   l->unlock(__FILE__, __LINE__);
+
+  if(reply) checkDumpable(key);
 
   return(rc);
 }
@@ -386,128 +406,8 @@ int Redis::set(char *key, char *value, u_int expire_secs) {
   }
   l->unlock(__FILE__, __LINE__);
 
-  return(rc);
-}
-
-/* **************************************** */
-
-char* Redis::popSet(char *pop_name, char *rsp, u_int rsp_len) {
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "SPOP %s", pop_name);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-
-  if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str);
-  } else
-    rsp[0] = 0;
-
-  if(reply) freeReplyObject(reply);
-  l->unlock(__FILE__, __LINE__);
-
-  return(rsp);
-}
-
-/* **************************************** */
-
-/*
-  Increment a key and return its update value
-*/
-u_int32_t Redis::incrKey(char *key) {
-  u_int rc;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "INCR %s", key);
-  if(reply) {
-    if(reply->type == REDIS_REPLY_ERROR)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = 0;
-    else
-      rc = (u_int)reply->integer;
-
-    freeReplyObject(reply);
-  } else {
-    if(!reply) reconnectRedis();
-    rc = -1;
-  }
-
-  l->unlock(__FILE__, __LINE__);
-
-  return(rc);
-}
-
-/* **************************************** */
-
-/*
-  Increment key.member of +value and keeps at most trim_len elements
-*/
-int Redis::zIncr(char *key, char *member) {
-  int rc;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "ZINCRBY %s 1 %s", key, member);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
-  l->unlock(__FILE__, __LINE__);
-
-  return(rc);
-}
-
-/* **************************************** */
-
-/*
-  Increment key.member of +value and keeps at most trim_len elements
-*/
-int Redis::zTrim(char *key, u_int trim_len) {
-  int rc;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "ZREMRANGEBYRANK %s 0 %d", key, -1*trim_len);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
-  l->unlock(__FILE__, __LINE__);
-
-  return(rc);
-}
-
-/* **************************************** */
-
-int Redis::zRevRange(const char *pattern, char ***keys_p) {
-  int rc = 0;
-  u_int i;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "ZREVRANGE %s 0 -1 WITHSCORES", pattern);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-
-  if(reply && (reply->type == REDIS_REPLY_ARRAY)) {
-    (*keys_p) = (char**) malloc(reply->elements * sizeof(char*));
-    rc = (int)reply->elements;
-
-    for(i = 0; i < reply->elements; i++) {
-      (*keys_p)[i] = strdup(reply->element[i]->str);
-    }
-  }
-
-  if(reply) freeReplyObject(reply);
-  l->unlock(__FILE__, __LINE__);
+  if(reply == 0 && expire_secs == 0)
+    checkDumpable(key);
 
   return(rc);
 }
@@ -614,48 +514,6 @@ int Redis::hashGetAll(const char *key, char ***keys_p, char ***values_p) {
   }
 
   if(reply) freeReplyObject(reply);
-  l->unlock(__FILE__, __LINE__);
-
-  return(rc);
-}
-
-/* **************************************** */
-
-int Redis::oneOperator(const char *operation, char *key) {
-  int rc;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "%s %s", operation, key);
-  if(!reply) reconnectRedis();
-
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-
-  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
-  l->unlock(__FILE__, __LINE__);
-
-  return(rc);
-}
-
-/* **************************************** */
-
-int Redis::twoOperators(const char *operation, char *op1, char *op2) {
-  int rc;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "%s %s %s", operation, op1, op2);
-  if(!reply) reconnectRedis();
-
-  if(reply
-     && (reply->type == REDIS_REPLY_ERROR)
-     && strcmp(reply->str, "ERR no such key"))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-
-  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
   l->unlock(__FILE__, __LINE__);
 
   return(rc);
@@ -1005,54 +863,20 @@ char* Redis::getRedisVersion() {
   return(redis_version);
 }
 
-/* **************************************** */
-
-#ifdef NOTUSED
-int Redis::hashIncr(char *key, char *field, u_int32_t value) {
-  int rc;
-  redisReply *reply;
-
-  if(key == NULL || field == NULL) return 0;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "HINCRBY %s %s %u", key, field, value);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
-  l->unlock(__FILE__, __LINE__);
-
-  return(rc);
-}
-#endif
-
-/* **************************************** */
-
-/*
-  Hosts:       [name == NULL] && [ip != NULL]
-  StringHosts: [name != NULL] && [ip == NULL]
-*/
-int Redis::addHostToDBDump(NetworkInterface *iface, IpAddress *ip, char *name) {
-  char buf[64], daybuf[32], *what;
-  time_t when = time(NULL);
-  bool new_key;
-
-  strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-  what = ip ? ip->print(buf, sizeof(buf)) : name;
-  return(host_to_id(iface, daybuf, what, &new_key));
-}
-
 /* ******************************************* */
 
 int Redis::sadd(const char *set_name, char *item) {
-  return(msg_push("SADD", set_name, item, 0 /* do not trim, this is not a queue */));
+  int ret = msg_push("SADD", set_name, item, 0 /* do not trim, this is not a queue */);
+  checkDumpable(set_name);
+  return ret;
 }
 
 /* ******************************************* */
 
 int Redis::srem(const char *set_name, char *item) {
-  return(msg_push("SREM", set_name, item, 0 /* do not trim, this is not a queue */));
+  int ret = msg_push("SREM", set_name, item, 0 /* do not trim, this is not a queue */);
+  checkDumpable(set_name);
+  return ret;
 }
 
 /* **************************************** */
@@ -1125,96 +949,6 @@ int Redis::smembers(const char *set_name, char ***members) {
   l->unlock(__FILE__, __LINE__);
 
   return(rc);
-}
-
-/* *************************************** */
-
-void Redis::setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_int32_t id) {
-  char buf[32], keybuf[384], host_id[16], _daybuf[32], value[32];
-  //redisReply *reply;
-
-  if(daybuf == NULL) {
-    time_t when = time(NULL);
-
-    strftime(_daybuf, sizeof(_daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-    daybuf = _daybuf;
-  }
-
-  snprintf(keybuf, sizeof(keybuf), "%s|%s", iface->get_name(), host_name);
-
-  /* Set the data */
-  snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
-  snprintf(host_id, sizeof(host_id), "%u", id);
-  hashSet(buf, keybuf, host_id); /* Forth */
-  hashSet(buf, host_id, keybuf); /* ...and back */
-  snprintf(value, sizeof(value), "%s|%u", iface->get_name(), id);
-
-#if 0
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  reply = (redisReply*)redisCommand(redis, "SADD %s.keys %s", daybuf, value);
-  if(!reply) reconnectRedis();
-
-  if(reply) {
-    if(reply->type == REDIS_REPLY_INTEGER) {
-      if(reply->integer != 1)
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "'SADD %s.keys %s|%u' returned %lld",
-				     daybuf, iface->get_name(), id, reply->integer);
-    } else if(reply->type == REDIS_REPLY_ERROR)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid reply type [%d]", reply->type);
-  }
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping %u", host_id);
-
-  if(reply) freeReplyObject(reply);
-  l->unlock(__FILE__, __LINE__);
-#endif
-}
-
-/* *************************************** */
-
-u_int32_t Redis::host_to_id(NetworkInterface *iface, char *daybuf,
-			    char *host_name, bool *new_key) {
-  u_int32_t id;
-  int rc;
-  char buf[32], keybuf[384], *rsp;
-
-  if(iface == NULL) return(-1);
-
-  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
-    return(CONST_LUA_PARAM_ERROR);
-  
-  snprintf(keybuf, sizeof(keybuf), "%s|%s", iface->get_name(), host_name);
-
-  /* Add host key if missing */
-  snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
-  rc = hashGet(buf, keybuf, rsp, CONST_MAX_LEN_REDIS_VALUE);
-
-  if(rc == -1) {
-    /* Not found */
-    char host_id[16];
-
-    snprintf(host_id, sizeof(host_id), "%u", id = incrKey((char*)NTOP_HOSTS_SERIAL));
-    setHostId(iface, daybuf, host_name, id);
-    *new_key = true;
-  } else
-    id = atol(rsp), *new_key = false;
-
-  free(rsp);
-  
-  return(id);
-}
-
-/* *************************************** */
-
-int Redis::id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len) {
-  char key[CONST_MAX_LEN_REDIS_KEY];
-
-  /* Add host key if missing */
-  snprintf(key, sizeof(key), "ntopng.%s.hostkeys", daybuf);
-  return(hashGet(key, host_idx, buf, buf_len));
 }
 
 /* ******************************************* */

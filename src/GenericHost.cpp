@@ -29,7 +29,7 @@ GenericHost::GenericHost(NetworkInterface *_iface) : GenericHashEntry(_iface) {
 
   ndpiStats = new nDPIStats();
 
-  systemHost = false, localHost = false, host_serial = 0;
+  systemHost = false, localHost = false;
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
   bytes_thpt_diff = 0, last_epoch_update = 0;
   total_activity_time = 0;

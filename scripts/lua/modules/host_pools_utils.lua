@@ -94,11 +94,18 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
 				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member)
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
+  local members = ntop.getMembersCache(ids_key) or {}
 
-  local n = table.len(ntop.getMembersCache(ids_key) or {})
+  local n = table.len(members)
 
   if n >= host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS then
     return false
+  end
+
+  for _, m in pairs(members) do
+     if m == pool_id then
+	return true
+     end
   end
 
   ntop.setMembersCache(ids_key, pool_id)

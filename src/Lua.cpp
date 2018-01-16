@@ -5828,24 +5828,6 @@ static int ntop_lrange_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_redis_set_pop(lua_State* vm) {
-  char *set_name, *rsp;
-  Redis *redis = ntop->getRedis();
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((set_name = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
-  lua_pushfstring(vm, "%s", redis->popSet(set_name, rsp, CONST_MAX_LEN_REDIS_VALUE));
-  free(rsp);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_redis_dump(lua_State* vm) {
   char *key, *dump;
   Redis *redis = ntop->getRedis();
@@ -5963,49 +5945,6 @@ static int ntop_lpush_redis(lua_State* vm) {
     return(CONST_LUA_OK);
   }else
     return(CONST_LUA_ERROR);
-}
-
-/* ****************************************** */
-
-static int ntop_redis_get_host_id(lua_State* vm) {
-  char *host_name;
-  Redis *redis = ntop->getRedis();
-  char daybuf[32];
-  time_t when = time(NULL);
-  bool new_key;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((host_name = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-  lua_pushinteger(vm, redis->host_to_id(ntop_interface, daybuf, host_name, &new_key)); /* CHECK */
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_redis_get_id_to_host(lua_State* vm) {
-  char *host_idx, *rsp;
-  Redis *redis = ntop->getRedis();
-  char daybuf[32];
-  time_t when = time(NULL);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if((host_idx = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-
-  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
-  lua_pushfstring(vm, "%d", redis->id_to_host(daybuf, host_idx, rsp, CONST_MAX_LEN_REDIS_VALUE));
-  free(rsp);
-
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -6408,16 +6347,10 @@ static int ntop_set_redis(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TNUMBER)
     expire_secs = (u_int)lua_tonumber(vm, 3);
 
-  if(redis->set(key, value, expire_secs) == 0) {
-    if(!strncmp(key, "ntopng.prefs.", 13)) {
-      ntop->getPrefs()->reloadPrefsFromRedis();
-      /* Tell housekeeping.lua to dump prefs to disk */
-      ntop->getRedis()->set((char*)PREFS_CHANGED, (char*)"true");
-    }
+  lua_pushnil(vm);
 
-    lua_pushnil(vm);
+  if(redis->set(key, value, expire_secs) == 0)
     return(CONST_LUA_OK);
-  }
 
   return(CONST_LUA_ERROR);
 }
@@ -6906,11 +6839,8 @@ static const luaL_Reg ntop_reg[] = {
   { "getHashAllCache",   ntop_get_hash_all_redis },
   { "getKeysCache",      ntop_get_keys_redis },
   { "delHashCache",      ntop_delete_hash_redis_key },
-  { "setPopCache",       ntop_get_redis_set_pop },
   { "dumpCache",         ntop_redis_dump },
   { "restoreCache",      ntop_redis_restore },
-  { "getHostId",         ntop_redis_get_host_id },
-  { "getIdToHost",       ntop_redis_get_id_to_host },
   { "addLocalNetwork",   ntop_add_local_network },
 
   /* Redis Preferences */

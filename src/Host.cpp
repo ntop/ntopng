@@ -116,20 +116,6 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 
 /* *************************************** */
 
-void Host::computeHostSerial() {
-  if(iface && Utils::dumpHostToDB(&ip, ntop->getPrefs()->get_dump_hosts_to_db_policy())) {
-    if(host_serial) {
-      char buf[64];
-
-      /* We need to reconfirm the id (e.g. after a day wrap) */
-      ntop->getRedis()->setHostId(iface, NULL, ip.print(buf, sizeof(buf)), host_serial);
-    } else
-      host_serial = ntop->getRedis()->addHostToDBDump(iface, &ip, NULL);
-  }
-}
-
-/* *************************************** */
-
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
   char buf[64], host[96];
@@ -257,7 +243,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
 
   refreshHostAlertPrefs();
   
-  if(!host_serial) computeHostSerial();
   updateHostPool(true /* inline with packet processing */);
 }
 
@@ -1089,7 +1074,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "activityStats", &obj)) activityStats.deserialize(obj);
 #endif
 
-  computeHostSerial();
   if(json_object_object_get_ex(o, "pktStats.sent", &obj)) sent_stats.deserialize(obj);
   if(json_object_object_get_ex(o, "pktStats.recv", &obj)) recv_stats.deserialize(obj);
 
