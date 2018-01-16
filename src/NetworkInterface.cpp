@@ -791,6 +791,12 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 	      local_hosts_2_redis_walker, NULL) ? 0 : -1;
   if(disable_purge) enablePurge(false /* on hosts */);
 
+  
+#ifdef NTOPNG_PRO
+  if(getHostPools()) getHostPools()->dumpToRedis();
+#endif
+
+
   return rc;
 }
 

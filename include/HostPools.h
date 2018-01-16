@@ -66,7 +66,6 @@ class HostPools {
   static void deleteTree(AddressTree ***at);
 
   void loadFromRedis();
-  void dumpToRedis();
 
   inline void incNumMembers(u_int16_t pool_id, int32_t *ctr) const {
     if(ctr && pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools)
@@ -81,6 +80,7 @@ class HostPools {
   HostPools(NetworkInterface *_iface);
   virtual ~HostPools();
 
+  void dumpToRedis();
   void reloadPools();
   u_int16_t getPool(Host *h);
   u_int16_t getPool(Mac *m);
