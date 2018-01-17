@@ -1547,7 +1547,7 @@ end
 -- Mac Addresses --
 
 -- A function to give a useful device name
-function getDeviceName(device_mac, vlan)
+function getDeviceName(device_mac, vlan, skip_manufacturer)
    local name = getHostAltName(device_mac)
 
    if name == device_mac then
@@ -1576,7 +1576,7 @@ function getDeviceName(device_mac, vlan)
    if isEmptyString(name) then
       local manufacturer = ntop.getMacManufacturer(device_mac)
 
-      if manufacturer ~= nil then
+      if (not skip_manufacturer) and (manufacturer ~= nil) then
          name = manufacturer.extended
       else
          -- last resort

@@ -13,6 +13,7 @@ function mac_table_setID (row) {
   row.find("td").eq(index++).attr('id', mac_key+"_mac");
   row.find("td").eq(index++).attr('id', mac_key+"_manufacturer");
   row.find("td").eq(index++).attr('id', mac_key+"_device_type");
+  row.find("td").eq(index++).attr('id', mac_key+"_name");
 
   row.find("td").eq(index++).attr('id', mac_key+"_hosts");
   row.find("td").eq(index++).attr('id', mac_key+"_arp_total");
@@ -42,6 +43,7 @@ function mac_row_update(mac_key) {
       $("#"+mac_key+'_hosts').html(data.column_hosts);
       $("#"+mac_key+'_arp_total').html(data.column_arp_total);
       $("#"+mac_key+'_device_type').html(data.column_device_type);
+      $("#"+mac_key+'_name').html(data.column_name);
 
       $("#"+mac_key+'_since').html(data.column_since);
       $("#"+mac_key+'_breakdown').html(data.column_breakdown);

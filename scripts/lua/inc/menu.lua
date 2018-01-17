@@ -29,6 +29,8 @@ interface.select(ifname)
 local ifs = interface.getStats()
 ifId = ifs.id
 
+local have_nedge = ntop.isnEdge()
+
 -- ##############################################
 
 if active_page == "home" or active_page == "about" then
@@ -259,7 +261,13 @@ print [[
 ]]
 
 if ifs["has_macs"] == true then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=host_macs_only">Layer 2</a></li>')
+   local name = "Layer 2"
+
+   if have_nedge then
+      name = "Macs"
+   end
+
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=host_macs_only">'..name..'</a></li>')
    if(info["version.enterprise_edition"] == true) then
       print('<li class="divider"></li>')
    end
@@ -394,7 +402,6 @@ print [[
     <ul class="dropdown-menu">]]
 
 user_group = ntop.getUserGroup()
-local have_nedge = ntop.isnEdge()
 
 if(user_group == "administrator") then
   if not have_nedge then

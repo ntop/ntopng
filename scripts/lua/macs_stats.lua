@@ -209,8 +209,15 @@ print [[
 			     title: "]] print(i18n("details.device_type")) print[[",
 				 field: "column_device_type",
 				 sortable: false,
-				 },
-			     {
+				 },{
+			     title: "]] print(i18n("name")) print[[",
+				 field: "column_name",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'left'
+			     }
+
+				 },{
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
 				 sortable: true,
