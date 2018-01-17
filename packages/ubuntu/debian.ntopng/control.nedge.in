@@ -6,13 +6,13 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: libsqlite3-0, libgeoip1, redis-server, @LIBRRD@ logrotate, libcurl3, libpcap0.8, libhiredis0.13, libssl1.0.0, lsb-release, ethtool, libcap2, bridge-utils, libnetfilter-conntrack3, isc-dhcp-server, hostapd, udev, rfkill, ntp, iw, iptables, nfacct, conntrack, libnetfilter-queue1, wpasupplicant, wireless-tools
+Depends: libsqlite3-0, libgeoip1, redis-server, @LIBRRD@ logrotate, libcurl3, libpcap0.8, libhiredis0.13, libssl1.0.0, lsb-release, ethtool, libcap2, bridge-utils, libnetfilter-conntrack3, isc-dhcp-server, hostapd, udev, rfkill, iw, iptables, nfacct, conntrack, libnetfilter-queue1, wpasupplicant, wireless-tools
 Package: nedge
 Architecture: @EXTN@
 Recommends: ntopng-data
 Suggests: ntopng-data
 Pre-Depends:
-Conflicts: dnsmasq, dnsmasq-base, network-manager, network-manager-gnome
+Conflicts: dnsmasq, dnsmasq-base, network-manager, network-manager-gnome, ntp
 Provides:
 Replaces: ntopng
 Description: Web-based edge traffic policer
