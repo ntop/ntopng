@@ -2452,6 +2452,7 @@ local  en = {
       status_up = "Up",
       status_down = "Down",
       status_disabled = "Disabled",
+      please_fill_out_this_field = "Please fill out this field.",
    },
 }
 
