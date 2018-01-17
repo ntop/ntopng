@@ -1077,6 +1077,7 @@ local known_parameters = {
    ["adaptive_rate"]           =  validateBool,
    ["slow_pass_shaper_perc"]   =  validateNumber,
    ["slower_pass_shaper_perc"] =  validateNumber,
+   ["skip_critical"]           =  validateBool,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

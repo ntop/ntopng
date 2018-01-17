@@ -3287,7 +3287,8 @@ static int ntop_interface_name2id(lua_State* vm) {
 
 static int ntop_get_ndpi_protocols(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  ndpi_protocol_category_t category_filter;
+  ndpi_protocol_category_t category_filter = (ndpi_protocol_category_t)((u_int8_t)-1);
+  bool skip_critical = false;
 
   if(ntop_interface == NULL)
     ntop_interface = getCurrentInterface(vm);
@@ -3302,11 +3303,10 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 
     if(category_filter >= NDPI_PROTOCOL_NUM_CATEGORIES)
       return(CONST_LUA_ERROR);
+  }
+  if((lua_type(vm, 2) == LUA_TBOOLEAN)) skip_critical = lua_toboolean(vm, 2);
 
-    ntop_interface->getnDPIProtocols(vm, category_filter);
-  } else
-    ntop_interface->getnDPIProtocols(vm);
-
+  ntop_interface->getnDPIProtocols(vm, category_filter, skip_critical);
   return(CONST_LUA_OK);
 }
 

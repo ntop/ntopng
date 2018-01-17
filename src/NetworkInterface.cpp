@@ -4651,28 +4651,13 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
 
 /* *************************************** */
 
-void NetworkInterface::getnDPIProtocols(lua_State *vm) {
-  int i;
-
-  lua_newtable(vm);
-
-  for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
-    char buf[8];
-
-    snprintf(buf, sizeof(buf), "%d", i);
-    lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
-  }
-}
-
-/* *************************************** */
-
 void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
   ndpi_set_proto_category(ndpi_struct, protoId, protoCategory);
 }
 
 /* **************************************************** */
 
-void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter) {
+void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical) {
   int i;
 
   lua_newtable(vm);
@@ -4680,7 +4665,8 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
   for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
     char buf[8];
 
-    if(ndpi_struct->proto_defaults[i].protoCategory == filter) {
+    if(((filter == (u_int8_t)-1) || ndpi_struct->proto_defaults[i].protoCategory == filter) &&
+	(!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
       snprintf(buf, sizeof(buf), "%d", i);
       lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
     }

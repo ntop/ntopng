@@ -1206,6 +1206,11 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   if (iface->getL7Policer() && getMac() && (getMac()->locate() != located_on_lan_interface)) {
     return iface->getL7Policer()->getShaper(DEFAULT_SHAPER_ID);
   }
+
+  // Avoid dropping critical protocols
+  if(Utils::isCriticalNetworkProtocol(ndpiProtocol.master_protocol) ||
+          Utils::isCriticalNetworkProtocol(ndpiProtocol.app_protocol))
+    return iface->getL7Policer()->getShaper(PASS_ALL_SHAPER_ID);
 #endif
 
   if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
@@ -1244,7 +1249,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
     // Try to get a specific shaper
     getProtocolShaper(ndpiProtocol, policy, &shaper_id, isIngress);
-#endif
+#endif // HAVE_NEDGE
   }
 
 #ifdef SHAPER_DEBUG

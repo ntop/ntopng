@@ -2611,6 +2611,12 @@ bool Utils::str2DetailsLevel(const char *details, DetailsLevel *out) {
 
 /* ****************************************************** */
 
+bool Utils::isCriticalNetworkProtocol(u_int16_t protocol_id) {
+  return (protocol_id == NDPI_PROTOCOL_DNS) || (protocol_id == NDPI_PROTOCOL_DHCP);
+}
+
+/* ****************************************************** */
+
 u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
   now -= (now % rounder);
   now += rounder; /* Aligned to midnight UTC */
