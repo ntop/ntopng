@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local have_nedge = ntop.isnEdge()
+
 sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -30,7 +32,9 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "' .. i18n("pool_stats.host_pool_list") .. '",\n')
+print('title: "'
+	 ..i18n(ternary(have_nedge, "nedge.users_list", "pool_stats.host_pool_list"))
+	 ..'",\n')
 print ('rowCallback: function ( row ) { return pool_table_setID(row); },')
 
 -- Set the preference table
@@ -52,7 +56,7 @@ print [[
                  textAlign: 'center'
               }
             },{
-              title: "]] print(i18n("host_pools.pool_name")) print[[",
+              title: "]] print(i18n(ternary(have_nedge, "nedge.user", "host_pools.pool_name"))) print[[",
               field: "column_id",
               sortable: false,
                 css: {

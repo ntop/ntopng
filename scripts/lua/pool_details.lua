@@ -17,6 +17,8 @@ require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 
+local have_nedge = ntop.isnEdge()
+
 local pool_id     = _GET["pool"]
 local page        = _GET["page"]
 
@@ -46,7 +48,9 @@ page_params["pool"] = pool_id
 page_params["page"] = page
 
 if(pool_id == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.pool_parameter_missing_message").."</div>")
+   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "
+	    ..i18n("pool_details.pool_parameter_missing_message")
+	    .."</div>")
     return
 end
 
@@ -57,7 +61,9 @@ print [[
       <ul class="nav navbar-nav">
 ]]
 
-print("<li><a href=\"#\">"..i18n("pool_details.host_pool")..": "..pool_name.."</A> </li>")
+print("<li><a href=\"#\">"
+	 ..i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool"))
+	 ..": "..pool_name.."</A> </li>")
 
 local go_page_params = table.clone(page_params)
 

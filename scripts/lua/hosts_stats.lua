@@ -2,11 +2,13 @@
 -- (C) 2013-17 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+
+local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -156,10 +158,10 @@ if(_GET["pool"] ~= nil) then
    local pool_edit = ""
 
    -- TODO enable on nEdge when devices list will be implemented
-   if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not ntop.isnEdge()) then
+   if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not have_nedge) then
       local pool_link
 
-      if ntop.isnEdge() then
+      if have_nedge then
          pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
       else
          pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
@@ -168,7 +170,9 @@ if(_GET["pool"] ~= nil) then
       pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
    end
 
-   pool_ = " "..i18n("hosts_stats.pool_title",{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])}) .."<small>".. pool_edit ..
+   pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
+		     {poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
+      .."<small>".. pool_edit ..
       ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
       "</small>"
 end
@@ -282,7 +286,9 @@ print [[    showPagination: true, ]]
         hosts_filter_params.pool = _pool.id
         print('<li')
         if pool == _pool.id then print(' class="active"') end
-        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'..i18n("hosts_stats.host_pool",{pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
+        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'
+		 ..i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"),
+			{pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
       end
    end
 

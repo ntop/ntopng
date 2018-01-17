@@ -2,6 +2,8 @@ require "lua_utils"
 
 local prefs = ntop.getPrefs()
 
+local have_nedge = ntop.isnEdge()
+
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true,   disabled=false, entries={
@@ -87,8 +89,8 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_flow_rrds_title"),
       description = i18n("prefs.toggle_flow_rrds_description"),
     }, toggle_pools_rrds = {
-      title       = i18n("prefs.toggle_pools_rrds_title"),
-      description = i18n("prefs.toggle_pools_rrds_description"),
+      title       = i18n(ternary(have_nedge, "prefs.toggle_users_rrds_title", "prefs.toggle_pools_rrds_title")),
+      description = i18n(ternary(have_nedge, "prefs.toggle_users_rrds_description", "prefs.toggle_pools_rrds_description")),
     }, toggle_vlan_rrds = {
       title       = i18n("prefs.toggle_vlan_rrds_title"),
       description = i18n("prefs.toggle_vlan_rrds_description"),

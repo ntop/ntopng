@@ -21,6 +21,8 @@ local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 
+local have_nedge = ntop.isnEdge()
+
 local debug_hosts = false
 local page        = _GET["page"]
 local protocol_id = _GET["protocol"]
@@ -436,11 +438,11 @@ if((page == "overview") or (page == nil)) then
          print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
       end
 
-      print[[</td><td><span>]] print(i18n("details.host_pool")..": ")
+      print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
       if not ifstats.isView then
 	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
 	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title=]] print('\"'..i18n("host_details.change_host_pool_popup_msg")..'\"') print[[></i></a></span>]]
+	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
       else
         -- no link for view interfaces
         print(host_pools_utils.getPoolName(ifId, host_pool_id))
@@ -1804,7 +1806,7 @@ elseif (page == "config") then
       </tr>]]
 
    if not ifstats.isView then
-      printPoolChangeDropdown(host_pool_id)
+      printPoolChangeDropdown(host_pool_id, have_nedge)
    end
 
    if host["localhost"] then

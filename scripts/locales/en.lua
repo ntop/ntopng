@@ -677,6 +677,8 @@ local  en = {
             "For non sFlow devices, %%INPUT_SNMP and %%OUTPUT_SNMP must appear into the nprobe template.",
       toggle_pools_rrds_title = "Host Pools",
       toggle_pools_rrds_description = "Toggle the creation of bytes and application protocols timeseries for defined host pools.",
+      toggle_users_rrds_title = "Users",
+      toggle_users_rrds_description = "Toggle the creation of bytes and application protocols timeseries for defined users.",
       toggle_vlan_rrds_title = "VLANs",
       toggle_vlan_rrds_description = "Toggle the creation of bytes and application timeseries for VLANs.",
       toggle_asn_rrds_title = "Autonomous Systems",
@@ -1303,7 +1305,6 @@ local  en = {
       restore_from_cache_message = "Click <a href=%{js_code}> here</a> to restore it from cache.",
       trace_debug_host_ip = "Host:%{hostip}, Vlan: %{vlan}",
       snmp = "SNMP",
-      change_host_pool_popup_msg = "Change Host Pool",
       blocked_traffic = "Blocked Traffic",
       host_traffic_blocked_quota = "Some host traffic has been blocked by an exceeded quota",
       host_traffic_blocked_shaper = "Some host traffic has been blocked by a blocking shaper",
@@ -1449,7 +1450,7 @@ local  en = {
    },
 
    pool_details = {
-      pool_parameter_missing_message = "Pool parameter is missing (internal error ?)",
+      pool_parameter_missing_message = "Parameter is missing (internal error ?)",
       no_available_data_for_host_pool_message = "No available data for Host Pool '%{pool_name}'.",
       host_pool_timeseries_enable_message = "Host Pool timeseries can be enabled from the <A HREF=\"%{url}\">%{icon_flask} Preferences</A>. Few minutes are necessary to see the first data points.",
       host_pool = "Host Pool",
@@ -1538,6 +1539,7 @@ local  en = {
       country_title = "for Country %{country}",
       mac_title = "with Mac %{mac}",
       pool_title = "for Pool %{poolname}",
+      user_title = "for User %{poolname}",
       vlan_title = "VLAN %{vlan}",
       hosts = "Hosts",
       as_info = "AS Info",
@@ -1551,6 +1553,7 @@ local  en = {
       remote_hosts_only = "Remote Hosts Only",
       filtered_hosts_only = "Hosts With Blocked Traffic",
       host_pool = "Host Pool %{pool_name}",
+      user = "User %{pool_name}",
       source_id = "Source Id",
       location = "Location",
       httpbl = "HTTP:BL",
@@ -2308,6 +2311,9 @@ local  en = {
 
    nedge = {
       nedge = "nEdge",
+      user = "User",
+      users_list = "Users List",
+      edit_users = "Edit Users",
       system_setup = "System Setup",
       setup_mode = "Mode",
       setup_network = "Network",

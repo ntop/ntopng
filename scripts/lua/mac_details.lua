@@ -15,6 +15,8 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 
+local have_nedge = ntop.isnEdge()
+
 local os_utils = require "os_utils"
 local discover = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
@@ -163,12 +165,12 @@ if((page == "overview") or (page == nil)) then
 
    print("<td>\n")
 
-   print[[<span>]] print(i18n("details.host_pool")..": ")
+   print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
 
    if not ifstats.isView then
       print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, pool_id)) print[[</a></span>]]
 	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title=]] print('\"'..i18n("host_details.change_host_pool_popup_msg")..'\"') print[[></i></a></span>]]
+	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
       else
         -- no link for view interfaces
         print(host_pools_utils.getPoolName(ifId, pool_id))
@@ -302,7 +304,7 @@ elseif(page == "config") then
       </tr>]]
 
       if not ifstats.isView then
-	 printPoolChangeDropdown(pool_id)
+	 printPoolChangeDropdown(pool_id, have_nedge)
       end
 
 print[[

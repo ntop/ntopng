@@ -1698,22 +1698,25 @@ function poolDropdown(pool_id, exclude)
    return table.concat(output, '')
 end
 
-function printPoolChangeDropdown(pool_id)
+function printPoolChangeDropdown(pool_id, have_nedge)
    local output = {}
 
    output[#output + 1] = [[<tr>
-      <th>]] .. i18n("host_config.host_pool") .. [[</th>
+      <th>]] .. i18n(ternary(have_nedge, "nedge.user", "host_config.host_pool")) .. [[</th>
       <td>
             <select name="pool" class="form-control" style="width:20em; display:inline;">]]
 
    output[#output + 1] = poolDropdown(pool_id)
 
-   local edit_pools_link = ternary(ntop.isnEdge(), "/lua/pro/nedge/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
+   local edit_pools_link = ternary(have_nedge, "/lua/pro/nedge/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
 
    output[#output + 1] = [[
             </select>&nbsp;
-        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fa fa-sm fa-cog" aria-hidden="true" title="]] .. i18n("host_pools.edit_host_pools") .. [["></i> ]]
-   .. i18n("host_pools.edit_host_pools") .. [[</A>
+        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fa fa-sm fa-cog" aria-hidden="true" title="]]
+      ..i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.edit_host_pools"))
+      .. [["></i> ]]
+      .. i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.edit_host_pools"))
+      .. [[</A>
    </tr>]]
 
    print(table.concat(output, ''))
