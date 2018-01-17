@@ -51,7 +51,6 @@ function prefs_dump_utils.readPrefsFromDisk()
 
       for k,v in pairs(restore or {}) do
 	 --print(k.."\n")
-	 ntop.delCache(k)
 	 ntop.restoreCache(k,v)
       end
    end
