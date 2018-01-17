@@ -73,8 +73,8 @@ void sigproc(int sig) {
 #ifdef linux
   switch(afterShutdownAction) {
     case after_shutdown_nop: break;
-    case after_shutdown_reboot: system("/sbin/reboot &"); break;
-    case after_shutdown_poweroff: system("/sbin/shutdown -h now &"); break;
+    case after_shutdown_reboot: system("/sbin/reboot"); break;
+    case after_shutdown_poweroff: system("/sbin/shutdown -h now"); break;
     default: break;
   }
 #endif
