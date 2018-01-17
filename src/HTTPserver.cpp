@@ -611,16 +611,19 @@ static int handle_lua_request(struct mg_connection *conn) {
     redirect_to_please_wait(conn, request_info);
   } else
 #endif
-    if(ntop->get_HTTPserver()->is_ssl_enabled()
-	    && (!request_info->is_ssl)
-	    && isCaptiveURL(request_info->uri)
-	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
-	    && (!strstr(referer, CAPTIVE_PORTAL_URL))
-	    // && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
-	    ) {
+#ifndef HAVE_OLD_NEDGE
+  if(ntop->get_HTTPserver()->is_ssl_enabled()
+     && (!request_info->is_ssl)
+     && isCaptiveURL(request_info->uri)
+     && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
+     && (!strstr(referer, CAPTIVE_PORTAL_URL))
+     // && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
+     ) {
     redirect_to_ssl(conn, request_info);
     return(1);
-  } else if(!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
+  } else
+#endif
+  if(!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
