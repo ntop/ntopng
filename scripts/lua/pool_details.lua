@@ -28,6 +28,7 @@ interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
 local pool_name = host_pools_utils.getPoolName(ifId, pool_id)
+local username = host_pools_utils.poolIdToUsername(pool_id)
 
 if _POST["reset_quotas"] ~= nil then
   host_pools_utils.resetPoolsQuotas(ifId, tonumber(pool_id))
@@ -108,8 +109,12 @@ if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAU
   host_pools_utils.printQuotas(pool_id, nil, page_params)
 
   print[[
-  <button class="btn btn-default" data-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>
-  <br/><br/>]]
+  <button class="btn btn-default" data-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>]]
+  if ntop.isnEdge() then
+    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/admin/nf_edit_user.lua?page=categories&username=]] print(username)
+    print[["><button class="btn btn-default" type="button" style="float:right; margin-right:1em;">]] print(i18n("nedge.edit_quotas")) print[[</button></a>]]
+  end
+  print[[<br/><br/>]]
   
 elseif page == "historical" then
   local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)

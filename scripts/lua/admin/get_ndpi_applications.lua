@@ -113,7 +113,7 @@ for app, _ in pairsByValues(sorter, sOrder) do
    cat_select_dropdown = '<select class="form-control" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
    local current_id = tostring(app["cat"]["id"])
    
-   for cat_name, cat_id in pairs(categories) do
+   for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
       cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [["]] ..
          ternary(cat_id == current_id, " selected", "") .. [[>]] ..
          cat_name .. [[</option>]]
