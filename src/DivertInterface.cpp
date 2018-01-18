@@ -101,7 +101,7 @@ DivertInterface::DivertInterface(const char *name) : NetworkInterface(name) {
   sin.sin_family = AF_INET, sin.sin_port = htons(port);
   sin_len = sizeof(struct sockaddr_in);
 
-  if(bind(sock, (struct sockaddr *) &sin, sin_len) == -1) {
+  if(::bind(sock, (struct sockaddr *) &sin, sin_len) == -1) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind divert socket to port %d", port);
     throw 1;
   }
