@@ -38,6 +38,7 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
 
   num_requests = num_reconnections = 0;
   redis = NULL, operational = false;
+  initializationCompleted = false;
   reconnectRedis();
   stringCache = NULL, numCached = 0;
   l = new Mutex();
@@ -178,6 +179,8 @@ bool Redis::expireCache(char *key, u_int expire_secs) {
 /* **************************************** */
 
 void Redis::checkDumpable(const char * const key) {
+  if(!initializationCompleted) return;
+
   /* We use this function to check and possibly request a preference dump to a file.
      This ensures settings persistance also upon redis flushes */
   if(!strncmp(key, "ntopng.prefs.", 13)
@@ -194,6 +197,7 @@ void Redis::checkDumpable(const char * const key) {
 /* NOTE: We assume that the addToCache() caller locks this instance */
 void Redis::addToCache(char *key, char *value, u_int expire_secs) {
   StringCache_t *cached = NULL;
+  if(!initializationCompleted) return;
 
 #ifdef CACHE_DEBUG
   printf("**** Caching %s=%s\n", key, value ? value : "<NULL>");
@@ -1290,8 +1294,8 @@ int Redis::restore(char *key, char *buf) {
   int rc;
   redisReply *reply;
   char *buf_bin = (char*)malloc(strlen(buf));
-  const char * argv[4] = {"RESTORE", key, "0", buf_bin};
-  size_t argvlen[4] = {7, 0, 0, 0};
+  const char * argv[5] = {"RESTORE", key, "0", buf_bin, "REPLACE"};
+  size_t argvlen[5] = {7, 0, 0, 0, 7};
 
   if(buf_bin == NULL)
     return(-1);
@@ -1305,9 +1309,12 @@ int Redis::restore(char *key, char *buf) {
   argvlen[2] = strlen(argv[2]);
   argvlen[3] = strlen(buf) / 2;
 
-  reply = (redisReply*)redisCommandArgv(redis, 4, argv, argvlen);
+  reply = (redisReply*)redisCommandArgv(redis, 5, argv, argvlen);
 
   rc = reply ? 0 : -1;
+
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [RESTORE %s]", reply->str ? reply->str : "???", key), rc = -1;
 
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);

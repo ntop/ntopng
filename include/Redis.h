@@ -37,6 +37,7 @@ class Redis {
   pthread_t esThreadLoop;
   pthread_t lsThreadLoop;
   bool operational;
+  bool initializationCompleted;
   StringCache_t *stringCache;
   u_int numCached;
 
@@ -63,6 +64,7 @@ class Redis {
   inline bool haveRedisDump()      { return((num_redis_version >= 0x020600) ? true : false); }
   void setDefaults();
   inline bool isOperational() { return(operational); };
+  inline void setInitializationComplete() { initializationCompleted = true; };
   int expire(char *key, u_int expire_sec);
   int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
   int hashGet(char *key, char *member, char *rsp, u_int rsp_len);

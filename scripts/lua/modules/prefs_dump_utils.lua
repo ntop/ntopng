@@ -50,7 +50,7 @@ function prefs_dump_utils.readPrefsFromDisk()
       local restore = json.decode(dump, 1, nil)
 
       for k,v in pairs(restore or {}) do
-	 --print(k.."\n")
+	 --print(k.." = " .. v .. "\n")
 	 ntop.restoreCache(k,v)
       end
    end

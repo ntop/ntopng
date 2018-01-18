@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
 
   if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    /* NOTE: preferences restore from file is handled here */
     boot_activity->runScript();
     delete boot_activity;
   }

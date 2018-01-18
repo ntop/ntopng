@@ -320,6 +320,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     }
   }
 #endif
+
+  redis->setInitializationComplete();
 }
 
 /* ******************************************* */
