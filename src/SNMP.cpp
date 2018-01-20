@@ -29,11 +29,12 @@ extern "C" {
 
 /* ******************************* */
 
-SNMP::SNMP() {
+SNMP::SNMP(u_int8_t version) {
   if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     throw("Unable to start network discovery");
 
   Utils::maximizeSocketBuffer(udp_sock, true /* RX */, 2 /* MB */);
+  snmp_version = version;
 }
 
 /* ******************************* */
@@ -113,7 +114,7 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
 
 int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext) {
   char *agent_host, *community;
-  u_int timeout = 5, version = 1 /* SNMPv2c */, oid_idx = 0, i;
+  u_int timeout = 5, version = snmp_version, oid_idx = 0, i;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
     
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))  return(CONST_LUA_ERROR);

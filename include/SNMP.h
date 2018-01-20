@@ -31,14 +31,15 @@
 class SNMP {
  private:
   int udp_sock;
-
+  u_int snmp_version;
+  
   int _get(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int _getnext(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int snmp_get_fctn(lua_State* vm, bool isGetNext);  
   int snmp_read_response(lua_State* vm, u_int timeout);
   
   public:
-  SNMP();
+  SNMP(u_int8_t version = 1 /* SNMPv2c */);
   ~SNMP();
 
   void send_snmp_request(char *agent_host, char *community, bool isGetNext,

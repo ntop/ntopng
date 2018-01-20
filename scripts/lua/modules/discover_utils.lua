@@ -292,12 +292,17 @@ end
 
 -- ################################################################################
 
-local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names, snmpName, snmpDescr, osx, symName)
+local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names,
+			  snmpName, snmpDescr, osx, symName)
    local mdns = { }
    local ssdp = { }
    local str
    local friendlyName = ""
 
+   if(snmpName ~= nil) then
+      ntop.setHashCache("ntopng.prefs.snmp_devices", ip,  ntop.getPref("ntopng.prefs.default_snmp_community"))
+   end
+   
    if((ssdp_entries ~= nil) and (ssdp_entries.friendlyName ~= nil)) then
       friendlyName = ssdp_entries["friendlyName"]
    end
