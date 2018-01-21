@@ -700,6 +700,12 @@ local function validateSNMPversion(m)
 end
 
 -- #################################################################
+
+local function validateCIDR(m)
+   return validateChoice({"24", "32"}, m)
+end
+
+-- #################################################################
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
@@ -849,6 +855,7 @@ local known_parameters = {
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["default_snmp_version"]    =  validateSNMPversion,           -- Default SNMP protocol version
+   ["cidr"]                    =  validateCIDR,                  -- /32 or /24
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
    ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["request_discovery" ]      =  validateBool,                  -- forces device discovery to be re-cached
