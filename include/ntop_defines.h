@@ -468,6 +468,7 @@
 #define CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY     "flow_victim_threshold"
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
+#define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION         "ntopng.prefs.default_snmp_version"
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_LAN_INTERFACE              "ntopng.prefs.network.lan_if"
 #define CONST_RUNTIME_PREFS_WAN_INTERFACE              "ntopng.prefs.network.wan_if"

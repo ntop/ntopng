@@ -199,6 +199,9 @@ local menu_subpages = {
     }, default_snmp_community = {
       title       = i18n("prefs.default_snmp_community_title"),
       description = i18n("prefs.default_snmp_community_description"),
+    }, default_snmp_proto_version = {
+       title       = i18n("prefs.default_snmp_proto_version_title"),
+       description = i18n("prefs.default_snmp_proto_version_description"),
     },
   }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,   disabled=false, entries={
     toggle_nbox_integration = {

@@ -29,12 +29,17 @@ extern "C" {
 
 /* ******************************* */
 
-SNMP::SNMP(u_int8_t version) {
+SNMP::SNMP() {
+  char version[4] = { '\0' };
+
+  ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION, version, sizeof(version));
+
   if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     throw("Unable to start network discovery");
-
+  
   Utils::maximizeSocketBuffer(udp_sock, true /* RX */, 2 /* MB */);
-  snmp_version = version;
+  snmp_version = atoi(version);
+  if(snmp_version > 1 /* v2c */) snmp_version = 1;
 }
 
 /* ******************************* */

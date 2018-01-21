@@ -781,6 +781,8 @@ local  en = {
 	 " will be created an RRD with ingress/egress bytes.",
       default_snmp_community_title = "Default SNMP Community",
       default_snmp_community_description = "The default SNMP community is used when trying to walk the SNMP MIB of a selected local host that has not been configured through the SNMP devices page.",
+      default_snmp_proto_version_title = "Default SNMP Version",
+      default_snmp_proto_version_description = "The default SNMP protocol version.",
       nbox_integration = "nBox Integration",
       toggle_nbox_integration_title = "Enable nBox Support",
       toggle_nbox_integration_description = "Enable sending ntopng requests (e.g., to download pcap files) to an nBox. Pcap requests are issued "..

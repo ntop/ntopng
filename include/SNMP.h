@@ -39,7 +39,7 @@ class SNMP {
   int snmp_read_response(lua_State* vm, u_int timeout);
   
   public:
-  SNMP(u_int8_t version = 1 /* SNMPv2c */);
+  SNMP();
   ~SNMP();
 
   void send_snmp_request(char *agent_host, char *community, bool isGetNext,

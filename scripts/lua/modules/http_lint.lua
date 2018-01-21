@@ -694,6 +694,12 @@ local function validateInterfaceConfMode(m)
 end
 
 -- #################################################################
+
+local function validateSNMPversion(m)
+   return validateChoice({"0", "1"}, m)
+end
+
+-- #################################################################
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
@@ -842,6 +848,7 @@ local known_parameters = {
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
+   ["default_snmp_version"]    =  validateSNMPversion,           -- Default SNMP protocol version
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
    ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["request_discovery" ]      =  validateBool,                  -- forces device discovery to be re-cached

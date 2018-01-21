@@ -292,7 +292,7 @@ function printExternalAlertsReport()
 
   local retVal = multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                labels, values, "only_errors", "primary", "slack_notification_severity_preference",
-	       "ntopng.prefs.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
+	       "ntopng.prefs.alerts.slack_alert_severity", nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
 
   prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
            "ntopng.prefs.alerts.", "sender_username",
@@ -973,6 +973,12 @@ function printSnmp()
     disabled = not info["version.enterprise_edition"],
   })
 
+  local t_labels = {"v1", "v2c"}
+  local t_values = {"0", "1"}
+
+  multipleTableButtonPrefs(subpage_active.entries["default_snmp_proto_version"].title, subpage_active.entries["default_snmp_proto_version"].description,
+			   t_labels, t_values, "0", "primary", "default_snmp_version", "ntopng.prefs.default_snmp_version")
+  
   prefsInputFieldPrefs(subpage_active.entries["default_snmp_community"].title, subpage_active.entries["default_snmp_community"].description,
 		       "ntopng.prefs.",
 		       "default_snmp_community",
