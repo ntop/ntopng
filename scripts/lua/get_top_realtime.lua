@@ -30,6 +30,36 @@ if json_res ~= nil then
 
     if res ~= nil then
       data = res[direction]
+
+      local min_percentage = 0.08
+      local tot = 0
+      local other_value = 0
+
+      for _, item in pairs(data) do
+        tot = tot + item.value
+      end
+
+      local final_data = {}
+
+      for _, item in pairs(data) do
+        local perc = item.value / tot
+
+        if (perc >= min_percentage) and (item.address ~= "Other") then
+          if isEmptyString(item.label) then item.label = item.address end
+          final_data[#final_data + 1] = item
+        else
+          other_value = other_value + item.value
+        end
+      end
+
+      if other_value > 0 then
+        final_data[#final_data + 1] = {
+          label = i18n("other"),
+          value = other_value,
+        }
+      end
+
+      data = final_data
     end
   end
 end
