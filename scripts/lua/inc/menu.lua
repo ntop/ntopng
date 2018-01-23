@@ -459,7 +459,7 @@ if not have_nedge then
       <li class="divider"></li>
       <li><a href="]]
    print(ntop.getHttpPrefix())
-   print [[/lua/export_data.lua"><i class="fa fa-share"></i> Export Data</a></li]]
+   print [[/lua/export_data.lua"><i class="fa fa-share"></i> Export Data</a></li>]]
 else
    print [[<li class="divider"></li>]]
    print('<li class="dropdown-header">System</li>')
