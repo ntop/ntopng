@@ -449,7 +449,7 @@ if(user_group == "administrator") then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
 
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> Applications</a></li>\n")
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> Protocols</a></li>\n")
    end
 
 end

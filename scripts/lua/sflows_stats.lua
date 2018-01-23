@@ -68,7 +68,7 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 print [[
       rowCallback: function ( row ) { return flow_table_setID(row); },
 	       showPagination: true,
-	       buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+	       buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("protocols")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sflows_stats.lua">'..i18n("flows_page.all_proto")..'</a></li>')
 for key, value in pairsByKeys(stats["ndpi"], asc) do

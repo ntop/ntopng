@@ -49,7 +49,7 @@ end
 print [[<hr>
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">
-    <h2>]] print(i18n("applications")) print[[</h2>
+    <h2>]] print(i18n("protocols")) print[[</h2>
   </td>]]
 
 if not isEmptyString(proto_filter) then

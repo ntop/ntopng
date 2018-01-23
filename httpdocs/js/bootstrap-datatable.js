@@ -899,7 +899,9 @@
       .addClass("dropdown-menu")
       .css({ fontSize: 'initial', fontWeight: 'normal' })
       .append(
-          $('<li data-value="10"><a href="#">10</a></li>')
+          $('<li data-value="5"><a href="#">5</a></li>')
+            .click(function() { _updatePerPage.call(this, that); return false; })
+        , $('<li data-value="10"><a href="#">10</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
         , $('<li data-value="20"><a href="#">20</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
