@@ -82,6 +82,10 @@ end
 
 print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
 
+if have_nedge then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/nedge/dashboard.lua"><i class="fa fa-random"></i> Gateways and Users</a></li>')
+end
+
   if(interface.isDiscoverableInterface()) then
     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
   end
@@ -264,10 +268,6 @@ print [[
 
 if ifs["has_macs"] == true then
    local name = "Layer 2"
-
-   if have_nedge then
-      name = "Macs"
-   end
 
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=host_macs_only">'..name..'</a></li>')
    if(info["version.enterprise_edition"] == true) then
