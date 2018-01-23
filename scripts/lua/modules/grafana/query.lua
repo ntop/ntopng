@@ -44,6 +44,7 @@ else
       local is_traffic     = string.ends(t["target"], "_traffic_bps") or string.ends(t["target"], "_traffic_total_bytes")
       local is_packets   = string.ends(t["target"], "_traffic_pps") or string.ends(t["target"], "_traffic_total_packets")
       local is_allprotos = string.ends(t["target"], "_allprotocols_bps")
+      local is_allcategories = string.ends(t["target"], "_allcategories_bps")
 
       local ifname = string.gsub(t["target"], "^(.-)_", "") -- lazy match to remove up to the first underscore
       ifname = string.gsub(ifname, "_(.-)$", "") -- lazy match to remove up to the last underscore
@@ -51,7 +52,8 @@ else
       local rrdfile = ""
       if is_traffic then rrdfile = "bytes.rrd"
       elseif is_packets then rrdfile = "packets.rrd"
-      elseif is_allprotos then rrdfile ="all" end
+      elseif is_allprotos then rrdfile = "all"
+      elseif is_allcategories then rrdfile = "all_ndpi_categories" end
 
       local datapoints = {}
 
@@ -81,6 +83,6 @@ else
 
    -- tprint("QUERY")
    -- tprint(_GRAFANA)
-   
+
    print(json.encode(res, nil))
 end
