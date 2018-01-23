@@ -6,28 +6,29 @@ require "db_utils"
 require "historical_utils"
 local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
+local have_nedge = ntop.isnEdge()
 
 local top_rrds = {
    {rrd="num_flows.rrd",               label=i18n("graphs.active_flows")},
    {rrd="num_hosts.rrd",               label=i18n("graphs.active_hosts")},
    {rrd="num_devices.rrd",             label=i18n("graphs.active_devices")},
-   {rrd="num_http_hosts.rrd",          label=i18n("graphs.active_http_servers")},
+   {rrd="num_http_hosts.rrd",          label=i18n("graphs.active_http_servers"), nedge_exclude=1},
    {rrd="bytes.rrd",                   label=i18n("traffic")},
    {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
-   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
+   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops"), nedge_exclude=1},
    {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
-   {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows")},
+   {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
+   {separator=1, nedge_exclude=1},
+   {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+   {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+   {rrd="tcp_retransmissions.rrd",     label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
+   {rrd="tcp_retr_ooo_lost.rrd",       label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
    {separator=1},
-   {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost")},
-   {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo")},
-   {rrd="tcp_retransmissions.rrd",     label=i18n("graphs.tcp_packets_retr")},
-   {rrd="tcp_retr_ooo_lost.rrd",       label=i18n("graphs.tcp_retr_ooo_lost")},
-   {separator=1},
-   {rrd="tcp_syn.rrd",                 label=i18n("graphs.tcp_syn_packets")},
-   {rrd="tcp_synack.rrd",              label=i18n("graphs.tcp_synack_packets")},
-   {rrd="tcp_finack.rrd",              label=i18n("graphs.tcp_finack_packets")},
-   {rrd="tcp_rst.rrd",                 label=i18n("graphs.tcp_rst_packets")},
+   {rrd="tcp_syn.rrd",                 label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
+   {rrd="tcp_synack.rrd",              label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
+   {rrd="tcp_finack.rrd",              label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
+   {rrd="tcp_rst.rrd",                 label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
 }
 
 -- ########################################################
@@ -408,7 +409,11 @@ end
 function isTopRRD(filename)
    for _,top in ipairs(top_rrds) do
       if top.rrd == filename then
-         return true
+         if not have_nedge or not top.nedge_exclude then
+            return true
+         else
+            return false
+         end
       end
    end
 
@@ -431,6 +436,10 @@ function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
    local needs_separator = false
 
    for _,top in ipairs(top_rrds) do
+      if have_nedge and top.nedge_exclude then
+         goto continue
+      end
+
       if top.separator then
          needs_separator = true
      else
@@ -450,6 +459,8 @@ function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
             print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. (zoomLevel or '') .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
          end
       end
+
+      ::continue::
    end
 end
 

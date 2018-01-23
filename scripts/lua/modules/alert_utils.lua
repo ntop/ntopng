@@ -618,6 +618,7 @@ local global_redis_thresholds_key = "thresholds"
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
+   local have_nedge = ntop.isnEdge()
 
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
@@ -937,6 +938,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	 end
 
 	 -- Print the config
+      if not have_nedge then
          for _, config in ipairs(anomalies_config) do
             print("<tr><td><b>"..(config.title).."</b><br>\n")
             print("<small>"..(config.descr)..".</small>")
@@ -952,8 +954,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
             print("</td></tr>")
          end
-
       end
+   end
 
       print [[
       </tbody> </table>

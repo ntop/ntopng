@@ -16,7 +16,14 @@ end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-active_page = "devices_stats"
+local have_nedge = ntop.isnEdge()
+
+if have_nedge then
+   active_page = "hosts"
+else
+   active_page = "devices_stats"
+end
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local base_url = ntop.getHttpPrefix() .. "/lua/macs_stats.lua"
@@ -229,6 +236,7 @@ print [[
 			     {
 			     title: "]] print(i18n("mac_stats.arp_total")) print[[",
 				 field: "column_arp_total",
+             hidden: ]] print(ternary(have_nedge, "true", "false")) print[[,
 				 sortable: true,
                              css: {
 			        textAlign: 'center'

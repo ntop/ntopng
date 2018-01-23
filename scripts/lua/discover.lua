@@ -11,6 +11,8 @@ local discover = require "discover_utils"
 local ifId = getInterfaceId(ifname)
 local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></small>'
 
+active_page = "dashboard"
+
 if _GET["request_discovery"] == "true" then
    refresh_button = ""
    discover.requestNetworkDiscovery(ifId)

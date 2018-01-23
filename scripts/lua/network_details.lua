@@ -20,6 +20,7 @@ local page           = _GET["page"]
 interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
+local have_nedge = ntop.isnEdge()
 
 local network_name = ntop.getNetworkNameById(tonumber(network))
 local network_vlan   = tonumber(_GET["vlan"])
@@ -74,7 +75,7 @@ end
       else
          print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
-   else
+   elseif not have_nedge then
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
    

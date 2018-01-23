@@ -211,6 +211,8 @@ if((page == "overview") or (page == nil)) then
    end
 
    print("<tr><th>" .. i18n("details.traffic_sent_received") .. "</th><td><span id=pkts_sent>" .. formatPackets(mac_info["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(mac_info["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(mac_info["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(mac_info["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+
+if not have_nedge then
    print([[
 <tr>
    <th rowspan="2"><A HREF=https://en.wikipedia.org/wiki/Address_Resolution_Protocol>]]) print(i18n("details.address_resolution_protocol")) print[[</A></th>
@@ -221,7 +223,7 @@ print([[<tr>
    <td><span id="arp_requests_sent">]]..formatValue(mac_info["arp_requests.sent"])..[[</span> ]]..i18n("sent")..[[ / <span id="arp_requests_rcvd">]]..formatValue(mac_info["arp_requests.rcvd"])..[[</span> ]]..i18n("received")..[[</td>
    <td><span id="arp_replies_sent">]]..formatValue(mac_info["arp_replies.sent"])..[[</span> ]]..i18n("sent")..[[ / <span id="arp_replies_rcvd">]]..formatValue(mac_info["arp_replies.rcvd"])..[[</span> ]]..i18n("received")..[[</td>
 </tr>]])
-
+end
    print("</table>")
 
    print('<script type="text/javascript">')

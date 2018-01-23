@@ -206,7 +206,7 @@ end
 
 if(page == "packets") then
    print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
-else
+elseif not have_nedge then
    if((host["ip"] ~= nil) and (
    	(host["udp.packets.sent"] > 0)
 	or (host["udp.packets.rcvd"] > 0)
@@ -286,7 +286,7 @@ if host["localhost"] == true then
    if(ntop.isPro()) then
       if(page == "snmp") then
 	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
-      elseif interface.isPcapDumpInterface() == false then
+      elseif interface.isPcapDumpInterface() == false and not have_nedge then
 	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
       end
    end
@@ -343,7 +343,7 @@ if host["localhost"] == true then
       else
          print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
-   else
+   elseif not have_nedge then
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
 end
@@ -1821,7 +1821,7 @@ elseif (page == "config") then
       </tr>]]
    end
 
-   if(host["localhost"] == true and is_packetdump_enabled) then
+   if(host["localhost"] == true and is_packetdump_enabled and not have_nedge) then
       print [[<tr>
          <th>]] print(i18n("host_config.dump_host_traffic")) print[[</th>
          <td>
@@ -1867,9 +1867,17 @@ elseif (page == "config") then
 
       print[[<a class="btn btn-default btn-sm" href="]]
       print(ntop.getHttpPrefix())
-      print[[/lua/if_stats.lua?page=filtering&pool=]]
-      print(tostring(host["host_pool_id"]))
-      print[[#protocols">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
+
+      if not have_nedge then
+         print[[/lua/if_stats.lua?page=filtering&pool=]]
+         print(tostring(host["host_pool_id"]))
+         print[[#protocols">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
+      else
+         print[[/lua/pro/nedge/admin/nf_edit_user.lua]]
+         print(ternary(host_pool_id == host_pools_utils.DEFAULT_POOL_ID, "", "?username=" .. host_pools_utils.poolIdToUsername(host_pool_id)))
+         print[[">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
+      end
+
       print('</td></tr>')
 
       print('</form>')

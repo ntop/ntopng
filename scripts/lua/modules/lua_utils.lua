@@ -2109,7 +2109,7 @@ function isLocalPacketdumpEnabled()
    else
       nbox_integration = true
    end
-   return isAdministrator() and not nbox_integration and interface.isPacketInterface()
+   return isAdministrator() and not nbox_integration and interface.isPacketInterface() and not ntop.isnEdge()
 end
 
 function processColor(proc)

@@ -2462,6 +2462,7 @@ local  en = {
       status_disabled = "Disabled",
       please_fill_out_this_field = "Please fill out this field.",
       edit_quotas = "Edit Quotas",
+      active_user = "Active User",
    },
 }
 

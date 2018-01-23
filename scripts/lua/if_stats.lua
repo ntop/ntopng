@@ -24,7 +24,7 @@ require "alert_utils"
 require "db_utils"
 require "rrd_utils"
 
-local have_nedge_2 = ntop.isnEdge()
+local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
@@ -191,7 +191,7 @@ end
 
 if(page == "ICMP") then
   print("<li class=\"active\"><a href=\"#\">" .. i18n("icmp") .. "</a></li>\n")
-else
+elseif not have_nedge then
   print("<li><a href=\""..url.."&page=ICMP\">" .. i18n("icmp") .. "</a></li>")
 end
 
@@ -199,7 +199,7 @@ end
 if ifstats["has_macs"] then
    if(page == "ARP") then
      print("<li class=\"active\"><a href=\"#\">" .. i18n("arp") .. "</a></li>\n")
-   else
+   elseif not have_nedge then
      print("<li><a href=\""..url.."&page=ARP\">" .. i18n("arp") .. "</a></li>")
    end
 end
@@ -213,7 +213,7 @@ if(ntop.exists(rrdname) and not is_historical) then
 end
 
 
-if not have_nedge_2 and (table.len(ifstats.profiles) > 0) then
+if not have_nedge and (table.len(ifstats.profiles) > 0) then
   if(page == "trafficprofiles") then
     print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   else
@@ -248,7 +248,7 @@ if(ntop.isEnterprise()) then
       else
          print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
-else
+elseif not have_nedge then
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
 end
 
@@ -270,7 +270,7 @@ if isAdministrator() and (not ifstats.isView) then
       label = ""
    end
 
-   if not have_nedge_2 then
+   if not have_nedge then
       if(page == "pools") then
          print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
       else
@@ -287,7 +287,7 @@ if(hasSnmpDevices(ifstats.id) and is_packet_interface and false --[[disabled: no
    end
 end
 
-if(ifstats.inline and isAdministrator() and not have_nedge_2) then
+if(ifstats.inline and isAdministrator() and not have_nedge) then
    if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">"..i18n('traffic_policy').."</a></li>")
    else
@@ -384,7 +384,7 @@ if((page == "overview") or (page == nil)) then
    else
       print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
 
-      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() and not have_nedge_2 then
+      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() and not have_nedge then
          print[[ <a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-sm fa-magic" aria-hidden="true" title=]] print('\"'..i18n("bridge_wizard.bridge_wizard")..'\"') print[[></i></a>]]
          show_bridge_wizard = true
       end
@@ -621,17 +621,19 @@ print("</script>\n")
       dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
    end
 elseif((page == "packets")) then
+   local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')
+
    print [[ <table class="table table-bordered table-striped"> ]]
-   print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-   print("<tr></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-   print("<tr></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+   print("<tr " .. nedge_hidden .. "><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+   print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+   print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
     if(ifstats.type ~= "zmq") then
-      print [[<tr><th class="text-left">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
+      print [[<tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
     end
 
     print[[
-  	 <tr><th class="text-left">]] print(i18n("packets_page.tcp_flags_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
+  	 <tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.tcp_flags_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
     <tr><th class="text-left">]] print(i18n("packets_page.ip_version_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
       </table>
 
@@ -1103,7 +1105,7 @@ elseif(page == "config") then
    end
 
    -- Scaling factor
-   if interface.isPacketInterface() then
+   if interface.isPacketInterface() and not have_nedge then
       local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
       if((label == nil) or (label == "")) then label = "1" end
 
