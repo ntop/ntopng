@@ -12,7 +12,7 @@ local top_talkers_utils = require("top_talkers_utils")
 sendHTTPContentTypeHeader('text/html')
 
 local ifid = getInterfaceId(ifname)
-local epoch = _GET["epoch"]
+local epoch = _GET["epoch"] or os.time()
 local add_vlan = _GET["addvlan"]
 
 -- TODO clean up

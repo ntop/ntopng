@@ -195,7 +195,7 @@ class Host : public GenericHost, public Checkpointable {
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
-  void checkPointHostTalker(lua_State *vm);
+  void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   void incrVisitedWebSite(char *hostname);

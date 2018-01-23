@@ -1558,11 +1558,11 @@ bool Host::serializeCheckpoint(json_object *my_object, DetailsLevel details_leve
 
 /* *************************************** */
 
-void Host::checkPointHostTalker(lua_State *vm) {
+void Host::checkPointHostTalker(lua_State *vm, bool saveCheckpoint) {
   lua_newtable(vm);
 
   if (! checkpoint_set) {
-    checkpoint_set = true;
+    if(saveCheckpoint) checkpoint_set = true;
   } else {
     lua_newtable(vm);
     lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
@@ -1572,12 +1572,17 @@ void Host::checkPointHostTalker(lua_State *vm) {
     lua_settable(vm, -3);
   }
 
-  checkpoint_sent_bytes = sent.getNumBytes();
-  checkpoint_rcvd_bytes = rcvd.getNumBytes();
+  u_int32_t sent_bytes = sent.getNumBytes();
+  u_int32_t rcvd_bytes = rcvd.getNumBytes();
+
+  if(saveCheckpoint) {
+    checkpoint_sent_bytes = sent_bytes;
+    checkpoint_rcvd_bytes = rcvd_bytes;
+  }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "sent", checkpoint_sent_bytes);
-  lua_push_int_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
+  lua_push_int_table_entry(vm, "sent", sent_bytes);
+  lua_push_int_table_entry(vm, "rcvd", rcvd_bytes);
   lua_pushstring(vm, "current");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

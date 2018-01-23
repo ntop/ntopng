@@ -6,7 +6,7 @@
 window.onload=function() {
    var refresh = 3000 /* ms */;
 
-   do_pie("#topSenders", '@HTTP_PREFIX@/lua/top_generic.lua?module=top_talkers', { senders_receivers : "senders" }, "", refresh);
+   do_pie("#topSenders", '@HTTP_PREFIX@/lua/get_top_realtime.lua?module=top_talkers', { senders_receivers : "senders" }, "", refresh);
 }
 
 </script>

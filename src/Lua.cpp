@@ -2542,6 +2542,7 @@ static int ntop_checkpoint_interface_host_talker(lua_State* vm) {
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
+  bool save_checkpoint = true;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2553,7 +2554,9 @@ static int ntop_checkpoint_interface_host_talker(lua_State* vm) {
 
   get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
 
-  if(!iface || iface->isView() || !iface->checkPointHostTalker(vm, host_ip, vlan_id)) {
+  if(lua_type(vm, 3) == LUA_TBOOLEAN) save_checkpoint = lua_toboolean(vm, 3);
+
+  if(!iface || iface->isView() || !iface->checkPointHostTalker(vm, host_ip, vlan_id, save_checkpoint)) {
     lua_pushnil(vm);
     return(CONST_LUA_ERROR);
   } else
