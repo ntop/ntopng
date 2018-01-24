@@ -71,7 +71,7 @@ AC_ARG_WITH(ndpi-static-lib,
          AC_MSG_CHECKING(your own nDPI library)
          if test -r $withval/libndpi.a; then
             AC_MSG_RESULT(ok)
-            NDPI_CUST_LIB=$withval
+            NDPI_CUST_LIB=$withval/libndpi.a
          else
             AC_MSG_RESULT(no)
             AC_MSG_ERROR(ERROR: Unable to find custom nDPI static library in $withval)
