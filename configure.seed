@@ -107,7 +107,7 @@ PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
          NDPI_HOME=$HOME/nDPI
       fi
 
-      if test -v NDPI_HOME ; then :
+      if test ! -z "$NDPI_HOME" ; then :
          AC_MSG_RESULT(found in $NDPI_HOME)
          NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
          AC_MSG_CHECKING(for $NDPI_LIB)
@@ -125,18 +125,18 @@ PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
       fi
    ])
 
-if test -v NDPI_CUST_INC ; then :
+if test ! -z "$NDPI_CUST_INC" ; then :
    NDPI_INC=$NDPI_CUST_INC
 fi
 
-if test -v NDPI_CUST_LIB ; then :
+if test ! -z "$NDPI_CUST_LIB" ; then :
    NDPI_LIB=$NDPI_CUST_LIB
 fi
 
-if test ! -v NDPI_INC || test ! -v NDPI_LIB ; then :
+if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
    echo "Could not find nDPI"
    echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
-   echo " and try again"
+   echo "and try again"
    exit
 fi
 dnl finish: nDPI handling
@@ -194,7 +194,7 @@ if test "${with_minimal_nprobe+set}" != "set"; then :
   fi
 fi
 
-if test  -f "${NDB_HOME}/lib/libnDB.a"; then
+if test -f "${NDB_HOME}/lib/libnDB.a"; then
   PRO_INCS="${PRO_INCS} -I ${NDB_HOME}/include"
   PRO_LIBS="${PRO_LIBS} ${NDB_HOME}/lib/libnDB.a ${NDB_HOME}/third-party/zstd/lib/libzstd.a"
   AC_DEFINE_UNQUOTED(HAVE_NDB, 1, [nDB support is present])
