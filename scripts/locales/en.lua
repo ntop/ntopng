@@ -2472,6 +2472,10 @@ local  en = {
       protocols_policies = "Protocol Policies",
       categories_policies = "Category Policies",
       user_category_policies = "User Category Policies",
+      power_off = "Power Off",
+      power_off_confirm = "Do you want to power off the device?",
+      reboot = "Reboot",
+      reboot_corfirm = "Do you want to reboot the device?",
    },
 }
 

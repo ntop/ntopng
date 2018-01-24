@@ -9,6 +9,7 @@ print [[
       <p id="ntopng_update_available"></p>
    ]]
 
+local template = require "template_utils"
 info = ntop.getInfo(true)
 
 print [[
@@ -33,6 +34,41 @@ local alias = getInterfaceNameAlias(ifname)
 print(alias)
 
 print('</span></a>')
+
+if ntop.isnEdge() then
+  print[[<form id="powerOffForm" method="post">
+    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
+    <input name="poweroff" value="" type="hidden" />
+  </form>
+  <form id="rebootForm" method="post">
+    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
+    <input name="reboot" value="" type="hidden" />
+  </form>]]
+
+  print(
+    template.gen("modal_confirm_dialog.html", {
+      dialog={
+        id      = "poweroff_dialog",
+        action  = "$('#powerOffForm').submit()",
+        title   = i18n("nedge.power_off"),
+        message = i18n("nedge.power_off_confirm"),
+        confirm = i18n("nedge.power_off"),
+      }
+    })
+  )
+
+  print(
+    template.gen("modal_confirm_dialog.html", {
+      dialog={
+        id      = "reboot_dialog",
+        action  = "$('#rebootForm').submit()",
+        title   = i18n("nedge.reboot"),
+        message = i18n("nedge.reboot_corfirm"),
+        confirm = i18n("nedge.reboot"),
+      }
+    })
+  )
+end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false

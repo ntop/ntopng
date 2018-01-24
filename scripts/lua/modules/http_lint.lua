@@ -1092,6 +1092,8 @@ local known_parameters = {
    ["slow_pass_shaper_perc"]   =  validateNumber,
    ["slower_pass_shaper_perc"] =  validateNumber,
    ["skip_critical"]           =  validateBool,
+   ["reboot"]                  =  validateEmpty,
+   ["poweroff"]                =  validateEmpty,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

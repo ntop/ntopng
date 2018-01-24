@@ -3273,7 +3273,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       function resol_selector_on_form_submit(event) {
         var form = $(this);
 
-        if (event.isDefaultPrevented())   /* isDefaultPrevented is true when the form is invalid */
+        if (event.isDefaultPrevented() || (form.find(".has-error").length > 0))
           return false;
 
         resol_selector_finalize(form);

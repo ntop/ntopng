@@ -31,6 +31,19 @@ ifId = ifs.id
 
 local have_nedge = ntop.isnEdge()
 
+if have_nedge then
+   if (_POST["poweroff"] ~= nil) or (_POST["reboot"] ~= nil) then
+      package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
+      local NfConfig = require("nf_config")
+
+      if _POST["poweroff"] ~= nil then
+         NfConfig.shutdownSystem()
+      else
+         NfConfig.rebootSystem()
+      end
+   end
+end
+
 -- ##############################################
 
 if active_page == "home" or active_page == "about" then
@@ -481,10 +494,25 @@ print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 	 <i class="fa fa-power-off fa-lg"></i> <b class="caret"></b>
       </a>
-    <ul class="dropdown-menu">
-	 <li><a href="]]
+    <ul class="dropdown-menu">]]
+
+   if have_nedge then
+      print[[<li><a href="javascript:void(0);" onclick='$("#poweroff_dialog").modal("show");'><i class="fa fa-power-off"></i> ]]
+      print(i18n("nedge.power_off"))
+      print[[</a></li>]]
+
+      print[[<li><a href="javascript:void(0);" onclick='$("#reboot_dialog").modal("show");'><i class="fa fa-undo"></i> ]]
+      print(i18n("nedge.reboot"))
+      print[[</a></li>]]
+
+      print[[<li class="divider"></li>]]
+   end
+
+print[[<li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> Logout ]]    print(_COOKIE["user"]) print [[</a></li>
+print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> Logout ]]    print(_COOKIE["user"]) print [[</a></li>]]
+
+   print[[
     </ul>
     </li>
    ]]
