@@ -518,7 +518,8 @@ static void authorize(struct mg_connection *conn,
     }
   }
 
-  if(isCaptiveConnection(conn) || (!ntop->checkUserPassword(user, password))) {
+  if(isCaptiveConnection(conn) || ntop->isCaptivePortalUser(user) ||
+	    (!ntop->checkUserPassword(user, password))) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
   } else {

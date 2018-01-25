@@ -876,6 +876,8 @@ static const char *get_header(const struct mg_request_info *ri,
 			      const char *name) {
   int i;
 
+  if(!ri) return NULL;
+
   for (i = 0; i < ri->num_headers; i++)
     if (!mg_strcasecmp(name, ri->http_headers[i].name))
       return ri->http_headers[i].value;
