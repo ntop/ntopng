@@ -302,3 +302,9 @@ tr.quotas > td {
   min-width: 22em;
   text-align: right;
 }
+
+.masthead > ul.nav > li > ul > li > a > i {
+  width: 15px;
+  text-align: center;
+  margin-right: 2px;
+}

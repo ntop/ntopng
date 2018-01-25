@@ -6,6 +6,12 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+
+if ntop.isnEdge() then
+   dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menu.lua")
+   return
+end
+
 local template = require "template_utils"
 
 prefs = ntop.getPrefs()
@@ -28,21 +34,6 @@ print [[
 interface.select(ifname)
 local ifs = interface.getStats()
 ifId = ifs.id
-
-local have_nedge = ntop.isnEdge()
-
-if have_nedge then
-   if (_POST["poweroff"] ~= nil) or (_POST["reboot"] ~= nil) then
-      package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-      local NfConfig = require("nf_config")
-
-      if _POST["poweroff"] ~= nil then
-         NfConfig.shutdownSystem()
-      else
-         NfConfig.rebootSystem()
-      end
-   end
-end
 
 -- ##############################################
 
@@ -94,10 +85,6 @@ else
 end
 
 print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
-
-if have_nedge then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/nedge/dashboard.lua"><i class="fa fa-random"></i> Gateways and Users</a></li>')
-end
 
   if(interface.isDiscoverableInterface()) then
     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> Network Discovery</a></li>')
@@ -151,7 +138,7 @@ if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
         <a  href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/show_alerts.lua">
-          <i class="fa fa-warning id="alerts-menu-triangle"></i> Detected Alerts
+          <i class="fa fa-warning" id="alerts-menu-triangle"></i> Detected Alerts
         </a>
       </li>
 ]]
@@ -210,15 +197,9 @@ print(ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua">Hosts</a></li>
       ]]
 
-if have_nedge then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=host_macs_only">Devices</a></li>')
-end
-
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">Networks</a></li>')
 if not _ifstats.isView then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">'
-	    ..ternary(have_nedge, 'Users', 'Host Pools')
-	    ..'</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">Host Pools</a></li>')
 end
 
   if(ntop.hasGeoIP()) then
@@ -236,17 +217,12 @@ end
 end
 
 print('<li class="divider"></li>')
-if not have_nedge then
-   print('<li class="dropdown-header">Local Traffic</li>')
-end
+print('<li class="dropdown-header">Local Traffic</li>')
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/local_hosts_stats.lua"><i class="fa fa-binoculars" aria-hidden="true"></i> Looking Glass</a></li>')
-
-if not have_nedge then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP Servers</a></li>')
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts</a></li>')
-   print('<li class="divider"></li>')
-end
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP Servers</a></li>')
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts</a></li>')
+print('<li class="divider"></li>')
 
 if(_ifstats.iface_sprobe) then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> System Interactions</a></li>\n')
@@ -259,19 +235,15 @@ if(not(isLoopback(ifname))) then
 print(ntop.getHttpPrefix())
 print [[/lua/hosts_geomap.lua"><i class="fa fa-map-marker"></i> Geo Map</a></li>]]
 
-   if not have_nedge then
-      print[[<li><a href="]] print(ntop.getHttpPrefix())
-      print [[/lua/hosts_treemap.lua"><i class="fa fa-sitemap"></i> Tree Map</a></li>]]
-   end
+   print[[<li><a href="]] print(ntop.getHttpPrefix())
+   print [[/lua/hosts_treemap.lua"><i class="fa fa-sitemap"></i> Tree Map</a></li>]]
 end
 
-if not have_nedge then
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> Local Flow Matrix</a></li>
    ]]
-end
 
 print("</ul> </li>")
 
@@ -285,7 +257,6 @@ else
   print [[ <li class="dropdown"> ]]
 end
 
-if not have_nedge then
    print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">Devices <b class="caret"></b>
       </a>
@@ -308,14 +279,13 @@ if not have_nedge then
    end
 
    print("</ul> </li>")
-end
 
 end
 
 local is_bridge_interface = isBridgeInterface(_ifstats)
 
 -- Interfaces
-if(num_ifaces > 0) and not have_nedge then
+if(num_ifaces > 0) then
 if active_page == "if_stats" then
   print [[ <li class="dropdown active"> ]]
 else
@@ -432,13 +402,8 @@ print [[
 user_group = ntop.getUserGroup()
 
 if(user_group == "administrator") then
-  if not have_nedge then
-     print[[<li><a href="]] print(ntop.getHttpPrefix())
-     print[[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>]]
-  else
-     print[[<li><a href="]] print(ntop.getHttpPrefix())
-     print [[/lua/pro/nedge/admin/nf_list_users.lua"><i class="fa fa-user"></i> Manage Users</a></li>]]
-  end
+  print[[<li><a href="]] print(ntop.getHttpPrefix())
+  print[[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>]]
 else
   print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>]]
 end
@@ -446,7 +411,7 @@ end
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a></li>\n")
 
-   if is_bridge_interface and ntop.isEnterprise() and not have_nedge then
+   if is_bridge_interface and ntop.isEnterprise() then
       print[[<form id="go_show_bridge_wizard" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua">]]
       print[[<input name="show_wizard" type="hidden" value="" />]]
       print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
@@ -455,9 +420,7 @@ if(user_group == "administrator") then
    end
 
    if(ntop.isPro()) then
-      if not have_nedge then
-         print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")
-      end
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> Traffic Profiles</a></li>\n")
       if(false) then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
@@ -467,22 +430,12 @@ if(user_group == "administrator") then
 
 end
 
-if not have_nedge then
+
    print [[
       <li class="divider"></li>
       <li><a href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/export_data.lua"><i class="fa fa-share"></i> Export Data</a></li>]]
-else
-   print [[<li class="divider"></li>]]
-   print('<li class="dropdown-header">System</li>')
-
-   print[[<li><a href="]] print(ntop.getHttpPrefix())
-   print[[/lua/pro/nedge/system_setup/interfaces.lua"><i class="fa fa-microchip"></i> System Setup</a></li>]]
-
-   print[[<li><a href="]] print(ntop.getHttpPrefix())
-   print [[/lua/pro/nedge/admin/dhcp_leases.lua"><i class="fa fa-bolt"></i> DHCP Leases</a></li>]]
-end
 
 print[[</ul>
     </li>
@@ -495,18 +448,6 @@ print [[
 	 <i class="fa fa-power-off fa-lg"></i> <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">]]
-
-   if have_nedge then
-      print[[<li><a href="javascript:void(0);" onclick='$("#poweroff_dialog").modal("show");'><i class="fa fa-power-off"></i> ]]
-      print(i18n("nedge.power_off"))
-      print[[</a></li>]]
-
-      print[[<li><a href="javascript:void(0);" onclick='$("#reboot_dialog").modal("show");'><i class="fa fa-undo"></i> ]]
-      print(i18n("nedge.reboot"))
-      print[[</a></li>]]
-
-      print[[<li class="divider"></li>]]
-   end
 
 print[[<li><a href="]]
 print(ntop.getHttpPrefix())
