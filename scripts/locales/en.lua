@@ -2224,6 +2224,9 @@ local  en = {
       auth_success = "Authentication Successful",
       passwords_dont_match = "Passwords don't match.",
       password_pattern_error = "Please enter at least 5 valid characters.",
+      web_users = "Web Users",
+      add_web_user = "Add Web User",
+      add_captive_portal_user = "Add Captive Portal User",
    },
 
    policy_presets = {
@@ -2476,6 +2479,8 @@ local  en = {
       power_off_confirm = "Do you want to power off the device?",
       reboot = "Reboot",
       reboot_corfirm = "Do you want to reboot the device?",
+      system_users = "System Users",
+      add_system_user = "Add System User",
    },
 }
 

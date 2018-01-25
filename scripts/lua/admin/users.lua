@@ -11,7 +11,7 @@ sendHTTPContentTypeHeader('text/html')
 if(haveAdminPrivileges()) then
    interface.select(ifname)
 
-   is_captive_portal_active = isCaptivePortalActive()
+   is_captive_portal_active = isCaptivePortalActive() and not ntop.isnEdge()
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    
@@ -22,7 +22,7 @@ if(haveAdminPrivileges()) then
 
    local ifstats = interface.getStats()
    local is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
-   if(ifstats.inline and not(is_captive_portal_enabled)) then
+   if(ifstats.inline and not(is_captive_portal_enabled)) and not ntop.isnEdge() then
       print('<small><b>NOTE:</b> <A HREF="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=bridging">Enabling the captive portal</A> allows you to define captive portal users.</small>')
    end
 

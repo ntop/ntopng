@@ -1,7 +1,7 @@
 local captive_portal_btn = ""
 
 local get_users_url = ntop.getHttpPrefix().."/lua/admin/get_users.lua"
-local users_type = {ntopng="Web Users", captive_portal="Captive Portal Users"}
+local users_type = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.system_users"), i18n("login.web_users")), captive_portal=i18n("bridge_wizard.captive_portal_users")}
 
 local title = users_type["ntopng"]
 local captive_portal_users = false

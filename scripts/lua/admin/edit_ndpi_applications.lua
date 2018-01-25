@@ -9,10 +9,6 @@ require "lua_utils"
 local template = require "template_utils"
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
 local proto_filter = _GET["l7proto"]
 
 local ifId = interface.name2id(ifname)
@@ -20,6 +16,9 @@ local ifId = interface.name2id(ifname)
 if not haveAdminPrivileges() then
   return
 end
+
+ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if not table.empty(_POST) then
   local custom_categories = getCustomnDPIProtoCategories(ifname)

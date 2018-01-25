@@ -2,7 +2,7 @@ require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
-local messages = {ntopng="Add Web User", captive_portal="Add Captive Portal User"}
+local messages = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user")), captive_portal=i18n("login.add_captive_portal_user")}
 
 local add_user_msg = messages["ntopng"]
 local captive_portal_user = false
