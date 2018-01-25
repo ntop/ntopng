@@ -1730,23 +1730,31 @@ if  test -d ../../pro/  &&  ! test -f ../../pro/utils/snzip ; then
    exit
 fi
 
-if  test -f /usr/bin/lsb_release  &&  test -d $HOME/PF_RING ; then
+if  test -f /usr/bin/lsb_release ; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
 
-   if test "$UBUNTU_SUB_RELEASE" = "9"; then
-     UBUNTU_RELEASE="debian9"
-   fi
+  if test "$UBUNTU_SUB_RELEASE" = "9"; then
+    UBUNTU_RELEASE="debian9"
+  fi
 
-if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "debian9" ; then
+  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "debian9" ; then
     ZMQ_DEP="libzmq5"
   else
     ZMQ_DEP="libzmq3"
   fi
   EXTRA_DEPS=", libnuma1, $ZMQ_DEP, libnetfilter-queue1"
-  PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
-  PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[:space:]'`
-  PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
+
+  if  test -d $HOME/PF_RING ; then
+    PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+    PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[:space:]'`
+    PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
+  else
+    PFRING_VERS=""
+    PFRING_RELEASE=""
+    PFRING_DEP=""
+  fi
+
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
