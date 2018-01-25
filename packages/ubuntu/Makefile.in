@@ -43,7 +43,7 @@ ntopng: ntopng-prep
 	@/bin/rm -f ../ntopng_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b
 	@CHOWN@
-#	dpkg-sig --sign builder -k D1EB60BE ../ntopng_*deb
+	dpkg-sig --sign builder -k D1EB60BE ../ntopng_*deb
 	@\rm -f ../ntopng_*dsc ../ntopng_*.gz ../ntopng_*changes
 	@/bin/mv ../ntopng_*deb .
 	@echo
@@ -70,7 +70,7 @@ nedge: nedge-prep
 	@/bin/rm -f ../nedge_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b
 	@CHOWN@
-#	dpkg-sig --sign builder -k D1EB60BE ../nedge_*deb
+	dpkg-sig --sign builder -k D1EB60BE ../nedge_*deb
 	@\rm -f ../nedge_*dsc ../nedge_*.gz ../nedge_*changes
 	@/bin/mv ../nedge_*deb .
 	@echo
@@ -97,7 +97,7 @@ ntopng-data:
 	@/bin/rm -f ../ntopng-data_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc
 	@SUDO@ chown ${USER}:${GROUP} ../ntopng-data_*deb
-#	dpkg-sig --sign builder -k D1EB60BE ../ntopng-data_*deb
+	dpkg-sig --sign builder -k D1EB60BE ../ntopng-data_*deb
 	@\rm -f ../ntopng-data_*dsc ../ntopng-data_*.gz ../ntopng-data_*changes
 	@/bin/mv ../ntopng-data_*deb .
 	@echo
