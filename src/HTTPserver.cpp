@@ -75,7 +75,7 @@ static inline const char * get_secure_cookie_attributes(const struct mg_request_
 }
 
 /* ****************************************** */
-
+#ifndef HAVE_OLD_NEDGE
 static void redirect_to_ssl(struct mg_connection *conn,
                             const struct mg_request_info *request_info) {
   const char *host = mg_get_header(conn, "Host");
@@ -96,7 +96,7 @@ static void redirect_to_ssl(struct mg_connection *conn,
     mg_printf(conn, "%s", "HTTP/1.1 500 Error\r\n\r\nHost: header is not set");
   }
 }
-
+#endif
 /* ****************************************** */
 
 // Generate session ID. buf must be 33 bytes in size.
@@ -656,9 +656,11 @@ static int handle_lua_request(struct mg_connection *conn) {
   whitelisted = isWhitelistedURI(request_info->uri);
   authorized = is_authorized(conn, request_info, username, sizeof(username));
 
-  if((len > 4)
-     && ((strcmp(&request_info->uri[len-4], ".css") == 0)
-	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
+  if((len >= 3 && (!strncmp(&request_info->uri[len - 3], ".js", 3)))
+     || (len >= 4 && (!strncmp(&request_info->uri[len - 4], ".css", 4)
+		      || !strncmp(&request_info->uri[len - 4], ".map", 4)
+		      || !strncmp(&request_info->uri[len - 4], ".ttf", 4)))
+     || (len >= 6 && (!strncmp(&request_info->uri[len - 6], ".woff2", 6))))
     ;
   else if((!whitelisted) && (!authorized)) {
     if(conn->client.lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
