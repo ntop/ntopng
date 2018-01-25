@@ -2446,14 +2446,12 @@ local  en = {
       confirm_delete_static_lease = "Do you really want to delete \"%{hostname}\" static lease?",
       dhcp_server_not_enabled = "The DHCP server is not enabled. You can enabled it <a href=\"%{url}\">here</a>.",
       view_quotas = "View Quotas",
-      gateway_enabled = "Enable Gateway",
       edit_gateway = "Edit Gateway",
       edit_routing_policy = "Edit Routing Policy",
       cannot_rename_gateway = "Cannot rename gateway.",
       cannot_rename_policy = "Cannot rename policy.",
       you_can_use_gateways_in_policies = "You can specify gateways priorities in <a href=\"%{url}\">Routing Policies</a>.",
       you_can_assign_routing_policy = "You can assign routing policies to <a href=\"%{url}\">Users</a>.",
-      enabled_gateway = "Enable the gateway. You can disable a gateway to stop sending traffic through it.",
       safe_search_description = "Use the Child Safe DNS to block inappropriate content.",
       enforce_global_dns = "Enforce Global DNS",
       enforce_global_dns_description = "Enable DNS forging to force the devices to use the specified global DNS.",
@@ -2481,6 +2479,8 @@ local  en = {
       reboot_corfirm = "Do you want to reboot the device?",
       system_users = "System Users",
       add_system_user = "Add System User",
+      enable_interface = "Enable Interface",
+      enable_interface_descr = "Enable or disable the network interface.",
    },
 }
 

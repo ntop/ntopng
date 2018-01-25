@@ -1123,8 +1123,6 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["proto_"]                  =  {validateProtocolId, validateCategory},
 
 -- Gateways
-   ["gateway_on_"]             =  {validateGatewayName, validateBool},
-   ["gateway_iface_"]          =  {validateGatewayName, validateNetworkInterface},
    ["gateway_address_"]        =  {validateGatewayName, validateIPV4},
    ["gateway_ping_"]           =  {validateGatewayName, validateIPV4},
    ["gw_id_"]                  =  {validateNumber, validateGatewayName},
@@ -1134,6 +1132,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 -- Network Configuration
    ["iface_mode_"]             =  {validateNetworkInterface, validateInterfaceConfMode},
    ["iface_ip_"]               =  {validateNetworkInterface, validateIPV4},
+   ["iface_on_"]               =  {validateNetworkInterface, validateBool},
    ["iface_gw_"]               =  {validateNetworkInterface, validateIPV4},
    ["iface_netmask_"]          =  {validateNetworkInterface, validateIPV4},
    ["iface_id_"]               =  {validateNumber, validateNetworkInterface},
