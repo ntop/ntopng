@@ -3350,7 +3350,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
      (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac())) ||
-     (r->mac           && (!h->getMac()->equal(r->vlan_id, r->mac)))    ||
+     (r->mac           && (!h->getMac()->equal((r->vlan_id != ((u_int16_t)-1)) ? r->vlan_id : h->getMac()->get_vlan_id(), r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
