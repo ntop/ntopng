@@ -1675,7 +1675,7 @@ end
 
 -- #################################################
 
-function poolDropdown(pool_id, exclude)
+function poolDropdown(ifId, pool_id, exclude)
    local output = {}
    --exclude = exclude or {[host_pools_utils.DEFAULT_POOL_ID]=true}
    exclude = exclude or {}
@@ -1709,7 +1709,7 @@ function poolDropdown(pool_id, exclude)
    return table.concat(output, '')
 end
 
-function printPoolChangeDropdown(pool_id, have_nedge)
+function printPoolChangeDropdown(ifId, pool_id, have_nedge)
    local output = {}
 
    output[#output + 1] = [[<tr>
@@ -1717,7 +1717,7 @@ function printPoolChangeDropdown(pool_id, have_nedge)
       <td>
             <select name="pool" class="form-control" style="width:20em; display:inline;">]]
 
-   output[#output + 1] = poolDropdown(pool_id)
+   output[#output + 1] = poolDropdown(ifId, pool_id)
 
    local edit_pools_link = ternary(have_nedge, "/lua/pro/nedge/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
 

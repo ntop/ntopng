@@ -166,7 +166,6 @@ if((page == "overview") or (page == nil)) then
    print("<td>\n")
 
    print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
-
    if not ifstats.isView then
       print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, pool_id)) print[[</a></span>]]
 	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
@@ -306,7 +305,7 @@ elseif(page == "config") then
       </tr>]]
 
       if not ifstats.isView then
-	 printPoolChangeDropdown(pool_id, have_nedge)
+	 printPoolChangeDropdown(ifId, pool_id, have_nedge)
       end
 
 print[[

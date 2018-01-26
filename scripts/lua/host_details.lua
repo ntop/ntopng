@@ -1806,7 +1806,7 @@ elseif (page == "config") then
       </tr>]]
 
    if not ifstats.isView then
-      printPoolChangeDropdown(host_pool_id, have_nedge)
+      printPoolChangeDropdown(ifId, host_pool_id, have_nedge)
    end
 
    if host["localhost"] then

@@ -293,7 +293,7 @@ print [[
 ]]
 
 print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
-print(poolDropdown(selected_pool.id))
+print(poolDropdown(ifId, selected_pool.id))
 print('</select>')
 
 local no_pools = (#available_pools <= 1)
@@ -476,7 +476,7 @@ print(
       title   = i18n("host_pools.change_member_pool"),
       message = i18n("host_pools.select_new_pool", {member='<span id="change_member_pool_dialog_member"></span>'}) ..
         '<br><br><select class="form-control" id="changed_host_pool" style="width:15em;">'..
-        poolDropdown("", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
+        poolDropdown(ifId, "", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
         '</select>',
       custom_alert_class = "",
       confirm = i18n("host_pools.change_pool"),
