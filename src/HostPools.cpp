@@ -42,6 +42,8 @@ HostPools::HostPools(NetworkInterface *_iface) {
   if((routing_policy_id = (u_int8_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int8_t))) == NULL)
     throw 1;
 
+  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) routing_policy_id[i] = DEFAULT_ROUTING_TABLE_ID;
+
   stats = stats_shadow = NULL;
 
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL

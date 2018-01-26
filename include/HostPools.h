@@ -180,7 +180,7 @@ class HostPools {
   }
 
   inline u_int8_t getRoutingPolicy(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? routing_policy_id[pool_id] : 0);
+    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? routing_policy_id[pool_id] : DEFAULT_ROUTING_TABLE_ID);
   }
 #endif
 };
