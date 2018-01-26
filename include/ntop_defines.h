@@ -303,7 +303,8 @@
 #define DROP_ALL_SHAPER_ID             1
 #define DEFAULT_SHAPER_ID              PASS_ALL_SHAPER_ID
 #define NEDGE_USER_DEFAULT_POLICY_SHAPER_ID  4 /* see shaper_utils.nedge_shapers default */
-#define DEFAULT_ROUTING_TABLE_ID       0
+#define NO_ROUTING_TABLE_ID            0
+#define DEFAULT_ROUTING_TABLE_ID       1
 #define NUM_TRAFFIC_SHAPERS           16
 #define NUM_TC_TRAFFIC_SHAPERS         8
 #define MAX_SHAPER_RATE_KBPS       10240
