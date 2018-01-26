@@ -2467,6 +2467,7 @@ local  en = {
       status_up = "Up",
       status_down = "Down",
       status_disabled = "Disabled",
+      status_unreachable = "Unreachable",
       please_fill_out_this_field = "Please fill out this field.",
       edit_quotas = "Edit Quotas",
       active_user = "Active User",
@@ -2481,6 +2482,7 @@ local  en = {
       add_system_user = "Add System User",
       enable_interface = "Enable Interface",
       enable_interface_descr = "Enable or disable the network interface.",
+      linkdown = "Link Down",
    },
 }
 
