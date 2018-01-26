@@ -2483,6 +2483,7 @@ local  en = {
       enable_interface = "Enable Interface",
       enable_interface_descr = "Enable or disable the network interface.",
       linkdown = "Link Down",
+      link_not_ready = "Link Not Ready",
    },
 }
 

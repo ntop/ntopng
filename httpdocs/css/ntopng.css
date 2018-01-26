@@ -309,12 +309,3 @@ tr.quotas > td {
   text-align: center;
   margin-right: 2px;
 }
-
-/* Fix icons width in gateways status */
-.gw-iface-link {
-  margin-left: 10px;
-}
-
-.gw-iface-link i {
-  width: 10px;
-}
