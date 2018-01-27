@@ -22,12 +22,15 @@
 #ifndef _AUTONOMOUS_SYSTEM_H_
 #define _AUTONOMOUS_SYSTEM_H_
 
+// #define AS_LATENCY_DEBUG 1
+
 #include "ntop_includes.h"
 
 class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int32_t asn;
   char *asname;
+  u_int32_t server_network_latency;
 
   inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
     sent.incStats(num_pkts, num_bytes);
@@ -56,6 +59,20 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
       ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
     incSentStats(sent_packets, sent_bytes);
     incRcvdStats(rcvd_packets, rcvd_bytes);
+  }
+
+  inline void updateNetworkLatency(bool as_client, u_int32_t latency_msecs) {
+    if(as_client) ; /* Currently not relevant */
+    else {
+#ifdef AS_LATENCY_DEBUG
+      u_int32_t old_latency = server_network_latency;
+#endif
+      Utils::update_ewma(latency_msecs, &server_network_latency, 50);
+#ifdef AS_LATENCY_DEBUG
+      printf("Updating latency EWMA: [asn: %u][sample msecs: %u][old latency: %u][new latency: %u]\n",
+	     asn, latency_msecs, old_latency, server_network_latency);
+#endif
+    }
   }
 
   bool idle();

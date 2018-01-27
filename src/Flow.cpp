@@ -2127,7 +2127,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
 
 	/* Sanity check */
-	if(serverNwLatency.tv_sec > 5) memset(&serverNwLatency, 0, sizeof(serverNwLatency));
+	if(serverNwLatency.tv_sec > 5)
+	  memset(&serverNwLatency, 0, sizeof(serverNwLatency));
+	else if(srv_host)
+	  srv_host->updateNetworkLatency(false /* as server */, Utils::timeval2ms(&serverNwLatency));
+
       }
     } else if(flags == TH_ACK) {
       if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {

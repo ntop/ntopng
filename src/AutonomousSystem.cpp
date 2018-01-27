@@ -25,6 +25,7 @@
 
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement() {
   asname = NULL;
+  server_network_latency = 0;
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
 
 #ifdef AS_DEBUG

@@ -105,6 +105,11 @@ class Utils {
   static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 
+  static inline void update_ewma(u_int32_t sample, u_int32_t *ewma, u_int8_t alpha_percent) {
+    if(alpha_percent > 100) alpha_percent = 100;
+    if(!ewma) return;
+    (*ewma) = (alpha_percent * sample + (100 - alpha_percent) * (*ewma)) / 100;
+  }
   static inline u_int64_t toUs(struct timeval *t) { return(((u_int64_t)t->tv_sec)*1000000+((u_int64_t)t->tv_usec)); };
   static void replacestr(char *line, const char *search, const char *replace);
   static u_int32_t getHostManagementIPv4Address();

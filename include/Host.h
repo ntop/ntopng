@@ -166,6 +166,9 @@ class Host : public GenericHost, public Checkpointable {
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
+  inline void updateNetworkLatency(bool as_client, u_int32_t latency_msecs) {
+    if(as) as->updateNetworkLatency(as_client, latency_msecs);
+  }
 
   void incNumFlows(bool as_client);
   void decNumFlows(bool as_client);
