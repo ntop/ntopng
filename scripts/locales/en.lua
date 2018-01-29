@@ -243,6 +243,7 @@ local  en = {
       reports_professional_only = "Reports are only available in the Professional version",
       senders = "Senders",
       receivers = "Receivers",
+      use_server_timezone = "Use Server Timezone",
    },
 
    topk_heuristic = {

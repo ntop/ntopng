@@ -502,8 +502,9 @@ function makeFindHostBeforeSubmitCallback(http_prefix) {
   }
 }
 
-function localizeFromTimestamp(html_tag, format) {
-  var timestamp = parseInt(html_tag.html());
+function tstampToDateString(html_tag, format, tdiff) {
+  tdiff = tdiff || 0;
+  var timestamp = parseInt(html_tag.html()) + tdiff;
   var localized = d3.time.format(format)(new Date(timestamp*1000));
   html_tag.html(localized).removeClass("hidden");
   return localized;

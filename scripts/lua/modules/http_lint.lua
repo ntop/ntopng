@@ -985,6 +985,7 @@ local known_parameters = {
    ["iflocalstat_mode"]        =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
    ["clisrv"]                  =  validateClientOrServer,        -- Client or Server filter
    ["report"]                  =  validateReportMode,            -- A mode for traffic report
+   ["use_server_timezone"]     =  validateBool,
    ["report_zoom"]             =  validateBool,                  -- True if we are zooming in the report
    ["format"]                  =  validatePrintFormat,           -- a print format
    ["nedge_config_action"]     =  validatenEdgeAction,           -- system_setup_utils.lua
