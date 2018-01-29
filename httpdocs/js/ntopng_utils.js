@@ -501,3 +501,10 @@ function makeFindHostBeforeSubmitCallback(http_prefix) {
     return true;
   }
 }
+
+function localizeFromTimestamp(html_tag, format) {
+  var timestamp = parseInt(html_tag.html());
+  var localized = d3.time.format(format)(new Date(timestamp*1000));
+  html_tag.html(localized).removeClass("hidden");
+  return localized;
+}
