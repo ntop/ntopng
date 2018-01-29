@@ -277,6 +277,12 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
 
     volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
   }
+
+#ifdef HAVE_NEDGE
+  /* Note: we must re-evaluate the active flows as a captive portal host may be blocked now */
+  if(iface && (iface->getIfType() == interface_type_NETFILTER))
+    ((NetfilterInterface *) iface)->setPolicyChanged();
+#endif
 };
 
 /* *************************************** */
