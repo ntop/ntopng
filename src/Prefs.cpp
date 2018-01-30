@@ -544,7 +544,11 @@ void Prefs::reloadPrefsFromRedis() {
 
   if(redirection_url_shadow) free(redirection_url_shadow);
   redirection_url_shadow = redirection_url;
+#ifndef HAVE_NEDGE
   getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
+#else
+  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, "");
+#endif
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, true);
 
   setTraceLevelFromRedis();
