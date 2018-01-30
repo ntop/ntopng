@@ -9,6 +9,7 @@ require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
 local template = require "template_utils"
+local have_nedge = ntop.isnEdge()
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
@@ -175,41 +176,43 @@ function printAlerts()
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.security_alerts")..'</th></tr>')
 
-  prefsToggleButton({
-    field = "toggle_alert_probing",
-    pref = "probing_alerts",
-    default = "0",
-    hidden = not showElements,
-  })
+  if not have_nedge then
+    prefsToggleButton({
+      field = "toggle_alert_probing",
+      pref = "probing_alerts",
+      default = "0",
+      hidden = not showElements,
+    })
 
-  prefsToggleButton({
-    field = "toggle_ssl_alerts",
-    pref = "ssl_alerts",
-    default = "0",
-    hidden = not showElements,
-  })
+    prefsToggleButton({
+      field = "toggle_ssl_alerts",
+      pref = "ssl_alerts",
+      default = "0",
+      hidden = not showElements,
+    })
 
-  prefsToggleButton({
-    field = "toggle_dns_alerts",
-    pref = "dns_alerts",
-    default = "0",
-    hidden = not showElements,
-  })
+    prefsToggleButton({
+      field = "toggle_dns_alerts",
+      pref = "dns_alerts",
+      default = "0",
+      hidden = not showElements,
+    })
 
-  prefsToggleButton({
-    field = "toggle_remote_to_remote_alerts",
-    pref = "remote_to_remote_alerts",
-    default = "0",
-    hidden = not showElements,
-  })
+    prefsToggleButton({
+      field = "toggle_remote_to_remote_alerts",
+      pref = "remote_to_remote_alerts",
+      default = "0",
+      hidden = not showElements,
+    })
 
-  if hasBridgeInterfaces(false) then
-     prefsToggleButton({
-        field = "toggle_dropped_flows_alerts",
-	pref = "dropped_flows_alerts",
-	default = "0",
-	hidden = not showElements,
-     })
+    if hasBridgeInterfaces(false) then
+       prefsToggleButton({
+	  field = "toggle_dropped_flows_alerts",
+	  pref = "dropped_flows_alerts",
+	  default = "0",
+	  hidden = not showElements,
+       })
+    end
   end
 
   prefsToggleButton({

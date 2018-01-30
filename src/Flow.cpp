@@ -2855,6 +2855,7 @@ void Flow::recheckQuota(const struct tm *now) {
 /* *************************************** */
 
 bool Flow::isSuspiciousFlowThpt() {
+#ifndef HAVE_NEDGE
   if(protocol == IPPROTO_TCP) {
     float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
 
@@ -2867,6 +2868,7 @@ bool Flow::isSuspiciousFlowThpt() {
 	return(true);
     }
   }
+#endif // HAVE_NEDGE
 
   return(false);
 }
@@ -2874,10 +2876,14 @@ bool Flow::isSuspiciousFlowThpt() {
 /* *************************************** */
 
 bool Flow::isLowGoodput() {
+#ifdef HAVE_NEDGE
+  return(false);
+#else
   if(protocol == IPPROTO_UDP)
     return(false);
   else
     return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+#endif // HAVE_NEDGE
 }
 
 /* *************************************** */
@@ -2976,7 +2982,9 @@ FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
 /* ***************************************************** */
 
 FlowStatus Flow::getFlowStatus() {
+#ifndef HAVE_NEDGE
   u_int32_t threshold;
+#endif
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
 #ifdef NTOPNG_PRO
@@ -2987,6 +2995,7 @@ FlowStatus Flow::getFlowStatus() {
   if(isBlacklistedFlow())
     return status_blacklisted;
 
+#ifndef HAVE_NEDGE
   /* All flows */
   threshold = cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO;
   if((tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost) > threshold)
@@ -2995,10 +3004,12 @@ FlowStatus Flow::getFlowStatus() {
   threshold = srv2cli_packets / CONST_TCP_CHECK_ISSUES_RATIO;
   if((tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost) > threshold)
     return status_tcp_connection_issues;
+#endif
 
   if(iface->getIfType() == interface_type_ZMQ) {
     /* ZMQ flows */
   } else {
+#ifndef HAVE_NEDGE
     /* Packet flows */
     bool isIdle = isIdleFlow();
     bool lowGoodput = isLowGoodput();
@@ -3045,6 +3056,7 @@ FlowStatus Flow::getFlowStatus() {
 	}
       }
     }
+#endif // HAVE_NEDGE
     /* If here is either UDP or TCP */
     switch(l7proto) {
     case NDPI_PROTOCOL_DNS:
@@ -3053,10 +3065,12 @@ FlowStatus Flow::getFlowStatus() {
     }
   }
 
+#ifndef HAVE_NEDGE
   if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
      && ! cli_host->get_ip()->isBroadcastAddress()
      && ! srv_host->get_ip()->isBroadcastAddress())
     return status_remote_to_remote;
+#endif
 
   if(iface->getAlertLevel() > 0)
    return(status_flow_when_interface_alerted);
