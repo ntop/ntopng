@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
 require "lua_utils"
+local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -468,7 +469,9 @@ else
       print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '').."</A> <i class=\"fa fa-external-link\">")
       print("</td></tr>\n")
 
-      print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2>"..(flow["protos.http.last_return_code"] or '').."</td></tr>\n")
+      if not have_nedge then
+        print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2>"..(flow["protos.http.last_return_code"] or '').."</td></tr>\n")
+      end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
 	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")

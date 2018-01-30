@@ -2226,6 +2226,10 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 				u_int32_t ooo_pkts,
 				u_int32_t retr_pkts,
 				u_int32_t lost_pkts) {
+#ifdef HAVE_NEDGE
+  return;
+#endif
+
   TCPPacketStats * stats;
   /*Host * host;*/
 

@@ -1078,47 +1078,51 @@ elseif(page == "config") then
       </tr>]]
 
       -- Interface speed
-      print[[
-      <tr>
-         <th>]] print(i18n("if_stats_config.interface_speed")) print[[</th>
-         <td>]]
-      local ifspeed = getInterfaceSpeed(ifstats)
-      inline_input_form("ifSpeed", "Interface Speed",
-         i18n("if_stats_config.interface_speed_popup_msg"),
-         ifspeed, isAdministrator(), 'type="number" min="1"')
-      print[[
-         </td>
-      </tr>]]
+      if not have_nedge then
+	print[[
+	<tr>
+	   <th>]] print(i18n("if_stats_config.interface_speed")) print[[</th>
+	   <td>]]
+	local ifspeed = getInterfaceSpeed(ifstats)
+	inline_input_form("ifSpeed", "Interface Speed",
+	   i18n("if_stats_config.interface_speed_popup_msg"),
+	   ifspeed, isAdministrator(), 'type="number" min="1"')
+	print[[
+	   </td>
+	</tr>]]
 
-      -- Interface refresh rate
-      print[[
-      <tr>
-         <th>]] print(i18n("if_stats_config.refresh_rate")) print[[</th>
-         <td>]]
-      local refreshrate = getInterfaceRefreshRate(ifstats.id)
-      inline_input_form("ifRate", "Refresh Rate",
-         i18n("if_stats_config.refresh_rate_popup_msg"),
-         refreshrate, isAdministrator(), 'type="number" min="1"')
-      print[[
-         </td>
-      </tr>]]
+	-- Interface refresh rate
+	print[[
+	<tr>
+	   <th>]] print(i18n("if_stats_config.refresh_rate")) print[[</th>
+	   <td>]]
+	local refreshrate = getInterfaceRefreshRate(ifstats.id)
+	inline_input_form("ifRate", "Refresh Rate",
+	   i18n("if_stats_config.refresh_rate_popup_msg"),
+	   refreshrate, isAdministrator(), 'type="number" min="1"')
+	print[[
+	   </td>
+	</tr>]]
+     end
    end
 
-   -- Scaling factor
-   if interface.isPacketInterface() and not have_nedge then
-      local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
-      if((label == nil) or (label == "")) then label = "1" end
+   if not have_nedge then
+     -- Scaling factor
+     if interface.isPacketInterface() and not have_nedge then
+	local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
+	if((label == nil) or (label == "")) then label = "1" end
 
-      print[[
-      <tr>
-         <th>]] print(i18n("if_stats_config.scaling_factor")) print[[</th>
-         <td>]]
-      inline_input_form("scaling_factor", "Scaling Factor",
-         i18n("if_stats_config.scaling_factor_popup_msg"),
-         label, isAdministrator(), 'type="number" min="1" step="1"')
-      print[[
-         </td>
-      </tr>]]
+	print[[
+	<tr>
+	   <th>]] print(i18n("if_stats_config.scaling_factor")) print[[</th>
+	   <td>]]
+	inline_input_form("scaling_factor", "Scaling Factor",
+	   i18n("if_stats_config.scaling_factor_popup_msg"),
+	   label, isAdministrator(), 'type="number" min="1" step="1"')
+	print[[
+	   </td>
+	</tr>]]
+     end
    end
 
    -- Alerts

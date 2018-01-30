@@ -10,6 +10,7 @@ print [[
    ]]
 
 local template = require "template_utils"
+local have_nedge = ntop.isnEdge()
 info = ntop.getInfo(true)
 
 print [[
@@ -35,7 +36,7 @@ print(alias)
 
 print('</span></a>')
 
-if ntop.isnEdge() then
+if have_nedge then
   print[[<form id="powerOffForm" method="post">
     <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
     <input name="poweroff" value="" type="hidden" />
@@ -104,7 +105,7 @@ print [[</font>
 	 <div class="col-xs-6 col-sm-6">
 ]]
 
-if interface.isPcapDumpInterface() == false then
+if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    if(ifname ~= nil) then
      maxSpeed = getInterfaceSpeed(_ifstats)
    end
@@ -121,6 +122,7 @@ if interface.isPcapDumpInterface() == false then
       -- use the user-specified custom value for the speed
       maxSpeed = tonumber(maxSpeed)*1000000
    end
+
    addGauge('networkload', ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname).."&page=config", 100, 100, 50)
    print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
 
@@ -140,6 +142,19 @@ if interface.isPcapDumpInterface() == false then
 ]]
 
 end -- closes interface.isPcapDumpInterface() == false 
+
+if have_nedge then
+   print [[  <a href="]]
+   print (ntop.getHttpPrefix())
+   print [[/lua/if_stats.lua">
+	    <table style="border-collapse:collapse; !important">
+	    <tr><td title="Upload"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
+	    <tr><td title="Download"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>
+	    </table>
+	    </div>
+	    <div class="col-xs-6 col-sm-4">
+	    </a>]]
+end
 
 print [[
       </div>
@@ -173,11 +188,13 @@ if show_bridge_dialog then
   ntop.setCache(getBridgeInitializedKey(_ifstats.id), "1")
 end
 
+local traffic_peity_width = ternary(have_nedge, "140", "64")
+
 print('var is_historical = false;')
 print [[
 
-var updatingChart_local2remote = $(".network-load-chart-local2remote").peity("line", { width: 64, max: null });
-var updatingChart_remote2local = $(".network-load-chart-remote2local").peity("line", { width: 64, max: null, fill: "lightgreen"});
+var updatingChart_local2remote = $(".network-load-chart-local2remote").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
+var updatingChart_remote2local = $(".network-load-chart-remote2local").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
 
 var prev_bytes   = 0;
 var prev_packets = 0;
@@ -208,6 +225,17 @@ print [[/lua/logout.lua");  }, */
               rsp.bytes   = rsp.a_to_b_out_bytes + rsp.b_to_a_out_bytes;
               rsp.packets = rsp.a_to_b_out_pkts + rsp.b_to_a_out_pkts;
             }
+]]
+
+if have_nedge then
+  -- Use bytes up / down on edge
+  print[[
+            rsp.local2remote = rsp.bytes_upload;
+            rsp.remote2local = rsp.bytes_download;
+  ]]
+end
+
+print[[
 
 	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
@@ -252,7 +280,7 @@ print [[/lua/logout.lua");  }, */
                 }
 ]]
 
-   if interface.isPcapDumpInterface() == false then
+   if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
       print[[
 
 		$('#gauge_text_allTraffic').html("<small>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]</small>");
@@ -263,7 +291,11 @@ print [[/lua/logout.lua");  }, */
 		$('#networkload').html(v+"%");
 
 ]]
-
+   elseif have_nedge then
+     print[[
+		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
+		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
+     ]]
    end
 
 print[[
@@ -405,7 +437,18 @@ print [[/lua/logout.lua");  */
 }
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, ]] print(getInterfaceRefreshRate(_ifstats.id).."") print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
+setInterval(footerRefresh, ]]
+
+local footer_refresh_rate
+
+if have_nedge then
+  footer_refresh_rate = 5
+else
+  footer_refresh_rate = getInterfaceRefreshRate(_ifstats.id)
+end
+
+print(footer_refresh_rate.."")
+print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
 
 //Enable tooltip without a fixer placement
 $(document).ready(function () { $("[rel='tooltip']").tooltip(); });
