@@ -3115,6 +3115,7 @@ struct flowHostRetriever {
   LocationPolicy location;    /* Not used in flow_search_walker */
   u_int8_t ipVersionFilter;   /* Not used in flow_search_walker */
   bool filteredHosts;         /* Not used in flow_search_walker */
+  bool blacklistedHosts;     /* Not used in flow_search_walker */
   u_int16_t vlan_id;
   char *osFilter;
   u_int32_t asnFilter;
@@ -3354,6 +3355,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
+     (r->blacklistedHosts && !h->isBlacklisted())     ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
 #endif
@@ -4025,7 +4027,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				char *countryFilter, char *mac_filter,
 				u_int16_t vlan_id, char *osFilter,
 				u_int32_t asnFilter, int16_t networkFilter,
-				u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter, int proto_filter,
+				u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts,
+				u_int8_t ipver_filter, int proto_filter,
 				bool hostMacsOnly, char *sortColumn) {
   u_int32_t maxHits;
   u_int8_t macAddr[6];
@@ -4061,6 +4064,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->poolFilter = pool_filter, retriever->bridge_iface_idx = 0;
   retriever->ipVersionFilter = ipver_filter;
   retriever->filteredHosts = filtered_hosts;
+  retriever->blacklistedHosts = blacklisted_hosts;
   retriever->ndpi_proto = proto_filter;
   retriever->maxNumEntries = maxHits, retriever->hostMacsOnly = hostMacsOnly;
   retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
@@ -4254,7 +4258,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 char *countryFilter, char *mac_filter,
 					 u_int16_t vlan_id, char *osFilter,
 					 u_int32_t asnFilter, int16_t networkFilter,
-					 u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter, int proto_filter,
+					 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts,
+					 u_int8_t ipver_filter, int proto_filter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4271,7 +4276,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       &retriever, bridge_iface_idx,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
-	       asnFilter, networkFilter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
+	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
 	       false /* All MACs */, sortColumn) < 0) {
     enablePurge(false);
     return -1;
@@ -4411,7 +4416,8 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       allowed_hosts, host_details, location,
 	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter, pool_filter,
-	       filtered_hosts, ipver_filter, -1 /* no protocol filter */,
+	       filtered_hosts, false /* no blacklisted hosts filter */,
+	       ipver_filter, -1 /* no protocol filter */,
 	       local_macs, groupColumn) < 0 ) {
     enablePurge(false);
     return -1;

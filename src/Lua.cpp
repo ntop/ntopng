@@ -650,7 +650,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 
 static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy location) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool show_details = true, filtered_hosts = false;
+  bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
   u_int16_t vlan_filter = (u_int16_t)-1;
@@ -677,7 +677,8 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   show_details, location,
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
-					   network_filter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
+					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts,
+             ipver_filter, proto_filter,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -689,7 +690,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 
 static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool show_details = true, filtered_hosts = false;
+  bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
   u_int16_t vlan_filter = (u_int16_t)-1;
@@ -719,6 +720,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 13);
   if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
   if(lua_type(vm,15) == LUA_TBOOLEAN) filtered_hosts = lua_toboolean(vm, 15);
+  if(lua_type(vm,16) == LUA_TBOOLEAN) blacklisted_hosts = lua_toboolean(vm, 16);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,
@@ -728,8 +730,8 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   show_details, location,
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
-					   network_filter, pool_filter, filtered_hosts, ipver_filter, proto_filter,
-					   sortColumn, maxHits,
+					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts,
+             ipver_filter, proto_filter, sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 

@@ -1555,6 +1555,7 @@ local  en = {
       local_hosts_only = "Local Hosts Only",
       remote_hosts_only = "Remote Hosts Only",
       filtered_hosts_only = "Hosts With Blocked Traffic",
+      blacklisted_hosts_only = "Blacklisted Hosts Only",
       host_pool = "Host Pool %{pool_name}",
       user = "User %{pool_name}",
       source_id = "Source Id",

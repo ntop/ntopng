@@ -109,6 +109,7 @@ local to_skip = (currentPage-1) * perPage
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local filtered_hosts = false
+local blacklisted = false
 
 local hosts_retrv_function = interface.getHostsInfo
 if mode == "local" then
@@ -117,13 +118,15 @@ elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
 elseif mode == "filtered" then
    filtered_hosts = true
+elseif mode == "blacklisted" then
+   blacklisted_hosts = true
 end
 
 local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 					 country, os_, tonumber(vlan), tonumber(asn),
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
-					 tonumber(protocol), filtered_hosts) -- false = little details
+					 tonumber(protocol), filtered_hosts, blacklisted_hosts) -- false = little details
 
 -- tprint(hosts_stats)
 --io.write("---\n")

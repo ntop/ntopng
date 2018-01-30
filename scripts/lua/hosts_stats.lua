@@ -269,6 +269,13 @@ print [[    showPagination: true, ]]
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
 
+   hosts_filter_params.mode = "blacklisted"
+   print('<li')
+   if mode == hosts_filter_params.mode then print(' class="active"') end
+   print('><a href="')
+   print (getPageUrl(base_url, hosts_filter_params))
+   print ('">'..i18n("hosts_stats.blacklisted_hosts_only")..'</a></li>')
+
    if isBridgeInterface(ifstats) then
      hosts_filter_params.mode = "filtered"
      print('<li')
