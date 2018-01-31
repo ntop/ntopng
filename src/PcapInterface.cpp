@@ -29,6 +29,9 @@
 
 /* **************************************************** */
 
+static pthread_key_t pcap_t_key;
+static pthread_once_t pcap_t_key_once = PTHREAD_ONCE_INIT;
+
 PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
   struct stat buf;
@@ -112,6 +115,21 @@ PcapInterface::~PcapInterface() {
 
 /* **************************************************** */
 
+/*
+ * NOTE: we must call pcap_breakloop in the same thread of pcap_next_ex.
+ * See https://www.tcpdump.org/manpages/pcap_breakloop.3pcap.html
+ */
+static void term_loop_handler(int signo) {
+  pcap_t *handle;
+
+  if ((handle = (pcap_t*)pthread_getspecific(pcap_t_key)))
+    pcap_breakloop(handle);
+}
+
+static void make_key_once() {
+  pthread_key_create(&pcap_t_key, NULL);
+}
+
 static void* packetPollLoop(void* ptr) {
   PcapInterface *iface = (PcapInterface*)ptr;
   pcap_t  *pd;
@@ -154,7 +172,14 @@ static void* packetPollLoop(void* ptr) {
     }
 
     pd = iface->get_pcap_handle();
-    
+
+    if(pd) {
+      pthread_once(&pcap_t_key_once, make_key_once);
+      pthread_setspecific(pcap_t_key, pd);
+    }
+
+    signal(SIGTERM, term_loop_handler);
+
     while((pd != NULL) 
 	  && iface->isRunning() 
 	  && (!ntop->getGlobals()->isShutdown())) {
@@ -228,7 +253,7 @@ void PcapInterface::shutdown() {
     void *res;
 
     NetworkInterface::shutdown();
-    if(pcap_handle) pcap_breakloop(pcap_handle);
+    pthread_kill(pollLoop, SIGTERM);
     pthread_join(pollLoop, &res);
   }
 }
