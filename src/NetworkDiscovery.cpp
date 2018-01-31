@@ -115,8 +115,9 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   iface->getIPv4Address(&netp, &maskp);
     
   /* Purge existing packets */
-  while(pcap_next(pd, &h) != NULL) ;
-  
+  while((pcap_next(pd, &h) != NULL) && (!ntop->getGlobals()->isShutdown())) ;
+  if(ntop->getGlobals()->isShutdown()) return;
+
   if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create MDNS socket");
   else {
@@ -152,6 +153,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     queries[dns_query_len++] = 0x00; queries[dns_query_len++] = 0x01; /* IN */
     dns_query_len += sizeof(struct ndpi_dns_packet_header);
   }
+
+  if(ntop->getGlobals()->isShutdown()) return;
 
   netp = ntohl(netp), maskp = ntohl(maskp);
   first_ip = netp & maskp, last_ip = netp + (~maskp);

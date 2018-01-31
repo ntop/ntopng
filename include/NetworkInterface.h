@@ -255,7 +255,12 @@ class NetworkInterface : public Checkpointable {
      See C++ FAQ Lite covers this in section 23.7
   */
   inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
+#ifndef HAVE_LIBCAP
+  /* Note: if we miss the capabilities, we block the overriding of this method. */
+  inline bool isDiscoverableInterface()        { return(false);                              }
+#else
   inline virtual bool isDiscoverableInterface(){ return(false);                              }
+#endif
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }

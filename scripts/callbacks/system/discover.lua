@@ -41,7 +41,7 @@ if discovery_enabled or requests then
 
    elseif requests then
       callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-         if discover_utils.networkDiscoveryRequested(ifstats.id) then
+         if discover_utils.networkDiscoveryRequested(ifstats.id) and interface.isDiscoverableInterface() then
 	    local res
 
 	    ntop.traceEvent("[Discover] Started triggered discovery on interface "..ifname.."\n")

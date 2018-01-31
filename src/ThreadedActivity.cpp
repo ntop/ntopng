@@ -128,6 +128,8 @@ void ThreadedActivity::runScript() {
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   Lua *l;
 
+  if(ntop->getGlobals()->isShutdown()) return;
+
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
 #endif
