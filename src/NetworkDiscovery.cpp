@@ -44,7 +44,16 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   } else
     throw("Unable to start network discovery");
 
+#if ! defined(__arm__)
   if((pd = pcap_open_live(iface->get_name(), 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL) {
+#else
+  /* pcap_next can really block a lot if we do not activate immediate mode! See https://github.com/mfontanini/libtins/issues/180 */
+  if(((pd = pcap_create(iface->get_name(), errbuf)) == NULL) ||
+		(pcap_set_timeout(pd, 5) != 0) ||
+		(pcap_set_snaplen(pd, 128) != 0) ||
+		(pcap_set_immediate_mode(pd, 1) != 0) || /* enable immediate mode */
+		(pcap_activate(pd) != 0)) {
+#endif
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create pcap socket [%d/%s]", errno, strerror(errno));
   } else {
     const char* bpfFilter = "arp && arp[6:2] = 2";  // arp[x:y] - from byte 6 for 2 bytes (arp.opcode == 2 -> reply)
