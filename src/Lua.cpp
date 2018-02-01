@@ -1167,6 +1167,7 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int ntop_shutdown(lua_State* vm) {
   char *action;
   extern AfterShutdownAction afterShutdownAction;
@@ -1190,6 +1191,7 @@ static int ntop_shutdown(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -7002,10 +7004,11 @@ static const luaL_Reg ntop_reg[] = {
   /* Misc */
   { "getservbyport",        ntop_getservbyport        },
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
+#ifdef HAVE_NEDGE
   { "shutdown",             ntop_shutdown             },
   { "setRoutingMode",       ntop_set_routing_mode     },
   { "isRoutingMode",        ntop_is_routing_mode      },
-
+#endif
   { NULL,          NULL}
 };
 
