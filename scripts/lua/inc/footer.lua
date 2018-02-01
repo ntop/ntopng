@@ -102,8 +102,13 @@ print [[</font>
 </div> <!-- End column 1 -->
 	<div class="col-xs-4 v col-sm-4">
 	<div class="row">
-	 <div class="col-xs-6 col-sm-6">
 ]]
+
+if not have_nedge then
+  print[[	 <div class="col-xs-6 col-sm-6"> ]]
+else
+  print[[	 <div class="col-md-12"> ]]
+end
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    if(ifname ~= nil) then

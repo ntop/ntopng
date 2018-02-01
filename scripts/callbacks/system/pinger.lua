@@ -12,11 +12,15 @@ if ntop.isnEdge() then
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
 
    require("lua_utils")
-   local nf_config = require("nf_config"):readable()
-   nf_config.checkPolicyChange()
+   local NfConfig = require("nf_config")
 
-   nf_config:recheckGatewaysInformationFromSystem()
+   NfConfig.checkPolicyChange()
 
-   local ping_utils = require('ping_utils')
-   ping_utils.check_status()
+   if ntop.isRoutingMode() then
+     local ping_utils = require('ping_utils')
+     local nf_config = NfConfig:readable()
+
+     nf_config:recheckGatewaysInformationFromSystem()
+     ping_utils.check_status(nf_config)
+   end
 end
