@@ -705,6 +705,10 @@ local function validateCIDR(m)
    return validateChoice({"24", "32"}, m)
 end
 
+local function validateOperatingMode(m)
+   return validateChoice({"single_port_router", "routing", "bridging"}, m)
+end
+
 -- #################################################################
 -- NOTE: Put here al the parameters to validate
 
@@ -1095,6 +1099,7 @@ local known_parameters = {
    ["skip_critical"]           =  validateBool,
    ["reboot"]                  =  validateEmpty,
    ["poweroff"]                =  validateEmpty,
+   ["operating_mode"]          =  validateOperatingMode,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

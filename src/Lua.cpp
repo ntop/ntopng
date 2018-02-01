@@ -1210,6 +1210,16 @@ static int ntop_set_routing_mode(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_routing_mode(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm,  ntop->getPrefs()->is_routing_mode());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_all));
 }
@@ -6994,6 +7004,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
   { "shutdown",             ntop_shutdown             },
   { "setRoutingMode",       ntop_set_routing_mode     },
+  { "isRoutingMode",        ntop_is_routing_mode      },
 
   { NULL,          NULL}
 };
