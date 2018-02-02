@@ -683,7 +683,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   char *double_dot, *p, *opt = NULL, buf[128] = { '\0' };
   int len = (optarg ? strlen(optarg) : 0)+6;
 
-  for(int i=0; ; i++) {
+  for(int i=0; long_options[i].name != NULL; i++) {
     if(long_options[i].val == optkey) {
       opt = (char*)long_options[i].name;
       len += strlen(opt)+2;
