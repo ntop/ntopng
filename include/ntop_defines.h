@@ -530,6 +530,9 @@
 #define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW "ntopng.prefs.max_num_packets_per_tiny_flow"
 #define CONST_MAX_NUM_BYTES_PER_TINY_FLOW   "ntopng.prefs.max_num_bytes_per_tiny_flow"
 
+/* Exponentially Weighted Moving Average alpha config. */
+#define CONST_EWMA_ALPHA_PERCENT            "ntopng.prefs.ewma_alpha_percent"
+#define CONST_DEFAULT_EWMA_ALPHA_PERCENT    15 /* 15% */
 
 #define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
 #define NULL_BL                        "''"

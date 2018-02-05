@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+// #define AS_LATENCY_DEBUG 1
+
 /* *************************************** */
 
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement() {
@@ -41,6 +43,31 @@ AutonomousSystem::~AutonomousSystem() {
 #ifdef AS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u", asn);
 #endif
+}
+
+/* *************************************** */
+
+void AutonomousSystem::updateNetworkLatency(bool as_client, u_int32_t latency_msecs) {
+  /* EWMA formula is EWMA(n) = (alpha_percent * sample + (100 - alpha_percent) * EWMA(n-1)) / 100
+
+     We read the EWMA alpha_percent from the preferences
+   */
+  u_int8_t ewma_alpha_percent = ntop->getPrefs()->get_ewma_alpha_percent();
+
+  if(as_client) ; /* Currently not relevant, only account for server network latency */
+  else {
+#ifdef AS_LATENCY_DEBUG
+    u_int32_t old_latency = server_network_latency;
+#endif
+    if(server_network_latency)
+      Utils::update_ewma(latency_msecs, &server_network_latency, ewma_alpha_percent);
+    else
+      server_network_latency = latency_msecs;
+#ifdef AS_LATENCY_DEBUG
+    printf("Updating latency EWMA: [asn: %u][sample msecs: %u][old latency: %u][new latency: %u][alpha percent: %u]\n",
+	   asn, latency_msecs, old_latency, server_network_latency, ewma_alpha_percent);
+#endif
+  }
 }
 
 /* *************************************** */
@@ -82,6 +109,7 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
     lua_push_int_table_entry(vm, "duration", get_duration());
 
     lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
+    lua_push_int_table_entry(vm,   "server_network_latency", server_network_latency);
 
     if(details_level >= details_higher)
       if(ndpiStats) ndpiStats->lua(iface, vm);

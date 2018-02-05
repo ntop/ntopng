@@ -354,6 +354,13 @@ function printProtocolPrefs()
     default = "0",
   })
 
+  print('<tr><th colspan=2 class="info">TCP</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["ewma_alpha_percent"].title, subpage_active.entries["ewma_alpha_percent"].description,
+		       "ntopng.prefs.", "ewma_alpha_percent", prefs.ewma_alpha_percent, "number",
+		       true,
+		       nil, nil, {min=1, max=99,})
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print('</table>')

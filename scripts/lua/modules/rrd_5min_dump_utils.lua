@@ -122,6 +122,9 @@ function rrd_dump.asn_update_rrds(when, ifstats, verbose)
           tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
       end
     end
+
+    -- Save ASN latency stats
+    rrd_utils.makeRRD(asnpath, when, ifstats.id, "asn:"..asn, "num_ms_srv_nw_ltn", 300, asn_stats["server_network_latency"])
   end
 end
 

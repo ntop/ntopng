@@ -3621,10 +3621,8 @@ static int ntop_rrd_create(lua_State* vm) {
     char *err = rrd_get_error();
 
     if(err != NULL) {
-      char error_buf[256];
-
-      snprintf(error_buf, sizeof(error_buf), "rrd_create_r() [%s] failed [%s]", filename, err);
-      lua_pushstring(vm, error_buf);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create %s [%s]", filename, err);
+      lua_pushnil(vm);
       // rrd_lock.unlock(__FILE__, __LINE__);
       return(CONST_LUA_ERROR);
     }

@@ -35,6 +35,7 @@ Prefs::Prefs(Ntop *_ntop) {
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
+  ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, flow_aggregation_enabled = false;
   enable_flow_device_port_rrd_creation = false;
@@ -510,6 +511,8 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
+
+    ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
     default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
@@ -1455,6 +1458,8 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+
+  lua_push_int_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
 
   lua_push_str_table_entry(vm, "safe_search_dns",
 			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));

@@ -61,20 +61,7 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
     incRcvdStats(rcvd_packets, rcvd_bytes);
   }
 
-  inline void updateNetworkLatency(bool as_client, u_int32_t latency_msecs) {
-    if(as_client) ; /* Currently not relevant */
-    else {
-#ifdef AS_LATENCY_DEBUG
-      u_int32_t old_latency = server_network_latency;
-#endif
-      Utils::update_ewma(latency_msecs, &server_network_latency, 50);
-#ifdef AS_LATENCY_DEBUG
-      printf("Updating latency EWMA: [asn: %u][sample msecs: %u][old latency: %u][new latency: %u]\n",
-	     asn, latency_msecs, old_latency, server_network_latency);
-#endif
-    }
-  }
-
+  void updateNetworkLatency(bool as_client, u_int32_t latency_msecs);
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 };

@@ -80,6 +80,7 @@ class Prefs {
   u_int32_t max_num_hosts, max_num_flows;
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
+  u_int8_t ewma_alpha_percent;
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
@@ -210,9 +211,10 @@ class Prefs {
   inline bool daemonize_ntopng()                        { return(daemonize);              };
 
   inline u_int32_t get_attacker_max_num_flows_per_sec() { return(attacker_max_num_flows_per_sec); };
-  inline u_int32_t get_victim_max_num_flows_per_sec()   { return(victim_max_num_flows_per_sec); };
-  inline u_int32_t get_attacker_max_num_syn_per_sec()   { return(attacker_max_num_syn_per_sec); };
-  inline u_int32_t get_victim_max_num_syn_per_sec()     { return(victim_max_num_syn_per_sec); };
+  inline u_int32_t get_victim_max_num_flows_per_sec()   { return(victim_max_num_flows_per_sec);   };
+  inline u_int32_t get_attacker_max_num_syn_per_sec()   { return(attacker_max_num_syn_per_sec);   };
+  inline u_int32_t get_victim_max_num_syn_per_sec()     { return(victim_max_num_syn_per_sec);     };
+  inline u_int8_t  get_ewma_alpha_percent()             { return(ewma_alpha_percent);             };
 
   void add_default_interfaces();
   int loadFromCLI(int argc, char *argv[]);
