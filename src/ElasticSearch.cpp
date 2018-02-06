@@ -139,12 +139,20 @@ void ElasticSearch::startFlowDump() {
 /* **************************************** */
 
 void ElasticSearch::indexESdata() {
-  const u_int watermark = 8, min_buf_size = 512;
-  char postbuf[16384];
+  const u_int min_buffered_flows = 8;
+  time_t last_dump = time(0);
+  char *postbuf = (char*) malloc(ES_BULK_BUFFER_SIZE);
+
+  if(!postbuf) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot allocate ES bulk buffer");
+    return;
+  }
 
   while(!ntop->getGlobals()->isShutdown()) {
+    time_t now = time(0);
 
-    if(num_queued_elems >= watermark) {
+    if((num_queued_elems >= min_buffered_flows)
+          || ((num_queued_elems > 0) && (now >= last_dump + ES_BULK_MAX_DELAY))) {
       u_int len, num_flows;
       char index_name[64], header[256];
       struct tm* tm_info;
@@ -163,10 +171,10 @@ void ElasticSearch::indexESdata() {
       len = 0, num_flows = 0;
 
       listMutex.lock(__FILE__, __LINE__);
-      for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
+      for(u_int i=0; (i < num_queued_elems) && (len <= ES_BULK_BUFFER_SIZE); i++) {
         struct string_list *prev;
         prev = tail->prev;
-	len += snprintf(&postbuf[len], sizeof(postbuf)-len, "%s\n%s\n", header, tail->str), num_flows++;
+        len += snprintf(&postbuf[len], ES_BULK_BUFFER_SIZE-len, "%s\n%s\n", header, tail->str), num_flows++;
         free(tail->str);
         free(tail);
         tail = prev,
@@ -179,19 +187,26 @@ void ElasticSearch::indexESdata() {
       listMutex.unlock(__FILE__, __LINE__);
       postbuf[len] = '\0';
 
+      ntop->getTrace()->traceEvent(TRACE_INFO, "ES: Buffered request with %d flows (%d bytes)", num_flows, len);
+
       if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				  ntop->getPrefs()->get_es_pwd(),
 				  ntop->getPrefs()->get_es_url(),
 				  postbuf)) {
 	/* Post failure */
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "ES: POST request for %d flows (%d bytes) failed", num_flows, len);
 	sleep(1);
       } else {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES", num_flows);
 	elkExportedFlows += num_flows;
       }
+
+      last_dump = now;
     } else
       sleep(1);
   } /* while */
+
+  free(postbuf);
 }
 
 /* **************************************** */
