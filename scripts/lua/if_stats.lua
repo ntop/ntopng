@@ -542,6 +542,8 @@ print("</script>\n")
 
       elseif export_drops > 0 and export_count > 0 then
 	 export_drops_pct = export_drops / export_count * 100
+      elseif export_drops > 0 then
+         export_drops_pct = 100
       end
 
       print("<tr><th colspan=7 nowrap>"..dump_to.." "..i18n("if_stats_overview.flows_export_statistics").."</th></tr>\n")
@@ -2412,10 +2414,9 @@ print [[";
           if(rsp.flow_export_count > 0) {
             $('#exported_flows_drops_pct')
               .addClass("label label-danger")
-              .html("[" + Math.round(rsp.flow_export_drops / rsp.flow_export_count * 100 * 1000) / 1000 + "%]");
+              .html("[" + Math.round(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_count) * 100 * 1000) / 1000 + "%]");
           } else {
-            /* If rsp.flow_export_count means that only drops have been occurring so it is meaningless to print a pct */
-            $('#exported_flows_drops_pct').removeClass().html("");
+            $('#exported_flows_drops_pct').addClass("label label-danger").html("[100%]");
           }
         } else {
           $('#exported_flows_drops').removeClass().html("0");
