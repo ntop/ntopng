@@ -50,7 +50,11 @@ end
 
 -- Note: en already loaded
 if language ~= "en" then
-   i18n.loadFile(lookupLocale(language, false) or (ntop.isPro() and lookupLocale(language, true)))
+   local locale_path = lookupLocale(language, false) or (ntop.isPro() and lookupLocale(language, true))
+
+   if locale_path then
+      i18n.loadFile(locale_path)
+   end
 end
 
 local available_locales = {}
