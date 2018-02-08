@@ -110,6 +110,7 @@ local  en = {
    disabled = "Disabled",
 
    locales = {
+      de = "German",
       en = "English",
       it = "Italian",
       jp = "Japanese",
@@ -291,7 +292,7 @@ local  en = {
       note_drop_core = "Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.",
       note_default_pool_config = "Policies and quotas only apply to user-defined host pools. Select a different pool or create a new one <a href='%{url}'>here</a>.",
       note_quota_unlimited = "Set Traffic and Time Quota to 0 for unlimited traffic.",
-      note_target_type = "You can modify what to show into the Target column via the Policy Target Type field in the <a href=\"%{url}\">Traffic Briding preferences</a> expert view.",
+      note_target_type = "You can modify what to show into the Target column via the Policy Target Type field in the <a href=\"%{url}\">Traffic Bridging preferences</a> expert view.",
       note_traffic_categories = "You can configure the Traffic Categories from the <a href=\"%{url}\">protocols page</a>.",
       see_quotas_here = "Visit the host pool <a href='%{url}'>quotas page</a> for the full overview of the active host pool quotas.",
       no_quota_traffic = "No quota related traffic so far",
@@ -513,7 +514,7 @@ local  en = {
       duplicate_profile = "Duplicate profile name",
       delete_profile = "Delete Profile",
       confirm_delete_profile = "Do you really want to delete the profile",
-      max_profiles_num = "With this version of ntopng you can only create %{maxnum} profiles. Upgrade to the enterprise version to remove this limit",
+      max_profiles_num = "With this version of ntopng you can only create %{maxnum} profiles. Upgrade to the Enterprise version to remove this limit",
    },
 
    host_pools = {
@@ -552,8 +553,8 @@ local  en = {
       new_pool = "New Pool",
       change_member_pool = "Change Member Pool",
       select_new_pool = "Select a new pool from the dropdown below to assign member \"%{member}\" to:",
-      max_pools_message = "With this version of ntopng you can only create %{maxnum} host pools. Upgrade to the enterprise version to remove this limit.",
-      max_members_message = "With this version of ntopng you can only assign %{maxnum} members per host pool. Upgrade to the enterprise version to remove this limit.",
+      max_pools_message = "With this version of ntopng you can only create %{maxnum} host pools. Upgrade to the Enterprise version to remove this limit.",
+      max_members_message = "With this version of ntopng you can only assign %{maxnum} members per host pool. Upgrade to the Enterprise version to remove this limit.",
       members_limit_reached = "members limit reached",
       cannot_delete_cp = "A pool cannot be deleted if there is any Captive Portal user associated",
       per_member_quotas = "When the per-member quotas option is set, each host will have a separate quota count. When unset, all the hosts traffic will count as a whole to the quota limit",
@@ -771,11 +772,11 @@ local  en = {
       toggle_logging_level_title = "Log level",
       toggle_logging_level_description = "Choose the runtime logging level.",
       toggle_access_log_title = "Enable HTTP Access Log",
-      toggle_access_log_description = "Toggle the creation of HTTP access log in the data dump directory. Settings will have effect at next ntop startup.",
+      toggle_access_log_description = "Toggle the creation of HTTP access log in the data dump directory. Settings will have effect at next ntopng startup.",
       tiny_flows = "Tiny Flows Dump",
       toggle_flow_db_dump_export_title = "Tiny Flows Export",
       toggle_flow_db_dump_export_description = "Toggle the export of tiny flows, that are flows with few packets or bytes."..
-            "Reducing flow cardinality in databases, speeds-up insert and searched. Tuning tiny flows can help to limit flow cardinality while not reducing visibility on dumped information.",
+            "Reduces flow cardinality in databases, speeds-up insert and searched. Tuning tiny flows can help to limit flow cardinality while not reducing visibility on dumped information.",
       max_num_packets_per_tiny_flow_title = "Maximum Number of Packets per Tiny Flow",
       max_num_packets_per_tiny_flow_description = "The maximum number of packets a flow must have to be considered a tiny flow. Default: 3.",
       max_num_bytes_per_tiny_flow_title = "Maximum Number of Bytes per Tiny Flow",
@@ -808,7 +809,7 @@ local  en = {
       google_apis_browser_key_title = "Google APIs Browser Key",
       google_apis_browser_key_description = "Graphical hosts geomaps are based on Google Maps APIs. Google recently changed Maps API access policies "..
             "and now requires a browser API key to be submitted for every request. Detailed information on how to obtain an API key "..
-            "<a href=\"%{url}\">can be found here</a>. "..
+            "can be found <a href=\"%{url}\">here</a>. "..
             "Once obtained, the API key can be placed in this field.",
       report = "Report",
       toggle_thpt_content_title = "Throughput Unit",
@@ -874,15 +875,6 @@ local  en = {
       dns_service = "Service",
       primary_dns = "Primary DNS",
       secondary_dns = "Secondary DNS",
-      quick_network_setup = "Quick Network Setup",
-      network_mode = "Network Operational Mode",
-      network_mode_description = "Specifying the operational mode of this network box",
-      router_mode = "Router",
-      transparent_bridge = "Transparent Bridge",
-      network_mode_router = "<b>Router:</b> you need to <u>disable the DHCP on your router</u> and let this box dynamically assign IP addresses (DHCP) to local hosts and become their gateway. This box will use your router as gateway to the Internet, and thus it must have a static IP address configured in order to reach your router.",
-      network_mode_bridge = "<b>Transparent Bridge</b>: your hosts will be connected to this box either using the embedded access point or through the optional ethernet interface and won't notice any change in IP address configuration.",
-      policy_target_type = "Policy Target Type",
-      policy_target_type_description = "Specify if you wish to set the policies on single protocols or on traffic categories",
    },
 
    entity_thresholds = {
@@ -891,7 +883,7 @@ local  en = {
       flow_victim_title = "Flow Flood Victim",
       flow_victim_description = "Max number of received flows/sec over which a host is considered under flood attack",
       syn_attacker_title = "SYN Flood Attacker",
-      syn_attacker_description = "Max number of sent TCP SYN packets/sec over which a host is considered a flooder",
+      syn_attacker_description = "Max number of sent TCP SYN packets/sec over which a host is considered a SYN flooder",
       syn_victim_title = "SYN Flood Victim",
       syn_victim_description = "Max number of received TCP SYN packets/sec over which a host is considered under SYN flood attack",
    },
@@ -1002,7 +994,6 @@ local  en = {
       overview = "%{what} Overview",
       sent_only = "Sent only",
       received_only = "Received only",
-      note = "NOTE",
       note_historical_per_protocol_traffic = "Historical %{what} traffic data can be enabled via ntopng <a href='%{url}'>%{flask_icon} Preferences</a>.",
       note_possible_probing_alert = "An icon like %{icon} indicates a possible probing (or application server down) alert as the host has received traffic for a specific application protocol without sending back any data. You can use <A HREF='%{url}'>historical reports</A> to drill-down this issue.",
       note_protocol_usage_time = "Protocol usage time is computed on discrete slot intervals.",
@@ -1731,7 +1722,7 @@ local  en = {
       ipv4_src_addr = "IPv4 source address",
       ipv4_src_mask = "IPv4 source subnet mask (/<bits>)",
       input_snmp = "Input interface SNMP idx",
-      l4_dst_port = "IPv4 destination port",
+      l4_dst_port = "Layer 4 destination port",
       l4_dst_port_map = "Layer 4 destination port symbolic name",
       l4_srv_port = "Layer 4 server port",
       l4_srv_port_map = "Layer 4 server port symbolic name",
@@ -1922,7 +1913,7 @@ local  en = {
       dhcp_client_ip = "DHCP assigned client IPv4 address",
       dhcp_client_name = "DHCP client name",
       dhcp_remote_id = "DHCP agent remote Id",
-      dhcp_subscriber_id = "DHCP subscribed Id",
+      dhcp_subscriber_id = "DHCP subscriber Id",
       dhcp_message_type = "DHCP message type",
       diameter_req_msg_type = "DIAMETER Request Msg Type",
       diameter_rsp_msg_type = "DIAMETER Response Msg Type",
@@ -2302,7 +2293,7 @@ local  en = {
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
    error_rrd_cannot_complete_dump = "Cannot complete local hosts RRD dump. Disk slow or too many local hosts?",
    error_no_search_results = "No results found. Please modify your search criteria.";
-   enterpriseOnly = "This feature is only available in the ntopng enterprise edition",
+   enterpriseOnly = "This feature is only available in the ntopng Enterprise edition",
    no_results_found = "No results found",
    purged_error_message = "Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>.",
 
