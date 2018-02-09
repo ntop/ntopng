@@ -255,7 +255,7 @@ class NetworkInterface : public Checkpointable {
      See C++ FAQ Lite covers this in section 23.7
   */
   inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
-#ifndef HAVE_LIBCAP
+#if defined(linux) && !defined(HAVE_LIBCAP)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
   inline bool isDiscoverableInterface()        { return(false);                              }
 #else
@@ -482,13 +482,13 @@ class NetworkInterface : public Checkpointable {
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
   void refreshShapers();
-  inline L7Policer* getL7Policer()                     { return(policer);     }
+  inline L7Policer* getL7Policer()                     { return(policer);                }
   inline FlowInterfacesStats* getFlowInterfacesStats() { return(flow_interfaces_stats);  }
 #endif
-  inline HostPools* getHostPools()         { return(host_pools);  }
+  inline HostPools* getHostPools()                     { return(host_pools);    }
 
-  PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
-  PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
+  PacketDumper *getPacketDumper(void)                  { return pkt_dumper;     }
+  PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
 
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(u_int16_t host_pool_id);
@@ -648,6 +648,7 @@ class NetworkInterface : public Checkpointable {
 		       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       u_int32_t s2d_bytes, u_int32_t d2s_bytes);
   Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  inline bool do_dump_unknown_traffic() { return(dump_unknown_traffic); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

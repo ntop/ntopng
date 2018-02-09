@@ -487,6 +487,11 @@ bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
 
   dump_to_disk = retval;
   dump_unknown_traffic = retval_u;
+
+  if(dump_to_disk || dump_unknown_traffic) {
+    if(!pkt_dumper)
+      pkt_dumper = new PacketDumper(this);
+  }
   return retval;
 }
 
@@ -1322,6 +1327,7 @@ void NetworkInterface::dumpPacketDisk(const struct pcap_pkthdr *h, const u_char 
                                       dump_reason reason) {
   if(pkt_dumper == NULL)
     pkt_dumper = new PacketDumper(this);
+  
   if(pkt_dumper)
     pkt_dumper->dumpPacket(h, packet, reason, getDumpTrafficSamplingRate(),
                            getDumpTrafficMaxPktsPerFile(),
@@ -1405,9 +1411,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     /* When captive portal is disabled, use the auto_assigned_pool_id as the default MAC pool */
     if(host_pools
-          && (ntop->getPrefs()->get_auto_assigned_pool_id() != NO_HOST_POOL_ID)
-          && (!ntop->getPrefs()->isCaptivePortalEnabled())
-          && (srcMac->locate() == located_on_lan_interface)) {
+       && (ntop->getPrefs()->get_auto_assigned_pool_id() != NO_HOST_POOL_ID)
+       && (!ntop->getPrefs()->isCaptivePortalEnabled())
+       && (srcMac->locate() == located_on_lan_interface)) {
       if(!host_pools->findMacPool(srcMac->get_mac(), vlan_id, &mac_pool) || (mac_pool == NO_HOST_POOL_ID)) {
         mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
         host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
@@ -1421,9 +1427,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifndef HAVE_OLD_NEDGE
     dstMac->incRcvdStats(1, rawsize);
 #endif
-}
+  }
 
- decode_ip:
+decode_ip:
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
@@ -1617,7 +1623,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
 #endif
 #endif
-
   }
 
   /* Protocol Detection */
@@ -1632,9 +1637,14 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
 	struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
-	if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS)
+	if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
+	  if(dump_unknown_traffic && (!isSampledTraffic())) {
+	    flow->addPacketToDump(h, packet);
+	    flow->flushBufferedPackets();
+	  }
+	  
 	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
-	else
+	} else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								  ip, ipsize, (u_int32_t)packet_time,
 								  cli, srv), false);
@@ -1653,60 +1663,60 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
       /* TODO case NDPI_PROTOCOL_DHCPV6: */
-      {
-	Mac *mac = (*srcHost)->getMac();
+    {
+      Mac *mac = (*srcHost)->getMac();
 
-	if(payload_len > 240) {
-	  if(mac && (payload[0] == 0x01)) /* Request */
-	    mac->setDhcpHost();
+      if(payload_len > 240) {
+	if(mac && (payload[0] == 0x01)) /* Request */
+	  mac->setDhcpHost();
 
-	  for(int i = 240; i<payload_len; ) {
-	    u_int8_t id  = payload[i], len = payload[i+1];
+	for(int i = 240; i<payload_len; ) {
+	  u_int8_t id  = payload[i], len = payload[i+1];
 
-	    if(len == 0) break;
-
-#ifdef DHCP_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
-#endif
-
-	    if(id == 12 /* Host Name */) {
-	      char name[64], buf[24], *client_mac, key[64];
-	      int j;
-
-	      j = ndpi_min(len, sizeof(name)-1);
-	      strncpy((char*)name, (char*)&payload[i+2], j);
-	      name[j] = '\0';
-
-	      client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
-	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
-
-	      snprintf(key, sizeof(key), DHCP_CACHE, get_id());
-	      ntop->getRedis()->hashSet(key, client_mac, name);
-	    } else if(id == 55 /* Parameters List (Fingerprint) */) {
-	      if((*srcHost)->getMac()) {
-		char fingerprint[64], buf[32];
-		u_int idx, offset = 0;
-
-		len = ndpi_min(len, sizeof(buf)/2);
-
-		for(idx=0; idx<len; idx++) {
-		  snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
-		  offset += 2;
-		}
+	  if(len == 0) break;
 
 #ifdef DHCP_DEBUG
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
 #endif
-		mac->setFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+
+	  if(id == 12 /* Host Name */) {
+	    char name[64], buf[24], *client_mac, key[64];
+	    int j;
+
+	    j = ndpi_min(len, sizeof(name)-1);
+	    strncpy((char*)name, (char*)&payload[i+2], j);
+	    name[j] = '\0';
+
+	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
+
+	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
+	    ntop->getRedis()->hashSet(key, client_mac, name);
+	  } else if(id == 55 /* Parameters List (Fingerprint) */) {
+	    if((*srcHost)->getMac()) {
+	      char fingerprint[64], buf[32];
+	      u_int idx, offset = 0;
+
+	      len = ndpi_min(len, sizeof(buf)/2);
+
+	      for(idx=0; idx<len; idx++) {
+		snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
+		offset += 2;
 	      }
-	    } else if(id == 0xFF)
-	      break; /* End of options */
 
-	    i += len + 2;
-	  }
+#ifdef DHCP_DEBUG
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+#endif
+	      mac->setFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	    }
+	  } else if(id == 0xFF)
+	    break; /* End of options */
+
+	  i += len + 2;
 	}
       }
-      break;
+    }
+    break;
 
     case NDPI_PROTOCOL_NETBIOS:
       if(*srcHost) {
@@ -1716,7 +1726,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
 	     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
 	     && (!strstr(name, "__MSBROWSE__"))
-	     ) {
+	    ) {
 
 	    if(name[0] == '*') {
 	      int limit = min(payload_len-57, (int)sizeof(name)-1);
@@ -1856,19 +1866,23 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
     }
 #endif
-
-    bool dump_if_unknown = dump_unknown_traffic
-      && (!flow->isDetectionCompleted() ||
-	  flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN);
-
-    if(dump_if_unknown
-       || dump_all_traffic
-       || flow->dumpFlowTraffic()) {
-      if(dump_to_disk) dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
-      if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
-    }
   }
-
+  
+  bool dump_if_unknown = dump_unknown_traffic
+    && ((!flow->isDetectionCompleted())
+	&& (flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN));
+  
+  if(dump_if_unknown
+     || dump_all_traffic
+     || flow->dumpFlowTraffic()) {
+    if(dump_to_disk && (!isSampledTraffic())) {
+      // dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
+      flow->addPacketToDump(h, packet);
+    }
+    
+    if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
+  }  
+  
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -4886,7 +4900,9 @@ void NetworkInterface::lua(lua_State *vm) {
   _tcpPacketStats.lua(vm, "tcpPacketStats");
 
   if(!isView()) {
-    if(pkt_dumper)    pkt_dumper->lua(vm);
+    if(pkt_dumper)
+      pkt_dumper->lua(vm);
+    
 #ifdef NTOPNG_PRO
 #ifndef HAVE_OLD_NEDGE
     if(flow_profiles) flow_profiles->lua(vm);

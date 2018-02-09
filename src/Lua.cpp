@@ -1195,6 +1195,7 @@ static int ntop_shutdown(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int ntop_set_routing_mode(lua_State* vm) {
   bool routing_enabled;
 
@@ -1209,9 +1210,11 @@ static int ntop_set_routing_mode(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int ntop_is_routing_mode(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1219,6 +1222,7 @@ static int ntop_is_routing_mode(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 

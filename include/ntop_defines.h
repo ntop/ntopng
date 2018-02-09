@@ -839,5 +839,8 @@
 #define MAX_THREAD_POOL_SIZE         5
 #endif
 
-#define MIN_TIME_SPAWN_THREAD_POOL   10 /* sec */
+#define MIN_TIME_SPAWN_THREAD_POOL        10 /* sec */
+
+#define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
+
 #endif /* _NTOP_DEFINES_H_ */

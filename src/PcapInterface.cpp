@@ -63,6 +63,9 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 	ifname = strdup(&slash[1]);
 	free(old);
       }
+
+      /* Re-reading prefs as name has changed */
+      loadDumpPrefs();
       
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
       read_pkts_from_pcap_dump = true, purge_idle_flows_hosts = false;      

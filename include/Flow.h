@@ -60,6 +60,12 @@ typedef enum {
   SSL_ENCRYPTION_BOTH = 0x3,
 } FlowSSLEncryptionStatus;
 
+typedef struct buffered_packet {
+  const struct pcap_pkthdr h;
+  u_char *packet;
+  struct buffered_packet *next;
+} BufferedPacket;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -69,6 +75,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
+  BufferedPacket *flow_packets_head, *flow_packets_tail;
   bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
@@ -466,6 +473,8 @@ class Flow : public GenericHashEntry {
   inline void setIngress2EgressDirection(bool _ingress2egress) { ingress2egress_direction = _ingress2egress; }
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
+  void addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet);
+  void flushBufferedPackets();
 };
 
 #endif /* _FLOW_H_ */

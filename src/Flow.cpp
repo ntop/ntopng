@@ -37,8 +37,9 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
-  l7_protocol_guessed = detection_completed = false;
-  dump_flow_traffic = false,
+  l7_protocol_guessed = detection_completed = false,
+    flow_packets_head = flow_packets_tail = NULL,
+    dump_flow_traffic = false,
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
@@ -164,6 +165,10 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
+
+  if(flow_packets_head)
+    flushBufferedPackets();
+  
   if(cli_host)         cli_host->decUses();
   if(srv_host)         srv_host->decUses();
   if(json_info)        free(json_info);
@@ -469,6 +474,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 #ifdef NTOPNG_PRO
     updateFlowShapers(true);
 #endif
+    flushBufferedPackets();
     iface->luaEvalFlow(this, callback_flow_proto_callback);
   }
 
@@ -829,11 +835,17 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
+  if((!isDetectionCompleted()) && ((tv->tv_sec - get_last_seen()) > 5 /* sec */)) {
+    /* If we have not found out the protocol until now we can give up at this point */
+    ndpi_protocol proto_id = { NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN };
+    setDetectedProtocol(proto_id, true);
+  }
+    
   if((is_idle_flow = isReadyToPurge())) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
     set_to_purge();
   }
-  
+
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 
@@ -901,7 +913,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
         }
       }
-   
+
       if(cli_host->getMac()) {
 #ifdef HAVE_OLD_NEDGE
         cli_host->getMac()->incSentStats(diff_sent_packets, diff_sent_bytes);
@@ -922,7 +934,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(trafficProfile)
 	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 #endif
-	
+
 	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       }
 #endif
@@ -995,12 +1007,12 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
     if((iface->getIfType() == interface_type_ZMQ)
        && (tdiff_msec < 5000)) {
-      /* With ZMQ (if collecting sFlow) we might compute inaccurate 
+      /* With ZMQ (if collecting sFlow) we might compute inaccurate
 	 throughput when haveing one flow with a single sample so
 	 we spread the traffic across at least 5 secs
       */
       ;
-    } else if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {     
+    } else if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
       // bps
       u_int64_t diff_bytes_cli2srv = cli2srv_last_bytes - prev_cli2srv_last_bytes;
       u_int64_t diff_bytes_srv2cli = srv2cli_last_bytes - prev_srv2cli_last_bytes;
@@ -1366,7 +1378,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(dst->get_vlan_id())
       lua_push_int_table_entry(vm, "srv.vlan", dst->get_vlan_id());
-    
+
     lua_push_int_table_entry(vm, "srv.key", mask_dst_host ? 0 : dst->key());
   } else {
     lua_push_nil_table_entry(vm, "srv.ip");
@@ -2450,7 +2462,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	 || (!strncmp(payload, "PUT", 3))
 	 ) {
 	char *ua;
-	
+
 	diff_num_http_requests++; /* One new request found */
 
 	if(protos.http.last_method) free(protos.http.last_method);
@@ -2483,7 +2495,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	if(ua) {
 	  char buf[128];
 	  u_int i;
-	  
+
 	  ua = &ua[11];
 	  while(ua[0] == ' ') ua++;
 
@@ -2798,7 +2810,7 @@ void Flow::updateFlowShapers(bool first_update) {
        (((!NDPI_ISSET(&cli->clientAllowed, ndpiDetectedProtocol.app_protocol))
 	 || (!NDPI_ISSET(&srv->serverAllowed, ndpiDetectedProtocol.app_protocol))))
        )
-      passVerdict = false;    
+      passVerdict = false;
   }
 
   /* Re-compute the verdict */
@@ -2815,7 +2827,7 @@ void Flow::updateFlowShapers(bool first_update) {
             (old_srv2cli_out != srv2cli_out)))
    ((NetfilterInterface *) iface)->setPolicyChanged();
 #endif
-  
+
 #ifdef SHAPER_DEBUG
   {
     char buf[1024];
@@ -3130,4 +3142,108 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
     srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
   }
 #endif
+}
+
+/* ***************************************************** */
+
+void Flow::addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet) {
+  BufferedPacket *b = (BufferedPacket*)malloc(sizeof(BufferedPacket));
+
+  if(b) {
+    memcpy((void*)&b->h, (void*)h, sizeof(struct pcap_pkthdr));
+    b->packet = (u_char*)malloc(h->caplen);
+
+    if(!b->packet) {
+      free(b);
+      return;
+    }
+
+    memcpy(b->packet, packet, h->caplen);
+    b->next = NULL;
+
+    if(flow_packets_tail == NULL) {
+      flow_packets_head = flow_packets_tail = b;
+    } else {
+      flow_packets_tail->next = b;
+      flow_packets_tail = b;
+    }
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::flushBufferedPackets() {  
+  if(iface->do_dump_unknown_traffic()
+     && flow_packets_head
+     && (get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN)
+    ) {
+    bool do_dump_to_disk = true;
+
+    if(protocol == IPPROTO_TCP) {
+      u_int8_t mask = TH_SYN | TH_ACK | TH_PUSH;
+
+      /* Initial bytes are in and some data is present */
+      if((getTcpFlags() & mask) == mask)
+	do_dump_to_disk = true;	
+      else
+	do_dump_to_disk = false; /* Initial flow bytes are missing */
+    } else
+      do_dump_to_disk = true;
+
+    if(do_dump_to_disk) {
+      char pcap_path[MAX_PATH], hour_path[64];
+      time_t when = flow_packets_head->h.ts.tv_sec;
+      pcap_dumper_t *dumper;
+      char buf1[32], buf2[32];
+    
+      when -= when % 3600; /* Hourly directories */
+      strftime(hour_path, sizeof(hour_path), "%Y/%m/%d/%H", localtime(&when));
+      snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/ndpi_unknown/%s/",
+	       ntop->get_working_dir(), iface->get_id(), hour_path);
+      ntop->fixPath(pcap_path);
+      Utils::mkdir_tree(pcap_path);
+
+      snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/ndpi_unknown/%s/%s:%u_%s:%u_%u.pcap",
+	       ntop->get_working_dir(), iface->get_id(), hour_path,
+	       cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
+	       srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
+	       (unsigned int)flow_packets_head->h.ts.tv_sec
+	);
+
+      if((dumper = pcap_dump_open(pcap_open_dead(iface->get_datalink(),
+						 16384 /* MTU */), pcap_path)) == NULL)
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s", pcap_path);
+      else {
+	u_int num_pkts = 0;
+	PacketDumper *pkt_dumper;
+	
+	while(flow_packets_head) {
+	  struct buffered_packet *tmp;
+
+	  pcap_dump((u_char*)dumper, &(flow_packets_head->h), flow_packets_head->packet);
+	  free(flow_packets_head->packet);
+	  tmp = flow_packets_head;
+	  flow_packets_head = flow_packets_head->next;
+	  free(tmp);
+	  num_pkts++;
+	}
+
+	pcap_dump_close(dumper);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Dumped %u packets onto file %s", num_pkts, pcap_path);
+
+	pkt_dumper = iface->getPacketDumper();
+	if(pkt_dumper) pkt_dumper->incUnknownPacketDump(num_pkts);
+      }
+    }
+  }
+
+  /* Even if we do not dump this flow, packets needs to be freed */
+  while(flow_packets_head) {
+    struct buffered_packet *tmp;
+
+    free(flow_packets_head->packet);
+    tmp = flow_packets_head;
+    flow_packets_head = flow_packets_head->next;
+    free(tmp);
+  }
 }

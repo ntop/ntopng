@@ -29,7 +29,8 @@ PacketDumper::PacketDumper(NetworkInterface *i) {
   iface = i, file_id = 1, sampling_rate = 1;
   dump_end = 0, dumper = NULL;
   num_sampled_packets = num_dumped_packets = 0;
-  sec_start = 0, max_pkts_per_file = 0, max_sec_per_file = 0;
+  num_dumped_unknown_packets = num_dumped_unknown_files = 0;
+  sec_start = 0, max_pkts_per_file = 0, max_sec_per_file = 0;  
   num_pkts_cur_file = 0;
 
   if((name[0] == 'l') && (name[1] == 'o'))
