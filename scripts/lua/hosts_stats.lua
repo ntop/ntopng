@@ -191,19 +191,29 @@ end
 if(protocol_name == nil) then protocol_name = protocol end
 
 function getPageTitle()
-   local parts = {}
+   local mode_label = ""
 
-   -- Note: when a parameter is nil, it will be not added to the parts
-   parts[#parts + 1] = firstToUpper(mode or "All")
-   parts[#parts + 1] = protocol_name
-   parts[#parts + 1] = network_name
-   parts[#parts + 1] = ipver_title
-   parts[#parts + 1] = os_
-   parts[#parts + 1] = i18n("hosts_stats.hosts")
-   parts[#parts + 1] = country or asninfo or mac or pool_
-   parts[#parts + 1] = vlan_title
+   if mode == "remote" then
+      mode_label = i18n("hosts_stats.remote")
+   elseif mode == "local" then
+      mode_label = i18n("hosts_stats.local")
+   elseif mode == "filtered" then
+      mode_label = i18n("hosts_stats.filtered")
+   elseif mode == "blacklisted" then
+      mode_label = i18n("hosts_stats.blacklisted")
+   end
 
-   return table.concat(parts, " ")
+   -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
+   return i18n("hosts_stats.hosts_page_title", {
+      all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
+      local_remote = mode_label,
+      protocol = protocol_name or "",
+      network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
+      ip_version = ipver_title or "",
+      ["os"] = os_ or "",
+      country_asn_or_mac = country or asninfo or mac or pool_ or "",
+      vlan = vlan_title or "",
+   })
 end
 
 print('title: "'..getPageTitle()..'",\n')

@@ -19,11 +19,11 @@ if(_POST["ntopng_license"] ~= nil) then
 end
 
 info = ntop.getInfo()
-print("<hr /><h2>"..i18n("about.about").." "..info["product"].."</h2>")
+print("<hr /><h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
-print("<tr><th>Copyright</th><td>"..info["copyright"].."</td></tr>\n")
-print("<tr><th>License</th><td>")
+print("<tr><th>") print(i18n("about.copyright")) print("</th><td>"..info["copyright"].."</td></tr>\n")
+print("<tr><th>") print(i18n("about.licence")) print("</th><td>")
 
 info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then

@@ -28,8 +28,8 @@ printntopngRelease(info)
 
 print(" v."..info["version"])
 
-print("</br>User ")
-print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> Interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
+print("</br> ") print(i18n("please_wait_page.user")) print(" ")
+print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> ' .. i18n("interface") .. ' <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
 
 local alias = getInterfaceNameAlias(ifname)
 print(alias)
@@ -79,17 +79,17 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       if(info["pro.demo_ends_at"] ~= nil) then
 	 local rest = info["pro.demo_ends_at"] - os.time()
 	 if(rest > 0) then
-	    print(' License expires in '.. secondsToTime(rest) ..'')
+	    print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
 	 end
       end
    else
-      print('Upgrade to Professional version')
+      print(i18n("about.upgrade_to_professional"))
       do_show = true
    end
    print('</span></A>')
 
    if(info["pro.out_of_maintenance"] == true) then
-      print('<span class="badge badge-error">ntopng maintenance is expired</span>')
+      print('<span class="badge badge-error">') print(i18n("about.maintenance_expired")) print('</span>')
    end
    
    if(do_show) then
@@ -307,7 +307,7 @@ print[[
 }
 	      } /* closes if (prev_bytes > 0) */
 
-		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small>";
+		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
 
                 if(rsp.system_host_stats.mem_total !== undefined) {
                    var mem_total = rsp.system_host_stats.mem_total;

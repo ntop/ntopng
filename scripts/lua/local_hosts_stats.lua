@@ -152,7 +152,13 @@ print ('sort: [ ["' .. getDefaultTableSort("localhosts_"..criteria) ..'","' .. g
 print [[    showPagination: true, 
 ]]
 
-print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("local_hosts_stats.criteria") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+print('buttons: [ ')
+
+print[['<div class="btn-group pull-right">]]
+printIpVersionDropdown(base_url, page_params)
+print[[</div>']]
+
+print(', \'<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("local_hosts_stats.criteria") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 local criteria_params = table.clone(page_params)
 
 --for id, _ in ipairs(looking_glass_criteria) do
@@ -169,10 +175,6 @@ for id, _ in pairsByKeys(looking_glass_criteria, asc) do
 end
 
    print("</ul></div>'")
-
-   print[[, '<div class="btn-group pull-right">]]
-   printIpVersionDropdown(base_url, page_params)
-   print[[</div>']]
 
    print(" ],")
 

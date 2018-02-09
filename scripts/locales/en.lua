@@ -108,6 +108,15 @@ local  en = {
    remote_networks = "Remote Networks",
    legenda = "Legenda",
    disabled = "Disabled",
+   networks = "Networks",
+   countries = "Countries",
+   operating_systems = "Operating Systems",
+   local_traffic = "Local Traffic",
+   layer_2 = "Layer 2",
+   timeframe = "Timeframe",
+   interfaces = "Interfaces",
+   search_host = "Search Host",
+   change_number_of_rows = "Change the number of rows per page",
 
    locales = {
       de = "German",
@@ -146,6 +155,12 @@ local  en = {
       note_ases_traffic = "Traffic shown is sent and received by the autonomous system.",
       note_ases_sent = "Traffic sent is the traffic sent by the autonomous system.",
       note_ases_rcvd = "Traffic received the traffic received by the autonomous system.",
+      hover_the_mouse_to = "Hover the mouse on the chart to display minute top traffic statistics",
+      minute_interface_top_stats = "Minute Interface Top Traffic Statistics",
+      graph_info = "Graph Info",
+      percentile = "95th <a href=\"%{url}\">Percentile</a>",
+      average = "Average",
+      ["max"] = "Max",
    },
 
    flows_page = {
@@ -191,6 +206,8 @@ local  en = {
       applications = "Applications",
       l4_proto = "L4 Proto",
       source_id = "Source Id",
+      flow_exporters = "Flow Exporters",
+      sflow_devices = "sFlow Devices",
    },
 
    traffic_report = {
@@ -363,6 +380,23 @@ local  en = {
       startup = "Startup",
       no_recorded_alerts_message = "No recorded alerts for interface %{ifname}",
       alerts_are_disabled_message = "Alerts are disabled. Please check the preferences page to enable them.",
+      detected_alerts = "Detected Alerts",
+      alerts_to_purge = "Alerts to Purge",
+      older_than = "older than",
+      ["5_min"] = "5 minutes",
+      ["30_min"] = "30 minutes",
+      ["1_hour"] = "1 hour",
+      ["1_day"] = "1 day",
+      ["1_week"] = "1 week",
+      ["1_month"] = "1 month",
+      ["6_months"] = "6 months",
+      ["1_year"] = "1 year",
+      purge_subj_alerts = "Purge %{subj} Alerts",
+      engaged = "Engaged",
+      past = "Past",
+      past_flow = "Past Flow",
+      purge_subj_alerts_confirm = "Do you really want to purge all the %{subj} alerts?",
+      in_the_selected_time_frame = "in the selected time period",
    },
 
    alerts_dashboard = {
@@ -397,7 +431,22 @@ local  en = {
       custom_period = "Custom Period",
       last_minute = "Last Minute",
       last_hour = "Last Hour",
-      last_day = "Last Day"
+      last_day = "Last Day",
+      alerts_dashboard  = "Alerts Dashboard",
+      no_alert = "No Alert",
+      tcp_syn_flood = "TCP SYN Flood",
+      flows_flood = "Flows Flood",
+      threashold_cross = "Threshold Cross",
+      suspicious_activity = "Suspicious Activity",
+      interface_alerted = "Interface Alerted",
+      flow_misbehaviour = "Flow Misbehaviour",
+      remote_to_remote_flow = "Remote to Remote Flow",
+      blacklisted_flow = "Blacklisted Flow",
+      blocked_flow = "Blocked Flow",
+      none = "None",
+      info = "Info",
+      warning = "Warning",
+      ["error"] = "Error",
    },
 
    flow_alerts_explorer = {
@@ -487,6 +536,7 @@ local  en = {
       last_hour_flows = "Flows seen in the last hour",
       download_flows = "Download flows",
       empty_query_response = "Empty query response (database down or query killed/timed out?)",
+      historical_data_explorer = "Historical Data Explorer",
    },
 
    traffic_profiles = {
@@ -515,6 +565,7 @@ local  en = {
       delete_profile = "Delete Profile",
       confirm_delete_profile = "Do you really want to delete the profile",
       max_profiles_num = "With this version of ntopng you can only create %{maxnum} profiles. Upgrade to the Enterprise version to remove this limit",
+      traffic_profiles = "Traffic Profiles",
    },
 
    host_pools = {
@@ -564,6 +615,7 @@ local  en = {
       confirm_reset_pool_quotas = "Do you really want to reset the \"%{pool}\" pool couters?",
       create_new_quotas_here = "You can create new quotas <a href=\"%{url}\">here</a>.",
       pool_name_pattern_error = "Please enter only lowercase characters, numbers or underscore",
+      host_pools = "Host Pools",
    },
 
    discover = {
@@ -574,6 +626,7 @@ local  en = {
       network_discovery_not_enabled = "A network discovery is in progress. The page will refresh periodically.",
       error_unable_to_decode_json = "Unable to decode cache JSON discovery data.",
       error_no_discovery_cached = "No discovery data has been cached yet.",
+      ghost_icon_descr = "The %{ghost_icon} icon highlights ghost hosts (i.e. they do not belong to the interface IP address network)",
    },
 
    snmp = {
@@ -592,6 +645,7 @@ local  en = {
       top_remote_destinations = "Top Remote Destinations",
       lastday_app_traffic = "Top Application Traffic Last Day View",
       lastday_traffic = "Network Interfaces: Last Day View",
+      traffic_dashboard = "Traffic Dashboard",
    },
 
    about = {
@@ -610,6 +664,16 @@ local  en = {
       platform = "Platform",
       startup_line = "Startup Line",
       last_log = "Last Log Trace",
+      about_ntopng = "About ntopng",
+      readme_and_manual = "Readme and Manual",
+      ntop_blog = "ntop Blog",
+      report_issue = "Report an Issue",
+      about_x = "About %{product}",
+      copyright = "Copyright",
+      licence_expires_in = "License expires in %{time}",
+      upgrade_to_professional = "Upgrade to Professional version",
+      maintenance_expired = "ntopng maintenance is expired",
+      uptime = "Uptime",
    },
 
    prefs = {
@@ -875,6 +939,7 @@ local  en = {
       dns_service = "Service",
       primary_dns = "Primary DNS",
       secondary_dns = "Secondary DNS",
+      preferences = "Preferences",
    },
 
    entity_thresholds = {
@@ -1130,6 +1195,7 @@ local  en = {
       top_processes = "Top Processes",
       processes_traffic_tree = "Processes Traffic Tree",
       show_more_info = "Mouse over to show the process information or double click to show more information.",
+      system_interactions = "System Interactions",
    },
 
    if_stats_config = {
@@ -1461,10 +1527,11 @@ local  en = {
    local_flow_matrix = {
       local_hosts_active_flows_matrix = "Local Hosts Active Flows Matrix",
       error_no_local_hosts = "No local hosts can be found",
+      local_flow_matrix = "Local Flow Matrix",
    },
 
    tree_map = {
-      hosts_treemap = "Hosts TreeMap",
+      hosts_treemap = "Hosts Tree Map",
    },
 
    geo_map = {
@@ -1483,6 +1550,7 @@ local  en = {
       note_html_browser_geolocation = "HTML <A HREF=%{url}>browser geolocation</A> is used to place on map hosts based on unknown locations.",
       note_google_maps_browser_api_key = "A Google Maps Browser API Key may be required. Detailed information on key generation <a href='%{url_google}'>can be found here</a>.<br>"..
             "Once generated, the key can be submitted via ntopng <a href='%{url_prefs}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
+      geo_map = "Geo Map",
    },
 
    top_hosts = {
@@ -1497,6 +1565,7 @@ local  en = {
       local_http_servers = "Local HTTP Servers",
       http_virtual_host = "HTTP Virtual Host",
       http_server_ip = "HTTP Server IP",
+      http_servers = "Server HTTP",
    },
 
    local_hosts_stats = {
@@ -1561,6 +1630,13 @@ local  en = {
       label_remote_host = "Remote Host",
       label_blacklisted_host = "Blacklisted Host",
       idle_hosts_not_listed = "Idle hosts not listed.",
+      hosts_page_title = "%{all} %{local_remote} %{protocol} %{network} %{ip_version} %{os} Hosts %{country_asn_or_mac} %{vlan}",
+      filtered = "Filtered",
+      blacklisted = "Blacklisted",
+      ["local"] = "Local",
+      remote = "Remote",
+      all = "All",
+      in_network = "in %{network}",
    },
 
    unknown_devices = {
@@ -2223,6 +2299,38 @@ local  en = {
       web_users = "Web Users",
       add_web_user = "Add Web User",
       add_captive_portal_user = "Add Captive Portal User",
+      logout_user_x = "Logout %{user}",
+   },
+
+   manage_users = {
+      manage_users = "Manage Users",
+      enable_captive_portal = "<a href=\"%{url}\">Enabling the captive portal</a> allows you to define captive portal users",
+      web_captive_users = "Web/Captive Portal Users",
+      group = "Group",
+      manage = "Manage",
+      manage_user_x = "Manage User %{user}",
+      confirm_delete_user = "Are you sure you want to delete %{user}?",
+      host_pool_id = "Host Pool Id",
+      old_password = "Old Password",
+      new_password = "New Password",
+      new_password_confirm = "Confirm New Password",
+      allowed_passwd_charset = "Allowed characters are ISO 8859-1 (latin1) upper and lower case letters, numbers and special symbols",
+      change_user_password = "Change User Password",
+      user_role = "User Role",
+      allowed_interface = "Allowed Interface",
+      allowed_networks = "Allowed Networks";
+      allowed_networks_descr = "Comma separated list of networks this user can view. Example:",
+      change_user_preferences = "Change User Preferences",
+      non_privileged_user = "Non Privileged User",
+      administrator = "Administrator",
+      any_interface = "Any Interface",
+      authentication_lifetime = "Authentication Lifetime",
+      unlimited = "Unlimited",
+      expires_after = "Expires after",
+      add_new_user = "Add New User",
+      the_host_pool_associated = "The host pool that will be associated to the user upon successful authentication",
+      the_auth_can_be_perpetual = "The authentication can be perpetual or can expire after the specified time",
+      no_host_pools = "No Host Pools defined. Please create one <a href='%{url}'>here</a>",
    },
 
    policy_presets = {
@@ -2286,6 +2394,13 @@ local  en = {
        drop = "Drop",
        default = "Default",
     },
+  },
+
+  metrics = {
+    secs = "Secs",
+    mins = "Mins",
+    hours = "Hours",
+    days = "Days",
   },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

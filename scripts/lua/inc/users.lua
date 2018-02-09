@@ -14,7 +14,7 @@ if is_captive_portal_active then
 
    local url = ntop.getHttpPrefix().."/lua/admin/users.lua"
    -- prepare a button to manage captive portal users
-   captive_portal_btn = "<div class='btn-group'><button class='btn btn-link dropdown-toggle' data-toggle='dropdown'>Web/Captive Portal Users<span class='caret'></span></button> <ul class='dropdown-menu' role='menu'>"
+   captive_portal_btn = "<div class='btn-group'><button class='btn btn-link dropdown-toggle' data-toggle='dropdown'>" .. i18n("manage_users.web_captive_users") .. "<span class='caret'></span></button> <ul class='dropdown-menu' role='menu'>"
    captive_portal_btn = captive_portal_btn.."<li><a href='"..url.."'>"..users_type["ntopng"].."</a></li>"
    captive_portal_btn = captive_portal_btn.."<li><a href='"..url.."?captive_portal_users=1'>"..users_type["captive_portal"].."</a></li>"
    captive_portal_btn = captive_portal_btn.."</ul></div>"
@@ -37,7 +37,7 @@ print [[",
 		],
 		columns: [
 			{
-				title: "Username",
+				title: "]] print(i18n("login.username")) print[[",
 				field: "column_username",
 				sortable: true,
 				css: {
@@ -45,7 +45,7 @@ print [[",
 				}
 			},
 			{
-				title: "Full Name",
+				title: "]] print(i18n("users.full_name")) print[[",
 				field: "column_full_name",
 				sortable: true,
 				css: {
@@ -59,7 +59,7 @@ if captive_portal_users == false then
 
 print[[
 			{
-				title: "Group",
+				title: "]] print(i18n("manage_users.group")) print[[",
 				field: "column_group",
 				sortable: true,
 				css: {
@@ -71,12 +71,12 @@ print[[
 else
 print[[
 			{
-				title: "Host Pool ID",
+				title: "]] print(i18n("manage_users.host_pool_id")) print[[",
 				field: "column_host_pool_id",
 				hidden: true
 			},
 			{
-				title: "Host Pool",
+				title: "]] print(i18n("host_config.host_pool")) print[[",
 				field: "column_host_pool_name",
 				sortable: true,
 				css: {
@@ -89,7 +89,7 @@ end
 
 print[[
 			{
-				title: "Edit",
+				title: "]] print(i18n("users.edit")) print[[",
 				field: "column_edit",
 				css: {
 					textAlign: 'center'

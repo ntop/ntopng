@@ -23,7 +23,7 @@ if(haveAdminPrivileges()) then
    local ifstats = interface.getStats()
    local is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
    if(ifstats.inline and not(is_captive_portal_enabled)) and not ntop.isnEdge() then
-      print('<small><b>NOTE:</b> <A HREF="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=bridging">Enabling the captive portal</A> allows you to define captive portal users.</small>')
+      print('<small><b>'..i18n("if_stats_overview.note")..':</b> ') print(i18n("manage_users.enable_captive_portal", {url=ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=bridging'})) print('.</small>')
    end
 
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")

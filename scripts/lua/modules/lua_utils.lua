@@ -514,23 +514,23 @@ end
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string"}
 alert_level_keys = {
-  { "<span class='label label-info'>None</span>",      -1, "none"   },
-  { "<span class='label label-info'>Info</span>",       0, "info"    },
-  { "<span class='label label-warning'>Warning</span>", 1, "warning" },
-  { "<span class='label label-danger'>Error</span>",    2, "error"   }
+  { "<span class='label label-info'>" .. i18n("alerts_dashboard.none") .. "</span>",      -1, "none"   },
+  { "<span class='label label-info'>" .. i18n("alerts_dashboard.info") .. "</span>",       0, "info"    },
+  { "<span class='label label-warning'>" .. i18n("alerts_dashboard.warning") .. "</span>", 1, "warning" },
+  { "<span class='label label-danger'>" .. i18n("alerts_dashboard.error") .. "</span>",    2, "error"   }
 }
 
 alert_type_keys = {
-  { "<i class='fa fa-ok'></i> No alert",                             -1, "alert_none"                 },
-  { "<i class='fa fa-life-ring'></i> TCP SYN Flood",                  0, "tcp_syn_flood"              },
-  { "<i class='fa fa-life-ring'></i> Flows Flood",                    1, "flows_flood"                },
-  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",          2, "threshold_cross"            },
-  { "<i class='fa fa-exclamation'></i> Suspicious Activity",          3, "suspicious_activity"        },
-  { "<i class='fa fa-exclamation'></i> Interface Alerted",            4, "interface_alerted"          },
-  { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",            5, "flow_misbehaviour"          },
-  { "<i class='fa fa-exclamation'></i> Remote to Remote Flow",        6, "flow_remote_to_remote"      },
-  { "<i class='fa fa-exclamation'></i> Blacklisted Flow",             7, "flow_blacklisted"           },
-  { "<i class='fa fa-ban'></i> Blocked Flow",                         8, "flow_blocked"               },
+  { "<i class='fa fa-ok'></i> " .. i18n("alerts_dashboard.no_alert"),                             -1, "alert_none"                 },
+  { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.tcp_syn_flood"),                  0, "tcp_syn_flood"              },
+  { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.flows_flood"),                    1, "flows_flood"                },
+  { "<i class='fa fa-arrow-circle-up'></i> " .. i18n("alerts_dashboard.threashold_cross"),          2, "threshold_cross"            },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_activity"),          3, "suspicious_activity"        },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.interface_alerted"),            4, "interface_alerted"          },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.flow_misbehaviour"),            5, "flow_misbehaviour"          },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.remote_to_remote_flow"),        6, "flow_remote_to_remote"      },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.blacklisted_flow"),             7, "flow_blacklisted"           },
+  { "<i class='fa fa-ban'></i> " .. i18n("alerts_dashboard.blocked_flow"),                         8, "flow_blocked"               },
 }
 
 local alert_entity_keys = {
@@ -3146,10 +3146,10 @@ FMT_TO_DATA_BYTES = {
 }
 
 FMT_TO_DATA_TIME = {
-  ["s"] = {label="Secs",  value=1},
-  ["m"] = {label="Mins",  value=60},
-  ["h"] = {label="Hours", value=3600},
-  ["d"] = {label="Days",  value=3600*24},
+  ["s"] = {label=i18n("metrics.secs"),  value=1},
+  ["m"] = {label=i18n("metrics.mins"),  value=60},
+  ["h"] = {label=i18n("metrics.hours"), value=3600},
+  ["d"] = {label=i18n("metrics.days"),  value=3600*24},
 }
 
 -- ###########################################

@@ -41,7 +41,7 @@ print [[
 
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Username</label>
+      <label class="form-label">]] print(i18n("login.username")) print[[</label>
       <div class="input-group">
         <span class="input-group-addon"><i class="fa fa-user-circle-o" aria-hidden="true"></i></span>
         <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
@@ -49,7 +49,7 @@ print [[
     </div>
 
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Full Name</label>
+      <label class="form-label">]] print(i18n("users.full_name")) print[[</label>
       <div class="input-group">
         <span class="input-group-addon"><i class="fa fa-user" aria-hidden="true"></i></span>
         <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
@@ -61,14 +61,14 @@ print [[
 
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Password</label>
+      <label class="form-label">]] print(i18n("login.password")) print[[</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
         <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
   </div>
 
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Confirm Password</label>
+      <label class="form-label">]] print(i18n("login.confirm_password")) print[[</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
         <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
       </div>
@@ -83,20 +83,20 @@ if captive_portal_user == false then
    print[[
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">User Role</label>
+      <label class="form-label">]] print(i18n("manage_users.user_role")) print[[</label>
       <div class="input-group" style="width:100%;">
         <select id="host_role_select" name="user_role" class="form-control" style="width:100%;">
-          <option value="unprivileged">Non Privileged User</option>
-          <option value="administrator">Administrator</option>
+          <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
+          <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
         </select>
       </div>
   </div>
 
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Allowed Interface</label>
+      <label class="form-label">]] print(i18n("manage_users.allowed_interface")) print[[</label>
       <div class="input-group" style="width:100%;">
         <select name="allowed_interface" id="allowed_interface" class="form-control">
-          <option value="">Any Interface</option>
+          <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
 
    for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
@@ -112,11 +112,11 @@ if captive_portal_user == false then
 
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
-      <label class="form-label">Allowed Networks</label>
+      <label class="form-label">]] print(i18n("manage_users.allowed_networks")) print[[</label>
       <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
         <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
       </div>
-      <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
+      <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
 </div>]]
 
@@ -125,7 +125,7 @@ else -- a captive portal user is being added
 
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Host Pool</label>
+      <label class="form-label">]] print(i18n("host_config.host_pool")) print[[</label>
       <div class="input-group" style="width:100%;">
         <select name="host_pool_id" id="host_pool_id" class="form-control">
 
@@ -150,10 +150,10 @@ else -- a captive portal user is being added
     </div>
 
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Authentication Lifetime</label>
+      <label class="form-label">]] print(i18n("manage_users.authentication_lifetime")) print[[</label>
       <div class="input-group">
-        <label class="radio-inline"><input type="radio" id="add_lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
-        <label class="radio-inline"><input type="radio" id="add_lifetime_limited" name="lifetime_limited">Expires after</label>
+        <label class="radio-inline"><input type="radio" id="add_lifetime_unlimited" name="lifetime_unlimited" checked>]] print(i18n("manage_users.unlimited")) print[[</label>
+        <label class="radio-inline"><input type="radio" id="add_lifetime_limited" name="lifetime_limited">]] print(i18n("manage_users.expires_after")) print[[</label>
       </div>
       <!-- optionally allow to specify a certain number of days
       <input id="add_lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
@@ -186,10 +186,10 @@ else -- a captive portal user is being added
 
 <div class="row">
   <div class='col-md-6'>
-    <small>The host pool that will be associated to the user upon successful authentication.</small>
+    <small>]] print(i18n("manage_users.the_host_pool_associated")) print[[.</small>
   </div>
   <div class='col-md-6'>
-    <small>The authentication can be perpetual or can expire after the specified time.</small>
+    <small>]] print(i18n("manage_users.the_auth_can_be_perpetual")) print[[.</small>
   </div>
 </div>
 
@@ -199,7 +199,7 @@ if no_pools then
   print[[
     <script>
       $(function() {
-        add_user_alert.error("No Host Pools defined. Please create one <a href=']] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?page=pools#create'>here</a>.", true);
+        add_user_alert.error("]] print(i18n("manage_users.no_host_pools", {url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=pools#create"})) print[[.", true);
         $("#add_user_dialog").find("input,select,button[type='submit']").attr("disabled", "disabled");
       });
     </script>
@@ -213,13 +213,13 @@ print[[
 
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Language</label>
+      <label class="form-label">]] print(i18n("language")) print[[</label>
       <div class="input-group">
         <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
         <select name="user_language" id="user_language" class="form-control">]]
 
 for _, lang in pairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
 end
 
 print[[
@@ -238,7 +238,7 @@ print[[
 
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
-      <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">Add New User</button>
+      <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>
     </div>
 </div>
 

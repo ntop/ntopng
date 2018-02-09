@@ -57,7 +57,7 @@ function getParams(url) {
 }
 
 /* adds a CSS style to replace the / in the breadcrumb */
-var style = $('<style>#search-criteria:before {content:"]] print(i18n("db_explorer.observation_period")) print[[:";}</style>');
+var style = $("<style>#search-criteria:before {content:\"]] print(i18n("db_explorer.observation_period")) print[[:\";}</style>");
 $('html > head').append(style);
 function addObservationPeriodToBreadCrumb(params_url, breadcrumb_id){
   var params = getParams(params_url);

@@ -306,7 +306,7 @@ function printExternalAlertsReport()
 		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
 
   if(ntop.isPro() and hasNagiosSupport()) then
-    print('<tr><th colspan= class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
+    print('<tr><th colspan="2" class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
 
     local alertsEnabled = showElements
 

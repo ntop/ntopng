@@ -536,7 +536,7 @@ end
 
 -- #################################
 
-local function drawDropdown(status, selection_name, active_entry, entries_table)
+local function drawDropdown(status, selection_name, active_entry, entries_table, button_label)
    -- alert_level_keys and alert_type_keys are defined in lua_utils
    local id_to_label
    if selection_name == "severity" then
@@ -573,7 +573,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
 
    local buttons = '<div class="btn-group">'
 
-   local button_label = firstToUpper(selection_name)
+   button_label = button_label or firstToUpper(selection_name)
    if active_entry ~= nil and active_entry ~= "" then
       button_label = firstToUpper(active_entry)..'<span class="glyphicon glyphicon-filter"></span>'
    end
@@ -1078,7 +1078,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
          id      = "myModal",
          action  = "checkModalDelete()",
          title   = "",
-         message = 'Do you really want to purge all the<span id="modalDeleteContext"></span> alerts<span id="modalDeleteAlertsMsg"></span>?',
+         message = i18n("show_alerts.purge_subj_alerts_confirm", {subj = '<span id="modalDeleteContext"></span><span id="modalDeleteAlertsMsg"></span>'}),
          confirm = i18n("show_alerts.purge_num_alerts", {
             num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
          }),
@@ -1145,11 +1145,11 @@ function updateDeleteLabel(tabid) {
    var val = "";
 
    if (tabid == "tab-table-engaged-alerts")
-      val = "Engaged ";
+      val = "]] print(i18n("show_alerts.engaged")) print[[ ";
    else if (tabid == "tab-table-alerts-history")
-      val = "Past ";
+      val = "]] print(i18n("show_alerts.past")) print[[ ";
    else if (tabid == "tab-table-flow-alerts-history")
-      val = "Past Flow ";
+      val = "]] print(i18n("show_alerts.past_flow")) print[[ ";
 
    label.html(prefix + val);
 }
@@ -1244,8 +1244,8 @@ function getCurrentStatus() {
 	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alertSeverityLabel(_GET["alert_severity"], true) end
 	    end
 
-	    print(drawDropdown(t["status"], "type", a_type, alert_types))
-	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
+	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type")))
+	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity")))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
 	       title = title .. " - " .. firstToUpper(formatAlertEntity(getInterfaceId(ifname), entity, _GET["entity_val"], nil))
@@ -1385,14 +1385,14 @@ function getCurrentStatus() {
       end
 
       local zoom_vals = {
-	 { "5 min",  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
-	 { "30 min", 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
-	 { "1 hour",  60*60*1, i18n("show_alerts.older_1_hour_ago") },
-	 { "1 day",  60*60*24, i18n("show_alerts.older_1_day_ago") },
-	 { "1 week",  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
-	 { "1 month",  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
-	 { "6 months",  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
-	 { "1 year",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
+	 { i18n("show_alerts.5_min"),  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
+	 { i18n("show_alerts.30_min"), 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
+	 { i18n("show_alerts.1_hour"),  60*60*1, i18n("show_alerts.older_1_hour_ago") },
+	 { i18n("show_alerts.1_day"),  60*60*24, i18n("show_alerts.older_1_day_ago") },
+	 { i18n("show_alerts.1_week"),  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
+	 { i18n("show_alerts.1_month"),  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
+	 { i18n("show_alerts.6_months"),  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
+	 { i18n("show_alerts.1_year"),  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
       }
 
       if (num_past_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
@@ -1407,21 +1407,21 @@ $("[clicked=1]").trigger("click");
 	 local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
 
 	 print('<div id="alertsActionsPanel">')
-	 print('<br>Alerts to Purge: ')
+	 print('<br>' ..  i18n("show_alerts.alerts_to_purge") .. ': ')
 	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
 	 local all_msg = ""
 
 	 if not has_fixed_period then
-	    print('<optgroup label="older than">')
+	    print('<optgroup label="' .. i18n("show_alerts.older_than") .. '">')
 	    for k,v in ipairs(zoom_vals) do
 	       print('<option data-older="'..(os.time() - zoom_vals[k][2])..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
 	    end
 	    print('</optgroup>')
 	 else
-	    all_msg = " in the selected time period"
+	    all_msg = " " .. i18n("show_alerts.in_the_selected_time_frame")
 	 end
 
-	 print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">All</option>\n')
+	 print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">' .. i18n("all") .. '</option>\n')
 
 
 	 print[[</select>
@@ -1435,7 +1435,9 @@ $("[clicked=1]").trigger("click");
 	 local delete_params = getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
 
-	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> <span id="purgeBtnMessage">Purge <span id="purgeBtnLabel"></span>Alerts</span></button>
+	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> <span id="purgeBtnMessage">]]
+    print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
+    print[[</span></button>
    </div> <!-- closes alertsActionsPanel -->
 
 <script>

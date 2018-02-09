@@ -47,7 +47,7 @@
 // ------------- Start ntop Patch ---------------
         .addClass("alert alert-danger")
 // ------------- End ntop Patch ---------------        
-        .html("No Results Found");
+        .html(i18n.no_results_found);
 
     this.$element.addClass("clearfix");
 
@@ -881,7 +881,7 @@
     // per page options and current filter/sorting
     var $perpage_select = $("<a></a>")
       .addClass("btn dropdown-toggle")
-      .data("content", "Change the number of rows per page.")
+      .data("content", i18n.change_number_of_rows + ".")
       .attr("data-toggle", "dropdown")
       .html(o.perPage + "&nbsp;")
       .css({ fontWeight: 'normal' })

@@ -147,7 +147,7 @@ end
 print("</table>\n")
 
 if(discovered["ghost_found"]) then
-   print('<b>NOTE</b>: The <font color=red>'..discover.ghost_icon..'</font> icon highlights ghost hosts (i.e. they do not belong to the interface IP address network).')
+   print('<b>' .. i18n("notes") .. '</b>: ' .. i18n("discover.ghost_icon_descr", {ghost_icon='<font color=red>'..discover.ghost_icon..'</font>'}) .. '.')
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -4,7 +4,7 @@ print [[
     <div class="modal-content">
       <div class="modal-header">
   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-  <h3 id="delete_user_dialog_label">Delete User</h3>
+  <h3 id="delete_user_dialog_label">]] print(i18n("users.delete_user")) print[[</h3>
 </div>
 
 <div class="modal-body">
@@ -56,8 +56,8 @@ print [[
 </div> <!-- modal-body -->
 
 <div class="modal-footer">
-  <button class="btn btn-default btn-sm" data-dismiss="modal" aria-hidden="true">Close</button>
-  <button id="delete_user_submit" class="btn btn-primary btn-sm">Delete</button>
+  <button class="btn btn-default btn-sm" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print[[</button>
+  <button id="delete_user_submit" class="btn btn-danger btn-sm">]] print(i18n("delete")) print[[</button>
 </div>
 
 <script>
