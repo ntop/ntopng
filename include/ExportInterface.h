@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 
 class ExportInterface {
  private:

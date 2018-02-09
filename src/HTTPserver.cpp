@@ -75,7 +75,7 @@ static inline const char * get_secure_cookie_attributes(const struct mg_request_
 }
 
 /* ****************************************** */
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 static void redirect_to_ssl(struct mg_connection *conn,
                             const struct mg_request_info *request_info) {
   const char *host = mg_get_header(conn, "Host");
@@ -575,7 +575,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   len = (u_int)strlen(request_info->uri);
 
-#ifdef HAVE_OLD_NEDGE
+#ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
     if (! ntop->getGlobals()->isShutdown()) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "License expired, shutting down...");
@@ -612,7 +612,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     redirect_to_please_wait(conn, request_info);
   } else
 #endif
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   if(ntop->get_HTTPserver()->is_ssl_enabled()
      && (!request_info->is_ssl)
      && isCaptiveURL(request_info->uri)

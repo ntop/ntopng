@@ -53,7 +53,7 @@ Ntop::Ntop(char *appName) {
   httpbl = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   elastic_search = NULL;
   logstash = NULL;
   export_interface = NULL;
@@ -198,7 +198,7 @@ Ntop::~Ntop() {
   if(httpbl)              delete httpbl;
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   if(elastic_search)      delete(elastic_search);
   if(logstash)            delete(logstash);
 #endif
@@ -351,7 +351,7 @@ void Ntop::initNetworkInterfaces() {
 /* ******************************************* */
 
 void Ntop::initLogstash(){
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   if(logstash) delete(logstash);
   logstash = new Logstash();
 #endif
@@ -360,7 +360,7 @@ void Ntop::initLogstash(){
 /* ******************************************* */
 
 void Ntop::initElasticSearch() {
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   if(elastic_search) delete(elastic_search);
   elastic_search = new ElasticSearch();
 #endif
@@ -369,7 +369,7 @@ void Ntop::initElasticSearch() {
 /* ******************************************* */
 
 void Ntop::createExportInterface() {
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   if(prefs->get_export_endpoint())
     export_interface = new ExportInterface(prefs->get_export_endpoint());
   else
@@ -386,7 +386,7 @@ void Ntop::start() {
 
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to %s %s v.%s - (C) 1998-17 ntop.org",
-#ifdef HAVE_OLD_NEDGE
+#ifdef HAVE_NEDGE
 			 "ntopng edge",
 #else
 			 "ntopng",
@@ -1633,7 +1633,7 @@ void Ntop::runHousekeepingTasks() {
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   /* ES stats are updated once as the present implementation is not per-interface  */
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
     struct timeval tv;
