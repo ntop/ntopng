@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 
     try {
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
       if(!strcmp(ifName, "dummy")) {
 	iface = new DummyInterface();
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
       iface = NULL;
     }
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
     if(iface == NULL) {
       try {
 	iface = new PcapInterface(ifName);
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
       ntop->registerInterface(iface);
   }
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   ntop->createExportInterface();
   ntop->getElasticSearch()->startFlowDump();
   ntop->getLogstash()->startFlowDump();

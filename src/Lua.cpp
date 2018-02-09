@@ -46,7 +46,7 @@ static Mutex rrd_lock;
 /* ******************************* */
 
 Lua::Lua() {
-#ifdef HAVE_OLD_NEDGE
+#ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
       ntop->getGlobals()->shutdown();
       ntop->shutdown();
@@ -1692,7 +1692,7 @@ static int ntop_network_prefix(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 static int ntop_zmq_connect(lua_State* vm) {
   char *endpoint, *topic;
   void *context, *subscriber;
@@ -1858,7 +1858,7 @@ static int ntop_delete_hash_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 static int ntop_zmq_disconnect(lua_State* vm) {
   void *context = getLuaVMUserdata(vm,zmq_context);
   void *subscriber = getLuaVMUserdata(vm,zmq_subscriber);
@@ -1875,7 +1875,7 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 static int ntop_zmq_receive(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   void *subscriber = getLuaVMUserdata(vm,zmq_subscriber);
@@ -4816,7 +4816,7 @@ static int ntop_check_license(lua_State* vm) {
 
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   int major, minor, patch;
 #endif
   bool verbose = true;
@@ -4828,7 +4828,7 @@ static int ntop_get_info(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_str_table_entry(vm, "product",
-#ifdef HAVE_OLD_NEDGE
+#ifdef HAVE_NEDGE
 			   (char*)"ntopng edge"
 #else
 			   (char*)"ntopng"
@@ -4880,7 +4880,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_int_table_entry(vm, "constants.max_num_pool_members",    MAX_NUM_POOL_MEMBERS);
     lua_push_int_table_entry(vm, "constants.max_num_profiles",    MAX_NUM_PROFILES);
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
     zmq_version(&major, &minor, &patch);
     snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
     lua_push_str_table_entry(vm, "version.zmq", rsp);
@@ -6307,7 +6307,7 @@ static int ntop_nagios_withdraw_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
 static int ntop_check_profile_syntax(lua_State* vm) {
   char *filter;
@@ -6327,7 +6327,7 @@ static int ntop_check_profile_syntax(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
 static int ntop_reload_traffic_profiles(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -6478,7 +6478,7 @@ int ntop_lua_cli_print(lua_State* vm) {
 
 /* ****************************************** */
 
-#if defined(NTOPNG_PRO) || defined(HAVE_OLD_NEDGE)
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
 
 static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex) {
   int rc;
@@ -6870,7 +6870,7 @@ static const luaL_Reg ntop_reg[] = {
   { "fileLastChange",   ntop_get_file_last_change },
   { "readdir",          ntop_list_dir_files },
   { "rmdir",            ntop_remove_dir_recursively },
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   { "zmq_connect",      ntop_zmq_connect },
   { "zmq_disconnect",   ntop_zmq_disconnect },
   { "zmq_receive",      ntop_zmq_receive },
@@ -6886,7 +6886,7 @@ static const luaL_Reg ntop_reg[] = {
   { "withdrawNagiosAlert",    ntop_nagios_withdraw_alert },
   { "reloadNagiosConfig",     ntop_nagios_reload_config },
 #endif
-#ifndef HAVE_OLD_NEDGE
+#ifndef HAVE_NEDGE
   { "checkProfileSyntax",     ntop_check_profile_syntax },
   { "reloadProfiles",         ntop_reload_traffic_profiles },
 #endif
@@ -7062,7 +7062,7 @@ void Lua::lua_register_classes(lua_State *L, bool http_mode) {
   } else
     lua_register(L, "print", ntop_lua_cli_print);
 
-#if defined(NTOPNG_PRO) || defined(HAVE_OLD_NEDGE)
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
   if(ntop->getPro()->has_valid_license()) {
     lua_register(L, "ntopRequire", ntop_lua_require);
     luaL_dostring(L, "table.insert(package.loaders, 1, ntopRequire)");
