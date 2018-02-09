@@ -44,7 +44,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   } else
     throw("Unable to start network discovery");
 
-#if ! defined(__arm__)
+#if 0
   if((pd = pcap_open_live(iface->get_name(), 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL) {
 #else
   /* pcap_next can really block a lot if we do not activate immediate mode! See https://github.com/mfontanini/libtins/issues/180 */
