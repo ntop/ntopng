@@ -88,8 +88,20 @@ if __name__ == "__main__":
   difftool = difflib.Differ()
   diff = difftool.compare(base_file, cmp_file)
 
-  print('\n'.join(["%d) %s = %s" % (
-    base_file.getLineInfo(line.split()[-1])[1],
-    line,
-    base_file.getLineInfo(line.split()[-1])[2],
-  ) for line in diff if not line.startswith(" ")]))
+  for line in diff:
+    if not line.startswith(" "):
+      if line.startswith("-"):
+        wrapper = base_file
+      elif line.startswith("+"):
+        wrapper = cmp_file
+      else:
+        print(line)
+        continue
+
+      line_info = wrapper.getLineInfo(line.split()[-1])
+
+      print("%d) %s = %s" % (
+        line_info[1],
+        line,
+        line_info[2],
+      ))
