@@ -12,7 +12,7 @@ import difflib
 
 class LocalizationFile(object):
   def __init__(self, name):
-    self.f = open(name, "r")
+    self.f = open(name, "r", encoding='UTF-8')
     self.next_skip = False
     self.cur_section = []
     self.line_no = 0
@@ -39,7 +39,7 @@ class LocalizationFile(object):
           if len(value) == 2:
             localized_id, localized_str = value
             localized_id = localized_id.strip()
-            localized_str = localized_str.strip()
+            localized_str = localized_str.strip().strip(",")
 
             if localized_str.endswith(".."):
               # String continues on next line
