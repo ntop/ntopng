@@ -218,12 +218,14 @@ Ntop::~Ntop() {
   if(flow_checker) delete flow_checker;
 #endif
 
-#ifdef HAVE_NDB
-  if(ntop->getPro()->is_ndb_in_use()) {
+#ifdef HAVE_NINDEX
+#if 0
+  if(ntop->getPro()->is_nindex_in_use()) {
     for(int i=0; i<NUM_NSERIES; i++) {
       if(nseries[i]) delete nseries[i];
     }
   }
+#endif
 #endif
 
   if(redis) delete redis;
@@ -290,8 +292,9 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   /* License check could have increased the number of interfaces available */
   initNetworkInterfaces();
 
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-  if(ntop->getPro()->is_ndb_in_use()) {
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+#if 0
+  if(ntop->getPro()->is_nindex_in_use()) {
     for(int i=0; i<NUM_NSERIES; i++) {
       char path[MAX_PATH];
       const char *base;
@@ -319,6 +322,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
       }
     }
   }
+#endif
 #endif
 
   redis->setInitializationComplete();

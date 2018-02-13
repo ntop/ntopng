@@ -3479,7 +3479,7 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 
 /* ****************************************** */
 
-#ifdef HAVE_NDB
+#ifdef HAVE_NINDEX
 static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
   switch(step) {
   case 1: /* 1 sec */
@@ -3507,8 +3507,8 @@ static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
 /* ****************************************** */
 
 static int ntop_ts_set(lua_State* vm) {
-#if defined(HAVE_NDB) && defined(NTOPNG_PRO)
-  if(ntop->getPro()->is_ndb_in_use()) {
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+  if(ntop->getPro()->is_nindex_in_use()) {
     const char *label = NULL, *metric = NULL, *key = "";
     u_int8_t ifaceId, id = 1;
     int8_t series_id;
@@ -3561,8 +3561,10 @@ static int ntop_ts_set(lua_State* vm) {
     else if(lua_type(vm, id) == LUA_TSTRING)
       rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
 
+#if 0
     ntop->tsSet(series_id, ts, true /* counter */, ifaceId,
 		step, label, key, metric, sent, rcvd);
+#endif
   }
 #endif
 
@@ -3573,8 +3575,9 @@ static int ntop_ts_set(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_ts_flush(lua_State* vm) {
-#if defined(HAVE_NDB) && defined(NTOPNG_PRO)
-  if(ntop->getPro()->is_ndb_in_use()) {
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+#if 0
+  if(ntop->getPro()->is_nindex_in_use()) {
     NetworkInterface *ntop_interface = getCurrentInterface(vm);
     int8_t series_id;
     u_int16_t step;
@@ -3592,6 +3595,7 @@ static int ntop_ts_flush(lua_State* vm) {
 
     ntop->tsFlush(series_id);
   }
+#endif
 #endif
 
   lua_pushnil(vm);

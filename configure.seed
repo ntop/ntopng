@@ -1,4 +1,4 @@
-dnl> Do not add anything above
+odnl> Do not add anything above
 AC_INIT([ntopng],[@VERSION@])
 dnl> Do not add anything above
 
@@ -182,22 +182,20 @@ if test "${with_nedge+set}" != set; then
  fi
 fi
 
-NDB_HOME=
-if test "${with_minimal_nprobe+set}" != "set"; then :
-  if test -d "${HOME}/nDB"; then
-   NDB_HOME=${HOME}/nDB
-  else
-    if test -d "${PWD}/nDB"; then
-     NDB_HOME=${PWD}/nDB
-    fi
+NINDEX_HOME=
+if test -d "${HOME}/nIndex"; then
+  NINDEX_HOME=${HOME}/nIndex
+else
+  if test -d "${PWD}/../nIndex"; then
+   NINDEX_HOME=${PWD}/../nIndex
   fi
 fi
 
-if test -f "${NDB_HOME}/lib/libnDB.a"; then
-  PRO_INCS="${PRO_INCS} -I ${NDB_HOME}/include"
-  PRO_LIBS="${PRO_LIBS} ${NDB_HOME}/lib/libnDB.a ${NDB_HOME}/third-party/zstd/lib/libzstd.a"
-  AC_DEFINE_UNQUOTED(HAVE_NDB, 1, [nDB support is present])
-  echo "checking for nDB... found on ${NDB_HOME}"
+if test -f "${NINDEX_HOME}/libnindex.a"; then
+  PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
+  PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a -lzstd"
+  AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
+  echo "checking for nIndex... found on ${NINDEX_HOME}"
 fi
 
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"

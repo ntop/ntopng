@@ -84,7 +84,7 @@ class Prefs {
   u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
-  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_ndb;
+  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex;
   bool read_flows_from_mysql;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
@@ -174,7 +174,7 @@ class Prefs {
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
-  inline bool  do_dump_flows_on_ndb()                   { return(dump_flows_on_ndb);      };
+  inline bool  do_dump_flows_on_nindex()                { return(dump_flows_on_nindex);   };
     
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);

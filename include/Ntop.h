@@ -74,9 +74,6 @@ class Ntop {
 #endif
   FlowChecker *flow_checker;
 #endif
-#ifdef HAVE_NDB
-  Nseries *nseries[NUM_NSERIES];
-#endif
   AddressTree *hostBlacklist, *hostBlacklistShadow;
 
   void loadLocalInterfaceAddress();
@@ -459,16 +456,6 @@ class Ntop {
 #ifdef NTOPNG_PRO
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
-#ifdef HAVE_NDB
-  inline void tsSet(u_int8_t series_id, u_int32_t tsSec, bool isCounter,
-		    u_int8_t ifaceId, u_int16_t step, const char *label,
-		    const char *key, const char *metric, u_int64_t sent, u_int64_t rcvd) {
-    nseries[series_id]->set(tsSec, isCounter, ifaceId, step, label ? label : "",
-			    key ? key : "", metric ? metric : "", sent, rcvd);
-  }
-  
-  inline void tsFlush(u_int8_t series_id) { nseries[series_id]->flush(); }
-#endif /* HAVE_NDB */
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }

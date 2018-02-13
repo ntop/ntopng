@@ -221,9 +221,8 @@ using namespace std;
 #endif
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-#include "ndb_api.h"
-#include "Nseries.h"
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+#include "nindex_api.h"
 #endif
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
@@ -295,8 +294,8 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
-#ifdef HAVE_NDB
-#include "NDBFlowDB.h"
+#ifdef HAVE_NINDEX
+#include "NIndexFlowDB.h"
 #endif
 #endif
 #include "ThreadedActivity.h"

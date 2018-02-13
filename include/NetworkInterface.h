@@ -301,6 +301,9 @@ class NetworkInterface : public Checkpointable {
   int dumpDBFlow(time_t when, Flow *f);
   int dumpEsFlow(time_t when, Flow *f);
   int dumpLsFlow(time_t when, Flow *f);
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+  inline bool dumpnIndexFlow(time_t when, Flow *f)  { return(db->dumpFlow(when, f, NULL)); };
+#endif
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };

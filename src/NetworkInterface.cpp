@@ -674,13 +674,18 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping flow.");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping flow.");
+  
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
     return(dumpEsFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     return(dumpLsFlow(when,f));
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+  } else if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
+    return(dumpnIndexFlow(when, f) ? 0 : -1);
+#endif
   } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
     return(-1);
@@ -6444,9 +6449,9 @@ bool NetworkInterface::updateFlowStats(u_int8_t protocol,
  */
 void NetworkInterface::finishInitialization() {
   if(!isView()) {
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-    if(ntop->getPrefs()->do_dump_flows_on_ndb()) {
-      db = new NDBFlowDB(this);
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+    if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
+      db = new NIndexFlowDB(this);
       goto enable_aggregation;
     }
 #endif
@@ -6461,7 +6466,7 @@ void NetworkInterface::finishInitialization() {
 	db = new BatchedMySQLDB(this);
 #endif
 
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
       enable_aggregation:
 #endif
 	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,

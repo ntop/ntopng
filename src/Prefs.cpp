@@ -83,8 +83,8 @@ Prefs::Prefs(Ntop *_ntop) {
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   routing_mode_enabled = false;
   global_dns_forging_enabled = true;
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-  dump_flows_on_ndb = false;
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+  dump_flows_on_nindex = false;
 #endif
   read_flows_from_mysql = false;
   enable_taps = false;
@@ -276,8 +276,8 @@ void usage() {
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 #ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
-#ifdef HAVE_NDB
-	 "                                    | ndb           Dump in nDB\n"
+#ifdef HAVE_NINDEX
+	 "                                    | nindex        Dump in nIndex\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -1000,9 +1000,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'F':
 #ifndef HAVE_NEDGE
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-    if(strncmp(optarg, "ndb", 2) == 0) {
-	dump_flows_on_ndb = true;
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+    if(strncmp(optarg, "nindex", 2) == 0) {
+	dump_flows_on_nindex = true;
     } else
 #endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
@@ -1591,11 +1591,11 @@ time_t Prefs::pro_edition_demo_ends_at() {
 /* Perform here post-initialization validations */
 
 void Prefs::validate() {
-#if defined(NTOPNG_PRO) && defined(HAVE_NDB)
-  if(dump_flows_on_ndb) {
-    if(!ntop->getPro()->is_ndb_in_use()) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignored '-F ndb' as nDB is not in use");
-      dump_flows_on_ndb = false;
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+  if(dump_flows_on_nindex) {
+    if(!ntop->getPro()->is_nindex_in_use()) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignored '-F nindex' as nIndex is not in use");
+      dump_flows_on_nindex = false;
     }
   }
 #endif

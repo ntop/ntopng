@@ -709,6 +709,7 @@ return(buf);
 bool Flow::dumpFlow(bool idle_flow) {
   bool rc = false;
   time_t now;
+
   dumpFlowAlert();
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
@@ -717,6 +718,9 @@ bool Flow::dumpFlow(bool idle_flow) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->getPrefs()->do_dump_flows_on_ls()
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+     || ntop->getPrefs()->do_dump_flows_on_nindex()
+#endif
 #ifndef HAVE_NEDGE
      || ntop->get_export_interface()
 #endif
@@ -763,6 +767,10 @@ bool Flow::dumpFlow(bool idle_flow) {
 	cli_host->getInterface()->dumpEsFlow(last_seen, this);
       else if(ntop->getPrefs()->do_dump_flows_on_ls())
         cli_host->getInterface()->dumpLsFlow(last_seen, this);
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+      else if(ntop->getPrefs()->do_dump_flows_on_nindex())
+        cli_host->getInterface()->dumpnIndexFlow(last_seen, this);
+#endif
     }
 
 #ifndef HAVE_NEDGE
@@ -1161,7 +1169,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   else {
     iface->luaEvalFlow(this, callback_flow_delete);
   }
-
 }
 
 /* *************************************** */
