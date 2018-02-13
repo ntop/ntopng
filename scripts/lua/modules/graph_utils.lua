@@ -19,7 +19,7 @@ local top_rrds = {
    {rrd="drops.rrd",                   label=i18n("graphs.packet_drops"), nedge_exclude=1},
    {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
    {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-   {rrd="num_ms_srv_nw_ltn.rrd",       label=i18n("graphs.num_ms_srv_nw_ltn"), nedge_exclude=1},
+   {rrd="num_ms_rtt.rrd",              label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
    {separator=1, nedge_exclude=1},
    {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
    {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},

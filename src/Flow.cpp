@@ -2149,7 +2149,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	if(serverNwLatency.tv_sec > 5)
 	  memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 	else if(srv_host)
-	  srv_host->updateNetworkLatency(false /* as server */, Utils::timeval2ms(&serverNwLatency));
+	  srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
 
       }
     } else if(flags == TH_ACK) {
@@ -2158,7 +2158,10 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
 
 	/* Sanity check */
-	if(clientNwLatency.tv_sec > 5) memset(&clientNwLatency, 0, sizeof(clientNwLatency));
+	if(clientNwLatency.tv_sec > 5)
+	  memset(&clientNwLatency, 0, sizeof(clientNwLatency));
+	else if(cli_host)
+	  cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
 
 	rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
 	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;

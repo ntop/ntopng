@@ -235,19 +235,18 @@ else
    print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
    print("</td></tr>\n")
 
-
    if(flow["tcp.nw_latency.client"] ~= nil) then
-      s = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
+      local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 
-      if(s > 0) then
-	 print("<tr><th width=30%>"..i18n("flow_details.network_latency_breakdown").."</th><td colspan=2>")
-	 cli2srv = round(((flow["tcp.nw_latency.client"] * 100) / s), 0)
+      if(rtt > 0) then
+	 local cli2srv = round(((flow["tcp.nw_latency.client"] * 100) / rtt), 2)
+	 local srv2cli = round(((flow["tcp.nw_latency.server"] * 100) / rtt), 2)
 
-	 c = string.format("%.3f", flow["tcp.nw_latency.client"])
-	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. c ..' ms (client)</div>')
+	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
 
-	 s = string.format("%.3f", flow["tcp.nw_latency.server"])
-	 print('<div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. s .. ' ms (server)</div></div>')
+	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv .. '%;">'.. cli2srv ..' ms (client)</div>')
+
+	 print('<div class="progress-bar progress-bar-info" style="width: ' .. srv2cli .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
       end
    end

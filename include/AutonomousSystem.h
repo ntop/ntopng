@@ -30,7 +30,7 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int32_t asn;
   char *asname;
-  u_int32_t server_network_latency;
+  u_int32_t round_trip_time;
 
   inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
     sent.incStats(num_pkts, num_bytes);
@@ -61,7 +61,7 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
     incRcvdStats(rcvd_packets, rcvd_bytes);
   }
 
-  void updateNetworkLatency(bool as_client, u_int32_t latency_msecs);
+  void updateRoundTripTime(u_int32_t rtt_msecs);
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 };
