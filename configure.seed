@@ -182,20 +182,22 @@ if test "${with_nedge+set}" != set; then
  fi
 fi
 
-NINDEX_HOME=
-if test -d "${HOME}/nIndex"; then
-  NINDEX_HOME=${HOME}/nIndex
-else
-  if test -d "${PWD}/../nIndex"; then
-   NINDEX_HOME=${PWD}/../nIndex
+if test "${with_nedge+set}" != set; then
+  NINDEX_HOME=
+  if test -d "${HOME}/nIndex"; then
+    NINDEX_HOME=${HOME}/nIndex
+  else
+    if test -d "${PWD}/../nIndex"; then
+     NINDEX_HOME=${PWD}/../nIndex
+    fi
   fi
-fi
 
-if test -f "${NINDEX_HOME}/libnindex.a"; then
-  PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
-  PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a -lzstd"
-  AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
-  echo "checking for nIndex... found on ${NINDEX_HOME}"
+  if test -f "${NINDEX_HOME}/libnindex.a"; then
+    PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
+    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a"
+    AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
+    echo "checking for nIndex... found on ${NINDEX_HOME}"
+  fi
 fi
 
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
