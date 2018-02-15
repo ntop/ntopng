@@ -493,7 +493,6 @@ void MySQLDB::startDBLoop() {
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
-
 /* ******************************************* */
 
 void MySQLDB::updateStats(const struct timeval *tv) {

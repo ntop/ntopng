@@ -165,9 +165,10 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-
   if(flow_packets_head)
     flushBufferedPackets();
+
+  dumpFlow(false);
   
   if(cli_host)         cli_host->decUses();
   if(srv_host)         srv_host->decUses();
