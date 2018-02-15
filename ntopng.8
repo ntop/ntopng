@@ -251,9 +251,10 @@ NOTE: this option lets anyone accessing the web interface (from localhost or fro
 parameter) be administrator of the web interface.
 
 .It \-r|\-\-redis\ <redis_host[:port][@db id]>
-Specifies the redis database host, port, and a database id. In case you plan to run multiple redis-based
-applications on the same redis server, you need to use a different database id per application.
-For more information about redis, please refer to http://redis.io/.
+Specifies the redis database host, port, and a database id. If <redis_host> begins with a forward slash
+("/"), it is interpreted as a path to a socket to connect to. If a socket connection is made, <port>
+is ignored.  In case you plan to run multiple redis-based applications on the same redis server, you
+need to use a different database id per application. For more information about redis, please refer to http://redis.io/.
 
 .It \-g|\-\-core\-affinity\ <cpu_core_id1[,cpu_core_id2,...]>
 Bind the capture/processing threads to specific CPU cores, indicated in a comma-separated list. Cores are
