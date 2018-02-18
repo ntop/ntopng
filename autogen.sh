@@ -21,7 +21,7 @@ fi
 if test -d "pro"; then
 PRO_GIT_RELEASE=`cd pro; git log --pretty=oneline | wc -l`
 PRO_GIT_RELEASE=${PRO_GIT_RELEASE//[[:blank:]]/}
-PRO_GIT_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
+PRO_GIT_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:" | cut -d " " -f 4-`
 else
 PRO_GIT_RELEASE=""
 PRO_GIT_DATE=""
