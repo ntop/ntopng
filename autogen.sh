@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 TODAY=`date +%y%m%d`
-NOW=`date +%s`
 MAJOR_RELEASE="3"
 MINOR_RELEASE="3"
 SHORT_VERSION="$MAJOR_RELEASE.$MINOR_RELEASE"
