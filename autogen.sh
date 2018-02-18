@@ -7,7 +7,7 @@ MINOR_RELEASE="3"
 SHORT_VERSION="$MAJOR_RELEASE.$MINOR_RELEASE"
 VERSION="$SHORT_VERSION.$TODAY"
 
-if test -d ".git"; then :
+if test -d ".git"; then
 GIT_TAG=`git rev-parse HEAD`
 GIT_DATE=`date +%Y%m%d`
 GIT_RELEASE="$GIT_TAG:$GIT_DATE"
@@ -18,7 +18,7 @@ GIT_DATE=`date`
 GIT_BRANCH=""
 fi
 
-if test -d "pro"; then :
+if test -d "pro"; then
 PRO_GIT_RELEASE=`cd pro; git log --pretty=oneline | wc -l`
 PRO_GIT_RELEASE=${PRO_GIT_RELEASE//[[:blank:]]/}
 PRO_GIT_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
