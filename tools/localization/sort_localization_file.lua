@@ -1,8 +1,7 @@
 -- A script to sort a localization file
 
-local persistance = require("persistence")
-local community_base_path = "../../scripts/locales"
-local pro_base_path = "../../pro/scripts/locales"
+local community_base_path = "scripts/locales"
+local pro_base_path = "pro/scripts/locales"
 
 if (#arg ~= 1) and (#arg ~= 2) then
   print([[Usage: lua ]] .. arg[0] .. [[ localization_code [merge_strings]
@@ -21,6 +20,8 @@ end
 local lang_code = arg[1]
 local merge_strings_file = arg[2]
 
+local root_path
+local pkgpath_path
 local base_path
 
 local function file_exists(name)
@@ -28,13 +29,24 @@ local function file_exists(name)
    if f~=nil then io.close(f) return true else return false end
 end
 
-if file_exists(community_base_path.."/"..lang_code..".lua") then
-  base_path = community_base_path
+if file_exists("persistence.lua") then
+  root_path = "../.."
+  pkgpath_path = "."
 else
-  base_path = pro_base_path
+  root_path = "."
+  pkgpath_path = "tools/localization"
+end
+
+package.path = pkgpath_path .. "/?.lua;" .. package.path
+
+if file_exists(root_path.."/"..community_base_path.."/"..lang_code..".lua") then
+  base_path = root_path.."/"..community_base_path
+else
+  base_path = root_path.."/"..pro_base_path
 end
 
 package.path = base_path .. "/?.lua;" .. package.path
+local persistance = require("persistence")
 local lang_file = base_path .. "/" .. lang_code .. ".lua"
 
 local lang = require(lang_code)

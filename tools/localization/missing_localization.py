@@ -5,7 +5,7 @@
 # A tool to find missing localization strings
 #
 # Sample invocation:
-#   tools/localitzation/missing_localization.py scripts/locales/en.lua pro/scripts/locales/de.lua | grep -v ".nedge." | awk '{ $2 = ""; print $0; }'
+#   tools/localization/missing_localization.py scripts/locales/en.lua pro/scripts/locales/de.lua | grep -v ".nedge." | awk '{ $2 = ""; print $0; }'
 
 import sys
 import difflib
