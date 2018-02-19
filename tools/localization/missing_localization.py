@@ -5,10 +5,15 @@
 # A tool to find missing localization strings
 #
 # Sample invocation:
-#   tools/missing_localization.py scripts/locales/en.lua pro/scripts/locales/de.lua | grep -v ".nedge." | awk '{ $2 = ""; print $0; }'
+#   tools/localitzation/missing_localization.py scripts/locales/en.lua pro/scripts/locales/de.lua | grep -v ".nedge." | awk '{ $2 = ""; print $0; }'
 
 import sys
 import difflib
+
+def extract_table_key(x):
+  if x.startswith('["') and x.endswith('"]'):
+    return x[2:-2]
+  return x
 
 class LocalizationFile(object):
   def __init__(self, name):
@@ -25,11 +30,11 @@ class LocalizationFile(object):
     while True:
       line = next(self.f).strip()
       self.line_no += 1
-      is_section_start = line.endswith("{") and line.find(" = ")
+      is_section_start = line.endswith("{") and line.find(" = ") != None
       is_section_end = line.startswith("}")
 
       if is_section_start:
-        self.cur_section.append(line.split(" = ", 1)[0].split()[-1])
+        self.cur_section.append(extract_table_key(line.split(" = ", 1)[0].split()[-1]))
       elif is_section_end:
         self.cur_section.pop()
       elif not line.startswith("--") and self.cur_section:
@@ -38,8 +43,8 @@ class LocalizationFile(object):
 
           if len(value) == 2:
             localized_id, localized_str = value
-            localized_id = localized_id.strip()
-            localized_str = localized_str.strip().strip(",")
+            localized_id = extract_table_key(localized_id.strip())
+            localized_str = localized_str.strip().strip(",").strip('"')
 
             if localized_str.endswith(".."):
               # String continues on next line
@@ -84,7 +89,6 @@ if __name__ == "__main__":
 
   base_file = LocalizationReaderWrapper(LocalizationFile(sys.argv[1]))
   cmp_file = LocalizationReaderWrapper(LocalizationFile(sys.argv[2]))
-
   difftool = difflib.Differ()
   diff = difftool.compare(base_file, cmp_file)
 
@@ -100,7 +104,7 @@ if __name__ == "__main__":
 
       line_info = wrapper.getLineInfo(line.split()[-1])
 
-      print("%d) %s = %s" % (
+      print("%d) %s = \"%s\"" % (
         line_info[1],
         line,
         line_info[2],

@@ -3,8 +3,14 @@
 --
 i18n = require "i18n"
 
+function i18n.loadLocaleFile(path, locale)
+  local chunk = assert(loadfile(path))
+  local data = chunk()
+  i18n.load({[locale]=data})
+end
+
 -- Provides a fallback for not already localized strings
-i18n.loadFile(dirs.installdir..'/scripts/locales/en.lua')
+i18n.loadLocaleFile(dirs.installdir..'/scripts/locales/en.lua', "en")
 
 local locales = {}
 
@@ -53,7 +59,7 @@ if language ~= "en" then
    local locale_path = lookupLocale(language, false) or (ntop.isPro() and lookupLocale(language, true))
 
    if locale_path then
-      i18n.loadFile(locale_path)
+      i18n.loadLocaleFile(locale_path, language)
    end
 end
 
