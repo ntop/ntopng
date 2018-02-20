@@ -53,10 +53,10 @@ binary-arch: build install
 	if test "@APP@" = "nedge"; \
 		then \
 		cp ../etc/ntopng/nedge.conf  ./debian/@APP@/etc/ntopng/ntopng.conf; \
-		rm -rf ./debian/@APP@/etc/ntopng/nedge.conf; \
 		cp ../../pro/nedge/tools/nedge_pinger  ./debian/@APP@/usr/bin; \
 		cp ../../pro/nedge/tools/nedge_pinger.service  ./debian/@APP@/etc/systemd/system; \
 	fi
+	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
 	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'
