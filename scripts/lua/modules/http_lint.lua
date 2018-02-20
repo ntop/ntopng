@@ -1101,6 +1101,9 @@ local known_parameters = {
    ["reboot"]                  =  validateEmpty,
    ["poweroff"]                =  validateEmpty,
    ["operating_mode"]          =  validateOperatingMode,
+   ["per_ip_pass_rate"]        =  validateNumber,
+   ["per_ip_slow_rate"]        =  validateNumber,
+   ["per_ip_slower_rate"]      =  validateNumber,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

@@ -30,7 +30,7 @@ print [[
 <li> <small>]] print(i18n("geo_map.note_active_flows")) print[[</small>
 </ol>
 <li> <small>]] print(i18n("geo_map.note_html_browser_geolocation",{url="http://diveintohtml5.info/geolocation.html"})) print[[</small>
-<li> <small>]] print(i18n("geo_map.note_google_maps_browser_api_key",{url_google="https://googlegeodevelopers.blogspot.it/2016/06/building-for-scale-updates-to-google.html", url_prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=users"})) print[[</small>
+<li> <small>]] print(i18n("geo_map.note_google_maps_browser_api_key",{url_google="https://googlegeodevelopers.blogspot.it/2016/06/building-for-scale-updates-to-google.html", url_prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=misc"})) print[[</small>
 </ol>
 </small>
 ]]
