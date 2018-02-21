@@ -1106,6 +1106,7 @@ local known_parameters = {
    ["per_ip_pass_rate"]        =  validateNumber,
    ["per_ip_slow_rate"]        =  validateNumber,
    ["per_ip_slower_rate"]      =  validateNumber,
+   ["user_policy"]             =  validateNumber,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

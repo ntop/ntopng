@@ -68,11 +68,11 @@ class HostPools {
   void loadFromRedis();
 
   inline void incNumMembers(u_int16_t pool_id, int32_t *ctr) const {
-    if(ctr && pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools)
+    if(ctr && pool_id < max_num_pools)
       ctr[pool_id]++;
   };
   inline void decNumMembers(u_int16_t pool_id, int32_t *ctr) const {
-    if(ctr && pool_id != NO_HOST_POOL_ID && pool_id < max_num_pools)
+    if(ctr && pool_id < max_num_pools)
       ctr[pool_id]--;
   };
 
@@ -91,13 +91,13 @@ class HostPools {
   void lua(lua_State *vm);
 
   inline int32_t getNumPoolHosts(u_int16_t pool_id) {
-    if(pool_id == NO_HOST_POOL_ID || pool_id >= max_num_pools)
+    if(pool_id >= max_num_pools)
       return 0;
     return num_active_hosts_inline[pool_id] + num_active_hosts_offline[pool_id];
   }
 
   inline int32_t getNumPoolL2Devices(u_int16_t pool_id) {
-    if((pool_id == NO_HOST_POOL_ID) || (pool_id >= max_num_pools))
+    if(pool_id >= max_num_pools)
       return 0;
 
     return num_active_l2_devices_inline[pool_id] + num_active_l2_devices_offline[pool_id];
@@ -161,7 +161,7 @@ class HostPools {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_shapers_per_pool_member[pool_id] : false);
   }
   inline u_int16_t getPoolShaper(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? pool_shaper[pool_id] : DEFAULT_SHAPER_ID);
+    return((pool_id < max_num_pools) ? pool_shaper[pool_id] : DEFAULT_SHAPER_ID);
   }
   inline u_int32_t getPoolSchedule(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? schedule_bitmap[pool_id] : DEFAULT_TIME_SCHEDULE);

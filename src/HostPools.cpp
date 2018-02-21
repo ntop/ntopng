@@ -625,8 +625,6 @@ void HostPools::lua(lua_State *vm) {
   lua_newtable(vm);
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if(i == NO_HOST_POOL_ID) continue;
-
     if((cur_hosts = getNumPoolHosts(i)))  hosts += cur_hosts;
     if((cur_l2 = getNumPoolL2Devices(i))) l2_devices += cur_l2;
 

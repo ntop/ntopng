@@ -193,7 +193,7 @@ class Host : public GenericHost, public Checkpointable {
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
-  void updateHostPool(bool isInlineCall);
+  void updateHostPool(bool isInlineCall, bool firstUpdate=false);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);
