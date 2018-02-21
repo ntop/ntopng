@@ -139,10 +139,15 @@ function printAlerts()
   end
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
-  "row_toggle_malware_probing", "row_toggle_alert_syslog", "row_toggle_mysql_check_open_files_limit",
+  "row_toggle_malware_probing", "row_toggle_alert_syslog",
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
-  "row_toggle_dropped_flows_alerts"}
+  "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
+  "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert"}
+
+  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
+    elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
+  end
 
   prefsToggleButton({
     field = "disable_alerts_generation",
@@ -221,6 +226,26 @@ function printAlerts()
     default = "1",
     hidden = not showElements,
   })
+
+  print('<tr id="row_alerts_informative_header" ')
+  if (showElements == false) then print(' style="display:none;"') end
+  print('><th colspan=2 class="info">'..i18n("prefs.devices_alerts")..'</th></tr>')
+
+  prefsToggleButton({
+      field = "toggle_device_first_seen_alert",
+      pref = "device_first_seen_alert",
+      default = "0",
+      hidden = not showElements,
+      redis_prefix = "ntopng.prefs.alerts.",
+    })
+
+  prefsToggleButton({
+      field = "toggle_device_activation_alert",
+      pref = "device_connection_alert",
+      default = "0",
+      hidden = not showElements,
+      redis_prefix = "ntopng.prefs.alerts.",
+    })
 
   print('<tr id="row_alerts_retention_header" ')
   if (showElements == false) then print(' style="display:none;"') end

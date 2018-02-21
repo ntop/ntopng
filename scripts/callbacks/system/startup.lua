@@ -16,6 +16,7 @@ end
 
 require "lua_utils"
 require "blacklist_utils"
+require "alert_utils"
 
 local host_pools_utils = require "host_pools_utils"
 local http_bridge_conf_utils = require "http_bridge_conf_utils"
@@ -79,6 +80,9 @@ for _, ifname in pairs(interface.getIfNames()) do
 
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
+
+   -- Remove the active devices key
+   deleteActiveDevicesKey(ifid)
 end
 
 -- ##################################################################

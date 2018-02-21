@@ -200,6 +200,14 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
 
+   local first_observed = ntop.getHashCache(getFirstSeenDevicesHashKey(ifId), mac_info["mac"])
+
+   if(not isEmptyString(first_observed)) then
+      print("<tr><th>" .. i18n("details.first_observed_on") .. "</th><td colspan=2>")
+      print(formatEpoch(first_observed))
+      print("</td></tr>\n")
+   end
+
    if interface.isBridgeInterface(ifstats) then
       print("<tr id=bridge_dropped_flows_tr ") if not mac_info["flows.dropped"] then print("style='display:none;'") end print(">")
 

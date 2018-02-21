@@ -531,6 +531,9 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.remote_to_remote_flow"),        6, "flow_remote_to_remote"      },
   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.blacklisted_flow"),             7, "flow_blacklisted"           },
   { "<i class='fa fa-ban'></i> " .. i18n("alerts_dashboard.blocked_flow"),                         8, "flow_blocked"               },
+  { "<i class='fa fa-asterisk'></i> " .. i18n("alerts_dashboard.new_device"),                      9, "new_device"                 },
+  { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.device_connection"),               10, "device_connection"         },
+  { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.device_disconnection"),           11, "device_disconnection"         },
 }
 
 local alert_entity_keys = {
@@ -538,7 +541,8 @@ local alert_entity_keys = {
   { "Host",            1, "host"          },
   { "Network",         2, "network"       },
   { "SNMP device",     3, "snmp_device"   },
-  { "Flow",            4, "flow"          }
+  { "Flow",            4, "flow"          },
+  { "Device",          5, "mac"           },
 }
 
 local alert_engine_keys = {
@@ -3559,6 +3563,25 @@ function path_get_page(path)
    end
 
    return path
+end
+
+-- ###########################################
+
+function swapKeysValues(tbl)
+   local new_tbl = {}
+
+   for k, v in pairs(tbl) do
+      new_tbl[v] = k
+   end
+
+   return new_tbl
+end
+
+-- ###########################################
+
+-- A redis hash mac -> first_seen
+function getFirstSeenDevicesHashKey(ifid)
+   return "ntopng.seen_devices.ifid_" .. ifid
 end
 
 -- ###########################################

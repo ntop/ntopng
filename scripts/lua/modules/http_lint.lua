@@ -927,6 +927,8 @@ local known_parameters = {
    ["toggle_tcp_retr_ooo_lost_rrds"]               =  validateBool,
    ["toggle_dst_with_post_nat_dst"]                =  validateBool,
    ["toggle_src_with_post_nat_src"]                =  validateBool,
+   ["toggle_device_activation_alert"]              =  validateBool,
+   ["toggle_device_first_seen_alert"]              =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,

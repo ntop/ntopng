@@ -83,7 +83,8 @@ typedef enum {
   alert_entity_host,
   alert_entity_network,
   alert_entity_snmp_device,
-  alert_entity_flow
+  alert_entity_flow,
+  alert_entity_mac
 } AlertEntity;
 
 typedef enum {

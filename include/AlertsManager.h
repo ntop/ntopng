@@ -127,6 +127,14 @@ class AlertsManager : protected StoreManager {
   int getNumHostAlerts(Host *h, bool engaged);
 
   /*
+    ========== MAC alerts API =========
+   */
+  inline int storeMacAlert(const char *mac, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeAlert(alert_entity_mac, mac, alert_type, alert_severity, alert_json,
+		    NULL, NULL, true);
+  }
+
+  /*
     ========== FLOW alerts API =========
    */
   int storeFlowAlert(Flow *f);

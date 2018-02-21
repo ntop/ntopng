@@ -149,6 +149,12 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_mysql_check_open_files_limit_title"),
       description = i18n("prefs.toggle_mysql_check_open_files_limit_description"),
       hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
+    }, toggle_device_first_seen_alert = {
+      title       =  i18n("prefs.toggle_device_first_seen_alert_title"),
+      description = i18n("prefs.toggle_device_first_seen_alert_description"),
+    }, toggle_device_activation_alert = {
+      title       = i18n("prefs.toggle_device_activation_alert_title"),
+      description = i18n("prefs.toggle_device_activation_alert_description"),
     }
     
   }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=hasAlertsDisabled(), entries={

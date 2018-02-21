@@ -55,7 +55,7 @@ local function lookupLocale(localename, is_pro)
 end
 
 -- Note: en already loaded
-if language ~= "en" then
+if (language ~= "en") and (not ntop.isnEdge()) then
    local locale_path = lookupLocale(language, false) or (ntop.isPro() and lookupLocale(language, true))
 
    if locale_path then
