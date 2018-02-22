@@ -55,14 +55,22 @@ local function record_to_description(alert_entity, record)
 	 ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
 	 ["srv.blacklisted"] = record["srv_blacklisted"] == "1",
 	 ["vlan"] = record["vlan_id"]}
-
-      local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
-
       flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
 
-      if not isEmptyString(l7proto_name) then
-	 flow = flow.."["..i18n("application")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
+      local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
+
+      if not isEmptyString(l4_proto_label) then
+	 flow = flow.."[" .. i18n("l4_protocol") .. ": " .. l4_proto_label .. "] "
       end
+
+      if (l4_proto == "tcp") or (l4_proto =="udp") then
+	 local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+
+	 if not isEmptyString(l7proto_name) then
+	    flow = flow.."["..i18n("db_explorer.application_protocol")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
+	 end
+      end
+      
    end
 
    local column_msg      = json.decode(record["alert_json"])

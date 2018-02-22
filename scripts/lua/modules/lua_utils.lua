@@ -489,6 +489,18 @@ function l4Label(proto)
   return(_handleArray(l4_keys, proto))
 end
 
+function l4_proto_to_string(proto_id)
+   proto_id = tonumber(proto_id)
+
+   for _, proto in pairs(l4_keys) do
+      if proto[3] == proto_id then
+         return proto[1], proto[2]
+      end
+   end
+
+   return nil
+end
+
 -- ##############################################
 
 -- Note: make sure the maximum id for checkpoint_keys honours CONST_MAX_NUM_CHECKPOINTS
@@ -1788,7 +1800,7 @@ function hostinfo2url(host_info, host_type, novlan)
   end
 
   if(novlan == nil) then
-    if((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0)) then
+    if((host_info["vlan"] ~= nil) and (tonumber(host_info["vlan"]) ~= 0)) then
       if(version == 0) then
         rsp = rsp..'&vlan='..tostring(host_info["vlan"])
       elseif(version == 1) then
