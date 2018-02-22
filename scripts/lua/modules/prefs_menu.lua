@@ -155,6 +155,9 @@ local menu_subpages = {
     }, toggle_device_activation_alert = {
       title       = i18n("prefs.toggle_device_activation_alert_title"),
       description = i18n("prefs.toggle_device_activation_alert_description"),
+    }, toggle_pool_activation_alert = {
+      title       = i18n("prefs.toggle_pool_activation_alert_title"),
+      description = i18n("prefs.toggle_pool_activation_alert_description"),
     }
     
   }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=hasAlertsDisabled(), entries={

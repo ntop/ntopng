@@ -81,8 +81,9 @@ for _, ifname in pairs(interface.getIfNames()) do
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
 
-   -- Remove the active devices key
+   -- Remove the active devices and pools keys
    deleteActiveDevicesKey(ifid)
+   deleteActivePoolsKey(ifid)
 end
 
 -- ##################################################################

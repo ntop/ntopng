@@ -6204,6 +6204,41 @@ static int ntop_interface_store_mac_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_store_host_pool_alert(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  int alert_severity;
+  int alert_type;
+  char *alert_json;
+  u_int16_t pool_id;
+  AlertsManager *am;
+  int ret;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  pool_id = (u_int16_t)lua_tointeger(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_type = (int)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_severity = (int)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_json = (char*)lua_tostring(vm, 4);
+
+  if((!ntop_interface)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  ret = am->storeHostPoolAlert(pool_id, (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+
+  lua_pushboolean(vm, ret >= 0);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
@@ -6859,6 +6894,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
   { "engageHostAlert",        ntop_interface_engage_host_alert        },
   { "storeMacAlert",          ntop_interface_store_mac_alert          },
+  { "storeHostPoolAlert",     ntop_interface_store_host_pool_alert    },
   { "releaseHostAlert",       ntop_interface_release_host_alert       },
   { "engageNetworkAlert",     ntop_interface_engage_network_alert     },
   { "releaseNetworkAlert",    ntop_interface_release_network_alert    },

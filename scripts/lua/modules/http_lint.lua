@@ -929,6 +929,7 @@ local known_parameters = {
    ["toggle_src_with_post_nat_src"]                =  validateBool,
    ["toggle_device_activation_alert"]              =  validateBool,
    ["toggle_device_first_seen_alert"]              =  validateBool,
+   ["toggle_pool_activation_alert"]                =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,

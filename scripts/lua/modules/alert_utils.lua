@@ -8,6 +8,7 @@
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
 local callback_utils = require "callback_utils"
 local template = require "template_utils"
+local host_pools_utils = require("host_pools_utils")
 
 alerts_granularity = {
    { "min", i18n("alerts_thresholds_config.every_minute"), 60 },
@@ -2106,6 +2107,63 @@ end
 
 -- #################################
 
+-- A redis set with host pools as keys
+local function getActivePoolsHashKey(ifid)
+   return "ntopng.cache.active_pools.ifid_" .. ifid
+end
+
+function deleteActivePoolsKey(ifid)
+   ntop.delCache(getActivePoolsHashKey(ifid))
+end
+
+-- #################################
+
+local function getHostPoolUrl(pool_id)
+   return ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool_id
+end
+
+function check_host_pools_alerts(ifid, working_status)
+   if working_status.granularity ~= "min" then
+      return
+   end
+
+   local active_pools_set = getActivePoolsHashKey(ifid)
+   local prev_active_pools = swapKeysValues(ntop.getMembersCache(active_pools_set)) or {}
+   local alert_pool_connection_enabled = ntop.getPref("ntopng.prefs.alerts.pool_connection_alert") == "1"
+   local now_active_pools = {}
+
+   for pool, info in pairs(interface.getHostPoolsInfo().num_members_per_pool) do
+      if (pool ~= host_pools_utils.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
+         now_active_pools[pool] = 1
+
+         if not prev_active_pools[pool] then
+            -- Pool connection
+            ntop.setMembersCache(active_pools_set, pool)
+
+            if alert_pool_connection_enabled then
+               interface.storeHostPoolAlert(tonumber(pool), alertType("host_pool_connection"), alertSeverity("info"),
+                  i18n("alert_messages.host_pool_has_connected", {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
+            end
+         end
+      end
+   end
+
+   for pool in pairs(prev_active_pools) do
+      if not now_active_pools[pool] then
+         -- Pool disconnection
+         ntop.delMembersCache(active_pools_set, pool)
+
+         if alert_pool_connection_enabled then
+            interface.storeHostPoolAlert(tonumber(pool), alertType("host_pool_disconnection"), alertSeverity("info"),
+                  i18n("alert_messages.host_pool_has_disconnected", {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
+            
+         end
+      end
+   end
+end
+
+-- #################################
+
 function scanAlerts(granularity, ifstats)
    if not mustScanAlerts(ifstats) then return end
 
@@ -2120,6 +2178,7 @@ function scanAlerts(granularity, ifstats)
    check_networks_alerts(ifid, working_status)
    check_hosts_alerts(ifid, working_status)
    check_macs_alerts(ifid, working_status)
+   check_host_pools_alerts(ifid, working_status)
 
    finalizeAlertsWorkingStatus(working_status)
 end

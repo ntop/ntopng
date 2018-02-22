@@ -229,7 +229,7 @@ function printAlerts()
 
   print('<tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end
-  print('><th colspan=2 class="info">'..i18n("prefs.devices_alerts")..'</th></tr>')
+  print('><th colspan=2 class="info">'..i18n("prefs.status_alerts")..'</th></tr>')
 
   prefsToggleButton({
       field = "toggle_device_first_seen_alert",
@@ -242,6 +242,14 @@ function printAlerts()
   prefsToggleButton({
       field = "toggle_device_activation_alert",
       pref = "device_connection_alert",
+      default = "0",
+      hidden = not showElements,
+      redis_prefix = "ntopng.prefs.alerts.",
+    })
+
+  prefsToggleButton({
+      field = "toggle_pool_activation_alert",
+      pref = "pool_connection_alert",
       default = "0",
       hidden = not showElements,
       redis_prefix = "ntopng.prefs.alerts.",

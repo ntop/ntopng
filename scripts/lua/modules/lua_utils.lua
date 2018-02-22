@@ -546,6 +546,8 @@ alert_type_keys = {
   { "<i class='fa fa-asterisk'></i> " .. i18n("alerts_dashboard.new_device"),                      9, "new_device"                 },
   { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.device_connection"),               10, "device_connection"         },
   { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.device_disconnection"),           11, "device_disconnection"         },
+  { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.host_pool_connection"),            12, "host_pool_connection"         },
+  { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.host_pool_disconnection"),        13, "host_pool_disconnection"      },
 }
 
 local alert_entity_keys = {
@@ -555,6 +557,7 @@ local alert_entity_keys = {
   { "SNMP device",     3, "snmp_device"   },
   { "Flow",            4, "flow"          },
   { "Device",          5, "mac"           },
+  { "Host Pool",       6, "host_pool"     },
 }
 
 local alert_engine_keys = {

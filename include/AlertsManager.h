@@ -135,6 +135,17 @@ class AlertsManager : protected StoreManager {
   }
 
   /*
+    ========== Host Pools alerts API =========
+   */
+  inline int storeHostPoolAlert(u_int16_t pool_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    char buf[8];
+
+    snprintf(buf, sizeof(buf), "%i", pool_id);
+    return storeAlert(alert_entity_host_pool, buf, alert_type, alert_severity, alert_json,
+		    NULL, NULL, true);
+  }
+
+  /*
     ========== FLOW alerts API =========
    */
   int storeFlowAlert(Flow *f);
