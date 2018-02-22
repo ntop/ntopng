@@ -1891,6 +1891,7 @@ u_int32_t Utils::macHash(u_int8_t *mac) {
 /* ****************************************************** */
 
 /* https://en.wikipedia.org/wiki/Multicast_address */
+/* https://hwaddress.com/company/private */
 bool Utils::isSpecialMac(u_int8_t *mac) {
   u_int8_t zero[6] = { 0, 0, 0, 0, 0, 0 };
 
@@ -1906,6 +1907,102 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
     case 0x01005E:
     case 0x010CCD:
     case 0x011B19:
+    case 0x00006C:
+    case 0x000101:
+    case 0x000578:
+    case 0x000B18:
+    case 0x000BF4:
+    case 0x000C53:
+    case 0x000D58:
+    case 0x000DA7:
+    case 0x000DC2:
+    case 0x000DF2:
+    case 0x000E17:
+    case 0x000E22:
+    case 0x000E2A:
+    case 0x000EEF:
+    case 0x000F09:
+    case 0x0016B4:
+    case 0x001761:
+    case 0x001825:
+    case 0x002067:
+    case 0x00221C:
+    case 0x0022F1:
+    case 0x00234A:
+    case 0x00238C:
+    case 0x0023F7:
+    case 0x002419:
+    case 0x0024FB:
+    case 0x00259D:
+    case 0x0025DF:
+    case 0x00269F:
+    case 0x005047:
+    case 0x005079:
+    case 0x0050C2:
+    case 0x0050C7:
+    case 0x0084ED:
+    case 0x0086A0:
+    case 0x00A054:
+    case 0x00A085:
+    case 0x00CB00:
+    case 0x0418B6:
+    case 0x0C8112:
+    case 0x100000:
+    case 0x10AE60:
+    case 0x10B713:
+    case 0x1100AA:
+    case 0x111111:
+    case 0x140708:
+    case 0x146E0A:
+    case 0x18421D:
+    case 0x1CF4CA:
+    case 0x205B2A:
+    case 0x20D160:
+    case 0x24336C:
+    case 0x24BF74:
+    case 0x28EF01:
+    case 0x3CB87A:
+    case 0x40A93F:
+    case 0x40D855:
+    case 0x487604:
+    case 0x48D35D:
+    case 0x48F317:
+    case 0x50E14A:
+    case 0x544E45:
+    case 0x580943:
+    case 0x586ED6:
+    case 0x604BAA:
+    case 0x609620:
+    case 0x68E166:
+    case 0x706F81:
+    case 0x78F944:
+    case 0x7CE4AA:
+    case 0x8C8401:
+    case 0x8CE748:
+    case 0x906F18:
+    case 0x980EE4:
+    case 0x9C93E4:
+    case 0xA0D86F:
+    case 0xA468BC:
+    case 0xA4A6A9:
+    case 0xACDE48:
+    case 0xACF85C:
+    case 0xB025AA:
+    case 0xB0ECE1:
+    case 0xB0FEBD:
+    case 0xB4E1EB:
+    case 0xC02250:
+    case 0xC8AACC:
+    case 0xCC3ADF:
+    case 0xD85DFB:
+    case 0xDC7014:
+    case 0xE0CB1D:
+    case 0xE4F14C:
+    case 0xE80410:
+    case 0xE89E0C:
+    case 0xF04F7C:
+    case 0xF0A225:
+    case 0xFCC233:
       return(true);
     }
 
