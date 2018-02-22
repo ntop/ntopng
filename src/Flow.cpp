@@ -3132,28 +3132,48 @@ void Flow::fixAggregatedFlowFields() {
 }
 
 /* ***************************************************** */
-
+#if defined(NTOPNG_PRO) && defined(HAVE_NETFILTER)
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
-			   u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
-#ifdef NTOPNG_PRO
+			   u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
   u_int overhead = 0;
+  bool nf_existing_flow;
 
   updateSeen();
 
-  if(cli2srv_packets < s2d_pkts) {
-    iface->incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
-          s2d_bytes - cli2srv_bytes, s2d_pkts - cli2srv_packets, overhead, true);
-    cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes;
-  }
+  /* netfilter (depending on configured timeouts) could expire a flow before than
+     ntopng. This heuristics attempt to detect such events.
 
-  if(srv2cli_packets < d2s_pkts) {
-    iface->incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
-          d2s_bytes - srv2cli_bytes, d2s_pkts - srv2cli_packets, overhead, true);
-    srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
-  }
-#endif
+     Basically, if netfilter is sending counters for a new flow and ntopng
+     already have an existing flow matching the same 5-tuple, we sum counters
+     rather than overwriting them.
+
+     A complete solution would require the registration of a netfilter callback
+     and the detection of event NFCT_T_DESTROY.
+  */
+  nf_existing_flow = !(cli2srv_packets > s2d_pkts || cli2srv_packets > s2d_pkts
+		    || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
+
+  iface->incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
+		  nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
+		  nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
+		  overhead, true);
+
+
+  iface->incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
+		  nf_existing_flow ? d2s_bytes - srv2cli_bytes : d2s_bytes,
+		  nf_existing_flow ? d2s_pkts - srv2cli_packets : d2s_pkts,
+		  overhead, true);
+
+  if(nf_existing_flow)
+    cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes,
+      srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
+  else
+    cli2srv_packets += s2d_pkts, cli2srv_bytes += s2d_bytes,
+      srv2cli_packets += d2s_pkts, srv2cli_bytes += d2s_bytes;
+
 }
+#endif
 
 /* ***************************************************** */
 

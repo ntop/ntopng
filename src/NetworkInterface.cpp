@@ -6392,57 +6392,6 @@ void NetworkInterface::topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes)
 
 /* *************************************** */
 
-bool NetworkInterface::updateFlowStats(u_int8_t protocol,
-				       u_int32_t srcHost, u_int16_t sport,
-				       u_int32_t dstHost, u_int16_t dport,
-				       u_int32_t s2d_pkts, u_int32_t d2s_pkts,
-				       u_int32_t s2d_bytes, u_int32_t d2s_bytes) {
-  bool src2dst_direction;
-  IpAddress src_ip, dst_ip;
-  Flow *f;
-  struct tm now;
-  time_t t_now = time(NULL);
-#ifdef DEBUG
-  char buf[32], buf1[32];
-  const char *msg;
-#endif
-
-  localtime_r(&t_now, &now);
-  src_ip.set(srcHost), dst_ip.set(dstHost);
-  f = flows_hash->find(&src_ip, &dst_ip, sport, dport,
-		       0 /* vlanId */, protocol, &src2dst_direction);
-
-  if(f) {
-    f->setPacketsBytes(t_now, s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
-#ifdef HAVE_NEDGE
-    bool old_verdict = f->isPassVerdict();
-    bool new_verdict = f->checkPassVerdict(&now);
-
-    if(old_verdict != new_verdict)
-      return true;
-#endif
-#ifdef DEBUG
-    msg = "Updated ";
-#endif
-  } else {
-#ifdef DEBUG
-    msg = "NOT FOUND";
-#endif
-  }
-
-#ifdef DEBUG
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s [%lu][%s:%d -> %s:%d] [pkts %lu/%lu][bytes %lu/%lu]",
-			       msg, protocol,
-			       Utils::intoaV4(ntohl(srcHost), buf, sizeof(buf)), ntohs(sport),
-			       Utils::intoaV4(ntohl(dstHost), buf1, sizeof(buf)), ntohs(dport),
-			       s2d_pkts, d2s_pkts, s2d_bytes, d2s_bytes);
-#endif
-
-  return false;
-}
-
-/* *************************************** */
-
 /*
   Put here all the code that is executed when the NIC initialization
   is succesful
