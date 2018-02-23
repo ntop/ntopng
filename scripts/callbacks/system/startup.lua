@@ -84,6 +84,9 @@ for _, ifname in pairs(interface.getIfNames()) do
    -- Remove the active devices and pools keys
    deleteActiveDevicesKey(ifid)
    deleteActivePoolsKey(ifid)
+
+   -- Note: we do not delete this as quotas are persistent across ntopng restart
+   --deletePoolsQuotaExceededItemsKey(ifid)
 end
 
 -- ##################################################################

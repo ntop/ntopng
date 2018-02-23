@@ -255,6 +255,16 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
+  if ntop.isPro() and hasBridgeInterfaces(false) then
+    prefsToggleButton({
+      field = "toggle_quota_exceeded_alert",
+      pref = "quota_exceeded_alert",
+      default = "0",
+      hidden = not showElements,
+      redis_prefix = "ntopng.prefs.alerts.",
+    })
+  end
+
   print('<tr id="row_alerts_retention_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.alerts_retention")..'</th></tr>')

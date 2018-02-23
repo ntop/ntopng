@@ -548,6 +548,7 @@ alert_type_keys = {
   { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.device_disconnection"),           11, "device_disconnection"         },
   { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.host_pool_connection"),            12, "host_pool_connection"         },
   { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.host_pool_disconnection"),        13, "host_pool_disconnection"      },
+  { "<i class='fa fa-thermometer-full'></i> " .. i18n("alerts_dashboard.quota_exceeded"),         14, "quota_exceeded"      },
 }
 
 local alert_entity_keys = {

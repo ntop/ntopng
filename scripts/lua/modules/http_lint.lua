@@ -930,6 +930,7 @@ local known_parameters = {
    ["toggle_device_activation_alert"]              =  validateBool,
    ["toggle_device_first_seen_alert"]              =  validateBool,
    ["toggle_pool_activation_alert"]                =  validateBool,
+   ["toggle_quota_exceeded_alert"]                 =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
