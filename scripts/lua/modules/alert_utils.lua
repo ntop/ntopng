@@ -2185,7 +2185,7 @@ function check_host_pools_alerts(ifid, working_status)
 
             if alerts_on_quota_exceeded then
                if info.bytes_exceeded and not prev_exceeded[1] then
-                  interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("warning"),
+                  interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
                      i18n("alert_messages.subject_quota_exceeded", {
                         pool = host_pools_utils.getPoolName(ifid, pool),
                         url = getHostPoolUrl(pool),
@@ -2195,7 +2195,7 @@ function check_host_pools_alerts(ifid, working_status)
                end
 
                if info.time_exceeded and not prev_exceeded[2] then
-                  interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("warning"),
+                  interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
                      i18n("alert_messages.subject_quota_exceeded", {
                         pool = host_pools_utils.getPoolName(ifid, pool),
                         url = getHostPoolUrl(pool),
