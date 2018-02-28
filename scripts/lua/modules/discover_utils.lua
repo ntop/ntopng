@@ -758,6 +758,21 @@ end
 
 -- #############################################################################
 
+function discovery2config(interface_name)
+   local cached = ntop.getCache(discover.getCachedDiscoveryKey(interface_name))
+   local disc = json.decode(cached)
+
+   if(disc) then
+     for _,dev in pairs(disc.devices) do
+      if(dev.device_type.."" ~= "unknown") then
+       io.write(dev.mac .. " = " .. dev.device_type .. "\n")
+      end
+     end   
+  end
+end
+
+-- #############################################################################
+
 function discover.discover2table(interface_name, recache)
    local snmp_community = ntop.getPref("ntopng.prefs.default_snmp_community")
 
@@ -767,6 +782,8 @@ function discover.discover2table(interface_name, recache)
    
    interface.select(interface_name)
 
+   discovery2config(interface_name)
+   
    if recache ~= true then
       local cached = ntop.getCache(discover.getCachedDiscoveryKey(interface_name))
       if not isEmptyString(cached) then
