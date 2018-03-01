@@ -384,12 +384,15 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 
 		msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
-            msg += "<a href=\"]]
+	    if(typeof rsp.num_devices !== "undefined") {
+	      msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/macs_stats.lua?devices_mode=host_macs_only\">";
 		  msg += "<span class=\"label label-default\">";
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
+	    }
 
+	    if(typeof rsp.num_flows !== "undefined") {
     msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/flows_stats.lua\">";
@@ -413,6 +416,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 
 		   msg += "</span></A> ";
 		}
+	    }
 
 		$('#network-load').html(msg);
 

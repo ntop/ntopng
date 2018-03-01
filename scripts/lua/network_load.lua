@@ -11,6 +11,39 @@ json = require("dkjson")
 --sendHTTPContentTypeHeader('text/html')
 sendHTTPHeader('application/json')
 
+local callback_utils = require("callback_utils")
+
+local function userHasRestrictions()
+   local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
+   local has_restrictions = false
+
+   for _, net in pairs(split(allowed_nets, ",")) do
+      if net ~= "0.0.0.0/0" and net ~= "::/0" then
+	 has_restrictions = true
+	 break
+      end
+   end
+
+   return has_restrictions
+end
+
+local function countHosts()
+   local res = {
+      local_hosts = 0,
+      hosts = 0,
+   }
+
+   for host, info in callback_utils.getHostsIterator(false --[[no details]]) do
+      if info.localhost then
+	 res.local_hosts = res.local_hosts + 1
+      end
+
+      res.hosts = res.hosts + 1
+   end
+
+   return res
+end
+
 function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
 
@@ -48,10 +81,16 @@ function dumpInterfaceStats(interface_name)
 	 res["alerts_stored"]      = alert_cache["alerts_stored"] or 0
       end
 
-      res["num_flows"]        = ifstats.stats.flows
-      res["num_hosts"]        = ifstats.stats.hosts
-      res["num_local_hosts"]  = ifstats.stats.local_hosts
-      res["num_devices"]      = ifstats.stats.devices
+      if not userHasRestrictions() then
+	 res["num_flows"]        = ifstats.stats.flows
+	 res["num_hosts"]        = ifstats.stats.hosts
+	 res["num_local_hosts"]  = ifstats.stats.local_hosts
+	 res["num_devices"]      = ifstats.stats.devices
+      else
+	 local num_hosts = countHosts()
+	 res["num_hosts"]        = num_hosts.hosts
+	 res["num_local_hosts"]  = num_hosts.local_hosts
+      end
 
       res["epoch"]      = os.time()
       res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
