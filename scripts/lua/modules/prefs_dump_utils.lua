@@ -31,8 +31,10 @@ function prefs_dump_utils.savePrefsToDisk()
    local dump = json.encode(out, nil, 1)
 
    local file = io.open(where, "w")
-   file:write(dump)
-   file:close()
+   if(file ~= nil) then
+      file:write(dump)
+      file:close()
+   end
 end
 
 -- ###########################################

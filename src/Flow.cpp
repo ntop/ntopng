@@ -2637,7 +2637,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	    if(payload[offset] == 0)
 	      break;
 	    else if(payload[offset] == 0xC0) {
-	      if(i != i_save) {
+	      if((i != i_save) && (offset > i)) {
 		i_save = i;
 		i = offset;
 		goto nested_dns_definition;

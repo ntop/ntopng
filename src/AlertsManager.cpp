@@ -504,6 +504,7 @@ const char* AlertsManager::getAlertEntity(AlertEntity alert_entity) {
   case alert_entity_snmp_device: return("#snmp");
   case alert_entity_flow:        return("#flow");
   case alert_entity_mac:         return("#mac");
+  case alert_entity_host_pool:   return("#pool");
   }
 
   return(""); /* NOTREACHED */
