@@ -13,6 +13,7 @@ print[[
    var i18n = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
+      "no_data_available": "]] print(i18n("no_data_available")) print[[",
    };
 </script>]]
 
