@@ -2172,76 +2172,79 @@ function check_host_pools_alerts(ifid, working_status)
       -- quota_exceeded_pools[pool] is like {Youtube={true, false}}, where true is bytes_exceeded, false is time_exceeded
    end
 
-   for pool, info in pairs(interface.getHostPoolsInfo().num_members_per_pool) do
-      local pool_stats = pools_stats[tonumber(pool)]
-      local pool_exceeded_quotas = quota_exceeded_pools[pool] or {}
+   local pools = interface.getHostPoolsInfo()
+   if(pools ~= nil) then
+      for pool, info in pairs(pools.num_members_per_pool) do
+	 local pool_stats = pools_stats[tonumber(pool)]
+	 local pool_exceeded_quotas = quota_exceeded_pools[pool] or {}
 
-      -- Pool quota
-      if pool_stats and ntop.isPro() then
-         local quotas_info = shaper_utils.getQuotasInfo(ifid, pool, pool_stats)
+	 -- Pool quota
+	 if pool_stats and ntop.isPro() then
+	    local quotas_info = shaper_utils.getQuotasInfo(ifid, pool, pool_stats)
 
-         for proto, info in pairs(quotas_info) do
-            local prev_exceeded = pool_exceeded_quotas[proto] or {false,false}
+	    for proto, info in pairs(quotas_info) do
+	       local prev_exceeded = pool_exceeded_quotas[proto] or {false,false}
 
-            if alerts_on_quota_exceeded then
-               if info.bytes_exceeded and not prev_exceeded[1] then
-                  interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
-                     i18n("alert_messages.subject_quota_exceeded", {
-                        pool = host_pools_utils.getPoolName(ifid, pool),
-                        url = getHostPoolUrl(pool),
-                        subject = i18n("alert_messages.proto_bytes_quotas", {proto=proto}),
-                        quota = bytesToSize(info.bytes_quota),
-                        value = bytesToSize(info.bytes_value)}))
-               end
+	       if alerts_on_quota_exceeded then
+		  if info.bytes_exceeded and not prev_exceeded[1] then
+		     interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
+						  i18n("alert_messages.subject_quota_exceeded", {
+							  pool = host_pools_utils.getPoolName(ifid, pool),
+							  url = getHostPoolUrl(pool),
+							  subject = i18n("alert_messages.proto_bytes_quotas", {proto=proto}),
+							  quota = bytesToSize(info.bytes_quota),
+							  value = bytesToSize(info.bytes_value)}))
+		  end
 
-               if info.time_exceeded and not prev_exceeded[2] then
-                  interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
-                     i18n("alert_messages.subject_quota_exceeded", {
-                        pool = host_pools_utils.getPoolName(ifid, pool),
-                        url = getHostPoolUrl(pool),
-                        subject = i18n("alert_messages.proto_time_quotas", {proto=proto}),
-                        quota = secondsToTime(info.time_quota),
-                        value = secondsToTime(info.time_value)}))
-               end
-            end
+		  if info.time_exceeded and not prev_exceeded[2] then
+		     interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
+						  i18n("alert_messages.subject_quota_exceeded", {
+							  pool = host_pools_utils.getPoolName(ifid, pool),
+							  url = getHostPoolUrl(pool),
+							  subject = i18n("alert_messages.proto_time_quotas", {proto=proto}),
+							  quota = secondsToTime(info.time_quota),
+							  value = secondsToTime(info.time_value)}))
+		  end
+	       end
 
-            if not info.bytes_exceeded and not info.time_exceeded then
-               -- delete as no quota is left
-               pool_exceeded_quotas[proto] = nil
-            else
-               -- update/add serialized
-               pool_exceeded_quotas[proto] = {info.bytes_exceeded, info.time_exceeded}
-            end
-         end
+	       if not info.bytes_exceeded and not info.time_exceeded then
+		  -- delete as no quota is left
+		  pool_exceeded_quotas[proto] = nil
+	       else
+		  -- update/add serialized
+		  pool_exceeded_quotas[proto] = {info.bytes_exceeded, info.time_exceeded}
+	       end
+	    end
 
-         if table.empty(pool_exceeded_quotas) then
-            ntop.delHashCache(quota_exceeded_pools_key, pool)
-         else
-            -- Serialize the new quota information for the pool
-            for proto, value in pairs(pool_exceeded_quotas) do
-               pool_exceeded_quotas[proto] = table.concat({tostring(value[1]), tostring(value[2])}, ",")
-            end
+	    if table.empty(pool_exceeded_quotas) then
+	       ntop.delHashCache(quota_exceeded_pools_key, pool)
+	    else
+	       -- Serialize the new quota information for the pool
+	       for proto, value in pairs(pool_exceeded_quotas) do
+		  pool_exceeded_quotas[proto] = table.concat({tostring(value[1]), tostring(value[2])}, ",")
+	       end
 
-            ntop.setHashCache(quota_exceeded_pools_key, pool, table.tconcat(pool_exceeded_quotas, "=", "|"))
-         end
-      end
+	       ntop.setHashCache(quota_exceeded_pools_key, pool, table.tconcat(pool_exceeded_quotas, "=", "|"))
+	    end
+	 end
 
-      -- Pool presence
-      if (pool ~= host_pools_utils.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
-         now_active_pools[pool] = 1
+	 -- Pool presence
+	 if (pool ~= host_pools_utils.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
+	    now_active_pools[pool] = 1
 
-         if not prev_active_pools[pool] then
-            -- Pool connection
-            ntop.setMembersCache(active_pools_set, pool)
+	    if not prev_active_pools[pool] then
+	       -- Pool connection
+	       ntop.setMembersCache(active_pools_set, pool)
 
-            if alert_pool_connection_enabled then
-               interface.storeHostPoolAlert(tonumber(pool), alertType("host_pool_connection"), alertSeverity("info"),
-                  i18n("alert_messages.host_pool_has_connected", {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
-            end
-         end
+	       if alert_pool_connection_enabled then
+		  interface.storeHostPoolAlert(tonumber(pool), alertType("host_pool_connection"), alertSeverity("info"),
+					       i18n("alert_messages.host_pool_has_connected", {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
+	       end
+	    end
+	 end
       end
    end
-
+   
    -- Pool presence
    for pool in pairs(prev_active_pools) do
       if not now_active_pools[pool] then
