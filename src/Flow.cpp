@@ -2637,7 +2637,9 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	    if(payload[offset] == 0)
 	      break;
 	    else if(payload[offset] == 0xC0) {
-	      if((i != i_save) && (offset > i)) {
+	      /* Handle recursive pointers in names.
+	       * 2 levels of indirection are currently supported. */
+	      if((i != i_save) && (i_save == 0)) {
 		i_save = i;
 		i = offset;
 		goto nested_dns_definition;
@@ -2652,7 +2654,11 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	      name[j++] = payload[offset++];
 	  }
 
-	  if(i_save > 0) i = i_save;
+	  if(i_save > 0) {
+	    i = i_save;
+	    i_save = 0;
+	  }
+
 	  i += 2;
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", offset, &payload[offset-12]);
 	  break;
