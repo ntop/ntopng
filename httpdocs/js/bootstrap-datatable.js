@@ -283,7 +283,7 @@
         end = (o.currentPage * o.perPage);
         if(end > o.totalRows) end = o.totalRows;
 
-        $('<div class="pull-left"><p>Showing ' + start + ' to ' + end + ' of ' + o.totalRows + ' rows</p></div>')
+        $('<div class="pull-left"><p>' + i18n.showing_x_to_y_rows.sformat(start, end, o.totalRows) + '</p></div>')
           .prependTo(this.$bottom_details);
       }
 

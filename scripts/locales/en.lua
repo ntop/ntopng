@@ -111,6 +111,7 @@ local lang = {
   ["seen_since"] = "Seen Since",
   ["sent"] = "Sent",
   ["server"] = "Server",
+  ["showing_x_to_y_rows"] = "Showing %{x} to %{y} of %{tot} rows",
   ["similarity"] = "Similarity",
   ["speed"] = "Speed",
   ["ssl_certificate"] = "SSL Certificate",

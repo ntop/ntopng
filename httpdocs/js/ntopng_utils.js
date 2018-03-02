@@ -490,6 +490,17 @@ if (typeof(Math.sign) === "undefined") {
   };
 }
 
+// "{0} to {1}".sformat(1, 10) -> "1 to 10"
+String.prototype.sformat = function() {
+  var args = arguments;
+  return this.replace(/{(\d+)}/g, function(match, number) { 
+    return typeof args[number] != 'undefined'
+      ? args[number]
+      : match
+    ;
+  });
+};
+
 /* Used while searching hosts a and macs with typeahead */
 function makeFindHostBeforeSubmitCallback(http_prefix) {
   return function(form, data) {

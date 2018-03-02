@@ -137,8 +137,8 @@ if(protocol == nil) then protocol = "" end
 if(asn ~= nil) then 
 	asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
       "<small>&nbsp;<i class='fa fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
-      asn .. "'><i class='fa fa-external-link fa-sm' title='".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
-      "'></i></A></small>"
+      asn .. "'><i class='fa fa-external-link fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
+      "\\\"></i></A></small>"
 end
 
 if(_GET["country"] ~= nil) then 

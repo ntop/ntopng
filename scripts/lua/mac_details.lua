@@ -53,11 +53,10 @@ if isAdministrator() then
 	 end
       end
    end
+end
 
-   if (pool_id == nil) then
-      pool_id = host_pools_utils.getMacPool(mac)
-   end
-
+if (pool_id == nil) then
+   pool_id = host_pools_utils.getMacPool(mac)
 end
 
 local vlanId      = host_info["vlan"]
@@ -116,7 +115,7 @@ end
 
 if(page == "config") then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i>\n")
-else
+elseif isAdministrator() then
    print("<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i>\n")
 end
 
@@ -152,14 +151,18 @@ if((page == "overview") or (page == nil)) then
    else
       print(i18n("host_details.unknown_device_type") .. " ")
    end
-   print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fa fa-cog"></i></a>\n')
+   if isAdministrator() then
+      print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fa fa-cog"></i></a>\n')
+   end
 
    print("</td></tr>")
 
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
-   print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
-   print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
+   if isAdministrator() then
+      print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
+      print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
+   end
 
    print("</td>\n")
 
@@ -168,8 +171,10 @@ if((page == "overview") or (page == nil)) then
    print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
    if not ifstats.isView then
       print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, pool_id)) print[[</a></span>]]
-	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
+         if isAdministrator() then
+          print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
+          print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
+         end
       else
         -- no link for view interfaces
         print(host_pools_utils.getPoolName(ifId, pool_id))
