@@ -1434,7 +1434,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
-decode_ip:
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
@@ -1517,27 +1516,6 @@ decode_ip:
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
-    }
-  } else if(l4_proto == IPPROTO_GRE) {
-    struct grev1_header gre;
-    int offset = sizeof(struct grev1_header);
-
-    memcpy(&gre, l4, sizeof(struct grev1_header));
-    gre.flags_and_version = ntohs(gre.flags_and_version);
-    gre.proto = ntohs(gre.proto);
-
-    if(gre.flags_and_version & (GRE_HEADER_CHECKSUM | GRE_HEADER_ROUTING)) offset += 4;
-    if(gre.flags_and_version & GRE_HEADER_KEY)      offset += 4;
-    if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
-
-    if(gre.proto == ETHERTYPE_IP) {
-      iph = (struct ndpi_iphdr*)(l4 + offset), ip6 = NULL;
-      goto decode_ip;
-    } else if(gre.proto == ETHERTYPE_IPV6) {
-      iph = (struct ndpi_iphdr*)(l4 + offset), ip6 = NULL;
-      goto decode_ip;
-    } else {
-      /* Unknown encapsulation */
     }
   } else {
     /* non TCP/UDP protocols */
@@ -2046,9 +2024,10 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     break;
 
   case ETHERTYPE_IP:
-    if(h->caplen >= ip_offset) {
+    if(h->caplen >= ip_offset + sizeof(struct ndpi_iphdr)) {
       u_int16_t frag_off;
       struct ndpi_iphdr *iph = (struct ndpi_iphdr *) &packet[ip_offset];
+      u_short ip_len = ((u_short)iph->ihl * 4);
       struct ndpi_ipv6hdr *ip6 = NULL;
 
       if(iph->version != 4) {
@@ -2059,9 +2038,50 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       } else
 	frag_off = ntohs(iph->frag_off);
 
-      if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_UDP)
+      if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_GRE)
+	 && ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)
+	 && h->caplen >= ip_offset + ip_len + sizeof(struct grev1_header)) {
+	struct grev1_header gre;
+	u_int offset = ip_offset + ip_len +  sizeof(struct grev1_header);
+
+	memcpy(&gre, &packet[ip_offset+ip_len], sizeof(struct grev1_header));
+	gre.flags_and_version = ntohs(gre.flags_and_version);
+	gre.proto = ntohs(gre.proto);
+
+	if(gre.flags_and_version & (GRE_HEADER_CHECKSUM | GRE_HEADER_ROUTING)) offset += 4;
+	if(gre.flags_and_version & GRE_HEADER_KEY)      offset += 4;
+	if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
+
+	if(h->caplen >= offset) {
+	  if(gre.proto == ETHERTYPE_IP) {
+	    ip_offset = offset;
+	    goto decode_packet_eth;
+	  } else if(gre.proto == ETHERTYPE_IPV6) {
+	    eth_type = ETHERTYPE_IPV6;
+	    ip_offset = offset;
+	    goto decode_packet_eth;
+	  }
+	}
+
+	/* ERSPAN Type 2 has an 8-byte header
+	   https://tools.ietf.org/html/draft-foschiano-erspan-00 */
+	if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 8) {
+	  if(gre.proto == ETH_P_ERSPAN) {
+	    offset += 8 /* ERSPAN Type 2 header */;
+	    eth_offset = offset;
+	    ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
+	    ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
+	    eth_type = ntohs(ethernet->h_proto);
+	    goto decode_packet_eth;
+	  } else if(gre.proto == ETH_P_ERSPAN2) {
+	    ; /* TODO: support ERSPAN Type 3 */
+	  } else {
+	    /* Unknown encapsulation */
+	  }
+	}
+
+      } else if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_UDP)
 	 && ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)) {
-	u_short ip_len = ((u_short)iph->ihl * 4);
 	struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset+ip_len];
 	u_int16_t sport = ntohs(udp->source), dport = ntohs(udp->dest);
 
@@ -2191,7 +2211,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     break;
 
   case ETHERTYPE_IPV6:
-    if(h->caplen >= ip_offset) {
+    if(h->caplen >= ip_offset + sizeof(struct ndpi_ipv6hdr)) {
       struct ndpi_iphdr *iph = NULL;
       struct ndpi_ipv6hdr *ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 
@@ -2210,7 +2230,46 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	  ipv6_shift = 8 * (options[1] + 1);
 	}
 
-	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
+	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_GRE)
+	   && h->caplen >= ip_offset + ipv6_shift + sizeof(struct grev1_header)) {
+	  struct grev1_header gre;
+	  u_int offset = ip_offset + ipv6_shift + sizeof(struct grev1_header);
+
+	  memcpy(&gre, &packet[ip_offset + ipv6_shift], sizeof(struct grev1_header));
+	  gre.flags_and_version = ntohs(gre.flags_and_version);
+	  gre.proto = ntohs(gre.proto);
+
+	  if(gre.flags_and_version & (GRE_HEADER_CHECKSUM | GRE_HEADER_ROUTING)) offset += 4;
+	  if(gre.flags_and_version & GRE_HEADER_KEY)      offset += 4;
+	  if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
+
+	  if(h->caplen >= offset) {
+	    if(gre.proto == ETHERTYPE_IP) {
+	      eth_type = ETHERTYPE_IP;
+	      ip_offset = offset;
+	      goto decode_packet_eth;
+	    } else if(gre.proto == ETHERTYPE_IPV6) {
+	      ip_offset = offset;
+	      goto decode_packet_eth;
+	    }
+	  }
+
+	  if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 8  /* ERSPAN Type 2 header */) {
+	    if(gre.proto == ETH_P_ERSPAN) {
+	      offset += 8;
+	      eth_offset = offset;
+	      ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
+	      ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
+	      eth_type = ntohs(ethernet->h_proto);
+	      goto decode_packet_eth;
+	    } else if(gre.proto == ETH_P_ERSPAN2) {
+	      ; /* TODO: support ERSPAN Type 3 */
+	    } else {
+	      /* Unknown encapsulation */
+	    }
+	  }
+
+	} else if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
 	  // ip_offset += ipv6_shift;
 	  if((ip_offset + ipv6_shift) >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,

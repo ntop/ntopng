@@ -56,6 +56,15 @@
 #define IPPROTO_ICMPV6          58 /* ICMPv6 */
 #endif
 
+
+/* should be defined in linux/if_ether.h */
+#ifndef ETH_P_ERSPAN2
+#define ETH_P_ERSPAN2           0x22EB  /* ERSPAN version 2 (type III) */
+#endif
+#ifndef ETH_P_ERSPAN
+#define ETH_P_ERSPAN            0x88BE  /* ERSPAN type II */
+#endif
+
 /* BSD AF_ values. */
 #define BSD_AF_INET             2
 #define BSD_AF_INET6_BSD        24      /* OpenBSD (and probably NetBSD), BSD/OS */
