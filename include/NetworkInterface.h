@@ -179,7 +179,8 @@ class NetworkInterface : public Checkpointable {
 		char *countryFilter, char *mac_filter,
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
-		u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts,
+		u_int16_t pool_filter, bool filtered_hosts,
+    bool blacklisted_hosts, bool hide_top_hidden,
     u_int8_t ipver_filter, int proto_filter,
 		bool hostMacsOnly, char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
@@ -388,7 +389,7 @@ class NetworkInterface : public Checkpointable {
 			 char *countryFilter, char *mac_filter,
 			 u_int16_t vlan_id, char *osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
-			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts,
+			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
        u_int8_t ipver_filter, int proto_filter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);

@@ -101,7 +101,7 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 if (isAdministrator()) then
-   if (page == "config") and (_SERVER["REQUEST_METHOD"] == "POST") then
+   if (page == "config") and (not table.empty(_POST)) then
       -- TODO move keys to new schema: replace ifstats.name with ifid
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
 

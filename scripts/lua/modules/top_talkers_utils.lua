@@ -80,7 +80,7 @@ local function finalizeRes(res)
 	    for what_val_k, delta in pairs(direction_val) do
 	       local label = what_val_k
 
-	       if what_val_k ~= "Other" then
+	       if (what_val_k ~= "Other") and (what_val_k ~= "Hidden Hosts") then
 		  if what_key_k == "hosts" then
 		     label = getCache(hostname_cache, what_val_k)
 		  elseif what_key_k == "asn" then
@@ -175,6 +175,10 @@ function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
 	       ["countries"] = ternary(not isEmptyString(country), country, nil),
 	       ["networks"] = hoststats["local_network_id"],
 	    }) do
+	      if hoststats.hiddenFromTop then
+	        what_value = "Hidden Hosts"
+	      end
+
 	      updateRes(res, vlan, what_key, what_value, direction, delta)
 	   end
 	end
@@ -198,7 +202,7 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
   local url = ""
   local label = rec.label or rec.address
 
-  if rec.address ~= "Other" then
+  if (rec.address ~= "Other") and (rec.address ~= "Hidden Hosts") then
     if class_key == "hosts" then
       url = ntop.getHttpPrefix()..'/lua/host_details.lua?always_show_hist=true&host='
       -- Use the host alias as label, if set

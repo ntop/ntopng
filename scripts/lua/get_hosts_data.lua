@@ -32,6 +32,7 @@ local pool         = _GET["pool"]
 local country      = _GET["country"]
 local os_    	     = _GET["os"]
 local mac          = _GET["mac"]
+local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 
 function update_host_name(h)
    if(h["name"] == nil) then
@@ -126,7 +127,7 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 country, os_, tonumber(vlan), tonumber(asn),
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
-					 tonumber(protocol), filtered_hosts, blacklisted_hosts) -- false = little details
+					 tonumber(protocol), filtered_hosts, blacklisted_hosts, top_hidden) -- false = little details
 
 -- tprint(hosts_stats)
 --io.write("---\n")
@@ -228,6 +229,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    print(" </A> ")
 
    if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
+   if(value["hiddenFromTop"] == true) then print("&nbsp;<i class='fa fa-eye-slash'></i>") end
 
    if(value.childSafe == true) then print(getSafeChildIcon()) end
 
