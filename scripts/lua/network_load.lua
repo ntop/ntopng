@@ -15,16 +15,14 @@ local callback_utils = require("callback_utils")
 
 local function userHasRestrictions()
    local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
-   local has_restrictions = false
 
    for _, net in pairs(split(allowed_nets, ",")) do
-      if net ~= "0.0.0.0/0" and net ~= "::/0" then
-	 has_restrictions = true
-	 break
+      if not isEmptyString(net) and net ~= "0.0.0.0/0" and net ~= "::/0" then
+	 return true
       end
    end
 
-   return has_restrictions
+   return false
 end
 
 local function countHosts()
