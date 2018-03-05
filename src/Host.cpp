@@ -1016,6 +1016,19 @@ bool Host::deserialize(char *json_str, char *key) {
     return(false);
   }
 
+  if(! mac) {
+    u_int8_t mac_buf[6];
+    memset(mac_buf, 0, sizeof(mac_buf));
+
+    if(json_object_object_get_ex(o, "mac_address", &obj)) Utils::parseMac(mac_buf, json_object_get_string(obj));
+
+    // sticky hosts enabled, we must bring up the mac address
+    if((mac = iface->getMac(mac_buf, getVlanId(), true /* create if not exists*/)) != NULL)
+      mac->incUses();
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory?");
+  }
+
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
 
