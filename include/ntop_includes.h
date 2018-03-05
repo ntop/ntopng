@@ -161,6 +161,7 @@ using namespace std;
 #include "RwLock.h"
 #include "MDNS.h"
 #include "AddressTree.h"
+#include "VlanAddressTree.h"
 #include "AddressList.h"
 #include "IpAddress.h"
 #include "ntop_typedefs.h"

@@ -143,6 +143,7 @@ class NetworkInterface : public Checkpointable {
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
   HostPools *host_pools;
+  VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_mac_addresses;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
@@ -577,6 +578,8 @@ class NetworkInterface : public Checkpointable {
 			     AlertEngine alert_engine,
 			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
+  void reloadHideFromTop(bool refreshHosts=true);
+  bool isHiddenFromTop(Host *host);
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
   inline virtual bool areTrafficDirectionsSupported() { return(false); };

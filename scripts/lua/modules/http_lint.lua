@@ -562,8 +562,33 @@ local function validateInterface(i)
 end
 
 local function validateNetwork(i)
-   -- TODO
-   return validateSingleWord(i)
+   if not string.find(i, "/") then
+      return validateIpAddress(i)
+   else
+      local parts = split(i, "/")
+      if #parts ~= 2 then
+         return false
+      end
+
+      if not validateNumber(parts[2]) then
+         return false
+      end
+
+      local prefix = tonumber(parts[2])
+
+      if prefix >= 0 then
+         local is_ipv6 = isIPv6(parts[1])
+         local is_ipv4 = isIPv4(parts[1])
+
+         if is_ipv6 and prefix <= 128 then
+            return true
+         elseif is_ipv4 and prefix <= 32 then
+            return true
+         end
+      end
+
+      return false
+   end
 end
 
 local function validateZoom(zoom)
@@ -1110,6 +1135,8 @@ local known_parameters = {
    ["per_ip_slow_rate"]        =  validateNumber,
    ["per_ip_slower_rate"]      =  validateNumber,
    ["user_policy"]             =  validateNumber,
+   ["hide_from_top"]           =  validateNetworksList,
+   ["top_hidden"]              =  validateBool,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON

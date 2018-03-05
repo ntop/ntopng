@@ -86,20 +86,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
 /* *************************************** */
 
-void HostPools::deleteTree(AddressTree ***at) {
-  if(at) {
-    if(*at) {
-      for(int i = 0; i < MAX_NUM_VLAN; i++)
-	if((*at)[i])
-	  delete (*at)[i];
-      delete [] *at;
-      *at = NULL;
-    }
-  }
-}
-
-/* *************************************** */
-
 #ifdef NTOPNG_PRO
 
 void HostPools::deleteStats(HostPoolStats ***hps) {
@@ -128,8 +114,8 @@ HostPools::~HostPools() {
   if(num_active_l2_devices_offline)
     free(num_active_l2_devices_offline);
 
-  if(tree_shadow)   deleteTree(&tree_shadow);
-  if(tree)          deleteTree(&tree);
+  if(tree_shadow)   delete tree_shadow;
+  if(tree)          delete tree;
   if(swap_lock)     delete swap_lock;
 
 #ifdef NTOPNG_PRO
@@ -183,9 +169,9 @@ HostPools::~HostPools() {
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
-void HostPools::swap(AddressTree **new_trees, HostPoolStats **new_stats) {
+void HostPools::swap(VlanAddressTree *new_trees, HostPoolStats **new_stats) {
 #else
-void HostPools::swap(AddressTree **new_trees) {
+void HostPools::swap(VlanAddressTree *new_trees) {
 #endif
   swap_lock->lock(__FILE__, __LINE__);
 
@@ -210,7 +196,7 @@ void HostPools::swap(AddressTree **new_trees) {
   /* Swap address trees */
   if(new_trees) {
     if(tree) {
-      if(tree_shadow) deleteTree(&tree_shadow); /* Invokes the destructor */
+      if(tree_shadow) delete tree_shadow;
       tree_shadow = tree;
     }
 
@@ -225,7 +211,7 @@ void HostPools::swap(AddressTree **new_trees) {
 
 #ifdef NTOPNG_PRO
 
-void HostPools::reloadVolatileMembers(AddressTree **_trees) {
+void HostPools::reloadVolatileMembers(VlanAddressTree *_trees) {
   volatile_members_t *current, *tmp;
   char *at, *member;
   bool rc;
@@ -251,19 +237,17 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
 	} else
 	  vlan_id = 0;
 
-	if(_trees[vlan_id]  || (_trees[vlan_id] = new AddressTree())) {
-	  if(!(rc = _trees[vlan_id]->addAddress(member, pool_id))
+	if(!(rc = _trees->addAddress(vlan_id, member, pool_id))
 #ifdef HOST_POOLS_DEBUG
-	     || true
+	    || true
 #endif
 	     )
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "%s VOLATILE tree node for %s [vlan %i] [host pool: %i]",
-					 rc ? "Successfully added" : "Unable to add",
-					 member, vlan_id,
-					 pool_id);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "%s VOLATILE tree node for %s [vlan %i] [host pool: %i]",
+				       rc ? "Successfully added" : "Unable to add",
+				       member, vlan_id,
+				       pool_id);
 
-	}
 
 	free(member);
       }
@@ -663,7 +647,7 @@ void HostPools::reloadPools() {
   char **pools, **pool_members, *at, *member;
   int num_pools, num_members;
   u_int16_t _pool_id, vlan_id;
-  AddressTree **new_tree;
+  VlanAddressTree *new_tree;
 #ifdef NTOPNG_PRO
   HostPoolStats **new_stats;
 #endif
@@ -672,7 +656,7 @@ void HostPools::reloadPools() {
   if(!iface || (iface->get_id() == -1))
     return;
 
-  if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL
+  if((new_tree = new VlanAddressTree) == NULL
 #ifdef NTOPNG_PRO
      || (new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS]) == NULL
 #endif
@@ -680,9 +664,6 @@ void HostPools::reloadPools() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
-
-  for(u_int32_t i = 0; i < MAX_NUM_VLAN; i++)
-    new_tree[i] = NULL;
 
 #ifdef NTOPNG_PRO
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
@@ -776,21 +757,19 @@ void HostPools::reloadPools() {
 	} else
 	  vlan_id = 0;
 
-	if(new_tree[vlan_id] || (new_tree[vlan_id] = new AddressTree())) {
-	  bool rc;
+	bool rc;
 
-	  if(!(rc = new_tree[vlan_id]->addAddress(member, _pool_id))
+	if(!(rc = new_tree->addAddress(vlan_id, member, _pool_id))
 #ifdef HOST_POOLS_DEBUG
-	     || true
+	    || true
 #endif
 	     )
 
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "%s tree node for %s [vlan %i] [host pool: %s]",
-					 rc ? "Successfully added" : "Unable to add",
-					 member, vlan_id,
-					 pools[i]);
-	}
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "%s tree node for %s [vlan %i] [host pool: %s]",
+				       rc ? "Successfully added" : "Unable to add",
+				       member, vlan_id,
+				       pools[i]);
 
 	free(member);
       }
@@ -817,13 +796,13 @@ void HostPools::reloadPools() {
 /* *************************************** */
 
 bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool) {
-  AddressTree *cur_tree; /* must use this as tree can be swapped */
+  VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
   int16_t ret;
 
-  if(!tree || !(cur_tree = tree[vlan_id]))
+  if(!tree || !(cur_tree = tree))
     return(false);
 
-  ret = cur_tree->findMac(mac);
+  ret = cur_tree->findMac(vlan_id, mac);
 
   if(ret != -1) {
     *found_pool = (u_int16_t)ret;
@@ -852,15 +831,15 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
 /* *************************************** */
 
 bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node) {
-  AddressTree *cur_tree; /* must use this as tree can be swapped */
+  VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
 #endif
 
-  if(!tree || !(cur_tree = tree[vlan_id]))
+  if(!tree || !(cur_tree = tree))
     return(false);
 
-  *found_node = (patricia_node_t*)ip->findAddress(cur_tree);
+  *found_node = (patricia_node_t*)ip->findAddress(cur_tree->getAddressTree(vlan_id));
 
   if(*found_node) {
 #ifdef HOST_POOLS_DEBUG

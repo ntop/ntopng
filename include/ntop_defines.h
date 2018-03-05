@@ -419,6 +419,7 @@
 #define CONST_NBOX_PASSWORD                 "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS                "ntopng.prefs.iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
+#define CONST_IFACE_HIDE_FROM_TOP_PREFS     "ntopng.prefs.iface_%d.hide_from_top"
 #define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        "ntopng.prefs.non_local_host_max_idle"

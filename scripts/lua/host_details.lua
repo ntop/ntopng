@@ -49,6 +49,7 @@ local family = nil
 local prefs = ntop.getPrefs()
 
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
+local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 local labelKey = host_info["host"].."@"..host_info["vlan"]
 
 if((host_name == nil) or (host_ip == nil)) then
@@ -1729,6 +1730,9 @@ elseif (page == "config") then
       return
    end
 
+   local top_hiddens = ntop.getMembersCache(getHideFromTopSet(ifId) or {})
+   local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
+
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if(host["localhost"] == true and is_packetdump_enabled) then
          if(_POST["dump_traffic"] == "1") then
@@ -1763,6 +1767,21 @@ elseif (page == "config") then
          end
 
          interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+      end
+
+      local new_top_hidden = (_POST["top_hidden"] == "1")
+
+      if new_top_hidden ~= is_top_hidden then
+         local set_name = getHideFromTopSet(ifId)
+
+         if new_top_hidden then
+            ntop.setMembersCache(set_name, hostkey_compact)
+         else
+            ntop.delMembersCache(set_name, hostkey_compact)
+         end
+
+         is_top_hidden = new_top_hidden
+         interface.reloadHideFromTop()
       end
    end
 
@@ -1808,6 +1827,17 @@ elseif (page == "config") then
    if not ifstats.isView then
       printPoolChangeDropdown(ifId, host_pool_id, have_nedge)
    end
+
+   local top_hidden_checked = ternary(is_top_hidden, "checked", "")
+
+   print [[<tr>
+         <th>]] print(i18n("host_config.hide_from_top")) print[[</th>
+         <td>
+               <input type="checkbox" name="top_hidden" value="1" ]] print(top_hidden_checked) print[[>
+                  ]] print(i18n("host_config.hide_host_from_top_descr", {host=host["name"]})) print[[
+               </input>
+         </td>
+      </tr>]]
 
    if host["localhost"] then
       print [[<tr>

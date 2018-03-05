@@ -32,7 +32,7 @@ class HostPools {
  private:
   Mutex *swap_lock;
   volatile time_t latest_swap;
-  AddressTree **tree, **tree_shadow;
+  VlanAddressTree *tree, *tree_shadow;
   NetworkInterface *iface;
   u_int16_t max_num_pools;
   int32_t *num_active_hosts_inline, *num_active_hosts_offline;
@@ -49,9 +49,9 @@ class HostPools {
   volatile_members_t **volatile_members;
   Mutex **volatile_members_lock;
 
-  void reloadVolatileMembers(AddressTree **_trees);
+  void reloadVolatileMembers(VlanAddressTree *_trees);
   void addVolatileMember(char *host_or_mac, u_int16_t user_pool_id, time_t lifetime);
-  void swap(AddressTree **new_trees, HostPoolStats **new_stats);
+  void swap(VlanAddressTree *new_trees, HostPoolStats **new_stats);
 
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
     if((host_pool_id >= max_num_pools) || (!stats))
@@ -61,9 +61,8 @@ class HostPools {
   void reloadPoolStats();
   static void deleteStats(HostPoolStats ***hps);
 #else
-  void swap(AddressTree **new_trees);
+  void swap(VlanAddressTree *new_trees);
 #endif
-  static void deleteTree(AddressTree ***at);
 
   void loadFromRedis();
 

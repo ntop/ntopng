@@ -1202,6 +1202,8 @@ local lang = {
     ["modify_host_pool_policy_btn"] = "Modify Host Pool Policy",
     ["trigger_alerts_for_host"] = "Trigger alerts for Host %{host}",
     ["trigger_host_alerts"] = "Trigger Host Alerts",
+    hide_from_top = "Hide from Top Talkers",
+    hide_host_from_top_descr = "Do not account host %{host} in top talkers computation",
   },
   ["host_details"] = {
     ["blocked_traffic"] = "Blocked Traffic",
@@ -1482,6 +1484,8 @@ local lang = {
     ["scaling_factor"] = "Ingress Packets Sampling Rate",
     ["scaling_factor_popup_msg"] = "This should match your capture interface sampling rate",
     ["trigger_interface_alerts"] = "Trigger Interface Alerts",
+    hide_from_top_networks = "Hide from Top Networks",
+    hide_from_top_networks_descr = "e.g. %{example}",
   },
   ["if_stats_overview"] = {
     ["active"] = "Active",

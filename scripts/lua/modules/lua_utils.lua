@@ -3602,6 +3602,12 @@ end
 
 -- ###########################################
 
+function getHideFromTopSet(ifid)
+   return "ntopng.prefs.iface_" .. ifid .. ".hide_from_top"
+end
+
+-- ###########################################
+
 function printWarningAlert(message)
    print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
    print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]

@@ -67,6 +67,7 @@ class Host : public GenericHost, public Checkpointable {
 #endif
   u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
   bool checkpoint_set;
+  bool hidden_from_top;
 
   struct {
     u_int32_t pktRetr, pktOOO, pktLost;
@@ -210,6 +211,9 @@ class Host : public GenericHost, public Checkpointable {
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
+  inline u_int16_t getVlanId() { return (vlan ? vlan->get_vlan_id() : 0); }
+  inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
+  inline bool isHiddenFromTop() { return hidden_from_top; }
 
   inline void setSSDPLocation(char *url) {
      if(url) {

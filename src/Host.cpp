@@ -244,6 +244,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   refreshHostAlertPrefs();
   
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
+  reloadHideFromTop();
 }
 
 /* *************************************** */
@@ -485,6 +486,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
+  lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
 
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 

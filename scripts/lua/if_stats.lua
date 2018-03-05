@@ -112,6 +112,27 @@ if (isAdministrator()) then
          ntop.setCache(ifspeed_cache, _POST["ifSpeed"])
       end
 
+      local hide_set = getHideFromTopSet(ifstats.id)
+      ntop.delCache(hide_set)
+
+      for _, net in pairs(split(_POST["hide_from_top"] or "", ",")) do
+         net = trimSpace(net)
+
+         if not isEmptyString(net) then
+            local address, prefix = splitNetworkPrefix(net)
+
+            if isIPv6(address) and prefix == "128" then
+               net = address
+            elseif isIPv4(address) and prefix == "32" then
+               net = address
+            end
+
+            ntop.setMembersCache(hide_set, net)
+         end
+      end
+
+      interface.reloadHideFromTop()
+
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
 
       local sf = tonumber(_POST["scaling_factor"])
@@ -996,6 +1017,7 @@ end
    print [["></input>
     </td></tr>
        ]]
+   
 
    print("<tr><th colspan=2>" .. i18n("packetdump_page.dump_to_disk_parameters") .. "</th></tr>")
    print("<tr><th width=250>" .. i18n("packetdump_page.pcap_dump_directory") .. "</th><td>")
@@ -1126,6 +1148,27 @@ elseif(page == "config") then
 	</tr>]]
      end
    end
+
+   local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
+   local members = {}
+
+   -- impose sort order
+   for _, net in pairsByValues(rv, asc) do
+      members[#members + 1] = net
+   end
+
+   local hide_top = table.concat(members, ",")
+
+      print[[
+	<tr>
+	   <th>]] print(i18n("if_stats_config.hide_from_top_networks")) print[[</th>
+	   <td>]]
+
+	print('<input style="width:36em;" class="form-control" name="hide_from_top" placeholder="'..i18n("if_stats_config.hide_from_top_networks_descr", {example="192.168.1.1,192.168.100.0/24"})..'" value="' .. hide_top .. '">')
+
+	print[[
+	   </td>
+	</tr>]]
 
    -- Alerts
    local trigger_alerts = true

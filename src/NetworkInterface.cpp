@@ -243,6 +243,8 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 #endif
+
+  reloadHideFromTop(false);
 }
 
 /* **************************************************** */
@@ -280,6 +282,7 @@ void NetworkInterface::init() {
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL;
+  hide_from_top = hide_from_top_shadow = NULL;
 
   L_user_scripts_inline = L_user_scripts_periodic = NULL;
   forceLuaInterpreterReload();
@@ -667,6 +670,8 @@ NetworkInterface::~NetworkInterface() {
 #endif
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
+  if(hide_from_top) delete(hide_from_top);
+  if(hide_from_top_shadow) delete(hide_from_top_shadow);
 
   termLuaInterpreter();
 }
@@ -5839,6 +5844,71 @@ void NetworkInterface::termLuaInterpreter() {
     lua_close(L_user_scripts_periodic);
     L_user_scripts_periodic = NULL;
   }
+}
+
+/* **************************************** */
+
+static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
+  Host *h = (Host*)host;
+
+  h->reloadHideFromTop();
+
+  return(false); /* false = keep on walking */
+}
+
+void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
+  char kname[64];
+  char **networks = NULL;
+  VlanAddressTree *new_tree;
+
+  if ((new_tree = new VlanAddressTree) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
+    return;
+  }
+
+  snprintf(kname, sizeof(kname), CONST_IFACE_HIDE_FROM_TOP_PREFS, id);
+
+  int num_nets = ntop->getRedis()->smembers(kname, &networks);
+  char *at;
+  u_int16_t vlan_id;
+
+  for(int i=0; i<num_nets; i++) {
+    char *net = networks[i];
+    if(!net) continue;
+
+    if((at = strchr(net, '@'))) {
+      vlan_id = atoi(at + 1);
+      *at = '\0';
+    } else
+      vlan_id = 0;
+
+    new_tree->addAddress(vlan_id, net, 1);
+    free(net);
+  }
+
+  if(networks) free(networks);
+
+  if(hide_from_top_shadow) delete(hide_from_top_shadow);
+  hide_from_top_shadow = hide_from_top;
+  hide_from_top = new_tree;
+
+  if(refreshHosts) {
+    /* Reload existing hosts */
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
+    walker(&begin_slot, walk_all,  walker_hosts, host_reload_hide_from_top, NULL);
+  }
+}
+
+/* **************************************** */
+
+bool NetworkInterface::isHiddenFromTop(Host *host) {
+  VlanAddressTree *vlan_addrtree = hide_from_top;
+  if(!vlan_addrtree) return false;
+
+  AddressTree *tree = vlan_addrtree->getAddressTree(host->getVlanId());
+
+  return host->get_ip()->findAddress(tree);
 }
 
 /* **************************************** */
