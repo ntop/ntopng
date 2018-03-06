@@ -1424,7 +1424,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
        && (ntop->getPrefs()->get_auto_assigned_pool_id() != NO_HOST_POOL_ID)
        && (!ntop->getPrefs()->isCaptivePortalEnabled())
        && (srcMac->locate() == located_on_lan_interface)) {
-      if(!host_pools->findMacPool(srcMac->get_mac(), vlan_id, &mac_pool) || (mac_pool == NO_HOST_POOL_ID)) {
+      if(!host_pools->findMacPool(srcMac->get_mac(), &mac_pool) || (mac_pool == NO_HOST_POOL_ID)) {
         mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
         host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
       }
@@ -2938,10 +2938,7 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched
   struct mac_find_info *info = (struct mac_find_info*)user_data;
   Mac *m = (Mac*)h;
 
-  if((info->m == NULL)
-     && ((info->vlan_id == 0) || (m->get_vlan_id() == info->vlan_id))
-     && (!memcmp(info->mac, m->get_mac(), 6))
-     ) {
+  if((info->m == NULL) && (!memcmp(info->mac, m->get_mac(), 6))) {
     info->m = m;
     *matched = true;
     
@@ -3546,7 +3543,6 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
 
   if(!m
      || m->idle()
-     || ((r->vlan_id && (r->vlan_id != m->get_vlan_id())))
      || (r->sourceMacsOnly && !m->isSourceMac())
      || (r->hostMacsOnly && m->getNumHosts() == 0)
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
@@ -3563,10 +3559,6 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
   switch(r->sorter) {
   case column_mac:
     r->elems[r->actNumEntries++].numericValue = Utils::macaddr_int(m->get_mac());
-    break;
-
-  case column_vlan:
-    r->elems[r->actNumEntries++].numericValue = m->get_vlan_id();
     break;
 
   case column_since:
@@ -4202,7 +4194,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
 			       bool walk_all,
 			       struct flowHostRetriever *retriever,
 			       u_int8_t bridge_iface_idx,
-			       u_int16_t vlan_id, bool sourceMacsOnly,
+			       bool sourceMacsOnly,
 			       bool hostMacsOnly, bool dhcpMacsOnly,
 			       const char *manufacturer,
 			       char *sortColumn, u_int16_t pool_filter,
@@ -4217,7 +4209,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
 
-  retriever->vlan_id = vlan_id, retriever->sourceMacsOnly = sourceMacsOnly,
+  retriever->sourceMacsOnly = sourceMacsOnly,
     retriever->hostMacsOnly = hostMacsOnly,
     retriever->dhcpMacsOnly = dhcpMacsOnly,
     retriever->actNumEntries = 0,
@@ -4235,7 +4227,6 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
   }
 
   if((!strcmp(sortColumn, "column_mac")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_mac, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_vlan"))         retriever->sorter = column_vlan,         sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
@@ -6004,7 +5995,6 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 				       u_int32_t *begin_slot,
 				       bool walk_all,
 				       u_int8_t bridge_iface_idx,
-				       u_int16_t vlan_id,
 				       bool sourceMacsOnly,
 				       bool hostMacsOnly,
 				       bool dhcpMacsOnly, const char *manufacturer,
@@ -6018,7 +6008,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
   disablePurge(false);
 
   if(sortMacs(begin_slot, walk_all,
-	      &retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      hostMacsOnly, dhcpMacsOnly, manufacturer, sortColumn,
 	      pool_filter, devtype_filter, location_filter) < 0) {
     enablePurge(false);
@@ -6170,7 +6160,6 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 
 int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 						u_int8_t bridge_iface_idx,
-						u_int16_t vlan_id,
 						bool sourceMacsOnly,
 						bool hostMacsOnly, bool dhcpMacsOnly,
 						u_int32_t maxHits,
@@ -6182,7 +6171,7 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
   disablePurge(false);
 
   if(sortMacs(&begin_slot, walk_all,
-	      &retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      hostMacsOnly, dhcpMacsOnly, NULL, (char*)"column_manufacturer",
 	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
     enablePurge(false);
@@ -6227,7 +6216,6 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 
 int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 					   u_int8_t bridge_iface_idx,
-					   u_int16_t vlan_id,
 					   bool sourceMacsOnly,
 					   bool hostMacsOnly,
 					   bool dhcpMacsOnly,
@@ -6240,7 +6228,7 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
   disablePurge(false);
 
   if(sortMacs(&begin_slot, walk_all,
-	      &retriever, bridge_iface_idx, vlan_id, sourceMacsOnly,
+	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      hostMacsOnly, dhcpMacsOnly, manufacturer, (char*)"column_device_type",
 	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
     enablePurge(false);
@@ -6287,14 +6275,14 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 
 /* **************************************** */
 
-bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
+bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
   struct mac_find_info info;
   bool ret;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
   memset(&info, 0, sizeof(info));
-  Utils::parseMac(info.mac, mac), info.vlan_id = vlan_id;
+  Utils::parseMac(info.mac, mac);
 
   disablePurge(false);
 
@@ -6328,7 +6316,7 @@ bool NetworkInterface::setMacOperatingSystem(lua_State* vm, char *strmac, Operat
 
 /* **************************************** */
 
-bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId,
+bool NetworkInterface::setMacDeviceType(char *strmac,
 					DeviceType dtype, bool alwaysOverwrite) {
   u_int8_t mac[6];
   Mac *m;

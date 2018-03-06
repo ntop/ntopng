@@ -20,7 +20,7 @@ if(host_info["host"] ~= nil) then
    local breakdown = {}
 
    -- Show ARP sent/recv breakdown 
-   stats = interface.getMacInfo(host_info["host"], host_info["vlan"])
+   stats = interface.getMacInfo(host_info["host"])
 
    if stats ~= nil then
       local arp_sent = stats["arp_requests.sent"] + stats["arp_replies.sent"]

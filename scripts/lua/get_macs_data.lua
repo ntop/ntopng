@@ -72,7 +72,6 @@ if(isEmptyString(vlan)) then vlan = 0 end
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
-					 tonumber(vlan),
 					 source_macs_only,
 					 host_macs_only, manufacturer,
 					 nil, device_type, "", dhcp_macs_only)

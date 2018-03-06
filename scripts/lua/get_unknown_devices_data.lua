@@ -86,7 +86,6 @@ end
 -- First data source: memory
 -- NB: we must fetch this data even if mode is "inactive_only", to properly filter redis data
 local macs_stats = interface.getMacsInfo(nil, nil, nil, nil,
-         tonumber(vlan),
          true --[[ sourceMacsOnly ]],
          true --[[ hostMacsOnly ]], nil--[[manufacturer]],
 	 tonumber(host_pools_utils.DEFAULT_POOL_ID), false)
@@ -115,11 +114,12 @@ macs_stats = nil
 
 -- Second data source: redis
 if devices_mode ~= "active_only" then
-   local keys = ntop.getKeysCache("ntopng.serialized_macs.ifid_"..(ifstats.id).."__*@"..vlan)
+   local keys = ntop.getKeysCache("ntopng.serialized_macs.ifid_"..(ifstats.id).."__*")
+
    for key in pairs(keys or {}) do
       local device = json.decode(ntop.getCache(key))
 
-      if (device ~= nil) and (not mac_to_device[device["mac"]]) and (tostring(interface.findMacPool(device["mac"], vlan) or 0) == host_pools_utils.DEFAULT_POOL_ID) then
+      if (device ~= nil) and (not mac_to_device[device["mac"]]) and (tostring(interface.findMacPool(device["mac"]) or 0) == host_pools_utils.DEFAULT_POOL_ID) then
          device.in_memory_mac = "0" .. device["mac"]
          mac_to_device[device["mac"]] = device
 

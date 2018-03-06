@@ -85,7 +85,7 @@ class HostPools {
   u_int16_t getPool(Mac *m);
 
   bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
-  bool findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool);
+  bool findMacPool(u_int8_t *mac, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
   void lua(lua_State *vm);
 

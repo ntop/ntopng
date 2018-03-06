@@ -105,7 +105,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 
       -- OS
       print("<td align=\"center\">")
-      local mac_info = interface.getMacInfo(el.mac, 0) -- 0 = vlanId
+      local mac_info = interface.getMacInfo(el.mac)
       if(mac_info ~= nil) then
 	 el.operatingSystem = getOperatingSystemName(mac_info.operatingSystem)
 	 print(getOperatingSystemIcon(mac_info.operatingSystem))

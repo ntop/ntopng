@@ -735,7 +735,7 @@ local function discoverARP()
       status = discoverStatus("ERROR", i18n("discover.err_unable_to_arp_discovery"))
    else
       -- Add the known macs to the list
-      local known_macs = interface.getMacsInfo(nil, 999, 0, false, 0, tonumber(vlan), true, true, nil) or {}
+      local known_macs = interface.getMacsInfo(nil, 999, 0, false, true, true, nil) or {}
 
       for _,hmac in pairs(known_macs.macs) do
 	 if(hmac["bytes.sent"] > 0) then -- Skip silent hosts
@@ -949,7 +949,7 @@ function discover.discover2table(interface_name, recache)
                                                           osx_devices[ip], sym)
 
       if isEmptyString(device_label) then
-	 local mac_info = interface.getMacInfo(mac, 0) -- 0 = VLAN
+	 local mac_info = interface.getMacInfo(mac)
 
          entry["device_label_noicon"] = device_label
 	 if mac_info ~= nil then

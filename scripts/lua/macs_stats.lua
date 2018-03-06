@@ -151,7 +151,7 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
-   for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, nil, nil, device_type), asc) do
+   for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, nil, device_type), asc) do
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
@@ -172,7 +172,7 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\
    ]]
 
-   for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, nil, nil, manufacturer, device_type), asc) do
+   for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, nil, manufacturer, device_type), asc) do
       devicetype_params.device_type = typeidx
       print('<li')
       if typeidx == device_type then print(' class="active"') end
@@ -219,7 +219,7 @@ print [[
 				 },{
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_name",
-				 sortable: true,
+				 sortable: false,
 	 	             css: {
 			        textAlign: 'left'
 			     }

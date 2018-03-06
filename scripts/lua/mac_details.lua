@@ -77,7 +77,7 @@ if(mac == nil) then
    return
 end
 
-local mac_info = interface.getMacInfo(mac, vlanId)
+local mac_info = interface.getMacInfo(mac)
 
 -- tprint(mac_info)
 

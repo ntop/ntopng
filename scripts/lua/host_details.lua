@@ -373,7 +373,7 @@ print [[
 </div>
    ]]
 
-local macinfo = interface.getMacInfo(host["mac"], host_info["vlan"])
+local macinfo = interface.getMacInfo(host["mac"])
 
 --tprint(host)
 if((page == "overview") or (page == nil)) then

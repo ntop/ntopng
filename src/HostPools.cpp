@@ -795,14 +795,14 @@ void HostPools::reloadPools() {
 
 /* *************************************** */
 
-bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_pool) {
+bool HostPools::findMacPool(u_int8_t *mac, u_int16_t *found_pool) {
   VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
   int16_t ret;
 
   if(!tree || !(cur_tree = tree))
     return(false);
 
-  ret = cur_tree->findMac(vlan_id, mac);
+  ret = cur_tree->findMac(0, mac);
 
   if(ret != -1) {
     *found_pool = (u_int16_t)ret;
@@ -815,17 +815,10 @@ bool HostPools::findMacPool(u_int8_t *mac, u_int16_t vlan_id, u_int16_t *found_p
 /* *************************************** */
 
 bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
-  bool found;
-
   if(mac->isSpecialMac())
     return(false);
 
-  found = findMacPool(mac->get_mac(), mac->get_vlan_id(), found_pool);
-
-  if((!found) && (mac->get_vlan_id() != 0))
-    found = findMacPool(mac->get_mac(), 0 /* No VLAN */, found_pool);
-
-  return(found);
+  return findMacPool(mac->get_mac(), found_pool);
 }
 
 /* *************************************** */

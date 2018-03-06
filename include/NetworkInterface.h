@@ -191,7 +191,7 @@ class NetworkInterface : public Checkpointable {
 	       bool walk_all,
 	       struct flowHostRetriever *retriever,
 	       u_int8_t bridge_iface_idx,
-	       u_int16_t vlan_id, bool sourceMacsOnly,	       
+	       bool sourceMacsOnly,	       
 	       bool hostMacsOnly, bool dhcpMacsOnly,
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
@@ -412,7 +412,6 @@ class NetworkInterface : public Checkpointable {
 		       u_int32_t *begin_slot,
 		       bool walk_all,
 		       u_int8_t bridge_iface_idx,
-		       u_int16_t vlan_id,
 		       bool sourceMacsOnly,
 		       bool hostMacsOnly, bool dhcpMacsOnly,
 		       const char *manufacturer,
@@ -422,14 +421,12 @@ class NetworkInterface : public Checkpointable {
 		       u_int8_t location_filter);
   int getActiveMacManufacturers(lua_State* vm,
 				u_int8_t bridge_iface_idx,
-				u_int16_t vlan_id,
 				bool sourceMacsOnly,
 				bool hostMacsOnly, bool dhcpMacsOnly,
 				u_int32_t maxHits, u_int8_t devtype_filter,
 			        u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
 			   u_int8_t bridge_iface_idx,
-			   u_int16_t vlan_id,
 			   bool sourceMacsOnly,
 			   bool hostMacsOnly, bool dhcpMacsOnly,
 			   u_int32_t maxHits, const char *manufacturer,
@@ -585,8 +582,8 @@ class NetworkInterface : public Checkpointable {
   inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
-  bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
-  bool setMacDeviceType(char *strmac, u_int16_t vlanId, DeviceType dtype, bool alwaysOverwrite);
+  bool getMacInfo(lua_State* vm, char *mac);
+  bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);

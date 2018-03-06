@@ -17,6 +17,6 @@ local host_info = url2hostinfo(_GET)
 
 interface.select(ifname)
 
-local host = interface.getMacInfo(host_info["host"], host_info["vlan"])
+local host = interface.getMacInfo(host_info["host"])
 
 print(json.encode(host or {}, nil))
