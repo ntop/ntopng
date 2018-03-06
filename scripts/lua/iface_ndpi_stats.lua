@@ -12,8 +12,13 @@ sendHTTPContentTypeHeader('text/html')
 interface.select(ifname)
 local host_info = url2hostinfo(_GET)
 
+local ndpi_protos = interface.getnDPIProtocols()
 local show_ndpi_category = false
 local show_breed = false
+
+local function getAppUrl(app)
+   return ternary(ndpi_protos[app] ~= nil, "\"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..app.."\", ", "")
+end
 
 if(_GET["breed"] == "true") then show_breed = true end
 if(_GET["ndpi_category"] == "true") then show_ndpi_category = true end
@@ -51,7 +56,7 @@ if(stats ~= nil) then
       for k, v in pairsByValues(stats, rev) do
 	 if((num < 5) and (v > threshold)) then
 	    if(num > 0) then print(", ") end
-	    print("\t { \"label\": \"" .. k .."\", \"value\": ".. v .." }")
+	    print("\t { \"label\": \"" .. k .."\"," .. getAppUrl(k) .. " \"value\": ".. v .." }")
 	    num = num + 1
 	    tot = tot - v
 	 else
@@ -160,7 +165,7 @@ if(stats ~= nil) then
       end
 
       if(host_info["host"] == nil) then
-	 print("\t { \"label\": \"" .. key .."\", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..key.."\", \"value\": ".. value .." }")
+	 print("\t { \"label\": \"" .. key .."\"," .. getAppUrl(key) .. " \"value\": ".. value .." }")
       else
 	 local duration
 
