@@ -286,11 +286,11 @@ Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 }
 /* **************************************************** */
 
-Mac* ViewInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent) {
+Mac* ViewInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
   Mac *ret = NULL;
 
   for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((ret = subInterfaces[s]->getMac(_mac, vlanId, false)))
+    if((ret = subInterfaces[s]->getMac(_mac, false)))
       break;
   }
 

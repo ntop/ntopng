@@ -428,7 +428,7 @@ void Host::set_mac(Mac *_mac) {
 
 void Host::set_mac(u_int8_t *_mac) {
   if(iface)
-    set_mac(iface->getMac(_mac, vlan_id, false));
+    set_mac(iface->getMac(_mac, false));
 }
 
 /* *************************************** */
@@ -990,7 +990,7 @@ bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
 /* *************************************** */
 
 bool Host::addIfMatching(lua_State* vm, u_int8_t *_mac) {
-  if(mac && mac->equal(0, _mac)) {
+  if(mac && mac->equal(_mac)) {
     char keybuf[64], ipbuf[32];
 
     lua_push_str_table_entry(vm,
@@ -1023,7 +1023,7 @@ bool Host::deserialize(char *json_str, char *key) {
     if(json_object_object_get_ex(o, "mac_address", &obj)) Utils::parseMac(mac_buf, json_object_get_string(obj));
 
     // sticky hosts enabled, we must bring up the mac address
-    if((mac = iface->getMac(mac_buf, getVlanId(), true /* create if not exists*/)) != NULL)
+    if((mac = iface->getMac(mac_buf, true /* create if not exists*/)) != NULL)
       mac->incUses();
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory?");

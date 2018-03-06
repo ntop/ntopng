@@ -31,7 +31,7 @@ class MacHash : public GenericHash {
  public:
   MacHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  Mac* get(u_int16_t vlanId, const u_int8_t mac[6]);
+  Mac* get(const u_int8_t mac[6]);
 };
 
 #endif /* _MAC_HASH_H_ */

@@ -188,7 +188,7 @@
 #define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
-#define MAC_SERIALIED_KEY       "ntopng.serialized_macs.ifid_%u__%s@%d"
+#define MAC_SERIALIED_KEY       "ntopng.serialized_macs.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define MAC_CUSTOM_DEVICE_TYPE  "ntopng.prefs.device_types.%s"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"

@@ -23,9 +23,9 @@
 
 /* *************************************** */
 
-Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
+Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   : GenericHashEntry(_iface), GenericTrafficElement() {
-  memcpy(mac, _mac, 6), vlan_id = _vlanId;
+  memcpy(mac, _mac, 6);
   memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL, dhcpHost = false;
@@ -50,9 +50,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
 #ifdef DEBUG
   char buf[32];
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u [total %u]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s [total %u]",
 			       Utils::formatMac(mac, buf, sizeof(buf)),
-			       vlan_id, iface->getNumL2Devices());
+			       iface->getNumL2Devices());
 #endif
 
   /*
@@ -63,7 +63,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId)
     char redis_key[64], buf1[64], rsp[8];
     char *json = NULL;
     char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
-    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), mac_ptr, vlan_id);
+    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), mac_ptr);
 
     if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -93,7 +93,7 @@ Mac::~Mac() {
     char key[64], buf1[64];
     char *json = serialize();
 
-    snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)), vlan_id);
+    snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)));
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     free(json);
   }
@@ -128,9 +128,9 @@ Mac::~Mac() {
     free(fingerprint);
 
 #ifdef DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s/%u [total %u][%s]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
 			       Utils::formatMac(mac, buf, sizeof(buf)),
-			       vlan_id, iface->getNumL2Devices(),
+			       iface->getNumL2Devices(),
 			       source_mac ? "Host" : "Special");
 #endif
 }
@@ -149,9 +149,9 @@ bool Mac::idle() {
   if(true) {
     char buf[32];
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s/%u [uses %u][%s][last: %u][diff: %d]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s [uses %u][%s][last: %u][diff: %d]",
 				 Utils::formatMac(mac, buf, sizeof(buf)),
-				 vlan_id, num_uses,
+				 num_uses,
 				 rc ? "Idle" : "Not Idle",
 				 last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
   }
@@ -218,10 +218,10 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
 /* *************************************** */
 
-bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
+bool Mac::equal(const u_int8_t _mac[6]) {
   if(!_mac)
     return(false);
-  if((vlan_id == _vlanId) && (memcmp(mac, _mac, 6) == 0))
+  if(memcmp(mac, _mac, 6) == 0)
     return(true);
   else
     return(false);
@@ -286,7 +286,6 @@ json_object* Mac::getJSONObject() {
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
   if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
   if(total_num_dropped_flows) json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
-  if(vlan_id != 0) json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
 
   return my_object;
 }

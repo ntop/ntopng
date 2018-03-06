@@ -1143,8 +1143,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 
-  srcMac = getMac((u_int8_t*)zflow->core.src_mac, zflow->core.vlan_id, true);
-  dstMac = getMac((u_int8_t*)zflow->core.dst_mac, zflow->core.vlan_id, true);
+  srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
+  dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
 
   srcIP.set(&zflow->core.src_ip), dstIP.set(&zflow->core.dst_ip);
 
@@ -1407,7 +1407,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
   }
 
-  if((srcMac = getMac(eth->h_source, vlan_id, true))) {
+  if((srcMac = getMac(eth->h_source, true))) {
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     srcMac->incSentStats(1, rawsize);
@@ -1432,7 +1432,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
-  if((dstMac = getMac(eth->h_dest, vlan_id, true))) {
+  if((dstMac = getMac(eth->h_dest, true))) {
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     dstMac->incRcvdStats(1, rawsize);
@@ -2349,8 +2349,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     break;
 
   default: /* No IPv4 nor IPv6 */
-    Mac *srcMac = getMac(ethernet->h_source, vlan_id, true);
-    Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
+    Mac *srcMac = getMac(ethernet->h_source, true);
+    Mac *dstMac = getMac(ethernet->h_dest, true);
 
 /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
@@ -3348,8 +3348,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     /* Mac filter - NOTE: must stay below the vlan_id filter */
     if(retriever->pag
        && retriever->pag->macFilter(&mac_filter)
-       && !((f->get_cli_host() && f->get_cli_host()->getMac() && f->get_cli_host()->getMac()->equal(vlan_id, mac_filter))
-	      || (f->get_srv_host() && f->get_srv_host()->getMac() && f->get_srv_host()->getMac()->equal(vlan_id, mac_filter))))
+       && !((f->get_cli_host() && f->get_cli_host()->getMac() && f->get_cli_host()->getMac()->equal(mac_filter))
+	      || (f->get_srv_host() && f->get_srv_host()->getMac() && f->get_srv_host()->getMac()->equal(mac_filter))))
       return(false);
 
     if(f->match(retriever->allowed_hosts))
@@ -3435,7 +3435,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
      (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac())) ||
-     (r->mac           && (!h->getMac()->equal((r->vlan_id != ((u_int16_t)-1)) ? r->vlan_id : h->getMac()->get_vlan_id(), r->mac)))    ||
+     (r->mac           && (!h->getMac()->equal(r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
@@ -5005,16 +5005,16 @@ void NetworkInterface::runHousekeepingTasks() {
 
 /* **************************************************** */
 
-Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent) {
+Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
   Mac *ret = NULL;
 
   if(_mac == NULL) return(NULL);
 
-  ret = macs_hash->get(vlanId, _mac);
+  ret = macs_hash->get(_mac);
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Mac(this, _mac, vlanId)) != NULL)
+      if((ret = new Mac(this, _mac)) != NULL)
 	macs_hash->add(ret);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -6319,7 +6319,7 @@ bool NetworkInterface::setMacOperatingSystem(lua_State* vm, char *strmac, Operat
 
   Utils::parseMac(mac, strmac);
 
-  if((m = getMac(mac, 0 /* no vlan */, false /* Don't create if missing */))) {
+  if((m = getMac(mac, false /* Don't create if missing */))) {
     m->setOperatingSystem(os);
     return(true);
   } else
@@ -6338,7 +6338,7 @@ bool NetworkInterface::setMacDeviceType(char *strmac, u_int16_t vlanId,
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "setMacDeviceType(%s) = %d", strmac, (int)dtype);
 
-  if((m = getMac(mac, vlanId, false /* Don't create if missing */))) {
+  if((m = getMac(mac, false /* Don't create if missing */))) {
     oldtype = m->getDeviceType();
 
     if(alwaysOverwrite || (oldtype == device_unknown)) {

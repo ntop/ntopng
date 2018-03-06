@@ -39,7 +39,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   void checkDeviceTypeFromManufacturer();
   
  public:
-  Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
+  Mac(NetworkInterface *_iface, u_int8_t _mac[6]);
   ~Mac();
 
   inline u_int16_t getNumHosts()   { return getUses();            }
@@ -69,10 +69,9 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()                   { return(mac);                 }
   inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }
-  inline u_int16_t get_vlan_id() { return(vlan_id);             }
   inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }      
     
-  bool equal(u_int16_t _vlanId, const u_int8_t _mac[6]);
+  bool equal(const u_int8_t _mac[6]);
   inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
     sent.incStats(num_pkts, num_bytes);
     if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();

@@ -425,7 +425,10 @@ void Ntop::start() {
   }
 
   /* Note: must start periodic activities loop only *after* interfaces have been
-   * completely initialized.  */
+   * completely initialized.
+   *
+   * Note: this will also run the startup.lua script sequentially.
+   * After this call, startup.lua has completed. */
   pa->startPeriodicActivitiesLoop();
 
   for(int i=0; i<num_defined_interfaces; i++) {

@@ -29,7 +29,7 @@ MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_si
 
 /* ************************************ */
 
-Mac* MacHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
+Mac* MacHash::get(const u_int8_t mac[6]) {
   if(mac == NULL)
     return(NULL);
   else {
@@ -46,7 +46,7 @@ Mac* MacHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
       head = (Mac*)table[hash];
 
       while(head != NULL) {
-	if((!head->idle()) && head->equal(vlanId, mac))
+	if((!head->idle()) && head->equal(mac))
 	  break;
 	else
 	  head = (Mac*)head->next();
