@@ -43,6 +43,8 @@ if (_ifstats.iface_vlan) then print("var iface_vlan = true;") else print("var if
 
 print [[
 
+var sankey_has_chart = false;
+
 function sankey() {
 
   var w = $("#chart").width();
@@ -65,7 +67,7 @@ if(_GET["sprobe"] ~= nil) then
    print('d3.json("'..ntop.getHttpPrefix()..'/lua/sprobe_hosts_data.lua"');
 else
    if(_GET["host"] ~= nil) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(host_info).. '"')
+      print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(hostkey2hostinfo(_GET["host"])).. '"')
    elseif((_GET["hosts"] ~= nil) and (_GET["aggregation"] ~= nil)) then
       print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] .. '&aggregation='.._GET["aggregation"] ..'"')
       active_sankey = "comparison"
@@ -83,10 +85,14 @@ print [[
     , function(hosts) {
 
     if ((hosts.links.length == 0) && (hosts.nodes.length == 0)) {
-      $('#alert_placeholder').html('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">x</button><strong>Warning: </strong>There are no talkers for the current host.</div>');
+      if(! sankey_has_chart)
+	$('#alert_placeholder').html('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">x</button><strong>Warning: </strong>]] print(i18n("no_talkers_for_the_host")) print[[.</div>');
       return;
     }
+
+  $('#alert_placeholder').html("");
   d3.select("#chart").select("svg").remove();
+  sankey_has_chart = true;
 
   var svg_sankey = d3.select("#chart").append("svg")
     .attr("width", width + margin.left + margin.right)
