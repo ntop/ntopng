@@ -83,6 +83,7 @@ local lang = {
   ["noTraffic"] = "No traffic has been reported for the specified date/time selection",
   ["no_data_available"] = "No Data Available",
   ["no_results_found"] = "No results found",
+  ["no_talkers_for_the_host"] = "There are no talkers for the current host",
   ["notes"] = "NOTES:",
   ["operating_systems"] = "Operating Systems",
   ["os"] = "OS",
