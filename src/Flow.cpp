@@ -2599,7 +2599,6 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
   payload = &payload[12], payload_len -= 12;
 
-  i = 0;
   while((answers > 0) && (i < payload_len)) {
     char name[256];
     struct mdns_rsp_entry rsp;
@@ -2629,11 +2628,14 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  return; /* Invalid packet */
 	else {
 	  /* Pointer back */
-
+          memset(name, 0, sizeof(name));
+	  
 	  while((offset < payload_len)
 		&& (offset < 255)
 		&& (payload[offset] != 0)
 		&& (j < (sizeof(name)-1))) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%02X][offset=%u]", payload[offset], offset);
+	    
 	    if(payload[offset] == 0)
 	      break;
 	    else if(payload[offset] == 0xC0) {
@@ -2686,7 +2688,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       if(cli_host) cli_host->setName(name);
 
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, ntohs(rsp.rsp_type), name);
-      break;
+      return; /* It's enough to decode the first name */
     }
 
     answers--;
