@@ -359,6 +359,7 @@
 #define CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED      0
 #define CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED         0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
+#define CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT       5
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
@@ -419,6 +420,7 @@
 #define CONST_NBOX_PASSWORD                 "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS                "ntopng.prefs.iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
+#define CONST_IFACE_PACKET_DROPS_ALERT_PREFS "ntopng.prefs.iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     "ntopng.prefs.iface_%d.hide_from_top"
 #define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"

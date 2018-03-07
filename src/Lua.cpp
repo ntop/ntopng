@@ -3366,6 +3366,18 @@ static int ntop_load_scaling_factor_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_load_packet_drops_prefs(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  ntop_interface->loadPacketsDropsAlertPrefs();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_hide_from_top(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -6814,6 +6826,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "name2id",                          ntop_interface_name2id },
   { "loadDumpPrefs",                    ntop_load_dump_prefs },
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
+  { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
 
   /* Mac */

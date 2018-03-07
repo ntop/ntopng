@@ -209,6 +209,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   loadDumpPrefs();
   loadScalingFactorPrefs();
+  loadPacketsDropsAlertPrefs();
 
   statsManager = NULL, alertsManager = NULL;
 
@@ -263,7 +264,7 @@ void NetworkInterface::init() {
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
-    has_too_many_hosts = has_too_many_flows = false,
+    has_too_many_hosts = has_too_many_flows = too_many_drops = false,
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
@@ -433,6 +434,21 @@ void NetworkInterface::loadScalingFactorPrefs() {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: scalingFactor can't be 0!");
       scalingFactor = 1;
     }
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::loadPacketsDropsAlertPrefs() {
+  packet_drops_alert_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT;
+
+  if(ntop->getRedis() != NULL) {
+    char rkey[128], rsp[8];
+
+    snprintf(rkey, sizeof(rkey), CONST_IFACE_PACKET_DROPS_ALERT_PREFS, id);
+
+    if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
+      packet_drops_alert_perc = atoi(rsp);
   }
 }
 
@@ -2605,6 +2621,13 @@ void NetworkInterface::periodicStatsUpdate() {
 
   flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
   topItemsCommit(&tv);
+
+  // if drop alerts enabled and have some significant packets
+  if((packet_drops_alert_perc > 0) && (getNumPacketsSinceReset() > 100)) {
+    float drop_perc = getNumPacketDropsSinceReset() * 100.f / (getNumPacketDropsSinceReset() + getNumPacketsSinceReset());
+    too_many_drops = (drop_perc >= packet_drops_alert_perc) ? true : false;
+  } else
+    too_many_drops = false;
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
@@ -4912,9 +4935,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "packets",     getNumPackets() - getCheckPointNumPackets());
-  lua_push_int_table_entry(vm, "bytes",       getNumBytes() - getCheckPointNumBytes());
-  lua_push_int_table_entry(vm, "drops",       getNumPacketDrops() - getCheckPointNumPacketDrops());
+  lua_push_int_table_entry(vm, "packets",     getNumPacketsSinceReset());
+  lua_push_int_table_entry(vm, "bytes",       getNumBytesSinceReset());
+  lua_push_int_table_entry(vm, "drops",       getNumPacketDropsSinceReset());
 
 #ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
@@ -4946,6 +4969,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_newtable(vm);
   if(has_too_many_flows) lua_push_bool_table_entry(vm, "too_many_flows", true);
   if(has_too_many_hosts) lua_push_bool_table_entry(vm, "too_many_hosts", true);
+  if(too_many_drops) lua_push_bool_table_entry(vm, "too_many_drops", true);
   lua_pushstring(vm, "anomalies");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

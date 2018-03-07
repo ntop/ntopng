@@ -11,6 +11,8 @@ local template = require "template_utils"
 local host_pools_utils = require("host_pools_utils")
 local shaper_utils = nil
 
+local CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT = "5"
+
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
@@ -162,6 +164,12 @@ function flows(old, new, interval)
    local new_flows = new["flows.as_client"] + new["flows.as_server"]
    local old_flows = (old["flows.as_client"] or 0) + (old["flows.as_server"] or 0)
    return new_flows - old_flows
+end
+
+-- ##############################################################################
+
+local function getInterfacePacketDropPercAlertKey(ifname)
+   return "ntopng.prefs.iface_" .. getInterfaceId(ifname) .. ".packet_drops_alert"
 end
 
 -- ##############################################################################
@@ -778,6 +786,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             if entity_type == "host" then
                ntop.delCache(anomaly_config_key)
                interface.refreshHostsAlertsConfiguration()
+            elseif entity_type == "interface" then
+               ntop.delCache(getInterfacePacketDropPercAlertKey(ifname))
+               interface.loadPacketsDropsAlertPrefs()
             end
             alerts = nil
 
@@ -815,32 +826,39 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          end --END for k,_ in pairs(descr) do
 
          -- Save source specific anomalies
-         if (entity_type == "host") and (tab == "min") and (to_save or (_POST["to_delete"] ~= nil)) then
-            local config_to_dump = {}
+         if (tab == "min") and (to_save or (_POST["to_delete"] ~= nil)) then
+            if entity_type == "host" then
+               local config_to_dump = {}
 
-            for _, config in ipairs(anomalies_config) do
-               local value = _POST[config.key]
-               local global_value = _POST["global_"..config.key]
+               for _, config in ipairs(anomalies_config) do
+                  local value = _POST[config.key]
+                  local global_value = _POST["global_"..config.key]
 
-               if isEmptyString(global_value) then
-                  global_value = config.global_default
+                  if isEmptyString(global_value) then
+                     global_value = config.global_default
+                  end
+
+                  global_anomalies["global_"..config.key] = global_value
+                     ntop.setHashCache(global_redis_hash, config.key, global_value)
+
+                  if not isEmptyString(value) then
+                     anomalies[config.key] = value
+                  else
+                     value = "global"
+                  end
+
+                  config_to_dump[#config_to_dump + 1] = value
                end
-	       global_anomalies["global_"..config.key] = global_value
-               ntop.setHashCache(global_redis_hash, config.key, global_value)
 
-	       if not isEmptyString(value) then
-		  anomalies[config.key] = value
-	       else
-		  value = "global"
-	       end
-               config_to_dump[#config_to_dump + 1] = value
-
+                  -- Serialize the settings
+               local configdump = table.concat(config_to_dump, "|")
+               ntop.setCache(anomaly_config_key, configdump)
+               interface.refreshHostsAlertsConfiguration()
+            elseif entity_type == "interface" then
+               local value = _POST["packets_drops_perc"]
+               ntop.setCache(getInterfacePacketDropPercAlertKey(ifname), ternary(not isEmptyString(value), value, "0"))
+               interface.loadPacketsDropsAlertPrefs()
             end
-
-            -- Serialize the settings
-	    local configdump = table.concat(config_to_dump, "|")
-            ntop.setCache(anomaly_config_key, configdump)
-            interface.refreshHostsAlertsConfiguration()
          end
 
          --print(alerts)
@@ -962,6 +980,23 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             print("</td></tr>")
          end
       end
+   elseif (entity_type == "interface") and (tab == "min") then
+      local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
+      if isEmptyString(drop_perc) then
+         drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
+      end
+      if drop_perc == "0" then
+         drop_perc = ""
+      end
+
+      print("<tr><td><b>"..i18n("show_alerts.interface_drops_threshold").."</b><br>\n")
+      print("<small>"..i18n("show_alerts.interface_drops_threshold_descr").."</small>")
+
+      print("</td><td>\n")
+      print('<input type="number" class=\"text-right form-control\" name="packets_drops_perc" style="display:inline; width:7em;" placeholder="" min="0" max="100" value="')
+      print(tostring(drop_perc))
+      print[[" /> %]]
+      print("</td><td></td></tr>")
    end
 
       print [[
@@ -1668,6 +1703,16 @@ local function formatMisconfiguredApp(ifid, engine, entity_type, entity_value, e
   return ""
 end
 
+local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   local max_drop_perc = ntop.getPref(getInterfacePacketDropPercAlertKey(getInterfaceName(ifid)))
+   if isEmptyString(max_drop_perc) then
+      max_drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
+   end
+
+   return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+          " has too many dropped packets [&gt " .. max_drop_perc .. "%]"
+end
+
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
   -- Defaults
@@ -1682,6 +1727,8 @@ local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype
     msg = formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
   elseif atype == "misconfigured_app" then
     msg = formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+  elseif atype == "too_many_drops" then
+    msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
   end
 
   return msg, severity
@@ -1788,15 +1835,27 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
     info_arr[atype][akey] = alert_info or {}
   end
 
+  local function getAnomalyType(anomal_name)
+     if starts(anomal_name, "syn_flood") then
+       return "tcp_syn_flood"
+     elseif starts(anomal_name, "flows_flood") then
+       return "flows_flood"
+     elseif anomal_name == "too_many_drops" then
+       return "too_many_drops"
+     elseif starts(anomal_name, "too_many_") then
+       return "misconfigured_app"
+     end
+
+     return nil
+  end
+
   if granularity == "min" then
     -- Populate current_alerts with anomalies
     for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
-      if starts(anomal_name, "syn_flood") then
-        addAlertInfo(current_alerts, "tcp_syn_flood", anomal_name, anomaly)
-      elseif starts(anomal_name, "flows_flood") then
-        addAlertInfo(current_alerts, "flows_flood", anomal_name, anomaly)
-      elseif starts(anomal_name, "too_many_") then
-        addAlertInfo(current_alerts, "misconfigured_app", anomal_name, anomaly)
+      local anomal_type = getAnomalyType(anomal_name)
+
+      if not isEmptyString(anomal_type) then
+        addAlertInfo(current_alerts, anomal_type, anomal_name, anomaly)
       else
         -- default anomaly - empty alert key
         addAlertInfo(current_alerts, anomal_name, "", anomaly)
@@ -1861,15 +1920,16 @@ function check_interface_alerts(ifid, working_status)
    local ifstats = interface.getStats()
    local entity_value = "iface_"..ifid
 
-   if (working_status.configured_thresholds[entity_value] == nil)
-         and (working_status.configured_thresholds["interfaces"] == nil) then
-      -- no threshold configured, no need to checkpoint
-      return
-   end
+   -- note: always checkpoint as the interface could have anomalies
 
    local checkpoints = interface.checkpointInterface(ifid, working_status.checkpoint_id, "high") or {}
    local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
    local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+
+   -- attach anomalies to the new entity info (no need to attach them to the old)
+   if new_entity_info ~= nil then
+      new_entity_info["anomalies"] = ifstats["anomalies"] or {}
+   end
 
    if new_entity_info == nil then
       if warning_shown == false then

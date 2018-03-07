@@ -98,7 +98,7 @@ class NetworkInterface : public Checkpointable {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
-  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
+  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown, too_many_drops;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -107,6 +107,7 @@ class NetworkInterface : public Checkpointable {
   PacketStats pktStats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
+  u_int8_t packet_drops_alert_perc;
 
   /* Sub-interface views */
   u_int8_t numSubInterfaces;
@@ -464,6 +465,10 @@ class NetworkInterface : public Checkpointable {
   virtual u_int     getNumMacs();
   virtual u_int     getNumHTTPHosts();
 
+  inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
+  inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
+  inline u_int64_t  getNumPacketDropsSinceReset() { return getNumPacketDrops() - getCheckPointNumPacketDrops(); }
+
   void runHousekeepingTasks();
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
@@ -519,6 +524,7 @@ class NetworkInterface : public Checkpointable {
   inline char* getDumpTrafficTapName()        { return(pkt_dumper_tap ? pkt_dumper_tap->getName() : (char*)""); }
   void loadDumpPrefs();
   void loadScalingFactorPrefs();
+  void loadPacketsDropsAlertPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
   inline void setBridgeLanInterfaceId(u_int32_t v) { bridge_lan_interface_id = v;     };

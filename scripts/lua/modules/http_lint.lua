@@ -1137,6 +1137,7 @@ local known_parameters = {
    ["user_policy"]             =  validateNumber,
    ["hide_from_top"]           =  validateNetworksList,
    ["top_hidden"]              =  validateBool,
+   ["packets_drops_perc"]      =  validateEmptyOr(validateNumber),
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
