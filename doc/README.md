@@ -6,9 +6,9 @@ Prior to Starting ntopng
 ---------------------
 Please make sure that you have redis server installed and active on the same host
 where ntopng will be running. If you plan to use a remote redis, please consider
-using the `--redis` option to specify the remote redis server IP address and port.
-We suggest you run redis as a service so that you do not have to start it
-every time you want to use ntopng.
+using the `--redis` option to specify a remote redis server IP address and port
+or a local socket. We suggest you run redis as a service so that you do not have
+to start it every time you want to use ntopng.
 
 
 Using ntopng as a flow collector

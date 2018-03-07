@@ -73,7 +73,10 @@ void Redis::reconnectRedis() {
     redisFree(redis);
   }
 
-  redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
+  if(*redis_host == '/')
+    redis = redisConnectUnixWithTimeout(redis_host, timeout);
+  else
+    redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
 
   if(redis_password) {
     num_requests++;
