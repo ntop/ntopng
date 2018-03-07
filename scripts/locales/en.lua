@@ -2236,6 +2236,7 @@ local  en = {
    error_no_search_results = "No results found. Please modify your search criteria.";
    enterpriseOnly = "This feature is only available in the ntopng enterprise edition",
    no_results_found = "No results found",
+   no_talkers_for_the_host = "There are no talkers for the current host",
    purged_error_message = "Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>.",
 
    uploaders = "Upload Volume",
