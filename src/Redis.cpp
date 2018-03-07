@@ -35,6 +35,9 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
   redis_host = _redis_host ? strdup(_redis_host) : NULL;
   redis_password = _redis_password ? strdup(_redis_password) : NULL;
   redis_port = _redis_port, redis_db_id = _redis_db_id;
+#ifdef linux
+  is_socket_connection = false;
+#endif
 
   num_requests = num_reconnections = 0;
   redis = NULL, operational = false;
@@ -72,10 +75,13 @@ void Redis::reconnectRedis() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected: reconnecting...");
     redisFree(redis);
   }
+#ifdef linux
+  struct stat buf;
 
-  if(*redis_host == '/')
-    redis = redisConnectUnixWithTimeout(redis_host, timeout);
+  if(!stat(redis_host, &buf) && S_ISSOCK(buf.st_mode))
+    redis = redisConnectUnixWithTimeout(redis_host, timeout), is_socket_connection = true;
   else
+#endif
     redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
 
   if(redis_password) {
@@ -116,9 +122,16 @@ void Redis::reconnectRedis() {
       goto redis_error_handler;
     } else {
       freeReplyObject(reply);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Successfully connected to redis %s:%u@%u",
-				   redis_host, redis_port, redis_db_id);
+#ifdef linux
+      if(!is_socket_connection)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Successfully connected to redis %s:%u@%u",
+				     redis_host, redis_port, redis_db_id);
+      else
+#endif
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Successfully connected to redis %s@%u",
+				     redis_host, redis_db_id);
       operational = true;
     }
   }

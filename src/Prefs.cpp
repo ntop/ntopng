@@ -244,12 +244,18 @@ void usage() {
 	 "                                    | A password can be specified after\n"
 	 "                                    | the port when Redis auth is required.\n"
 	 "                                    | By default password auth is disabled.\n"
+#ifdef linux
+	 "                                    | On unix <fmt> can also be the redis socket file path.\n"
+	 "                                    | Port is ignored for socket-based connections.\n"
+#endif
 	 "                                    | Examples:\n"
 	 "                                    | -r @2\n"
 	 "                                    | -r 129.168.1.3\n"
 	 "                                    | -r 129.168.1.3:6379@3\n"
 	 "                                    | -r 129.168.1.3:6379:nt0pngPwD@0\n"
 #ifdef linux
+	 "                                    | -r /var/run/redis/redis.sock\n"
+	 "                                    | -r /var/run/redis/redis.sock@2\n"
 	 "[--core-affinity|-g] <cpu core ids> | Bind the capture/processing threads to\n"
 	 "                                    | specific CPU cores (specified as a comma-\n"
 	 "                                    | separated list)\n"
@@ -930,8 +936,8 @@ int Prefs::setOption(int optkey, char *optarg) {
       }
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "ntopng will use redis %s:%u@%u",
-				   redis_host, redis_port, redis_db_id);
+				   "ntopng will use redis %s@%u",
+				   redis_host, redis_db_id);
       if(redis_password)
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "redis connection is password-protected");
