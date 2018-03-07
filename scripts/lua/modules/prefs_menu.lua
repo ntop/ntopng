@@ -6,7 +6,7 @@ local have_nedge = ntop.isnEdge()
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
-  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true,   disabled=false, entries={
+  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true, nedge_hidden=true, disabled=false, entries={
     multiple_ldap_authentication = {
       title       = i18n("prefs.multiple_ldap_authentication_title"),
       description = i18n("prefs.multiple_ldap_authentication_description"),
@@ -35,7 +35,7 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_ldap_anonymous_bind_title"),
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
     },
-  }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  disabled=false, entries={
+  }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  disabled=false, nedge_hidden=true, entries={
     dynamic_interfaces_creation = {
       title       = i18n("prefs.dynamic_interfaces_creation_title"),
       description = i18n("prefs.dynamic_interfaces_creation_description"),
@@ -219,7 +219,7 @@ local menu_subpages = {
        title       = i18n("prefs.default_snmp_proto_version_title"),
        description = i18n("prefs.default_snmp_proto_version_description"),
     },
-  }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,   disabled=false, entries={
+  }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,  nedge_hidden=true, disabled=false, entries={
     toggle_nbox_integration = {
       title       = i18n("prefs.toggle_nbox_integration_title"),
       description = i18n("prefs.toggle_nbox_integration_description"),
