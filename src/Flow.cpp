@@ -2634,8 +2634,6 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 		&& (offset < 255)
 		&& (payload[offset] != 0)
 		&& (j < (sizeof(name)-1))) {
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%02X][offset=%u]", payload[offset], offset);
-	    
 	    if(payload[offset] == 0)
 	      break;
 	    else if(payload[offset] == 0xC0) {
