@@ -66,7 +66,7 @@ function mac2record(mac)
 
    record["column_traffic"] = bytesToSize(mac["bytes.sent"] + mac["bytes.rcvd"])
 
-   record["column_name"] = getDeviceName(mac["mac"], mac["vlan"], true)
+   record["column_name"] = getDeviceName(mac["mac"], true)
 
    return record
 end

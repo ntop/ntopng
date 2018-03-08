@@ -169,9 +169,9 @@ local lang = {
     ["host_activity"] = "Host Activity",
   },
   ["alert_messages"] = {
-    ["a_new_device_has_connected"] = "A new device <a href=\"%{url}\">%{mac}</a> has connected to the network.",
-    ["device_has_connected"] = "The device <a href=\"%{url}\">%{mac}</a> has connected to the network.",
-    ["device_has_disconnected"] = "The device <a href=\"%{url}\">%{mac}</a> has disconnected from the network.",
+    ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
+    ["device_has_connected"] = "The device <a href=\"%{url}\">%{device}</a> has connected to the network.",
+    ["device_has_disconnected"] = "The device <a href=\"%{url}\">%{device}</a> has disconnected from the network.",
     ["host_entity"] = "host %{entity_value}",
     ["host_pool_has_connected"] = "The host pool <a href=\"%{url}\">%{pool}</a> has connected to the network.",
     ["host_pool_has_disconnected"] = "The host pool <a href=\"%{url}\">%{pool}</a> has disconnected from the network.",

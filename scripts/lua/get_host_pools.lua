@@ -73,7 +73,7 @@ if((ifid ~= nil) and (isAdministrator())) then
           local alias = ""
           local icon = ""
           if is_mac then
-            alias = getDeviceName(member.address, 0)
+            alias = getDeviceName(member.address)
             icon = getCustomDeviceType(member.key)
 
             if (icon == nil) and (mac_info ~= nil) then

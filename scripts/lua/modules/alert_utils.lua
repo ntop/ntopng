@@ -2117,6 +2117,20 @@ local function getMacUrl(mac)
    return ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. mac
 end
 
+local function getSavedDeviceNameKey(mac)
+   return "ntopng.cache.devnames." .. mac
+end
+
+local function setSavedDeviceName(mac, name)
+   local key = getSavedDeviceNameKey(mac)
+   ntop.setCache(key, name)
+end
+
+local function getSavedDeviceName(mac)
+   local key = getSavedDeviceNameKey(mac)
+   return ntop.getCache(key)
+end
+
 local function check_macs_alerts(ifid, working_status)
    if working_status.granularity ~= "min" then
       return
@@ -2131,7 +2145,8 @@ local function check_macs_alerts(ifid, working_status)
    local new_active_devices = {}
 
    callback_utils.foreachDevice(tostring(ifid), nil, function(devicename, devicestats, devicebase)
-      if (not devicestats.special_mac) and (devicestats.location ~= "wan") then
+      -- note: location is always lan when capturing from a local interface
+      if (not devicestats.special_mac) and (devicestats.location == "lan") then
          local mac = devicestats.mac
 
          if not seen_devices[mac] then
@@ -2139,8 +2154,10 @@ local function check_macs_alerts(ifid, working_status)
             ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
 
             if alert_new_devices_enabled then
+               local name = getDeviceName(mac)
+               setSavedDeviceName(mac, name)
                interface.storeMacAlert(mac, alertType("new_device"), alertSeverity("warning"),
-                  i18n("alert_messages.a_new_device_has_connected", {mac=getHostAltName(mac), url=getMacUrl(mac)}))
+                  i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
             end
          end
 
@@ -2149,8 +2166,10 @@ local function check_macs_alerts(ifid, working_status)
             ntop.setMembersCache(active_devices_set, mac)
 
             if alert_device_connection_enabled then
+               local name = getDeviceName(mac)
+               setSavedDeviceName(mac, name)
                interface.storeMacAlert(mac, alertType("device_connection"), alertSeverity("info"),
-                  i18n("alert_messages.device_has_connected", {mac=getHostAltName(mac), url=getMacUrl(mac)}))
+                  i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
             end
          else
             new_active_devices[mac] = 1
@@ -2161,11 +2180,12 @@ local function check_macs_alerts(ifid, working_status)
    for mac in pairs(prev_active_devices) do
       if not new_active_devices[mac] then
          -- Device disconnection
+         local name = getSavedDeviceName(mac)
          ntop.delMembersCache(active_devices_set, mac)
 
          if alert_device_connection_enabled then
             interface.storeMacAlert(mac, alertType("device_disconnection"), alertSeverity("info"),
-               i18n("alert_messages.device_has_disconnected", {mac=getHostAltName(mac), url=getMacUrl(mac)}))
+               i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
          end
       end
    end
