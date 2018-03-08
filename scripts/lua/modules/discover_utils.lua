@@ -397,7 +397,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
    elseif(mdns["_workstation._tcp.local"] ~= nil) then
       interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
-      -- return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
+      return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
    else
       interface.setMacOperatingSystem(mac, 0) -- Unknown
    end
@@ -586,11 +586,18 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'networking', discover.asset_icons['networking'], nil
    end
 
-   if((ssdp["_printer._tcp.local"] ~= nil)
-      or (ssdp["_scanner._tcp.local"] ~= nil)) then
+   if((mdns["_printer._tcp.local"] ~= nil) or (mdns["_scanner._tcp.local"] ~= nil)) then
       return 'printer', discover.asset_icons['printer'], nil
    end
 
+   if((mdns["_edcp._udp.local"] ~= nil) or (mdns["_afpovertcp._tcp.local"] ~= nil) or (mdns["_smb._tcp.local"] ~= nil)) then
+       return 'nas', discover.asset_icons['nas'], nil 
+   end
+
+   if(discover.debug) then
+      tprint(ssdp)
+      tprint(mdns)
+   end
 
    return 'unknown', "", nil
 end
@@ -765,7 +772,7 @@ function discovery2config(interface_name)
    if(disc) then
      for _,dev in pairs(disc.devices) do
       if(dev.device_type.."" ~= "unknown") then
-       io.write(dev.mac .. " = " .. dev.device_type .. "\n")
+       -- io.write(dev.mac .. " = " .. dev.device_type .. "\n")
       end
      end   
   end
