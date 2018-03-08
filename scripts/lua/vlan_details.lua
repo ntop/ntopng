@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 
+local info = ntop.getInfo(false)
 local vlan_id        = _GET["vlan"]
 local page           = "historical" -- only historical for now _GET["page"]
 local rrdfile        = "bytes.rrd"
@@ -35,7 +36,7 @@ end
 local rrdname = getRRDName(ifId, "vlan:"..vlan_id, rrdfile)
 
 if(not ntop.exists(rrdname) and rrdfile ~= "all") then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id}).."</div>")
+   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
 
 else
 

@@ -3,6 +3,7 @@ require "lua_utils"
 local prefs = ntop.getPrefs()
 
 local have_nedge = ntop.isnEdge()
+local info = ntop.getInfo(false)
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
@@ -58,7 +59,7 @@ local menu_subpages = {
       description = i18n("prefs.flow_max_idle_description"),
     }, housekeeping_frequency = {
       title       = i18n("prefs.housekeeping_frequency_title"),
-      description = i18n("prefs.housekeeping_frequency_description"),
+      description = i18n("prefs.housekeeping_frequency_description", {product=info["product"]}),
     }, toggle_local_host_cache_enabled = {
       title       = i18n("prefs.toggle_local_host_cache_enabled_title"),
       description = i18n("prefs.toggle_local_host_cache_enabled_description"),
@@ -195,7 +196,7 @@ local menu_subpages = {
       description = i18n("prefs.toggle_logging_level_description"),
     }, toggle_access_log = {
       title       = i18n("prefs.toggle_access_log_title"),
-      description = i18n("prefs.toggle_access_log_description"),
+      description = i18n("prefs.toggle_access_log_description", {product=info["product"]}),
     },
   }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  disabled=(prefs.is_dump_flows_enabled == false), entries={
     toggle_flow_db_dump_export = {
@@ -295,7 +296,7 @@ if hasNagiosSupport() then
 	 local nagios = {
 	    toggle_alert_nagios = {
 	       title       = i18n("prefs.toggle_alert_nagios_title"),
-	       description = i18n("prefs.toggle_alert_nagios_description"),
+	       description = i18n("prefs.toggle_alert_nagios_description", {product=info["product"]}),
 	    }, nagios_nsca_host = {
 	       title       = i18n("prefs.nagios_nsca_host_title"),
 	       description = i18n("prefs.nagios_nsca_host_description"),
@@ -310,10 +311,10 @@ if hasNagiosSupport() then
 	       description = i18n("prefs.nagios_send_nsca_config_description"),
 	    }, nagios_host_name = {
 	       title       = i18n("prefs.nagios_host_name_title"),
-	       description = i18n("prefs.nagios_host_name_description"),
+	       description = i18n("prefs.nagios_host_name_description", {product=info["product"]}),
 	    }, nagios_service_name = {
 	       title       = i18n("prefs.nagios_service_name_title"),
-	       description = i18n("prefs.nagios_service_name_description"),
+	       description = i18n("prefs.nagios_service_name_description", {product=info["product"]}),
 	    },
 	 }
 	 i["entries"] = table.merge(i["entries"], nagios)

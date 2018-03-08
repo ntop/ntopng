@@ -2733,7 +2733,8 @@ end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()
-    return i18n("purged_error_message",{url=ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=in_memory'})
+    local info = ntop.getInfo(false)
+    return i18n("purged_error_message",{url=ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=in_memory', product=info["product"]})
 end
 
 -- print TCP flags
@@ -3548,6 +3549,10 @@ end
 -- ###########################################
 
 function printntopngRelease(info)
+   if info.oem then
+      return ""
+   end
+
    if(info["version.enterprise_edition"]) then
    print(" Enterprise")
    elseif(info["pro.release"]) then

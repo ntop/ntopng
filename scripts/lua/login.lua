@@ -84,14 +84,16 @@ print [[">
     <button class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.login")) print[[</button>
   	<div class="row">
       <div >&nbsp;</div>
-      <div class="col-lg-12">
-        <small>
+      <div class="col-lg-12">]]
+if not info.oem then
+        print[[<small>
       <p>]] print(i18n("login.donation", {product=info["product"], donation_url="http://shop.ntop.org"})) print[[
           </p>
 
       <p>]] print(info["copyright"]) print [[<br> ]] print(i18n("login.license", {product=info["product"], license="GPLv3", license_url="http://www.gnu.org/copyleft/gpl.html"})) print[[</p>
-        </small>
-      </div>
+        </small>]]
+end
+      print[[</div>
     </div>
   </form>
 

@@ -9,10 +9,12 @@ require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
+local info = ntop.getInfo(false)
+
 print [[
 <html>
 <head>
-<title>ntopng hotspot detect</title>
+<title>]] print(info["product"]) print[[ hotspot detect</title>
 <meta http-equiv="refresh" Content="0; url=]] 
 
 print(ntop.getHttpPrefix().."/lua/captive_portal.lua")
@@ -36,8 +38,8 @@ print [[">
 <VersionHigh>2.0</VersionHigh>
 <VersionLow>1.0</VersionLow>
 <AccessProcedure>1.0</AccessProcedure>
-<AccessLocation>ntopng Captive Portal</AccessLocation>
-<LocationName>captive.ntopng.ntop.org</LocationName>
+<AccessLocation>]] print(info["product"]) print[[ Captive Portal</AccessLocation>
+<LocationName>captive.]] print(info["product"]) print[[.ntop.org</LocationName>
 <LoginURL>]] print(ntop.getHttpPrefix().."/lua/captive_portal.lua") print [[</LoginURL>
 </Redirect>
 </WISPAccessGatewayParam>

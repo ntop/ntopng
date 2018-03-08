@@ -89,7 +89,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    print('</span></A>')
 
    if(info["pro.out_of_maintenance"] == true) then
-      print('<span class="badge badge-error">') print(i18n("about.maintenance_expired")) print('</span>')
+      print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
    end
    
    if(do_show) then
@@ -422,7 +422,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 
 
 		if(alert) {
-		   $('#toomany').html("<div class='alert alert-warning'><h4>Warning</h4>You have too many hosts/flows for your ntopng configuration and this will lead to packet drops and high CPU load. Please restart ntopng increasing -x and -X.</div>");
+		   $('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
 		}
 
 	    prev_bytes   = rsp.bytes;

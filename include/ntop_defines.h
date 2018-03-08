@@ -372,6 +372,7 @@
 #define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
 #define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
+#define CONST_NTOP_PRODUCT_NAME      "@NTOP_PRODUCT_NAME@"
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 
@@ -775,7 +776,7 @@
 #define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
 #define COMPILE_TIME_ASSERT(X)     _COMPILE_TIME_ASSERT2(X,__LINE__)
 
-#define MAX_NUM_HTTP_REPLACEMENTS                    3
+#define MAX_NUM_HTTP_REPLACEMENTS                    4
 
 #define CACHE_LINE_LEN          64
 #define QUEUE_ITEMS             2048 /* pow of 2 */

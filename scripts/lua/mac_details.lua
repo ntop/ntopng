@@ -17,6 +17,7 @@ require "historical_utils"
 
 local have_nedge = ntop.isnEdge()
 
+local info = ntop.getInfo(false)
 local os_utils = require "os_utils"
 local discover = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
@@ -251,7 +252,7 @@ var host_details_interval = window.setInterval(function() {
     url: ']] print (ntop.getHttpPrefix()) print [[/lua/mac_stats.lua',
     data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(mac_info)) print [[ },
     datatype: "json",
-    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
+    /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
     success: function(content) {
       var host = jQuery.parseJSON(content);
       $('#first_seen').html(epoch2Seen(host["seen.first"]));

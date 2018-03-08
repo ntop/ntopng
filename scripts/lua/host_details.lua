@@ -20,6 +20,7 @@ require "historical_utils"
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
+local info = ntop.getInfo()
 
 local have_nedge = ntop.isnEdge()
 
@@ -2250,7 +2251,7 @@ if (host ~= nil) then
    print (ntop.getHttpPrefix())
    print [[/lua/host_stats.lua',
    		    data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
-   		    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
+   		    /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
    		    success: function(content) {
    			var host = jQuery.parseJSON(content);
                         var http = host.http;
