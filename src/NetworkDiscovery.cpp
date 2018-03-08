@@ -27,12 +27,12 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   char errbuf[PCAP_ERRBUF_SIZE];
   iface = _iface;
 
+  char *ifname  = iface->altDiscoverableName();
+  if(ifname == NULL)
+    ifname = iface->get_name();
+
   if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
     int rc;
-    char *ifname  = iface->altDiscoverableName();
-
-    if(ifname == NULL)
-      ifname = iface->get_name();
 
     errno = 0;
     rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
@@ -45,10 +45,10 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
     throw("Unable to start network discovery");
 
 #if ! defined(__arm__)
-  if((pd = pcap_open_live(iface->get_name(), 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL) {
+  if((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL) {
 #else
   /* pcap_next can really block a lot if we do not activate immediate mode! See https://github.com/mfontanini/libtins/issues/180 */
-  if(((pd = pcap_create(iface->get_name(), errbuf)) == NULL) ||
+  if(((pd = pcap_create(ifname, errbuf)) == NULL) ||
 		(pcap_set_timeout(pd, 5) != 0) ||
 		(pcap_set_snaplen(pd, 128) != 0) ||
 		(pcap_set_immediate_mode(pd, 1) != 0) || /* enable immediate mode */
@@ -104,7 +104,7 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
 */
 void NetworkDiscovery::arpScan(lua_State* vm) {
   bpf_u_int32 netp, maskp;
-  u_int32_t first_ip, last_ip, host_ip, sender_ip = Utils::readIPv4(iface->get_name());
+  u_int32_t first_ip, last_ip, host_ip, sender_ip;
   char macbuf[32], ipbuf[32], mdnsbuf[256];
   u_char mdnsreply[1500];
   const u_int max_num_ips = 1024;
@@ -117,14 +117,21 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   u_int dns_query_len;
   struct sockaddr_in mdns_dest;
 
+  char *ifname  = iface->altDiscoverableName();
+  if(ifname == NULL)
+    ifname = iface->get_name();
+
   if(!pd) return;
+  sender_ip = Utils::readIPv4(ifname);
 
   lua_newtable(vm);
   
   iface->getIPv4Address(&netp, &maskp);
     
   /* Purge existing packets */
+
   while((pcap_next(pd, &h) != NULL) && (!ntop->getGlobals()->isShutdown())) ;
+
   if(ntop->getGlobals()->isShutdown()) return;
 
   if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -172,7 +179,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   if((last_ip - first_ip) > max_num_ips)
     last_ip = first_ip + max_num_ips;
 
-  Utils::readMac(iface->get_name(), arp.arp_sha);
+  Utils::readMac(ifname, arp.arp_sha);
 
   memset(arp.dst_mac, 0xFF, sizeof(arp.dst_mac));
   memcpy(arp.src_mac, arp.arp_sha, sizeof(arp.src_mac));
@@ -212,8 +219,9 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
       if(mdns_sock != -1)
 	sel_rc = select(max_sock + 1, &rset, NULL, NULL, &tv);
-	
+
       reply = (struct arp_packet*)pcap_next(pd, &h);      
+
       if(reply) {
 	lua_push_str_table_entry(vm,
 				 Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
@@ -475,6 +483,10 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct timeval tv = { (time_t)timeout /* sec */, 0 };
   fd_set fdset;
 
+  char *ifname  = iface->altDiscoverableName();
+  if(ifname == NULL)
+    ifname = iface->get_name();
+
   lua_newtable(vm);
 
   if(!pd) return;
@@ -521,9 +533,9 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
       NULL
     };
     int i;
-    u_int32_t sender_ip = Utils::readIPv4(iface->get_name());
+    u_int32_t sender_ip = Utils::readIPv4(ifname);
 
-    Utils::readMac(iface->get_name(), sender_mac);
+    Utils::readMac(ifname, sender_mac);
 
     for(i=0; query_list[i] != NULL; i++) {
       u_int16_t len = buildMDNSDiscoveryDatagram(query_list[i], sender_ip, sender_mac, msg, sizeof(msg));

@@ -736,6 +736,7 @@ local function discoverARP()
    local res = {}
    local ghost_macs  = {}
    local ghost_found = false
+
    local arp_mdns = interface.arpScanHosts()
 
    if(arp_mdns == nil) then
@@ -745,7 +746,7 @@ local function discoverARP()
       local known_macs = interface.getMacsInfo(nil, 999, 0, false, true, true, nil) or {}
 
       for _,hmac in pairs(known_macs.macs) do
-	 if(hmac["bytes.sent"] > 0) then -- Skip silent hosts
+	 if((hmac["bytes.sent"] > 0) and (hmac["location"] == "lan")) then -- Skip silent/wan hosts
 	    if(arp_mdns[hmac.mac] == nil) then
 	       local ips = interface.findHostByMac(hmac.mac) or {}
 	       if(discover.debug) then io.write("Missing MAC "..hmac.mac.."\n") end

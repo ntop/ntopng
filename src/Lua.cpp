@@ -2296,14 +2296,14 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
     try {
       NetworkDiscovery *d;
 
-#if !defined(__APPLE__) && !defined(WIN32)
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
 
       d = ntop_interface->getNetworkDiscovery();
 
-#if !defined(__APPLE__) && !defined(WIN32)
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
       Utils::dropWriteCapabilities();
 #endif
       
@@ -2311,7 +2311,9 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
 	d->arpScan(vm);
     } catch(...) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
       Utils::dropWriteCapabilities();
+#endif
     }
 
     return(CONST_LUA_OK);
@@ -3184,7 +3186,6 @@ static int ntop_interface_is_discoverable_interface(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
-
   lua_pushboolean(vm, ntop_interface->isDiscoverableInterface());
   return(CONST_LUA_OK);
 }

@@ -18,6 +18,7 @@ require "lua_utils"
 require "blacklist_utils"
 require "alert_utils"
 
+local discover_utils = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
 local http_bridge_conf_utils = require "http_bridge_conf_utils"
 local os_utils = require "os_utils"
@@ -84,6 +85,9 @@ for _, ifname in pairs(interface.getIfNames()) do
    -- Remove the active devices and pools keys
    deleteActiveDevicesKey(ifid)
    deleteActivePoolsKey(ifid)
+
+   -- Remove network discovery request on startup
+   discover_utils.clearNetworkDiscovery(ifid)
 
    -- Note: we do not delete this as quotas are persistent across ntopng restart
    --deletePoolsQuotaExceededItemsKey(ifid)
