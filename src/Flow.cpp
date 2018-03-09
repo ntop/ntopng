@@ -1015,10 +1015,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
 
     if((iface->getIfType() == interface_type_ZMQ)
-       && (tdiff_msec < 5000)) {
+       && (tdiff_msec < 1000)) {
       /* With ZMQ (if collecting sFlow) we might compute inaccurate
 	 throughput when haveing one flow with a single sample so
-	 we spread the traffic across at least 5 secs
+	 we spread the traffic across at least 1 sec
       */
       ;
     } else if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
