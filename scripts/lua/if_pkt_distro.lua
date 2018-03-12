@@ -2,7 +2,7 @@
 -- (C) 2013-17 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -10,9 +10,8 @@ require "lua_utils"
 sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifname)
-ifstats = interface.getStats()
-
-distr_type = _GET["distr"]
+local ifstats = interface.getStats()
+local distr_type = _GET["distr"]
 
 if((distr_type == nil) or (distr_type == "size")) then
    what = ifstats["pktSizeDistribution"]
@@ -37,16 +36,16 @@ local pkt_distribution = {
    ['above9000'] = '> 9000'
 }
 
-tot = 0
+local tot = 0
 for key, value in pairs(what) do
    tot = tot + value
 end
 
-threshold = (tot * 5) / 100
+local threshold = (tot * 5) / 100
 
 print "[\n"
 num = 0
-sum = 0
+local sum = 0
 for key, value in pairs(what) do
    if(value > threshold) then
       if(pkt_distribution[key] ~= nil) then

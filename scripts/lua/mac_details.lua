@@ -106,6 +106,15 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
 end
 
+if((mac_info ~= nil) and (not have_nedge) and
+            (mac_info["packets.sent"] > 0 or mac_info["packets.rcvd"] > 0)) then
+   if(page == "packets") then
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
+   end
+end
+
 if(ntop.exists(os_utils.fixPath(devicebase.."/"..rrdfile))) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
@@ -285,6 +294,23 @@ print[[
 
 ]]
    print('</script>')
+
+elseif(page == "packets") then
+   print [[ <table class="table table-bordered table-striped"> ]]
+   print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.ip_version_distribution") .. '</th><td><div class="pie-chart" id="ipverDistro"></div></td></tr>\n')
+   print[[</table>
+
+   <script type='text/javascript'>
+    var refresh = ]] print(getInterfaceRefreshRate(ifstats.id)) print[[ * 1000; /* ms */;
+
+	 window.onload=function() {
+       do_pie("#ipverDistro", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/mac_pkt_distro.lua', { distr: "ipver", mac: "]] print(mac) print[[", ifid: "]] print(ifstats.id.."\"")
+   print [[
+	   }, "", refresh);
+   };
+   </script>]]
 
 elseif(page == "historical") then
 
