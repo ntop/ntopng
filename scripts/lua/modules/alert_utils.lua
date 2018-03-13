@@ -2228,7 +2228,7 @@ function check_host_pools_alerts(ifid, working_status)
    local prev_active_pools = swapKeysValues(ntop.getMembersCache(active_pools_set)) or {}
    local alert_pool_connection_enabled = ntop.getPref("ntopng.prefs.alerts.pool_connection_alert") == "1"
    local alerts_on_quota_exceeded = ntop.isPro() and ntop.getPref("ntopng.prefs.alerts.quota_exceeded_alert") == "1"
-   local pools_stats = interface.getHostPoolsStats()
+   local pools_stats = nil
    local quota_exceeded_pools_key = getPoolsQuotaExceededItemsKey(ifid)
    local quota_exceeded_pools_values = ntop.getHashAllCache(quota_exceeded_pools_key) or {}
    local quota_exceeded_pools = {}
@@ -2252,14 +2252,18 @@ function check_host_pools_alerts(ifid, working_status)
       -- quota_exceeded_pools[pool] is like {Youtube={true, false}}, where true is bytes_exceeded, false is time_exceeded
    end
 
+   if ntop.isPro() then
+      pools_stats = interface.getHostPoolsStats()
+   end
+
    local pools = interface.getHostPoolsInfo()
-   if(pools ~= nil) then
+   if(pools ~= nil) and (pools_stats ~= nil) then
       for pool, info in pairs(pools.num_members_per_pool) do
 	 local pool_stats = pools_stats[tonumber(pool)]
 	 local pool_exceeded_quotas = quota_exceeded_pools[pool] or {}
 
 	 -- Pool quota
-	 if pool_stats and ntop.isPro() then
+	 if pool_stats then
 	    local quotas_info = shaper_utils.getQuotasInfo(ifid, pool, pool_stats)
 
 	    for proto, info in pairs(quotas_info) do
