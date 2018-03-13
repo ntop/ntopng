@@ -1014,6 +1014,9 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
     //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
 
+#if 0
+    /* Actually, the refresh interval is controlled with ntop->getPrefs()->get_housekeeping_frequency() 
+       so there is no need to set an a-priori minimum check interval */
     if((iface->getIfType() == interface_type_ZMQ)
        && (tdiff_msec < 5000)) {
       /* With ZMQ (if collecting sFlow) we might compute inaccurate
@@ -1021,7 +1024,9 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	 we spread the traffic across at least 5 secs
       */
       ;
-    } else if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
+    } else
+#endif
+    if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
       // bps
       u_int64_t diff_bytes_cli2srv = cli2srv_last_bytes - prev_cli2srv_last_bytes;
       u_int64_t diff_bytes_srv2cli = srv2cli_last_bytes - prev_srv2cli_last_bytes;
