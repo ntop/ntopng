@@ -1018,10 +1018,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     /* Actually, the refresh interval is controlled with ntop->getPrefs()->get_housekeeping_frequency() 
        so there is no need to set an a-priori minimum check interval */
     if((iface->getIfType() == interface_type_ZMQ)
-       && (tdiff_msec < 5000)) {
+       && (tdiff_msec < 1000)) {
       /* With ZMQ (if collecting sFlow) we might compute inaccurate
 	 throughput when haveing one flow with a single sample so
-	 we spread the traffic across at least 5 secs
+	 we spread the traffic across at least 1 sec
       */
       ;
     } else
