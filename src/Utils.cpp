@@ -2285,6 +2285,23 @@ void Utils::replacestr(char *line, const char *search, const char *replace) {
 
 /* ****************************************************** */
 
+u_int32_t Utils::stringHash(const char *s) {
+  u_int32_t hash = 0;
+  const char *p = s;
+  int pos = 0;
+
+  while(*p) {
+    hash += (*p) << pos;
+    p++;
+    pos += 8;
+    if(pos == 32) pos = 0;
+  }
+
+  return hash;
+}
+
+/* ****************************************************** */
+
 /* Note: the returned IP address is in network byte order */
 u_int32_t Utils::getHostManagementIPv4Address() {
   int sock = socket(AF_INET, SOCK_DGRAM, 0);

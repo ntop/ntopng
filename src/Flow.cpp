@@ -838,6 +838,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
+  bool cli_and_srv_in_same_country = false;
   bool is_idle_flow;
   int16_t cli_network_id, srv_network_id;
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
@@ -959,6 +960,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 		     diff_rcvd_packets, diff_rcvd_bytes);
       }
 
+      // Update network stats
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(tv->tv_sec, protocol, stats_protocol,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
@@ -992,6 +994,36 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	  srv_network_stats->incIngress(diff_sent_packets, diff_sent_bytes,
 					srv_host->get_ip()->isBroadcastAddress());
 	  srv_network_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
+				       cli_host->get_ip()->isBroadcastAddress());
+	}
+      }
+
+      // Update Country stats
+      Country *cli_country_stats = cli_host->getCountryStats();
+      Country *srv_country_stats = srv_host->getCountryStats();
+
+      if(cli_country_stats && srv_country_stats && cli_country_stats->equal(srv_country_stats))
+	cli_and_srv_in_same_country = true;
+
+      if(cli_country_stats) {
+	if(!cli_and_srv_in_same_country) {
+	  cli_country_stats->incEgress(diff_sent_packets, diff_sent_bytes,
+				       srv_host->get_ip()->isBroadcastAddress());
+	  cli_country_stats->incIngress(diff_rcvd_packets, diff_rcvd_bytes,
+					cli_host->get_ip()->isBroadcastAddress());
+	} else // client and server ARE in the same country
+	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
+	  cli_country_stats->incInner(diff_sent_packets + diff_rcvd_packets,
+				      diff_sent_bytes + diff_rcvd_bytes,
+				      srv_host->get_ip()->isBroadcastAddress()
+				      || cli_host->get_ip()->isBroadcastAddress());
+      }
+
+      if(srv_country_stats) {
+	if(!cli_and_srv_in_same_country) {
+	  srv_country_stats->incIngress(diff_sent_packets, diff_sent_bytes,
+					srv_host->get_ip()->isBroadcastAddress());
+	  srv_country_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
 				       cli_host->get_ip()->isBroadcastAddress());
 	}
       }

@@ -341,6 +341,11 @@ local lang = {
     ["server_address"] = "Server Address",
     ["server_contacts_receiver"] = "Server Contacts (Receiver)",
   },
+  ["country_details"] = {
+    ["country"] = "Country",
+    ["country_parameter_missing_message"] = "Country parameter is missing (internal error?)",
+    ["no_available_stats_for_country"] = "No available stats for country %{country}",
+  },
   ["country_stats"] = {
     ["hosts_by_country"] = "Hosts by Country",
   },
@@ -2134,6 +2139,8 @@ local lang = {
     ["toggle_autologout_title"] = "Auto Logout",
     ["toggle_captive_portal_description"] = "Enable the web captive portal for authenticating network users.",
     ["toggle_captive_portal_title"] = "Captive Portal",
+    ["toggle_country_rrds_description"] = "Toggle the creation of bytes timeseries for countries.",
+    ["toggle_country_rrds_title"] = "Countries",
     ["toggle_device_activation_alert_description"] = "Enable the generation of alerts when devices connect or disconnect from the network.",
     ["toggle_device_activation_alert_title"] = "Enable Devices Connection/Disconnection Alerts",
     ["toggle_device_first_seen_alert_description"] = "Enable the generation of alerts when new unseen devices appear on the network.",

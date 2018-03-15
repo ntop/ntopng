@@ -52,6 +52,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int32_t getCheckPointNumPacketDrops();
 
   virtual u_int32_t getASesHashSize();
+  virtual u_int32_t getCountriesHashSize();
   virtual u_int32_t getVLANsHashSize();
   virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();

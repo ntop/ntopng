@@ -220,8 +220,14 @@ function print_single_group(value)
    if (group_col == "asn" or as_n ~= nil) then
       print("\"column_name\" : \""..printASN(value["id"], value["name"]))
    elseif ( group_col == "country" or country_n ~= nil) then
+      local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
+      if(charts_enabled) then
+         print("\"column_chart\" : \"")
+         print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+         print("\", ")
+      end
+
       print("\"column_name\" : \""..value["id"])
-      
    elseif ( group_col == "os" or os_n ~= nil) then
       print("\"column_name\" : \""..value["id"])
    else

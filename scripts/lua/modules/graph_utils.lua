@@ -189,6 +189,7 @@ end
 -- If host pool, must be prefixed with 'pool:'
 -- If vlan, must be prefixed with 'vlan:'
 -- If asn, must be prefixed with 'asn:'
+-- If country, must be prefixed with 'country:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
       host_or_network = string.gsub(host_or_network, 'net:', '')
@@ -218,6 +219,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'country:') then
+      host_or_network = string.gsub(host_or_network, 'country:', '')
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/countrystats/")
    else
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
@@ -573,6 +577,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    and not string.starts(host, 'pool:')
    and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
+   and not string.starts(host, 'country:')
 then
    print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
 end
@@ -634,6 +639,7 @@ for k,v in ipairs(zoom_vals) do
       or string.starts(host, 'profile:')
       or string.starts(host, 'pool:')
       or string.starts(host, 'vlan:')
+      or string.starts(host, 'country:')
       or string.starts(host, 'asn:')) then
        net_or_profile = true
    end
@@ -731,6 +737,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
    and not string.starts(host, 'pool:')
    and not string.starts(host, 'vlan:')
    and not string.starts(host, 'asn:')
+   and not string.starts(host, 'country:')
 then
    local k2info = hostkey2hostinfo(host)
 

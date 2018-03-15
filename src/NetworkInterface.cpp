@@ -145,6 +145,9 @@ NetworkInterface::NetworkInterface(const char *name,
     ases_hash = new AutonomousSystemHash(this, num_hashes,
 					 ntop->getPrefs()->get_max_num_hosts());
 
+    countries_hash = new CountriesHash(this, num_hashes,
+					 ntop->getPrefs()->get_max_num_hosts());
+
     vlans_hash = new VlanHash(this, num_hashes,
 			      max_val(ntop->getPrefs()->get_max_num_hosts() / 2,
 				      (u_int16_t)-1));
@@ -190,6 +193,7 @@ NetworkInterface::NetworkInterface(const char *name,
   } else /* id < 0 */ {
     flows_hash = NULL, hosts_hash = NULL;
     macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
+    countries_hash =  NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
     pkt_dumper = NULL, pkt_dumper_tap = NULL;
   }
@@ -270,7 +274,7 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, snmp = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none,
-    macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
+    macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
@@ -615,6 +619,7 @@ void NetworkInterface::deleteDataStructures() {
   if(flows_hash)            { delete(flows_hash); flows_hash = NULL; }
   if(hosts_hash)            { delete(hosts_hash); hosts_hash = NULL; }
   if(ases_hash)             { delete(ases_hash);  ases_hash = NULL;  }
+  if(countries_hash)        { delete(countries_hash);  countries_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
 
@@ -845,6 +850,12 @@ u_int32_t NetworkInterface::getASesHashSize() {
 
 /* **************************************************** */
 
+u_int32_t NetworkInterface::getCountriesHashSize() {
+  return(countries_hash->getNumEntries());
+}
+
+/* **************************************************** */
+
 u_int32_t NetworkInterface::getVLANsHashSize() {
   return(vlans_hash->getNumEntries());
 }
@@ -885,6 +896,10 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
   case walker_ases:
     ret = ases_hash->walk(begin_slot, walk_all, walker, user_data);
+    break;
+
+  case walker_countries:
+    ret = countries_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
 
   case walker_vlans:
@@ -2436,6 +2451,7 @@ void NetworkInterface::cleanup() {
   flows_hash->cleanup();
   hosts_hash->cleanup();
   ases_hash->cleanup();
+  countries_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
 
@@ -3200,6 +3216,7 @@ struct flowHostRetrieveList {
   Mac *macValue;
   Vlan *vlanValue;
   AutonomousSystem *asValue;
+  Country *countryVal;
   u_int64_t numericValue;
   char *stringValue;
   IpAddress *ipValue;
@@ -3680,6 +3697,44 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data, bool *matche
 
 /* **************************************************** */
 
+static bool country_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
+  struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
+  Country *country = (Country*)he;
+
+  if(r->actNumEntries >= r->maxNumEntries)
+    return(true); /* Limit reached */
+
+  if(!country || country->idle())
+    return(false); /* false = keep on walking */
+
+  r->elems[r->actNumEntries].countryVal = country;
+
+  /* Note: we don't have throughput information into the countries */
+  switch(r->sorter) {
+
+  case column_country:
+    r->elems[r->actNumEntries++].stringValue = country->get_country_name();
+    break;
+
+  case column_since:
+    r->elems[r->actNumEntries++].numericValue = country->get_first_seen();
+    break;
+
+  case column_num_hosts:
+    r->elems[r->actNumEntries++].numericValue = country->getNumHosts();
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    break;
+  }
+
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 static bool vlan_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Vlan *vl = (Vlan*)he;
@@ -3775,6 +3830,7 @@ void NetworkInterface::disablePurge(bool on_flows) {
     else {
       hosts_hash->disablePurge();
       ases_hash->disablePurge();
+      countries_hash->disablePurge();
       vlans_hash->disablePurge();
       macs_hash->disablePurge();
     }
@@ -3785,6 +3841,7 @@ void NetworkInterface::disablePurge(bool on_flows) {
       else {
 	subInterfaces[s]->get_hosts_hash()->disablePurge();
 	subInterfaces[s]->get_ases_hash()->disablePurge();
+	subInterfaces[s]->get_countries_hash()->disablePurge();
 	subInterfaces[s]->get_vlans_hash()->disablePurge();
 	subInterfaces[s]->get_macs_hash()->disablePurge();
       }
@@ -3801,6 +3858,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
     else {
       hosts_hash->enablePurge();
       ases_hash->enablePurge();
+      countries_hash->enablePurge();
       vlans_hash->enablePurge();
       macs_hash->enablePurge();
     }
@@ -3811,6 +3869,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
       else {
 	subInterfaces[s]->get_hosts_hash()->enablePurge();
 	subInterfaces[s]->get_ases_hash()->enablePurge();
+	subInterfaces[s]->get_countries_hash()->enablePurge();
 	subInterfaces[s]->get_vlans_hash()->enablePurge();
 	subInterfaces[s]->get_macs_hash()->enablePurge();
       }
@@ -4311,6 +4370,44 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
 
 /* **************************************************** */
 
+int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
+	       char *sortColumn) {
+  u_int32_t maxHits;
+  int (*sorter)(const void *_a, const void *_b);
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  if(retriever == NULL)
+    return -1;
+
+  maxHits = getCountriesHashSize();
+  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
+    maxHits = CONST_MAX_NUM_HITS;
+
+  retriever->actNumEntries = 0,
+    retriever->maxNumEntries = maxHits,
+    retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
+
+  if(retriever->elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if((!strcmp(sortColumn, "column_country")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_country, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
+  else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
+
+  // make sure the caller has disabled the purge!!
+  walker(&begin_slot, walk_all,  walker_countries, country_search_walker, (void*)retriever);
+
+  qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  return(retriever->actNumEntries);
+}
+
+/* **************************************************** */
+
 int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
@@ -4750,6 +4847,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
     n = hosts_hash->purgeIdle()
       + macs_hash->purgeIdle()
       + ases_hash->purgeIdle()
+      + countries_hash->purgeIdle()
       + vlans_hash->purgeIdle();
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
@@ -5101,6 +5199,42 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa,
     try {
       if((ret = new AutonomousSystem(this, ipa)) != NULL)
 	ases_hash->add(ret);
+    } catch(std::bad_alloc& ba) {
+      static bool oom_warning_sent = false;
+
+      if(!oom_warning_sent) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	oom_warning_sent = true;
+      }
+
+      return(NULL);
+    }
+  }
+
+  return(ret);
+}
+
+/* **************************************************** */
+
+Country* NetworkInterface::getCountry(const char *country_name,
+					  bool createIfNotPresent) {
+  Country *ret = NULL;
+
+  if(!country_name || !country_name[0]) return(NULL);
+
+  if(!isView())
+    ret = countries_hash->get(country_name);
+  else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      if((ret = subInterfaces[s]->get_countries_hash()->get(country_name)) != NULL)
+	break;
+    }
+  }
+
+  if((ret == NULL) && createIfNotPresent) {
+    try {
+      if((ret = new Country(this, country_name)) != NULL)
+	countries_hash->add(ret);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -6125,6 +6259,58 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   return(retriever.actNumEntries);
 }
 
+
+/* **************************************** */
+
+int NetworkInterface::getActiveCountriesList(lua_State* vm, const Paginator *p) {
+  struct flowHostRetriever retriever;
+  DetailsLevel details_level;
+
+  if(!p)
+    return -1;
+
+  disablePurge(false);
+
+  if(sortCountries(&retriever, p->sortColumn()) < 0) {
+    enablePurge(false);
+    return -1;
+  }
+
+  if(!p->getDetailsLevel(&details_level))
+    details_level = details_normal;
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numCountries", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  if(p->a2zSortOrder()) {
+    for(int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries && num < (int)p->maxHits(); i++, num++) {
+      Country *country = retriever.elems[i].countryVal;
+
+      country->lua(vm, details_level, false);
+      lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
+    }
+  } else {
+    for(int i = (retriever.actNumEntries - 1 - p->toSkip()), num = 0; i >= 0 && num < (int)p->maxHits(); i--, num++) {
+      Country *country = retriever.elems[i].countryVal;
+
+      country->lua(vm, details_level, false);
+      lua_rawseti(vm, -2, num + 1);
+    }
+  }
+
+  lua_pushstring(vm, "Countries");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  enablePurge(false);
+
+  // finally free the elements regardless of the sorted kind
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
 
 /* **************************************** */
 

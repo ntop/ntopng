@@ -61,6 +61,21 @@ print [[
 			        textAlign: 'left'
 			     }
 
+				 }, {
+					title: "]] print(i18n("chart")) print[[",
+					field: "column_chart",
+					sortable: true,]]
+
+local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
+
+if not charts_enabled then
+	print("hidden: true,\n")
+end
+
+          print[[
+						css: {
+			        textAlign: 'center'
+			     }
 				 },
 			  ]]
 

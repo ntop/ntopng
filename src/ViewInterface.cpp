@@ -263,6 +263,17 @@ u_int32_t ViewInterface::getASesHashSize() {
 
 /* **************************************************** */
 
+u_int32_t ViewInterface::getCountriesHashSize() {
+  u_int32_t tot = 0;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++)
+    tot += subInterfaces[s]->getCountriesHashSize();
+
+  return(tot);
+}
+
+/* **************************************************** */
+
 u_int32_t ViewInterface::getVLANsHashSize() {
   u_int32_t tot = 0;
 

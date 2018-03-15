@@ -28,6 +28,7 @@ class Host : public GenericHost, public Checkpointable {
  private:
   u_int32_t asn;
   AutonomousSystem *as;
+  Country *country;
   Vlan *vlan;
   char *symbolic_name, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
@@ -189,6 +190,7 @@ class Host : public GenericHost, public Checkpointable {
   void loadAlertsCounter();
 
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
+  inline Country* getCountryStats()                      { return country;                                 };
 
   void refreshHostAlertPrefs();
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);

@@ -323,6 +323,7 @@ typedef enum {
   walker_flows,
   walker_macs,
   walker_ases,
+  walker_countries,
   walker_vlans,
 } WalkerType;
 

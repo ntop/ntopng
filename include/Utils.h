@@ -99,6 +99,7 @@ class Utils {
   static bool str2DetailsLevel(const char *details, DetailsLevel *out);
   static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
   static bool isCriticalNetworkProtocol(u_int16_t protocol_id);
+  static u_int32_t stringHash(const char *s);
 
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);

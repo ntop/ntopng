@@ -952,6 +952,12 @@ function printStatsTimeseries()
     pref = "asn_rrd_creation",
   })
 
+  prefsToggleButton({
+    field = "toggle_country_rrds",
+    default = "0",
+    pref = "country_rrd_creation",
+  })
+
   print('</table>')
 
   print('<table class="table">')

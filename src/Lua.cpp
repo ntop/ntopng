@@ -1020,6 +1020,31 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_countries_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  Paginator *p = NULL;
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if((p = new(std::nothrow) Paginator()) == NULL)
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TTABLE)
+    p->readOptions(vm, 1);
+
+  if(ntop_interface->getActiveCountriesList(vm, p) < 0) {
+    if(p) delete(p);
+    return(CONST_LUA_ERROR);
+  }
+
+  if(p) delete(p);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_vlans_list(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -6848,6 +6873,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Autonomous Systems */
   { "getASesInfo",                      ntop_get_interface_ases_info },
   { "getASInfo",                        ntop_get_interface_as_info },
+
+  /* Countries */
+  { "getCountriesInfo",                 ntop_get_interface_countries_info },
 
   /* VLANs */
   { "getVLANsList",                     ntop_get_interface_vlans_list },

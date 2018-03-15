@@ -947,6 +947,7 @@ local known_parameters = {
    ["toggle_tiny_flows_export"]                    =  validateBool,
    ["toggle_vlan_rrds"]                            =  validateBool,
    ["toggle_asn_rrds"]                             =  validateBool,
+   ["toggle_country_rrds"]                         =  validateBool,
    ["toggle_shaping_directions"]                   =  validateBool,
    ["toggle_tcp_flags_rrds"]                       =  validateBool,
    ["toggle_tcp_retr_ooo_lost_rrds"]               =  validateBool,

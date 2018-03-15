@@ -130,6 +130,28 @@ end
 
 -- ########################################################
 
+function rrd_dump.country_update_rrds(when, ifstats, verbose)
+  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/countrystats')
+  local countries_info = interface.getCountriesInfo({detailsLevel = "higher", sortColumn = "column_country"})
+
+  for _, country_stats in ipairs(countries_info["Countries"] or {}) do
+    local country = country_stats.country
+    local rrdpath = getPathFromKey(country)
+
+    rrdpath = os_utils.fixPath(basedir.. "/" .. rrdpath)
+    if(not(ntop.exists(rrdpath))) then
+       ntop.mkdir(rrdpath)
+    end
+
+    local bytes_rrd = os_utils.fixPath(rrdpath .. "/bytes.rrd")
+    createTripleRRDcounter(bytes_rrd, 300, false)  -- 300(s) == 5 minutes step
+    ntop.rrd_update(bytes_rrd, nil, tolongint(country_stats["ingress"]), tolongint(country_stats["egress"]), tolongint(country_stats["inner"]))
+    ntop.tsSet(when, ifstats.id, 300, "iface:countrystats", country, "bytes", tolongint(country_stats["egress"]), tolongint(country_stats["inner"]))
+  end
+end
+
+-- ########################################################
+
 function rrd_dump.vlan_update_rrds(when, ifstats, verbose)
   local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
   local vlan_info = interface.getVLANsInfo()
@@ -234,6 +256,7 @@ function rrd_dump.getConfig()
   config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
   config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
   config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
+  config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
   config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
 
@@ -337,6 +360,11 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
         --[[ TODO: implement for ASes
         --]]
       end
+    end
+
+    -- create RRD for Countries
+    if config.country_rrd_creation == "1" then
+      rrd_dump.country_update_rrds(when, ifstats, verbose)
     end
 
     -- Create RRD for vlans

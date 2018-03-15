@@ -38,6 +38,8 @@ class Vlan;
 class VlanHash;
 class AutonomousSystem;
 class AutonomousSystemHash;
+class Country;
+class CountriesHash;
 class DB;
 class Paginator;
 
@@ -132,6 +134,9 @@ class NetworkInterface : public Checkpointable {
   /* Autonomous Systems */
   AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
+  /* Countries */
+  CountriesHash *countries_hash;
+
   /* Vlans */
   VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
 
@@ -186,6 +191,8 @@ class NetworkInterface : public Checkpointable {
 		bool hostMacsOnly, char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
+  int sortCountries(struct flowHostRetriever *retriever,
+	       char *sortColumn);
   int sortVLANs(struct flowHostRetriever *retriever,
 		char *sortColumn);
   int sortMacs(u_int32_t *begin_slot,
@@ -233,6 +240,7 @@ class NetworkInterface : public Checkpointable {
 
   void finishInitialization();
   virtual u_int32_t getASesHashSize();
+  virtual u_int32_t getCountriesHashSize();
   virtual u_int32_t getVLANsHashSize();
   virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
@@ -405,6 +413,7 @@ class NetworkInterface : public Checkpointable {
 			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
 			  bool hostsOnly, char *groupColumn);
   int getActiveASList(lua_State* vm, const Paginator *p);
+  int getActiveCountriesList(lua_State* vm, const Paginator *p);
   int getActiveVLANList(lua_State* vm,
 			char *sortColumn, u_int32_t maxHits,
 			u_int32_t toSkip, bool a2zSortOrder,
@@ -472,6 +481,7 @@ class NetworkInterface : public Checkpointable {
   void runHousekeepingTasks();
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
+  Country* getCountry(const char *country_name, bool createIfNotPresent);
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
@@ -535,6 +545,7 @@ class NetworkInterface : public Checkpointable {
   inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
   inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
   inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
+  inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char *addr);

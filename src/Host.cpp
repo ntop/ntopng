@@ -66,6 +66,7 @@ Host::~Host() {
 
   if(mac)           mac->decUses();
   if(as)            as->decUses();
+  if(country)       country->decUses();
   if(vlan)          vlan->decUses();
 #ifdef NTOPNG_PRO
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
@@ -160,7 +161,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
   asn = 0, asname = NULL;
-  as = NULL;
+  as = NULL, country = NULL;
   k = ip.print(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, top_sites = NULL, old_sites = NULL,
@@ -237,6 +238,12 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
       asn = as->get_asn();
       asname = as->get_asname();
     }
+
+    char country_name[64];
+    get_country(country_name, sizeof(country_name));
+
+    if((country = iface->getCountry(country_name, true)) != NULL)
+      country->incUses();
   }
 
   iface->incNumHosts(isLocalHost());
@@ -563,15 +570,15 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   }
 
   if(host_details) {
-    char *continent = NULL, *country = NULL, *city = NULL;
+    char *continent = NULL, *country_name = NULL, *city = NULL;
     float latitude = 0, longitude = 0;
     
-    ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+    ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
     
     if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
 
     lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
-    lua_push_str_table_entry(vm, "country", country ? country  : (char*)"");
+    lua_push_str_table_entry(vm, "country", country_name ? country_name  : (char*)"");
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
@@ -871,7 +878,7 @@ json_object* Host::getJSONObject() {
   json_object *my_object;
   char buf[32];
   Mac *m = mac;
-  char *continent, *country, *city = NULL;
+  char *continent, *country_name, *city = NULL;
   float latitude, longitude;
   
   if((my_object = json_object_new_object()) == NULL) return(NULL);
@@ -888,7 +895,7 @@ json_object* Host::getJSONObject() {
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
 
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
@@ -1784,11 +1791,11 @@ void Host::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer
 /* *************************************** */
 
 char* Host::get_country(char *buf, u_int buf_len) {
-  char *continent, *country, *city = NULL;
+  char *continent, *country_name, *city = NULL;
   float latitude, longitude;
   
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
-  snprintf(buf, buf_len, "%s", country);
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
+  snprintf(buf, buf_len, "%s", country_name);
   if(city) free(city);
   
   return(buf);
@@ -1797,10 +1804,10 @@ char* Host::get_country(char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Host::get_city(char *buf, u_int buf_len) {
-  char *continent, *country, *city = NULL;
+  char *continent, *country_name, *city = NULL;
   float latitude, longitude;
   
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
 
   if(city) {
     snprintf(buf, buf_len, "%s", city);
@@ -1814,10 +1821,10 @@ char* Host::get_city(char *buf, u_int buf_len) {
 /* *************************************** */
 
 void Host::get_geocoordinates(float *latitude, float *longitude) {
-  char *continent, *country, *city = NULL;
+  char *continent, *country_name, *city = NULL;
 
   *latitude = 0, *longitude = 0;
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, latitude, longitude);
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, latitude, longitude);
   if(city) free(city);
 }
 

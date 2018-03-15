@@ -284,6 +284,7 @@ using namespace std;
 #include "GenericHost.h"
 #include "Vlan.h"
 #include "AutonomousSystem.h"
+#include "Country.h"
 #include "Mac.h"
 #include "Host.h"
 #include "Flow.h"
@@ -291,6 +292,7 @@ using namespace std;
 #include "MacHash.h"
 #include "VlanHash.h"
 #include "AutonomousSystemHash.h"
+#include "CountriesHash.h"
 #include "HostHash.h"
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
