@@ -20,7 +20,6 @@ require "alert_utils"
 
 local discover_utils = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
-local http_bridge_conf_utils = require "http_bridge_conf_utils"
 local os_utils = require "os_utils"
 
 local prefs = ntop.getPrefs()
@@ -102,5 +101,6 @@ loadHostBlackList()
 
 -- this will retrieve host pools and policers configurtions via HTTP if enabled
 if  ntop.isnEdge() then
+   local http_bridge_conf_utils = require "http_bridge_conf_utils"
    http_bridge_conf_utils.configureBridge()
 end
