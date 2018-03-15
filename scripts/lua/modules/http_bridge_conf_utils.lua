@@ -14,9 +14,14 @@ if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
 end
 
+if ntop.isnEdge() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
+end
+
 require "lua_utils"
 local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
+local users_utils = require("users_utils")
 local shaper_utils
 
 if(ntop.isPro()) then
@@ -31,8 +36,13 @@ http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "" --localhost:8000"
 
 function http_bridge_conf_utils.configureBridge()
    if not isEmptyString(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL) then
-
       -- CLEANUP
+      local users_list = ntop.getUsers()
+      for key, value in pairs(users_list) do
+	 if value["group"] == "captive_portal" then
+	    ntop.deleteUser(key)
+	 end
+      end
       shaper_utils.clearShapers()
       host_pools_utils.clearPools()
 
@@ -42,111 +52,89 @@ function http_bridge_conf_utils.configureBridge()
 
       -- RETRIEVE BRIDGE CONFIGURATION
       -- EXAMPLE RESPONSE STRUCTURE:
-      --[[
-	 local rsp = {
-	 ["shaping_profiles"] = {
-	 ["drop_all"] = {["bw"] = 0}, ["pass_all"] = {["bw"] = -1},
-	 ["10Mbps"] = {["bw"] = 10000}, ["20Mbps"] = {["bw"] = 20000}},
-	 ["groups"] = {
-	 ["maina"] = {["shaping_profiles"] = {["default"]="pass_all", [10] = "10Mbps", ["Facebook"] = "dropAll"}},
-	 ["simon"] = {["shaping_profiles"] = {["default"]="drop_all", [20] = "20Mbps", [22] = "10Mbps"}}}
-	 }
-      --]]
+      local rsp = {
+	 -- ["users"] = {
+	 --    ["maina"] = {
+	 --       ["full_name"] = "Maina Fast",
+	 --       ["password"] = "ntop0101",
+	 --       ["default_policy"] = "pass",
+	 --       ["policies"] = {
+	 -- 	  [10] = "slow_pass", ["Facebook"] = "slower_pass",  ["YouTube"] = "drop"
+	 --       }
+	 --    },
+	 --    ["simon"] = {
+	 --       ["full_name"] = "Simon Speed",
+	 --       ["password"] = "ntop0202",
+	 --       ["default_policy"] = "drop",
+	 --       ["policies"] = {
+	 -- 	  ["MyCustomProtocol"]="pass", [20] = "slow_pass", [22] = "slower_pass"
+	 --       }
+	 --    }
+	 -- }
+      }
       local rsp = ntop.httpGet(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
 
       if rsp == nil then
-	 print("Unable to obtain a valid configuration from "..conf_url)
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, "Unable to obtain a valid configuration from "..http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
+	 return
       end
 
-      rsp = rsp["CONTENT"] or {}
-      rsp = json.decode(rsp, 1)
+      if rsp["CONTENT"] then rsp = rsp["CONTENT"] end
+      if not rsp then rsp = {} end
 
-      if rsp == nil then
-	 print("Unable to decode response as valid JSON")
-      end
+      if type(rsp) == "string" then
+	 rsp = json.decode(rsp)
 
-      local bridge_conf = rsp
-
-      -- PREPARE SHAPERS
-      local shapers = {}
-      local shaper_id = 2 -- 0 and 1 are reserved for the drop-all end pass-all shapers
-      if bridge_conf ~= nil and bridge_conf["shaping_profiles"] ~= nil then
-	 for shaper_name, shaper in pairs(bridge_conf["shaping_profiles"]) do
-            local this_id = shaper_id
-	    if shaper["bw"] == -1 then
-	      this_id = 0 -- NO LIMIT
-	    elseif shaper["bw"] == 0 then
-	      this_id = 1 -- DROP ALL
-	    else
-              shaper_id = shaper_id + 1
-	    end
-	    shapers[shaper_name] = {bw = shaper["bw"], id = this_id}
-
+	 if rsp == nil then
+	    print("Unable to decode response as valid JSON")
 	 end
       end
 
-      -- PREPARE HOST POOLS
-      local host_pools = {}
-      local host_pool_id = host_pools_utils.FIRST_AVAILABLE_POOL_ID
-      if bridge_conf ~= nil and bridge_conf["groups"] ~= nil then
-	 for pool_name, pool in pairs(bridge_conf["groups"]) do
-	    host_pools[pool_name] = pool
-	    host_pools[pool_name]["id"] = host_pool_id
-	    host_pool_id = host_pool_id + 1
-	 end
+      local ndpi_protocols = {}
+      for proto_name, proto_id in pairs(interface.getnDPIProtocols()) do
+	 -- case-insensitive
+	 ndpi_protocols[string.lower(proto_name)] = proto_id
       end
 
+      local nedge_shapers = {}
+      for _, shaper in ipairs(shaper_utils.nedge_shapers) do
+	 nedge_shapers[string.lower(shaper.name)] = shaper
+      end
+      
       -- FOR EACH INTERFACE...
       for _, ifname in pairs(interface.getIfNames()) do
 	 interface.select(ifname)
 	 local ifid = getInterfaceId(ifname)
 
 	 -- SETUP HOST POOLS
-	 for pool_name, pool in pairs(host_pools) do
-	    print(ifname..": creating pool "..pool_name)
+	 for username, user_config in pairs(rsp["users"] or {}) do
+	    users_utils.addUserIfNotExists(ifid, username, user_config["password"] or "", user_config["full_name"] or "")
+	    local pool_id = host_pools_utils.usernameToPoolId(username) or host_pools_utils.DEFAULT_POOL_ID
+	    traceError(TRACE_NORMAL, TRACE_CONSOLE, ifname..": creating user: "..username.. " pool id: "..pool_id)
 
-	    host_pools_utils.createPool(ifid, tostring(pool["id"]), pool_name,
-					false --[[children_safe--]],
-					false --[[enforce_quotas_per_pool_member--]],
-					true  --[[enforce_shapers_per_pool_member--]])
-	    if(interface.isBridgeInterface(ifid) == true) then
-	       -- create default shapers
-	       shaper_utils.initDefaultShapers(ifid, pool["id"])
-	    end
-	 end
+	    if not isEmptyString(user_config["default_policy"]) then
+	       local default_policy = string.lower(user_config["default_policy"])
 
-	 if(interface.isBridgeInterface(ifid) == true) then
-	    -- SETUP SHAPERS
-	    for shaper_name, shaper in pairs(shapers) do
-	       print(ifname..": creating shaper "..shaper_name)
+	       if nedge_shapers[default_policy] and default_policy ~= "default" then -- default can't be default :)
+		  shaper_utils.setPoolShaper(ifid, pool_id, nedge_shapers[default_policy].id)
+	       end
 
-	       shaper_utils.setShaperMaxRate(ifid, shaper["id"], shaper["bw"])
-	    end
+	       for proto, policy in pairs(user_config["policies"] or {}) do
+		  policy = nedge_shapers[string.lower(policy)]
 
-	    -- SETUP POLICIES
-	    local ndpi_protocols = {}
-	    for proto_name, proto_id in pairs(interface.getnDPIProtocols()) do
-	       -- case-insensitive
-	       ndpi_protocols[string.lower(proto_name)] = proto_id
-	    end
-
-	    for _, pool in pairs(host_pools) do
-	       for proto, shaper in pairs(pool["shaping_profiles"]) do
-		  local proto_shaper = shapers[shaper] or {}
-		  print(ifname..": setting shaper "..shaper.." for protocol "..proto)
-
-		  -- if proto is a protocol string, e.g., DNS or Google,
-		  -- we want to map it to the corresponding nDPI protocol id
-		  if proto ~= "default" and tonumber(proto) == nil then 
+		  if tonumber(proto) == nil then
 		     proto = ndpi_protocols[string.lower(proto)]
-		     -- tprint({t = type(proto), v = proto})
 		  end
 
-		  if proto == "default" or tonumber(proto) ~= nil then
-		     shaper_utils.setProtocolShapers(ifid, pool["id"], proto,
-						     proto_shaper["id"] or 0, proto_shaper["id"] or 0,
-						     0 --[[traffic_quota--]], 0--[[time_quota--]])
-		     -- tprint({proto=proto, shaper_name=shaper, shaper=shapers[shaper]})
+		  if policy and tonumber(proto) ~= nil then
+		     if (policy.name == "DEFAULT") and no_quota then
+			shaper_utils.deleteProtocol(ifid, pool_id, proto)
+		     else
+			shaper_utils.setProtocolShapers(ifid, pool_id, proto,
+							policy.id, policy.id,
+							0 --[[traffic_quota--]], 0--[[time_quota--]])
+			-- tprint({proto=proto, name = interface.getnDPIProtoName(tonumber(proto)), pool_id=pool_id, policy_id=policy.id})
+		     end
 		  end
 	       end
 	    end

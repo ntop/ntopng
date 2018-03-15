@@ -1,5 +1,5 @@
-ntopng bridge can be configured via HTTP. During the startup process,
-ntopng will try to retrieve host pools and shapers configuration from
+nEdge can be configured via HTTP. During the startup process,
+it will try to retrieve users configuration from
 a url that has to be specified in file:
 
 /lua/modules/http_bridge_conf_utils.lua

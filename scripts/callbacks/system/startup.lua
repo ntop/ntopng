@@ -101,4 +101,6 @@ loadHostBlackList()
 -- TODO: migrate custom re-arm settings
 
 -- this will retrieve host pools and policers configurtions via HTTP if enabled
-http_bridge_conf_utils.configureBridge()
+if  ntop.isnEdge() then
+   http_bridge_conf_utils.configureBridge()
+end

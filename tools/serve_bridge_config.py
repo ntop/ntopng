@@ -15,21 +15,25 @@ use option --ndpi-protocols, e.g., --ndpi-protocols /tmp/custom.txt
 '''
 
 sample_bridge_config = {
-    "shaping_profiles" : {
-        "dropAll" : {"bw" : 0}, "passAll" : {"bw" : -1},
-        "10Mbps" : {"bw" : 10000}, "20Mbps" : {"bw" : 20000}},
-    "groups":{
-        "maina" : {"shaping_profiles" :
-                   {"default" : "passAll",
-                    10 : "10Mbps",
-                    "DNS" : "dropAll",
-                    "Facebook": "10Mbps",
-                    "MyCustomProtocol": "20Mbps",
-                    "YouTube": "dropAll"}},
-        "simon" : {"shaping_profiles" :
-                   {"default" : "dropAll",
-                    20 :  "20Mbps",
-                    22 : "10Mbps"}}
+    "users":{
+        "maina" : {
+            "full_name": "Maina Fast",
+            "password": "ntop0101",
+            "default_policy": "pass",
+            "policies" : {10 : "slow_pass",
+                          "Facebook": "slower_pass",
+                          "MyCustomProtocol": "drop",
+                          "YouTube": "drop"}
+        },
+        "simon" : {
+            "full_name": "Simon Speed",
+            "password": "ntop0102",
+            "default_policy": "drop",
+            "policies" : {20 : "slow_pass",
+                          22: "slower_pass",
+                          "MyCustomProtocol": "pass",
+                          "YouTube": "slower_pass"}
+        }
     }}
 
 class Handler(BaseHTTPRequestHandler):
