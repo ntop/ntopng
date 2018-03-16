@@ -119,7 +119,8 @@ class Utils {
   static char* getInterfaceDescription(char *ifname, char *buf, int buf_len);
   static int bindSockToDevice(int sock, int family, const char* devicename);
   static void maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb);
-    
+  static u_int32_t parsetime(char *str);
+  
   /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
   static void luaMeminfo(lua_State* vm);

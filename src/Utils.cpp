@@ -2742,3 +2742,44 @@ u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from
 
   return(now);
 }
+
+/* ************************************************* */
+
+/*
+  now
+  now+1h   (hour)
+  now+1d   (day)
+  now+1w   (week)
+  now+1m   (month)
+  now+1min (minute)
+  now+1y   (year)
+ */
+u_int32_t Utils::parsetime(char *str) {
+  if(!strncmp(str, "now", 3)) {
+    char op = str[3];
+    int v;
+    char what[64];
+    u_int32_t ret = time(NULL);
+
+    if(op == '\0')
+      return(ret);    
+    else if(sscanf(&str[4], "%d%s", &v, what) == 2) {
+      if(!strcmp(what, "h"))        v *= 3600;
+      else if(!strcmp(what, "d"))   v *= 3600*24;
+      else if(!strcmp(what, "w"))   v *= 3600*24*7;
+      else if(!strcmp(what, "m"))   v *= 3600*24*7*30;
+      else if(!strcmp(what, "min")) v *= 60;
+      else if(!strcmp(what, "y"))   v *= 3600*24*7*365;
+
+      if(op == '-')
+	ret -= v;
+      else
+	ret += v;
+
+      return(ret);
+    } else
+      return(0);
+  } else
+    return(atol(str));
+}
+

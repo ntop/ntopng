@@ -3642,6 +3642,37 @@ static int ntop_ts_flush(lua_State* vm) {
 
 /* ****************************************** */
 
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+
+static int ntop_nindex_select(lua_State* vm) {
+  u_int8_t id = 1;
+  char *select = NULL, *where = NULL;
+  bool use_aggregated_flows;
+  char *timestamp_begin, *timestamp_end;
+  
+  if(!ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN)) return(CONST_LUA_PARAM_ERROR);
+  use_aggregated_flows = lua_toboolean(vm, 2) ? true : false;
+  
+  if(!ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  timestamp_begin = (char*)lua_tostring(vm, id++);
+  
+  if(!ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  timestamp_end = (char*)lua_tostring(vm, id++);
+  
+  if(!ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  select = (char*)lua_tostring(vm, id++);
+  
+  if(!ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  where = (char*)lua_tostring(vm, id++);
+
+  return(ntop->getPro()->getnIndexDB()->nIndexSelect(vm, use_aggregated_flows,
+						     timestamp_begin, timestamp_end, select, where));
+}
+
+#endif
+
+/* ****************************************** */
+
 static int ntop_rrd_create(lua_State* vm) {
   const char *filename;
   unsigned long pdp_step;
@@ -4618,7 +4649,6 @@ static int ntop_remove_volatile_member_from_pool(lua_State *vm) {
   pool_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if(ntop_interface && ntop_interface->getHostPools()) {
-
     ntop_interface->getHostPools()->removeVolatileMemberFromPool(host_or_mac, pool_id);
 
     lua_pushnil(vm);
@@ -7048,18 +7078,22 @@ static const luaL_Reg ntop_reg[] = {
   { "networkPrefix",    ntop_network_prefix },
 
   /* RRD */
-  { "rrd_create",       ntop_rrd_create },
-  { "rrd_update",       ntop_rrd_update },
-  { "rrd_fetch",        ntop_rrd_fetch  },
-  { "rrd_fetch_columns",   ntop_rrd_fetch_columns },
-  { "rrd_lastupdate",   ntop_rrd_lastupdate  },
+  { "rrd_create",        ntop_rrd_create },
+  { "rrd_update",        ntop_rrd_update },
+  { "rrd_fetch",         ntop_rrd_fetch  },
+  { "rrd_fetch_columns", ntop_rrd_fetch_columns },
+  { "rrd_lastupdate",    ntop_rrd_lastupdate  },
 
   /* nSeries */
   { "tsSet",            ntop_ts_set   },
   { "tsFlush",          ntop_ts_flush },
 
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+  { "nIndexSelect",     ntop_nindex_select },
+#endif
+  
   /* Prefs */
-  { "getPrefs",            ntop_get_prefs },
+  { "getPrefs",         ntop_get_prefs },
 
   /* HTTP */
   { "httpRedirect",     ntop_http_redirect },

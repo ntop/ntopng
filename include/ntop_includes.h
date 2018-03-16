@@ -244,6 +244,9 @@ using namespace std;
 #include "ElasticSearch.h"
 #include "Logstash.h"
 #endif
+#ifdef HAVE_NINDEX
+#include "NIndexFlowDB.h"
+#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "DnsHostMapping.h"
@@ -297,9 +300,6 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
-#ifdef HAVE_NINDEX
-#include "NIndexFlowDB.h"
-#endif
 #endif
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"
