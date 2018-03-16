@@ -20,7 +20,7 @@
  */
 
 #ifndef _VLAN_ADDRESS_TREE_H_
-#define _VLAN_ADDRESS_TREE_
+#define _VLAN_ADDRESS_TREE_H_
 
 class AddressTree;
 

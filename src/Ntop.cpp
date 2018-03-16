@@ -407,9 +407,9 @@ void Ntop::start() {
   string_to_replace[i].key = CONST_NTOP_STARTUP_EPOCH, string_to_replace[i].val = ntop->getStarttimeString(); i++;
   string_to_replace[i].key = CONST_NTOP_PRODUCT_NAME, string_to_replace[i].val =
 #ifdef HAVE_NEDGE
-			 ntop->getPro()->get_product_name()
+    ntop->getPro()->get_product_name()
 #else
-			 "ntopng"
+    (char*)"ntopng"
 #endif
 			 ; i++;
   string_to_replace[i].key = NULL, string_to_replace[i].val = NULL;
