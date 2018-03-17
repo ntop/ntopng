@@ -3518,6 +3518,7 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 /* ****************************************** */
 
 #ifdef HAVE_NINDEX
+#if 0
 static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
   switch(step) {
   case 1: /* 1 sec */
@@ -3540,6 +3541,7 @@ static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
 
   return(-1); /* NOTREACHED */
 }
+#endif
 #endif
 
 /* ****************************************** */

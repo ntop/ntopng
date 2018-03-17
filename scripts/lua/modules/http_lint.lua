@@ -764,6 +764,14 @@ local known_parameters = {
    ["user_group"]              =  validateUnquoted,
    ["admin_group"]             =  validateUnquoted,
 
+   -- nIndex
+   ["select_clause"]           = validateUnquoted,
+   ["where_clause"]            = validateUnquoted,
+   ["begin_time_clause"]       = validateUnquoted,
+   ["end_time_clause"]         = validateUnquoted,
+   ["flow_clause"]             = validateSingleWord,
+   ["maxhits_clause"]          = validateNumber,
+   
 -- HOST SPECIFICATION
    ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             =  validateHost,                  -- an host for comparison
