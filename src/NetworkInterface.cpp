@@ -46,7 +46,7 @@ NetworkInterface::NetworkInterface(const char *name,
   char _ifname[64], buf[64];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-  
+
   init();
   customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
 
@@ -681,7 +681,7 @@ NetworkInterface::~NetworkInterface() {
 
   delete frequentProtocols;
   delete frequentMacs;
-  if(db)             delete db;
+  if(db) delete db;
 
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
@@ -701,7 +701,7 @@ NetworkInterface::~NetworkInterface() {
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping flow.");
-  
+
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
@@ -807,7 +807,7 @@ void NetworkInterface::flushFlowDump() {
 static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   Host *host = (Host*)h;
 
-  if(host && (host->isLocalHost() || host->isSystemHost())) {    
+  if(host && (host->isLocalHost() || host->isSystemHost())) {
     host->serialize2redis();
     *matched = true;
   }
@@ -827,7 +827,7 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 	      local_hosts_2_redis_walker, NULL) ? 0 : -1;
   if(disable_purge) enablePurge(false /* on hosts */);
 
-  
+
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->dumpToRedis();
 #endif
@@ -1368,7 +1368,7 @@ void NetworkInterface::dumpPacketDisk(const struct pcap_pkthdr *h, const u_char 
                                       dump_reason reason) {
   if(pkt_dumper == NULL)
     pkt_dumper = new PacketDumper(this);
-  
+
   if(pkt_dumper)
     pkt_dumper->dumpPacket(h, packet, reason, getDumpTrafficSamplingRate(),
                            getDumpTrafficMaxPktsPerFile(),
@@ -1661,7 +1661,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    flow->addPacketToDump(h, packet);
 	    flow->flushBufferedPackets();
 	  }
-	  
+
 	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
 	} else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
@@ -1886,11 +1886,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
 #endif
   }
-  
+
   bool dump_if_unknown = dump_unknown_traffic
     && ((!flow->isDetectionCompleted())
 	&& (flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN));
-  
+
   if(dump_if_unknown
      || dump_all_traffic
      || flow->dumpFlowTraffic()) {
@@ -1898,10 +1898,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       // dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
       flow->addPacketToDump(h, packet);
     }
-    
+
     if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
-  }  
-  
+  }
+
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -2533,7 +2533,7 @@ static bool flow_sum_protos(GenericHashEntry *flow, void *user_data, bool *match
 
   f->sumStats(stats);
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -2562,7 +2562,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data, boo
 
   flow->update_hosts_stats(tv);
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -2574,7 +2574,7 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *ma
 
   host->updateStats(tv);
   *matched = true;
-  
+
   /*
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
     ((StringHost*)node)->host_key(),
@@ -2592,7 +2592,7 @@ static bool update_ases_stats(GenericHashEntry *node, void *user_data, bool *mat
 
   as->updateStats(tv);
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -2604,7 +2604,7 @@ static bool update_vlans_stats(GenericHashEntry *node, void *user_data, bool *ma
 
   vl->updateStats(tv);
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -2616,7 +2616,7 @@ static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *mat
 
   mac->updateStats(tv);
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -2713,7 +2713,7 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 #endif
 
   *matched = true;
-  
+
   if(up->update_pool_id)
     h->updateHostPool(false /* Not inline with traffic processing */);
 
@@ -2980,7 +2980,7 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched
   if((info->m == NULL) && (!memcmp(info->mac, m->get_mac(), 6))) {
     info->m = m;
     *matched = true;
-    
+
     return(true); /* found */
   }
 
@@ -3081,7 +3081,7 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data, bool *matc
 
   flow->updateProfile();
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -4149,7 +4149,7 @@ static bool flow_drop_walker(GenericHashEntry *h, void *user_data, bool *matched
     f->setDropVerdict();
     *matched = true;
   }
-  
+
   return(false); /* Keep on walking */
 }
 
@@ -4684,7 +4684,7 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data, bool *matche
     stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   *matched = true;
-    
+
   return(false); /* false = keep on walking */
 }
 
@@ -4913,7 +4913,7 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data, bool
   }
 
   *matched = true;
-  
+
   return(false /* keep walking */);
 }
 
@@ -4925,7 +4925,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data, bool *matc
 
   num_flows[flow->get_detected_protocol().app_protocol]++;
   *matched = true;
-  
+
   return(false /* keep walking */);
 }
 
@@ -5089,7 +5089,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(!isView()) {
     if(pkt_dumper)
       pkt_dumper->lua(vm);
-    
+
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     if(flow_profiles) flow_profiles->lua(vm);
@@ -5282,7 +5282,7 @@ static bool hosts_search_walker(GenericHashEntry *h, void *user_data, bool *matc
     info->num_matches++;
     *matched = true;
   }
-  
+
   /* Stop after CONST_MAX_NUM_FIND_HITS matches */
   return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
 }
@@ -5305,7 +5305,7 @@ static bool macs_search_walker(GenericHashEntry *h, void *user_data, bool *match
     info->num_matches++;
     *matched = true;
   }
-  
+
   /* Stop after CONST_MAX_NUM_FIND_HITS matches */
   return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
 }
@@ -5464,7 +5464,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data, bool *mat
     lua_settable(info->vm, -3);
     *matched = true;
   }
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -5507,7 +5507,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data, boo
     }
   }
   *matched = true;
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -5602,7 +5602,7 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data, bool *
     info->num += s->luaVirtualHosts(info->vm, info->key, h);
     *matched = true;
   }
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -6176,7 +6176,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numMacs", retriever.actNumEntries);
   lua_push_int_table_entry(vm, "nextSlot", *begin_slot);
-  
+
   lua_newtable(vm);
 
   if(a2zSortOrder) {
@@ -6611,7 +6611,7 @@ static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data, boo
 
   h->refreshHostAlertPrefs();
   *matched = true;
-  
+
   if(full_refresh)
     h->loadAlertsCounter();
   return(false); /* false = keep on walking */
@@ -6721,6 +6721,14 @@ void NetworkInterface::topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes)
     frequentMacs->addMacProtocol(mac->get_mac(), protocol, bytes);
   }
 }
+
+/* *************************************** */
+
+#ifdef HAVE_NINDEX
+NIndexFlowDB* NetworkInterface::getNindex() {
+  return(ntop->getPrefs()->do_dump_flows_on_nindex() ? (NIndexFlowDB*)db : NULL);
+}
+#endif
 
 /* *************************************** */
 
