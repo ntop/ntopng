@@ -130,6 +130,10 @@ res = interface.nIndexSelect(aggregated_flows, begin_time, end_time, select, whe
 -- tprint(res)
 
 if(res) then
+   if(res.info.duration == 0) then
+      res.info.duration = " &lt; 1"
+   end
+   
    print("<p><small>Query perfomed in "..res.info.duration.." msec</small><br>")
    
    print("<p><table class=\"table table-bordered table-striped\">\n")
