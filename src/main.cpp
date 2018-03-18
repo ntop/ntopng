@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
   }
 
   /*
-    We have created the network interface and thus changed user. Let's not check
+    We have created the network interface and thus changed user. Let's now check
     if we can write on the data directory
   */
   Utils::mkdir_tree(ntop->get_working_dir());
@@ -356,8 +356,8 @@ int main(int argc, char *argv[])
   
   if((fd = fopen(path, "w")) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Unable to write on %s [%s]: please specify a different directory (-d)",
-				 ntop->get_working_dir(), path);
+				 "Unable to write on %s [%s]: %s. Please specify a different directory (-d)",
+				 ntop->get_working_dir(), path, strerror(errno));
     exit(EXIT_FAILURE);
   } else {
     fclose(fd); /* All right */

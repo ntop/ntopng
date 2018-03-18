@@ -267,6 +267,7 @@ void Flow::processDetectedProtocol() {
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   if((l7proto != NDPI_PROTOCOL_DNS)
+     && (l7proto != NDPI_PROTOCOL_DHCP) /* host_server_name in DHCP is for the client name, not the server */
      && (ndpiFlow->host_server_name[0] != '\0')
      && (host_server_name == NULL)) {
     Utils::sanitizeHostName((char*)ndpiFlow->host_server_name);

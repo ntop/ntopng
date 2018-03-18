@@ -168,7 +168,10 @@ class Ntop {
   inline void getMacManufacturer(const char *mac, lua_State *vm) {
     u_int8_t mac_bytes[6];
     Utils::parseMac(mac_bytes, mac);
-    mac_manufacturers->getMacManufacturer(mac_bytes, vm);
+    if(mac_manufacturers)
+      mac_manufacturers->getMacManufacturer(mac_bytes, vm);
+    else
+      lua_pushnil(vm);
   }
 
   /**

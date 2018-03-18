@@ -1530,6 +1530,12 @@ end
 
 -- ##############################################
 
+function getDhcpNamesKey(ifid)
+   return "ntopng.dhcp."..ifid..".cache"
+end
+
+-- ##############################################
+
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
@@ -1549,6 +1555,16 @@ function getHostAltName(host_ip, host_mac)
    alt_name = ntop.getHashCache(getHostAltNamesKey(), host_ip)
    if (isEmptyString(alt_name) and (host_mac ~= nil)) then
       alt_name = ntop.getHashCache(getHostAltNamesKey(), host_mac)
+   end
+
+   if isEmptyString(alt_name) and ifname ~= nil then
+      local key = getDhcpNamesKey(getInterfaceId(ifname))
+
+      if host_mac ~= nil then
+         alt_name = ntop.getHashCache(key, host_mac)
+      elseif isMacAddress(host_ip) then
+         alt_name = ntop.getHashCache(key, host_ip)
+      end
    end
 
    if isEmptyString(alt_name) then
@@ -1579,7 +1595,7 @@ function getDeviceName(device_mac, skip_manufacturer)
 
       if (info ~= nil) then
          for x, host in pairs(info.hosts) do
-            if not isEmptyString(host.name) and host.name ~= host.ip then
+            if not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
                name = host.name
             elseif host.ip ~= "0.0.0.0" then
                name = getHostAltName(host.ip)

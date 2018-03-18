@@ -1711,6 +1711,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
 	    ntop->getRedis()->hashSet(key, client_mac, name);
+#ifdef DHCP_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
+#endif
 	  } else if(id == 55 /* Parameters List (Fingerprint) */) {
 	    if((*srcHost)->getMac()) {
 	      char fingerprint[64], buf[32];

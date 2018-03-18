@@ -33,6 +33,14 @@ print [[
         end
       end
 
+      -- Also look at the DHCP cache
+      local mac_to_name = ntop.getHashAllCache(getDhcpNamesKey(getInterfaceId(ifname))) or {}
+      for mac, name in pairs(mac_to_name) do
+        if string.contains(string.lower(name), string.lower(query)) then
+          res[mac] = hostVisualization(mac, name)
+        end
+      end
+
       if(res ~= nil) then
 	 for k, v in pairs(res) do
 	    if isIPv6(v) and (not string.contains(v, "%[IPv6%]")) then
@@ -42,8 +50,10 @@ print [[
 	    if((v ~= "") and (already_printed[v] == nil)) then
 	       if(num > 0) then print(",\n") end
 	       print('\t{"name": "'..v..'", ')
-	       if(isMacAddress(v)) then
+	       if isMacAddress(v) then
 	          print('"ip": "'..v..'", "isMac": true}')
+	       elseif isMacAddress(k) then
+		  print('"ip": "'..k..'", "isMac": true}')
 	       else
 	          print('"ip": "'..k..'"}')
 	       end

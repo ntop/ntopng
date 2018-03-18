@@ -2440,7 +2440,7 @@ void Utils::luaMeminfo(lua_State* vm) {
 /* ****************************************************** */
 
 char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
-  char ebuf[256];
+  char ebuf[PCAP_ERRBUF_SIZE];
   pcap_if_t *devs, *devpointer;
 
   snprintf(buf, buf_len, "%s", ifname);
