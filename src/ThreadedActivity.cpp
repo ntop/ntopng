@@ -62,7 +62,9 @@ ThreadedActivity::~ThreadedActivity() {
 
   if(path) free(path);
   if(pool) delete pool;
-  if(interfaceTasksRunning) delete interfaceTasksRunning;
+
+  if(interfaceTasksRunning)
+    free(interfaceTasksRunning);
 
   if(thread_started)
     pthread_join(pthreadLoop, &res);
