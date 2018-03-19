@@ -718,7 +718,13 @@ void Redis::setDefaults() {
   if(get((char*)"ntopng.user.admin.password", value,
 	 CONST_MAX_LEN_REDIS_VALUE) < 0) {
     set((char*)"ntopng.user.admin.password", admin_md5);
-    set((char*)"ntopng.user.admin.full_name", (char*)"ntopng Administrator");
+    set((char*)"ntopng.user.admin.full_name",
+#ifdef HAVE_NEDGE
+		(char*)((ntop->getPro()->is_oem()) ? "Administrator" : "ntopng Administrator")
+#else
+		(char*)"ntopng Administrator"
+#endif
+    );
     set((char*)"ntopng.user.admin.group", (char*)CONST_USER_GROUP_ADMIN);
     set((char*)"ntopng.user.admin.allowed_nets", (char*)"0.0.0.0/0,::/0");
   } else if(strncmp(value, admin_md5, strlen(admin_md5))) {
