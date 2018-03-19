@@ -1083,7 +1083,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    --io.write(prefixLabel.."\n")
 
    if(prefixLabel == "Bytes") then
-      prefixLabel = "Traffic"
+      prefixLabel = i18n("traffic")
    end
 
    if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
@@ -1143,18 +1143,21 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 end
 
 	 if string.starts(host, 'asn:') then
-	    extra_info = extra_info.." by AS"
+	    extra_info = i18n("graphs.metrics_suffixes.by_as", {metric=i18n("graphs.metrics_suffixes." .. string.lower(extra_info)) or ""})
 	 end
 
 	 if extra_info ~= "" and extra_info ~= prefixLabel then
 	    if(port_mode) then
 	       if(#names == 0) then
-		  names[#names+1] = prefixLabel.." Egress ("..extra_info..") "
+		  names[#names+1] = prefixLabel..i18n("graphs.metrics_suffixes.egress") .. " ("..extra_info..") "
 	       else
-		  names[#names+1] = prefixLabel.." Ingress ("..extra_info..") "
+		  names[#names+1] = prefixLabel..i18n("graphs.metrics_suffixes.ingress") .. " ("..extra_info..") "
 	       end
 	    elseif prefixLabel ~= "" then
-	       names[#names+1] = prefixLabel.." ("..extra_info..") "
+	       local prefix = i18n("graphs.metrics_prefixes." .. string.lower(prefixLabel)) or prefixLabel
+	       local suffix = i18n("graphs.metrics_suffixes." .. string.lower(extra_info)) or extra_info
+
+	       names[#names+1] = prefix.." ("..suffix..") "
 	    else
 	       names[#names+1] = extra_info
 	    end
