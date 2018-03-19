@@ -2783,3 +2783,19 @@ u_int32_t Utils::parsetime(char *str) {
     return(atol(str));
 }
 
+/* ************************************************* */
+
+u_int64_t Utils::mac2int(u_int8_t *mac) {
+  u_int64_t m = 0;
+
+  memcpy(&m, mac, 6);
+  return(m);
+}
+
+/* ************************************************* */
+
+u_int8_t* Utils::int2mac(u_int64_t mac, u_int8_t *buf) {
+  memcpy(buf, &mac, 6);
+  buf[6] = buf[7] = '\0';
+  return(buf);
+}

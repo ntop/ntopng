@@ -120,6 +120,8 @@ class Utils {
   static int bindSockToDevice(int sock, int family, const char* devicename);
   static void maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb);
   static u_int32_t parsetime(char *str);
+  static u_int64_t mac2int(u_int8_t *mac);
+  static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
   
   /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);

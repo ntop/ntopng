@@ -96,6 +96,7 @@ class NetworkInterface : public Checkpointable {
   AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
 #endif
   EthStats ethStats;
+  std::map<u_int32_t, u_int64_t> ip_mac; /* IP (network byte order) <-> MAC association [2 bytes are unused] */
   u_int32_t arp_requests, arp_replies;
   ICMPstats icmp_v4, icmp_v6;
   LocalTrafficStats localStats;
@@ -227,6 +228,7 @@ class NetworkInterface : public Checkpointable {
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
 
   void topItemsCommit(const struct timeval *when);
+  void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   
  public:
   /**

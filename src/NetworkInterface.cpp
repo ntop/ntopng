@@ -1686,13 +1686,18 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       Mac *mac = (*srcHost)->getMac();
 
       if(payload_len > 240) {
-	if(mac && (payload[0] == 0x01)) /* Request */
+	struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
+
+	if(dhcpp->msgType == 0x01) /* Request */
 	  mac->setDhcpHost();
+	else if(dhcpp->msgType == 0x02) /* Reply */
+	  checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
 
 	for(int i = 240; i<payload_len; ) {
 	  u_int8_t id  = payload[i], len = payload[i+1];
 
-	  if(len == 0) break;
+	  if(len == 0)
+	    break;
 
 #ifdef DHCP_DEBUG
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
@@ -1972,7 +1977,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
   time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
 
- datalink_check:
+datalink_check:
   if(pcap_datalink_type == DLT_NULL) {
     memcpy(&null_type, &packet[eth_offset], sizeof(u_int32_t));
 
@@ -2054,7 +2059,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       break;
   }
 
- decode_packet_eth:
+decode_packet_eth:
   switch(eth_type) {
   case ETHERTYPE_PPOE:
     eth_type = ETHERTYPE_IP;
@@ -2065,7 +2070,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   case ETHERTYPE_IP:
     if(h->caplen >= ip_offset + sizeof(struct ndpi_iphdr)) {
       u_int16_t frag_off;
-      struct ndpi_iphdr *iph = (struct ndpi_iphdr *) &packet[ip_offset];
+      struct ndpi_iphdr *iph = (struct ndpi_iphdr *)&packet[ip_offset];
       u_short ip_len = ((u_short)iph->ihl * 4);
       struct ndpi_ipv6hdr *ip6 = NULL;
 
@@ -2120,7 +2125,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	}
 
       } else if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_UDP)
-	 && ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)) {
+		&& ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)) {
 	struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset+ip_len];
 	u_int16_t sport = ntohs(udp->source), dport = ntohs(udp->dest);
 
@@ -2393,20 +2398,22 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 #endif
 
     if(srcMac && dstMac) {
-      const u_int16_t arp_opcode_offset = ip_offset + 6;
-      u_int16_t arp_opcode = 0;
+      if((eth_type == ETHERTYPE_ARP) && (h->caplen > (sizeof(arp_packet)+sizeof(struct ndpi_ethhdr)))) {
+	struct arp_packet *arpp = (struct arp_packet*)&packet[ip_offset];;
+	u_int16_t arp_opcode = ntohs(arpp->ar_op);
 
-      if((eth_type == ETHERTYPE_ARP) && (h->len > (u_int16_t)(arp_opcode_offset + 1)))
-	arp_opcode = (packet[arp_opcode_offset] << 8) + packet[arp_opcode_offset + 1];
+	if(arp_opcode == 0x1 /* ARP request */) {
+	  arp_requests++;
+	  srcMac->incSentArpRequests();
+	  dstMac->incRcvdArpRequests();
+	} else if(arp_opcode == 0x2 /* ARP reply */) {
+	  arp_replies++;
+	  srcMac->incSentArpReplies();
+	  dstMac->incRcvdArpReplies();
 
-      if(arp_opcode == 0x1 /* ARP request */) {
-	arp_requests++;
-	srcMac->incSentArpRequests();
-	dstMac->incRcvdArpRequests();
-      } else if(arp_opcode == 0x2 /* ARP reply */) {
-	arp_replies++;
-	srcMac->incSentArpReplies();
-	dstMac->incRcvdArpReplies();
+	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
+	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
+	}
       }
     }
 
@@ -6732,6 +6739,36 @@ NIndexFlowDB* NetworkInterface::getNindex() {
   return(ntop->getPrefs()->do_dump_flows_on_nindex() ? (NIndexFlowDB*)db : NULL);
 }
 #endif
+
+/* *************************************** */
+
+void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4) {
+  std::map<u_int32_t, u_int64_t>::iterator it;
+  u_int64_t mac = Utils::mac2int(_mac);
+
+  if(!triggerEvent)
+    ip_mac[ipv4] = mac;
+  else {
+    if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
+      /* Found entry */
+      if(it->second != mac) {
+	char oldmac[32], newmac[32], ipbuf[32];
+	u_char tmp[6];
+
+	Utils::int2mac(it->second, tmp);
+	Utils::formatMac(tmp, oldmac, sizeof(oldmac));
+	Utils::formatMac(_mac, newmac, sizeof(newmac));
+
+	/* TODO: trigger alert */
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "IP %s: modified MAC association %s -> %s",
+				     Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf)),
+				     oldmac, newmac);
+	ip_mac[ipv4] = mac;
+      }
+    } else
+      ip_mac[ipv4] = mac;
+  }
+}
 
 /* *************************************** */
 
