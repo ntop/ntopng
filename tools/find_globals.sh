@@ -4,6 +4,11 @@
 # Global variables should be avoided as they are a potentially source of issues
 # and reduce the overall performance.
 #
+# You can provide an argument to this script to only validate the specified lua
+# script. NOTE: The argument is a path relative to this script.
+#
+
+STOP_ON_FIRST_FILE_WITH_ERRORS=1
 
 # Go into the scripts dir
 if [[ -d "tools" ]]; then
@@ -50,8 +55,14 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
+if [[ ! -z "$1" ]]; then
+  files="$1"
+else
+  files=`find -L ../scripts -name "*.lua"`
+fi
+
 # Locate lua sources, following symbolic links
-for f in `find -L ../scripts -name "*.lua"`; do
+for f in $files; do
   has_errors=0
 
   while read line; do
@@ -76,7 +87,7 @@ for f in `find -L ../scripts -name "*.lua"`; do
   # todo exit on error, the below does not work
   # if [[ $? -ne 0 ]]; then exit 1; fi
 
-  if [[ $has_errors -ne 0 ]]; then
+  if [[ ( $has_errors -ne 0 ) && ( $STOP_ON_FIRST_FILE_WITH_ERRORS -eq 1 ) ]]; then
     exit 1
   fi
 done

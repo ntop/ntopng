@@ -62,6 +62,10 @@ local GLOBALS = {
 	["tonumber"]=1,
 	["string"]=1,
 	["print"]=1,
+	["pairs"]=1,
+	["io"]=1,
+	["os"]=1,
+	["pcall"]=1,
 }
 
 local n=0
@@ -168,7 +172,7 @@ while true do
 		elseif not funcScope and SETGLOBALfile then
 			printone(lin)
 		end
-	elseif strmatch(lin,"GETTABUP \t") then
+	elseif strmatch(lin,"GETTABUP \t[^;]*; _ENV") then
 		if funcScope and GETGLOBALfunc then
 			printone(lin)
 		elseif not funcScope and GETGLOBALfile then
