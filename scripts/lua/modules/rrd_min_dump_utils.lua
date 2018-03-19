@@ -131,7 +131,7 @@ end
 
 -- ########################################################
 
-function dumpTopTalkers(_ifname, ifstats, verbose)
+local function dumpTopTalkers(_ifname, ifstats, verbose)
   -- Dump topTalkers every minute
   local talkers = top_talkers_utils.makeTopJson(_ifname)
 
