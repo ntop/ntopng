@@ -1,20 +1,56 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 if [ -f /.dockerenv ]; then exit 0; fi
+
+. /usr/share/debconf/confmodule
+
+check_upgrade_declined()
+{
+	db_get ntopng/license_expired_continue_installation
+	if [ "$RET" = false ]; then
+	    if [ "$1" = "warn" ]; then
+		echo "WARNING: Maintenance expired. Upgrade declined by the user." >&2
+	    fi
+	    exit 1
+	fi
+}
+
+promt_license_expired()
+{
+    local NOW=`date +'%s'`
+    local EXPIRY_EPOCH=`/usr/local/bin/ntopng --check-maintenance | cut -d' ' -f 1`
+
+    # always re-ask the question
+    db_reset ntopng/license_expired_continue_installation
+    if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
+	# Missing or invalid (e.g., expired demo) license.
+	# Permanent licenses are always valid even when the maintenance is expired.
+	:
+    elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
+	if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
+	    db_input high ntopng/license_expired_continue_installation || true
+	    db_go || true
+	    check_upgrade_declined
+	fi
+    fi
+}
 
 # Only shut the daemon down if we're really removing the package.  If this is
 # an upgrade, we will instead do a restart in the postinst... this keeps ntopng
 # from being left shut down for a long time, which could pose problems.
 case "$1" in
-	upgrade)
+	failed-upgrade)
+		check_upgrade_declined warn
 	;;
 
 	*)
+	if [ "$1" = "upgrade" ]; then promt_license_expired; fi
         echo "Stopping ntopng services..."
 	if hash systemctl 2>/dev/null; then
 		systemctl stop ntopng
 		systemctl disable ntopng
-
 		systemctl daemon-reload
 		systemctl reset-failed
 	elif [ -f /etc/init.d/ntopng ]; then

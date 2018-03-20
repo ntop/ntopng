@@ -1,0 +1,7 @@
+Template: ntopng/license_expired_continue_installation
+Type: boolean
+Default: true
+Description: Do you want to continue with the installation?
+ License found is not valid for the new package that is going to be installed.
+ .
+ Renew the maintenance to get a valid license for the new package or cancel the installation to continue using the current package.

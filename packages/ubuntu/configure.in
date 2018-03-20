@@ -42,7 +42,7 @@ if [ test -f /usr/bin/lsb_release ]; then
   else
     ZMQ_DEP="libzmq3"
   fi  
-  EXTRA_DEPS=", libnuma1, $ZMQ_DEP, libnetfilter-queue1"
+  EXTRA_DEPS=", debconf, libnuma1, $ZMQ_DEP, libnetfilter-queue1"
 
   if [ test -d $HOME/PF_RING ]; then
     PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
