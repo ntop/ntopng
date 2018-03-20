@@ -1885,6 +1885,7 @@ local lang = {
     ["you_can_assign_shapers_to_users_protocols"] = "You can assign shapers to <a href=\"%{url}\">Users</a> specific protocols or set them globally as a <a href=\"%{url2}\">Fallback Policy</a>.",
     ["you_can_set_static_dhcp_lease_here"] = "You can configure static DHCP leases <a href=\"%{url}\">here</a>.",
     ["you_can_use_gateways_in_policies"] = "You can specify gateways priorities in <a href=\"%{url}\">Routing Policies</a>.",
+    router_mode_requires_enterprise = "Router mode is only available in the nedge Enterprise edition.",
   },
   ["network_alert_config"] = {
     ["trigger_alerts_for_network"] = "Trigger alerts for Network %{network}",

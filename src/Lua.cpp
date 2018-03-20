@@ -4604,6 +4604,14 @@ static int ntop_is_nedge(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_nedge_enterprise(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_nedge_enterprise_edition());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_host_pools(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4961,6 +4969,8 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
     lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_edition());
     lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
+    lua_push_bool_table_entry(vm, "version.nedge_edition", ntop->getPrefs()->is_nedge_edition());
+    lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition", ntop->getPrefs()->is_nedge_enterprise_edition());
 
     lua_push_bool_table_entry(vm, "pro.release", ntop->getPrefs()->is_pro_edition());
     lua_push_int_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
@@ -7074,6 +7084,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isPro",                  ntop_is_pro },
   { "isEnterprise",           ntop_is_enterprise },
   { "isnEdge",                ntop_is_nedge },
+  { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
 
   /* Historical database */
   { "insertMinuteSampling",          ntop_stats_insert_minute_sampling },
