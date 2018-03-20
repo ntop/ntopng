@@ -55,7 +55,6 @@ case "$1" in
 		systemctl reset-failed
 	elif [ -f /etc/init.d/ntopng ]; then
 		/etc/init.d/ntopng stop
-		update-rc.d ntopng remove >/dev/null
 	fi
 	;;
 esac

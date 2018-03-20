@@ -4,6 +4,9 @@ set -e
 
 case "$1" in
 	purge|remove)
+	if [ -f /etc/init.d/ntopng ]; then
+		update-rc.d ntopng remove >/dev/null
+	fi
 	;;
 esac
 
