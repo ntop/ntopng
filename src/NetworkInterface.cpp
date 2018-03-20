@@ -2398,6 +2398,8 @@ decode_packet_eth:
 #endif
 
     if(srcMac && dstMac) {
+      setSeenMacAddresses();
+
       if((eth_type == ETHERTYPE_ARP) && (h->caplen > (sizeof(arp_packet)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_packet *arpp = (struct arp_packet*)&packet[ip_offset];;
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
