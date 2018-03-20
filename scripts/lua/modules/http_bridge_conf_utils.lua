@@ -31,8 +31,8 @@ end
 local http_bridge_conf_utils = {}
 
 -- set to a non-empty value to enable HTTP configuration, e.g.,
-http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "localhost:8000"
--- http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "" --localhost:8000"
+-- http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "localhost:8000"
+http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = ""
 
 function http_bridge_conf_utils.configureBridge()
    if not isEmptyString(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL) then
