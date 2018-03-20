@@ -6743,30 +6743,32 @@ NIndexFlowDB* NetworkInterface::getNindex() {
 /* *************************************** */
 
 void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4) {
-  std::map<u_int32_t, u_int64_t>::iterator it;
-  u_int64_t mac = Utils::mac2int(_mac);
+  if(ipv4 != 0) {
+    std::map<u_int32_t, u_int64_t>::iterator it;
+    u_int64_t mac = Utils::mac2int(_mac);
 
-  if(!triggerEvent)
-    ip_mac[ipv4] = mac;
-  else {
-    if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
-      /* Found entry */
-      if(it->second != mac) {
-	char oldmac[32], newmac[32], ipbuf[32];
-	u_char tmp[6];
-
-	Utils::int2mac(it->second, tmp);
-	Utils::formatMac(tmp, oldmac, sizeof(oldmac));
-	Utils::formatMac(_mac, newmac, sizeof(newmac));
-
-	/* TODO: trigger alert */
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "IP %s: modified MAC association %s -> %s",
-				     Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf)),
-				     oldmac, newmac);
-	ip_mac[ipv4] = mac;
-      }
-    } else
+    if(!triggerEvent)
       ip_mac[ipv4] = mac;
+    else {
+      if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
+	/* Found entry */
+	if(it->second != mac) {
+	  char oldmac[32], newmac[32], ipbuf[32];
+	  u_char tmp[6];
+
+	  Utils::int2mac(it->second, tmp);
+	  Utils::formatMac(tmp, oldmac, sizeof(oldmac));
+	  Utils::formatMac(_mac, newmac, sizeof(newmac));
+
+	  /* TODO: trigger alert */
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "IP %s: modified MAC association %s -> %s",
+				       Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf)),
+				       oldmac, newmac);
+	  ip_mac[ipv4] = mac;
+	}
+      } else
+	ip_mac[ipv4] = mac;
+    }
   }
 }
 
