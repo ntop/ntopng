@@ -2131,6 +2131,36 @@ local function getSavedDeviceName(mac)
    return ntop.getCache(key)
 end
 
+-- Global function
+function check_mac_ip_association_alerts()
+   while(true) do
+      local message = ntop.lpopCache("ntopng.alert_mac_ip_queue")
+      local elems
+      
+      if((message == nil) or (message == "")) then
+	 break
+      end
+      
+      elems = split(message, "|")
+
+      local interface_name    = elems[1]
+      local interface_id      = elems[2]
+      local ipaddr            = elems[3]
+      local old_mac_address   = elems[4]
+      local new_mac_address   = elems[5]
+
+      -- redis-cli lpush "ntopng.alert_mac_ip_queue" "en0|1|1.2.3.4|4a:00:06:a0:7c:50|4a:00:06:a0:7c:51"
+      io.write(ipaddr.." ==> "..message.."[".. interface_name .."]\n")
+
+      interface.select(interface_name)
+      interface.storeMacAlert(new_mac_address, alertType("mac_ip_association_change"), alertSeverity("warning"),
+			      i18n("alert_messages.mac_ip_association_change",
+				   {device=name, ip=ipaddr,
+				    old_mac=old_mac_address, old_mac_url=getMacUrl(old_mac_address),
+				    new_mac=new_mac_address, new_mac_url=getMacUrl(new_mac_address)}))
+   end   
+end
+
 local function check_macs_alerts(ifid, working_status)
    if working_status.granularity ~= "min" then
       return
@@ -2157,7 +2187,7 @@ local function check_macs_alerts(ifid, working_status)
                local name = getDeviceName(mac)
                setSavedDeviceName(mac, name)
                interface.storeMacAlert(mac, alertType("new_device"), alertSeverity("warning"),
-                  i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
+				       i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
             end
          end
 
@@ -2169,7 +2199,7 @@ local function check_macs_alerts(ifid, working_status)
                local name = getDeviceName(mac)
                setSavedDeviceName(mac, name)
                interface.storeMacAlert(mac, alertType("device_connection"), alertSeverity("info"),
-                  i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
+				       i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
             end
          else
             new_active_devices[mac] = 1
@@ -2185,7 +2215,7 @@ local function check_macs_alerts(ifid, working_status)
 
          if alert_device_connection_enabled then
             interface.storeMacAlert(mac, alertType("device_disconnection"), alertSeverity("info"),
-               i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
+				    i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
          end
       end
    end
@@ -2321,8 +2351,10 @@ function check_host_pools_alerts(ifid, working_status)
 	       ntop.setMembersCache(active_pools_set, pool)
 
 	       if alert_pool_connection_enabled then
-		  interface.storeHostPoolAlert(tonumber(pool), alertType("host_pool_connection"), alertSeverity("info"),
-					       i18n("alert_messages.host_pool_has_connected", {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
+		  interface.storeHostPoolAlert(tonumber(pool),
+					       alertType("host_pool_connection"), alertSeverity("info"),
+					       i18n("alert_messages.host_pool_has_connected",
+						    {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
 	       end
 	    end
 	 end
@@ -2336,9 +2368,11 @@ function check_host_pools_alerts(ifid, working_status)
          ntop.delMembersCache(active_pools_set, pool)
 
          if alert_pool_connection_enabled then
-            interface.storeHostPoolAlert(tonumber(pool), alertType("host_pool_disconnection"), alertSeverity("info"),
-                  i18n("alert_messages.host_pool_has_disconnected", {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
-            
+            interface.storeHostPoolAlert(tonumber(pool),
+					 alertType("host_pool_disconnection"), alertSeverity("info"),
+					 i18n("alert_messages.host_pool_has_disconnected",
+					      {pool=host_pools_utils.getPoolName(ifid, pool),
+					       url=getHostPoolUrl(pool)}))            
          end
       end
    end

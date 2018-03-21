@@ -5733,7 +5733,6 @@ void NetworkInterface::allocateNetworkStats() {
     alertLevel = alertsManager->getNumAlerts(true);
   else
     alertLevel = 0;
-
 }
 
 /* **************************************** */
@@ -6755,17 +6754,20 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
       if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
 	/* Found entry */
 	if(it->second != mac) {
-	  char oldmac[32], newmac[32], ipbuf[32];
+	  char oldmac[32], newmac[32], ipbuf[32], buf[128], *ipa;
 	  u_char tmp[6];
 
 	  Utils::int2mac(it->second, tmp);
 	  Utils::formatMac(tmp, oldmac, sizeof(oldmac));
 	  Utils::formatMac(_mac, newmac, sizeof(newmac));
+	  ipa = Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf));
+	  
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
+				       ipa, oldmac, newmac);
 
-	  /* TODO: trigger alert */
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "IP %s: modified MAC association %s -> %s",
-				       Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf)),
-				       oldmac, newmac);
+	  /* Format: <device id>:<IP>:<old MAC>:<new MAC> */
+	  snprintf(buf, sizeof(buf), "%s|%u|%s|%s|%s", get_name(), id, ipa, oldmac, newmac);
+	  ntop->getRedis()->rpush(CONST_ALERT_MAC_IP_QUEUE, buf, 0 /* No trim */);
 	  ip_mac[ipv4] = mac;
 	}
       } else

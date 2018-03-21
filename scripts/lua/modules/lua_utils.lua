@@ -550,7 +550,8 @@ alert_type_keys = {
   { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.host_pool_disconnection"),        13, "host_pool_disconnection"      },
   { "<i class='fa fa-thermometer-full'></i> " .. i18n("alerts_dashboard.quota_exceeded"),         14, "quota_exceeded"      },
   { "<i class='fa fa-cog'></i> " .. i18n("alerts_dashboard.misconfigured_app"),                   15, "misconfigured_app"      },
-  { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.too_many_drops"),                      16, "too_many_drops"      },
+  { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.too_many_drops"),                     16, "too_many_drops"      },
+  { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),          17, "mac_ip_association_change"      },
 }
 
 local alert_entity_keys = {

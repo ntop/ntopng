@@ -713,6 +713,7 @@ bool Flow::dumpFlow(bool idle_flow) {
   time_t now;
 
   dumpFlowAlert();
+  
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
       return(rc);
