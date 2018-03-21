@@ -6719,30 +6719,34 @@ static int ntop_lua_require(lua_State* L) {
 
 /* ****************************************** */
 
-static int ntop_lua_dofile(lua_State* L) {
+static int ntop_lua_xfile(lua_State* L, bool ex) {
   char *script_path;
+  int ret;
 
   if(lua_type(L, 1) != LUA_TSTRING ||
-     (script_path = (char*)lua_tostring(L, 1)) == NULL ||
-     __ntop_lua_handlefile(L, script_path, true))
+     (script_path = (char*)lua_tostring(L, 1)) == NULL)
     return 0;
 
-  return 1;
+  ret = __ntop_lua_handlefile(L, script_path, ex);
+
+  if (ret && !lua_isnil(L, -1)) {
+    const char *msg = lua_tostring(L, -1);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", msg);
+  }
+
+  return !ret;
+}
+
+/* ****************************************** */
+
+static int ntop_lua_dofile(lua_State* L) {
+  return ntop_lua_xfile(L, true);
 }
 
 /* ****************************************** */
 
 static int ntop_lua_loadfile(lua_State* L) {
-  char *script_path;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s()", __FUNCTION__);
-
-  if(lua_type(L, 1) != LUA_TSTRING ||
-     ((script_path = (char*)lua_tostring(L, 1)) == NULL)
-     ||  __ntop_lua_handlefile(L, script_path, false))
-    return 0;
-
-  return 1;
+  return ntop_lua_xfile(L, false);
 }
 
 #endif
