@@ -23,7 +23,7 @@ promt_license_expired()
     local EXPIRY_EPOCH=`/usr/local/bin/ntopng --check-maintenance | cut -d' ' -f 1`
 
     # always re-ask the question
-    db_reset ntopng/license_expired_continue_installation
+    db_reset ntopng/license_expired_continue_installation || true
     if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
 	# Missing or invalid (e.g., expired demo) license.
 	# Permanent licenses are always valid even when the maintenance is expired.
@@ -55,7 +55,6 @@ case "$1" in
 		systemctl reset-failed
 	elif [ -f /etc/init.d/ntopng ]; then
 		/etc/init.d/ntopng stop
-		update-rc.d ntopng remove >/dev/null
 	fi
 	;;
 esac

@@ -1582,6 +1582,28 @@ bool Prefs::is_nedge_edition() {
 
 /* *************************************** */
 
+bool Prefs::is_nedge_enterprise_edition() {
+  return
+#ifdef HAVE_NEDGE
+    ntop->getPro()->has_valid_nedge_enterprise_license()
+#else
+  false
+#endif
+    ;
+}
+
+/* *************************************** */
+
+void Prefs::set_routing_mode(bool enabled) {
+#ifdef HAVE_NEDGE
+  routing_mode_enabled = enabled && ntop->getPro()->has_valid_nedge_enterprise_license();
+#else
+  routing_mode_enabled = false;
+#endif
+}
+
+/* *************************************** */
+
 time_t Prefs::pro_edition_demo_ends_at() {
   return
 #ifdef NTOPNG_PRO

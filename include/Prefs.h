@@ -134,6 +134,7 @@ class Prefs {
   bool is_pro_edition();
   bool is_enterprise_edition();
   bool is_nedge_edition();
+  bool is_nedge_enterprise_edition();
 
   void bind_http_to_address(char *addr)  { if(http_binding_address)  free(http_binding_address);  http_binding_address  = strdup(addr); };
   void bind_https_to_address(char *addr) { if(https_binding_address) free(https_binding_address); https_binding_address = strdup(addr); };
@@ -224,7 +225,7 @@ class Prefs {
   void add_network_interface(char *name, char *description);
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
-  inline void set_routing_mode(bool enabled)                  { routing_mode_enabled = enabled;          };  
+  void set_routing_mode(bool enabled);
   virtual void lua(lua_State* vm);
   void reloadPrefsFromRedis();
   void loadInstanceNameDefaults();

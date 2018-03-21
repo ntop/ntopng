@@ -97,6 +97,7 @@ print[[
 
   ]]
 
+if not ntop.isnEdge() then
 print[[
   <div class="form-group">
       <label class="form-label">]] print(i18n("language")) print[[</label>
@@ -112,6 +113,7 @@ print[[
         </select>
       </div>
     </div>]]
+end
 
 print[[
     <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>

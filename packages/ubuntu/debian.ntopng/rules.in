@@ -40,6 +40,7 @@ binary-arch: build install
 	dh_clean -k
 	dh_installdirs
 	dh_installinit
+	dh_installdebconf
 	dh_installman
 # Do not strip binary so we can leave debug symbols
 #	dh_strip
