@@ -1,5 +1,5 @@
 --
--- (C) 2013-17 - ntop.org
+-- (C) 2013-18 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -103,7 +103,7 @@ elseif action == "status" then
 	local resp = ntop.httpGet(status_url, nbox_user, nbox_password, 10)
 	if resp ~= nil and resp["CONTENT"] ~= nil then
 		local content = resp["CONTENT"]
-		-- resp is not valid json: is buggy @ 08-01-2016-17:
+		-- resp is not valid json: is buggy @ 08-01-2016-18:
 		-- this is an example { "result" : "OK", "tasks" : { {"task_id" : "1_1452012196" , "status" : "done" } , {"task_id" : "1_1452012274" , "status" : "done" }}}
 		-- double {{ and }} are not allowed and we must convert them to [{ and }] respectively
 		content = string.gsub(content, "{%s*{","[{")

@@ -1,5 +1,5 @@
 --
--- (C) 2017 - ntop.org
+-- (C) 2017-18 - ntop.org
 --
 local json = require "dkjson"
 
@@ -33,7 +33,7 @@ discover.apple_products = {
    ['iMac5,1'] = 'iMac "Core 2 Duo" 2.33 20-Inch',
    ['MacBookPro7,1'] = 'MacBook Pro "Core 2 Duo" 2.66 13" Mid-2010',
    ['MacPro2,1'] = 'Mac Pro "Eight Core" 3.0 (2,1)',
-   ['MacBook10,1'] = 'MacBook "Core i7" 1.4 12" (Mid-2017)',
+   ['MacBook10,1'] = 'MacBook "Core i7" 1.4 12" (Mid-2017-18)',
    ['Macmini1,1'] = 'Mac mini "Core Duo" 1.83',
    ['iMac12,2'] = 'iMac "Core i7" 3.4 27-Inch (Mid-2011)',
    ['iMac6,1'] = 'iMac "Core 2 Duo" 2.33 24-Inch',
@@ -96,10 +96,10 @@ discover.apple_products = {
    ['MacBookPro2,1'] = 'MacBook Pro "Core 2 Duo" 2.33 17"',
    ['MacBook5,1'] = 'MacBook "Core 2 Duo" 2.4 13" (Unibody)',
    ['MacBook5,2'] = 'MacBook "Core 2 Duo" 2.13 13" (White-09)',
-   ['MacBookPro14,2'] = 'MacBook Pro "Core i7" 3.5 13" Touch/Mid-2017',
-   ['MacBookPro14,3'] = 'MacBook Pro "Core i7" 3.1 15" Touch/Mid-2017',
+   ['MacBookPro14,2'] = 'MacBook Pro "Core i7" 3.5 13" Touch/Mid-2017-18',
+   ['MacBookPro14,3'] = 'MacBook Pro "Core i7" 3.1 15" Touch/Mid-2017-18',
    ['MacPro1,1*'] = 'Mac Pro "Quad Core" 3.0 (Original)',
-   ['MacBookPro14,1'] = 'MacBook Pro "Core i7" 2.5 13" Mid-2017',
+   ['MacBookPro14,1'] = 'MacBook Pro "Core i7" 2.5 13" Mid-2017-18',
    ['MacBookPro12,1'] = 'MacBook Pro "Core i7" 3.1 13" Early 2015',
    ['MacBook8,1'] = 'MacBook "Core M" 1.3 12" (Early 2015)',
    ['iMac15,1'] = 'iMac "Core i5" 3.3 27-Inch (5K, Mid-2015)',
@@ -118,9 +118,9 @@ discover.apple_products = {
    ['MacPro5,1'] = 'Mac Pro "Twelve Core" 3.06 (Server 2012)',
    ['MacBookPro6,2'] = 'MacBook Pro "Core i7" 2.8 15" Mid-2010',
    ['MacBookPro6,1'] = 'MacBook Pro "Core i7" 2.8 17" Mid-2010',
-   ['iMac18,1'] = 'iMac "Core i5" 2.3 21.5-Inch (Mid-2017)',
-   ['iMac18,3'] = 'iMac "Core i7" 4.2 27-Inch (5K, Mid-2017)',
-   ['iMac18,2'] = 'iMac "Core i7" 3.6 21.5-Inch (4K, Mid-2017)',
+   ['iMac18,1'] = 'iMac "Core i5" 2.3 21.5-Inch (Mid-2017-18)',
+   ['iMac18,3'] = 'iMac "Core i7" 4.2 27-Inch (5K, Mid-2017-18)',
+   ['iMac18,2'] = 'iMac "Core i7" 3.6 21.5-Inch (4K, Mid-2017-18)',
    ['iMac12,1'] = 'iMac "Core i3" 3.1 21.5-Inch (Late 2011)',
    ['MacBookAir4,2'] = 'MacBook Air "Core i5" 1.6 13" (Edu Only)',
    ['MacBookAir4,1'] = 'MacBook Air "Core i7" 1.8 11" (Mid-2011)',
