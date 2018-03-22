@@ -359,10 +359,8 @@ typedef struct {
 } StringCache_t;
 
 PACK_ON
-struct arp_packet {
-  u_char dst_mac[6], src_mac[6];
-  u_int16_t proto;
-  /* ************* */
+
+struct arp_header {
   u_int16_t ar_hrd;/* Format of hardware address.  */
   u_int16_t ar_pro;/* Format of protocol address.  */
   u_int8_t  ar_hln;/* Length of hardware address.  */
@@ -372,6 +370,12 @@ struct arp_packet {
   u_int32_t arp_spa;/* sender protocol address */
   u_char arp_tha[6];/* target hardware address */
   u_int32_t arp_tpa;/* target protocol address */
+} PACK_OFF;
+
+struct arp_packet {
+  u_char dst_mac[6], src_mac[6];
+  u_int16_t proto;
+  struct arp_header arph;
 } PACK_OFF;
 
 PACK_ON

@@ -2400,17 +2400,17 @@ decode_packet_eth:
     if(srcMac && dstMac) {
       setSeenMacAddresses();
 
-      if((eth_type == ETHERTYPE_ARP) && (h->caplen > (sizeof(arp_packet)+sizeof(struct ndpi_ethhdr)))) {
-	struct arp_packet *arpp = (struct arp_packet*)&packet[ip_offset];;
+      if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
+	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
-	  srcMac->incSentArpRequests();
+	  srcMac->incSentArpRequests(), srcMac->setSourceMac();
 	  dstMac->incRcvdArpRequests();
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
-	  srcMac->incSentArpReplies();
+	  srcMac->incSentArpReplies(), srcMac->setSourceMac();
 	  dstMac->incRcvdArpReplies();
 
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
@@ -3596,7 +3596,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
   if(!m
      || m->idle()
      || (r->sourceMacsOnly && !m->isSourceMac())
-     || (r->hostMacsOnly && m->getNumHosts() == 0)
+     || (r->hostMacsOnly && (m->getNumHosts() == 0))
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
      || (r->dhcpMacsOnly && (!m->isDhcpHost()))

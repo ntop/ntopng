@@ -125,9 +125,9 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   sender_ip = Utils::readIPv4(ifname);
 
   lua_newtable(vm);
-  
+
   iface->getIPv4Address(&netp, &maskp);
-    
+
   /* Purge existing packets */
 
   while((pcap_next(pd, &h) != NULL) && (!ntop->getGlobals()->isShutdown())) ;
@@ -141,7 +141,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     u_int last_dot = 0;
     char *queries;
 
-    if(mdns_sock > max_sock) max_sock = mdns_sock;    
+    if(mdns_sock > max_sock) max_sock = mdns_sock;
     dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
     dns_h->tr_id = 0;
     dns_h->flags = 0 /* query */;
@@ -179,33 +179,33 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   if((last_ip - first_ip) > max_num_ips)
     last_ip = first_ip + max_num_ips;
 
-  Utils::readMac(ifname, arp.arp_sha);
+  Utils::readMac(ifname, arp.arph.arp_sha);
 
   memset(arp.dst_mac, 0xFF, sizeof(arp.dst_mac));
-  memcpy(arp.src_mac, arp.arp_sha, sizeof(arp.src_mac));
+  memcpy(arp.src_mac, arp.arph.arp_sha, sizeof(arp.src_mac));
   arp.proto  = htons(0x0806 /* ARP */);
-  arp.ar_hrd = htons(1);
-  arp.ar_pro = htons(0x0800);
-  arp.ar_hln = 6;
-  arp.ar_pln = 4;
-  arp.ar_op = htons(1 /* ARP Request */);
-  arp.arp_spa = sender_ip;
-  memset(arp.arp_tha, 0, sizeof(arp.arp_tha));
+  arp.arph.ar_hrd = htons(1);
+  arp.arph.ar_pro = htons(0x0800);
+  arp.arph.ar_hln = 6;
+  arp.arph.ar_pln = 4;
+  arp.arph.ar_op = htons(1 /* ARP Request */);
+  arp.arph.arp_spa = sender_ip;
+  memset(arp.arph.arp_tha, 0, sizeof(arp.arph.arp_tha));
 
   /* Let's add myself */
   lua_push_str_table_entry(vm,
-			   Utils::formatMac(arp.arp_sha, macbuf, sizeof(macbuf)),
-			   Utils::intoaV4(ntohl(arp.arp_spa), ipbuf, sizeof(ipbuf)));
+			   Utils::formatMac(arp.arph.arp_sha, macbuf, sizeof(macbuf)),
+			   Utils::intoaV4(ntohl(arp.arph.arp_spa), ipbuf, sizeof(ipbuf)));
 
   mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
-    
+
   for(int num_runs=0; num_runs<2; num_runs++) {
     for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
       int sel_rc = 0;
-      
-      arp.arp_tpa = ntohl(host_ip);
 
-      if(arp.arp_tpa == arp.arp_spa)
+      arp.arph.arp_tpa = ntohl(host_ip);
+
+      if(arp.arph.arp_tpa == arp.arph.arp_spa)
 	continue; /* I know myself already */
 
       // Inject packet
@@ -220,17 +220,18 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
       if(mdns_sock != -1)
 	sel_rc = select(max_sock + 1, &rset, NULL, NULL, &tv);
 
-      reply = (struct arp_packet*)pcap_next(pd, &h);      
+      reply = (struct arp_packet*)pcap_next(pd, &h);
 
       if(reply) {
 	lua_push_str_table_entry(vm,
-				 Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
-				 Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-	
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",  Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-	
+				 Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
+				 Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",
+				     Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+
 	if(mdns_sock != -1) {
-	  mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
+	  mdns_dest.sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
 	  if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
 	    ntop->getTrace()->traceEvent(TRACE_ERROR, "MDNS Send error [%d/%s]", errno, strerror(errno));
 	}
@@ -243,13 +244,13 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
 	if(len > 0) {
 	  char outbuf[1024];
-	    
+
 	  dissectMDNS(mdnsreply, len, outbuf, sizeof(outbuf));
-	    
+
 	  if(outbuf[0] != '\0')
 	    lua_push_str_table_entry(vm,
 				     Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
-				     outbuf);	  
+				     outbuf);
 	}
       }
 
@@ -266,17 +267,17 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   while(true) {
     if((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
       lua_push_str_table_entry(vm,
-			       Utils::formatMac(reply->arp_sha, macbuf, sizeof(macbuf)),
-			       Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-      
+			       Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
+			       Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+
       ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",
-				   Utils::intoaV4(ntohl(reply->arp_spa), ipbuf, sizeof(ipbuf)));
-      mdns_dest.sin_addr.s_addr = reply->arp_spa, dns_h->tr_id++;
+				   Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+      mdns_dest.sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
       if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
     } else
       break;
-  }  
+  }
 
   if(mdns_sock != -1) {
     while(true) {
@@ -427,11 +428,11 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len,
 
     if(data_len < buf_len) {
       u_int l;
-      
+
       offset += 3;
 
       memset(rspbuf, 0, sizeof(rspbuf));
-      
+
       for(idx = 0; idx<data_len; idx++, offset++) {
 	if(queries[offset] < 32) {
 	  rspbuf[idx] = '.';
@@ -441,7 +442,7 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len,
 
 	    offset++;
 	    // ntop->getTrace()->traceEvent(TRACE_ERROR, "new_offset=%u", new_offset);
-	    
+
 	    while((idx < sizeof(rspbuf)) && (buf[new_offset] != 0)){
 	      if(buf[new_offset] < 32)
 		rspbuf[idx] = '.';

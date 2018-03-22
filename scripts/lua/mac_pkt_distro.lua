@@ -14,6 +14,7 @@ interface.select(ifname)
 local mac = _GET["mac"]
 local distr = _GET["distr"]
 local res = {}
+local found = false
 
 if distr == "ipver" then
   local mac_hosts = interface.getHostsInfo(true --[[ no details ]], nil, nil, toSkip, nil, nil, nil, nil, nil, nil, mac)
@@ -37,6 +38,7 @@ if distr == "ipver" then
         label = i18n("ipv4"),
         value = ipv4_packets,
       }
+      found = true
     end
 
     if ipv6_packets > 0 then
@@ -44,8 +46,16 @@ if distr == "ipver" then
         label = i18n("ipv6"),
         value = ipv6_packets,
       }
+      found = true
     end
   end
+end
+
+if(not(found)) then
+   res[#res + 1] = {
+      label = "No IP",
+      value = 1,
+   }
 end
 
 print(json.encode(res))

@@ -58,7 +58,10 @@ local host_macs_only = false
 local dhcp_macs_only = false
 
 if devices_mode == "host_macs_only" then
-   host_macs_only = true
+   -- The statement below has been commented as for hosts mac we mean hosts that
+   -- have sent ARP reqeusts and thus that are real hosts, NOT that they are L3 hosts
+   -- as this is a L2 script
+   -- host_macs_only = true
    source_macs_only = true   
 elseif devices_mode == "dhcp_macs_only" then
    dhcp_macs_only = true   
