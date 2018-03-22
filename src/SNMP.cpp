@@ -122,13 +122,13 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext) {
   u_int timeout = 5, version = snmp_version, oid_idx = 0, i;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
     
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))  return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   agent_host = (char*)lua_tostring(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING))  return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   community = (char*)lua_tostring(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING))  return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   oid[oid_idx++] = (char*)lua_tostring(vm, 3);
 
   /* Optional timeout: take the minimum */
