@@ -60,7 +60,7 @@ class Prefs {
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
 	  enable_active_local_hosts_cache;
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,
-	  enable_probing_alerts, enable_ssl_alerts;
+    enable_probing_alerts, enable_ssl_alerts, enable_ip_reassignment_alerts;
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
   bool enable_dropped_flows_alerts;
   bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
@@ -278,8 +278,8 @@ class Prefs {
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
 
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);  };
-  inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation); };
-
+  inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation);};
+  inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts);       };
   inline bool are_probing_alerts_enabled()               { return(enable_probing_alerts);               };
   inline bool are_ssl_alerts_enabled()                   { return(enable_ssl_alerts);                   };
   inline bool are_dns_alerts_enabled()                   { return(enable_dns_alerts);                   };

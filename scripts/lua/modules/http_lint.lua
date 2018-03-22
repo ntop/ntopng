@@ -931,6 +931,7 @@ local known_parameters = {
    ["toggle_remote_to_remote_alerts"]              =  validateBool,
    ["toggle_dropped_flows_alerts"]                 =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,
+   ["toggle_ip_reassignment_alerts"]               =  validateBool,
    ["toggle_flow_db_dump_export"]                  =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
    ["toggle_slack_notification"]                   =  validateBool,

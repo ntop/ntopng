@@ -9,6 +9,7 @@ require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
 local template = require "template_utils"
+local callback_utils = require "callback_utils"
 local have_nedge = ntop.isnEdge()
 
 if(ntop.isPro()) then
@@ -142,7 +143,7 @@ function printAlerts()
   "row_toggle_malware_probing", "row_toggle_alert_syslog",
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
-  "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
+  "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert"}
 
   if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
@@ -203,6 +204,13 @@ function printAlerts()
       hidden = not showElements,
     })
 
+    prefsToggleButton({
+	  field = "toggle_ip_reassignment_alerts",
+	  pref = "ip_reassignment_alerts",
+	  default = "0",
+	  hidden = not showElements,
+    })
+    
     prefsToggleButton({
       field = "toggle_remote_to_remote_alerts",
       pref = "remote_to_remote_alerts",
