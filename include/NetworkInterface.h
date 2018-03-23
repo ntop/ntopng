@@ -190,7 +190,7 @@ class NetworkInterface : public Checkpointable {
 		u_int16_t pool_filter, bool filtered_hosts,
     bool blacklisted_hosts, bool hide_top_hidden,
     u_int8_t ipver_filter, int proto_filter,
-		bool hostMacsOnly, char *sortColumn);
+		char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
   int sortCountries(struct flowHostRetriever *retriever,
@@ -201,8 +201,7 @@ class NetworkInterface : public Checkpointable {
 	       bool walk_all,
 	       struct flowHostRetriever *retriever,
 	       u_int8_t bridge_iface_idx,
-	       bool sourceMacsOnly,	       
-	       bool hostMacsOnly, bool dhcpMacsOnly,
+	       bool sourceMacsOnly,	bool dhcpMacsOnly,
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter);
@@ -414,7 +413,7 @@ class NetworkInterface : public Checkpointable {
 			  u_int16_t vlan_id, char *osFilter,
 			  u_int32_t asnFilter, int16_t networkFilter,
 			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
-			  bool hostsOnly, char *groupColumn);
+			  char *groupColumn);
   int getActiveASList(lua_State* vm, const Paginator *p);
   int getActiveCountriesList(lua_State* vm, const Paginator *p);
   int getActiveVLANList(lua_State* vm,
@@ -425,8 +424,7 @@ class NetworkInterface : public Checkpointable {
 		       u_int32_t *begin_slot,
 		       bool walk_all,
 		       u_int8_t bridge_iface_idx,
-		       bool sourceMacsOnly,
-		       bool hostMacsOnly, bool dhcpMacsOnly,
+		       bool sourceMacsOnly, bool dhcpMacsOnly,
 		       const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder,
@@ -434,14 +432,12 @@ class NetworkInterface : public Checkpointable {
 		       u_int8_t location_filter);
   int getActiveMacManufacturers(lua_State* vm,
 				u_int8_t bridge_iface_idx,
-				bool sourceMacsOnly,
-				bool hostMacsOnly, bool dhcpMacsOnly,
+				bool sourceMacsOnly, bool dhcpMacsOnly,
 				u_int32_t maxHits, u_int8_t devtype_filter,
 			        u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
 			   u_int8_t bridge_iface_idx,
-			   bool sourceMacsOnly,
-			   bool hostMacsOnly, bool dhcpMacsOnly,
+			   bool sourceMacsOnly, bool dhcpMacsOnly,
 			   u_int32_t maxHits, const char *manufacturer,
 			   u_int8_t location_filter);
   int getMacsIpAddresses(lua_State *vm, int idx);

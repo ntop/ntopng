@@ -45,15 +45,13 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline u_int16_t getNumHosts()   { return getUses();            }
   inline void incUses() {
     GenericHashEntry::incUses();
-    if(source_mac && (getUses() == 1))
-      iface->incNumL2Devices();
-    
+
     if(getUses() > CONST_MAX_NUM_HOST_USES) {
       setDeviceType(device_networking);
       lockDeviceTypeChanges = true;
     }
   }
-  inline void decUses()            { GenericHashEntry::decUses(); if(source_mac && (getUses() == 0)) iface->decNumL2Devices(); }
+  inline void decUses()            { GenericHashEntry::decUses(); }
   inline bool isSpecialMac()       { return(special_mac);         }
   inline bool isDhcpHost()         { return(dhcpHost);            }
   inline void setDhcpHost()        { dhcpHost = true;             }
@@ -61,7 +59,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void setSourceMac() {
     if(!source_mac && !special_mac) {
       source_mac = true;
-      if(getUses() > 0) iface->incNumL2Devices();
+      iface->incNumL2Devices();
     }
   }
 

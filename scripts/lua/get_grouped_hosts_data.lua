@@ -90,7 +90,6 @@ local stats_by_group_key = interface.getGroupedHosts(false, -- do not show detai
    tonumber(vlan_n),     -- VLAN filter
    tonumber(as_n),       -- ASN filter
    tonumber(network_n),  -- Network filter
-   false,                -- All hosts, not just hosts that have a source mac
    tonumber(pool_n),     -- Host Pool filter
    tonumber(ipver_n))    -- IP version filter (4 or 6)
 stats_by_group_col = stats_by_group_key
