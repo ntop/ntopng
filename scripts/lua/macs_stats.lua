@@ -75,18 +75,18 @@ print [[
 
 local title
 
-if devices_mode == "host_macs_only" then
+if devices_mode == "source_macs_only" then
    if device_type then
       title = i18n("mac_stats.layer_2_dev_devices", {device_type=discover.devtype2string(device_type)})
    else
-      title = i18n("mac_stats.layer_2_host_devices", {device_type=""})
+      title = i18n("mac_stats.layer_2_source_devices", {device_type=""})
    end
 elseif devices_mode == "dhcp_macs_only" then
    dhcp_macs_only = true
    if device_type then
       title = i18n("mac_stats.layer_2_dev_devices", {device_type=discover.devtype2string(device_type).." DHCP"})
    else
-      title = i18n("mac_stats.layer_2_host_devices", {device_type=" DHCP"})
+      title = i18n("mac_stats.layer_2_source_devices", {device_type=" DHCP"})
    end
 else
    if device_type then
@@ -118,26 +118,26 @@ print ('sort: [ ["' .. getDefaultTableSort("macs") ..'","' .. getDefaultTableSor
 print('buttons: [')
 
    -- Filter MACS
-   local hosts_macs_params = table.clone(page_params)
-   hosts_macs_params.devices_mode = nil
+   local macs_params = table.clone(page_params)
+   macs_params.devices_mode = nil
    print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
-   print(getPageUrl(base_url, hosts_macs_params))
+   print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.all_devices")..'</a></li>')
 
-   -- Host MACs only
+   -- Source MACs only
    print('<li')
-   if devices_mode == "host_macs_only" then print(' class="active"') end
+   if devices_mode == "source_macs_only" then print(' class="active"') end
    print('><a href="')
-   hosts_macs_params.devices_mode = "host_macs_only"
-   print(getPageUrl(base_url, hosts_macs_params))
-   print('">'..i18n("mac_stats.hosts_only")..'</a></li>')
+   macs_params.devices_mode = "source_macs_only"
+   print(getPageUrl(base_url, macs_params))
+   print('">'..i18n("mac_stats.source_macs")..'</a></li>')
 
    -- DHCP MACs only
    print('<li')
    if devices_mode == "dhcp_macs_only" then print(' class="active"') end
    print('><a href="')
-   hosts_macs_params.devices_mode = "dhcp_macs_only"
-   print(getPageUrl(base_url, hosts_macs_params))
+   macs_params.devices_mode = "dhcp_macs_only"
+   print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.dhcp_only")..'</a></li>')
    print("</div>'")
 
@@ -151,7 +151,7 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
-   for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, nil, device_type), asc) do
+   for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
@@ -172,7 +172,7 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\
    ]]
 
-   for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, nil, manufacturer, device_type), asc) do
+   for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, manufacturer, device_type), asc) do
       devicetype_params.device_type = typeidx
       print('<li')
       if typeidx == device_type then print(' class="active"') end

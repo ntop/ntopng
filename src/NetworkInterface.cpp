@@ -1279,8 +1279,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     srcMac->incRcvdStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
 			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
 
-    if(!srcMac->isSourceMac())
-      srcMac->setSourceMac();
+    srcMac->setSourceMac();
   }
   if(likely(dstMac != NULL)) {
     dstMac->incSentStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
@@ -2399,6 +2398,7 @@ decode_packet_eth:
 
     if(srcMac && dstMac) {
       setSeenMacAddresses();
+      srcMac->setSourceMac();
 
       if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
@@ -2406,11 +2406,11 @@ decode_packet_eth:
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
-	  srcMac->incSentArpRequests(), srcMac->setSourceMac();
+	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
-	  srcMac->incSentArpReplies(), srcMac->setSourceMac();
+	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
@@ -3240,7 +3240,7 @@ struct flowHostRetriever {
   Host *host;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
-  bool sourceMacsOnly, hostMacsOnly, dhcpMacsOnly;
+  bool sourceMacsOnly, dhcpMacsOnly;
   char *country;
   int ndpi_proto;             /* Not used in flow_search_walker */
   sortField sorter;
@@ -3483,7 +3483,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->hostMacsOnly  && (h->getMac() && !h->getMac()->isSourceMac())) ||
      (r->mac           && (!h->getMac()->equal(r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
@@ -3596,7 +3595,6 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
   if(!m
      || m->idle()
      || (r->sourceMacsOnly && !m->isSourceMac())
-     || (r->hostMacsOnly && (m->getNumHosts() == 0))
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
      || (r->dhcpMacsOnly && (!m->isDhcpHost()))
@@ -4201,20 +4199,13 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
 				u_int8_t ipver_filter, int proto_filter,
-				bool hostMacsOnly, char *sortColumn) {
+				char *sortColumn) {
   u_int32_t maxHits;
   u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
     return -1;
-
-  if((!isPacketInterface())
-     || (pcap_datalink_type == DLT_NULL)
-     || (pcap_datalink_type == DLT_RAW)
-     || (!strcmp(ifname, "lo"))
-     )
-    hostMacsOnly = false;
 
   maxHits = getHostsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
@@ -4239,7 +4230,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   retriever->blacklistedHosts = blacklisted_hosts;
   retriever->hideTopHidden = hide_top_hidden;
   retriever->ndpi_proto = proto_filter;
-  retriever->maxNumEntries = maxHits, retriever->hostMacsOnly = hostMacsOnly;
+  retriever->maxNumEntries = maxHits;
   retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
@@ -4288,8 +4279,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
 			       bool walk_all,
 			       struct flowHostRetriever *retriever,
 			       u_int8_t bridge_iface_idx,
-			       bool sourceMacsOnly,
-			       bool hostMacsOnly, bool dhcpMacsOnly,
+			       bool sourceMacsOnly, bool dhcpMacsOnly,
 			       const char *manufacturer,
 			       char *sortColumn, u_int16_t pool_filter,
 			       u_int8_t devtype_filter, u_int8_t location_filter) {
@@ -4304,7 +4294,6 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
     maxHits = CONST_MAX_NUM_HITS;
 
   retriever->sourceMacsOnly = sourceMacsOnly,
-    retriever->hostMacsOnly = hostMacsOnly,
     retriever->dhcpMacsOnly = dhcpMacsOnly,
     retriever->actNumEntries = 0,
     retriever->poolFilter = pool_filter,
@@ -4488,7 +4477,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden, ipver_filter, proto_filter,
-	       false /* All MACs */, sortColumn) < 0) {
+	       sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -4615,7 +4604,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 					  u_int32_t asnFilter, int16_t networkFilter,
 					  u_int16_t pool_filter, bool filtered_hosts,
 					  u_int8_t ipver_filter,
-					  bool local_macs, char *groupColumn) {
+					  char *groupColumn) {
   struct flowHostRetriever retriever;
   Grouper *gper;
 
@@ -4629,7 +4618,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       osFilter, asnFilter, networkFilter, pool_filter,
 	       filtered_hosts, false /* no blacklisted hosts filter */, false,
 	       ipver_filter, -1 /* no protocol filter */,
-	       local_macs, groupColumn) < 0 ) {
+	       groupColumn) < 0 ) {
     enablePurge(false);
     return -1;
   }
@@ -6165,7 +6154,6 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 				       bool walk_all,
 				       u_int8_t bridge_iface_idx,
 				       bool sourceMacsOnly,
-				       bool hostMacsOnly,
 				       bool dhcpMacsOnly, const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder,
@@ -6178,7 +6166,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 
   if(sortMacs(begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
-	      hostMacsOnly, dhcpMacsOnly, manufacturer, sortColumn,
+	      dhcpMacsOnly, manufacturer, sortColumn,
 	      pool_filter, devtype_filter, location_filter) < 0) {
     enablePurge(false);
     return -1;
@@ -6381,8 +6369,7 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 
 int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 						u_int8_t bridge_iface_idx,
-						bool sourceMacsOnly,
-						bool hostMacsOnly, bool dhcpMacsOnly,
+						bool sourceMacsOnly, bool dhcpMacsOnly,
 						u_int32_t maxHits,
 						u_int8_t devtype_filter, u_int8_t location_filter) {
   struct flowHostRetriever retriever;
@@ -6393,7 +6380,7 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
-	      hostMacsOnly, dhcpMacsOnly, NULL, (char*)"column_manufacturer",
+	      dhcpMacsOnly, NULL, (char*)"column_manufacturer",
 	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
     enablePurge(false);
     return -1;
@@ -6438,7 +6425,6 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 					   u_int8_t bridge_iface_idx,
 					   bool sourceMacsOnly,
-					   bool hostMacsOnly,
 					   bool dhcpMacsOnly,
 					   u_int32_t maxHits,
 					   const char *manufacturer, u_int8_t location_filter) {
@@ -6450,7 +6436,7 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
-	      hostMacsOnly, dhcpMacsOnly, manufacturer, (char*)"column_device_type",
+	      dhcpMacsOnly, manufacturer, (char*)"column_device_type",
 	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
     enablePurge(false);
     return -1;

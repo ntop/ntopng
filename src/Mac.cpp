@@ -89,6 +89,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 /* *************************************** */
 
 Mac::~Mac() {
+  if(source_mac)
+    iface->decNumL2Devices();
+
   if(!special_mac) {
     char key[64], buf1[64];
     char *json = serialize();

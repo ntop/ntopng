@@ -387,7 +387,7 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 	    if(typeof rsp.num_devices !== "undefined") {
 	      msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/macs_stats.lua?devices_mode=host_macs_only\">";
+print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
 		  msg += "<span class=\"label label-default\">";
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 	    }
