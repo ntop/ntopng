@@ -130,7 +130,7 @@ discover.apple_products = {
 discover.asset_icons = {
    ['unknown']     = '',
    ['printer']     = '<i class="fa fa-print fa-lg devtype-icon" aria-hidden="true"></i>', -- 1
-   ['video']       = '<i class="fa fa-video-camera fa-lg devtype-icon" aria-hidden="true"></i>', -- 2 
+   ['video']       = '<i class="fa fa-video-camera fa-lg devtype-icon" aria-hidden="true"></i>', -- 2
    ['workstation'] = '<i class="fa fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>', -- ... and so on
    ['laptop']      = '<i class="fa fa-laptop fa-lg devtype-icon" aria-hidden="true"></i>',
    ['tablet']      = '<i class="fa fa-tablet fa-lg devtype-icon" aria-hidden="true"></i>',
@@ -302,7 +302,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if(snmpName ~= nil) then
       ntop.setHashCache("ntopng.prefs.snmp_devices", ip,  ntop.getPref("ntopng.prefs.default_snmp_community"))
    end
-   
+
    if((ssdp_entries ~= nil) and (ssdp_entries.friendlyName ~= nil)) then
       friendlyName = ssdp_entries["friendlyName"]
    end
@@ -429,8 +429,11 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if(discover.debug) then io.write("[manufacturer] "..manufacturer.."\n") end
+
    if(string.contains(manufacturer, "Oki Electric") and (snmpName ~= nil)) then
       return 'printer', discover.asset_icons['printer'].. ' ('..snmpName..')', snmpName
+   elseif(string.contains(manufacturer, "Lexmark")) then
+      return 'printer', discover.asset_icons['printer'], nil
    elseif(string.contains(manufacturer, "Hikvision")) then
       return 'video', discover.asset_icons['video'], nil
    elseif(string.contains(manufacturer, "Synology")) then
@@ -439,17 +442,27 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       return 'multimedia', discover.asset_icons['multimedia'], nil
    elseif(string.contains(manufacturer, "Super Micro")) then
       return 'workstation', discover.asset_icons['workstation'], nil
+   elseif(string.contains(manufacturer, "Quanta Computer Inc")) then -- Often Dell DRACK
+      return 'workstation', discover.asset_icons['workstation'], nil
+   elseif(string.contains(manufacturer, "Fujitsu Technology Solutions")) then
+      return 'workstation', discover.asset_icons['workstation'], nil
+   elseif(string.contains(manufacturer, "ASUSTek COMPUTER")) then
+      return 'workstation', discover.asset_icons['laptop'], nil
    elseif(string.contains(manufacturer, "Raspberry")) then
       return 'workstation', discover.asset_icons['workstation'], nil
    elseif(string.contains(manufacturer, "Juniper Networks")) then
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Cisco")) then
       return 'networking', discover.asset_icons['networking'], nil
+   elseif(string.contains(manufacturer, "3COM CORPORATION")) then
+      return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Gigaset")) then
       return 'phone', discover.extra_asset_icons['phone'], nil
    elseif(string.contains(manufacturer, "Palo Alto Networks")) then
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Liteon Technology")) then
+      return 'workstation', discover.asset_icons['workstation'], nil
+   elseif(string.contains(manufacturer, "Realtek")) then
       return 'workstation', discover.asset_icons['workstation'], nil
    elseif(string.contains(manufacturer, 'TP%-LINK')) then -- % is the escape char in Lua
       return 'wifi', discover.asset_icons['wifi'], nil
@@ -472,7 +485,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       and (snmpName ~= nil)) then
       local _snmpName  = string.lower(snmpName)
       local _snmpDescr
-      
+
       if(snmpDescr == nil) then
         -- io.write("IP "..ip.." has empty descr (".. _snmpName ..")\n")
         _snmpDescr = _snmpName
@@ -509,7 +522,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       else
 	 local ret = '</i> '..discover.asset_icons['workstation']..' ' .. discover.apple_icon
 	 local what = 'workstation'
-         
+
 	 if(((snmpName ~= nil) and string.contains(snmpName, "capsule"))
             or string.contains(symName, "capsule") or string.contains(hostname, "capsule")) then
 	    ret = '</i> '..discover.asset_icons['nas'], nil
@@ -525,7 +538,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    end
 
-   -- Amazon devices  
+   -- Amazon devices
    if(string.contains(mac, "F0:4F:7C") and string.contains(hostname, "kindle-")) then
       return 'tablet', discover.asset_icons['tablet']..' (Kindle)', "Kindle"
    elseif(string.contains(mac, "40:B4:CD") -- and string.contains(hostname, "amazon-")
@@ -534,7 +547,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    -- io.write("==>"..mac .. " /" .. manufacturer .. " / ".. friendlyName.. "/"..discover.extra_asset_icons['lightbulb'] .."\n")
-   
+
    -- Philips Hue
    if(string.contains(mac, "00:17:88") and string.contains(friendlyName, "hue")) then
       return 'iot', discover.extra_asset_icons['lightbulb'], nil
@@ -544,14 +557,14 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    if(string.contains(mac, "00:24:E4")) then
       return 'iot', discover.extra_asset_icons['health'], nil
    end
-   
+
    -- Logitech
    if(string.contains(manufacturer, "Logitech")) then
       if(string.contains(friendlyName, "Harmony")) then
 	 return 'iot', discover.asset_icons['iot'], nil
       else
 	 return 'multimedia', discover.asset_icons['multimedia'], nil
-      end      
+      end
    end
 
    if(names["gateway.local"] == ip) then
@@ -591,12 +604,41 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if((mdns["_edcp._udp.local"] ~= nil) or (mdns["_afpovertcp._tcp.local"] ~= nil) or (mdns["_smb._tcp.local"] ~= nil)) then
-       return 'nas', discover.asset_icons['nas'], nil 
+       return 'nas', discover.asset_icons['nas'], nil
    end
 
    if(discover.debug) then
       tprint(ssdp)
       tprint(mdns)
+   end
+
+   -- Last resort is HTTP
+   http_rsp = ntop.httpGet("http://"..ip, "", "", 1)
+   if((http_rsp ~= nil) and (http_rsp.HTTP_HEADER ~= nil)) then
+     local server = http_rsp.HTTP_HEADER["server"]
+
+     if(server ~= nil) then
+       if(string.contains(server, "Ubuntu") or string.contains(server, "Debian") or string.contains(server, "Linux")) then
+        interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
+        return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
+      elseif(string.contains(server, "Apache")) then
+        return 'workstation', discover.asset_icons['workstation'], nil
+      elseif(string.contains(server, "GoAhead-Webs")) then
+        return 'workstation', discover.asset_icons['workstation'], nil
+      elseif(string.contains(server, "Microsoft")) then
+        interface.setMacOperatingSystem(mac, 2) -- 2 = windows
+        return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
+      elseif(string.contains(server, "Virata-EmWeb") or string.contains(server, "HP-ChaiSOE") -- Usually LaserJet
+             or string.contains(server, "EWS-NIC5") -- Xerox
+          ) then
+        return 'printer', discover.asset_icons['printer'], nil
+      else
+        return 'workstation', discover.asset_icons['workstation'], nil -- default
+      end
+     end
+
+     --io.write(ip.."\n")
+     --tprint(http_rsp.HTTP_HEADER)
    end
 
    return 'unknown', "", nil
@@ -680,7 +722,7 @@ local function analyzeSSDP(ssdp)
 					  base_url = base_url .. v
 				       end
 				    end
-				 end				 
+				 end
 			      end
 
 			      if((string.sub(base_url, -1) ~= "/")
@@ -770,13 +812,15 @@ function discovery2config(interface_name)
    local cached = ntop.getCache(discover.getCachedDiscoveryKey(interface_name))
    local disc = json.decode(cached)
 
-   if(disc) then
+   if(disc and false) then
      for _,dev in pairs(disc.devices) do
       if(dev.device_type.."" ~= "unknown") then
-       -- io.write(dev.mac .. " = " .. dev.device_type .. "\n")
+        --print(dev.mac .. " = " .. dev.device_type .. "\n")
       end
-     end   
+     end
   end
+
+  return(cached)
 end
 
 -- #############################################################################
@@ -787,13 +831,12 @@ function discover.discover2table(interface_name, recache)
    if isEmptyString(snmp_community) then
       snmp_community = "public"
    end
-   
+
    interface.select(interface_name)
 
-   discovery2config(interface_name)
-   
+   local cached = discovery2config(interface_name)
+
    if recache ~= true then
-      local cached = ntop.getCache(discover.getCachedDiscoveryKey(interface_name))
       if not isEmptyString(cached) then
 	 return json.decode(cached) or {status = discoverStatus("ERROR", i18n("discover.error_unable_to_decode_json"))}
       else
@@ -832,7 +875,7 @@ function discover.discover2table(interface_name, recache)
 
 	 if(string.contains(manufacturer, "HP")
 	       or string.contains(manufacturer, "Hewlett Packard")
-	    or string.contains(manufacturer, "Hon Hai")	    
+	    or string.contains(manufacturer, "Hon Hai")
 	 ) then
 	    -- Query printer model
 	    interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.25.3.2.1.3.1", 0)
@@ -859,7 +902,7 @@ function discover.discover2table(interface_name, recache)
    if(discover.debug) then io.write("Collecting MDNS responses\n") end
    local mdns = interface.mdnsReadQueuedResponses()
 
-   if(discover.debug) then 
+   if(discover.debug) then
       for ip,rsp in pairsByValues(mdns, asc) do
 	 io.write("[MDNS Resolver] "..ip.." = "..rsp.."\n")
       end
@@ -874,7 +917,7 @@ function discover.discover2table(interface_name, recache)
    local snmp = interface.snmpReadResponses()
 
    -- Query sysDescr for the hosts that have replied
-   for ip,rsp in pairsByValues(snmp, asc) do  
+   for ip,rsp in pairsByValues(snmp, asc) do
      -- io.write("Requesting sysDescr for "..ip.."\n")
      interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.1.0", 0)
    end
@@ -883,7 +926,7 @@ function discover.discover2table(interface_name, recache)
    osx_devices = interface.mdnsReadQueuedResponses()
    if(discover.debug) then io.write("Collected MDNS OSX responses\n") end
 
-   if(discover.debug) then 
+   if(discover.debug) then
       for a,b in pairs(osx_devices) do
 	 io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
       end
@@ -891,13 +934,13 @@ function discover.discover2table(interface_name, recache)
 
    local snmpSysDescr = interface.snmpReadResponses()
 
-   if(discover.debug) then 
+   if(discover.debug) then
       for ip,rsp in pairsByValues(snmpSysDescr, asc) do
 	 io.write("[SNMP Descr] "..ip.." OK\n")
       end
    end
 
-  if(discover.debug) then 
+  if(discover.debug) then
       for ip,rsp in pairsByValues(snmp, asc) do
 	 io.write("[SNMP] "..ip.." = ["..rsp.."][")
          if(snmpSysDescr[i] ~= nil) then io.write(snmpSysDescr[i]) end
@@ -964,22 +1007,22 @@ function discover.discover2table(interface_name, recache)
 	    device_label = discover.devtype2icon(mac_info.devtype)
 	 end
       end
-      
+
       interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
 
-      entry["device_type"] = device_type      
+      entry["device_type"] = device_type
       entry["device_label"] = device_label
 
       if(device_info ~= nil) then
         entry["device_info"] = device_info
       end
 
-      if(discover.debug) then 
+      if(discover.debug) then
 	 io.write("======================\n")
 	 tprint(entry)
 	 io.write("======================\n")
       end
-      
+
       res[#res + 1] = entry
       ::continue::
    end

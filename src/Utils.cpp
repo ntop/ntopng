@@ -36,8 +36,10 @@ typedef struct {
 } String;
 
 typedef struct {
+  u_int8_t header_over;
   char outbuf[65536];
   u_int num_bytes;
+  lua_State* vm;
 } DownloadState;
 
 #ifdef HAVE_LIBCAP
@@ -1023,6 +1025,60 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
 static size_t curl_get_writefunc(char *buffer, size_t size,
 				 size_t nitems, void *userp) {
   DownloadState *state = (DownloadState*)userp;
+  int len = size*nitems, diff;
+  
+  if(state->header_over == 0) {
+    /* We need to parse the header as this is the first call for the body */
+    char *tmp, *element;
+
+    state->outbuf[state->num_bytes] = 0;
+    element = strtok_r(state->outbuf, "\r\n", &tmp);
+    if(element) element = strtok_r(NULL, "\r\n", &tmp);
+
+    lua_newtable(state->vm);
+    
+    while(element) {
+      char *column = strchr(element, ':');
+
+      if(!column) break;
+      
+      column[0] = '\0';
+
+      /* Put everything in lowercase */
+      for(int i=0; element[i] != '\0'; i++) element[i] = tolower(element[i]);
+      lua_push_str_table_entry(state->vm, element, &column[1]);
+
+      element = strtok_r(NULL, "\r\n", &tmp);
+    }
+
+    lua_pushstring(state->vm, "HTTP_HEADER");
+    lua_insert(state->vm, -2);
+    lua_settable(state->vm, -3);
+
+    state->num_bytes = 0, state->header_over = 1;
+  }
+
+
+  diff = sizeof(state->outbuf) - state->num_bytes - 1;
+
+  if(diff > 0) {
+    int buff_diff = min(diff, len);
+
+    if(buff_diff > 0) {
+      strncpy(&state->outbuf[state->num_bytes], buffer, buff_diff);
+      state->num_bytes += buff_diff;
+      state->outbuf[state->num_bytes] = '\0';
+    }
+  }
+
+  return(len);
+}
+
+/* **************************************** */
+
+/* Same as the above function but only for header */
+static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
+  DownloadState *state = (DownloadState*)userp;
   int len = size*nitems;
   int diff = sizeof(state->outbuf) - state->num_bytes - 1;
 
@@ -1079,6 +1135,10 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, state);
+	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_hdf);
+	
+	state->vm = vm, state->header_over = 0;
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
 	curl_easy_cleanup(curl);
@@ -1090,7 +1150,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
-
+    
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
 #endif
