@@ -66,6 +66,7 @@ class Utils {
   static void purifyHTTPparam(char *param, bool strict, bool allowURL);
   static char* stripHTML(const char * const str);
   static bool postHTTPJsonData(char *username, char *password, char *url, char *json);
+  static bool postHTTPTextFile(char *username, char *password, char *url, char *path);    
   static bool httpGet(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content);
   static char* urlEncode(char *url);

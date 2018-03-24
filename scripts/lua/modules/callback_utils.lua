@@ -209,4 +209,30 @@ end
 
 -- ########################################################
 
+function callback_utils.uploadTSdata()
+   local url = ntop.getCache("ntopng.prefs.ts_post_data_url")
+
+   if((url == nil) or (url == "")) then
+     return
+   end
+
+   while(true) do
+      local fname = ntop.lpopCache("ntopng.ts_file_queue")
+      local ret
+      
+      if((fname == nil) or (fname == "")) then
+        break
+      end
+
+      -- Delete the file after POST
+      ret = ntop.postHTTPTextFile("", "", url, fname, true)
+      
+      if(ret ~= true) then
+	 print("[ERROR] POST of "..fname.." failed\n")
+      end
+
+   end
+end
+      -- ########################################################
+
 return callback_utils

@@ -400,11 +400,14 @@
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
 
+#define CONST_TS_FILE_QUEUE                "ntopng.ts_file_queue"
+#define CONST_TS_FLUSH_TIME                10 /* sec */
 #define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
 #define CONST_ALERT_MAC_IP_QUEUE           "ntopng.alert_mac_ip_queue"
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
+#define CONST_TS_POST_DATA_URL             "ntopng.prefs.ts_post_data_url"
 #define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"

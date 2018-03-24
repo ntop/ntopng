@@ -250,6 +250,13 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   reloadHideFromTop(false);
+
+  if(ntop->getRedis()) {
+    char url[128];
+    
+    if((!ntop->getRedis()->get((char*)CONST_TS_POST_DATA_URL, url, sizeof(url))) && (url[0] != '\0'))
+      tsExporter = new TimeSeriesExporter(this, url);
+  }
 }
 
 /* **************************************************** */
@@ -273,7 +280,7 @@ void NetworkInterface::init() {
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, snmp = NULL, discovery = NULL, ifDescription = NULL,
-    flowHashingMode = flowhashing_none,
+    flowHashingMode = flowhashing_none, tsExporter = NULL;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
@@ -686,14 +693,16 @@ NetworkInterface::~NetworkInterface() {
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
 #ifndef HAVE_NEDGE
-  if(flow_profiles) delete(flow_profiles);
-  if(shadow_flow_profiles) delete(shadow_flow_profiles);
+  if(flow_profiles)         delete(flow_profiles);
+  if(shadow_flow_profiles)  delete(shadow_flow_profiles);
 #endif
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
-  if(hide_from_top) delete(hide_from_top);
-  if(hide_from_top_shadow) delete(hide_from_top_shadow);
+  if(hide_from_top)         delete(hide_from_top);
+  if(hide_from_top_shadow)  delete(hide_from_top_shadow);
 
+  if(tsExporter) delete tsExporter;
+  
   termLuaInterpreter();
 }
 

@@ -1021,6 +1021,73 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
 
 /* **************************************** */
 
+static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) {
+  return(fread(ptr, size, nmemb, (FILE*)stream));
+}
+
+bool Utils::postHTTPTextFile(char *username, char *password, char *url, char *path) {
+  CURL *curl;
+  bool ret = true;
+  struct stat file_info;
+  size_t file_len;
+  FILE *fd = fopen(path, "r");
+  
+  if((fd== NULL) || (stat(path, &file_info) != 0))
+    return(false);
+  else
+    file_len = (size_t)file_info.st_size;
+  
+  curl = curl_easy_init();
+  if(curl) {
+    CURLcode res;
+    struct curl_slist* headers = NULL;
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    if((username && (username[0] != '\0'))
+       || (password && (password[0] != '\0'))) {
+      char auth[64];
+
+      snprintf(auth, sizeof(auth), "%s:%s",
+	       username ? username : "",
+	       password ? password : "");
+      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    }
+
+    if(!strncmp(url, "https", 5)) {
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    headers = curl_slist_append(headers, "Content-Type: text/plain; charset=utf-8");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_setopt(curl, CURLOPT_READDATA, fd);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (curl_off_t)file_len);
+    
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Unable to post data to (%s): %s",
+				   url, curl_easy_strerror(res));
+      ret = false;
+    } else
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
+
+    /* always cleanup */
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  }
+
+  return(ret);
+}
+
+/* **************************************** */
+
 /* curl calls this routine to get more data */
 static size_t curl_get_writefunc(char *buffer, size_t size,
 				 size_t nitems, void *userp) {

@@ -392,7 +392,7 @@ function rrd_utils.makeRRD(basedir, when, if_id, key, rrdname, step, value)
 
    local tskey = if_id
    if(key ~= nil) then tskey = tskey ..":"..key end
-   ntop.tsSet(when, if_id, tonumber(step), "iface", nil, rrdname, tonumber(value), 0)
+   ntop.tsSet(when, if_id, tonumber(step), "iface", nil, rrdname, 0, tonumber(value))
 
    if(enable_second_debug) then
       io.write('Updating RRD ['.. if_id..'] '.. name .. " " .. value ..'\n')
