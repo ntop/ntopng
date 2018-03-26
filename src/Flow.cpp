@@ -167,11 +167,10 @@ void Flow::freeDPIMemory() {
 Flow::~Flow() {
   if(flow_packets_head)
     flushBufferedPackets();
-
-  dumpFlow(false);
   
-  if(cli_host)         cli_host->decUses();
-  if(srv_host)         srv_host->decUses();
+  if(cli_host) cli_host->decNumFlows(true),  cli_host->decUses();
+  if(srv_host) srv_host->decNumFlows(false), srv_host->decUses();
+
   if(json_info)        free(json_info);
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
@@ -1122,10 +1121,11 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if((iface->getIfType() != interface_type_ZMQ)
-	   && (protocol == IPPROTO_TCP)
-	   && (get_goodput_bytes() > 0)
-	   && (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH)) {
+	if(!is_idle_flow /* set_to_purge() deals with low goodput flows when they become idle */
+	   && iface->getIfType() != interface_type_ZMQ
+	   && protocol == IPPROTO_TCP
+	   && get_goodput_bytes() > 0
+	   && ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH) {
 	  if(isLowGoodput()) {
 	    if(!good_low_flow_detected) {
 	      if(cli_host) cli_host->incLowGoodputFlows(true);
