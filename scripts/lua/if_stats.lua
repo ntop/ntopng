@@ -285,6 +285,11 @@ if isAdministrator() and (not ifstats.isView) then
    local num_pool_hosts = ifstats.num_members.num_hosts
    local label
 
+   if(ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID]) then
+      -- don't show unassigned hosts in the counter
+      num_pool_hosts = num_pool_hosts - ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID].num_hosts
+   end
+
    if(num_pool_hosts > 0) then
       label = "<span class='badge badge-top-right'>".. num_pool_hosts .."</span>"
    else
