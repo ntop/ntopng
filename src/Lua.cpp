@@ -3602,7 +3602,7 @@ static int ntop_ts_set(lua_State* vm) {
     u_int8_t id = 1;
 #if 0
     u_int16_t step;
-#endif
+#endif    
     u_int32_t ts;
     u_int64_t sent = 0, rcvd = 0;
     char buf[512], *_div, *_key;
@@ -3658,7 +3658,10 @@ static int ntop_ts_set(lua_State* vm) {
     snprintf(buf, sizeof(buf),
 	     "%s,key=%s%s%s,metric=%s sent=%lu,rcvd=%lu %u000000000\n",
 	     ntop_interface->get_name(),
-	     label, _div, _key, metric, sent, rcvd, ts);
+	     label, _div, _key, metric,
+	     (unsigned long)sent,
+	     (unsigned long)rcvd,
+	     ts);
 
     ntop_interface->getTSExporter()->exportData(buf);
   }
@@ -4184,10 +4187,13 @@ static int ntop_http_get(lua_State* vm) {
   char *url, *username = NULL, *pwd = NULL;
   int timeout = 30;
   bool return_content = true;
-
+  HTTPTranferStats stats;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  
   if((url = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   if(lua_type(vm, 2) == LUA_TSTRING) {
@@ -4212,7 +4218,7 @@ static int ntop_http_get(lua_State* vm) {
     }
   }
 
-  if(Utils::httpGet(vm, url, username, pwd, timeout, return_content))
+  if(Utils::httpGet(vm, url, username, pwd, timeout, return_content, &stats))
     return(CONST_LUA_OK);
   else
     return(CONST_LUA_ERROR);
@@ -4397,7 +4403,8 @@ static int ntop_change_user_language(lua_State* vm) {
 
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
-
+  HTTPTranferStats stats;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
@@ -4410,7 +4417,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((json = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(Utils::postHTTPJsonData(username, password, url, json)) {
+  if(Utils::postHTTPJsonData(username, password, url, json, &stats)) {
     lua_pushnil(vm);
     return(CONST_LUA_OK);
   } else
@@ -4422,6 +4429,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
 static int ntop_post_http_text_file(lua_State* vm) {
   char *username, *password, *url, *path;
   bool delete_file_after_post = false;
+  HTTPTranferStats stats;
   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -4438,7 +4446,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
   if(lua_type(vm, 5) == LUA_TBOOLEAN) /* Optional */
     delete_file_after_post = lua_toboolean(vm, 5) ? true : false;
   
-  if(Utils::postHTTPTextFile(username, password, url, path)) {
+  if(Utils::postHTTPTextFile(username, password, url, path, &stats)) {
     if(delete_file_after_post) {
       if(unlink(path) != 0)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to delete file %s", path);

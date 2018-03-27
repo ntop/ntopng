@@ -152,12 +152,13 @@ void ElasticSearch::indexESdata() {
     time_t now = time(0);
 
     if((num_queued_elems >= min_buffered_flows)
-          || ((num_queued_elems > 0) && (now >= last_dump + ES_BULK_MAX_DELAY))) {
+       || ((num_queued_elems > 0) && (now >= last_dump + ES_BULK_MAX_DELAY))) {
       u_int len, num_flows;
       char index_name[64], header[256];
       struct tm* tm_info;
       struct timeval tv;
       time_t t;
+      HTTPTranferStats stats;
 
       gettimeofday(&tv, NULL);
       t = tv.tv_sec;
@@ -177,11 +178,10 @@ void ElasticSearch::indexESdata() {
         len += snprintf(&postbuf[len], ES_BULK_BUFFER_SIZE-len, "%s\n%s\n", header, tail->str), num_flows++;
         free(tail->str);
         free(tail);
-        tail = prev,
-	  num_queued_elems--;
+        tail = prev, num_queued_elems--;
+
         if(num_queued_elems == 0)
 	  head = NULL;
-
       } /* for */
 
       listMutex.unlock(__FILE__, __LINE__);
@@ -192,7 +192,7 @@ void ElasticSearch::indexESdata() {
       if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				  ntop->getPrefs()->get_es_pwd(),
 				  ntop->getPrefs()->get_es_url(),
-				  postbuf)) {
+				  postbuf, &stats)) {
 	/* Post failure */
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "ES: POST request for %d flows (%d bytes) failed", num_flows, len);
 	sleep(1);
@@ -218,6 +218,7 @@ void ElasticSearch::pushEStemplate() {
   ifstream template_file;
   u_int8_t max_attempts = 3;
   u_int16_t length = 0;
+  HTTPTranferStats stats;
 
   // store the original es update url
   strncpy(es_url, ntop->getPrefs()->get_es_url(), MAX_PATH);
@@ -251,21 +252,22 @@ void ElasticSearch::pushEStemplate() {
   while(max_attempts > 0) {
     if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				ntop->getPrefs()->get_es_pwd(),
-				es_template_url, postbuf)) {
+				es_template_url, postbuf, &stats)) {
       /* Post failure */
       sleep(1);
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "ntopng template successfully sent to ES");
       break;
     }
-    
+
     max_attempts--;
   } /* while */
 
   if(postbuf) delete[] postbuf;
-  
+
   if(max_attempts == 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ntopng template (%s) to ES", template_path);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ntopng template (%s) to ES",
+				 template_path);
 }
 
 #endif

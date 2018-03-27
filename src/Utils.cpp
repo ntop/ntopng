@@ -967,7 +967,43 @@ static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 /* **************************************** */
 
-bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *json) {
+static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) { 
+  curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &stats->namelookup);
+  curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &stats->connect);
+  curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &stats->appconnect);
+  curl_easy_getinfo(curl, CURLINFO_PRETRANSFER_TIME, &stats->pretransfer);
+  curl_easy_getinfo(curl, CURLINFO_REDIRECT_TIME, &stats->redirect);
+  curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &stats->start);
+  curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &stats->total);
+
+  if(vm) {
+    lua_newtable(vm);
+
+    lua_push_float_table_entry(vm, "NAMELOOKUP_TIME", stats->namelookup);
+    lua_push_float_table_entry(vm, "CONNECT_TIME", stats->connect);
+    lua_push_float_table_entry(vm, "APPCONNECT_TIME", stats->appconnect);
+    lua_push_float_table_entry(vm, "PRETRANSFER_TIME", stats->pretransfer);
+    lua_push_float_table_entry(vm, "REDIRECT_TIME", stats->redirect);
+    lua_push_float_table_entry(vm, "STARTTRANSFER_TIME", stats->start);
+    lua_push_float_table_entry(vm, "TOTAL_TIME", stats->total);
+
+    lua_pushstring(vm, "HTTP_STATS");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_INFO,
+			       "[NAMELOOKUP_TIME %.02f][CONNECT_TIME %.02f][APPCONNECT_TIME %.02f][PRETRANSFER_TIME %.02f]"
+			       "[REDIRECT_TIME %.02f][STARTTRANSFER_TIME %.02f][TOTAL_TIME %.02f]",
+			       stats->namelookup, stats->connect, stats->appconnect,
+			       stats->pretransfer,stats->redirect, stats->start,
+			       stats->total);
+}
+
+/* **************************************** */
+
+bool Utils::postHTTPJsonData(char *username, char *password, char *url,
+			     char *json, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
 
@@ -976,6 +1012,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
     CURLcode res;
     struct curl_slist* headers = NULL;
 
+    memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if((username && (username[0] != '\0'))
@@ -1008,9 +1045,11 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
       ret = false;
-    } else
+    } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
-
+      readCurlStats(curl, stats, NULL);
+    }
+    
     /* always cleanup */
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
@@ -1025,7 +1064,8 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) 
   return(fread(ptr, size, nmemb, (FILE*)stream));
 }
 
-bool Utils::postHTTPTextFile(char *username, char *password, char *url, char *path) {
+bool Utils::postHTTPTextFile(char *username, char *password, char *url,
+			     char *path, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
   struct stat file_info;
@@ -1042,6 +1082,7 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url, char *pa
     CURLcode res;
     struct curl_slist* headers = NULL;
 
+    memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if((username && (username[0] != '\0'))
@@ -1075,9 +1116,11 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url, char *pa
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
       ret = false;
-    } else
+    } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
-
+      readCurlStats(curl, stats, NULL);
+    }
+    
     /* always cleanup */
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
@@ -1166,7 +1209,7 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
 
 bool Utils::httpGet(lua_State* vm, char *url, char *username,
 		    char *password, int timeout,
-		    bool return_content) {
+		    bool return_content, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
 
@@ -1178,6 +1221,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     char *content_type, *redirection;
     char ua[64];
 
+    memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
@@ -1229,11 +1273,13 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     if(vm) lua_newtable(vm);
 
     if(curl_easy_perform(curl) == CURLE_OK) {
+      readCurlStats(curl, stats, vm);
+	
       if(return_content && vm) {
 	lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
 	lua_push_int_table_entry(vm, "CONTENT_LEN", state->num_bytes);
       }
-
+      
       ret = true;
     } else
       ret = false;
@@ -1246,7 +1292,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
-	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
+	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);      
     }
 
     if(return_content && state)
@@ -1372,39 +1418,7 @@ static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
 
 /* **************************************************** */
 
-#ifdef NOTUSED
-// Adding this function that performs a simple HTTP GET request using libcurl.
-// The function returns a string that contains the reply.
-char* Utils::curlHTTPGet(char *url, long *http_code) {
-  CURL *curl;
-  CURLcode res;
-  String replyString;
-  long replyCode = 0;
-
-  curl = curl_easy_init();
-  if(curl) {
-    newString(&replyString);
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    // Uncomment the following line for redirection support.
-    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunc);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &replyString);
-    res = curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &replyCode);
-    if(res != CURLE_OK) {
-      fprintf(stderr, "ERROR: curl_easy_perform failed with code %s.\n", curl_easy_strerror(res));
-    }
-    *http_code = replyCode;
-    curl_easy_cleanup(curl);
-    return replyString.s;
-  }
-  return NULL;
-}
-#endif
-
-/* **************************************** */
-
-bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
+bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
 
@@ -1414,6 +1428,7 @@ bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
     DownloadState *state;
     char ua[64];
 
+    memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(!strncmp(url, "https", 5)) {
@@ -1441,9 +1456,10 @@ bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
     snprintf(ua, sizeof(ua), "ntopng v.%s (curl %s)", PACKAGE_VERSION, v->version);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
 
-    if(curl_easy_perform(curl) == CURLE_OK)
+    if(curl_easy_perform(curl) == CURLE_OK) {
       snprintf(ret_buf, ret_buf_len, "%s", state->outbuf);
-    else
+      readCurlStats(curl, stats, NULL);
+    } else
       ret_buf[0] = '\0';
 
     free(state);

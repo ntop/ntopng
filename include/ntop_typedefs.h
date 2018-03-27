@@ -482,4 +482,8 @@ typedef enum {
   after_shutdown_poweroff = 2,
 } AfterShutdownAction;
 
+typedef struct {
+  double namelookup, connect, appconnect, pretransfer, redirect, start, total;
+} HTTPTranferStats;
+
 #endif /* _NTOP_TYPEDEFS_H_ */
