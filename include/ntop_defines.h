@@ -116,6 +116,7 @@
 #define CHANGE_PASSWORD_ULR       "/lua/change_password.lua"
 #define GRAFANA_URL               "/lua/modules/grafana"
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
+#define NETWORK_LOAD_URL          "/lua/network_load.lua"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 #define CONST_NTOP_INTERFACE      "ntop_interface"

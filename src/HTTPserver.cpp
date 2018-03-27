@@ -382,6 +382,20 @@ static int isCaptiveURL(char *url) {
   else
     return(0);
 }
+
+/* ****************************************** */
+
+static bool isStaticResourceUrl(const struct mg_request_info *request_info, u_int len) {
+  if((len >= 3 && (!strncmp(&request_info->uri[len - 3], ".js", 3)))
+     || (len >= 4 && (!strncmp(&request_info->uri[len - 4], ".css", 4)
+		      || !strncmp(&request_info->uri[len - 4], ".map", 4)
+		      || !strncmp(&request_info->uri[len - 4], ".ttf", 4)))
+     || (len >= 6 && (!strncmp(&request_info->uri[len - 6], ".woff2", 6))))
+    return true;
+
+  return false;
+}
+
 /* ****************************************** */
 
 // Redirect user to the login form. In the cookie, store the original URL
@@ -656,11 +670,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   whitelisted = isWhitelistedURI(request_info->uri);
   authorized = is_authorized(conn, request_info, username, sizeof(username));
 
-  if((len >= 3 && (!strncmp(&request_info->uri[len - 3], ".js", 3)))
-     || (len >= 4 && (!strncmp(&request_info->uri[len - 4], ".css", 4)
-		      || !strncmp(&request_info->uri[len - 4], ".map", 4)
-		      || !strncmp(&request_info->uri[len - 4], ".ttf", 4)))
-     || (len >= 6 && (!strncmp(&request_info->uri[len - 6], ".woff2", 6))))
+  if(isStaticResourceUrl(request_info, len))
     ;
   else if((!whitelisted) && (!authorized)) {
     if(conn->client.lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
@@ -669,7 +679,10 @@ static int handle_lua_request(struct mg_connection *conn) {
 		"Location: %s%s?referer=%s\r\n\r\n",
 		ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
 		mg_get_header(conn, "Host"));
-    else
+    else if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
+      // avoid sending login redirect to allow js itself to redirect the user
+      return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
+    } else
       redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ?
 			mg_get_header(conn, "Host"): (char*)"");
 

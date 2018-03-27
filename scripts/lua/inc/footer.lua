@@ -445,6 +445,11 @@ print [[/lua/logout.lua");  */
       });
 }
 
+$(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
+  if((response.status == 403) && (response.responseText == "Login Required"))
+    window.location.href = "]] print(ntop.getHttpPrefix().."/login.lua") print[[";
+});
+
 footerRefresh();  /* call immediately to give the UI a more responsive look */
 setInterval(footerRefresh, ]]
 
