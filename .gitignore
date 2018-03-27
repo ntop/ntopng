@@ -75,6 +75,7 @@ nbproject
 .project
 Doxyfile
 doc/doxydoc/
+doc/src/_build/
 logo.png
 logo.xcf
 logobase.jpg
