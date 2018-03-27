@@ -167,6 +167,31 @@ function callback_utils.foreachHost(ifname, deadline, callback)
    return true
 end
 
+-- ########################################################
+
+-- Iterates each active host on the ifname interface.
+-- Each host is passed to the callback with some more information.
+function callback_utils.foreachLocalHost(ifname, deadline, callback)
+   local hostbase
+
+   interface.select(ifname)
+
+   local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
+
+   for hostname, hoststats in iterator do
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+	 -- Out of time
+	 return false
+      end
+
+      if callback(hostname, hoststats) == false then
+	 return false
+      end
+   end
+
+   return true
+end
+
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, deadline, callback)
