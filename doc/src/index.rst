@@ -7,7 +7,6 @@ can be obtained from the traffic captured by the server.
 .. toctree::
    :maxdepth: 3
 
-   preface
    what_is_ntopng
    how_to_start/index
    cli_options
