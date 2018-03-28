@@ -1,2 +1,0 @@
-How to start ntopng
-###################
