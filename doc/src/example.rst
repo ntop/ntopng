@@ -40,7 +40,7 @@ This is a block of bash code:
 
 .. warning::
 
-   This si a warning
+   This is a warning
 
 This is a list:
 
