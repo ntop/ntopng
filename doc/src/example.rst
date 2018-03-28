@@ -4,18 +4,12 @@ Introduction
 Preface
 -------
 
-This is an image:
-
-.. image:: img/logo.png
-  :align: center
-  :alt: Sample Image
-  :scale: 70
-
 This is an image with caption:
 
 .. figure:: img/web_gui_host_details.png
   :align: center
   :alt: Host Details
+  :scale: 95
 
   The Home View of the Host Details Page
 

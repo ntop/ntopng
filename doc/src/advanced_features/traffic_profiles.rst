@@ -55,14 +55,18 @@ Details page can be opened for each profile simply by clicking on the |chart_ico
 
   The Traffic Profiles Summary Page
 
-.. |cog_icon| image:: ../img/cog_icon.png
-.. |chart_icon| image:: ../img/chart_icon.png
-
 Profile Details page shows historical profile traffic. An optional table with historical flow details — for flows
 matching the selected profile — is shown below the chart if ntopng was started with the -F modifier.
 
-.. figure:: ../img/adavanced_features_traffic_profiles_summary.png
+.. figure:: ../img/adavanced_features_traffic_profiles_details.png
   :align: center
-  :alt: Traffic Profiles Summary
+  :alt: Traffic Profiles Details
 
   The Traffic Profile Details Page
+
+.. warning::
+  Presently, no overlapping profiles are handled. This means that when a flow matches more than
+  one traffic profile, it will be assigned to one profile only in a non-predictable way.
+
+.. |cog_icon| image:: ../img/cog_icon.png
+.. |chart_icon| image:: ../img/chart_icon.png
