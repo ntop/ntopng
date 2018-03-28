@@ -41,5 +41,9 @@ This is a list:
 - An element
 - Another element
 
+Footnote reference[1]_
+
+.. [1] This is a footnote
+
 What is ntopng
 --------------
