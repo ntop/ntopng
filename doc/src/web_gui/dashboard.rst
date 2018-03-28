@@ -81,5 +81,41 @@ Application View provides another pie chart that represents a view of the bandwi
 
 In the same manner as for previous view, application names are clickable to be redirected to a page with more detailed information on application.
 
+Autonomous System Numbers (ASNs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ASNs view provides a pie chart representation of the traffic grouped by Autonomous System (AS). An AS is either a single network or a group of networks, controlled by a network administrator on behalf of a single administrative entity (such as a university, a business enterprise, or a business division). An AS is also sometimes referred to as a routing domain. A globally unique number called an Autonomous System Number (ASN) is assigned to each AS.
+
+.. figure:: ../img/web_gui_dashboard_community_pie_chart_top_asns.png
+  :align: center
+  :alt: Pie Chart of Top ASNs
+
+  Pie Chart of Top ASNs
+
+Senders
+^^^^^^^
+Senders view provides a pie chart representation of top flow senders currently active. This graph shows the percentage of traffic being sent by endpoints either on local or remote networks.
+
+.. figure:: ../img/web_gui_dashboard_community_pie_chart_top_senders.png
+  :align: center
+  :alt: Pie Chart of Top Senders
+
+  Pie Chart of Top Senders
+
 Dashboard in the Professional Version
 -------------------------------------
+The dashboard in the professional version provides a great deal of information, including realtime traffic - both per monitored interface and per application - top local talkers and top destinations. The dashboard is refreshed dynamically. Tables and chars are kept updated by ntopng.
+The right part of the dashboard displays realtime and last-day charts of Top Applications and Network Traffic. In case a network interface view is selected, then network traffic is shown on a per physical-interface basis. Items shown in each chart can be dynamically toggled simply by clicking on the corresponding coloured dot in the chart key.
+
+.. figure:: ../img/web_gui_dashboard_pro.png
+  :align: center
+  :alt: Professional Dashboard
+
+  Professional Dashboard
+
+The left part of the dashboard shows tables of realtime Top Local Talkers and Top Remote Destinations, including the amount of traffic exchanged.
+Top Local Talkers are hosts, belonging to local networks, that are exchanging the highest traffic volumes.
+Similarly, Top Remote Destinations are hosts, belonging to remote networks, that are currently exchanging the highest traffic volumes.
+Next to each Actual Traffic value there is an arrow that point up or down that indicates whether the traffic for such host has increased/decreased since the last web page update.
+
+Each host show can be clicked to access its ‘Host Details’ page. Next to a host you can find a badge enclosing a number: it indicates how many virtual HTTP servers the host features.
+  
