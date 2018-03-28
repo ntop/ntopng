@@ -27,6 +27,7 @@ menu.
 .. figure:: ../img/web_gui_report_filter.png
   :align: center
   :alt: Report Filter
+  :scale: 45
 
   Report Filter Overlay
 
