@@ -18,6 +18,10 @@ This is a block of bash code:
     ntopng -h
     ntopng -i wlan0
 
+.. note::
+
+   This is a note
+
 This is a list:
 
 - An element
