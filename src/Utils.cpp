@@ -1072,7 +1072,7 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
   size_t file_len;
   FILE *fd = fopen(path, "r");
   
-  if((fd== NULL) || (stat(path, &file_info) != 0))
+  if((fd == NULL) || (stat(path, &file_info) != 0))
     return(false);
   else
     file_len = (size_t)file_info.st_size;
@@ -1120,6 +1120,8 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
       readCurlStats(curl, stats, NULL);
     }
+
+    fclose(fd);
     
     /* always cleanup */
     curl_slist_free_all(headers);

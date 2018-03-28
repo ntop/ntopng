@@ -29,7 +29,7 @@
   redis-cli set "ntopng.prefs.ts_post_data_url" "http://localhost:8086/write?db=ntopng" [InfluxDB]
 */
 TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if, char *_url) {
-  fd = NULL, iface = _if, url = strdup(_url), num_cached_entries = 0;
+  fd = -1, iface = _if, url = strdup(_url), num_cached_entries = 0;
   ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Exporting TS data to %s",
 			       iface->get_name(), url);
 }
@@ -45,11 +45,15 @@ TimeSeriesExporter::~TimeSeriesExporter() {
 
 void TimeSeriesExporter::createDump() {
   strcpy(fname, "/tmp/TimeSeriesExporter_XXXXXX");
-  mkstemp(fname);
+  fd = mkstemp(fname);
 
-  fd = fopen(fname, "w");
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Dumping TS data onto tmp file %s",
-			       iface->get_name(), fname);
+  if(fd == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to dump TS data onto %s: %s",
+				 iface->get_name(), fname, strerror(errno));
+  else
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Dumping TS data onto %s",
+				 iface->get_name(), fname);
+  
   flushTime = time(NULL) + CONST_TS_FLUSH_TIME, num_cached_entries = 0;
 }
 
@@ -57,15 +61,22 @@ void TimeSeriesExporter::createDump() {
 
 void TimeSeriesExporter::exportData(char *data) {
   m.lock(__FILE__, __LINE__);
-  
-  if(!fd) createDump();
 
-  if(fd) {
-    fwrite(data, strlen(data), 1, fd), num_cached_entries++;
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
-				 iface->get_name(), data);
+  if(fd == -1)
+    createDump();
+
+  if(fd != -1) {
+    ssize_t exp = strlen(data);
+    ssize_t l = write(fd, data, exp);
+    
+    num_cached_entries++;
+    if(l == exp)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", iface->get_name(), data);
+    else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to append '%s' [written: %u][expected: %u]",
+				   iface->get_name(), data, exp, l);
   }
-  
+
   m.unlock(__FILE__, __LINE__);
 
   if(time(NULL) > flushTime)
@@ -75,13 +86,15 @@ void TimeSeriesExporter::exportData(char *data) {
 /* ******************************************************* */
 
 void TimeSeriesExporter::flush() {
-  if(!fd) return;
-  
   m.lock(__FILE__, __LINE__);
-  fclose(fd);
-  fd = NULL;
-  ntop->getRedis()->rpush(CONST_TS_FILE_QUEUE, fname, 0);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Queueing tmp file %s [%u entries]",
-			       iface->get_name(), fname, num_cached_entries);
+
+  if(fd != -1) {
+    close(fd);
+    fd = -1;
+    ntop->getRedis()->rpush(CONST_TS_FILE_QUEUE, fname, 0);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Queueing TS file %s [%u entries]",
+				 iface->get_name(), fname, num_cached_entries);
+  }
+  
   m.unlock(__FILE__, __LINE__);
 }
