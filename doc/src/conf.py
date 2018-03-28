@@ -276,3 +276,6 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+def setup(app):
+    app.add_stylesheet('css/ntop.css')
