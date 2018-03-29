@@ -1787,6 +1787,11 @@ local function getEngagedAlertsCache(ifid, granularity)
     engaged_cache = {}
     local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)}) or {}
 
+    if verbose then
+      io.write("Resync alert cache:\n")
+      tprint(sql_res)
+    end
+
     for _, res in pairs(sql_res) do
       local entity_type = alertEntityRaw(res.alert_entity)
       local entity_value = res.alert_entity_val

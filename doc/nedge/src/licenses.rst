@@ -3,7 +3,7 @@ Licenses
 
 nEdge is shipped with two different licenses:
 
-- **nEdge**: provides full monitoring capabilities, but only *bridge mode* support.
+- **nEdge Pro**: provides full monitoring capabilities, but only *bridge mode* support.
   Protocol/category policies can be set, along with bandwidth limits and quotas.
   It does *not* provide *routing mode*.
 
