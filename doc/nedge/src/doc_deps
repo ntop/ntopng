@@ -1,0 +1,10 @@
+Files:
+  - index.rst
+  - Makefile
+  - conf.py
+
+Deps:
+  python-sphinx python-sphinx_rtd_theme
+
+Build:
+  make html

@@ -22,6 +22,7 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  release    to make standalone HTML files for ntop documentation release"
 	@echo "  html       to make standalone HTML files"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
@@ -56,6 +57,18 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+.PHONY: release
+release:
+	make clean
+	@{ \
+		git_root=$$(git rev-parse --show-toplevel);\
+		version=$$(grep -Po '^NTOPNG_SHORT_VERSION="\K.+(?=")' $${git_root}/configure.ac);\
+		echo Release version $${version};\
+		sed -i "s/version = u'.*'/version = u'$${version}'/" conf.py;\
+		sed -i "s/release = u'.*'/release = u'$${version}'/" conf.py;\
+	}
+	make html
 
 .PHONY: dirhtml
 dirhtml:
