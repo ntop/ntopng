@@ -265,7 +265,7 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
-	 "--zmq-encrypt-pwd <pwd>             | Encrypt the ZMQ data using with <pwd>\n"
+	 "[--zmq-encrypt-pwd <pwd>]           | Encrypt the ZMQ data using with <pwd>\n"
 	 "[--disable-autologout|-q]           | Disable web logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
@@ -345,9 +345,9 @@ void usage() {
 	 "--online-license-check              | Check license online\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
 	 "[--enable-user-scripts]             | Enable LUA user scripts\n"
-	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs.\n"
+	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
-	 "[--instance-name|-N] <name>         | Assign a name to this ntopng instance.\n"
+	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
 #ifdef NTOPNG_PRO
 	 "[--community]                       | Start ntopng in community edition.\n"
 	 "[--check-license]                   | Check if the license is valid.\n"
@@ -672,6 +672,17 @@ static const struct option long_options[] = {
 
 /* ******************************************* */
 
+/* Those options are hidden and will not be shown in the GUI cli string.
+   Typically, such options contains passwords or other sensitive fields. */
+static const int hidden_optkeys[] = {
+  'F' /* flows export*/,
+  'r' /* redis */,
+  215 /* zmq encryption password */,
+  0
+};
+
+/* ******************************************* */
+
 void Prefs::parseHTTPPort(char *arg) {
   char tmp[32], *a, *_t;
 
@@ -689,26 +700,37 @@ void Prefs::parseHTTPPort(char *arg) {
 
 /* ******************************************* */
 
-int Prefs::setOption(int optkey, char *optarg) {
-  char *double_dot, *p, *opt = NULL, buf[128] = { '\0' };
-  int len = (optarg ? strlen(optarg) : 0)+6;
+void Prefs::setCommandLineString(int optkey, const char * optarg){
+  char *p, *opt = NULL;
+  int len = 6;
+  int i;
 
-  for(int i=0; long_options[i].name != NULL; i++) {
+  if(optarg) {
+    for(i = 0; hidden_optkeys[i] != 0; i++) {
+      if(optkey == hidden_optkeys[i]) {
+	optarg = "[hidden]";
+	break;
+      }
+    }
+    len += strlen(optarg);
+  }
+
+  for(i=0; long_options[i].name != NULL; i++) {
     if(long_options[i].val == optkey) {
       opt = (char*)long_options[i].name;
-      len += strlen(opt)+2;
+      len += strlen(opt) + 2;
       break;
     }
   }
 
   if((p = (char*)malloc(len)) != NULL) {
     if(opt) {
-      if(optarg)
+      if(optarg && strlen(optarg))
 	snprintf(p, len-1, "--%s \"%s\" ", opt, optarg);
       else
 	snprintf(p, len-1, "--%s ", opt);
     } else {
-      if(optarg)
+      if(optarg && strlen(optarg))
 	snprintf(p, len-1, "-%c %s ", optkey, optarg);
       else
 	snprintf(p, len-1, "-%c ", optkey);
@@ -726,6 +748,15 @@ int Prefs::setOption(int optkey, char *optarg) {
 	cli = backup;
     }
   }
+
+}
+
+/* ******************************************* */
+
+int Prefs::setOption(int optkey, char *optarg) {
+  char *double_dot, buf[128] = { '\0' };
+
+  setCommandLineString(optkey, optarg);
 
   switch(optkey) {
   case 'B':

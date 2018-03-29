@@ -117,6 +117,7 @@ class Prefs {
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
+  void setCommandLineString(int optkey, const char * optarg);
   int setOption(int optkey, char *optarg);
   int checkOptions();
 
