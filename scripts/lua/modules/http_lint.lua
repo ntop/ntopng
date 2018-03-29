@@ -366,7 +366,7 @@ local function validateUnassignedDevicesMode(mode)
 end
 
 local function validateSnmpAction(mode)
-   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling"}
+   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling", "startPortMonitor", "stopPortMonitor"}
 
    return validateChoice(modes, mode)
 end
@@ -892,6 +892,7 @@ local known_parameters = {
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["default_snmp_version"]    =  validateSNMPversion,           -- Default SNMP protocol version
+   ["snmp_version"]            =  validateSNMPversion,           -- 0:v1 1:v2c
    ["cidr"]                    =  validateCIDR,                  -- /32 or /24
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
    ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached

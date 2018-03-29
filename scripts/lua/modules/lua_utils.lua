@@ -552,6 +552,7 @@ alert_type_keys = {
   { "<i class='fa fa-cog'></i> " .. i18n("alerts_dashboard.misconfigured_app"),                   15, "misconfigured_app"      },
   { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.too_many_drops"),                     16, "too_many_drops"      },
   { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),          17, "mac_ip_association_change"      },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_status_change"),          18, "port_status_change"      },
 }
 
 local alert_entity_keys = {

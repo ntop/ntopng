@@ -2158,7 +2158,7 @@ function check_mac_ip_association_alerts()
       io.write(ipaddr.." ==> "..message.."[".. interface_name .."]\n")
 
       interface.select(interface_name)
-      interface.storeMacAlert(new_mac_address, alertType("mac_ip_association_change"), alertSeverity("warning"),
+      interface.storeAlert(alertEntity("mac"), new_mac_address, alertType("mac_ip_association_change"), alertSeverity("warning"),
 			      i18n("alert_messages.mac_ip_association_change",
 				   {device=name, ip=ipaddr,
 				    old_mac=old_mac_address, old_mac_url=getMacUrl(old_mac_address),
@@ -2191,7 +2191,7 @@ local function check_macs_alerts(ifid, working_status)
             if alert_new_devices_enabled then
                local name = getDeviceName(mac)
                setSavedDeviceName(mac, name)
-               interface.storeMacAlert(mac, alertType("new_device"), alertSeverity("warning"),
+               interface.storeAlert(alertEntity("mac"), mac, alertType("new_device"), alertSeverity("warning"),
 				       i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
             end
          end
@@ -2203,7 +2203,7 @@ local function check_macs_alerts(ifid, working_status)
             if alert_device_connection_enabled then
                local name = getDeviceName(mac)
                setSavedDeviceName(mac, name)
-               interface.storeMacAlert(mac, alertType("device_connection"), alertSeverity("info"),
+               interface.storeAlert(alertEntity("mac"), mac, alertType("device_connection"), alertSeverity("info"),
 				       i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
             end
          else
@@ -2219,7 +2219,7 @@ local function check_macs_alerts(ifid, working_status)
          ntop.delMembersCache(active_devices_set, mac)
 
          if alert_device_connection_enabled then
-            interface.storeMacAlert(mac, alertType("device_disconnection"), alertSeverity("info"),
+            interface.storeAlert(alertEntity("mac"), mac, alertType("device_disconnection"), alertSeverity("info"),
 				    i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
          end
       end
@@ -2306,7 +2306,7 @@ function check_host_pools_alerts(ifid, working_status)
 
 	       if alerts_on_quota_exceeded then
 		  if info.bytes_exceeded and not prev_exceeded[1] then
-		     interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
+		     interface.storeAlert(alertEntity("host_pool"), tostring(pool), alertType("quota_exceeded"), alertSeverity("info"),
 						  i18n("alert_messages.subject_quota_exceeded", {
 							  pool = host_pools_utils.getPoolName(ifid, pool),
 							  url = getHostPoolUrl(pool),
@@ -2316,7 +2316,7 @@ function check_host_pools_alerts(ifid, working_status)
 		  end
 
 		  if info.time_exceeded and not prev_exceeded[2] then
-		     interface.storeHostPoolAlert(tonumber(pool), alertType("quota_exceeded"), alertSeverity("info"),
+		     interface.storeAlert(alertEntity("host_pool"), alertType("quota_exceeded"), alertSeverity("info"),
 						  i18n("alert_messages.subject_quota_exceeded", {
 							  pool = host_pools_utils.getPoolName(ifid, pool),
 							  url = getHostPoolUrl(pool),
@@ -2356,7 +2356,7 @@ function check_host_pools_alerts(ifid, working_status)
 	       ntop.setMembersCache(active_pools_set, pool)
 
 	       if alert_pool_connection_enabled then
-		  interface.storeHostPoolAlert(tonumber(pool),
+		  interface.storeAlert(alertEntity("host_pool"), tostring(pool),
 					       alertType("host_pool_connection"), alertSeverity("info"),
 					       i18n("alert_messages.host_pool_has_connected",
 						    {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
@@ -2373,7 +2373,7 @@ function check_host_pools_alerts(ifid, working_status)
          ntop.delMembersCache(active_pools_set, pool)
 
          if alert_pool_connection_enabled then
-            interface.storeHostPoolAlert(tonumber(pool),
+            interface.storeAlert(alertEntity("host_pool"), tostring(pool),
 					 alertType("host_pool_disconnection"), alertSeverity("info"),
 					 i18n("alert_messages.host_pool_has_disconnected",
 					      {pool=host_pools_utils.getPoolName(ifid, pool),

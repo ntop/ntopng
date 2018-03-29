@@ -125,24 +125,9 @@ class AlertsManager : protected StoreManager {
     return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
   }
   int getNumHostAlerts(Host *h, bool engaged);
-
-  /*
-    ========== MAC alerts API =========
-   */
-  inline int storeMacAlert(const char *mac, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeAlert(alert_entity_mac, mac, alert_type, alert_severity, alert_json,
-		    NULL, NULL, true);
-  }
-
-  /*
-    ========== Host Pools alerts API =========
-   */
-  inline int storeHostPoolAlert(u_int16_t pool_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    char buf[8];
-
-    snprintf(buf, sizeof(buf), "%i", pool_id);
-    return storeAlert(alert_entity_host_pool, buf, alert_type, alert_severity, alert_json,
-		    NULL, NULL, true);
+  inline int storeGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeAlert(alert_entity, alert_entity_value, alert_type, alert_severity, alert_json, NULL, NULL, true);
   }
 
   /*
