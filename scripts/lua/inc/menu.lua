@@ -208,7 +208,12 @@ print(ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li>
       ]]
 
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
+if ifs["has_macs"] == true then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("layer_2")) print('</a></li>')
+end
+
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
+
 if not _ifstats.isView then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
 end
@@ -261,25 +266,18 @@ print("</ul> </li>")
 -- Devices
 info = ntop.getInfo()
 
-if((ifs["has_macs"] == true) or ntop.isEnterprise()) then
-if active_page == "devices_stats" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
-end
+if(ntop.isEnterprise()) then
+   if active_page == "devices_stats" then
+     print [[ <li class="dropdown active"> ]]
+   else
+     print [[ <li class="dropdown"> ]]
+   end
 
    print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("users.devices")) print[[ <b class="caret"></b>
       </a>
       <ul class="dropdown-menu">
    ]]
-
-   if ifs["has_macs"] == true then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("layer_2")) print('</a></li>')
-      if(info["version.enterprise_edition"] == true) then
-         print('<li class="divider"></li>')
-      end
-   end
 
    if(info["version.enterprise_edition"] == true) then
       if ifs["type"] == "zmq" then

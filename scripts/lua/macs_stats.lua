@@ -18,11 +18,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 local have_nedge = ntop.isnEdge()
 
-if have_nedge then
-   active_page = "hosts"
-else
-   active_page = "devices_stats"
-end
+active_page = "hosts"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
