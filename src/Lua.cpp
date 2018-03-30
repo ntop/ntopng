@@ -6201,7 +6201,9 @@ static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) 
   int alert_type;
   int alert_engine;
   char *alert_json, *engaged_alert_id;
+  AlertsManager *am;
   int ret;
+  bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6223,13 +6225,22 @@ static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) 
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_json = (char*)lua_tostring(vm, 6);
 
+  if(lua_type(vm, 7) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 7);
+
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ret = ntop_interface->engageReleaseHostAlert(get_allowed_nets(vm), host_ip, vlan_id, engage,
-					       (AlertEngine)alert_engine,
-					       engaged_alert_id,
-					       (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+  if((!ntop_interface)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  if(engage)
+      ret = am->engageHostAlert(host_ip, vlan_id, (AlertEngine)alert_engine, engaged_alert_id,
+        (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
+    else
+      ret = am->releaseHostAlert(host_ip, vlan_id, (AlertEngine)alert_engine, engaged_alert_id,
+				(AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
 
   lua_pushboolean(vm, ret >= 0);
   return CONST_LUA_OK;
@@ -6246,6 +6257,7 @@ static int ntop_interface_engage_release_network_alert(lua_State* vm, bool engag
   char *alert_json, *engaged_alert_id;
   AlertsManager *am;
   int ret;
+  bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6267,6 +6279,9 @@ static int ntop_interface_engage_release_network_alert(lua_State* vm, bool engag
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_json = (char*)lua_tostring(vm, 6);
 
+  if(lua_type(vm, 7) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 7);
+
   if((!ntop_interface)
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
@@ -6280,7 +6295,7 @@ static int ntop_interface_engage_release_network_alert(lua_State* vm, bool engag
     ret = am->releaseNetworkAlert(cidr,
 				  (AlertEngine)alert_engine,
 				  engaged_alert_id,
-				  (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+				  (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
 
   lua_pushboolean(vm, ret >= 0);
   return CONST_LUA_OK;
@@ -6296,6 +6311,7 @@ static int ntop_interface_engage_release_interface_alert(lua_State* vm, bool eng
   char *alert_json, *engaged_alert_id;
   AlertsManager *am;
   int ret;
+  bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6314,6 +6330,9 @@ static int ntop_interface_engage_release_interface_alert(lua_State* vm, bool eng
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_json = (char*)lua_tostring(vm, 5);
 
+  if(lua_type(vm, 6) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 6);
+
   if((!ntop_interface)
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
@@ -6322,12 +6341,12 @@ static int ntop_interface_engage_release_interface_alert(lua_State* vm, bool eng
     ret = am->engageInterfaceAlert(ntop_interface,
 				   (AlertEngine)alert_engine,
 				   engaged_alert_id,
-				   (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+				   (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
   else
     ret = am->releaseInterfaceAlert(ntop_interface,
 				    (AlertEngine)alert_engine,
 				    engaged_alert_id,
-				    (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+				    (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
 
   lua_pushboolean(vm, ret >= 0);
   return CONST_LUA_OK;

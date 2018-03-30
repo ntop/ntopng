@@ -1734,46 +1734,46 @@ local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype
   return msg, severity
 end
 
-local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
+local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info, force)
   local alert_msg, alevel = formatAlertMessage(ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
   local alert_type = alertType(atype)
   local alert_level = alertLevel(alevel)
 
   if entity_type == "interface" then
     if engaged then
-      return interface.engageInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg)
+      return interface.engageInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg, force)
     else
-      return interface.releaseInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg)
+      return interface.releaseInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg, force)
     end
   elseif entity_type == "host" then
     if engaged then
-      return interface.engageHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.engageHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     else
-      return interface.releaseHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.releaseHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     end
   elseif entity_type == "network" then
     if engaged then
-      return interface.engageNetworkAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.engageNetworkAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     else
-      return interface.releaseNetworkAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg)
+      return interface.releaseNetworkAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     end
   end
 end
 
-local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
    if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
 
-   engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+   engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
 
    if ntop.isPro() and hasNagiosSupport() then
       ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info))
    end
 end
 
-local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
    if(verbose) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
 
-   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+   engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
 
    if ntop.isPro() and hasNagiosSupport() then
       ntop.withdrawNagiosAlert(entity_value:gsub("@0", ""), akey, "Service OK.")
@@ -1805,7 +1805,9 @@ local function getEngagedAlertsCache(ifid, granularity)
       engaged_cache[entity_type][entity_value][atype][akey] = true
     end
 
-    ntop.setCache(getEngagedAlertsCacheKey(ifid, granularity), j.encode(engaged_cache))
+    if ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1" then
+      ntop.setCache(getEngagedAlertsCacheKey(ifid, granularity), j.encode(engaged_cache))
+    end
   else
     engaged_cache = j.decode(engaged_cache, 1, nil)
   end
@@ -2406,17 +2408,55 @@ end
 
 -- #################################
 
-function flushAlertsData()
+local function deleteCachePattern(pattern)
+   local keys = ntop.getKeysCache(pattern)
+
+   for key in pairs(keys or {}) do
+      ntop.delCache(key)
+   end
+end
+
+function disableAlertsGeneration()
    if not haveAdminPrivileges() then
       return
    end
 
-   local function deleteCachePattern(pattern)
-      local keys = ntop.getKeysCache(pattern)
+   -- Ensure we do not conflict with others
+   ntop.setPref("ntopng.prefs.disable_alerts_generation", "1")
+   ntop.reloadPreferences()
+   os.execute("sleep 3")
 
-      for key in pairs(keys or {}) do
-         ntop.delCache(key)
+   local selected_interface = ifname
+   local ifnames = interface.getIfNames()
+
+   -- Release any engaged alert
+   callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
+      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
+
+      local sql_res = performAlertsQuery("select *", "engaged", {}, true  --[[force]]) or {}
+
+      for _, res in pairs(sql_res) do
+         local entity_type = alertEntityRaw(res.alert_entity)
+         local entity_value = res.alert_entity_val
+         local atype = alertTypeRaw(res.alert_type)
+         local akey = res.alert_id
+         local engine = tonumber(res.alert_engine)
+
+         releaseAlert(ifstats.id, engine, entity_type, entity_value, atype, akey, {}, {}, true --[[force]])
       end
+   end)
+
+   deleteCachePattern(getEngagedAlertsCacheKey("*", "*"))
+
+   if(verbose) then io.write("[Alerts] Disable done\n") end
+   interface.select(selected_interface)
+end
+
+-- #################################
+
+function flushAlertsData()
+   if not haveAdminPrivileges() then
+      return
    end
 
    local selected_interface = ifname

@@ -6677,28 +6677,6 @@ int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, ch
   return rv;
 }
 
-/* **************************************** */
-
-int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip,
-					     u_int16_t host_vlan, bool engage,
-					     AlertEngine alert_engine, char *engaged_alert_id,
-					     AlertType alert_type, AlertLevel alert_severity,
-					     const char *alert_json) {
-  AlertsManager *am;
-  int rv;
-
-  if((am = getAlertsManager()) != NULL) {
-    if(engage)
-      rv = am->engageHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
-			       alert_type, alert_severity, alert_json);
-    else
-      rv = am->releaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
-				alert_type, alert_severity, alert_json);
-  } else
-    rv = CONST_LUA_ERROR;
-  return rv;
-}
-
 /* *************************************** */
 
 void NetworkInterface::topItemsCommit(const struct timeval *tv) {

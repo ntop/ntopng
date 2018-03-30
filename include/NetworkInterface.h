@@ -589,9 +589,6 @@ class NetworkInterface : public Checkpointable {
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
   int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
-  int engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
-			     AlertEngine alert_engine,
-			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   void reloadHideFromTop(bool refreshHosts=true);
   bool isHiddenFromTop(Host *host);

@@ -41,9 +41,9 @@ class AlertsManager : protected StoreManager {
   int engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-		  const char *alert_origin, const char *alert_target);
+		  const char *alert_origin, const char *alert_target, bool ignore_disabled);
   int releaseAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
-		   const char *engaged_alert_id);
+		   const char *engaged_alert_id, bool ignore_disabled);
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		 const char *alert_origin, const char *alert_target,
@@ -71,18 +71,18 @@ class AlertsManager : protected StoreManager {
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 			     const char *alert_origin, const char *alert_target,
-			     bool engage);
+			     bool engage, bool ignore_disabled=false);
 
   int engageReleaseNetworkAlert(const char *cidr,
 				AlertEngine alert_engine,
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				bool engage);
+				bool engage, bool ignore_disabled=false);
   int engageReleaseInterfaceAlert(NetworkInterface *n,
 				  AlertEngine alert_engine,
 				  const char *engaged_alert_id,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				  bool engage);
+				  bool engage, bool ignore_disabled=false);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
@@ -110,14 +110,14 @@ class AlertsManager : protected StoreManager {
   inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
-			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
+			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */, ignore_disabled);
   };
   inline int releaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			      AlertEngine alert_engine,
 			      const char *engaged_alert_id,
-			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */);
+			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */, ignore_disabled);
   };
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		     Host *alert_origin, Host *alert_target);
@@ -143,14 +143,14 @@ class AlertsManager : protected StoreManager {
   inline int engageNetworkAlert(const char *cidr,
 				AlertEngine alert_engine,
 				const char *engaged_alert_id,
-				AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+				AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */, ignore_disabled);
   };
   inline int releaseNetworkAlert(const char *cidr,
 				 AlertEngine alert_engine,
 				 const char *engaged_alert_id,
-				 AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+				 AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */, ignore_disabled);
   };
   int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
@@ -160,14 +160,14 @@ class AlertsManager : protected StoreManager {
   inline int engageInterfaceAlert(NetworkInterface *n,
 				  AlertEngine alert_engine,
 				  const char *engaged_alert_id,
-				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
     return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
   };
   inline int releaseInterfaceAlert(NetworkInterface *n,
 				   AlertEngine alert_engine,
 				   const char *engaged_alert_id,
-				   AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+				   AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */, ignore_disabled);
   };
   int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 

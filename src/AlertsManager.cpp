@@ -311,8 +311,8 @@ void AlertsManager::markForMakeRoom(bool on_flows) {
 int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,
 			       const char *engaged_alert_id,
 			       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-			       const char *alert_origin, const char *alert_target) {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
+			       const char *alert_origin, const char *alert_target, bool ignore_disabled) {
+  if(ignore_disabled || !ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
@@ -384,8 +384,8 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
 
 int AlertsManager::releaseAlert(AlertEngine alert_engine,
 				AlertEntity alert_entity, const char *alert_entity_value,
-				const char *engaged_alert_id) {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
+				const char *engaged_alert_id, bool ignore_disabled) {
+  if(ignore_disabled || !ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
@@ -907,7 +907,7 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 					  const char *engaged_alert_id,
 					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 					  const char *alert_origin, const char *alert_target,
-					  bool engage) {
+					  bool engage, bool ignore_disabled) {
   char counters_key[64], ipbuf_id[64], rsp[16];
   int rc;
   Host *h;
@@ -915,13 +915,17 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
   snprintf(ipbuf_id, sizeof(ipbuf_id), "%s@%d", host_ip, host_vlan);
   int num_alerts;
 
+  // If alerts are disabled, we must return now
+  if(!ignore_disabled && ntop->getPrefs()->are_alerts_disabled())
+    return 0;
+
   if(engage) {
     rc = engageAlert(alert_engine, alert_entity_host, ipbuf_id,
 		     engaged_alert_id, alert_type, alert_severity, alert_json,
-		     alert_origin, alert_target);
+		     alert_origin, alert_target, ignore_disabled);
   } else {
     rc = releaseAlert(alert_engine, alert_entity_host, ipbuf_id,
-		      engaged_alert_id);
+		      engaged_alert_id, ignore_disabled);
   }
 
   if (rc != 0)
@@ -967,7 +971,8 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 					     AlertEngine alert_engine,
 					     const char *engaged_alert_id,
 					     AlertType alert_type, AlertLevel alert_severity,
-					     const char *alert_json, bool engage) {
+					     const char *alert_json, bool engage,
+					     bool ignore_disabled) {
   struct in_addr addr4;
   struct in6_addr addr6;
   char ip_buf[256];
@@ -986,10 +991,10 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 
   if(engage)
     return engageAlert(alert_engine, alert_entity_network, cidr,
-		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
+		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
   else
     return releaseAlert(alert_engine, alert_entity_network, cidr,
-			engaged_alert_id);
+			engaged_alert_id, ignore_disabled);
 };
 
 /* ******************************************* */
@@ -998,7 +1003,7 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 					       AlertEngine alert_engine,
 					       const char *engaged_alert_id,
 					       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-					       bool engage) {
+					       bool engage, bool ignore_disabled) {
   char id_buf[8];
   if(!n) return -1;
 
@@ -1006,10 +1011,10 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 
   if(engage)
     return engageAlert(alert_engine, alert_entity_interface, id_buf,
-		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
+		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
   else
     return releaseAlert(alert_engine, alert_entity_interface, id_buf,
-			engaged_alert_id);
+			engaged_alert_id, ignore_disabled);
 };
 
 /* ******************************************* */
