@@ -4417,11 +4417,10 @@ static int ntop_post_http_json_data(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((json = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(Utils::postHTTPJsonData(username, password, url, json, &stats)) {
-    lua_pushnil(vm);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
+  bool rv = Utils::postHTTPJsonData(username, password, url, json, &stats);
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -6540,9 +6539,9 @@ static int ntop_nagios_send_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_msg = (char*)lua_tostring(vm, 3);
 
-  nagios->sendAlert(alert_source, alert_key, alert_msg);
+  bool rv = nagios->sendAlert(alert_source, alert_key, alert_msg);
 
-  lua_pushnil(vm);
+  lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
 
@@ -6563,9 +6562,9 @@ static int ntop_nagios_withdraw_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_msg = (char*)lua_tostring(vm, 3);
 
-  nagios->withdrawAlert(alert_source, alert_key, alert_msg);
+  bool rv = nagios->withdrawAlert(alert_source, alert_key, alert_msg);
 
-  lua_pushnil(vm);
+  lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
 #endif

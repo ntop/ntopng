@@ -49,22 +49,11 @@ class AlertsManager : protected StoreManager {
 		 const char *alert_origin, const char *alert_target,
 		 bool check_maximum);
 
-  const char* getAlertEntity(AlertEntity alert_entity);
-  const char* getAlertLevel(AlertLevel alert_severity);
-  const char* getAlertType(AlertType alert_type);
-  SlackNotificationChoice getSlackNotificationChoice(char* choice);
-  
-  void notifySlack (AlertEntity alert_entity, const char *alert_entity_value,
-		    const char *engaged_alert_id,
-		    AlertType alert_type, AlertLevel alert_severity,
-		    const char *alert_json,
-		    const char *alert_origin, const char *alert_target,
-		    bool engage);
-  void notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
+  bool notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		   const char *alert_origin, const char *alert_target,
-		   bool engage);
+		   bool engage, Flow *flow);
   
   int engageReleaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,

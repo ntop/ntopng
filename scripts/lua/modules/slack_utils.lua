@@ -1,38 +1,47 @@
 --
--- (C) 2014-18 - ntop.org
+-- (C) 2018 - ntop.org
 --
 
-dirs = ntop.getDirs()
+require "lua_utils"
+local json = require "dkjson"
 
-package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
+local slack = {}
 
-require "lua_trace"
+local alert_severity_to_emoji = {
+  ["info"] = ":information_source:",
+  ["warning"] = ":warning:",
+  ["error"] = ":exclamation:",
 
-function sendSlackMessages()
-  local prefs = ntop.getPrefs()
-  local debug = false
-  local webhook
+  default = ":warning:",
+}
 
-  if(prefs.slack_enabled == false) then
-    return
+function slack.sendNotification(notif)
+  local webhook = ntop.getPref("ntopng.prefs.alerts.slack_webhook")
+  local sender_username = ntop.getPref("ntopng.prefs.alerts.slack_sender_username")
+  local notification_sender = sender_username
+
+  if isEmptyString(webhook) or isEmptyString(sender_username) then
+    return false
   end
-  
-  webhook = ntop.getCache("ntopng.prefs.alerts.slack_webhook")
-  if((webhook == nil) or (webhook == "")) then
-     return
+
+  local msg_prefix = ""
+
+  if notif.action == "engage" then
+    msg_prefix = "Alert Engaged: "
+  elseif notif.action == "release" then
+    msg_prefix = "Alert Released: "
   end
 
-  while(true) do
-    local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
+  local message = {
+    channel = "#" .. notif.entity_type,
+    icon_emoji = alert_severity_to_emoji[notif.severity] or alert_severity_to_emoji.default,
+    username = sender_username .. " [" .. string.upper(notif.severity)  .. "]",
+    text = noHtml(msg_prefix .. notif.message),
+  }
 
-    if((json_message == nil) or (json_message == "")) then
-      break
-    end
+  local json_message = json.encode(message)
 
-    if(debug) then
-      print("URL: "..webhook.." / Message: "..json_message.."\n")
-    end		   
-
-    ntop.postHTTPJsonData("", "", webhook, json_message)    
-  end
+  return ntop.postHTTPJsonData("", "", webhook, json_message)
 end
+
+return slack

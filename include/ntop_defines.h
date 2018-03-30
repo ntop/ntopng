@@ -499,7 +499,7 @@
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"
 #ifdef NTOPNG_PRO
-#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts.nagios_notifications_enabled"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */
 #endif
 #define CONST_RUNTIME_PREFS_HOSTMASK  "ntopng.prefs.host_mask"
@@ -713,10 +713,7 @@
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
-#define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.prefs.alerts.sender_username"
-#define ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.slack_notifications_enabled"
-#define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.prefs.alerts.sender_username"
-#define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.prefs.alerts.slack_alert_severity"
+#define ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.external_notifications_enabled"
 #define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.prefs.alerts.dump_alerts_when_iface_is_alerted"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64

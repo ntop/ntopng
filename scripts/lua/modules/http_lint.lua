@@ -403,6 +403,10 @@ local function validateTimeZoneName(tz)
    return false
 end
 
+local function validateNotificationSeverity(tz)
+   return validateChoiceInline({"error","warning","info"})
+end
+
 -- #################################################################
 
 local function validateHost(p)
@@ -753,7 +757,7 @@ local known_parameters = {
    ["entity_val"]              =  validateUnquoted,             -- An alert entity value
    ["full_name"]               =  validateUnquoted,             -- A user full name
    ["manufacturer"]            =  validateUnquoted,             -- A MAC manufacturer
-   ["sender_username"]         =  validateUnquoted,
+   ["slack_sender_username"]   =  validateUnquoted,
    ["slack_webhook"]           =  validateUnquoted,
    ["nagios_nsca_host"]        =  validateUnquoted,
    ["nagios_host_name"]        =  validateUnquoted,
@@ -967,6 +971,7 @@ local known_parameters = {
    ["toggle_device_first_seen_alert"]              =  validateBool,
    ["toggle_pool_activation_alert"]                =  validateBool,
    ["toggle_quota_exceeded_alert"]                 =  validateBool,
+   ["toggle_external_alerts"]                      =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
@@ -1012,7 +1017,8 @@ local known_parameters = {
    ["hosts_ndpi_timeseries_creation"]              =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["interfaces_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["l2_devices_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_category"}),
-   ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
+   ["slack_notification_severity_preference"]      =  validateNotificationSeverity,
+   ["nagios_notification_severity_preference"]     =  validateNotificationSeverity,
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),

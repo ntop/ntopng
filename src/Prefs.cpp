@@ -46,7 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_remote_to_remote_alerts = true,
   enable_dropped_flows_alerts = true,
   enable_syslog_alerts = false, enable_captive_portal = false,
-  slack_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
+  external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
   override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
   hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
@@ -508,7 +508,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_dropped_flows_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS,
 							       CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
-    slack_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false),
+    external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
@@ -1492,7 +1492,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
-  lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
 
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);

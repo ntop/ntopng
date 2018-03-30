@@ -393,6 +393,7 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     return("Remote client and remote server");
   case status_blacklisted:
     *aType = alert_flow_blacklisted;
+    *aLevel = alert_level_error;
     return("Client or server blacklisted (or both)");
   case status_blocked:
     *aLevel = alert_level_info;

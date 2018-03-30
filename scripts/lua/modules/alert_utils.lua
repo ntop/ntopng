@@ -8,6 +8,7 @@
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
 local callback_utils = require "callback_utils"
 local template = require "template_utils"
+local json = require("dkjson")
 local host_pools_utils = require("host_pools_utils")
 local shaper_utils = nil
 
@@ -547,6 +548,55 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
     -- fallback
     return entity_type.." "..value
   end
+end
+
+-- #################################
+
+function formatRawFlow(record, flow_json)
+   require "flow_utils"
+
+   -- pretend record is a flow to reuse getFlowLabel
+   local flow = {
+	 ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
+	 ["cli.blacklisted"] = tostring(record["cli_blacklisted"]) == "1",
+	 ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
+	 ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
+	 ["vlan"] = record["vlan_id"]}
+      flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
+
+      local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
+
+      if not isEmptyString(l4_proto_label) then
+	 flow = flow.."[" .. i18n("l4_protocol") .. ": " .. l4_proto_label .. "] "
+      end
+
+      if (l4_proto == "tcp") or (l4_proto =="udp") then
+	 local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+
+	 if not isEmptyString(l7proto_name) then
+	    flow = flow.."["..i18n("db_explorer.application_protocol")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
+	 end
+   end
+
+   local decoded = json.decode(flow_json)
+
+   if decoded ~= nil then
+      -- render the json
+      local msg = ""
+      if not isEmptyString(record["flow_status"]) then
+         msg = msg..getFlowStatus(tonumber(record["flow_status"])).." "
+      end
+      if not isEmptyString(flow) then
+         msg = msg..flow.." "
+      end
+      if not isEmptyString(decoded["info"]) then
+         msg = msg.."["..i18n("info")..": "..decoded["info"].."] "
+      end
+
+      flow = msg
+   end
+
+   return flow
 end
 
 -- #################################
@@ -1764,20 +1814,12 @@ local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey,
    if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
 
    engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
-
-   if ntop.isPro() and hasNagiosSupport() then
-      ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info))
-   end
 end
 
 local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
    if(verbose) then io.write("Release Alert: "..entity_value.." "..atype.." "..akey.."\n") end
 
    engageReleaseAlert(false, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
-
-   if ntop.isPro() and hasNagiosSupport() then
-      ntop.withdrawNagiosAlert(entity_value:gsub("@0", ""), akey, "Service OK.")
-   end
 end
 
 local function getEngagedAlertsCache(ifid, granularity)
@@ -2500,6 +2542,123 @@ function flushAlertsData()
 
    if(verbose) then io.write("[Alerts] Flush done\n") end
    interface.select(selected_interface)
+end
+
+-- #################################
+
+local ALERT_NOTIFICATION_MODULES = {
+   "nagios", "slack"
+}
+
+function getAlertNotificationModuleEnableKey(module_name, short)
+   local short_k = "alerts." .. module_name .. "_notifications_enabled"
+
+   if short then
+      return short_k
+   else
+      return "ntopng.prefs." .. short_k
+   end
+end
+
+function getAlertNotificationModuleSeverityKey(module_name, short)
+   local short_k = "alerts." .. module_name .. "_severity"
+
+   if short then
+      return short_k
+   else
+      return "ntopng.prefs." .. short_k
+   end
+end
+
+local function getEnabledAlertNotificationModules()
+   local notifications_enabled = ntop.getPref("ntopng.prefs.alerts.external_notifications_enabled")
+
+   if not notifications_enabled or hasAlertsDisabled() then
+      return {}
+   end
+
+   local enabled_modules = {}
+
+   for _, modname in ipairs(ALERT_NOTIFICATION_MODULES) do
+      local module_enabled = ntop.getPref(getAlertNotificationModuleEnableKey(modname))
+      local min_severity = ntop.getPref(getAlertNotificationModuleSeverityKey(modname))
+      local req_name = modname .. "_utils"
+
+      if isEmptyString(min_severity) then
+         min_severity = "warning"
+      end
+
+      if module_enabled == "1" then
+         local ok, _module = pcall(require, req_name)
+
+         if not ok then
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while importing alert notification module " .. req_name)
+
+            -- the traceback
+            io.write(_module)
+         else
+            enabled_modules[#enabled_modules + 1] = {
+               name = modname,
+               severity = min_severity,
+               ["module"] = _module,
+            }
+         end
+      end
+   end
+
+   return enabled_modules
+end
+
+function processAlertNotifications()
+   local modules = nil
+
+   while(true) do
+      local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
+
+      if((json_message == nil) or (json_message == "")) then
+         break
+      end
+
+      if(verbose) then
+         io.write("Alert Notification: " .. json_message .. "\n")
+      end
+
+      local notification = json.decode(json_message)
+      local severity_num = notification.severity
+      notification.type = alertTypeRaw(notification.type)
+      notification.entity_type = alertEntityRaw(notification.entity_type)
+      notification.severity = alertSeverityRaw(notification.severity)
+
+      if notification.flow ~= nil then
+         notification.message = formatRawFlow(notification.flow, notification.message)
+      end
+
+      if(verbose) then
+         tprint(notification)
+      end
+
+      if not modules then
+         modules = getEnabledAlertNotificationModules()
+
+         if(verbose) then
+            tprint(modules)
+         end
+      end
+
+      for _, m in ipairs(modules) do
+         if severity_num >= alertSeverity(m.severity) then
+            if(verbose) then
+               io.write("Sending alert notification to " .. m.name .. "\n")
+            end
+
+            local rv = m.module.sendNotification(notification)
+
+            if (rv == false) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notification via " .. m.name .. " module")
+            end
+         end
+      end
+  end
 end
 
 -- DEBUG: uncomment this to test

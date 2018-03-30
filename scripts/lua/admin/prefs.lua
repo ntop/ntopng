@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
+require "alert_utils"
 local template = require "template_utils"
 local callback_utils = require "callback_utils"
 local have_nedge = ntop.isnEdge()
@@ -148,7 +149,7 @@ function printAlerts()
   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert",
-  "toggle_quota_exceeded_alert"}
+  "toggle_quota_exceeded_alert", "row_toggle_external_alerts"}
 
   if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
     elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
@@ -167,6 +168,20 @@ function printAlerts()
   else
      showElements = false
   end
+
+  prefsToggleButton({
+    field = "toggle_external_alerts",
+    pref = "alerts.external_notifications_enabled",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  prefsToggleButton({
+    field = "toggle_alert_syslog",
+    pref = "alerts_syslog",
+    default = "0",
+    hidden = not showElements,
+  })
 
   prefsToggleButton({
     field = "toggle_flow_alerts_iface",
@@ -316,44 +331,37 @@ function printExternalAlertsReport()
 
   print('<form method="post">')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.internal_log")..'</th></tr>')
 
   local showElements = true
 
-  prefsToggleButton({
-    field = "toggle_alert_syslog",
-    pref = "alerts_syslog",
-    default = "0"
-  })
-
    print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 
-   local elementToSwitchSlack = {"row_slack_notification_severity_preference", "sender_username", "slack_webhook"}
+   local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook"}
 
   prefsToggleButton({
     field = "toggle_slack_notification",
-    pref = "alerts.slack_notifications_enabled",
+    pref = getAlertNotificationModuleEnableKey("slack", true),
     default = "0",
     disabled = showElements==false,
     to_switch = elementToSwitchSlack,
   })
 
   local showSlackNotificationPrefs = false
-  if ntop.getPref("ntopng.prefs.alerts.slack_notifications_enabled") == "1" then
+  if ntop.getPref(getAlertNotificationModuleEnableKey("slack")) == "1" then
      showSlackNotificationPrefs = true
   else
      showSlackNotificationPrefs = false
   end
 
-  local labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
-  local values = {"only_errors","errors_and_warnings","all_alerts"}
+  local alert_sev_labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
+  local alert_sev_values = {"error", "warning", "info"}
 
-  local retVal = multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
-               labels, values, "only_errors", "primary", "slack_notification_severity_preference",
-	       "ntopng.prefs.alerts.slack_alert_severity", nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
+  multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+               alert_sev_labels, alert_sev_values, "error", "primary", "slack_notification_severity_preference",
+	       getAlertNotificationModuleSeverityKey("slack"), nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
 
   prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
-           "ntopng.prefs.alerts.", "sender_username",
+           "ntopng.prefs.alerts.", "slack_sender_username",
 		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
 
   prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
@@ -365,20 +373,26 @@ function printExternalAlertsReport()
 
     local alertsEnabled = showElements
 
-    local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable","nagios_send_nsca_config","nagios_host_name","nagios_service_name"}
+    local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable",
+      "nagios_send_nsca_config","nagios_host_name","nagios_service_name",
+      "row_nagios_notification_severity_preference"}
 
     prefsToggleButton({
       field = "toggle_alert_nagios",
-      pref = "alerts_nagios",
+      pref = getAlertNotificationModuleEnableKey("nagios", true),
       default = "0",
       disabled = alertsEnabled==false,
       to_switch = elementToSwitch,
     })
 
-    if ntop.getPref("ntopng.prefs.alerts_nagios") == "0" then
+    if ntop.getPref(getAlertNotificationModuleEnableKey("nagios")) == "0" then
       showElements = false
     end
     showElements = alertsEnabled and showElements
+
+    multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+               alert_sev_labels, alert_sev_values, "error", "primary", "nagios_notification_severity_preference",
+	       getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showElements, false)
 
     prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
     prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showElements, false, nil, {min=1, max=65535})

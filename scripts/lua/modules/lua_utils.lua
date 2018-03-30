@@ -611,7 +611,7 @@ function alertSeverity(v)
 end
 
 function alertSeverityRaw(sev_idx)
-   sev_idx = sev_idx + 1
+   sev_idx = sev_idx + 2 -- -1 and 0
    if sev_idx <= #alert_level_keys then
       return alert_level_keys[sev_idx][3]
    end
@@ -642,6 +642,14 @@ end
 
 function alertEngineLabel(v)
    return _handleArray(alert_engine_keys, tonumber(v))
+end
+
+function alertEngineRaw(idx)
+   idx = idx + 1
+   if idx <= #alert_engine_keys then
+      return alert_engine_keys[idx][3]
+   end
+   return nil
 end
 
 function alertLevel(v)
@@ -693,6 +701,7 @@ function mustScanAlerts(ifstats)
 end
 
 function hasAlertsDisabled()
+  _POST = _POST or {}
   return ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
