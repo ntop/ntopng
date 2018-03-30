@@ -593,9 +593,10 @@ end
 
 
    if host["tcp.packets.seq_problems"] == true then
-      print("<tr><th width=30% rowspan=3>"..i18n("details.tcp_packets_sent_analysis").."</th><th>"..i18n("details.retransmissions").."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+      print("<tr><th width=30% rowspan=4>"..i18n("details.tcp_packets_sent_analysis").."</th><th>"..i18n("details.retransmissions").."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
       print("<tr></th><th>"..i18n("details.out_of_order").."</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
       print("<tr></th><th>"..i18n("details.lost").."</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+      print("<tr></th><th>"..i18n("details.keep_alive").."</th><td align=right><span id=pkt_keep_alive>".. formatPackets(host["tcp.packets.keep_alive"]) .."</span> <span id=pkt_keep_alive_trend></span></td></tr>\n")
    end
 
    
@@ -2216,6 +2217,7 @@ if (host ~= nil) then
    print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
+   print("var last_tcp_keep_alive = " .. host["tcp.packets.keep_alive"] .. ";\n")
 
    if isBridgeInterface(ifstats) then
       print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
@@ -2264,6 +2266,7 @@ if (host ~= nil) then
    			$('#pkt_retransmissions').html(formatPackets(host["tcp.packets.retransmissions"]));
    			$('#pkt_ooo').html(formatPackets(host["tcp.packets.out_of_order"]));
    			$('#pkt_lost').html(formatPackets(host["tcp.packets.lost"]));
+   			$('#pkt_keep_alive').html(formatPackets(host["tcp.packets.keep_alive"]));
    			if(!host["name"]) {
    			   $('#name').html(host["ip"]);
    			} else {
@@ -2403,6 +2406,7 @@ print [[
 			$('#pkt_retransmissions_trend').html(drawTrend(host["tcp.packets.retransmissions"], last_tcp_retransmissions, ""));
 			$('#pkt_ooo_trend').html(drawTrend(host["tcp.packets.out_of_order"], last_tcp_ooo, ""));
  		        $('#pkt_lost_trend').html(drawTrend(host["tcp.packets.lost"], last_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_trend').html(drawTrend(host["tcp.packets.keep_alive"], last_tcp_keep_alive, ""));
 
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
@@ -2416,6 +2420,7 @@ print [[
    			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
    			last_tcp_ooo = host["tcp.packets.out_of_order"];
    			last_tcp_lost = host["tcp.packets.lost"];
+   			last_tcp_keep_alive = host["tcp.packets.keep_alive"];
    		  ]]
 
 

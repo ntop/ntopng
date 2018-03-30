@@ -71,7 +71,7 @@ class Host : public GenericHost, public Checkpointable {
   bool hidden_from_top;
 
   struct {
-    u_int32_t pktRetr, pktOOO, pktLost;
+    u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   } tcpPacketStats; /* Sent packets */
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
@@ -95,9 +95,10 @@ class Host : public GenericHost, public Checkpointable {
   void incLowGoodputFlows(bool asClient);
   void decLowGoodputFlows(bool asClient);
 
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;  };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num; };
+  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
+  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;       };
+  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num;      };
+  inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
   inline int16_t get_local_network_id()             { return(local_network_id);      };
   inline PacketStats* get_sent_stats()              { return(&sent_stats);           };
   inline PacketStats* get_recv_stats()              { return(&recv_stats);           };

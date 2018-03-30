@@ -464,6 +464,7 @@ local lang = {
     ["label_remote"] = "Remote",
     ["label_system_ip"] = "System IP",
     ["lost"] = "Lost",
+    ["keep_alive"] = "KeepAlive",
     ["note"] = "NOTE",
     ["note_hosts_located_snmp_device"] = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
     ["out_of_order"] = "Out of Order",

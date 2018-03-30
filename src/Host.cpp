@@ -554,19 +554,23 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 			      (tcpPacketStats.pktRetr
 			       || tcpPacketStats.pktOOO
-			       || tcpPacketStats.pktLost) ? true : false);
+			       || tcpPacketStats.pktLost
+			       || tcpPacketStats.pktKeepAlive) ? true : false);
     lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
     lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
     lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
+    lua_push_int_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
 
   } else {
     /* Limit tcp information to anomalies when host_details aren't required */
-    if(tcpPacketStats.pktRetr > 0)
+    if(tcpPacketStats.pktRetr)
       lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
-    if(tcpPacketStats.pktOOO > 0)
+    if(tcpPacketStats.pktOOO)
       lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
     if(tcpPacketStats.pktLost)
       lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
+    if(tcpPacketStats.pktKeepAlive)
+      lua_push_int_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
   }
 
   if(host_details) {
@@ -922,6 +926,9 @@ json_object* Host::getJSONObject() {
   if(tcpPacketStats.pktLost) json_object_object_add(my_object,
 						    "tcpPacketStats.pktLost",
 						    json_object_new_int(tcpPacketStats.pktLost));
+  if(tcpPacketStats.pktKeepAlive) json_object_object_add(my_object,
+							 "tcpPacketStats.pktKeepAlive",
+							 json_object_new_int(tcpPacketStats.pktKeepAlive));
 
   /* throughput stats */
   json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
@@ -1061,6 +1068,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "tcpPacketStats.pktRetr", &obj)) tcpPacketStats.pktRetr = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "tcpPacketStats.pktOOO",  &obj)) tcpPacketStats.pktOOO  = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "tcpPacketStats.pktLost", &obj)) tcpPacketStats.pktLost = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktKeepAlive", &obj)) tcpPacketStats.pktKeepAlive = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);

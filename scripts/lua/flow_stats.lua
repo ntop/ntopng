@@ -61,9 +61,11 @@ else
     if(flow["proto.l4"] == "TCP") then
        print(', "c2sOOO":'.. flow["cli2srv.out_of_order"] )
        print(', "c2slost":'..flow["cli2srv.lost"] )
+       print(', "c2skeep_alive":'..flow["cli2srv.keep_alive"] )
        print(', "c2sretr":'..flow["cli2srv.retransmissions"] )
        print(', "s2cOOO":'.. flow["srv2cli.out_of_order"] )
        print(', "s2clost":'..flow["srv2cli.lost"] )
+       print(', "s2ckeep_alive":'..flow["srv2cli.keep_alive"] )
        print(', "s2cretr":'..flow["srv2cli.retransmissions"] )
     end
 
