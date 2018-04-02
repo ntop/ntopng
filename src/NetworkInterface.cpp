@@ -1963,8 +1963,12 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", ingressPacket ? "RX" : "TX");
-
+#if 0
+  static u_int n = 0;
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u %s", ++n, ingressPacket ? "RX" : "TX");
+#endif
+  
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
     rawsize += sizeof(struct ndpi_ethhdr);

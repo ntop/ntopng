@@ -161,8 +161,13 @@ if((page == "overview") or (page == nil)) then
    else
       print(i18n("host_details.unknown_device_type") .. " ")
    end
+   
    if isAdministrator() then
       print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fa fa-cog"></i></a>\n')
+   end
+
+   if(mac_info.model ~= nil) then
+      print(" [ "..i18n("model")..": ".. mac_info.model.." ]")
    end
 
    print("</td></tr>")
@@ -198,7 +203,12 @@ if((page == "overview") or (page == nil)) then
    if(mac_info.devtype ~= 0) then
       -- This is a known device type
       print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " ")
-      print(discover.devtype2string(mac_info.devtype) .. "</td><td></td></tr>\n")
+      print(discover.devtype2string(mac_info.devtype))
+      if(mac_info.ssid ~= nil) then
+	 print(' ( <i class="fa fa-wifi fa-lg devtype-icon" aria-hidden="true"></i> '..mac_info.ssid..' )')
+      end
+
+      print("</td><td></td></tr>\n")
    end
 
    if(mac_info.fingerprint ~= "") then

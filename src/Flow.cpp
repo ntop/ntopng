@@ -2641,7 +2641,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 /* *************************************** */
 
 void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
-  u_int16_t answers, i;
+  u_int16_t answers, i = 0;
 
   PACK_ON
     struct mdns_rsp_entry {
@@ -2663,7 +2663,12 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     char name[256];
     struct mdns_rsp_entry rsp;
     u_int j;
-
+    u_int16_t rsp_type, data_len;
+    bool device_info = false;
+    DeviceType dtype = device_unknown;
+    
+    memset(name, 0, sizeof(name));
+    
     for(j=0; (i < payload_len) && (j < (sizeof(name)-1)); i++) {
       if(payload[i] == 0x0) {
 	i++;
@@ -2679,43 +2684,28 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	break;
       } else if(payload[i] == 0xC0) {
 	u_int8_t offset;
-	u_int16_t i_save = 0;
+	u_int16_t i_save = i;
 
       nested_dns_definition:
 	offset = payload[i+1] - 12;
-
-	if(offset > payload_len)
+	i = offset;
+	
+	if((offset > i)|| (i > payload_len))
 	  return; /* Invalid packet */
 	else {
-	  /* Pointer back */
-          memset(name, 0, sizeof(name));
-	  
-	  while((offset < payload_len)
-		&& (offset < 255)
-		&& (payload[offset] != 0)
+	  /* Pointer back */  
+	  while((i < payload_len)
+		&& (payload[i] != 0)
 		&& (j < (sizeof(name)-1))) {
-	    if(payload[offset] == 0)
+	    if(payload[i] == 0)
 	      break;
-	    else if(payload[offset] == 0xC0) {
-	      /* Handle recursive pointers in names.
-	       * 2 levels of indirection are currently supported. */
-	      if((i != i_save) && (i_save == 0)) {
-		i_save = i;
-		i = offset;
-		goto nested_dns_definition;
-	      } else {
-		char buf[256];
-
-		print(buf, sizeof(buf));
-		ntop->getTrace()->traceEvent(TRACE_WARNING,
-					     "MDNS Loop detected [offset=%u][i=%u][%s]", offset, i, buf);
-	      }
-	      break;
-	    } else if(payload[offset] < 32) {
+	    else if(payload[i] == 0xC0) {
+	      goto nested_dns_definition;
+	    } else if(payload[i] < 32) {
 	      if(j > 0)	name[j++] = '.';
-	      offset++;
+	      i++;
 	    } else
-	      name[j++] = payload[offset++];
+	      name[j++] = payload[i++];
 	  }
 
 	  if(i_save > 0) {
@@ -2724,36 +2714,122 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  }
 
 	  i += 2;
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", offset, &payload[offset-12]);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]);
 	  break;
 	}
       } else
 	name[j++] = payload[i];
     }
 
-    name[j++] = '\0';
     memcpy(&rsp, &payload[i], sizeof(rsp));
+    data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
-    i += sizeof(rsp) + ntohs(rsp.data_len);
-
-    switch(ntohs(rsp.rsp_type)) {
+#ifdef DEBUG_DISCOVERY
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s]", ntohs(rsp.rsp_type) & 0xFFFF, name);
+#endif
+    
+    if(strstr(name, "._device-info._"))
+      device_info = true;
+    else if(strstr(name, "._airplay._") || strstr(name, "._spotify-connect._") )
+      dtype = device_multimedia;
+    else if(strstr(name, "_ssh._"))
+      dtype = device_workstation;
+    else if(strstr(name, "._daap._")
+	    || strstr(name, "_afpovertcp._")
+	    || strstr(name, "_adisk._")
+	    || strstr(name, "_smb._")
+      )
+      dtype = device_nas;
+    else if(strstr(name, "_hap._"))
+      dtype = device_iot;
+    else if(strstr(name, "_pdl-datastream._"))
+      dtype = device_printer;
+    
+    if((dtype != device_unknown) && cli_host && cli_host->getMac()) {
+      Mac *m = cli_host->getMac();
+      
+      if(m->getDeviceType() == device_unknown)
+	m->setDeviceType(dtype);
+    }
+  
+    switch(rsp_type) {
     case 0x1C: /* AAAA */
     case 0x01: /* AA */
+    case 0x10: /* TXT */
       {
 	int len = strlen(name);
-
-	if((len > 6)
-	   && (strcmp(&name[len-6], ".local") == 0))
+	char *c;
+	
+	if((len > 6) && (strcmp(&name[len-6], ".local") == 0))
 	  name[len-6] = 0;
+
+	c = strstr(name, "._");
+	if(c && (c != name) /* Does not begin with... */)
+	  c[0] = '\0';
       }
 
       if(cli_host) cli_host->setName(name);
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, ntohs(rsp.rsp_type), name);
-      return; /* It's enough to decode the first name */
+      if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
+	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
+	u_int16_t off = 0;
+
+	while(off < data_len) {
+	  u_int8_t txt_len = (u_int8_t)txt[off];
+
+	  if(txt_len < data_len) {
+	    txt_len = min_val(data_len-off, txt_len);
+
+	    off++;
+
+	    if(txt_len > 0) {
+	      char *model = NULL;
+	      
+	      strncpy(txt_buf, &txt[off], txt_len);
+	      txt_buf[txt_len] = '\0';
+	      off += txt_len;
+
+#ifdef DEBUG_DISCOVERY
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [TXT][%s]", txt_buf);
+#endif
+	      
+	      if(strncmp(txt_buf, "am=", 3 /* Apple Model */) == 0) model = &txt_buf[3];
+	      else if(strncmp(txt_buf, "model=", 6) == 0)           model = &txt_buf[6];
+	      else if(strncmp(txt_buf, "md=", 3) == 0)              model = &txt_buf[3];
+
+	      if(model && cli_host) {
+		Mac *mac = cli_host->getMac();
+
+		if(mac) {
+		  if(device_info) {
+		    /* Overrite only if model is empty */
+		    if(mac->getModel() == NULL)
+		      mac->setModel((char*)model);
+		  } else
+		    mac->setModel((char*)model);
+		}
+	      }
+
+	      if(strncmp(txt_buf, "nm=", 3) == 0) {
+		if(cli_host) cli_host->setName(&txt_buf[3]);
+	      }
+
+	      if(strncmp(txt_buf, "ssid=", 3) == 0) {
+		if(cli_host && cli_host->getMac())
+		  cli_host->getMac()->setSSID(&txt_buf[5]);
+	      }
+	    }
+	  }
+	}
+      }
+
+#ifdef DEBUG_DISCOVERY
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, rsp_type, name);
+#endif
+      //return; /* It's enough to decode the first name */
     }
 
-    answers--;
+    i += sizeof(rsp) + data_len, answers--;
   }
 }
 

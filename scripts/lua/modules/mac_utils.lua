@@ -42,6 +42,11 @@ function mac2record(mac)
    record["column_mac"] = record["column_mac"]..getOperatingSystemIcon(mac.operatingSystem)   
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end
+
+   if(mac["model"] ~= nil) then
+      manufacturer = manufacturer .. " [ ".. mac["model"] .." ]"
+   end
+   
    record["column_manufacturer"] = manufacturer
 
    record["column_arp_total"] = formatValue(mac["arp_requests.sent"]

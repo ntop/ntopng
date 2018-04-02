@@ -158,7 +158,7 @@ print('buttons: [')
     </div>\
    ']]
 
-      -- Filter Device Type
+   -- Filter Device Type
    local devicetype_params = table.clone(page_params)
    devicetype_params.device_type = nil
    print[[, '\

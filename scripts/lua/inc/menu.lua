@@ -266,31 +266,6 @@ print("</ul> </li>")
 -- Devices
 info = ntop.getInfo()
 
-if(ntop.isEnterprise()) then
-   if active_page == "devices_stats" then
-     print [[ <li class="dropdown active"> ]]
-   else
-     print [[ <li class="dropdown"> ]]
-   end
-
-   print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("users.devices")) print[[ <b class="caret"></b>
-      </a>
-      <ul class="dropdown-menu">
-   ]]
-
-   if(info["version.enterprise_edition"] == true) then
-      if ifs["type"] == "zmq" then
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
-      end
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-   end
-
-   print("</ul> </li>")
-
-end
-
 local is_bridge_interface = isBridgeInterface(_ifstats)
 
 -- Interfaces
@@ -391,6 +366,32 @@ print [[
       </ul>
     </li>
 ]]
+end
+
+
+if(ntop.isEnterprise()) then
+   if active_page == "devices_stats" then
+     print [[ <li class="dropdown active"> ]]
+   else
+     print [[ <li class="dropdown"> ]]
+   end
+
+   print [[
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("users.devices")) print[[ <b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu">
+   ]]
+
+   if(info["version.enterprise_edition"] == true) then
+      if ifs["type"] == "zmq" then
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+      end
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+   end
+
+   print("</ul> </li>")
+
 end
 
 

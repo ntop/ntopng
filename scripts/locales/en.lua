@@ -76,6 +76,7 @@ local lang = {
   ["month"] = "Month",
   ["mtu"] = "MTU",
   ["name"] = "Name",
+  ["model"] = "Model",
   ["netmask"] = "Netmask",
   ["networks"] = "Networks",
   ["next"] = "Next",

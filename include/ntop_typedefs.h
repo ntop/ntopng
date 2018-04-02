@@ -404,8 +404,7 @@ typedef struct {
 
 /*
   NOTE:
-  Keep in sync with Utils::deviceType2str / Utils::str2DeviceType
-  and discover.lua (asset_icons)
+  Keep in sync with discover.lua (asset_icons)
 */
 typedef enum {
   device_unknown = 0,
@@ -420,7 +419,8 @@ typedef enum {
   device_wifi,
   device_nas,
   device_multimedia,
-
+  device_iot,
+  
   device_max_type /* Leave it at the end */
 } DeviceType;
 

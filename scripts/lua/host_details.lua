@@ -401,7 +401,8 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
+	 local recache = _GET["snmp_recache"] == "true"
+	 local ports = find_mac_snmp_ports(host["mac"], recache)
 
 	 if(ports ~= nil) then
 	    local rsps = 1
