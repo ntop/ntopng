@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#if defined(__FreeBSD__) || defined(__APPLE__)
+#if defined(__OpenBSD__) || defined(__APPLE__)
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif
