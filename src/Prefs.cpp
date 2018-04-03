@@ -24,6 +24,7 @@
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
+  reload_lock = new Mutex();
   num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
@@ -103,7 +104,7 @@ Prefs::Prefs(Ntop *_ntop) {
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
-  redirection_url = redirection_url_shadow = NULL;
+  redirection_url = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   ls_host = NULL;
@@ -160,7 +161,8 @@ Prefs::~Prefs() {
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
   if(redirection_url)        free(redirection_url);
-  if(redirection_url_shadow) free(redirection_url_shadow);
+
+  delete reload_lock;
 }
 
 /* ******************************************* */
@@ -463,6 +465,8 @@ void Prefs::reloadPrefsFromRedis() {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "A preference has changed, reloading...");
 #endif
 
+  reload_lock->lock(__FILE__, __LINE__);
+
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
   // alert preferences
@@ -552,8 +556,12 @@ void Prefs::reloadPrefsFromRedis() {
     free(aux);
   }
 
-  if(redirection_url_shadow) free(redirection_url_shadow);
-  redirection_url_shadow = redirection_url;
+  if(redirection_url) {
+    char *to_free = redirection_url;
+    redirection_url = NULL;
+    free(to_free);
+  }
+
 #ifndef HAVE_NEDGE
   getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
 #else
@@ -590,6 +598,7 @@ void Prefs::reloadPrefsFromRedis() {
 			       enable_mac_ndpi_stats ? 1 : 0);
 #endif
 
+  reload_lock->unlock(__FILE__, __LINE__);
 }
 
 /* ******************************************* */
