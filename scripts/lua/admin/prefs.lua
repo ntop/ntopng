@@ -334,6 +334,40 @@ function printExternalAlertsReport()
 
   local showElements = true
 
+  local alert_sev_labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
+  local alert_sev_values = {"error", "warning", "info"}
+
+  print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
+  
+  local elementToSwitch = {"row_email_notification_severity_preference", "email_address", "smtp_server"}
+
+  prefsToggleButton({
+    field = "toggle_email_notification",
+    pref = getAlertNotificationModuleEnableKey("email", true),
+    default = "0",
+    disabled = showElements==false,
+    to_switch = elementToSwitch,
+  })
+
+  local showEmailNotificationPrefs = false
+  if ntop.getPref(getAlertNotificationModuleEnableKey("email")) == "1" then
+     showEmailNotificationPrefs = true
+  else
+     showEmailNotificationPrefs = false
+  end
+
+  multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+      alert_sev_labels, alert_sev_values, "error", "primary", "email_notification_severity_preference",
+      getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
+
+  prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
+           "ntopng.prefs.alerts.", "smtp_server",
+		       "", "url", showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true})
+
+  prefsInputFieldPrefs(subpage_active.entries["email_notification_address"].title, subpage_active.entries["email_notification_address"].description,
+           "ntopng.prefs.alerts.", "email_address",
+		       "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+
    print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 
    local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook"}
@@ -352,9 +386,6 @@ function printExternalAlertsReport()
   else
      showSlackNotificationPrefs = false
   end
-
-  local alert_sev_labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
-  local alert_sev_values = {"error", "warning", "info"}
 
   multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                alert_sev_labels, alert_sev_values, "error", "primary", "slack_notification_severity_preference",

@@ -55,7 +55,7 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   end
 
-  if (subpage.disabled) or
+  if (subpage.hidden) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
      ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) or
@@ -71,7 +71,7 @@ local subpage_active = nil
 function prefsGetActiveSubpage(show_advanced_prefs, tab)
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
-      subpage.disabled = true
+      subpage.hidden = true
       
       if subpage.id == tab then
         -- will set to default
@@ -99,8 +99,17 @@ end
 
 function printMenuSubpages(tab)
   for _, subpage in ipairs(menu_subpages) do
-    if not subpage.disabled then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item menu-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+    if not subpage.hidden then
+      local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?tab=]] .. (subpage.id))
+      print[[<a href="]] print(url) print[[" class="list-group-item menu-item]]
+
+      if(tab == subpage.id) then
+        print(" active")
+      elseif subpage.disabled then
+        print(" disabled")
+      end
+
+      print[[">]] print(subpage.label) print[[</a>]]
     end
   end
 end
@@ -179,6 +188,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         	v_s = string.gsub(v_s, "ldap:__", "ldap://")
 		v_s = string.gsub(v_s, "http:__", "http://")
 		v_s = string.gsub(v_s, "https:__", "https://")
+		v_s = string.gsub(v_s, "smtp:__", "smtp://")
+		v_s = string.gsub(v_s, "smtps:__", "smtps://")
 	end
         ntop.setPref(k, v_s)
         value = v_s

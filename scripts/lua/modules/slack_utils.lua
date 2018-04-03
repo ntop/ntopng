@@ -24,13 +24,7 @@ function slack.sendNotification(notif)
     return false
   end
 
-  local msg_prefix = ""
-
-  if notif.action == "engage" then
-    msg_prefix = "Alert Engaged: "
-  elseif notif.action == "release" then
-    msg_prefix = "Alert Released: "
-  end
+  local msg_prefix = alertNotificationActionToLabel(notif.action)
 
   local message = {
     channel = "#" .. notif.entity_type,

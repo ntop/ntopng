@@ -40,7 +40,7 @@ local function addResult(result, tab, context)
 end
 
 for _, tab in pairs(menu_subpages) do
-  if isSubpageAvailable(tab) then
+  if isSubpageAvailable(tab) and not (tab.disabled) then
     -- Menu match, do not proceed with children
     if matchesQuery(tab.label, query) then
       addResult(tab.label, tab, "")

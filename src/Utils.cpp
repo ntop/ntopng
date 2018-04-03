@@ -968,6 +968,32 @@ static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 /* **************************************** */
 
+struct snmp_upload_status {
+  char *lines;
+};
+
+static size_t curl_smtp_payload_source(void *ptr, size_t size, size_t nmemb, void *userp) {
+  struct snmp_upload_status *upload_ctx = (struct snmp_upload_status *)userp;
+
+  if((size == 0) || (nmemb == 0) || ((size*nmemb) < 1)) {
+    return 0;
+  }
+
+  char *eol = strstr(upload_ctx->lines, "\r\n");
+
+  if(eol) {
+    size_t len = eol - upload_ctx->lines + 2;
+    memcpy(ptr, upload_ctx->lines, len);
+    upload_ctx->lines += len;
+
+    return len;
+  }
+
+  return 0;
+}
+
+/* **************************************** */
+
 static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) { 
   curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &stats->namelookup);
   curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &stats->connect);
@@ -1130,6 +1156,53 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
   }
 
   return(ret);
+}
+
+/* **************************************** */
+
+bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
+  CURL *curl;
+  CURLcode res;
+  bool ret = true;
+  struct curl_slist *recipients = NULL;
+  struct snmp_upload_status upload_ctx;
+
+  upload_ctx.lines = message;
+
+  curl = curl_easy_init();
+
+  if(curl) {
+    recipients = curl_slist_append(recipients, to);
+
+    curl_easy_setopt(curl, CURLOPT_URL, smtp_server);
+    curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
+    curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
+
+    /* Try using SSL */
+    curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+
+#if 0
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_smtp_payload_source);
+    curl_easy_setopt(curl, CURLOPT_READDATA, &upload_ctx);
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Unable to send email to (%s): %s",
+				   smtp_server, curl_easy_strerror(res));
+
+    curl_slist_free_all(recipients);
+
+    /* NOTE: connection could be reused */
+    curl_easy_cleanup(curl);
+  }
+
+  return ret;
 }
 
 /* **************************************** */

@@ -940,6 +940,7 @@ local known_parameters = {
    ["toggle_flow_db_dump_export"]                  =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
    ["toggle_slack_notification"]                   =  validateBool,
+   ["toggle_email_notification"]                   =  validateBool,
    ["toggle_alert_nagios"]                         =  validateBool,
    ["toggle_top_sites"]                            =  validateBool,
    ["toggle_captive_portal"]                       =  validateBool,
@@ -1011,6 +1012,8 @@ local known_parameters = {
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
    ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
    ["redirection_url"]                             =  validateEmptyOr(validateSingleWord),
+   ["email_address"]                               =  validateSingleWord,
+   ["smtp_server"]                                 =  validateSingleWord,
 
    -- Multiple Choice
    ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "ingress_iface_idx", "ingress_vrf_id"}),
@@ -1019,6 +1022,7 @@ local known_parameters = {
    ["l2_devices_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_category"}),
    ["slack_notification_severity_preference"]      =  validateNotificationSeverity,
    ["nagios_notification_severity_preference"]     =  validateNotificationSeverity,
+   ["email_notification_severity_preference"]      =  validateNotificationSeverity,
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),

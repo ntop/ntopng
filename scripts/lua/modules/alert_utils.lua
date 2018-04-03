@@ -2546,8 +2546,32 @@ end
 
 -- #################################
 
+function alertNotificationActionToLabel(action)
+   local label = ""
+
+   if action == "engage" then
+      label = "Alert Engaged: "
+   elseif action == "release" then
+      label = "Alert Released: "
+   end
+
+   return label
+end
+
+-- #################################
+
+--
+-- Generic alerts extenral report
+--
+-- Guidelines:
+--
+--  - modules are enabled with the getAlertNotificationModuleEnableKey key 
+--  - module severity is defined with the getAlertNotificationModuleSeverityKey key
+--  - A [module] name must have a corresponding modules/[module]_utils.lua script
+--
+
 local ALERT_NOTIFICATION_MODULES = {
-   "nagios", "slack"
+   "nagios", "email", "slack"
 }
 
 function getAlertNotificationModuleEnableKey(module_name, short)

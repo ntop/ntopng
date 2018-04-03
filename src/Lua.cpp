@@ -4461,6 +4461,29 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_send_mail(lua_State* vm) {
+  char *from, *to, *msg, *smtp_server;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((from = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((to = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((msg = (char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((smtp_server = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  bool rv = Utils::sendMail(from, to, msg, smtp_server);
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_add_user(lua_State* vm) {
   char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
   char *host_pool_id = NULL, *language = NULL;
@@ -7252,6 +7275,9 @@ static const luaL_Reg ntop_reg[] = {
   /* HTTP */
   { "postHTTPJsonData",     ntop_post_http_json_data },
   { "postHTTPTextFile",     ntop_post_http_text_file },
+
+  /* SMTP */
+  { "sendMail",             ntop_send_mail           },
 
   /* Address Resolution */
   { "resolveName",       ntop_resolve_address },       /* Note: you should use resolveAddress() to call from Lua */
