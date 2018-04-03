@@ -7,6 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+if ntop.isPro() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+   require("snmp_utils")
+end
+
 sendHTTPHeader('application/json')
 
 max_num_to_find = 5
@@ -41,6 +46,20 @@ print [[
         end
       end
 
+      if isMacAddress(query) and ntop.isPro() then
+	    local mac = string.upper(query)
+	    local devices = get_snmp_devices()
+
+	    for snmp_device_ip, _ in pairs(devices) do
+		  local v = ntop.getCache("cachedsnmp."..snmp_device_ip.."." .. mac .. ".port")
+		  if v ~= nil then
+			print('\t{"name": "' .. mac .. ' [SNMP]", "ip": "' .. snmp_device_ip .. '", "type": "snmp"}')
+			num = num + 1
+			break
+		  end
+	    end
+      end
+
       if(res ~= nil) then
 	 for k, v in pairs(res) do
 	    if isIPv6(v) and (not string.contains(v, "%[IPv6%]")) then
@@ -51,11 +70,11 @@ print [[
 	       if(num > 0) then print(",\n") end
 	       print('\t{"name": "'..v..'", ')
 	       if isMacAddress(v) then
-	          print('"ip": "'..v..'", "isMac": true}')
+	          print('"ip": "'..v..'", "type": "mac"}')
 	       elseif isMacAddress(k) then
-		  print('"ip": "'..k..'", "isMac": true}')
+		  print('"ip": "'..k..'", "type": "mac"}')
 	       else
-	          print('"ip": "'..k..'"}')
+	          print('"ip": "'..k..'", "type": "ip"}')
 	       end
 	       num = num + 1
 	       already_printed[v] = true

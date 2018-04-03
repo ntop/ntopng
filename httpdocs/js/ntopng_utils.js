@@ -504,8 +504,10 @@ String.prototype.sformat = function() {
 /* Used while searching hosts a and macs with typeahead */
 function makeFindHostBeforeSubmitCallback(http_prefix) {
   return function(form, data) {
-    if (data.isMac)
+    if (data.type == "mac")
       form.attr("action", http_prefix + "/lua/mac_details.lua");
+    else if (data.type == "snmp")
+      form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_info.lua");
     else
       form.attr("action", http_prefix + "/lua/host_details.lua");
 
