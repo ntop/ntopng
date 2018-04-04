@@ -5,8 +5,6 @@ local prefs = ntop.getPrefs()
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(false)
 
-local external_alerts_report = _POST["toggle_external_alerts"] or ntop.getPref("ntopng.prefs.alerts.external_notifications_enabled")
-
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true, nedge_hidden=true, hidden=false, entries={
@@ -124,9 +122,6 @@ local menu_subpages = {
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
       description = i18n("prefs.disable_alerts_generation_description"),
-    }, toggle_external_alerts = {
-      title       = i18n("prefs.toggle_external_alerts_title"),
-      description = i18n("prefs.toggle_external_alerts_description"),
     }, toggle_alert_syslog = {
       title       = i18n("prefs.toggle_alert_syslog_title"),
       description = i18n("prefs.toggle_alert_syslog_description"),
@@ -179,7 +174,11 @@ local menu_subpages = {
       hidden      = not ntop.isPro(),
     }
     
-  }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, disabled=hasAlertsDisabled() or (external_alerts_report ~= "1"), pro_only=false, entries={
+  }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false, entries={
+    toggle_external_alerts = {
+      title       = i18n("prefs.toggle_external_alerts_title"),
+      description = i18n("prefs.toggle_external_alerts_description"),
+    },
     toggle_email_notification = {
       title       = i18n("prefs.toggle_email_notification_title"),
       description = i18n("prefs.toggle_email_notification_description"),

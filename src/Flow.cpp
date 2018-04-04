@@ -227,9 +227,11 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_probing_alerts_enabled();
       break;
 
+#if 0
     case status_flow_when_interface_alerted /* 8 */:
       do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
       break;
+#endif
 
     case status_ssl_certificate_mismatch: /* 10 */
       do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
@@ -3252,8 +3254,10 @@ FlowStatus Flow::getFlowStatus() {
     return status_remote_to_remote;
 #endif
 
+#if 0
   if(iface->getAlertLevel() > 0)
    return(status_flow_when_interface_alerted);
+#endif
 
   return status_normal;
 }
