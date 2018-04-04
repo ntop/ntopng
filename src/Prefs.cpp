@@ -24,7 +24,6 @@
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
-  reload_lock = new Mutex();
   num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
@@ -104,7 +103,6 @@ Prefs::Prefs(Ntop *_ntop) {
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
-  redirection_url = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   ls_host = NULL;
@@ -160,9 +158,6 @@ Prefs::~Prefs() {
   if(https_binding_address) free(https_binding_address);
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
-  if(redirection_url)        free(redirection_url);
-
-  delete reload_lock;
 }
 
 /* ******************************************* */
@@ -465,8 +460,6 @@ void Prefs::reloadPrefsFromRedis() {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "A preference has changed, reloading...");
 #endif
 
-  reload_lock->lock(__FILE__, __LINE__);
-
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
   // alert preferences
@@ -556,17 +549,6 @@ void Prefs::reloadPrefsFromRedis() {
     free(aux);
   }
 
-  if(redirection_url) {
-    char *to_free = redirection_url;
-    redirection_url = NULL;
-    free(to_free);
-  }
-
-#ifndef HAVE_NEDGE
-  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
-#else
-  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, "");
-#endif
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, true);
 
   setTraceLevelFromRedis();
@@ -597,8 +579,6 @@ void Prefs::reloadPrefsFromRedis() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[mac_ndpi_stats: %u]",
 			       enable_mac_ndpi_stats ? 1 : 0);
 #endif
-
-  reload_lock->unlock(__FILE__, __LINE__);
 }
 
 /* ******************************************* */
@@ -1417,7 +1397,7 @@ void Prefs::add_default_interfaces() {
 /* *************************************** */
 
 void Prefs::lua(lua_State* vm) {
-  char buf[32], *red_url;
+  char buf[32];
 #ifdef NTOPNG_PRO
   char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
@@ -1515,9 +1495,6 @@ void Prefs::lua(lua_State* vm) {
 			   global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
 
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
-
-  if((red_url = redirection_url))
-    lua_push_str_table_entry(vm, "redirection_url", red_url);
 
   lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 }
