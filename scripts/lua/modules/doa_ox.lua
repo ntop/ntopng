@@ -4,40 +4,40 @@
 
 --
 -- https://www.internetsociety.org/resources/doc/2016/overview-of-the-digital-object-architecture-doa/
--- https://tools.ietf.org/html/draft-durand-doa-over-dns-00
+-- https://tools.ietf.org/id/draft-durand-object-exchange-00.html
 --
 -- Update DNS with command
--- nsupdate -k Kntop.org.+157+16148.private -v /tmp/doa.update
+-- nsupdate -k Kntop.org.+157+16148.private -v /tmp/ox.update
 --
 
 local base64 = require "base64"
 
-local doa = {}
+local ox = {}
 
-local function initDOA(path)
+local function initOX(path)
    return(io.open(path, "w"))
 end
-doa.init = initDOA
+ox.init = initOX
 
-local function printDOAHeader(fd)
+local function printOXHeader(fd)
    fd:write("server localhost\n")
    fd:write("zone ntop.org.\n")
 end
-doa.header = printDOAHeader
+ox.header = printOXHeader
 
-local function printDOAFooter(fd)
+local function printOXFooter(fd)
    fd:write("send\n")
 end
-doa.footer = printDOAFooter
+ox.footer = printOXFooter
 
-local function device2DOA(fd, dev)
-   -- update add FE5400577C58.ntop.org.  3600 IN  DOA   35632 1  1    "text/plain"  c2FtcGxlIERPQSB0ZXh0IHJlY29yZA==
+local function device2OX(fd, dev)
+   -- update add FE5400577C58.ntop.org.  3600 IN  OX   35632 1  1    "text/plain"  c2FtcGxlIERPQSB0ZXh0IHJlY29yZA==
    local mac = dev.mac:gsub(":", "")
-   local base_string = "update add ".. mac ..".ntop.org 3600 IN DOA 35632 "
+   local base_string = "update add ".. mac ..".ntop.org 3600 IN OX 35632 "
    local v
 
    -- Delete record first
-   fd:write("update delete ".. mac ..".ntop.org. DOA\n")
+   fd:write("update delete ".. mac ..".ntop.org. OX\n")
   
    -- 101 - Operating System
    if(dev.operatingSystem ~= nil) then
@@ -80,12 +80,12 @@ local function device2DOA(fd, dev)
       fd:write(base_string.."106 2 \"text/plain\" "..base64.enc(dev.url).."\n")
    end
 end
-doa.device2DOA = device2DOA
+ox.device2OX = device2OX
 
-local function termDOA(fd)
+local function termOX(fd)
    fd:close()
 end
-doa.term = termDOA
+ox.term = termOX
 
-return doa
+return ox
 
