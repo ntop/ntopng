@@ -331,7 +331,7 @@ function printExternalAlertsReport()
   local alert_sev_labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
   local alert_sev_values = {"error", "warning", "info"}
 
-  print('<tr><th colspan="2" class="info">'..i18n("prefs.external_alerts")..'</th></tr>')
+  print('<tr><th colspan="2" class="info">'..i18n("prefs.alerts_notifications")..'</th></tr>')
 
   prefsToggleButton({
     field = "toggle_external_alerts",

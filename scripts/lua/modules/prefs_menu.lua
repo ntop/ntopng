@@ -174,10 +174,10 @@ local menu_subpages = {
       hidden      = not ntop.isPro(),
     }
     
-  }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false, entries={
+  }}, {id="ext_alerts",    label=i18n("prefs.alerts_notifications"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false, entries={
     toggle_external_alerts = {
-      title       = i18n("prefs.toggle_external_alerts_title"),
-      description = i18n("prefs.toggle_external_alerts_description"),
+      title       = i18n("prefs.toggle_alerts_notifications_title"),
+      description = i18n("prefs.toggle_alerts_notifications_description"),
     },
     toggle_email_notification = {
       title       = i18n("prefs.toggle_email_notification_title"),
@@ -318,7 +318,7 @@ if hasNagiosSupport() then
 	 local nagios = {
 	    toggle_alert_nagios = {
 	       title       = i18n("prefs.toggle_alert_nagios_title"),
-	       description = i18n("prefs.toggle_alert_nagios_description", {product=info["product"]}),
+	       description = i18n("prefs.toggle_alert_nagios_description"),
 	    }, nagios_nsca_host = {
 	       title       = i18n("prefs.nagios_nsca_host_title"),
 	       description = i18n("prefs.nagios_nsca_host_description"),
