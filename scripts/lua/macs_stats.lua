@@ -147,11 +147,12 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
-   for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
+for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
+   local _manuf = string.gsub(string.gsub(manuf, "'", "&#39;"), "\"", "&quot;")
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
-      print('><a href="'..getPageUrl(base_url, manufacturer_params)..'">'..manuf..' ('..count..')'..'</a></li>')
+      print('><a href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\
