@@ -227,11 +227,11 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_probing_alerts_enabled();
       break;
 
-#if 0
     case status_flow_when_interface_alerted /* 8 */:
+#if 0
       do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
-      break;
 #endif
+      break;
 
     case status_ssl_certificate_mismatch: /* 10 */
       do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();

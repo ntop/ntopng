@@ -47,6 +47,8 @@ void sigproc(int sig) {
     called = 1;
   }
 
+  ntop->sendNetworkInterfacesTermination();
+  
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */

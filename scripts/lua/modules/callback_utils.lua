@@ -250,7 +250,8 @@ function callback_utils.uploadTSdata()
       end
 
       -- Delete the file after POST
-      ret = ntop.postHTTPTextFile("", "", url, fname, true)
+      local delete_file_after_post = true
+      ret = ntop.postHTTPTextFile("", "", url, fname, delete_file_after_post)
       
       if(ret ~= true) then
 	 print("[ERROR] POST of "..fname.." failed\n")

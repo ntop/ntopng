@@ -1,4 +1,5 @@
 local os_utils = require "os_utils"
+require "lua_utils"
 
 SECONDS_IN_A_HOUR = 3600
 SECONDS_IN_A_DAY = SECONDS_IN_A_HOUR*24
@@ -394,8 +395,12 @@ function rrd_utils.makeRRD(basedir, when, if_id, key, rrdname, step, value)
    if(key ~= nil) then tskey = tskey ..":"..key end
    ntop.tsSet(when, if_id, tonumber(step), "iface", nil, rrdname, 0, tonumber(value))
 
+   if(step == 1 and (if_id == 0) and string.contains(name, "packets")) then
+      -- io.write('Updating RRD ['.. if_id..'] '.. name .. " " .. value ..'\n')
+   end
+   
    if(enable_second_debug) then
-      io.write('Updating RRD ['.. if_id..'] '.. name .. " " .. value ..'\n')
+      -- io.write('Updating RRD ['.. if_id..'] '.. name .. " " .. value ..'\n')
    end
 end
 

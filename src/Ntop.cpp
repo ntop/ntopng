@@ -1641,12 +1641,19 @@ void Ntop::registerInterface(NetworkInterface *_if) {
 
 /* ******************************************* */
 
+void Ntop::sendNetworkInterfacesTermination() {
+  for(int i=0; i<num_defined_interfaces; i++)
+    iface[i]->sendTermination();
+}
+
+/* ******************************************* */
+
 void Ntop::runHousekeepingTasks() {
   if(globals->isShutdown()) return;
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
-
+ 
 #ifndef HAVE_NEDGE
   /* ES stats are updated once as the present implementation is not per-interface  */
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
