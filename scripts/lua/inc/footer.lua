@@ -29,9 +29,9 @@ printntopngRelease(info)
 print(" v."..info["version"])
 
 print("</br> ") print(i18n("please_wait_page.user")) print(" ")
-print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> ' .. i18n("interface") .. ' <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
+print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> ' .. i18n("interface") .. ' <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary" title="'..ifname..'">')
 
-local alias = getInterfaceNameAlias(ifname)
+local alias = getHumanReadableInterfaceName(ifname)
 print(alias)
 
 print('</span></a>')

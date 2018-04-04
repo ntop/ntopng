@@ -141,7 +141,7 @@
 #define MAX_NUM_POOL_MEMBERS        LIMITED_NUM_POOL_MEMBERS
 #endif
 
-#define MAX_INTERFACE_NAME_LEN    256
+#define MAX_INTERFACE_NAME_LEN    512
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
@@ -449,7 +449,6 @@
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
 #define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
-#define CONST_PREFS_REDIRECTION_URL         "ntopng.prefs.redirection_url"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED "ntopng.prefs.global_dns_forging"
 #define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
@@ -698,7 +697,6 @@
 #define STORE_MANAGER_MAX_KEY                20
 #define DEFAULT_GLOBAL_DNS                   ""
 #define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
-#define DEFAULT_REDIRECTION_URL              "http://www.ntop.org"
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"

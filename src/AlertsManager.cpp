@@ -886,58 +886,6 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 
 /* ******************************************* */
 
-int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
-					     AlertEngine alert_engine,
-					     const char *engaged_alert_id,
-					     AlertType alert_type, AlertLevel alert_severity,
-					     const char *alert_json, bool engage,
-					     bool ignore_disabled) {
-  struct in_addr addr4;
-  struct in6_addr addr6;
-  char ip_buf[256];
-  char *slash;
-
-  if(!cidr) return -1;
-
-  strncpy(ip_buf, cidr, sizeof(ip_buf));
-  if((slash = strchr(ip_buf, '/')) == NULL) return -2;
-  slash[0] = '\0';
-
-  if(inet_pton(AF_INET, ip_buf, &addr4) != 1 && inet_pton(AF_INET6, ip_buf, &addr6) != 1) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing network %s\n", cidr);
-    return -2; /* not a valid network */
-  }
-
-  if(engage)
-    return engageAlert(alert_engine, alert_entity_network, cidr,
-		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
-  else
-    return releaseAlert(alert_engine, alert_entity_network, cidr,
-			engaged_alert_id, ignore_disabled);
-};
-
-/* ******************************************* */
-
-int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
-					       AlertEngine alert_engine,
-					       const char *engaged_alert_id,
-					       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-					       bool engage, bool ignore_disabled) {
-  char id_buf[8];
-  if(!n) return -1;
-
-  snprintf(id_buf, sizeof(id_buf), "iface_%u", n -> get_id());
-
-  if(engage)
-    return engageAlert(alert_engine, alert_entity_interface, id_buf,
-		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
-  else
-    return releaseAlert(alert_engine, alert_entity_interface, id_buf,
-			engaged_alert_id, ignore_disabled);
-};
-
-/* ******************************************* */
-
 int AlertsManager::storeHostAlert(Host *h,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 				  Host *alert_origin, Host *alert_target) {

@@ -62,17 +62,6 @@ class AlertsManager : protected StoreManager {
 			     const char *alert_origin, const char *alert_target,
 			     bool engage, bool ignore_disabled=false);
 
-  int engageReleaseNetworkAlert(const char *cidr,
-				AlertEngine alert_engine,
-				const char *engaged_alert_id,
-				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				bool engage, bool ignore_disabled=false);
-  int engageReleaseInterfaceAlert(NetworkInterface *n,
-				  AlertEngine alert_engine,
-				  const char *engaged_alert_id,
-				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				  bool engage, bool ignore_disabled=false);
-
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
   int getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled=false);
@@ -114,10 +103,6 @@ class AlertsManager : protected StoreManager {
     return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
   }
   int getNumHostAlerts(Host *h, bool engaged);
-  inline int storeGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeAlert(alert_entity, alert_entity_value, alert_type, alert_severity, alert_json, NULL, NULL, true);
-  }
 
   /*
     ========== FLOW alerts API =========
@@ -126,39 +111,28 @@ class AlertsManager : protected StoreManager {
   inline int getNumFlowAlerts() {
     return getNumFlowAlerts(NULL);
   };
+
   /*
-    ========== NETWORK alerts API ======
+    ========== Generic alerts API =========
    */
-  inline int engageNetworkAlert(const char *cidr,
+  inline int engageGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
 				AlertEngine alert_engine,
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */, ignore_disabled);
+    return engageAlert(alert_engine, alert_entity, alert_entity_value, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
   };
-  inline int releaseNetworkAlert(const char *cidr,
+
+  inline int releaseGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
 				 AlertEngine alert_engine,
 				 const char *engaged_alert_id,
 				 AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageReleaseNetworkAlert(cidr, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */, ignore_disabled);
+    return releaseAlert(alert_engine, alert_entity, alert_entity_value, engaged_alert_id, ignore_disabled);
   };
-  int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
-  /*
-    ========== INTERFACE alerts API ======
-   */
-  inline int engageInterfaceAlert(NetworkInterface *n,
-				  AlertEngine alert_engine,
-				  const char *engaged_alert_id,
-				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
-  };
-  inline int releaseInterfaceAlert(NetworkInterface *n,
-				   AlertEngine alert_engine,
-				   const char *engaged_alert_id,
-				   AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageReleaseInterfaceAlert(n, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */, ignore_disabled);
-  };
-  int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  inline int storeGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeAlert(alert_entity, alert_entity_value, alert_type, alert_severity, alert_json, NULL, NULL, true);
+  }
 
   /*
     ========== counters API ======

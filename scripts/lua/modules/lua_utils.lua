@@ -2231,28 +2231,6 @@ function tablePreferences(key, value, force_set)
   end
 end
 
-
-function getInterfaceNameAlias(interface_name, max_len)
-   if(interface_name == nil) then return("") end
-   -- io.write(debug.traceback().."\n")
-   local label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
-   if((label == nil) or (label == "")) then
-      if(string.contains(interface_name, "{")) then -- Windows
-	 -- attempt to print the description
-	 local _ifstats = interface.getStats()
-	 local nm = _ifstats.description
-	 if tonumber(max_len) ~= nil and tonumber(max_len) > 0 then
-	    nm = shortenString(_ifstats.description, tonumber(max_len))
-	 end
-	 return(nm)
-      else
-	 return(interface_name)
-      end
-   else
-      return(label)
-   end
-end
-
 function getInterfaceSpeed(ifstats)
    local ifspeed = ntop.getCache('ntopng.prefs.'..ifstats.name..'.speed')
    if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
@@ -2332,8 +2310,8 @@ function getHumanReadableInterfaceName(interface_name)
    local key = 'ntopng.prefs.'..interface_name..'.name'
    local custom_name = ntop.getCache(key)
 
-   if((custom_name ~= nil) and (custom_name ~= "")) then
-      return(custom_name)
+   if not isEmptyString(custom_name) then
+      return(shortenString(custom_name))
    else
       interface.select(interface_name)
       local _ifstats = interface.getStats()
@@ -2344,7 +2322,7 @@ function getHumanReadableInterfaceName(interface_name)
       end
 
       -- print(interface_name.."=".._ifstats.name)
-      return(nm)
+      return(shortenString(nm or ''))
    end
 end
 
