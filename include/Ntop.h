@@ -462,6 +462,7 @@ class Ntop {
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
+  void sendNetworkInterfacesTermination();
 };
 
 extern Ntop *ntop;

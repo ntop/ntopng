@@ -666,6 +666,7 @@ class NetworkInterface : public Checkpointable {
   NIndexFlowDB* getNindex();
 #endif   
   inline TimeSeriesExporter* getTSExporter() { return(tsExporter); }
+  virtual void sendTermination()             { ; }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
