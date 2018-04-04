@@ -1789,23 +1789,17 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
   local alert_type = alertType(atype)
   local alert_level = alertLevel(alevel)
 
-  if entity_type == "interface" then
-    if engaged then
-      return interface.engageInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg, force)
-    else
-      return interface.releaseInterfaceAlert(engine, alert_key, alert_type, alert_level, alert_msg, force)
-    end
-  elseif entity_type == "host" then
+  if entity_type == "host" then
     if engaged then
       return interface.engageHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     else
       return interface.releaseHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     end
-  elseif entity_type == "network" then
+  else
     if engaged then
-      return interface.engageNetworkAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
+      return interface.engageAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     else
-      return interface.releaseNetworkAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
+      return interface.releaseAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_level, alert_msg, force)
     end
   end
 end
