@@ -43,7 +43,7 @@ NetworkInterface::NetworkInterface() {
 NetworkInterface::NetworkInterface(const char *name,
 				   const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
-  char _ifname[64], buf[64];
+  char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 

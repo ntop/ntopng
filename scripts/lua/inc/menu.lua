@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
@@ -341,8 +341,6 @@ for round = 1, 2 do
 	 else
 	    if(v ~= ifdescr[k]) then
 	       descr = descr .. " (".. ifdescr[k] ..")"
-	    elseif(v ~= descr) then
-	       descr = descr .. " (".. v ..")"
 	    end
 	 end
 

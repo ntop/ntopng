@@ -678,7 +678,7 @@ extern "C" {
 /* **************************************************** */
 
 int Utils::ifname2id(const char *name) {
-  char rsp[256];
+  char rsp[MAX_INTERFACE_NAME_LEN], ifidx[8];
 
   if(name == NULL)                    return(-1);
   else if(!strncmp(name, "dummy", 5)) return(DUMMY_IFACE_ID);
@@ -688,17 +688,13 @@ int Utils::ifname2id(const char *name) {
     /* Found */
     return(atoi(rsp));
   } else {
-    for(int idx=0; idx<255; idx++) {
-      char key[256];
-
-      snprintf(key, sizeof(key), "%d", idx);
-      if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, key, rsp, sizeof(rsp)) < 0) {
-	/* Free Id */
-
-	snprintf(rsp, sizeof(rsp), "%d", idx);
-	ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp);
-	ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, rsp, (char*)name);
-	return(idx);
+    for(int i = 0; i < 255; i++) {
+      snprintf(ifidx, sizeof(ifidx), "%d", i);
+      if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp, sizeof(rsp)) < 0) {
+	snprintf(rsp, sizeof(rsp), "%s", name);
+	ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, rsp, ifidx);
+	ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp);
+	return(i);
       }
     }
   }

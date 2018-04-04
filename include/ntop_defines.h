@@ -141,7 +141,7 @@
 #define MAX_NUM_POOL_MEMBERS        LIMITED_NUM_POOL_MEMBERS
 #endif
 
-#define MAX_INTERFACE_NAME_LEN    256
+#define MAX_INTERFACE_NAME_LEN    512
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */

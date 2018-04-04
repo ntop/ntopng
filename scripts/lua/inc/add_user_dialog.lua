@@ -100,7 +100,7 @@ if captive_portal_user == false then
 ]]
 
    for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
-      print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
+      print('<option value="'..getInterfaceId(interface_name)..'"> '..getHumanReadableInterfaceName(interface_name)..'</option>')
    end
    print[[
         </select>

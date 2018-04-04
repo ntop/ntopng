@@ -856,10 +856,14 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'i':
-    if(num_deferred_interfaces_to_register < MAX_NUM_INTERFACES)
+    if(strlen(optarg) > MAX_INTERFACE_NAME_LEN - 1)
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Interface name too long (exceeding %d characters): ignored %s",
+				   MAX_INTERFACE_NAME_LEN - 1, optarg);
+    else if(num_deferred_interfaces_to_register < MAX_NUM_INTERFACES)
       deferred_interfaces_to_register[num_deferred_interfaces_to_register++] = strdup(optarg);
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many interfaces specified with -i: ignored %s", optarg);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified with -i: ignored %s", optarg);
     break;
 
   case 'w':
