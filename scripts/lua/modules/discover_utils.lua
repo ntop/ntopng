@@ -21,6 +21,7 @@ discover.apple_osx_versions = {
    ['14'] = 'OS X 10.10 (Yosemite)',
    ['15'] = 'OS X 10.11 (El Capitan)',
    ['16'] = 'OS X 10.12 (Sierra)',
+   ['17'] = 'OS X 10.13 (High Sierra)',
 }
 
 discover.apple_products = {
@@ -124,7 +125,7 @@ discover.apple_products = {
    ['iMac12,1'] = 'iMac "Core i3" 3.1 21.5-Inch (Late 2011)',
    ['MacBookAir4,2'] = 'MacBook Air "Core i5" 1.6 13" (Edu Only)',
    ['MacBookAir4,1'] = 'MacBook Air "Core i7" 1.8 11" (Mid-2011)',
-   ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)'
+   ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)',
 }
 
 discover.asset_icons = {

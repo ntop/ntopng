@@ -31,7 +31,7 @@ function mac2record(mac)
    record["column_mac"] = mac2link(mac)
 
    if(mac.fingerprint ~= "") then
-      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
+      record["column_mac"] = record["column_mac"]..' <i class="fa fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
       -- io.write(mac.fingerprint.."\n")
    end
 
@@ -44,7 +44,8 @@ function mac2record(mac)
    if(manufacturer == nil) then manufacturer = "" end
 
    if(mac["model"] ~= nil) then
-      manufacturer = manufacturer .. " [ ".. mac["model"] .." ]"
+      local _model = discover.apple_products[mac["model"]] or mac["model"]
+      manufacturer = manufacturer .. " [ ".. _model .." ]"
    end
    
    record["column_manufacturer"] = manufacturer
