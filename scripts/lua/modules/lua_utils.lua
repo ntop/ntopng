@@ -683,6 +683,8 @@ function alertLevel(v)
 end
 
 function alertTypeRaw(alert_idx)
+   if(alert_idx == nil) then return nil end
+
    alert_idx = alert_idx + 2 -- -1 and 0
    if alert_idx <= #alert_type_keys then
       return alert_type_keys[alert_idx][3]

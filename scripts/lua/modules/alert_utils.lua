@@ -2647,40 +2647,43 @@ function processAlertNotifications()
 
       local notification = json.decode(json_message)
       local severity_num = notification.severity
-      notification.type = alertTypeRaw(notification.type)
-      notification.entity_type = alertEntityRaw(notification.entity_type)
-      notification.severity = alertSeverityRaw(notification.severity)
 
-      if notification.flow ~= nil then
-         notification.message = formatRawFlow(notification.flow, notification.message)
-      end
+      if(notification.type ~= nil) then
+	 notification.type = alertTypeRaw(notification.type)
+	 notification.entity_type = alertEntityRaw(notification.entity_type)
+	 notification.severity = alertSeverityRaw(notification.severity)
 
-      if(verbose) then
-         tprint(notification)
-      end
+	 if notification.flow ~= nil then
+	    notification.message = formatRawFlow(notification.flow, notification.message)
+	 end
 
-      if not modules then
-         modules = getEnabledAlertNotificationModules()
+	 if(verbose) then
+	    tprint(notification)
+	 end
 
-         if(verbose) then
-            tprint(modules)
+	 if not modules then
+	    modules = getEnabledAlertNotificationModules()
+
+	    if(verbose) then
+	       tprint(modules)
+	    end
+	 end
+
+	 for _, m in ipairs(modules) do
+	    if severity_num >= alertSeverity(m.severity) then
+	       if(verbose) then
+		  io.write("Sending alert notification to " .. m.name .. "\n")
+	       end
+
+	       local rv = m.module.sendNotification(notification)
+
+	       if (rv == false) then
+		  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notification via " .. m.name .. " module")
+	       end
+	    end
          end
       end
-
-      for _, m in ipairs(modules) do
-         if severity_num >= alertSeverity(m.severity) then
-            if(verbose) then
-               io.write("Sending alert notification to " .. m.name .. "\n")
-            end
-
-            local rv = m.module.sendNotification(notification)
-
-            if (rv == false) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notification via " .. m.name .. " module")
-            end
-         end
-      end
-  end
+   end
 end
 
 -- DEBUG: uncomment this to test
