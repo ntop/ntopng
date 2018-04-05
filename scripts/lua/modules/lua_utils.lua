@@ -244,9 +244,26 @@ end
 
 -- ##############################################
 
+function urlencode(str)
+   str = string.gsub (str, "\r?\n", "\r\n")
+   str = string.gsub (str, "([^%w%-%.%_%~ ])",
+		      function (c) return string.format ("%%%02X", string.byte(c)) end)
+   str = string.gsub (str, " ", "+")
+   return str
+end
+
+-- ##############################################
+
 function getPageUrl(base_url, params)
    for _,_ in pairs(params or {}) do
-      return base_url .. "?" .. table.tconcat(params, "=", "&")
+      local ret
+
+      for k, v in pairs(params) do
+	 params[k] = urlencode(v)
+      end
+
+      ret = base_url .. "?" .. table.tconcat(params, "=", "&")
+      return ret
    end
 
    return base_url

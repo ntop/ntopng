@@ -21,6 +21,7 @@ discover.apple_osx_versions = {
    ['14'] = 'OS X 10.10 (Yosemite)',
    ['15'] = 'OS X 10.11 (El Capitan)',
    ['16'] = 'OS X 10.12 (Sierra)',
+   ['17'] = 'OS X 10.13 (High Sierra)',
 }
 
 discover.apple_products = {
@@ -124,7 +125,7 @@ discover.apple_products = {
    ['iMac12,1'] = 'iMac "Core i3" 3.1 21.5-Inch (Late 2011)',
    ['MacBookAir4,2'] = 'MacBook Air "Core i5" 1.6 13" (Edu Only)',
    ['MacBookAir4,1'] = 'MacBook Air "Core i7" 1.8 11" (Mid-2011)',
-   ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)'
+   ['MacPro3,1'] = 'Mac Pro "Eight Core" 3.2 (2008)',
 }
 
 discover.asset_icons = {
@@ -486,6 +487,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       local _snmpName  = string.lower(snmpName)
       local _snmpDescr
 
+      --io.write("IP "..ip.." has descr (".. _snmpName ..")\n")
       if(snmpDescr == nil) then
         -- io.write("IP "..ip.." has empty descr (".. _snmpName ..")\n")
         _snmpDescr = _snmpName
@@ -499,7 +501,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       elseif(string.contains(_snmpDescr, "curve")) then
 	 return 'networking', discover.asset_icons['networking']..' ('..snmpName..')', snmpName
       else
-	 return 'workstation', discover.asset_icons['workstation']..' ('..snmpName..')', snmpName
+	 -- return 'unknown', snmpName, nil
       end
    elseif(string.contains(manufacturer, "VMware")
           or string.contains(manufacturer, "QEMU")
@@ -523,12 +525,15 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 local ret = '</i> '..discover.asset_icons['workstation']..' ' .. discover.apple_icon
 	 local what = 'workstation'
 
-	 if(((snmpName ~= nil) and string.contains(snmpName, "capsule"))
+	 if(((snmpName ~= nil) and string.contains(snmpName, "capsul"))
             or string.contains(symName, "capsule") or string.contains(hostname, "capsule")) then
 	    ret = '</i> '..discover.asset_icons['nas'], nil
 	    what = 'nas'
 	 elseif(string.contains(symName, "book") or string.contains(hostname, "book")) then
 	    ret = '</i> '..discover.asset_icons['laptop']..' ' .. discover.apple_icon, nil
+	    what = 'laptop'
+	 elseif(string.contains(symName, "airport")) then
+	    ret = '</i> '..discover.asset_icons['wifi']..' ' .. discover.apple_icon, nil
 	    what = 'laptop'
 	 end
 
@@ -623,17 +628,18 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
       elseif(string.contains(server, "Apache")) then
         return 'workstation', discover.asset_icons['workstation'], nil
-      elseif(string.contains(server, "GoAhead-Webs")) then
+      elseif(string.contains(server, "GoAhead")) then
         return 'workstation', discover.asset_icons['workstation'], nil
       elseif(string.contains(server, "Microsoft")) then
         interface.setMacOperatingSystem(mac, 2) -- 2 = windows
         return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
-      elseif(string.contains(server, "Virata-EmWeb") or string.contains(server, "HP-ChaiSOE") -- Usually LaserJet
-             or string.contains(server, "EWS-NIC5") -- Xerox
+      elseif(string.contains(server, "Virata%-EmWeb") or string.contains(server, "HP%-ChaiSOE") -- Usually LaserJet
+             or string.contains(server, "EWS%-NIC5") -- Xerox
+             or string.contains(server, "RomPager") -- Xerox
           ) then
         return 'printer', discover.asset_icons['printer'], nil
       else
-        return 'workstation', discover.asset_icons['workstation'], nil -- default
+        return 'workstation', discover.asset_icons['workstation'], server -- default
       end
      end
 

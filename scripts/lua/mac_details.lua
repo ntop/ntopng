@@ -14,6 +14,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+require "discover_utils"
 
 local have_nedge = ntop.isnEdge()
 
@@ -167,7 +168,8 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(mac_info.model ~= nil) then
-      print(" [ "..i18n("model")..": ".. mac_info.model.." ]")
+      local _model = discover.apple_products[mac_info.model] or mac_info.model
+      print(" [ "..i18n("model")..": ".. _model .." ]")
    end
 
    print("</td></tr>")
