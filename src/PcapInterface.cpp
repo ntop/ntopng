@@ -119,6 +119,7 @@ static void* packetPollLoop(void* ptr) {
   PcapInterface *iface = (PcapInterface*)ptr;
   pcap_t *pd;
   FILE *pcap_list = iface->get_pcap_list();
+  int fd = -1;
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
@@ -158,6 +159,10 @@ static void* packetPollLoop(void* ptr) {
 
     pd = iface->get_pcap_handle();
 
+#ifndef WIN32
+    fd = pcap_get_selectable_fd(pd);
+#endif
+
     while((pd != NULL) 
 	  && iface->isRunning() 
 	  && (!ntop->getGlobals()->isShutdown())) {
@@ -166,6 +171,18 @@ static void* packetPollLoop(void* ptr) {
       int rc;
 
       while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
+
+      if(fd > 0) {
+	fd_set rset;
+	struct timeval tv;
+	
+	FD_ZERO(&rset);
+	FD_SET(fd, &rset);
+	
+	tv.tv_sec = 1, tv.tv_usec = 0;
+	if(select(fd + 1, &rset, NULL, NULL, &tv) == 0)
+	  continue;
+	}
 
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((pkt != NULL) && (hdr->caplen > 0)) {
