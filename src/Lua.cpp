@@ -4461,6 +4461,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef HAVE_CURL_SMTP
 static int ntop_send_mail(lua_State* vm) {
   char *from, *to, *msg, *smtp_server;
 
@@ -4481,6 +4482,7 @@ static int ntop_send_mail(lua_State* vm) {
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -7215,8 +7217,10 @@ static const luaL_Reg ntop_reg[] = {
   { "postHTTPJsonData",     ntop_post_http_json_data },
   { "postHTTPTextFile",     ntop_post_http_text_file },
 
+#ifdef HAVE_CURL_SMTP
   /* SMTP */
   { "sendMail",             ntop_send_mail           },
+#endif
 
   /* Address Resolution */
   { "resolveName",       ntop_resolve_address },       /* Note: you should use resolveAddress() to call from Lua */

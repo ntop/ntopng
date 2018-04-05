@@ -2565,8 +2565,12 @@ end
 --
 
 local ALERT_NOTIFICATION_MODULES = {
-   "nagios", "email", "slack"
+   "nagios", "slack"
 }
+
+if ntop.sendMail then -- only if email support is available
+   ALERT_NOTIFICATION_MODULES[#ALERT_NOTIFICATION_MODULES + 1] = "email"
+end
 
 function getAlertNotificationModuleEnableKey(module_name, short)
    local short_k = "alerts." .. module_name .. "_notifications_enabled"

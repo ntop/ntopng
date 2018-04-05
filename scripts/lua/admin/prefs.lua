@@ -343,36 +343,39 @@ function printExternalAlertsReport()
   local external_alerts_enabled = ntop.getPref("ntopng.prefs.alerts.external_notifications_enabled") == "1"
 
   if external_alerts_enabled then
-    print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
-  
-    local elementToSwitch = {"row_email_notification_severity_preference", "email_address", "smtp_server"}
 
-    prefsToggleButton({
-      field = "toggle_email_notification",
-      pref = getAlertNotificationModuleEnableKey("email", true),
-      default = "0",
-      disabled = (showElements==false),
-      to_switch = elementToSwitch,
-    })
+     if ntop.sendMail then -- only if sendmail is defined, and thus, supported
+	print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
+	
+	local elementToSwitch = {"row_email_notification_severity_preference", "email_address", "smtp_server"}
 
-    local showEmailNotificationPrefs = false
-    if ntop.getPref(getAlertNotificationModuleEnableKey("email")) == "1" then
-       showEmailNotificationPrefs = true
-    else
-       showEmailNotificationPrefs = false
-    end
+	prefsToggleButton({
+	      field = "toggle_email_notification",
+	      pref = getAlertNotificationModuleEnableKey("email", true),
+	      default = "0",
+	      disabled = (showElements==false),
+	      to_switch = elementToSwitch,
+	})
 
-    multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
-        alert_sev_labels, alert_sev_values, "error", "primary", "email_notification_severity_preference",
-        getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
+	local showEmailNotificationPrefs = false
+	if ntop.getPref(getAlertNotificationModuleEnableKey("email")) == "1" then
+	   showEmailNotificationPrefs = true
+	else
+	   showEmailNotificationPrefs = false
+	end
 
-    prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
-             "ntopng.prefs.alerts.", "smtp_server",
-             "", "url", showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true})
+	multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+				 alert_sev_labels, alert_sev_values, "error", "primary", "email_notification_severity_preference",
+				 getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
 
-    prefsInputFieldPrefs(subpage_active.entries["email_notification_address"].title, subpage_active.entries["email_notification_address"].description,
-             "ntopng.prefs.alerts.", "email_address",
-             "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
+			     "ntopng.prefs.alerts.", "smtp_server",
+			     "", "url", showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true})
+
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_address"].title, subpage_active.entries["email_notification_address"].description,
+			     "ntopng.prefs.alerts.", "email_address",
+			     "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+     end
 
      print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 

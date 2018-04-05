@@ -964,7 +964,7 @@ static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 /* **************************************** */
 
-#ifdef CURLOPT_MAIL_RCPT
+#ifdef HAVE_CURL_SMTP
 
 struct snmp_upload_status {
   char *lines;
@@ -1161,7 +1161,7 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
 /* **************************************** */
 
 bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
-#ifdef CURLOPT_MAIL_RCPT
+#ifdef HAVE_CURL_SMTP
   CURL *curl;
   CURLcode res;
   bool ret = true;
