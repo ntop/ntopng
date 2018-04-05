@@ -964,11 +964,7 @@ static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 /* **************************************** */
 
-<<<<<<< Updated upstream
 #ifdef HAVE_CURL_SMTP
-=======
-#ifdef CURLPROTO_SMTP
->>>>>>> Stashed changes
 
 struct snmp_upload_status {
   char *lines;
