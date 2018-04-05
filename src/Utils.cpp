@@ -964,11 +964,52 @@ static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 /* **************************************** */
 
+<<<<<<< Updated upstream
 #ifdef HAVE_CURL_SMTP
+=======
+#ifdef CURLPROTO_SMTP
+>>>>>>> Stashed changes
 
 struct snmp_upload_status {
   char *lines;
+  char msg_log[1024];
 };
+
+static int curl_debugfunc(CURL *handle, curl_infotype type, char *data,
+          size_t size, void *userptr) {
+  char dir = '\0';
+
+  switch(type) {
+    case CURLINFO_HEADER_IN:
+    case CURLINFO_DATA_IN:
+      dir = '<';
+      break;
+    case CURLINFO_DATA_OUT:
+    case CURLINFO_HEADER_OUT:
+      dir = '>';
+      break;
+    default:
+      break;
+  }
+
+  if(dir) {
+    char *msg = data;
+
+    while(*msg) {
+      char *end = strchr(msg, '\n');
+      if(!end) break;
+
+      *end = '\0';
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[CURL] %c %s", dir, msg);
+      *end = '\n';
+      msg = end+1;
+    }
+  }
+
+  return(size);
+}
+
+/* **************************************** */
 
 static size_t curl_smtp_payload_source(void *ptr, size_t size, size_t nmemb, void *userp) {
   struct snmp_upload_status *upload_ctx = (struct snmp_upload_status *)userp;
@@ -1166,10 +1207,11 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
   CURLcode res;
   bool ret = true;
   struct curl_slist *recipients = NULL;
-  struct snmp_upload_status upload_ctx;
+  struct snmp_upload_status *upload_ctx = (struct snmp_upload_status*) calloc(1, sizeof(struct snmp_upload_status));
 
-  upload_ctx.lines = message;
+  if(!upload_ctx) return false;
 
+  upload_ctx->lines = message;
   curl = curl_easy_init();
 
   if(curl) {
@@ -1182,12 +1224,15 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
     /* Try using SSL */
     curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
-#if 0
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
+    if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_DEBUG) {
+      /* Show verbose message trace */
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+      curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_debugfunc);
+      curl_easy_setopt(curl, CURLOPT_DEBUGDATA, upload_ctx);
+    }
 
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_smtp_payload_source);
-    curl_easy_setopt(curl, CURLOPT_READDATA, &upload_ctx);
+    curl_easy_setopt(curl, CURLOPT_READDATA, upload_ctx);
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 
     res = curl_easy_perform(curl);
@@ -1203,8 +1248,10 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
     curl_easy_cleanup(curl);
   }
 
+  free(upload_ctx);
   return ret;
 #else
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "SMTP support is not available");
   return(false);
 #endif
 }

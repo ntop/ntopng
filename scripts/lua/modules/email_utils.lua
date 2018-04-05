@@ -20,13 +20,9 @@ local function getEmailMessage(now_ts, from, to, subject, body)
 end
 
 function email.sendNotification(notif)
-  if notif.action == "release" then
-    -- Avoid sending release notifications
-    return
-  end
-
   local email_address = ntop.getPref("ntopng.prefs.alerts.email_address")
   local smtp_server = ntop.getPref("ntopng.prefs.alerts.smtp_server")
+  local msg_prefix = alertNotificationActionToLabel(notif.action)
 
   if isEmptyString(email_address) or isEmptyString(smtp_server) then
     return false
@@ -34,7 +30,7 @@ function email.sendNotification(notif)
 
   local product = ntop.getInfo(false).product
   local subject = product .. " [" .. string.upper(notif.severity) .. "]: " .. alertTypeLabel(alertType(notif.type), true)
-  local message_body = unescapeHtmlEntities(noHtml(notif.message))
+  local message_body = noHtml(msg_prefix .. notif.message)
   local from_to = email_address
   local message = getEmailMessage(os.time(), from_to, from_to, subject, message_body)
 
