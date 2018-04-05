@@ -385,7 +385,7 @@ else
     dnl> https://github.com/curl/curl/blob/curl-7_20_0/TODO-RELEASE
 
     AC_MSG_CHECKING(for curl SMTP support)
-    if `pkg-config --atleast-version="7.30.0" libcurl` ; then
+    if `pkg-config --atleast-version="7.20.0" libcurl` ; then
         AC_DEFINE_UNQUOTED(HAVE_CURL_SMTP, 1, [curl supports SMTP])
 	AC_MSG_RESULT(yes)
     else
