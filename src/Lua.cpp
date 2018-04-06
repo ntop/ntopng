@@ -1504,7 +1504,7 @@ static int ntop_getservbyport(lua_State* vm) {
 /* Millisecond sleep */
 static int ntop_msleep(lua_State* vm) {
   u_int duration, max_duration = 60000 /* 1 min */;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -1513,8 +1513,136 @@ static int ntop_msleep(lua_State* vm) {
   if(duration > max_duration) duration = max_duration;
 
   usleep(duration*1000);
-  
+
   lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/* https://www.linuxquestions.org/questions/programming-9/connect-timeout-change-145433/ */
+static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
+  int flags = 0, error = 0, ret = 0;
+  fd_set rset, wset;
+  socklen_t len = sizeof(error);
+  struct timeval  ts;
+
+  ts.tv_sec = timeout, ts.tv_usec = 0;
+
+  //clear out descriptor sets for select
+  //add socket to the descriptor sets
+  FD_ZERO(&rset);
+  FD_SET(sock, &rset);
+  wset = rset; //structure assignment ok
+
+  //set socket nonblocking flag
+  if((flags = fcntl(sock, F_GETFL, 0)) < 0)
+    return -1;
+
+  if(fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0)
+    return -1;
+
+  //initiate non-blocking connect
+  if( (ret = connect(sock, (struct sockaddr *)sa, sizeof(struct sockaddr_in))) < 0 )
+    if (errno != EINPROGRESS)
+      return -1;
+
+  if(ret == 0) // then connect succeeded right away
+    goto done;
+
+  //we are waiting for connect to complete now
+  if( (ret = select(sock + 1, &rset, &wset, NULL, (timeout) ? &ts : NULL)) < 0)
+    return -1;
+  
+  if(ret == 0) {
+    // we had a timeout
+    errno = ETIMEDOUT;
+    return -1;
+  }
+
+  // we had a positivite return so a descriptor is ready
+  if (FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset)){
+    if(getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+      return -1;
+  }else
+    return -1;
+
+  if(error){  //check if we had a socket error
+    errno = error;
+    return -1;
+  }
+
+ done:
+  //put socket back in blocking mode
+  if(fcntl(sock, F_SETFL, flags) < 0)
+    return -1;
+
+  return 0;
+}
+
+  
+/* Millisecond sleep */
+static int ntop_tcp_probe(lua_State* vm) {
+  char *server_ip;
+  u_int server_port, timeout = 3;
+  int sockfd;
+  struct sockaddr_in serv_addr;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  server_ip = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  server_port = (u_int)lua_tonumber(vm, 2);
+
+  if(lua_type(vm, 3) == LUA_TNUMBER) timeout = (u_int16_t)lua_tonumber(vm, 3);
+
+  if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    return(CONST_LUA_ERROR);
+
+  memset(&serv_addr, '0', sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(server_port);
+  serv_addr.sin_addr.s_addr = inet_addr(server_ip);
+  
+  if(non_blocking_connect(sockfd, &serv_addr, timeout) < 0)
+    lua_pushnil(vm);
+  else {
+    u_int timeout = 1, offset = 0;
+    char buf[512];
+    
+    while(true) {
+      fd_set rset;
+      struct timeval tv;
+      int rc;
+      
+      FD_ZERO(&rset);
+      FD_SET(sockfd, &rset);
+
+      tv.tv_sec = timeout, tv.tv_usec = 0;
+      rc = select(sockfd + 1, &rset, NULL, NULL, &tv);
+      timeout = 0;
+      
+      if(rc <= 0)
+	break;
+      else {
+	ssize_t l = read(sockfd, &buf[offset], sizeof(buf)-offset-1);
+	
+	if(l <= 0)
+	  break;
+	else
+	  offset += l;
+      }
+    }
+
+    buf[offset] = 0;
+    lua_pushstring(vm, buf);
+  }
+    
+
+  closesocket(sockfd);
+
   return(CONST_LUA_OK);
 }
 
@@ -3621,7 +3749,7 @@ static int ntop_ts_set(lua_State* vm) {
     u_int8_t id = 1;
 #if 0
     u_int16_t step;
-#endif    
+#endif
     u_int32_t ts;
     u_int64_t sent = 0, rcvd = 0;
     char buf[512], *_div, *_key;
@@ -3642,7 +3770,7 @@ static int ntop_ts_set(lua_State* vm) {
     id++; /* Ignore ifaceId */
     id++; /* Ignore step    */
 #endif
-    
+
     if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK)
       return(CONST_LUA_PARAM_ERROR);
     if((label = (const char*)lua_tostring(vm, id++)) == NULL)
@@ -3673,7 +3801,7 @@ static int ntop_ts_set(lua_State* vm) {
       _div = (char*)":", _key = (char*)key;
     else
       _div = (char*)"", _key = (char*)"";
-      
+
     snprintf(buf, sizeof(buf),
 	     "%s,key=%s%s%s,metric=%s sent=%lu,rcvd=%lu %u000000000\n",
 	     ntop_interface->get_name(),
@@ -3694,15 +3822,15 @@ static int ntop_ts_set(lua_State* vm) {
 static int ntop_ts_flush(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t step;
-  
+
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 0, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  
+
   step = (u_int32_t)lua_tonumber(vm, 0);
-  
+
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
 #if 0
   if(ntop->getPro()->is_nindex_in_use()) {
@@ -4207,12 +4335,12 @@ static int ntop_http_get(lua_State* vm) {
   int timeout = 30;
   bool return_content = true;
   HTTPTranferStats stats;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  
+
   if((url = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   if(lua_type(vm, 2) == LUA_TSTRING) {
@@ -4423,7 +4551,7 @@ static int ntop_change_user_language(lua_State* vm) {
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
   HTTPTranferStats stats;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
@@ -4448,7 +4576,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
   char *username, *password, *url, *path;
   bool delete_file_after_post = false;
   HTTPTranferStats stats;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
@@ -4463,7 +4591,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
   if(lua_type(vm, 5) == LUA_TBOOLEAN) /* Optional */
     delete_file_after_post = lua_toboolean(vm, 5) ? true : false;
-  
+
   if(Utils::postHTTPTextFile(username, password, url, path, &stats)) {
     if(delete_file_after_post) {
       if(unlink(path) != 0)
@@ -4471,7 +4599,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
       else
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deleted file %s", path);
     }
-    
+
     lua_pushboolean(vm, true);
     return(CONST_LUA_OK);
   } else
@@ -7274,6 +7402,7 @@ static const luaL_Reg ntop_reg[] = {
   /* Misc */
   { "getservbyport",        ntop_getservbyport        },
   { "msleep",               ntop_msleep               },
+  { "tcpProbe",             ntop_tcp_probe            },
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
 #ifdef HAVE_NEDGE
   { "shutdown",             ntop_shutdown             },

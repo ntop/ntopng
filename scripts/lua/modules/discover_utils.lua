@@ -617,6 +617,25 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       tprint(mdns)
    end
 
+   -- Let's try SSH
+   ssh_rsp = ntop.tcpProbe(ip, 22, 1)
+   if(ssh_rsp ~= nil) then
+      local _ssh_rsp = string.gsub(ssh_rsp, "\n", "")      
+      local elems = string.split(_ssh_rsp, ' ')
+      local osvers = elems[2]
+      
+      if(osvers ~= nil) then
+	 local _osvers = string.split(osvers, "-")
+	 osvers = _osvers[1]
+      end
+
+      if(osvers ~= nil) then
+	 return 'workstation', discover.asset_icons['workstation']..' ('.. osvers ..')', osvers
+      else
+	 return 'workstation', discover.asset_icons['workstation'], nil
+      end
+   end
+   
    -- Last resort is HTTP
    http_rsp = ntop.httpGet("http://"..ip, "", "", 1)
    if((http_rsp ~= nil) and (http_rsp.HTTP_HEADER ~= nil)) then
