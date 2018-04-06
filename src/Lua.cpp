@@ -1501,6 +1501,25 @@ static int ntop_getservbyport(lua_State* vm) {
 
 /* ****************************************** */
 
+/* Millisecond sleep */
+static int ntop_msleep(lua_State* vm) {
+  u_int duration, max_duration = 60000 /* 1 min */;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  duration = (u_int)lua_tonumber(vm, 1);
+
+  if(duration > max_duration) duration = max_duration;
+
+  usleep(duration*1000);
+  
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Scan the input directory and return the list of files.
  * @details Get the path from the lua stack and push into a new hashtable the files name existing in the directory.
@@ -7254,6 +7273,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Misc */
   { "getservbyport",        ntop_getservbyport        },
+  { "msleep",               ntop_msleep               },
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
 #ifdef HAVE_NEDGE
   { "shutdown",             ntop_shutdown             },
