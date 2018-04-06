@@ -1012,7 +1012,8 @@ local known_parameters = {
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
    ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
    ["redirection_url"]                             =  validateEmptyOr(validateSingleWord),
-   ["email_address"]                               =  validateSingleWord,
+   ["email_sender"]                                =  validateSingleWord,
+   ["email_recipient"]                             =  validateSingleWord,
    ["smtp_server"]                                 =  validateSingleWord,
 
    -- Multiple Choice
@@ -1033,6 +1034,7 @@ local known_parameters = {
 
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,
+   ["send_test_email"]                             =  validateEmpty,
    ["network_discovery_interval"]                  =  validateNumber,
 --
 

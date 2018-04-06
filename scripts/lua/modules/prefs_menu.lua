@@ -183,9 +183,13 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_email_notification_title"),
       description = i18n("prefs.toggle_email_notification_description"),
     },
-    email_notification_address = {
-      title       = i18n("prefs.email_notification_address_title"),
-      description = i18n("prefs.email_notification_address_description"),
+    email_notification_sender = {
+      title       = i18n("prefs.email_notification_sender_title"),
+      description = i18n("prefs.email_notification_sender_description"),
+    },
+    email_notification_recipient = {
+      title       = i18n("prefs.email_notification_recipient_title"),
+      description = i18n("prefs.email_notification_recipient_description"),
     },
     email_notification_server = {
       title       = i18n("prefs.email_notification_server_title"),

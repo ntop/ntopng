@@ -1233,10 +1233,12 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
 
     res = curl_easy_perform(curl);
 
-    if(res != CURLE_OK)
+    if(res != CURLE_OK) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Unable to send email to (%s): %s",
+				   "Unable to send email to (%s): %s. Run ntopng with -v6 for more details.",
 				   smtp_server, curl_easy_strerror(res));
+      ret = false;
+    }
 
     curl_slist_free_all(recipients);
 

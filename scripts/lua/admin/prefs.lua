@@ -21,6 +21,8 @@ sendHTTPContentTypeHeader('text/html')
 
 local show_advanced_prefs = false
 local alerts_disabled = false
+local message_info = ""
+local message_severity = "alert-warning"
 
 if(haveAdminPrivileges()) then
    if(_POST["flush_alerts_data"] ~= nil) then
@@ -29,6 +31,19 @@ if(haveAdminPrivileges()) then
    elseif(_POST["disable_alerts_generation"] == "1") then
     require "alert_utils"
     disableAlertsGeneration()
+   elseif(_POST["send_test_email"] ~= nil) then
+    local email_utils = require("email_utils")
+
+    local product = ntop.getInfo(false).product
+    local success = email_utils.sendEmail(product .. " TEST MAIL", "Email notification is working")
+
+    if success then
+      message_info = i18n("prefs.email_sent_successfully")
+      message_severity = "alert-success"
+    else
+      message_info = i18n("prefs.email_send_error", {product=product})
+      message_severity = "alert-danger"
+    end
    end
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -37,6 +52,13 @@ if(haveAdminPrivileges()) then
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    prefs = ntop.getPrefs()
+
+if not isEmptyString(message_info) then
+  print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
+  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+  print(message_info)
+  print[[</div>]]
+end
 
    print [[
 	    <h2>Runtime Preferences</h2>
@@ -347,7 +369,7 @@ function printExternalAlertsReport()
      if ntop.sendMail then -- only if sendmail is defined, and thus, supported
 	print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
 	
-	local elementToSwitch = {"row_email_notification_severity_preference", "email_address", "smtp_server"}
+	local elementToSwitch = {"row_email_notification_severity_preference", "email_sender", "email_recipient", "smtp_server", "alerts_test"}
 
 	prefsToggleButton({
 	      field = "toggle_email_notification",
@@ -372,10 +394,16 @@ function printExternalAlertsReport()
 			     "ntopng.prefs.alerts.", "smtp_server",
 			     "", "url", showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true})
 
-	prefsInputFieldPrefs(subpage_active.entries["email_notification_address"].title, subpage_active.entries["email_notification_address"].description,
-			     "ntopng.prefs.alerts.", "email_address",
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_sender"].title, subpage_active.entries["email_notification_sender"].description,
+			     "ntopng.prefs.alerts.", "email_sender",
 			     "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
-     end
+
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_recipient"].title, subpage_active.entries["email_notification_recipient"].description,
+			     "ntopng.prefs.alerts.", "email_recipient",
+			     "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+
+  print('<tr id="alerts_test"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestEmail();" style="width:230px; float:left;">'..i18n("prefs.send_test_mail")..'</button></td></tr>')
+     end -- ntop.sendMail
 
      print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 
@@ -447,6 +475,18 @@ function printExternalAlertsReport()
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
+
+  print[[<script>
+    function sendTestEmail() {
+      var params = {};
+
+      params.send_test_email = "";
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+    }
+  </script>]]
 end
 
 -- ================================================================================
@@ -1274,7 +1314,9 @@ print[[
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
    print([[<script>
-aysHandleForm("form");
+aysHandleForm("form", {
+  disable_on_dirty: '.disable-on-dirty',
+});
 
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
