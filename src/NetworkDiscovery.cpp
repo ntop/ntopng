@@ -116,8 +116,13 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   ndpi_dns_packet_header *dns_h;
   u_int dns_query_len;
   struct sockaddr_in mdns_dest;
-
+  int fd = -1;
   char *ifname  = iface->altDiscoverableName();
+
+#ifndef WIN32
+  fd = pcap_get_selectable_fd(pd);
+#endif
+
   if(ifname == NULL)
     ifname = iface->get_name();
 
@@ -130,8 +135,20 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   /* Purge existing packets */
 
-  while((pcap_next(pd, &h) != NULL) && (!ntop->getGlobals()->isShutdown())) ;
-
+  while(!ntop->getGlobals()->isShutdown()) {
+    fd_set rset;
+    struct timeval tv;
+    
+    FD_ZERO(&rset);
+    FD_SET(fd, &rset);
+    
+    tv.tv_sec = 0, tv.tv_usec = 0;
+    if(select(fd + 1, &rset, NULL, NULL, &tv) > 0)
+      pcap_next(pd, &h);
+    else
+      break;
+  }
+  
   if(ntop->getGlobals()->isShutdown()) return;
 
   if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -213,14 +230,22 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	break;
 
       FD_ZERO(&rset);
+
+      if(fd != -1) {
+	FD_SET(fd, &rset);
+	if(fd > max_sock) max_sock = fd;
+      }
       if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
 
       tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
 
-      if(mdns_sock != -1)
+      if(max_sock != 0)
 	sel_rc = select(max_sock + 1, &rset, NULL, NULL, &tv);
 
-      reply = (struct arp_packet*)pcap_next(pd, &h);
+      if((fd == -1) || FD_ISSET(fd, &rset))
+	reply = (struct arp_packet*)pcap_next(pd, &h);
+      else
+	reply = NULL;
 
       if(reply) {
 	lua_push_str_table_entry(vm,
@@ -265,6 +290,18 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   /* Final rush */
   while(true) {
+    if(fd != -1) {
+      fd_set rset;
+      struct timeval tv;
+      
+      FD_ZERO(&rset);
+      FD_SET(fd, &rset);
+      
+      tv.tv_sec = 0, tv.tv_usec = 0;
+      if(select(fd + 1, &rset, NULL, NULL, &tv) <= 0)
+	break;
+    }
+
     if((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
       lua_push_str_table_entry(vm,
 			       Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),

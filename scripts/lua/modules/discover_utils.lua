@@ -293,6 +293,72 @@ end
 
 -- ################################################################################
 
+local function probeSSH(ip)
+   local ssh_rsp = ntop.tcpProbe(ip, 22, 1)
+
+   if(ssh_rsp ~= nil) then
+      local _ssh_rsp = string.gsub(ssh_rsp, "\n", "")
+      local elems
+      local osvers = nil
+      local use_last = false
+
+      -- tprint(_ssh_rsp)
+
+      elems = string.split(_ssh_rsp, ' ')
+      if(elems == nil) then
+      	 osvers = _ssh_rsp
+         use_last = true
+      else
+         osvers = elems[2]
+
+         if(osvers == nil) then
+           osvers = elems[1]
+         end
+      end
+
+      -- tprint(osvers)
+
+      if(osvers ~= nil) then
+	   local _osvers = string.split(osvers, "-")
+	   local n
+
+	   if(use_last) then
+	    n = #_osvers
+           else
+            n = 1
+	   end
+
+	   osvers = _osvers[n]
+
+	   -- tprint(_osvers)
+           return(trimSpace(osvers))
+      end
+   end
+
+   return(trimSpace(ssh_rsp))
+end
+
+local function appendSSHOS(mac, ip)
+   local r = probeSSH(ip)
+  
+   if((r ~= nil) and (r ~= "")) then
+      if(string.contains(r, "Debian")
+           or string.contains(r, "Raspbian")
+	   or string.contains(r, "dropbear")
+	   or string.contains(r, "Ubuntu")) then
+        interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
+      elseif(string.contains(r, "MS")) then
+        interface.setMacOperatingSystem(mac, 2) -- 2 = windows
+      end
+
+      return(" ("..r..")")
+   else
+      return("")
+   end
+end
+
+-- ################################################################################
+
 local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, names,
 			  snmpName, snmpDescr, osx, symName)
    local mdns = { }
@@ -442,15 +508,15 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    elseif(string.contains(manufacturer, "Sonos")) then
       return 'multimedia', discover.asset_icons['multimedia'], nil
    elseif(string.contains(manufacturer, "Super Micro")) then
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, "Quanta Computer Inc")) then -- Often Dell DRACK
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, "Fujitsu Technology Solutions")) then
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, "ASUSTek COMPUTER")) then
       return 'workstation', discover.asset_icons['laptop'], nil
    elseif(string.contains(manufacturer, "Raspberry")) then
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, "Juniper Networks")) then
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Cisco")) then
@@ -462,9 +528,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    elseif(string.contains(manufacturer, "Palo Alto Networks")) then
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "Liteon Technology")) then
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, "Realtek")) then
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, 'TP%-LINK')) then -- % is the escape char in Lua
       return 'wifi', discover.asset_icons['wifi'], nil
    elseif(string.contains(manufacturer, 'Broadband')) then -- % is the escape char in Lua
@@ -508,7 +574,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	  or string.contains(manufacturer, "Xen")
 	  or string.contains(manufacturer, "Parallel")
           ) then
-      return 'workstation', discover.asset_icons['workstation'], nil
+      return 'workstation', discover.asset_icons['workstation'].." (VM)", nil
    elseif(string.contains(manufacturer, "Xerox") and (snmpName ~= nil)) then
       return 'printer', discover.asset_icons['printer']..' ('..snmpName..')', snmpName
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
@@ -618,24 +684,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    -- Let's try SSH
-   ssh_rsp = ntop.tcpProbe(ip, 22, 1)
-   if(ssh_rsp ~= nil) then
-      local _ssh_rsp = string.gsub(ssh_rsp, "\n", "")      
-      local elems = string.split(_ssh_rsp, ' ')
-      local osvers = elems[2]
-      
-      if(osvers ~= nil) then
-	 local _osvers = string.split(osvers, "-")
-	 osvers = _osvers[1]
-      end
+   ssh_rsp = probeSSH(ip)
 
-      if(osvers ~= nil) then
-	 return 'workstation', discover.asset_icons['workstation']..' ('.. osvers ..')', osvers
-      else
-	 return 'workstation', discover.asset_icons['workstation'], nil
-      end
+   if(ssh_rsp ~= nil) then
+     return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), ssh_rsp
    end
-   
+
    -- Last resort is HTTP
    http_rsp = ntop.httpGet("http://"..ip, "", "", 1)
    if((http_rsp ~= nil) and (http_rsp.HTTP_HEADER ~= nil)) then
@@ -646,9 +700,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
         return 'workstation', discover.asset_icons['workstation']..' (Linux)', nil
       elseif(string.contains(server, "Apache")) then
-        return 'workstation', discover.asset_icons['workstation'], nil
+        return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
       elseif(string.contains(server, "GoAhead")) then
-        return 'workstation', discover.asset_icons['workstation'], nil
+        return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
       elseif(string.contains(server, "Microsoft")) then
         interface.setMacOperatingSystem(mac, 2) -- 2 = windows
         return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
@@ -805,6 +859,8 @@ local function discoverARP()
    local ghost_found = false
 
    local arp_mdns = interface.arpScanHosts()
+
+   if(discover.debug) then io.write("Completed ARP discovery...\n") end
 
    if(arp_mdns == nil) then
       status = discoverStatus("ERROR", i18n("discover.err_unable_to_arp_discovery"))
