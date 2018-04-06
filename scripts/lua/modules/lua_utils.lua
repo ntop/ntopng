@@ -45,24 +45,38 @@ end
 
 function getInterfaceName(interface_id, windows_skip_description)
    local ifnames = interface.getIfNames()
+   local iface = ifnames[tostring(interface_id)]
 
-   interface_id = tonumber(interface_id)
-   for _,if_name in pairs(ifnames) do
-      --io.write(if_name.."\n")
-      interface.select(if_name)
-      _ifstats = interface.getStats()
-      if(_ifstats.id == interface_id) then
-	 local ret = _ifstats.name
+   if iface ~= nil then
+      if(windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
+         local old_iface = interface.getStats().id
 
-	 if(windows_skip_description ~= true and string.contains(ret, "{")) then -- Windows
-	    ret = _ifstats.description
-	 end
-	 return(ret)
+         -- Use the interface description instead of the name
+         interface.select(tostring(iface))
+         iface = interface.getStats().description
+
+         interface.select(tostring(old_iface))
       end
+
+      return(iface)
    end
 
    return("")
 end
+
+function getInterfaceId(interface_name)
+   local ifnames = interface.getIfNames()
+
+   for if_id, if_name in pairs(ifnames) do
+      if if_name == interface_name then
+         return tonumber(if_id)
+      end
+   end
+
+   return(-1)
+end
+
+-- ##############################################
 
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
@@ -1313,18 +1327,6 @@ function http_escape(s)
   end)
   s = string.gsub(s, " ", "+")
   return s
-end
-
-function getInterfaceId(interface_name)
-  ifnames = interface.getIfNames()
-
-  for _,if_name in pairs(ifnames) do
-     interface.select(if_name)
-     _ifstats = interface.getStats()
-    if(_ifstats.name == interface_name) then return(_ifstats.id) end
-  end
-
-  return(-1)
 end
 
 -- Windows fixes for interfaces with "uncommon chars"

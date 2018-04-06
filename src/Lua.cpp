@@ -215,7 +215,7 @@ static int ntop_get_interface_names(lua_State* vm) {
       char num[8], *name = iface->get_name();
 
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name [%d][%s]", i, name);
-      snprintf(num, sizeof(num), "%d", i);
+      snprintf(num, sizeof(num), "%d", iface->get_id());
       lua_push_str_table_entry(vm, num, name);
     }
   }

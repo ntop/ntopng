@@ -2217,7 +2217,7 @@ local function check_macs_alerts(ifid, working_status)
    local alert_device_connection_enabled = ntop.getPref("ntopng.prefs.alerts.device_connection_alert") == "1"
    local new_active_devices = {}
 
-   callback_utils.foreachDevice(tostring(ifid), nil, function(devicename, devicestats, devicebase)
+   callback_utils.foreachDevice(getInterfaceName(ifid), nil, function(devicename, devicestats, devicebase)
       -- note: location is always lan when capturing from a local interface
       if (not devicestats.special_mac) and (devicestats.location == "lan") then
          local mac = devicestats.mac
