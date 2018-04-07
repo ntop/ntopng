@@ -5,7 +5,7 @@ Wants=@SERVICE_REQUIRES@
 
 [Service]
 Type=simple
-ExecStartPre=/bin/sh -c '/bin/sed "/^\s*-e$\\|^\s*-G.*\\|--daemon.*\\|^\s*--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
+ExecStartPre=/bin/sh -c '/bin/sed "/^[ \t]*-e$\\|^[ \t]*-G.*\\|--daemon.*\\|^[ \t]*--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
 ExecStart=/usr/local/bin/ntopng /run/ntopng.conf
 ExecStopPost=-/bin/rm -rf /run/ntopng.conf
 Restart=on-abnormal
