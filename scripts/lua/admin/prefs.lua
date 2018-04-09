@@ -1221,7 +1221,7 @@ end
       template.gen("typeahead_input.html", {
         typeahead={
           base_id     = "prefs_search",
-          action      = "/lua/admin/prefs.lua",
+          action      = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua",
           json_key    = "tab",
           query_field = "tab",
           query_url   = ntop.getHttpPrefix() .. "/lua/find_prefs.lua",
