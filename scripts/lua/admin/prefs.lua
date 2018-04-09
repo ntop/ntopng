@@ -25,6 +25,13 @@ local message_info = ""
 local message_severity = "alert-warning"
 
 if(haveAdminPrivileges()) then
+   if(_POST["email_sender"] ~= nil) then
+    _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
+   end
+   if(_POST["email_recipient"] ~= nil) then
+    _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
+   end
+
    if(_POST["flush_alerts_data"] ~= nil) then
     require "alert_utils"
     flushAlertsData()
@@ -34,8 +41,7 @@ if(haveAdminPrivileges()) then
    elseif(_POST["send_test_email"] ~= nil) then
     local email_utils = require("email_utils")
 
-    local product = ntop.getInfo(false).product
-    local success = email_utils.sendEmail(product .. " TEST MAIL", "Email notification is working")
+    local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
 
     if success then
       message_info = i18n("prefs.email_sent_successfully")
@@ -345,7 +351,7 @@ end
 function printExternalAlertsReport()
   if alerts_disabled then return end
 
-  print('<form method="post">')
+  print('<form method="post" id="external_alerts_form">')
   print('<table class="table">')
 
   local showElements = true
@@ -390,19 +396,21 @@ function printExternalAlertsReport()
 				 alert_sev_labels, alert_sev_values, "error", "primary", "email_notification_severity_preference",
 				 getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
 
+  local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}>?$]]
+
 	prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
 			     "ntopng.prefs.alerts.", "smtp_server",
-			     "", "url", showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true})
+			     "", nil, showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true, pattern="^(smtp://)?[a-zA-Z0-9-.]*(:[0-9]+)?$"})
 
 	prefsInputFieldPrefs(subpage_active.entries["email_notification_sender"].title, subpage_active.entries["email_notification_sender"].description,
 			     "ntopng.prefs.alerts.", "email_sender",
-			     "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+			     "", nil, showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, pattern=email_peer_pattern, required=true})
 
 	prefsInputFieldPrefs(subpage_active.entries["email_notification_recipient"].title, subpage_active.entries["email_notification_recipient"].description,
 			     "ntopng.prefs.alerts.", "email_recipient",
-			     "", "email", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+			     "", nil, showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, pattern=email_peer_pattern, required=true})
 
-  print('<tr id="alerts_test"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestEmail();" style="width:230px; float:left;">'..i18n("prefs.send_test_mail")..'</button></td></tr>')
+  print('<tr id="alerts_test" style="' .. ternary(showEmailNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestEmail();" style="width:230px; float:left;">'..i18n("prefs.send_test_mail")..'</button></td></tr>')
      end -- ntop.sendMail
 
      print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
@@ -486,6 +494,28 @@ function printExternalAlertsReport()
       var form = paramsToForm('<form method="post"></form>', params);
       form.appendTo('body').submit();
     }
+
+    function replace_email_special_characters(event) {
+      var form = $(this);
+
+      // e.g. when form is invalid
+      if(event.isDefaultPrevented())
+        return;
+
+      // this is necessary to escape "<" and ">" which are blocked on the backend to prevent injection
+      $("[name='email_sender'],[name='email_recipient']", form).each(function() {
+        var name = $(this).attr("name");
+        $(this).removeAttr("name");
+
+        $('<input type="hidden" name="' + name + '">')
+          .val(encodeURI($(this).val()))
+          .appendTo(form);
+      });
+    }
+
+    $(function() {
+      $("#external_alerts_form").submit(replace_email_special_characters);
+    });
   </script>]]
 end
 

@@ -625,7 +625,7 @@ network_alert_functions_description = {
 function noHtml(s)
    if s == nil then return nil end
    local cleaned = s:gsub("<[aA].->(.-)</[aA]>","%1")
-      :gsub("<[iI].->(.-)</[iI]>","%1")
+      :gsub("%s*<[iI].->(.-)</[iI]>","%1")
       :gsub("<.->(.-)</.->","%1") -- note: this does not handle nested tags
       :gsub("^%s*(.-)%s*$", "%1")
    return cleaned

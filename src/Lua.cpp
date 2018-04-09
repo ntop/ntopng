@@ -1166,6 +1166,19 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_host_information(lua_State* vm) {
+  struct in_addr management_addr;
+  management_addr.s_addr = Utils::getHostManagementIPv4Address();
+
+  lua_newtable(vm);
+  lua_push_str_table_entry(vm, "ip", inet_ntoa(management_addr));
+  lua_push_str_table_entry(vm, "instance_name", ntop->getPrefs()->get_instance_name());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 static int ntop_shutdown(lua_State* vm) {
   char *action;
@@ -7404,6 +7417,7 @@ static const luaL_Reg ntop_reg[] = {
   { "msleep",               ntop_msleep               },
   { "tcpProbe",             ntop_tcp_probe            },
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
+  { "getHostInformation",   ntop_get_host_information },
 #ifdef HAVE_NEDGE
   { "shutdown",             ntop_shutdown             },
   { "setRoutingMode",       ntop_set_routing_mode     },
