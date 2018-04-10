@@ -575,8 +575,11 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	  or string.contains(manufacturer, "Parallel")
           ) then
       return 'workstation', discover.asset_icons['workstation'].." (VM)", nil
-   elseif(string.contains(manufacturer, "Xerox") and (snmpName ~= nil)) then
-      return 'printer', discover.asset_icons['printer']..' ('..snmpName..')', snmpName
+   elseif(string.contains(manufacturer, "Xerox")) then
+      local l = ""
+
+      if(snmpName ~= nil) then l = ' ('..snmpName..')' end
+      return 'printer', discover.asset_icons['printer']..l, snmpName
    elseif(string.contains(manufacturer, "Apple, Inc.")) then
       if(string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
 	 interface.setMacOperatingSystem(mac, 4) -- 4 = iOS
@@ -686,10 +689,6 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    -- Let's try SSH
    ssh_rsp = probeSSH(ip)
 
-   if(ssh_rsp ~= nil) then
-     return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), ssh_rsp
-   end
-
    -- Last resort is HTTP
    http_rsp = ntop.httpGet("http://"..ip, "", "", 1)
    if((http_rsp ~= nil) and (http_rsp.HTTP_HEADER ~= nil)) then
@@ -711,13 +710,15 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
              or string.contains(server, "RomPager") -- Xerox
           ) then
         return 'printer', discover.asset_icons['printer'], nil
-      else
-        return 'workstation', discover.asset_icons['workstation'], server -- default
       end
      end
 
      --io.write(ip.."\n")
      --tprint(http_rsp.HTTP_HEADER)
+   end
+
+   if(ssh_rsp ~= nil) then
+    return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), ssh_rsp
    end
 
    return 'unknown', "", nil
