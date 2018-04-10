@@ -53,7 +53,7 @@ class AlertsManager : protected StoreManager {
 		   const char *engaged_alert_id,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		   const char *alert_origin, const char *alert_target,
-		   bool engage, Flow *flow);
+		   bool engage, time_t now, Flow *flow);
   
   int engageReleaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,

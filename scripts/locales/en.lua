@@ -184,6 +184,7 @@ local lang = {
     ["proto_bytes_quotas"] = "%{proto} bytes",
     ["proto_time_quotas"] = "%{proto} time",
     ["subject_quota_exceeded"] = "Host pool <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",
+    ["x_alerts"] = "%{num} alerts",
   },
   ["alerts_dashboard"] = {
     ["alert_counts"] = "Counts",

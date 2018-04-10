@@ -316,6 +316,7 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
+    time_t now = time(NULL);
 
     if(!store_initialized || !store_opened)
       return -1;
@@ -339,7 +340,7 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
       if(sqlite3_prepare(db, query, -1,  &stmt, 0)
 	 || sqlite3_bind_text(stmt,  1,  engaged_alert_id, -1, SQLITE_STATIC)
 	 || sqlite3_bind_int(stmt,   2,  static_cast<int>(alert_engine))
-	 || sqlite3_bind_int64(stmt, 3,  static_cast<long int>(time(NULL)))
+	 || sqlite3_bind_int64(stmt, 3,  static_cast<long int>(now))
 	 || sqlite3_bind_int(stmt,   4,  static_cast<int>(alert_type))
 	 || sqlite3_bind_int(stmt,   5,  static_cast<int>(alert_severity))
 	 || sqlite3_bind_int(stmt,   6,  static_cast<int>(alert_entity))
@@ -367,7 +368,7 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
 
       notifyAlert(alert_entity, alert_entity_value, engaged_alert_id,
 		  alert_type, alert_severity, alert_json,
-		  alert_origin, alert_target, true, NULL);
+		  alert_origin, alert_target, true, now, NULL);
 
 #ifndef WIN32
       if(ntop->getPrefs()->are_alerts_syslog_enabled())
@@ -414,7 +415,7 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
 
     notifyAlert(alert_entity, alert_entity_value, engaged_alert_id,
           alert_type, alert_severity, alert_json,
-          alert_origin, alert_target, false, NULL);
+          alert_origin, alert_target, false, time(NULL), NULL);
   
     /* Move the alert from engaged to closed */
     snprintf(query, sizeof(query),
@@ -501,7 +502,7 @@ bool AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 				AlertType alert_type, AlertLevel alert_severity,
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target,
-				bool engage, Flow *flow) {
+				bool engage, time_t when, Flow *flow) {
   bool rv = false;
 
   if(!ntop->getPrefs()->are_alerts_disabled()
@@ -517,6 +518,7 @@ bool AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
       json_object_object_add(notification, "type", json_object_new_int(alert_type));
       json_object_object_add(notification, "severity", json_object_new_int(alert_severity));
       json_object_object_add(notification, "message", json_object_new_string(alert_json));
+      json_object_object_add(notification, "tstamp",  json_object_new_int64(when));
       json_object_object_add(notification, "action", json_object_new_string(
 	engaged_alert_id ? (engage ? "engage" : "release") : "store")
       );
@@ -594,6 +596,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
+    time_t now = time(NULL);
 
     if(!store_initialized || !store_opened)
       return(-1);
@@ -602,7 +605,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
     notifyAlert(alert_entity, alert_entity_value, NULL,
 	  alert_type, alert_severity, alert_json,
-	  NULL, NULL, false, NULL);
+	  NULL, NULL, false, now, NULL);
 
     /* This alert is being engaged */
     snprintf(query, sizeof(query),
@@ -615,7 +618,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     m.lock(__FILE__, __LINE__);
 
     if(sqlite3_prepare(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(time(NULL)))
+       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(now))
        || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
        || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
        || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_entity))
@@ -666,6 +669,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     const char *msg;
     AlertType alert_type;
     AlertLevel alert_severity;
+    time_t now = time(NULL);
 
     if(!store_initialized || !store_opened || !f)
       return(-1);
@@ -686,7 +690,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 
     notifyAlert(alert_entity_flow, "flow", NULL,
 		alert_type, alert_severity, alert_json,
-		cli_ip, srv_ip, false, f);
+		cli_ip, srv_ip, false, now, f);
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %s", cli_ip, srv_ip);
     /* TODO: implement check maximum for flow alerts
@@ -716,7 +720,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
       goto out;
     }
 
-    if(sqlite3_bind_int64(stmt, 1, static_cast<long int>(time(NULL)))
+    if(sqlite3_bind_int64(stmt, 1, static_cast<long int>(now))
        || sqlite3_bind_int(stmt,   2, (int)(alert_type))
        || sqlite3_bind_int(stmt,   3, (int)(alert_severity))
        || sqlite3_bind_text(stmt,  4, alert_json, -1, SQLITE_STATIC)

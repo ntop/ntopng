@@ -2631,10 +2631,49 @@ local function getEnabledAlertNotificationModules()
    return enabled_modules
 end
 
+-- housekeeping.lua
 function processAlertNotifications()
    local modules = nil
 
-   while(true) do
+   local now = os.time()
+   local deadline = now + 4
+   local diff = now % 60
+
+   local grouped_alerts = ntop.getCache("ntopng.cache.grouped_alerts_notifications")
+   if not isEmptyString(grouped_alerts) then
+      grouped_alerts = json.decode(grouped_alerts)
+   else
+      grouped_alerts = {}
+   end
+
+   if diff < 5 then
+      -- Send grouped alerts
+      if not modules then
+         modules = getEnabledAlertNotificationModules()
+      end
+
+      for group_severity, alerts in pairs(grouped_alerts) do
+         for _, m in ipairs(modules) do
+            if (m.module.sendGroupedNotifications ~= nil) and (alertSeverity(group_severity) >= alertSeverity(m.severity)) then
+               if(verbose) then
+                  io.write("Sending grouped alert notifications to " .. m.name .. "\n")
+               end
+
+               local rv = m.module.sendGroupedNotifications(alerts, group_severity)
+
+               if (rv == false) then
+                 traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending grouped notifications via " .. m.name .. " module")
+               end
+            end
+         end
+      end
+
+      -- Processed
+      grouped_alerts = {}
+   end
+
+   -- Process new alerts
+   while(os.time() < deadline) do
       local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
 
       if((json_message == nil) or (json_message == "")) then
@@ -2663,14 +2702,10 @@ function processAlertNotifications()
 
 	 if not modules then
 	    modules = getEnabledAlertNotificationModules()
-
-	    if(verbose) then
-	       tprint(modules)
-	    end
 	 end
 
 	 for _, m in ipairs(modules) do
-	    if severity_num >= alertSeverity(m.severity) then
+	    if (m.module.sendNotification ~= nil) and (severity_num >= alertSeverity(m.severity)) then
 	       if(verbose) then
 		  io.write("Sending alert notification to " .. m.name .. "\n")
 	       end
@@ -2683,7 +2718,13 @@ function processAlertNotifications()
 	    end
          end
       end
+
+      -- Add the alert to the group
+      grouped_alerts[alertSeverityRaw(severity_num)] = grouped_alerts[alertSeverityRaw(severity_num)] or {}
+      table.insert(grouped_alerts[alertSeverityRaw(severity_num)], notification)
    end
+
+   ntop.setCache("ntopng.cache.grouped_alerts_notifications", json.encode(grouped_alerts))
 end
 
 -- DEBUG: uncomment this to test
