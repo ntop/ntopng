@@ -397,6 +397,7 @@ void NetworkInterface::checkAggregationMode() {
        && (rsp[0] != '\0')) {
       if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
 	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+	else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
 	else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
@@ -412,6 +413,17 @@ void NetworkInterface::checkAggregationMode() {
 				       get_type(), rsp);
 
       }
+    }
+
+    /* Populate ignored interfaces */
+    rsp[0] = '\0';
+    if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IGNORED_INTERFACES, rsp, sizeof(rsp)))
+       && (rsp[0] != '\0')) {
+      char *token;
+      char *rest = rsp;
+
+      while((token = strtok_r(rest, ",", &rest)))
+	flowHashingIgnoredInterfaces.insert(atoi(token));
     }
   }
 }
@@ -1069,6 +1081,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4(criteria, buf1, sizeof(buf1)));
 	  break;
 
+	case flowhashing_iface_idx:
 	case flowhashing_ingress_iface_idx:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [If Idx: %u]", ifname, criteria);
@@ -1153,15 +1166,22 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
-    NetworkInterface *vIface = NULL;
+    NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
       vIface = getSubInterface((u_int32_t)zflow->core.deviceIP, true);
       break;
 
+    case flowhashing_iface_idx:
+      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->core.outIndex) == flowHashingIgnoredInterfaces.end())
+	 vIfaceEgress = getSubInterface((u_int32_t)zflow->core.outIndex, true);
+      /* No break HERE, want to get two interfaces, one for the ingress
+         and one for the egress. */
+
     case flowhashing_ingress_iface_idx:
-      vIface = getSubInterface((u_int32_t)zflow->core.inIndex, true);
+      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->core.inIndex) == flowHashingIgnoredInterfaces.end())
+	vIface = getSubInterface((u_int32_t)zflow->core.inIndex, true);
       break;
 
     case flowhashing_vrfid:
@@ -1177,10 +1197,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       break;
     }
 
-    if(vIface) {
-      vIface->processFlow(zflow);
-      return;
-    }
+    if(vIface)       vIface->processFlow(zflow);
+    if(vIfaceEgress) vIfaceEgress->processFlow(zflow);
+
+    return;
   }
 
   srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);

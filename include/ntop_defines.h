@@ -489,10 +489,12 @@
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
 #define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION         "ntopng.prefs.default_snmp_version"
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
+#define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         "ntopng.prefs.ignored_interfaces"
 #define CONST_RUNTIME_PREFS_LAN_INTERFACE              "ntopng.prefs.network.lan_if"
 #define CONST_RUNTIME_PREFS_WAN_INTERFACE              "ntopng.prefs.network.wan_if"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      "ntopng.prefs.l2_device_ndpi_timeseries_creation"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
+#define DISAGGREGATION_IFACE_ID                        "iface_idx"
 #define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"
 #define DISAGGREGATION_INGRESS_VRF_ID                  "ingress_vrf_id"
 #define DISAGGREGATION_VLAN                            "vlan"

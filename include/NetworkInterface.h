@@ -76,6 +76,7 @@ class NetworkInterface : public Checkpointable {
   
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
+  set<u_int32_t>  flowHashingIgnoredInterfaces;
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
 

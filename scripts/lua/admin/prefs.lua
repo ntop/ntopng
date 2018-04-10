@@ -105,27 +105,40 @@ function printInterfaces()
   local labels = {i18n("prefs.none"),
 		  i18n("prefs.vlan"),
 		  i18n("prefs.probe_ip_address"),
+		  i18n("prefs.flow_interface"),
 		  i18n("prefs.ingress_flow_interface"),
 		  i18n("prefs.ingress_vrf_id")}
   local values = {"none",
 		  "vlan",
 		  "probe_ip",
+		  "iface_idx",
 		  "ingress_iface_idx",
 		  "ingress_vrf_id"}
 
   local elementToSwitch = {}
   local showElementArray = { true, false, false }
   local javascriptAfterSwitch = "";
+  local cur_mode_key = "ntopng.prefs.dynamic_flow_collection_mode"
+  local cur_mode = ntop.getPref(cur_mode_key)
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
-				    subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
-				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li></ul>",
-				    labels, values, "none", "primary", "disaggregation_criterion", "ntopng.prefs.dynamic_flow_collection_mode", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+  prefsDropdownFieldPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
+			  subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_3").."</li></ul>",
+			  "disaggregation_criterion", labels,
+  			  ternary(not isEmptyString(cur_mode), cur_mode, "none"), true,
+			  {keys=values, save_pref=true, pref_key=cur_mode_key})
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.zmq_interfaces")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["ignored_interfaces"].title,
+		       subpage_active.entries["ignored_interfaces"].description,
+		       "ntopng.prefs.",
+		       "ignored_interfaces",
+		       "",
+		       false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=32}})
 
   prefsToggleButton({
 	field = "toggle_dst_with_post_nat_dst",

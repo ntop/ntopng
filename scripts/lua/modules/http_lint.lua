@@ -145,6 +145,24 @@ if (string.find(w, "% ") ~= nil) then
 end
 http_lint.validateSingleWord = validateSingleWord
 
+local function validateCommaSeparatedNumbers(csv)
+   if validateNumber(csv) then
+      return true
+   end
+
+   for _, str in pairs(string.split(csv, ',')) do
+      if isEmptyString(str) or validateNumber(str) == false then
+	 return false
+      end
+   end
+
+   if string.ends(csv, ',') then
+      return false
+   end
+
+   return true
+end
+
 local function validateAbsolutePath(p)
    -- An absolute path. Let it pass for now
    return validateUnquoted(p)
@@ -1017,7 +1035,8 @@ local known_parameters = {
    ["smtp_server"]                                 =  validateSingleWord,
 
    -- Multiple Choice
-   ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "ingress_iface_idx", "ingress_vrf_id"}),
+   ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id"}),
+   ["ignored_interfaces"]                          =  validateEmptyOr(validateCommaSeparatedNumbers),
    ["hosts_ndpi_timeseries_creation"]              =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["interfaces_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["l2_devices_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_category"}),

@@ -324,6 +324,7 @@ typedef enum {
 typedef enum {
   flowhashing_none = 0,
   flowhashing_probe_ip,
+  flowhashing_iface_idx,
   flowhashing_ingress_iface_idx,
   flowhashing_vlan,
   flowhashing_vrfid /* VRF Id */

@@ -303,6 +303,83 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
 end
 
+-- ############################################
+
+function prefsDropdownFieldPrefs(label, comment, key, values, default_value, showEnabled, extra)
+  extra = extra or {}
+
+  if extra.save_pref and table.len(_POST) > 0 and isEmptyString(_POST[key]) == false and isEmptyString(extra.pref_key) == false then
+     ntop.setPref(extra.pref_key, _POST[key])
+     default_value = _POST[key]
+  end
+
+  if ((showEnabled == nil) or (showEnabled == true)) then
+    showEnabled = "table-row"
+  else
+    showEnabled = "none"
+  end
+
+  local attributes = {}
+
+  if extra.disabled == true then attributes["disabled"] = "disabled" end
+  if extra.required == true then attributes["required"] = "" end
+
+  local input_type = "text"
+
+  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+
+  local style = {}
+  style["text-align"] = "right"
+  style["margin-bottom"] = "0.5em"
+
+  print [[
+    <td align=right>
+      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+        <tr>
+          <td width="100%;"></td>]]
+
+      if extra.width == nil then
+	 style["width"] = "20em"
+	 style["margin-left"] = "auto"
+      else
+        style["width"] = "15em"
+      end
+      style["margin-left"] = "auto"
+
+      style = table.merge(style, extra.style)
+      attributes = table.merge(attributes, extra.attributes)
+
+      print[[
+          <td style="vertical-align:top; padding-left: 2em;">
+            <select id="id_input_]] print(key)  print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print((value or '')..'"') print[[>]]
+      if extra.keys == nil then
+         for _, optname in pairs(values) do
+	 print("<option " .. ternary(optname == default_value, "selected", "") .. ">"..optname.."</option>")
+         end
+      else
+         for idx, _ in pairs(values) do
+            local key = extra.keys[idx]
+            local val = values[idx]
+            print("<option value=".. key .." " .. ternary(key == default_value, "selected", "") .. ">"..val.."</option>")
+         end
+      end
+      print[[
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="padding:0;">
+            <div class="help-block with-errors text-right" style="height:1em;"></div>
+          </td>
+        </tr>
+      </table>
+  </td></tr>
+]]
+
+end
+
+-- ############################################
+
 function prefsInformativeField(label, comment, showEnabled, extra)
   local extra = extra or {}
   extra["style"] = extra["style"] or {}
