@@ -108,9 +108,7 @@ NetworkInterface::NetworkInterface(const char *name,
   aggregated_flows_hash = NULL;
 #endif
 
-  snmp = new SNMP();
-
-  if(strchr(name, ':')
+    if(strchr(name, ':')
      || strchr(name, '@')
 	 || (!strcmp(name, "dummy"))
      || strchr(name, '/') /* file path */
@@ -279,7 +277,7 @@ void NetworkInterface::init() {
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
-    mdns = NULL, snmp = NULL, discovery = NULL, ifDescription = NULL,
+    mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none, tsExporter = NULL;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
 
@@ -673,7 +671,6 @@ NetworkInterface::~NetworkInterface() {
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(mdns)           delete mdns;
-  if(snmp)           delete snmp;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;

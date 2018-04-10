@@ -83,7 +83,6 @@ class NetworkInterface : public Checkpointable {
   /* Network Discovery */
   NetworkDiscovery *discovery;
   MDNS *mdns;
-  SNMP *snmp;
   
   string ip_addresses;
   int id;
@@ -646,7 +645,6 @@ class NetworkInterface : public Checkpointable {
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
-  inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
   inline void incPoolNumHosts(u_int16_t id, bool isInlineCall) {

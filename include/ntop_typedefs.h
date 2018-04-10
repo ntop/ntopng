@@ -429,12 +429,15 @@ typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 
+class SNMP; /* Forward */
+
 struct ntopngLuaContext {
   char *ifname, *user;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+  SNMP *snmp;
 };
 
 typedef enum {

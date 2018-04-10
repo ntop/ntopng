@@ -69,7 +69,13 @@ Lua::Lua() {
 
 Lua::~Lua() {
   if(L) {
-    if(G(L)->userdata) free(G(L)->userdata);
+    if(G(L)->userdata) {
+      SNMP *snmp = ((struct ntopngLuaContext*)G(L)->userdata)->snmp;
+
+      if(snmp) delete snmp;      
+      free(G(L)->userdata);
+    }
+    
     lua_close(L);
   }
 }
@@ -139,7 +145,7 @@ static NetworkInterface* handle_null_interface(lua_State* vm) {
 static int ntop_dump_file(lua_State* vm) {
   char *fname;
   FILE *fd;
-  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
+  struct mg_connection *conn = getLuaVMUserdata(vm, conn);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -226,7 +232,7 @@ static int ntop_get_interface_names(lua_State* vm) {
 /* ****************************************** */
 
 static AddressTree* get_allowed_nets(lua_State* vm) {
-  AddressTree *ptree = getLuaVMUserdata(vm,allowedNets);
+  AddressTree *ptree = getLuaVMUserdata(vm, allowedNets);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return(ptree);
@@ -235,7 +241,7 @@ static AddressTree* get_allowed_nets(lua_State* vm) {
 /* ****************************************** */
 
 static NetworkInterface* getCurrentInterface(lua_State* vm) {
-  NetworkInterface *ntop_interface = getLuaVMUserdata(vm,iface);
+  NetworkInterface *ntop_interface = getLuaVMUserdata(vm, iface);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -262,7 +268,7 @@ static int ntop_select_interface(lua_State* vm) {
     ifname = (char*)lua_tostring(vm, 1);
   }
 
-  getLuaVMUservalue(vm, iface) = ntop->getNetworkInterface(vm, ifname);
+  getLuaVMUservalue(vm,  iface) = ntop->getNetworkInterface(vm, ifname);
 
   // lua_pop(vm, 1); /* Cleanup the Lua stack */
   lua_pushnil(vm);
@@ -1186,7 +1192,7 @@ static int ntop_shutdown(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm,conn) && !Utils::isUserAdministrator(vm))
+  if(getLuaVMUservalue(vm, conn) && !Utils::isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
@@ -1882,8 +1888,8 @@ static int ntop_zmq_connect(lua_State* vm) {
     return -1;
   }
 
-  getLuaVMUservalue(vm,zmq_context)    = context;
-  getLuaVMUservalue(vm,zmq_subscriber) = subscriber;
+  getLuaVMUservalue(vm, zmq_context)    = context;
+  getLuaVMUservalue(vm, zmq_subscriber) = subscriber;
   lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -1916,7 +1922,7 @@ static int ntop_delete_redis_key(lua_State* vm) {
 static int ntop_flush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+  if(getLuaVMUservalue(vm, conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
     !Utils::isUserAdministrator(vm))
       return(CONST_LUA_ERROR);
 
@@ -2022,9 +2028,10 @@ static int ntop_delete_hash_redis_key(lua_State* vm) {
 /* ****************************************** */
 
 #ifndef HAVE_NEDGE
+
 static int ntop_zmq_disconnect(lua_State* vm) {
-  void *context = getLuaVMUserdata(vm,zmq_context);
-  void *subscriber = getLuaVMUserdata(vm,zmq_subscriber);
+  void *context = getLuaVMUserdata(vm, zmq_context);
+  void *subscriber = getLuaVMUserdata(vm, zmq_subscriber);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2034,6 +2041,7 @@ static int ntop_zmq_disconnect(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+
 #endif
 
 /* ****************************************** */
@@ -2041,7 +2049,7 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 #ifndef HAVE_NEDGE
 static int ntop_zmq_receive(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  void *subscriber = getLuaVMUserdata(vm,zmq_subscriber);
+  void *subscriber = getLuaVMUserdata(vm, zmq_subscriber);
   int size;
   struct zmq_msg_hdr h;
   char *payload;
@@ -2542,7 +2550,8 @@ static int ntop_mdns_batch_any_query(lua_State* vm) {
 static int ntop_snmp_batch_get(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
-
+  SNMP *snmp;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
@@ -2554,10 +2563,21 @@ static int ntop_snmp_batch_get(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
 
   oid[0] = (char*)lua_tostring(vm, 3);
-  ntop_interface->getSNMP()->send_snmp_request((char*)lua_tostring(vm, 1),
-					       (char*)lua_tostring(vm, 2),
-					       false /* SNMP GET */, oid,
-					       (u_int)lua_tonumber(vm, 4));
+  snmp = getLuaVMUserdata(vm, snmp);
+
+  if(snmp == NULL) {
+    snmp = new SNMP();
+
+    if(!snmp) return(CONST_LUA_ERROR);
+    
+    getLuaVMUservalue(vm, snmp) = snmp;
+  }   
+
+  snmp->send_snmp_request((char*)lua_tostring(vm, 1),
+			  (char*)lua_tostring(vm, 2),
+			  false /* SNMP GET */, oid,
+			  (u_int)lua_tonumber(vm, 4));
+  
   return(CONST_LUA_OK);
 }
 
@@ -2565,13 +2585,14 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 
 static int ntop_snmp_read_responses(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
+  SNMP *snmp = getLuaVMUserdata(vm, snmp);
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface)
+  if((!ntop_interface) || (!snmp))
     return(CONST_LUA_ERROR);
 
-  ntop_interface->getSNMP()->snmp_fetch_responses(vm);
+  snmp->snmp_fetch_responses(vm);
   return(CONST_LUA_OK);
 }
 
@@ -4652,7 +4673,7 @@ static int ntop_add_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+  if(getLuaVMUservalue(vm, conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
       !Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -4716,7 +4737,7 @@ static int ntop_clear_user_lifetime(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+  if(getLuaVMUservalue(vm, conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
      !Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -4733,7 +4754,7 @@ static int ntop_delete_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
+  if(getLuaVMUservalue(vm, conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
      !Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -5371,7 +5392,7 @@ static int ntop_syslog(lua_State* vm) {
 static int ntop_generate_csrf_value(lua_State* vm) {
   char random_a[32], random_b[32], csrf[33], user[64] = { '\0' };
   Redis *redis = ntop->getRedis();
-  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
+  struct mg_connection *conn = getLuaVMUserdata(vm, conn);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6362,9 +6383,10 @@ static int ntop_add_local_network(lua_State* vm) {
   char *local_network;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm,conn) && /* do not check for admin when no context is available (e.g. lua scripts) */
-    !Utils::isUserAdministrator(vm))
-      return(CONST_LUA_ERROR);
+  if(getLuaVMUservalue(vm, conn)
+     /* do not check for admin when no context is available (e.g. lua scripts) */
+     && (!Utils::isUserAdministrator(vm)))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((local_network = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
@@ -6771,7 +6793,7 @@ static int ntop_set_preference(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_lua_http_print(lua_State* vm) {
-  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
+  struct mg_connection *conn = getLuaVMUserdata(vm, conn);
   char *printtype;
   int t;
 
