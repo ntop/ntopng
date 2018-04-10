@@ -4,6 +4,8 @@
 
 local email = {}
 
+email.EXPORT_FREQUENCY = 60
+
 local function buildMessageHeader(now_ts, from, to, subject, body)
   local now = os.date("%a, %d %b %Y %X", now_ts) -- E.g. "Tue, 3 Apr 2018 14:58:00"
   local msg_id = "<" .. now_ts .. "." .. os.clock() .. "@ntopng>"
@@ -51,33 +53,23 @@ function email.sendEmail(subject, message_body)
   return ntop.sendMail(from, to, message, smtp_server)
 end
 
-local function formatSingleAlert(notif)
-  local msg_prefix = alertNotificationActionToLabel(notif.action)
-  return alertTypeLabel(alertType(notif.type)) .. " [" .. formatEpoch(notif.tstamp or 0) .. "]: " .. noHtml(msg_prefix .. notif.message)
-end
+function email.sendNotifications(notifications)
+  local subject = ""
 
-function email.sendGroupedNotifications(notifications, severity)
-  if #notifications == 1 then
-    -- Only one notification
-    local notif = notifications[1]
-    
-    local subject = string.upper(notif.severity) .. ": " .. alertTypeLabel(alertType(notif.type), true)
-    local message_body = formatSingleAlert(notif)
-
-    return email.sendEmail(subject, message_body)
-  else
-    local message_body = {}
-
-    -- Multiple notifications
-    for _, notif in ipairs(notifications) do
-      message_body[#message_body + 1] = formatSingleAlert(notif)
-    end
-
-    local subject = string.upper(severity) .. " (" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
-    message_body = table.concat(message_body, "<br>")
-
-    return email.sendEmail(subject, message_body)
+  if #notifications > 1 then
+    subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
   end
+
+  local message_body = {}
+
+  -- Multiple notifications
+  for _, notif in ipairs(notifications) do
+    message_body[#message_body + 1] = formatAlertNotification(notif, true)
+  end
+
+  message_body = table.concat(message_body, "<br>")
+
+  return email.sendEmail(subject, message_body)
 end
 
 return email

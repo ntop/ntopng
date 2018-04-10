@@ -2622,6 +2622,8 @@ local function getEnabledAlertNotificationModules()
             enabled_modules[#enabled_modules + 1] = {
                name = modname,
                severity = min_severity,
+               export_frequency = tonumber(_module.EXPORT_FREQUENCY) or 60,
+               export_queue = "ntopng.alerts.modules_notifications_queue." .. modname,
                ["module"] = _module,
             }
          end
@@ -2631,48 +2633,26 @@ local function getEnabledAlertNotificationModules()
    return enabled_modules
 end
 
--- housekeeping.lua
-function processAlertNotifications()
-   local modules = nil
+function formatAlertNotification(notif, nohtml, noseverity)
+   local msg_prefix = alertNotificationActionToLabel(notif.action)
+   local msg = "[" .. formatEpoch(notif.tstamp or 0) .. "]" ..
+               ternary(noseverity == true, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), nohtml) .. "]") ..
+               "[" .. alertTypeLabel(alertType(notif.type), nohtml) .."]: "
 
-   local now = os.time()
-   local deadline = now + 4
-   local diff = now % 60
-
-   local grouped_alerts = ntop.getCache("ntopng.cache.grouped_alerts_notifications")
-   if not isEmptyString(grouped_alerts) then
-      grouped_alerts = json.decode(grouped_alerts)
+   if nohtml then
+      msg = msg .. noHtml(msg_prefix .. notif.message)
    else
-      grouped_alerts = {}
+      msg = msg .. msg_prefix .. notif.message
    end
 
-   if diff < 5 then
-      -- Send grouped alerts
-      if not modules then
-         modules = getEnabledAlertNotificationModules()
-      end
+   return msg
+end
 
-      for group_severity, alerts in pairs(grouped_alerts) do
-         for _, m in ipairs(modules) do
-            if (m.module.sendGroupedNotifications ~= nil) and (alertSeverity(group_severity) >= alertSeverity(m.severity)) then
-               if(verbose) then
-                  io.write("Sending grouped alert notifications to " .. m.name .. "\n")
-               end
+function processAlertNotifications(now, periodic_frequency)
+   local deadline = now + (now + periodic_frequency) % periodic_frequency
+   local modules = getEnabledAlertNotificationModules()
 
-               local rv = m.module.sendGroupedNotifications(alerts, group_severity)
-
-               if (rv == false) then
-                 traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending grouped notifications via " .. m.name .. " module")
-               end
-            end
-         end
-      end
-
-      -- Processed
-      grouped_alerts = {}
-   end
-
-   -- Process new alerts
+   -- Get new alerts
    while(os.time() < deadline) do
       local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
 
@@ -2684,47 +2664,62 @@ function processAlertNotifications()
          io.write("Alert Notification: " .. json_message .. "\n")
       end
 
-      local notification = json.decode(json_message)
-      local severity_num = notification.severity
-
-      if(notification.type ~= nil) then
-	 notification.type = alertTypeRaw(notification.type)
-	 notification.entity_type = alertEntityRaw(notification.entity_type)
-	 notification.severity = alertSeverityRaw(notification.severity)
-
-	 if notification.flow ~= nil then
-	    notification.message = formatRawFlow(notification.flow, notification.message)
-	 end
-
-	 if(verbose) then
-	    tprint(notification)
-	 end
-
-	 if not modules then
-	    modules = getEnabledAlertNotificationModules()
-	 end
-
-	 for _, m in ipairs(modules) do
-	    if (m.module.sendNotification ~= nil) and (severity_num >= alertSeverity(m.severity)) then
-	       if(verbose) then
-		  io.write("Sending alert notification to " .. m.name .. "\n")
-	       end
-
-	       local rv = m.module.sendNotification(notification)
-
-	       if (rv == false) then
-		  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notification via " .. m.name .. " module")
-	       end
-	    end
-         end
+      -- dispatch
+      for _, m in ipairs(modules) do
+         ntop.lpushCache(m.export_queue, json_message)
       end
-
-      -- Add the alert to the group
-      grouped_alerts[alertSeverityRaw(severity_num)] = grouped_alerts[alertSeverityRaw(severity_num)] or {}
-      table.insert(grouped_alerts[alertSeverityRaw(severity_num)], notification)
    end
 
-   ntop.setCache("ntopng.cache.grouped_alerts_notifications", json.encode(grouped_alerts))
+   -- Process export notifications
+   for _, m in ipairs(modules) do
+      if os.time() > deadline then
+         traceError(TRACE_DEBUG, TRACE_CONSOLE, "Alert notification deadline exceeded")
+         break
+      end
+
+      if(now % m.export_frequency) < periodic_frequency then
+         local pending_notifications = ntop.lrangeCache(m.export_queue) or {}
+
+         if not table.empty(pending_notifications) then
+            if verbose then
+               io.write("Exporting alert notifications to " .. m.name .. "\n")
+            end
+
+            local to_export = {}
+
+            -- Translate into notification object
+            for _, json_message in ipairs(pending_notifications) do
+               local notification = json.decode(json_message)
+               local severity_num = notification.severity
+
+               if(notification.type ~= nil) then
+                  notification.type = alertTypeRaw(notification.type)
+                  notification.entity_type = alertEntityRaw(notification.entity_type)
+                  notification.severity = alertSeverityRaw(notification.severity)
+               end
+
+               if notification.flow ~= nil then
+                  notification.message = formatRawFlow(notification.flow, notification.message)
+               end
+
+               if severity_num >= alertSeverity(m.severity) then
+                  to_export[#to_export + 1] = notification
+               end
+            end
+
+            if table.len(to_export) > 0 then
+               local rv = m.module.sendNotifications(to_export)
+
+               if not rv then
+                 traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module")
+               else
+                 -- sent successfully, deleting queue
+                 ntop.delCache(m.export_queue)
+               end
+            end
+         end
+      end
+   end
 end
 
 -- DEBUG: uncomment this to test

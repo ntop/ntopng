@@ -6224,7 +6224,8 @@ static int ntop_lrange_redis(lua_State* vm) {
     lua_newtable(vm);
 
     for(int i = 0; i < rc; i++) {
-      lua_push_str_table_entry(vm, l_elements[i] ? l_elements[i] : "", (char*)"");
+      lua_pushstring(vm, l_elements[i] ? l_elements[i] : "");
+      lua_rawseti(vm, -2, i+1);
       if(l_elements[i]) free(l_elements[i]);
     }
     free(l_elements);

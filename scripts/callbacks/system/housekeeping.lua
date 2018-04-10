@@ -13,9 +13,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 local callback_utils = require "callback_utils"
+local now = os.time()
 
 local prefs_dump_utils = require "prefs_dump_utils"
-processAlertNotifications()
+processAlertNotifications(now, 5)
 
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
 
