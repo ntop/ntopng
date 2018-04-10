@@ -3250,7 +3250,9 @@ FlowStatus Flow::getFlowStatus() {
 #ifndef HAVE_NEDGE
   if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
      && ! cli_host->get_ip()->isBroadcastAddress()
-     && ! srv_host->get_ip()->isBroadcastAddress())
+     && ! srv_host->get_ip()->isBroadcastAddress()
+     && ! cli_host->get_ip()->isMulticastAddress()
+     && ! srv_host->get_ip()->isMulticastAddress())
     return status_remote_to_remote;
 #endif
 
