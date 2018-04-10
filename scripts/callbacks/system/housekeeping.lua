@@ -16,7 +16,7 @@ local callback_utils = require "callback_utils"
 local now = os.time()
 
 local prefs_dump_utils = require "prefs_dump_utils"
-processAlertNotifications(now, 5)
+processAlertNotifications(now, 3)
 
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
 

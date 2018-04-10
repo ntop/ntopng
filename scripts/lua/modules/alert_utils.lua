@@ -2649,7 +2649,7 @@ function formatAlertNotification(notif, nohtml, noseverity)
 end
 
 function processAlertNotifications(now, periodic_frequency)
-   local deadline = now + (now + periodic_frequency) % periodic_frequency
+   local deadline = now - (now % periodic_frequency) + periodic_frequency
    local modules = getEnabledAlertNotificationModules()
 
    -- Get new alerts
@@ -2688,7 +2688,7 @@ function processAlertNotifications(now, periodic_frequency)
             local to_export = {}
 
             -- Translate into notification object
-            for _, json_message in ipairs(pending_notifications) do
+            for _, json_message in pairsByKeys(pending_notifications, rev) do
                local notification = json.decode(json_message)
                local severity_num = notification.severity
 
