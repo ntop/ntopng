@@ -138,7 +138,7 @@ function printInterfaces()
 		       "ntopng.prefs.",
 		       "ignored_interfaces",
 		       "",
-		       false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=32}})
+		       false, nil, nil, nil,  {attributes={spellcheck="false", pattern="^([0-9]+,)*[0-9]+$", maxlength=32}})
 
   prefsToggleButton({
 	field = "toggle_dst_with_post_nat_dst",

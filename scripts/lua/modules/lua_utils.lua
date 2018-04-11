@@ -2316,12 +2316,28 @@ function setCustomnDPIProtoCategory(if_name, app_id, new_cat_id)
    ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
 end
 
+-- "Some Very Long String" -> "Some Ver...g String"
+function shortenCollapse(s, max_len)
+   if max_len == nil then
+      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
+      max_len = tonumber(max_len)
+      if(max_len == nil) then max_len = 24 end
+   end
+
+   if string.len(s) > max_len then
+      local half = math.floor(max_len / 2)
+      return string.sub(s, 1, half) .. "..." .. string.sub(s, half+1)
+   end
+
+   return s
+end
+
 function getHumanReadableInterfaceName(interface_name)
    local key = 'ntopng.prefs.'..interface_name..'.name'
    local custom_name = ntop.getCache(key)
 
    if not isEmptyString(custom_name) then
-      return(shortenString(custom_name))
+      return(shortenCollapse(custom_name))
    else
       interface.select(interface_name)
       local _ifstats = interface.getStats()
@@ -2332,7 +2348,7 @@ function getHumanReadableInterfaceName(interface_name)
       end
 
       -- print(interface_name.."=".._ifstats.name)
-      return(shortenString(nm or ''))
+      return(shortenCollapse(nm or ''))
    end
 end
 
