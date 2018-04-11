@@ -1017,7 +1017,7 @@ static size_t curl_smtp_payload_source(void *ptr, size_t size, size_t nmemb, voi
   char *eol = strstr(upload_ctx->lines, "\r\n");
 
   if(eol) {
-    size_t len = eol - upload_ctx->lines + 2;
+    size_t len = min(size, (size_t)(eol - upload_ctx->lines + 2));
     memcpy(ptr, upload_ctx->lines, len);
     upload_ctx->lines += len;
 
