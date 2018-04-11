@@ -70,41 +70,47 @@ void IpAddress::checkIP() {
 
   addr.privateIP = false; /* Default */
 
-  if(addr.ipVersion != 4) return;
+  if(addr.ipVersion == 4) {
+    /*
+      RFC 1918 - Private Address Space
 
-  /*
-    RFC 1918 - Private Address Space
+      The Internet Assigned Numbers Authority (IANA) has reserved the
+      following three blocks of the IP address space for private internets:
 
-    The Internet Assigned Numbers Authority (IANA) has reserved the
-    following three blocks of the IP address space for private internets:
+      10.0.0.0        -   10.255.255.255  (10/8 prefix)
+      172.16.0.0      -   172.31.255.255  (172.16/12 prefix)
+      192.168.0.0     -   192.168.255.255 (192.168/16 prefix)
+    */
 
-    10.0.0.0        -   10.255.255.255  (10/8 prefix)
-    172.16.0.0      -   172.31.255.255  (172.16/12 prefix)
-    192.168.0.0     -   192.168.255.255 (192.168/16 prefix)
-  */
+    a = ntohl(addr.ipType.ipv4);
 
-  a = ntohl(addr.ipType.ipv4);
+    if(((a & 0xFF000000) == 0x0A000000 /* 10.0.0.0/8 */)
+       || ((a & 0xFFF00000) == 0xAC100000 /* 172.16.0.0/12 */)
+       || ((a & 0xFFFF0000) == 0xC0A80000 /* 192.168.0.0/16 */)
+       || ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */)
+       )
+      addr.privateIP = true;
+    else if((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
+      addr.multicastIP = true;
+    else if((a == 0xFFFFFFFF) || (a == 0))
+      addr.broadcastIP = true;
 
-  if(((a & 0xFF000000) == 0x0A000000 /* 10.0.0.0/8 */)
-     || ((a & 0xFFF00000) == 0xAC100000 /* 172.16.0.0/12 */)
-     || ((a & 0xFFFF0000) == 0xC0A80000 /* 192.168.0.0/16 */)
-     || ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */)
-     )
-    addr.privateIP = true;
-  else if((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
-    addr.multicastIP = true;
-  else if((a == 0xFFFFFFFF) || (a == 0))
+    if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
+      if(nmask_bits < 31) { /* /32 is just an host, /31 is a point-to-point */
+        nmask = ~((1 << (32 - nmask_bits)) - 1);
+        if(a == (a | ~nmask) || a == (a & nmask))
     addr.broadcastIP = true;
-
-  if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
-    if(nmask_bits < 31) { /* /32 is just an host, /31 is a point-to-point */
-      nmask = ~((1 << (32 - nmask_bits)) - 1);
-      if(a == (a | ~nmask) || a == (a & nmask))
-	addr.broadcastIP = true;
+      }
     }
-
+  } else if (addr.ipVersion == 6) {
+    /*
+     * https://tools.ietf.org/html/rfc2373#section-2.7
+     *
+     * 11111111 at the start of the address identifies the address as being a multicast address.
+     */
+    if(addr.ipType.ipv6.u6_addr.u6_addr8[0] == 0xFF)
+      addr.multicastIP = true;
   }
-
 }
 
 /* ******************************************* */
