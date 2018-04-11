@@ -2318,15 +2318,22 @@ end
 
 -- "Some Very Long String" -> "Some Ver...g String"
 function shortenCollapse(s, max_len)
+   local replacement = "..."
+   local r_len = string.len(replacement)
+
    if max_len == nil then
       max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
       max_len = tonumber(max_len)
       if(max_len == nil) then max_len = 24 end
    end
 
+   if max_len <= r_len then
+      return replacement
+   end
+
    if string.len(s) > max_len then
-      local half = math.floor(max_len / 2)
-      return string.sub(s, 1, half) .. "..." .. string.sub(s, half+1)
+      local half = math.floor((max_len-r_len) / 2)
+      return string.sub(s, 1, half) .. "..." .. string.sub(s, string.len(s)-half+1)
    end
 
    return s
