@@ -291,6 +291,11 @@ typedef int SOCKET;
 #endif
 #endif
 
+#ifdef  _NTOP_CLASS_H_
+/* Disables CGI support, safer and prevents mongoose forking */
+#define NO_CGI
+#endif
+
 #define MONGOOSE_VERSION "3.7"
 #define PASSWORDS_FILE_NAME ".htpasswd"
 #define CGI_ENVIRONMENT_SIZE 4096
@@ -5430,7 +5435,9 @@ struct mg_context *mg_start(const struct mg_callbacks *callbacks,
   // won't kill the whole process.
   (void) signal(SIGPIPE, SIG_IGN);
   // Also ignoring SIGCHLD to let the OS to reap zombies properly.
+#ifndef NO_CGI /* Only CGI support causes mongoose to fork */
   (void) signal(SIGCHLD, SIG_IGN);
+#endif
 #endif // !_WIN32
 
   (void) pthread_mutex_init(&ctx->mutex, NULL);
