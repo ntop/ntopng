@@ -6353,12 +6353,37 @@ static int ntop_lpop_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_lpush_redis(lua_State* vm) {
-  char *list_name, *value;
-  u_int list_trim_size = 0;  // default 0 = no trim
+static int ntop_ltrim_redis(lua_State* vm) {
+  char *list_name;
+  int start_idx, end_idx;
   Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((list_name = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  start_idx = lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  end_idx = lua_tonumber(vm, 3);
+
+  if(redis && redis->ltrim(list_name, start_idx, end_idx) == 0) {
+    lua_pushnil(vm);
+    return(CONST_LUA_OK);
+  }
+
+  return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+static int ntop_push_redis(lua_State* vm, bool use_lpush) {
+  char *list_name, *value;
+  u_int list_trim_size = 0;  // default 0 = no trim
+  Redis *redis = ntop->getRedis();
+  int rv;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((list_name = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
@@ -6370,11 +6395,30 @@ static int ntop_lpush_redis(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TNUMBER)
     list_trim_size = (u_int)lua_tonumber(vm, 3);
 
-  if(redis->lpush(list_name, value, list_trim_size) == 0) {
+  if(use_lpush)
+    rv = redis->lpush(list_name, value, list_trim_size);
+  else
+    rv = redis->rpush(list_name, value, list_trim_size);
+
+  if(rv == 0) {
     lua_pushnil(vm);
     return(CONST_LUA_OK);
-  }else
+  } else
     return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+static int ntop_lpush_redis(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  return ntop_push_redis(vm, true);
+}
+
+/* ****************************************** */
+
+static int ntop_rpush_redis(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  return ntop_push_redis(vm, false);
 }
 
 /* ****************************************** */
@@ -7271,7 +7315,9 @@ static const luaL_Reg ntop_reg[] = {
   { "flushCache",        ntop_flush_redis },
   { "listIndexCache",    ntop_list_index_redis },
   { "lpushCache",        ntop_lpush_redis },
+  { "rpushCache",        ntop_rpush_redis },
   { "lpopCache",         ntop_lpop_redis },
+  { "ltrimCache",        ntop_ltrim_redis },
   { "lrangeCache",       ntop_lrange_redis },
   { "setMembersCache",   ntop_add_set_member_redis },
   { "delMembersCache",   ntop_del_set_member_redis },

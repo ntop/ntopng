@@ -16,8 +16,6 @@ local callback_utils = require "callback_utils"
 local now = os.time()
 
 local prefs_dump_utils = require "prefs_dump_utils"
-processAlertNotifications(now, 3)
-
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
 
 if(prefs_changed == "true") then
@@ -29,5 +27,4 @@ end
 check_mac_ip_association_alerts()
 callback_utils.uploadTSdata()
 
-
-
+processAlertNotifications(now, 3)

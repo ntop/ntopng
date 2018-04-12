@@ -6,6 +6,10 @@ local email = {}
 
 email.EXPORT_FREQUENCY = 60
 
+local MAX_ALERTS_PER_EMAIL = 20
+local MAX_NUM_SEND_ATTEMPTS = 3
+local NUM_ATTEMPTS_KEY = "ntopng.alerts.modules_notifications_queue.email.num_attemps"
+
 local function buildMessageHeader(now_ts, from, to, subject, body)
   local now = os.date("%a, %d %b %Y %X", now_ts) -- E.g. "Tue, 3 Apr 2018 14:58:00"
   local msg_id = "<" .. now_ts .. "." .. os.clock() .. "@ntopng>"
@@ -53,23 +57,51 @@ function email.sendEmail(subject, message_body)
   return ntop.sendMail(from, to, message, smtp_server)
 end
 
-function email.sendNotifications(notifications)
-  local subject = ""
+function email.dequeueAlerts(queue)
+  while true do
+    local notifications = ntop.lrangeCache(queue, 0, MAX_ALERTS_PER_EMAIL-1)
 
-  if #notifications > 1 then
-    subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
+    if not notifications then
+      break
+    end
+
+    local subject = ""
+
+    if #notifications > 1 then
+      subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
+    end
+
+    local message_body = {}
+
+    -- Multiple notifications
+    for _, json_message in ipairs(notifications) do
+      local notif = alertNotificationToObject(json_message)
+      message_body[#message_body + 1] = formatAlertNotification(notif, {nohtml=true})
+    end
+
+    message_body = table.concat(message_body, "<br>")
+
+    local rv = email.sendEmail(subject, message_body)
+
+    if not rv then
+      local num_attemps = (tonumber(ntop.getCache(NUM_ATTEMPTS_KEY)) or 0) + 1
+
+      if num_attemps >= MAX_NUM_SEND_ATTEMPTS then
+        ntop.delCache(NUM_ATTEMPTS_KEY)
+        return {success=false, error_message="Unable to send mails"}
+      else
+        ntop.setCache(NUM_ATTEMPTS_KEY, tostring(num_attemps))
+        return {success=true}
+      end
+    else
+      ntop.delCache(NUM_ATTEMPTS_KEY)
+    end
+
+    -- Remove the processed messages from the queue
+    ntop.ltrimCache(queue, MAX_ALERTS_PER_EMAIL, -1)
   end
 
-  local message_body = {}
-
-  -- Multiple notifications
-  for _, notif in ipairs(notifications) do
-    message_body[#message_body + 1] = formatAlertNotification(notif, true)
-  end
-
-  message_body = table.concat(message_body, "<br>")
-
-  return email.sendEmail(subject, message_body)
+  return {success=true}
 end
 
 return email

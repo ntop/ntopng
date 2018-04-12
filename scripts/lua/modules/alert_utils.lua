@@ -10,9 +10,14 @@ local callback_utils = require "callback_utils"
 local template = require "template_utils"
 local json = require("dkjson")
 local host_pools_utils = require("host_pools_utils")
+require("lua_utils")
+
+package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
+
 local shaper_utils = nil
 
 local CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT = "5"
+local MAX_NUM_PER_MODULE_QUEUED_ALERTS = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS on the AlertsManager
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -2564,12 +2569,13 @@ end
 --  - A [module] name must have a corresponding modules/[module]_utils.lua script
 --
 
+-- NOTE: order is important as it defines evaluation order
 local ALERT_NOTIFICATION_MODULES = {
    "nagios", "slack"
 }
 
 if ntop.sendMail then -- only if email support is available
-   ALERT_NOTIFICATION_MODULES[#ALERT_NOTIFICATION_MODULES + 1] = "email"
+   table.insert(ALERT_NOTIFICATION_MODULES, 1, "email")
 end
 
 function getAlertNotificationModuleEnableKey(module_name, short)
@@ -2604,7 +2610,7 @@ local function getEnabledAlertNotificationModules()
    for _, modname in ipairs(ALERT_NOTIFICATION_MODULES) do
       local module_enabled = ntop.getPref(getAlertNotificationModuleEnableKey(modname))
       local min_severity = ntop.getPref(getAlertNotificationModuleSeverityKey(modname))
-      local req_name = modname .. "_utils"
+      local req_name = modname
 
       if isEmptyString(min_severity) then
          min_severity = "warning"
@@ -2633,13 +2639,47 @@ local function getEnabledAlertNotificationModules()
    return enabled_modules
 end
 
-function formatAlertNotification(notif, nohtml, noseverity)
+function alertNotificationToObject(alert_json)
+   local notification = json.decode(alert_json)
+
+   if not notification then
+      return nil
+   end
+
+   if(notification.type ~= nil) then
+      notification.type = alertTypeRaw(notification.type)
+      notification.entity_type = alertEntityRaw(notification.entity_type)
+      notification.severity = alertSeverityRaw(notification.severity)
+   end
+
+   if(notification.flow ~= nil) then
+      notification.message = formatRawFlow(notification.flow, notification.message)
+   end
+
+   return notification
+end
+
+function notification_timestamp_asc(a, b)
+   return (a.tstamp < b.tstamp)
+end
+
+function notification_timestamp_rev(a, b)
+   return (a.tstamp > b.tstamp)
+end
+
+function formatAlertNotification(notif, options)
+   local defaults = {
+      nohtml = false,
+      show_severity = true,
+   }
+   options = table.merge(defaults, options)
+
    local msg_prefix = alertNotificationActionToLabel(notif.action)
    local msg = "[" .. formatEpoch(notif.tstamp or 0) .. "]" ..
-               ternary(noseverity == true, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), nohtml) .. "]") ..
-               "[" .. alertTypeLabel(alertType(notif.type), nohtml) .."]: "
+               ternary(defaults.show_severity == true, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), options.nohtml) .. "]") ..
+               "[" .. alertTypeLabel(alertType(notif.type), options.nohtml) .."]: "
 
-   if nohtml then
+   if options.nohtml then
       msg = msg .. noHtml(msg_prefix .. notif.message)
    else
       msg = msg .. msg_prefix .. notif.message
@@ -2648,12 +2688,12 @@ function formatAlertNotification(notif, nohtml, noseverity)
    return msg
 end
 
-function processAlertNotifications(now, periodic_frequency)
-   local deadline = now - (now % periodic_frequency) + periodic_frequency
+-- NOTE: this is executed in a system VM, with no interfaces references
+function processAlertNotifications(now, periodic_frequency, force_export)
    local modules = getEnabledAlertNotificationModules()
 
    -- Get new alerts
-   while(os.time() < deadline) do
+   while(true) do
       local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
 
       if((json_message == nil) or (json_message == "")) then
@@ -2664,59 +2704,26 @@ function processAlertNotifications(now, periodic_frequency)
          io.write("Alert Notification: " .. json_message .. "\n")
       end
 
+      local message = json.decode(json_message)
+
       -- dispatch
       for _, m in ipairs(modules) do
-         ntop.lpushCache(m.export_queue, json_message)
+         if message.severity >= alertSeverity(m.severity) then
+            ntop.rpushCache(m.export_queue, json_message, MAX_NUM_PER_MODULE_QUEUED_ALERTS)
+         end
       end
    end
 
    -- Process export notifications
    for _, m in ipairs(modules) do
-      if os.time() > deadline then
-         traceError(TRACE_DEBUG, TRACE_CONSOLE, "Alert notification deadline exceeded")
-         break
-      end
+      if force_export or ((now % m.export_frequency) < periodic_frequency) then
+         local rv = m.module.dequeueAlerts(m.export_queue)
 
-      if(now % m.export_frequency) < periodic_frequency then
-         local pending_notifications = ntop.lrangeCache(m.export_queue) or {}
+         if not rv.success then
+            local msg = rv.error_message or "Unknown Error"
 
-         if not table.empty(pending_notifications) then
-            if verbose then
-               io.write("Exporting alert notifications to " .. m.name .. "\n")
-            end
-
-            local to_export = {}
-
-            -- Translate into notification object
-            for _, json_message in pairsByKeys(pending_notifications, rev) do
-               local notification = json.decode(json_message)
-               local severity_num = notification.severity
-
-               if(notification.type ~= nil) then
-                  notification.type = alertTypeRaw(notification.type)
-                  notification.entity_type = alertEntityRaw(notification.entity_type)
-                  notification.severity = alertSeverityRaw(notification.severity)
-               end
-
-               if notification.flow ~= nil then
-                  notification.message = formatRawFlow(notification.flow, notification.message)
-               end
-
-               if severity_num >= alertSeverity(m.severity) then
-                  to_export[#to_export + 1] = notification
-               end
-            end
-
-            if table.len(to_export) > 0 then
-               local rv = m.module.sendNotifications(to_export)
-
-               if not rv then
-                 traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module")
-               else
-                 -- sent successfully, deleting queue
-                 ntop.delCache(m.export_queue)
-               end
-            end
+            -- TODO: generate alert
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module: " .. msg)
          end
       end
    end

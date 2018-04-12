@@ -46,7 +46,8 @@ class Redis {
 
   char* getRedisVersion();
   void reconnectRedis();
-  int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
+  int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size,
+	       bool trace_errors = true, bool head_trim = true);
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 	       bool dont_check_for_existence, bool localHost);
   int popHost(const char* ns_list, char *hostname, u_int hostname_len);
@@ -102,6 +103,7 @@ class Redis {
   int lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
   int rpush(const char *queue_name, char *msg, u_int queue_trim_size);
   int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
+  int ltrim(const char *queue_name, int start_idx, int end_idx);
   u_int llen(const char *queue_name);
   int lset(const char *queue_name, u_int32_t idx, const char *value);
   int lrem(const char *queue_name, const char *value);

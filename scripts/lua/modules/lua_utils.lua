@@ -2320,6 +2320,7 @@ end
 function shortenCollapse(s, max_len)
    local replacement = "..."
    local r_len = string.len(replacement)
+   local s_len = string.len(s)
 
    if max_len == nil then
       max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
@@ -2331,9 +2332,9 @@ function shortenCollapse(s, max_len)
       return replacement
    end
 
-   if string.len(s) > max_len then
+   if s_len > max_len then
       local half = math.floor((max_len-r_len) / 2)
-      return string.sub(s, 1, half) .. "..." .. string.sub(s, string.len(s)-half+1)
+      return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len-half+1)
    end
 
    return s

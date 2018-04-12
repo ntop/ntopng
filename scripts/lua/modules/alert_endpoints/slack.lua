@@ -8,6 +8,7 @@ local json = require "dkjson"
 local slack = {}
 
 slack.EXPORT_FREQUENCY = 60
+local MAX_ALERTS_PER_MESSAGE = 5
 
 local alert_severity_to_emoji = {
   ["info"] = ":information_source:",
@@ -36,11 +37,22 @@ function slack.sendMessage(channel_name, severity, text)
   return ntop.postHTTPJsonData("", "", webhook, json_message)
 end
 
-function slack.sendNotifications(notifications)
+-- We will try to send the most recent MAX_ALERTS_PER_MESSAGE messages for every
+-- channel and severity. On success, we clear the queue. On error, we leave the queue unchagned
+-- to retry on next round.
+function slack.dequeueAlerts(queue)
+  local notifications = ntop.lrangeCache(queue, 0, -1)
+
+  if not notifications then
+    return {success=true}
+  end
+
   -- Separate by severity and channel
   local alerts_by_types = {}
 
-  for _, notif in ipairs(notifications) do
+  for _, json_message in ipairs(notifications) do
+    local notif = alertNotificationToObject(json_message)
+
     alerts_by_types[notif.entity_type] = alerts_by_types[notif.entity_type] or {}
     alerts_by_types[notif.entity_type][notif.severity] = alerts_by_types[notif.entity_type][notif.severity] or {}
     table.insert(alerts_by_types[notif.entity_type][notif.severity], notif)
@@ -50,20 +62,35 @@ function slack.sendNotifications(notifications)
     for severity, notifications in pairs(by_severity) do
       local messages = {}
 
-      for _, notif in ipairs(notifications) do
-        local msg = formatAlertNotification(notif, true, true)
+      -- Most recent notifications first
+      for _, notif in pairsByValues(notifications, notification_timestamp_rev) do
+        local msg = formatAlertNotification(notif, {nohtml=true, show_severity=false})
         table.insert(messages, msg)
+
+        if #messages >= MAX_ALERTS_PER_MESSAGE then
+          break
+        end
+      end
+
+      local missing = #notifications - #messages
+
+      if missing > 0 then
+        table.insert(messages, "NOTE: " .. missing .. " older messages have been suppressed")
       end
 
       messages = table.concat(messages, "\n")
 
       if not slack.sendMessage(entity_type, severity, messages) then
-        return false
+        -- Note: upon failure we'll possibly resend already sent messages
+        return {success=false, error_message="Unable to send slack messages"}
       end
     end
   end
 
-  return true
+  -- Remove all the messages from queue on success
+  ntop.delCache(queue)
+
+  return {success=true}
 end
 
 return slack
