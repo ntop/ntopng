@@ -988,7 +988,7 @@ int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool 
 
 /* Add at the bottom of the queue */
 int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("RPUSH", queue_name, msg, queue_trim_size, false, false));
+  return(msg_push("RPUSH", queue_name, msg, queue_trim_size, true, false));
 }
 
 /* ******************************************* */

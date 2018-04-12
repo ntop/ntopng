@@ -39,7 +39,7 @@ if(haveAdminPrivileges()) then
     require "alert_utils"
     disableAlertsGeneration()
    elseif(_POST["send_test_email"] ~= nil) then
-    local email_utils = require("email_utils")
+    local email_utils = require("email")
 
     local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
 

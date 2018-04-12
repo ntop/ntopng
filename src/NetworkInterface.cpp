@@ -6740,10 +6740,11 @@ NIndexFlowDB* NetworkInterface::getNindex() {
 void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4) {
   if(!ntop->getPrefs()->are_ip_reassignment_alerts_enabled())
     return;
+
+  u_int64_t mac = Utils::mac2int(_mac);
   
-  if(ipv4 != 0) {
+  if((ipv4 != 0) && (mac != 0)) {
     std::map<u_int32_t, u_int64_t>::iterator it;
-    u_int64_t mac = Utils::mac2int(_mac);
 
     if(!triggerEvent)
       ip_mac[ipv4] = mac;
