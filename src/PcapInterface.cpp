@@ -159,7 +159,7 @@ static void* packetPollLoop(void* ptr) {
 
     pd = iface->get_pcap_handle();
 
-#ifndef WIN32
+#ifdef __linux__
     fd = pcap_get_selectable_fd(pd);
 #endif
 
@@ -183,7 +183,7 @@ static void* packetPollLoop(void* ptr) {
 	if(select(fd + 1, &rset, NULL, NULL, &tv) == 0)
 	  continue;
 	}
-
+      
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((pkt != NULL) && (hdr->caplen > 0)) {
 	  u_int16_t p;

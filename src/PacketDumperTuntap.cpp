@@ -52,7 +52,7 @@ PacketDumperTuntap::~PacketDumperTuntap() {
 
 /* ********************************************* */
 
-#ifdef linux
+#ifdef __linux__
 #define LINUX_SYSTEMCMD_SIZE 128
 
 int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {

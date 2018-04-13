@@ -73,7 +73,7 @@
 #include <sys/select.h>
 #endif
 
-#ifdef linux
+#ifdef __linux__
 #define __FAVOR_BSD
 #endif
 

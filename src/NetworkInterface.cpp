@@ -218,7 +218,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if((host_pools = new HostPools(this)) == NULL)
     throw "Not enough memory";
 
-#ifdef linux
+#ifdef __linux__
   /*
     A bit aggressive but as people usually
     ignore warnings let's be proactive
@@ -1994,7 +1994,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     if(!mtuWarningShown) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max-len: %u].", h->len, ifMTU);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
-#ifdef linux
+#ifdef __linux__
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
 #endif
       mtuWarningShown = true;

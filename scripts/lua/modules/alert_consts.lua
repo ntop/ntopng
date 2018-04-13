@@ -39,7 +39,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),      17, "mac_ip_association_change"  },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_status_change"),     18, "port_status_change"         },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.unresponsive_device"),         19, "unresponsive_device"        },
-   { "<i class='fa fa-info-circle'></i> " .. i18n("alerts_dashboard.process"),                     20, "process_notification"       },
+   { "<i class='fa fa-truck'></i> " .. i18n("alerts_dashboard.process"),                     20, "process_notification"       },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

@@ -72,7 +72,7 @@ void sigproc(int sig) {
 
   delete ntop;
 
-#ifdef linux
+#ifdef __linux__
   switch(afterShutdownAction) {
     case after_shutdown_nop: break;
     case after_shutdown_reboot: system("/sbin/reboot"); break;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
 
-#ifdef linux
+#ifdef __linux__
   /* Store number of CPUs before dropping privileges */
   ntop->setNumCPUs(sysconf(_SC_NPROCESSORS_ONLN));
   ntop->getTrace()->traceEvent(TRACE_INFO, "System has %d CPU cores", ntop->getNumCPUs());

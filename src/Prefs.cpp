@@ -242,7 +242,7 @@ void usage() {
 	 "                                    | A password can be specified after\n"
 	 "                                    | the port when Redis auth is required.\n"
 	 "                                    | By default password auth is disabled.\n"
-#ifdef linux
+#ifdef __linux__
 	 "                                    | On unix <fmt> can also be the redis socket file path.\n"
 	 "                                    | Port is ignored for socket-based connections.\n"
 #endif
@@ -251,7 +251,7 @@ void usage() {
 	 "                                    | -r 129.168.1.3\n"
 	 "                                    | -r 129.168.1.3:6379@3\n"
 	 "                                    | -r 129.168.1.3:6379:nt0pngPwD@0\n"
-#ifdef linux
+#ifdef __linux__
 	 "                                    | -r /var/run/redis/redis.sock\n"
 	 "                                    | -r /var/run/redis/redis.sock@2\n"
 	 "[--core-affinity|-g] <cpu core ids> | Bind the capture/processing threads to\n"

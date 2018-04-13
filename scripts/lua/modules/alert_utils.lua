@@ -2240,7 +2240,8 @@ function check_mac_ip_association_alerts()
       if((message == nil) or (message == "")) then
 	 break
       end
-      elems = json.decode(message)
+
+            elems = json.decode(message)
 
       if elems ~= nil then
          --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
@@ -2252,6 +2253,36 @@ function check_mac_ip_association_alerts()
                   new_mac=elems.new_mac, new_mac_url=getMacUrl(elems.new_mac)}))
       end
    end   
+end
+
+-- Global function
+function check_process_alerts()
+   while(true) do
+      local message = ntop.lpopCache(alert_process_queue)
+      local elems
+      -- FIX: In the future we must create a special "ntopng/localhost" interface
+      local if_id, if_name = getFirstInterfaceId()
+      
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      if(verbose) then print(message.."\n") end
+      
+      local decoded = json.decode(message)
+
+      if(decoded == nil) then
+	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
+      else 
+	 interface.select(if_name)
+	 interface.storeAlert(decoded.entity_type,
+			      decoded.entity_value,
+			      decoded.type,
+			      decoded.severity,
+			      decoded.message,
+			      decoded.when)
+      end
+   end
 end
 
 local function check_macs_alerts(ifid, working_status)

@@ -31,7 +31,7 @@ class Redis {
   redisContext *redis;
   Mutex *l;
   char *redis_host, *redis_password, *redis_version;
-#ifdef linux
+#ifdef __linux__
   bool is_socket_connection;
 #endif
   u_int32_t num_requests, num_reconnections, num_redis_version;
