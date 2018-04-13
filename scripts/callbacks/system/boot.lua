@@ -22,4 +22,3 @@ if(ntop.isPro()) then
    require("boot")
 end
 
-notify_ntopng_start()
