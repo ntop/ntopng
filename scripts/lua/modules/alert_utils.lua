@@ -2190,23 +2190,17 @@ function check_mac_ip_association_alerts()
 	 break
       end
       
-      elems = split(message, "|")
+      elems = json.decode(message)
 
-      local interface_name    = elems[1]
-      local interface_id      = elems[2]
-      local ipaddr            = elems[3]
-      local old_mac_address   = elems[4]
-      local new_mac_address   = elems[5]
-
-      -- redis-cli lpush "ntopng.alert_mac_ip_queue" "en0|1|1.2.3.4|4a:00:06:a0:7c:50|4a:00:06:a0:7c:51"
-      io.write(ipaddr.." ==> "..message.."[".. interface_name .."]\n")
-
-      interface.select(interface_name)
-      interface.storeAlert(alertEntity("mac"), new_mac_address, alertType("mac_ip_association_change"), alertSeverity("warning"),
-			      i18n("alert_messages.mac_ip_association_change",
-				   {device=name, ip=ipaddr,
-				    old_mac=old_mac_address, old_mac_url=getMacUrl(old_mac_address),
-				    new_mac=new_mac_address, new_mac_url=getMacUrl(new_mac_address)}))
+      if elems ~= nil then
+         --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
+         interface.select(elems.ifname)
+         interface.storeAlert(alertEntity("mac"), elems.new_mac, alertType("mac_ip_association_change"), alertSeverity("warning"),
+                  i18n("alert_messages.mac_ip_association_change",
+                  {device=name, ip=elems.ip,
+                  old_mac=elems.old_mac, old_mac_url=getMacUrl(elems.old_mac),
+                  new_mac=elems.new_mac, new_mac_url=getMacUrl(elems.new_mac)}))
+      end
    end   
 end
 

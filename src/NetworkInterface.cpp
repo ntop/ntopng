@@ -6752,8 +6752,9 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
       if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
 	/* Found entry */
 	if(it->second != mac) {
-	  char oldmac[32], newmac[32], ipbuf[32], buf[128], *ipa;
+	  char oldmac[32], newmac[32], ipbuf[32], *ipa;
 	  u_char tmp[6];
+	  json_object *jobject;
 
 	  Utils::int2mac(it->second, tmp);
 	  Utils::formatMac(tmp, oldmac, sizeof(oldmac));
@@ -6763,9 +6764,20 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
 				       ipa, oldmac, newmac);
 
-	  /* Format: <device id>:<IP>:<old MAC>:<new MAC> */
-	  snprintf(buf, sizeof(buf), "%s|%u|%s|%s|%s", get_name(), id, ipa, oldmac, newmac);
-	  ntop->getRedis()->rpush(CONST_ALERT_MAC_IP_QUEUE, buf, 0 /* No trim */);
+	  if((jobject = json_object_new_object()) != NULL) {
+	    json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+	    json_object_object_add(jobject, "ifid", json_object_new_int(id));
+	    json_object_object_add(jobject, "ip", json_object_new_string(ipa));
+	    json_object_object_add(jobject, "old_mac", json_object_new_string(oldmac));
+	    json_object_object_add(jobject, "new_mac", json_object_new_string(newmac));
+
+	    ntop->getRedis()->rpush(CONST_ALERT_MAC_IP_QUEUE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+	    /* Free Memory */
+	    json_object_put(jobject);
+	  } else
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "json_object_new_object: Not enough memory");
+
 	  ip_mac[ipv4] = mac;
 	}
       } else
