@@ -282,8 +282,8 @@ function get_global_alerts_hash_key(entity_type, alert_source)
 end
 
 function get_make_room_keys(ifId)
-   return {flows="ntopng.prefs.alerts.ifid_"..ifId..".make_room_flow_alerts",
-	   entities="ntopng.prefs.alerts.ifid_"..ifId..".make_room_closed_alerts"}
+   return {flows="ntopng.cache.alerts.ifid_"..ifId..".make_room_flow_alerts",
+	   entities="ntopng.cache.alerts.ifid_"..ifId..".make_room_closed_alerts"}
 end
 
 -- =====================================================
