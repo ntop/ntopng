@@ -25,6 +25,7 @@ if(prefs_changed == "true") then
 end
 
 check_mac_ip_association_alerts()
+check_process_alerts()
 callback_utils.uploadTSdata()
 
 processAlertNotifications(now, 3)

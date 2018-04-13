@@ -47,7 +47,7 @@ class AlertsManager : protected StoreManager {
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		 const char *alert_origin, const char *alert_target,
-		 bool check_maximum);
+		 bool check_maximum, time_t when);
 
   bool notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id,
@@ -88,20 +88,27 @@ class AlertsManager : protected StoreManager {
   inline int engageHostAlert(const char *host_ip, u_int16_t host_vlan,
 			     AlertEngine alert_engine,
 			     const char *engaged_alert_id,
-			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */, ignore_disabled);
+			     AlertType alert_type, AlertLevel alert_severity,
+			     const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
+				  alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */, ignore_disabled);
   };
   inline int releaseHostAlert(const char *host_ip, u_int16_t host_vlan,
 			      AlertEngine alert_engine,
 			      const char *engaged_alert_id,
-			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */, ignore_disabled);
+			      AlertType alert_type, AlertLevel alert_severity,
+			      const char *alert_json, bool ignore_disabled=false) {
+    return engageReleaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
+				  alert_type, alert_severity, alert_json, NULL, NULL,
+				  false /* release */, ignore_disabled);
   };
+  
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		     Host *alert_origin, Host *alert_target);
   inline int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
   }
+  
   int getNumHostAlerts(Host *h, bool engaged);
 
   /*
@@ -118,20 +125,25 @@ class AlertsManager : protected StoreManager {
   inline int engageGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
 				AlertEngine alert_engine,
 				const char *engaged_alert_id,
-				AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
-    return engageAlert(alert_engine, alert_entity, alert_entity_value, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
+				AlertType alert_type, AlertLevel alert_severity,
+				const char *alert_json, bool ignore_disabled=false) {
+    return engageAlert(alert_engine, alert_entity, alert_entity_value, engaged_alert_id,
+		       alert_type, alert_severity, alert_json, NULL, NULL, ignore_disabled);
   };
 
   inline int releaseGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
 				 AlertEngine alert_engine,
 				 const char *engaged_alert_id,
-				 AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool ignore_disabled=false) {
+				 AlertType alert_type, AlertLevel alert_severity,
+				 const char *alert_json, bool ignore_disabled=false) {
     return releaseAlert(alert_engine, alert_entity, alert_entity_value, engaged_alert_id, ignore_disabled);
   };
 
   inline int storeGenericAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeAlert(alert_entity, alert_entity_value, alert_type, alert_severity, alert_json, NULL, NULL, true);
+			       AlertType alert_type, AlertLevel alert_severity,
+			       const char *alert_json, time_t when) {
+    return storeAlert(alert_entity, alert_entity_value, alert_type,
+		      alert_severity, alert_json, NULL, NULL, true, when);
   }
 
   /*

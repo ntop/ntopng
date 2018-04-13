@@ -5250,7 +5250,10 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "platform",  (char*)PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "version",   (char*)PACKAGE_VERSION);
   lua_push_str_table_entry(vm, "git",       (char*)NTOPNG_GIT_RELEASE);
-
+#ifndef WIN32
+  lua_push_int_table_entry(vm, "pid",       getpid());
+#endif
+  
   snprintf(rsp, sizeof(rsp), "%s [%s][%s]",
 	   PACKAGE_OSNAME, PACKAGE_MACHINE, PACKAGE_OS);
   lua_push_str_table_entry(vm, "platform", rsp);
@@ -6590,7 +6593,8 @@ static int ntop_interface_store_alert(lua_State* vm) {
   AlertsManager *am;
   int ret;
   AlertEntity alert_entity;
-
+  time_t when;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -6608,11 +6612,14 @@ static int ntop_interface_store_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_json = (char*)lua_tostring(vm, 5);
 
+  if(lua_type(vm, 6) == LUA_TNUMBER) when = (time_t)lua_tonumber(vm, 6); else when = time(NULL);
+  
   if((!ntop_interface)
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
 
-  ret = am->storeGenericAlert(alert_entity, entity_key, (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+  ret = am->storeGenericAlert(alert_entity, entity_key,
+			      (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, when);
 
   lua_pushboolean(vm, ret >= 0);
   return CONST_LUA_OK;

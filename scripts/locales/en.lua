@@ -245,6 +245,7 @@ local lang = {
     ["trailing_msg"] = "Time Window",
     ["unresponsive_device"] = "Unresponsive Device",
     ["warning"] = "Warning",
+    ["process"] = "Process",
   },
   ["alerts_thresholds_config"] = {
     ["activity_time"] = "Activity Time",

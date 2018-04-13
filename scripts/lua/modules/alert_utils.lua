@@ -10,9 +10,11 @@ local callback_utils = require "callback_utils"
 local template = require "template_utils"
 local json = require("dkjson")
 local host_pools_utils = require("host_pools_utils")
-require("lua_utils")
+local alert_consts = require "alert_consts"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
+
+local alert_process_queue = "ntopng.alert_process_queue"
 
 local shaper_utils = nil
 
@@ -24,53 +26,102 @@ if(ntop.isPro()) then
    shaper_utils = require("shaper_utils")
 end
 
-alerts_granularity = {
-   { "min", i18n("alerts_thresholds_config.every_minute"), 60 },
-   { "5mins", i18n("alerts_thresholds_config.every_5_minutes"), 300 },
-   { "hour", i18n("alerts_thresholds_config.hourly"), 3600 },
-   { "day", i18n("alerts_thresholds_config.daily"), 86400 }
-}
+function alertSeverityLabel(v, nohtml)
+   local res = _handleArray(alert_consts.alert_severity_keys, tonumber(v))
+   if res ~= nil and nohtml == true then res = noHtml(res) end
+   return res
+end
 
-alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput',
-    'ingress', 'egress', 'inner',
-    'flows'}
+function alertSeverity(v)
+   local severity_table = {}
+   for i, t in ipairs(alert_consts.alert_severity_keys) do
+      severity_table[#severity_table + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(severity_table, v))
+end
 
-alert_functions_info = {
-   ["active"] = {
-      label = i18n("alerts_thresholds_config.activity_time"),
-      fmt = secondsToTime,
-   }, ["bytes"] = {
-      label = i18n("traffic"),
-      fmt = bytesToSize,
-   }, ["dns"] = {
-      label = i18n("alerts_thresholds_config.dns_traffic"),
-      fmt = bytesToSize,
-   }, ["idle"] = {
-      label = i18n("alerts_thresholds_config.idle_time"),
-      fmt = secondsToTime,
-   }, ["packets"] = {
-      label = i18n("packets"),
-      fmt = formatPackets,
-   }, ["p2p"] = {
-      label = i18n("alerts_thresholds_config.p2p_traffic"),
-      fmt = bytesToSize,
-   }, ["throughput"] = {
-      label = i18n("alerts_thresholds_config.throughput"),
-      fmt = bytesToSize,
-   }, ["flows"] = {
-      label = i18n("flows"),
-      fmt = formatFlows,
-   }, ["inner"] = {
-      label = i18n("alerts_thresholds_config.inner_traffic"),
-      fmt = bytesToSize
-   }, ["ingress"] = {
-      label = i18n("alerts_thresholds_config.ingress_traffic"),
-      fmt = bytesToSize
-   }, ["egress"] = {
-      label = i18n("alerts_thresholds_config.egress_traffic"),
-      fmt = bytesToSize
-   },
-}
+function alertSeverityRaw(sev_idx)
+   sev_idx = sev_idx + 2 -- -1 and 0
+   if sev_idx <= #alert_consts.alert_severity_keys then
+      return alert_consts.alert_severity_keys[sev_idx][3]
+   end
+   return nil
+end
+
+function alertTypeLabel(v, nohtml)
+   local res = _handleArray(alert_consts.alert_type_keys, tonumber(v))
+   if res ~= nil and nohtml == true then res = noHtml(res) end
+   return res
+end
+
+function alertType(v)
+   local typetable = {}
+   for i, t in ipairs(alert_consts.alert_type_keys) do
+      typetable[#typetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(typetable, v))
+end
+
+function alertEngine(v)
+   local enginetable = {}
+   for i, t in ipairs(alert_consts.alert_engine_keys) do
+      enginetable[#enginetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(enginetable, v))
+end
+
+function alertEngineLabel(v)
+   return _handleArray(alert_consts.alert_engine_keys, tonumber(v))
+end
+
+function alertEngineRaw(idx)
+   idx = idx + 1
+   if idx <= #alert_consts.alert_engine_keys then
+      return alert_consts.alert_engine_keys[idx][3]
+   end
+   return nil
+end
+
+function alertSeverity(v)
+   local severitytable = {}
+
+   for i, t in ipairs(alert_consts.alert_severity_keys) do
+      severitytable[#severitytable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(severitytable, v))
+end
+
+function alertTypeRaw(alert_idx)
+   if(alert_idx == nil) then return nil end
+
+   alert_idx = alert_idx + 2 -- -1 and 0
+   if alert_idx <= #alert_consts.alert_type_keys then
+      return alert_consts.alert_type_keys[alert_idx][3]
+   end
+   return nil
+end
+
+function alertEntityLabel(v, nothml)
+   local res = _handleArray(alert_consts.alert_entity_keys, tonumber(v))
+   if res ~= nil and nohtml == true then res = noHtml(res) end
+   return res
+end
+
+function alertEntity(v)
+   local typetable = {}
+   for i, t in ipairs(alert_consts.alert_entity_keys) do
+      typetable[#typetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(typetable, v))
+end
+
+function alertEntityRaw(entity_idx)
+   entity_idx = entity_idx + 1
+   if entity_idx <= #alert_consts.alert_entity_keys then
+      return alert_consts.alert_entity_keys[entity_idx][3]
+   end
+   return nil
+end
 
 -- ##############################################################################
 
@@ -190,7 +241,7 @@ j = require("dkjson")
 require "persistence"
 
 function is_allowed_timespan(timespan)
-   for _, granularity in pairs(alerts_granularity) do
+   for _, granularity in pairs(alert_consts.alerts_granularity) do
       granularity = granularity[1]
       if timespan == granularity then
 	 return true
@@ -200,7 +251,7 @@ function is_allowed_timespan(timespan)
 end
 
 function is_allowed_alarmable_metric(metric)
-   for _, allowed_metric in pairs(alarmable_metrics) do
+   for _, allowed_metric in pairs(alert_consts.alarmable_metrics) do
       if metric == allowed_metric then
 	 return true
       end
@@ -284,13 +335,13 @@ local function entity_threshold_crossed(granularity, old_table, new_table, thres
       threshold_info.value = nil
    end
 
-return rc, threshold_info
+   return rc, threshold_info
 end
 
 -- #################################
 
 function granularity2sec(g)
-   for _, granularity in pairs(alerts_granularity) do
+   for _, granularity in pairs(alert_consts.alerts_granularity) do
       if(granularity[1] == g) then
 	 return(granularity[3])
       end
@@ -516,43 +567,43 @@ end
 -- If entity_info is nil, then no links will be provided.
 --
 local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
-  local value
+   local value
 
-  if entity_type == "host" then
-    local host_info = hostkey2hostinfo(entity_value)
-    value = resolveAddress(host_info)
+   if entity_type == "host" then
+      local host_info = hostkey2hostinfo(entity_value)
+      value = resolveAddress(host_info)
 
-    if host_info ~= nil then
-      value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid
-      .."&host="..hostinfo2hostkey(host_info).."'>"..value.."</a>"
-    end
-  elseif entity_type == "interface" then
-    value = getInterfaceName(ifid)
+      if host_info ~= nil then
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid
+	    .."&host="..hostinfo2hostkey(host_info).."'>"..value.."</a>"
+      end
+   elseif entity_type == "interface" then
+      value = getInterfaceName(ifid)
 
-    if entity_info ~= nil then
-      value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid.."'>"..value.."</a>"
-    end
-  elseif entity_type == "network" then
-    value = hostkey2hostinfo(entity_value)["host"]
+      if entity_info ~= nil then
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid.."'>"..value.."</a>"
+      end
+   elseif entity_type == "network" then
+      value = hostkey2hostinfo(entity_value)["host"]
 
-    if entity_info ~= nil then
-      value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..(entity_info.network_id).."&page=historical'>"
-        ..value.."</a>"
-    end
-  else
-    -- fallback
-    value = entity_value
-  end
+      if entity_info ~= nil then
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..(entity_info.network_id).."&page=historical'>"
+	    ..value.."</a>"
+      end
+   else
+      -- fallback
+      value = entity_value
+   end
 
-  -- try to get a localized message
-  local localized = i18n("alert_messages."..entity_type.."_entity", {entity_value=value})
+   -- try to get a localized message
+   local localized = i18n("alert_messages."..entity_type.."_entity", {entity_value=value})
 
-  if localized ~= nil then
-    return localized
-  else
-    -- fallback
-    return entity_type.." "..value
-  end
+   if localized ~= nil then
+      return localized
+   else
+      -- fallback
+      return entity_type.." "..value
+   end
 end
 
 -- #################################
@@ -562,25 +613,25 @@ function formatRawFlow(record, flow_json)
 
    -- pretend record is a flow to reuse getFlowLabel
    local flow = {
-	 ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
-	 ["cli.blacklisted"] = tostring(record["cli_blacklisted"]) == "1",
-	 ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
-	 ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
-	 ["vlan"] = record["vlan_id"]}
-      flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
+      ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
+      ["cli.blacklisted"] = tostring(record["cli_blacklisted"]) == "1",
+      ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
+      ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
+      ["vlan"] = record["vlan_id"]}
+   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
 
-      local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
+   local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
 
-      if not isEmptyString(l4_proto_label) then
-	 flow = flow.."[" .. i18n("l4_protocol") .. ": " .. l4_proto_label .. "] "
+   if not isEmptyString(l4_proto_label) then
+      flow = flow.."[" .. i18n("l4_protocol") .. ": " .. l4_proto_label .. "] "
+   end
+
+   if (l4_proto == "tcp") or (l4_proto =="udp") then
+      local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+
+      if not isEmptyString(l7proto_name) then
+	 flow = flow.."["..i18n("db_explorer.application_protocol")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
       end
-
-      if (l4_proto == "tcp") or (l4_proto =="udp") then
-	 local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
-
-	 if not isEmptyString(l7proto_name) then
-	    flow = flow.."["..i18n("db_explorer.application_protocol")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
-	 end
    end
 
    local decoded = json.decode(flow_json)
@@ -607,7 +658,7 @@ end
 -- #################################
 
 local function drawDropdown(status, selection_name, active_entry, entries_table, button_label)
-   -- alert_level_keys and alert_type_keys are defined in lua_utils
+   -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label
    if selection_name == "severity" then
       id_to_label = alertSeverityLabel
@@ -761,31 +812,31 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       local granularity_label = alertEngineLabel(alertEngine(tab))
 
       print(
-        template.gen("modal_confirm_dialog.html", {
-          dialog={
-            id      = "deleteAlertSourceSettings",
-            action  = "deleteAlertSourceSettings()",
-            title   = i18n("show_alerts.delete_alerts_configuration"),
-            message = i18n(delete_confirm_msg, {granularity=granularity_label}) .. " <span style='white-space: nowrap;'>" .. ternary(alt_name ~= nil, alt_name, alert_source).."</span>?",
-            confirm = i18n("delete")
-          }
-        })
+	 template.gen("modal_confirm_dialog.html", {
+			 dialog={
+			    id      = "deleteAlertSourceSettings",
+			    action  = "deleteAlertSourceSettings()",
+			    title   = i18n("show_alerts.delete_alerts_configuration"),
+			    message = i18n(delete_confirm_msg, {granularity=granularity_label}) .. " <span style='white-space: nowrap;'>" .. ternary(alt_name ~= nil, alt_name, alert_source).."</span>?",
+			    confirm = i18n("delete")
+			 }
+	 })
       )
 
       print(
-        template.gen("modal_confirm_dialog.html", {
-          dialog={
-            id      = "deleteGlobalAlertConfig",
-            action  = "deleteGlobalAlertConfig()",
-            title   = i18n("show_alerts.delete_alerts_configuration"),
-            message = i18n("show_alerts.delete_config_message", {conf = entity_type, granularity=granularity_label}).."?",
-            confirm = i18n("delete")
-          }
-        })
+	 template.gen("modal_confirm_dialog.html", {
+			 dialog={
+			    id      = "deleteGlobalAlertConfig",
+			    action  = "deleteGlobalAlertConfig()",
+			    title   = i18n("show_alerts.delete_alerts_configuration"),
+			    message = i18n("show_alerts.delete_config_message", {conf = entity_type, granularity=granularity_label}).."?",
+			    confirm = i18n("delete")
+			 }
+	 })
       )
    end
 
-   for _,e in pairs(alerts_granularity) do
+   for _,e in pairs(alert_consts.alerts_granularity) do
       local k = e[1]
       local l = e[2]
       l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
@@ -803,17 +854,17 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          descr = i18n("entity_thresholds.flow_victim_description"),
          key = flow_rate_victim_key,
          global_default = 25, step = 1
-      }, {
+	 }, {
          title = i18n("entity_thresholds.syn_attacker_title"),
          descr = i18n("entity_thresholds.syn_attacker_description"),
          key = syn_attacker_key,
          global_default = 10, step = 5
-      }, {
+	    }, {
          title = i18n("entity_thresholds.syn_victim_title"),
          descr = i18n("entity_thresholds.syn_victim_description"),
          key = syn_victim_key,
          global_default = 10, step = 5
-      }
+	       }
    }
 
    local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source)
@@ -869,14 +920,14 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 		  alerts = alerts .. k .. ";" .. operator .. ";" .. value
 	       end
 
-         -- Handle global settings
-         local global_value = tonumber(_POST["value_global_"..k])
-         local global_operator = _POST["op_global_"..k]
+	       -- Handle global settings
+	       local global_value = tonumber(_POST["value_global_"..k])
+	       local global_operator = _POST["op_global_"..k]
 
-         if (global_value ~= nil) and (global_operator ~= nil) then
-            if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
-            global_alerts = global_alerts..k..";"..global_operator..";"..global_value
-         end
+	       if (global_value ~= nil) and (global_operator ~= nil) then
+		  if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
+		  global_alerts = global_alerts..k..";"..global_operator..";"..global_value
+	       end
 	    end
          end --END for k,_ in pairs(descr) do
 
@@ -894,7 +945,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
                   end
 
                   global_anomalies["global_"..config.key] = global_value
-                     ntop.setHashCache(global_redis_hash, config.key, global_value)
+		  ntop.setHashCache(global_redis_hash, config.key, global_value)
 
                   if not isEmptyString(value) then
                      anomalies[config.key] = value
@@ -905,7 +956,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
                   config_to_dump[#config_to_dump + 1] = value
                end
 
-                  -- Serialize the settings
+	       -- Serialize the settings
                local configdump = table.concat(config_to_dump, "|")
                ntop.setCache(anomaly_config_key, configdump)
                interface.refreshHostsAlertsConfiguration()
@@ -938,24 +989,24 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          end
       end -- END if _POST["to_delete"] ~= nil
 
-         --print(alerts)
-         --tokens = string.split(alerts, ",")
+      --print(alerts)
+      --tokens = string.split(alerts, ",")
       for _, al in pairs({
-         {prefix = "", config = alerts},
-         {prefix = "global_", config = global_alerts},
+	    {prefix = "", config = alerts},
+	    {prefix = "global_", config = global_alerts},
       }) do
-       if al.config ~= nil then
-         tokens = split(al.config, ",")
+	 if al.config ~= nil then
+	    tokens = split(al.config, ",")
 
-         --print(tokens)
-         if(tokens ~= nil) then
-	    for _,s in pairs(tokens) do
-	       t = string.split(s, ";")
-	       --print("-"..t[1].."-")
-	       if(t ~= nil) then vals[(al.prefix)..t[1]] = { t[2], t[3] } end
+	    --print(tokens)
+	    if(tokens ~= nil) then
+	       for _,s in pairs(tokens) do
+		  t = string.split(s, ";")
+		  --print("-"..t[1].."-")
+		  if(t ~= nil) then vals[(al.prefix)..t[1]] = { t[2], t[3] } end
+	       end
 	    end
-         end
-       end
+	 end
       end
 
 
@@ -964,27 +1015,27 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <form method="post">
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
        <tr><th>]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=firstToUpper(entity_type)}))
-       print[[</th></tr>]]
+      print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
       for key,v in pairsByKeys(descr, asc) do
-         print("<tr><td><b>".. alert_functions_info[key].label .."</b><br>")
+         print("<tr><td><b>".. alert_consts.alert_functions_info[key].label .."</b><br>")
          print("<small>"..v.."</small>\n")
 
-        for _, prefix in pairs({"", "global_"}) do
-         local k = prefix..key
-         print("</td><td>")
-         print("<select name=op_".. k ..">\n")
-         if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
-         print("value=\"gt\">&gt;</option>\n")
+	 for _, prefix in pairs({"", "global_"}) do
+	    local k = prefix..key
+	    print("</td><td>")
+	    print("<select name=op_".. k ..">\n")
+	    if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
+	    print("value=\"gt\">&gt;</option>\n")
 
-         if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
-         print("value=\"lt\">&lt;</option>\n")
-         print("</select>\n")
-         print("<input type=number min=1 step=1 class=\"text-right form-control\" style=\"display:inline; width:12em;\" name=\"value_"..k.."\" value=\"")
-         if(vals[k] ~= nil) then print(vals[k][2]) end
-         print("\">\n")
-        end
+	    if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
+	    print("value=\"lt\">&lt;</option>\n")
+	    print("</select>\n")
+	    print("<input type=number min=1 step=1 class=\"text-right form-control\" style=\"display:inline; width:12em;\" name=\"value_"..k.."\" value=\"")
+	    if(vals[k] ~= nil) then print(vals[k][2]) end
+	    print("\">\n")
+	 end
          print("</td></tr>\n")
       end
 
@@ -1004,12 +1055,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    if isEmptyString(vals[config.key]) then
 	       if idx <= #deserialized_config
 		  and deserialized_config[idx] ~= "global"
-	          and not isEmptyString(deserialized_config[idx]) then
+	       and not isEmptyString(deserialized_config[idx]) then
 		  vals[config.key] = deserialized_config[idx]
 	       end
 	    end
 
-	 if isEmptyString(vals["global_"..config.key]) then
+	    if isEmptyString(vals["global_"..config.key]) then
 	       vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
 	       if isEmptyString(vals["global_"..config.key]) then
 		  vals["global_"..config.key] = config.global_default
@@ -1018,46 +1069,46 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	 end
 
 	 -- Print the config
-      if not have_nedge then
-         for _, config in ipairs(anomalies_config) do
-            print("<tr><td><b>"..(config.title).."</b><br>\n")
-            print("<small>"..(config.descr)..".</small>")
+	 if not have_nedge then
+	    for _, config in ipairs(anomalies_config) do
+	       print("<tr><td><b>"..(config.title).."</b><br>\n")
+	       print("<small>"..(config.descr)..".</small>")
 
-            for _, prefix in pairs({"", "global_"}) do
-               local key = prefix..config.key
+	       for _, prefix in pairs({"", "global_"}) do
+		  local key = prefix..config.key
 
-               print("</td><td>\n")
-               print('<input type="number" class=\"text-right form-control\" name="'..key..'" style="display:inline; width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
-               print(tostring(vals[key] or ""))
-               print[["></input>]]
-            end
+		  print("</td><td>\n")
+		  print('<input type="number" class=\"text-right form-control\" name="'..key..'" style="display:inline; width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
+		  print(tostring(vals[key] or ""))
+		  print[["></input>]]
+	       end
 
-            print("</td></tr>")
-         end
+	       print("</td></tr>")
+	    end
+	 end
+      elseif (entity_type == "interface") and (tab == "min") then
+	 local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
+	 if isEmptyString(drop_perc) then
+	    drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
+	 end
+	 if drop_perc == "0" then
+	    drop_perc = ""
+	 end
+
+	 print("<tr><td><b>"..i18n("show_alerts.interface_drops_threshold").."</b><br>\n")
+	 print("<small>"..i18n("show_alerts.interface_drops_threshold_descr").."</small>")
+
+	 print("</td><td>\n")
+	 print('<input type="number" class=\"text-right form-control\" name="packets_drops_perc" style="display:inline; width:7em;" placeholder="" min="0" max="100" value="')
+	 print(tostring(drop_perc))
+	 print[[" /> %]]
+	 print("</td><td></td></tr>")
       end
-   elseif (entity_type == "interface") and (tab == "min") then
-      local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
-      if isEmptyString(drop_perc) then
-         drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
-      end
-      if drop_perc == "0" then
-         drop_perc = ""
-      end
-
-      print("<tr><td><b>"..i18n("show_alerts.interface_drops_threshold").."</b><br>\n")
-      print("<small>"..i18n("show_alerts.interface_drops_threshold_descr").."</small>")
-
-      print("</td><td>\n")
-      print('<input type="number" class=\"text-right form-control\" name="packets_drops_perc" style="display:inline; width:7em;" placeholder="" min="0" max="100" value="')
-      print(tostring(drop_perc))
-      print[[" /> %]]
-      print("</td><td></td></tr>")
-   end
 
       print [[
       </tbody> </table>
       <input type="hidden" name="SaveAlerts" value="">
-      
+
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
       </form>
 
@@ -1158,29 +1209,29 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
    local url_params = {}
 
    print(
-     template.gen("modal_confirm_dialog.html", {
-       dialog={
-         id      = "delete_alert_dialog",
-         action  = "deleteAlertById(delete_alert_id)",
-         title   = i18n("show_alerts.delete_alert"),
-         message = i18n("show_alerts.confirm_delete_alert").."?",
-         confirm = i18n("delete"),
-       }
-     })
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "delete_alert_dialog",
+			 action  = "deleteAlertById(delete_alert_id)",
+			 title   = i18n("show_alerts.delete_alert"),
+			 message = i18n("show_alerts.confirm_delete_alert").."?",
+			 confirm = i18n("delete"),
+		      }
+      })
    )
 
    print(
-     template.gen("modal_confirm_dialog.html", {
-       dialog={
-         id      = "myModal",
-         action  = "checkModalDelete()",
-         title   = "",
-         message = i18n("show_alerts.purge_subj_alerts_confirm", {subj = '<span id="modalDeleteContext"></span><span id="modalDeleteAlertsMsg"></span>'}),
-         confirm = i18n("show_alerts.purge_num_alerts", {
-            num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
-         }),
-       }
-     })
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "myModal",
+			 action  = "checkModalDelete()",
+			 title   = "",
+			 message = i18n("show_alerts.purge_subj_alerts_confirm", {subj = '<span id="modalDeleteContext"></span><span id="modalDeleteAlertsMsg"></span>'}),
+			 confirm = i18n("show_alerts.purge_num_alerts", {
+					   num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
+			 }),
+		      }
+      })
    )
 
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
@@ -1329,11 +1380,11 @@ function getCurrentStatus() {
 
 	 -- TODO this condition should be removed and page integration support implemented
 	 if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
-	    -- alert_level_keys and alert_type_keys are defined in lua_utils
+	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}
-	    for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
+	    for _, s in pairs(alert_consts.alert_severity_keys) do alert_severities[#alert_severities +1 ] = s[3] end
 	    local alert_types = {}
-	    for _, s in pairs(alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
+	    for _, s in pairs(alert_consts.alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
 
 	    local a_type, a_severity = nil, nil
 	    if clicked == "1" then
@@ -1381,11 +1432,11 @@ function getCurrentStatus() {
             sortable: true,
        ]]
 
-   if t["status"] == "historical-flows" then
-      print("hidden: true,")
-   end
+	 if t["status"] == "historical-flows" then
+	    print("hidden: true,")
+	 end
 
-   print[[
+	 print[[
 	    css: {
 	       textAlign: 'center',
           whiteSpace: 'nowrap',
@@ -1427,10 +1478,10 @@ function getCurrentStatus() {
     {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
        ]]
-   if t["status"] == "engaged" then
-      print("hidden: true,")
-   end
-   print[[
+	 if t["status"] == "engaged" then
+	    print("hidden: true,")
+	 end
+	 print[[
 	    css: {
 	       textAlign: 'center',
 	    }
@@ -1528,13 +1579,13 @@ $("[clicked=1]").trigger("click");
       </form>
     ]]
 
-    -- we need to dynamically modify parameters at js-time because we switch tab
+	    -- we need to dynamically modify parameters at js-time because we switch tab
 	 local delete_params = getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
 
 	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> <span id="purgeBtnMessage">]]
-    print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
-    print[[</span></button>
+	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
+	 print[[</span></button>
    </div> <!-- closes alertsActionsPanel -->
 
 <script>
@@ -1637,37 +1688,37 @@ local function getEngagedAlertsCacheKey(ifid, granularity)
 end
 
 local function getConfiguredAlertsThresholds(ifname, granularity)
-  local thresholds_key = get_alerts_hash_name(granularity, ifname)
-  local thresholds_config = {}
-  local res = {}
+   local thresholds_key = get_alerts_hash_name(granularity, ifname)
+   local thresholds_config = {}
+   local res = {}
 
-  -- Handle the global configuration
-  local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*", "*")) or {}
-  
-  for alert_key in pairs(global_conf_keys) do
-    local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
+   -- Handle the global configuration
+   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*", "*")) or {}
 
-    if not isEmptyString(thresholds_str) then
-      -- extract only the last part of the key
-      local k = string.sub(alert_key, string.find(alert_key, "%.[^%.]*$")+1)
-      thresholds_config[k] = thresholds_str
-    end
-  end
+   for alert_key in pairs(global_conf_keys) do
+      local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
 
-  for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
-    local thresholds = split(thresholds_str, ",")
-    res[entity_val] = {}
-
-    for _, threshold in pairs(thresholds) do
-      local parts = string.split(threshold, ";")
-      if #parts == 3 then
-        local alert_key = granularity .. "_" .. parts[1] -- the alert key is the concatenation of the granularity and the metric
-        res[entity_val][parts[1]] = {metric=parts[1], operator=parts[2], edge=parts[3], key=alert_key}
+      if not isEmptyString(thresholds_str) then
+	 -- extract only the last part of the key
+	 local k = string.sub(alert_key, string.find(alert_key, "%.[^%.]*$")+1)
+	 thresholds_config[k] = thresholds_str
       end
-    end
-  end
+   end
 
-  return res
+   for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
+      local thresholds = split(thresholds_str, ",")
+      res[entity_val] = {}
+
+      for _, threshold in pairs(thresholds) do
+	 local parts = string.split(threshold, ";")
+	 if #parts == 3 then
+	    local alert_key = granularity .. "_" .. parts[1] -- the alert key is the concatenation of the granularity and the metric
+	    res[entity_val][parts[1]] = {metric=parts[1], operator=parts[2], edge=parts[3], key=alert_key}
+	 end
+      end
+   end
+
+   return res
 end
 
 -- #################################
@@ -1697,65 +1748,65 @@ end
 -- #################################
 
 local function formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, alert_key, threshold_info)
-  if threshold_info.metric then
-    local info = alert_functions_info[threshold_info.metric]
-    local label = info and string.lower(info.label) or threshold_info.metric
-    local value = info and info.fmt(threshold_info.value) or threshold_info.value
-    local edge = info and info.fmt(threshold_info.edge) or threshold_info.edge
+   if threshold_info.metric then
+      local info = alert_consts.alert_functions_info[threshold_info.metric]
+      local label = info and string.lower(info.label) or threshold_info.metric
+      local value = info and info.fmt(threshold_info.value) or threshold_info.value
+      local edge = info and info.fmt(threshold_info.edge) or threshold_info.edge
 
-    return alertEngineLabel(engine).." <b>".. label .."</b> crossed by "..formatAlertEntity(ifid, entity_type, entity_value, entity_info)..
-        " ["..value.." &"..(threshold_info.operator).."; "..edge.."]"
-  end
+      return alertEngineLabel(engine).." <b>".. label .."</b> crossed by "..formatAlertEntity(ifid, entity_type, entity_value, entity_info)..
+	 " ["..value.." &"..(threshold_info.operator).."; "..edge.."]"
+   end
 
-  return ""
+   return ""
 end
 
 local function formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-  if entity_info.anomalies ~= nil then
-    if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
-      local anomaly_info = entity_info.anomalies.syn_flood_attacker
+   if entity_info.anomalies ~= nil then
+      if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
+	 local anomaly_info = entity_info.anomalies.syn_flood_attacker
 
-      return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
-           (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-    elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
-      local anomaly_info = entity_info.anomalies.syn_flood_victim
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
+	    (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
+	 local anomaly_info = entity_info.anomalies.syn_flood_victim
 
-      return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
-           (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-    end
-  end
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
+	    (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      end
+   end
 
-  return ""
+   return ""
 end
 
 local function formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-  if entity_info.anomalies ~= nil then
-    if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
-      local anomaly_info = entity_info.anomalies.flows_flood_attacker
-      return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
-           (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-    elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
-      local anomaly_info = entity_info.anomalies.flows_flood_victim
-      return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
-           (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-    end
-  end
+   if entity_info.anomalies ~= nil then
+      if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
+	 local anomaly_info = entity_info.anomalies.flows_flood_attacker
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
+	    (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
+	 local anomaly_info = entity_info.anomalies.flows_flood_victim
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
+	    (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      end
+   end
 
-  return ""
+   return ""
 end
 
 local function formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-  if entity_info.anomalies ~= nil then
-    if alert_key == "too_many_flows" then
-      return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-          " has too many flows. Please extend the --max-num-flows/-X command line option"
-    elseif alert_key == "too_many_hosts" then
-      return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-          " has too many hosts. Please extend the --max-num-hosts/-x command line option"
-    end
-  end
+   if entity_info.anomalies ~= nil then
+      if alert_key == "too_many_flows" then
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+	    " has too many flows. Please extend the --max-num-flows/-X command line option"
+      elseif alert_key == "too_many_hosts" then
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+	    " has too many hosts. Please extend the --max-num-hosts/-x command line option"
+      end
+   end
 
-  return ""
+   return ""
 end
 
 local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
@@ -1765,48 +1816,48 @@ local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value,
    end
 
    return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-          " has too many dropped packets [&gt " .. max_drop_perc .. "%]"
+      " has too many dropped packets [&gt " .. max_drop_perc .. "%]"
 end
 
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-  -- Defaults
-  local msg = ""
-  local severity = "error"
+   -- Defaults
+   local msg = ""
+   local severity = "error"
 
-  if atype == "threshold_cross" then
-    msg = formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-  elseif atype == "tcp_syn_flood" then
-    msg = formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-  elseif atype == "flows_flood" then
-    msg = formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-  elseif atype == "misconfigured_app" then
-    msg = formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-  elseif atype == "too_many_drops" then
-    msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-  end
+   if atype == "threshold_cross" then
+      msg = formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "tcp_syn_flood" then
+      msg = formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "flows_flood" then
+      msg = formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "misconfigured_app" then
+      msg = formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "too_many_drops" then
+      msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   end
 
-  return msg, severity
+   return msg, severity
 end
 
 local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info, force)
-  local alert_msg, alevel = formatAlertMessage(ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
-  local alert_type = alertType(atype)
-  local alert_level = alertLevel(alevel)
+   local alert_msg, aseverity = formatAlertMessage(ifid, engine, entity_type, entity_value, atype, alert_key, entity_info, alert_info)
+   local alert_type = alertType(atype)
+   local alert_severity = alertSeverity(aseverity)
 
-  if entity_type == "host" then
-    if engaged then
-      return interface.engageHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
-    else
-      return interface.releaseHostAlert(engine, entity_value, alert_key, alert_type, alert_level, alert_msg, force)
-    end
-  else
-    if engaged then
-      return interface.engageAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_level, alert_msg, force)
-    else
-      return interface.releaseAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_level, alert_msg, force)
-    end
-  end
+   if entity_type == "host" then
+      if engaged then
+	 return interface.engageHostAlert(engine, entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
+      else
+	 return interface.releaseHostAlert(engine, entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
+      end
+   else
+      if engaged then
+	 return interface.engageAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
+      else
+	 return interface.releaseAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
+      end
+   end
 end
 
 local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
@@ -1822,144 +1873,144 @@ local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey
 end
 
 local function getEngagedAlertsCache(ifid, granularity)
-  local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(ifid, granularity))
+   local engaged_cache = ntop.getCache(getEngagedAlertsCacheKey(ifid, granularity))
 
-  if isEmptyString(engaged_cache) then
-    engaged_cache = {}
-    local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)}) or {}
+   if isEmptyString(engaged_cache) then
+      engaged_cache = {}
+      local sql_res = performAlertsQuery("select *", "engaged", {alert_engine = alertEngine(granularity)}) or {}
 
-    if verbose then
-      io.write("Resync alert cache:\n")
-      tprint(sql_res)
-    end
+      if verbose then
+	 io.write("Resync alert cache:\n")
+	 tprint(sql_res)
+      end
 
-    for _, res in pairs(sql_res) do
-      local entity_type = alertEntityRaw(res.alert_entity)
-      local entity_value = res.alert_entity_val
-      local atype = alertTypeRaw(res.alert_type)
-      local akey = res.alert_id
+      for _, res in pairs(sql_res) do
+	 local entity_type = alertEntityRaw(res.alert_entity)
+	 local entity_value = res.alert_entity_val
+	 local atype = alertTypeRaw(res.alert_type)
+	 local akey = res.alert_id
 
-      engaged_cache[entity_type] = engaged_cache[entity_type] or {}
-      engaged_cache[entity_type][entity_value] = engaged_cache[entity_type][entity_value] or {}
-      engaged_cache[entity_type][entity_value][akey] = engaged_cache[entity_type][entity_value][akey] or {}
-      engaged_cache[entity_type][entity_value][atype] = engaged_cache[entity_type][entity_value][atype] or {}
-      engaged_cache[entity_type][entity_value][atype][akey] = true
-    end
+	 engaged_cache[entity_type] = engaged_cache[entity_type] or {}
+	 engaged_cache[entity_type][entity_value] = engaged_cache[entity_type][entity_value] or {}
+	 engaged_cache[entity_type][entity_value][akey] = engaged_cache[entity_type][entity_value][akey] or {}
+	 engaged_cache[entity_type][entity_value][atype] = engaged_cache[entity_type][entity_value][atype] or {}
+	 engaged_cache[entity_type][entity_value][atype][akey] = true
+      end
 
-    if ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1" then
-      ntop.setCache(getEngagedAlertsCacheKey(ifid, granularity), j.encode(engaged_cache))
-    end
-  else
-    engaged_cache = j.decode(engaged_cache, 1, nil)
-  end
+      if ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1" then
+	 ntop.setCache(getEngagedAlertsCacheKey(ifid, granularity), j.encode(engaged_cache))
+      end
+   else
+      engaged_cache = j.decode(engaged_cache, 1, nil)
+   end
 
-  return engaged_cache
+   return engaged_cache
 end
 
 function invalidateEngagedAlertsCache(ifid)
-  local keys = ntop.getKeysCache(getEngagedAlertsCacheKey(ifid, "*")) or {}
+   local keys = ntop.getKeysCache(getEngagedAlertsCacheKey(ifid, "*")) or {}
 
-  for key in pairs(keys) do
-    ntop.delCache(key)
-  end
+   for key in pairs(keys) do
+      ntop.delCache(key)
+   end
 
-  if(verbose) then io.write("Engaged Alerts Cache invalidated\n") end
+   if(verbose) then io.write("Engaged Alerts Cache invalidated\n") end
 end
 
 -- #################################
 
 local function check_entity_alerts(ifid, entity_type, entity_value, working_status, old_entity_info, entity_info)
-  if are_alerts_suppressed(entity_value, ifid) then return end
+   if are_alerts_suppressed(entity_value, ifid) then return end
 
-  local engine = working_status.engine
-  local granularity = working_status.granularity
-  local engaged_cache = working_status.engaged_cache
-  local current_alerts = {}
-  local past_alert_info = {}
-  local invalidate = false
+   local engine = working_status.engine
+   local granularity = working_status.granularity
+   local engaged_cache = working_status.engaged_cache
+   local current_alerts = {}
+   local past_alert_info = {}
+   local invalidate = false
 
-  local function addAlertInfo(info_arr, atype, akey, alert_info)
-    info_arr[atype] = info_arr[atype] or {}
-    info_arr[atype][akey] = alert_info or {}
-  end
+   local function addAlertInfo(info_arr, atype, akey, alert_info)
+      info_arr[atype] = info_arr[atype] or {}
+      info_arr[atype][akey] = alert_info or {}
+   end
 
-  local function getAnomalyType(anomal_name)
-     if starts(anomal_name, "syn_flood") then
-       return "tcp_syn_flood"
-     elseif starts(anomal_name, "flows_flood") then
-       return "flows_flood"
-     elseif anomal_name == "too_many_drops" then
-       return "too_many_drops"
-     elseif starts(anomal_name, "too_many_") then
-       return "misconfigured_app"
-     end
+   local function getAnomalyType(anomal_name)
+      if starts(anomal_name, "syn_flood") then
+	 return "tcp_syn_flood"
+      elseif starts(anomal_name, "flows_flood") then
+	 return "flows_flood"
+      elseif anomal_name == "too_many_drops" then
+	 return "too_many_drops"
+      elseif starts(anomal_name, "too_many_") then
+	 return "misconfigured_app"
+      end
 
-     return nil
-  end
+      return nil
+   end
 
-  if granularity == "min" then
-    -- Populate current_alerts with anomalies
-    for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
-      local anomal_type = getAnomalyType(anomal_name)
+   if granularity == "min" then
+      -- Populate current_alerts with anomalies
+      for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
+	 local anomal_type = getAnomalyType(anomal_name)
 
-      if not isEmptyString(anomal_type) then
-        addAlertInfo(current_alerts, anomal_type, anomal_name, anomaly)
+	 if not isEmptyString(anomal_type) then
+	    addAlertInfo(current_alerts, anomal_type, anomal_name, anomaly)
+	 else
+	    -- default anomaly - empty alert key
+	    addAlertInfo(current_alerts, anomal_name, "", anomaly)
+	 end
+      end
+   end
+
+   -- Populate current_alerts with threshold crosses
+   for _, threshold in pairs(getEntityThresholds(working_status.configured_thresholds, entity_type, entity_value)) do
+      local atype = "threshold_cross"
+      local akey = threshold.key
+      local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
+
+      if exceeded then
+	 addAlertInfo(current_alerts, atype, akey, alert_info)
       else
-        -- default anomaly - empty alert key
-        addAlertInfo(current_alerts, anomal_name, "", anomaly)
+	 -- save past alert information
+	 addAlertInfo(past_alert_info, atype, akey, alert_info)
       end
-    end
-  end
+   end
 
-  -- Populate current_alerts with threshold crosses
-  for _, threshold in pairs(getEntityThresholds(working_status.configured_thresholds, entity_type, entity_value)) do
-    local atype = "threshold_cross"
-    local akey = threshold.key
-    local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
-
-    if exceeded then
-      addAlertInfo(current_alerts, atype, akey, alert_info)
-    else
-      -- save past alert information
-      addAlertInfo(past_alert_info, atype, akey, alert_info)
-    end
-  end
-
-  -- Engage logic
-  for atype, akeys in pairs(current_alerts) do
-    for akey, alert_info in pairs(akeys) do
-      if ((engaged_cache[entity_type] == nil)
-          or (engaged_cache[entity_type][entity_value] == nil)
-          or (engaged_cache[entity_type][entity_value][atype] == nil)
-          or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
-        engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-        working_status.dirty_cache = true
+   -- Engage logic
+   for atype, akeys in pairs(current_alerts) do
+      for akey, alert_info in pairs(akeys) do
+	 if ((engaged_cache[entity_type] == nil)
+	       or (engaged_cache[entity_type][entity_value] == nil)
+	       or (engaged_cache[entity_type][entity_value][atype] == nil)
+	    or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
+	    engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+	    working_status.dirty_cache = true
+	 end
       end
-    end
-  end
+   end
 
-  -- Release logic
-  if (engaged_cache[entity_type] ~= nil) and (engaged_cache[entity_type][entity_value] ~= nil) then
-    for atype, akeys in pairs(engaged_cache[entity_type][entity_value]) do
-      for akey, _ in pairs(akeys) do
-        -- mark the alert as processed
-        engaged_cache[entity_type][entity_value][atype][akey] = "processed"
+   -- Release logic
+   if (engaged_cache[entity_type] ~= nil) and (engaged_cache[entity_type][entity_value] ~= nil) then
+      for atype, akeys in pairs(engaged_cache[entity_type][entity_value]) do
+	 for akey, _ in pairs(akeys) do
+	    -- mark the alert as processed
+	    engaged_cache[entity_type][entity_value][atype][akey] = "processed"
 
-        if (current_alerts[atype] == nil) or (current_alerts[atype][akey] == nil) then
-          local alert_info
+	    if (current_alerts[atype] == nil) or (current_alerts[atype][akey] == nil) then
+	       local alert_info
 
-          if (past_alert_info[atype] ~= nil) and (past_alert_info[atype][akey] ~= nil) then
-            alert_info = past_alert_info[atype][akey]
-          else
-            alert_info = {}
-          end
+	       if (past_alert_info[atype] ~= nil) and (past_alert_info[atype][akey] ~= nil) then
+		  alert_info = past_alert_info[atype][akey]
+	       else
+		  alert_info = {}
+	       end
 
-          releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-          working_status.dirty_cache = true
-        end
+	       releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+	       working_status.dirty_cache = true
+	    end
+	 end
       end
-    end
-  end
+   end
 end
 
 -- #################################
@@ -1983,17 +2034,17 @@ function check_interface_alerts(ifid, working_status)
       if warning_shown == false then
          print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
          tprint({
-            old_entity_info = old_entity_info,
-            granularity = working_status.granularity,
-            entity_value = entity_value,
-            ifname=getInterfaceName(ifid)})
+	       old_entity_info = old_entity_info,
+	       granularity = working_status.granularity,
+	       entity_value = entity_value,
+	       ifname=getInterfaceName(ifid)})
       end
       return
    end
 
    if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil)
-            and (old_entity_info.stats.bytes ~= nil)
-            and not checkpointExpired(old_entity_info, working_status) then
+      and (old_entity_info.stats.bytes ~= nil)
+   and not checkpointExpired(old_entity_info, working_status) then
       -- wrap check
       if old_entity_info.stats.bytes > ifstats.stats.bytes then
          -- reset
@@ -2016,7 +2067,7 @@ function check_networks_alerts(ifid, working_status)
       local entity_value = subnet
 
       if (working_status.configured_thresholds[subnet] == nil)
-         and (working_status.configured_thresholds["local_networks"] == nil) then
+      and (working_status.configured_thresholds["local_networks"] == nil) then
          -- no threshold configured, no need to checkpoint
          goto continue
       end
@@ -2030,10 +2081,10 @@ function check_networks_alerts(ifid, working_status)
          if warning_shown == false then
             print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
             tprint({
-               old_entity_info = old_entity_info,
-               granularity = working_status.granularity,
-               entity_value = entity_value, network_id = network_id,
-               ifname=getInterfaceName(ifid)})
+		  old_entity_info = old_entity_info,
+		  granularity = working_status.granularity,
+		  entity_value = entity_value, network_id = network_id,
+		  ifname=getInterfaceName(ifid)})
             warning_shown = true
          end
          goto continue
@@ -2042,13 +2093,13 @@ function check_networks_alerts(ifid, working_status)
       new_entity_info["network_id"] = sstats.network_id
 
       if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil)
-               and not checkpointExpired(old_entity_info, working_status) then
+      and not checkpointExpired(old_entity_info, working_status) then
          old_entity_info["network_id"] = sstats.network_id
 
          -- wrap check
          if (old_entity_info["egress"] > new_entity_info["egress"])
-          or (old_entity_info["ingress"] > new_entity_info["ingress"])
-          or (old_entity_info["inner"] > new_entity_info["inner"]) then
+	    or (old_entity_info["ingress"] > new_entity_info["ingress"])
+	 or (old_entity_info["inner"] > new_entity_info["inner"]) then
             -- reset
             if(verbose) then print("entity '"..subnet.."' stats reset("..working_status.granularity..")") end
             old_entity_info = nil
@@ -2068,7 +2119,7 @@ function check_host_alerts(ifid, working_status, host)
    local old_entity_info, new_entity_info
 
    if (working_status.configured_thresholds[entity_value] ~= nil)
-      or (working_status.configured_thresholds["local_hosts"] ~= nil) then
+   or (working_status.configured_thresholds["local_hosts"] ~= nil) then
 
       local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.checkpoint_id, "high") or {}
 
@@ -2086,13 +2137,13 @@ function check_host_alerts(ifid, working_status, host)
    end
 
    if (new_entity_info == nil) then
-    print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
-    tprint({new_entity_info = new_entity_info,
-       old_entity_info = old_entity_info,
-       granularity = working_status.granularity,
-       entity_value = entity_value, host = host,
-       ifname=getInterfaceName(ifid)})
-    return
+      print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
+      tprint({new_entity_info = new_entity_info,
+	      old_entity_info = old_entity_info,
+	      granularity = working_status.granularity,
+	      entity_value = entity_value, host = host,
+	      ifname=getInterfaceName(ifid)})
+      return
    end
 
    if (old_entity_info ~= nil) and checkpointExpired(old_entity_info, working_status) then
@@ -2184,11 +2235,11 @@ function check_mac_ip_association_alerts()
    while(true) do
       local message = ntop.lpopCache("ntopng.alert_mac_ip_queue")
       local elems
-      
+
       if((message == nil) or (message == "")) then
 	 break
       end
-      
+
       elems = split(message, "|")
 
       local interface_name    = elems[1]
@@ -2202,11 +2253,41 @@ function check_mac_ip_association_alerts()
 
       interface.select(interface_name)
       interface.storeAlert(alertEntity("mac"), new_mac_address, alertType("mac_ip_association_change"), alertSeverity("warning"),
-			      i18n("alert_messages.mac_ip_association_change",
-				   {device=name, ip=ipaddr,
-				    old_mac=old_mac_address, old_mac_url=getMacUrl(old_mac_address),
-				    new_mac=new_mac_address, new_mac_url=getMacUrl(new_mac_address)}))
-   end   
+			   i18n("alert_messages.mac_ip_association_change",
+				{device=name, ip=ipaddr,
+				 old_mac=old_mac_address, old_mac_url=getMacUrl(old_mac_address),
+				 new_mac=new_mac_address, new_mac_url=getMacUrl(new_mac_address)}))
+   end
+end
+
+-- Global function
+function check_process_alerts()
+   while(true) do
+      local message = ntop.lpopCache(alert_process_queue)
+      local elems
+      -- FIX: In the future we must create a special "ntopng/localhost" interface
+      local if_id, if_name = getFirstInterfaceId()
+      
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      if(verbose) then print(message.."\n") end
+      
+      local decoded = json.decode(message)
+
+      if(decoded == nil) then
+	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
+      else 
+	 interface.select(if_name)
+	 interface.storeAlert(decoded.entity_type,
+			      decoded.entity_value,
+			      decoded.type,
+			      decoded.severity,
+			      decoded.message,
+			      decoded.when)
+      end
+   end
 end
 
 local function check_macs_alerts(ifid, working_status)
@@ -2223,36 +2304,36 @@ local function check_macs_alerts(ifid, working_status)
    local new_active_devices = {}
 
    callback_utils.foreachDevice(getInterfaceName(ifid), nil, function(devicename, devicestats, devicebase)
-      -- note: location is always lan when capturing from a local interface
-      if (not devicestats.special_mac) and (devicestats.location == "lan") then
-         local mac = devicestats.mac
+				   -- note: location is always lan when capturing from a local interface
+				   if (not devicestats.special_mac) and (devicestats.location == "lan") then
+				      local mac = devicestats.mac
 
-         if not seen_devices[mac] then
-            -- First time we see a device
-            ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
+				      if not seen_devices[mac] then
+					 -- First time we see a device
+					 ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
 
-            if alert_new_devices_enabled then
-               local name = getDeviceName(mac)
-               setSavedDeviceName(mac, name)
-               interface.storeAlert(alertEntity("mac"), mac, alertType("new_device"), alertSeverity("warning"),
-				       i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
-            end
-         end
+					 if alert_new_devices_enabled then
+					    local name = getDeviceName(mac)
+					    setSavedDeviceName(mac, name)
+					    interface.storeAlert(alertEntity("mac"), mac, alertType("new_device"), alertSeverity("warning"),
+								 i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
+					 end
+				      end
 
-         if not prev_active_devices[mac] then
-            -- Device connection
-            ntop.setMembersCache(active_devices_set, mac)
+				      if not prev_active_devices[mac] then
+					 -- Device connection
+					 ntop.setMembersCache(active_devices_set, mac)
 
-            if alert_device_connection_enabled then
-               local name = getDeviceName(mac)
-               setSavedDeviceName(mac, name)
-               interface.storeAlert(alertEntity("mac"), mac, alertType("device_connection"), alertSeverity("info"),
-				       i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
-            end
-         else
-            new_active_devices[mac] = 1
-         end
-      end
+					 if alert_device_connection_enabled then
+					    local name = getDeviceName(mac)
+					    setSavedDeviceName(mac, name)
+					    interface.storeAlert(alertEntity("mac"), mac, alertType("device_connection"), alertSeverity("info"),
+								 i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
+					 end
+				      else
+					 new_active_devices[mac] = 1
+				      end
+				   end
    end)
 
    for mac in pairs(prev_active_devices) do
@@ -2263,7 +2344,7 @@ local function check_macs_alerts(ifid, working_status)
 
          if alert_device_connection_enabled then
             interface.storeAlert(alertEntity("mac"), mac, alertType("device_disconnection"), alertSeverity("info"),
-				    i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
+				 i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
          end
       end
    end
@@ -2350,22 +2431,22 @@ function check_host_pools_alerts(ifid, working_status)
 	       if alerts_on_quota_exceeded then
 		  if info.bytes_exceeded and not prev_exceeded[1] then
 		     interface.storeAlert(alertEntity("host_pool"), tostring(pool), alertType("quota_exceeded"), alertSeverity("info"),
-						  i18n("alert_messages.subject_quota_exceeded", {
-							  pool = host_pools_utils.getPoolName(ifid, pool),
-							  url = getHostPoolUrl(pool),
-							  subject = i18n("alert_messages.proto_bytes_quotas", {proto=proto}),
-							  quota = bytesToSize(info.bytes_quota),
-							  value = bytesToSize(info.bytes_value)}))
+					  i18n("alert_messages.subject_quota_exceeded", {
+						  pool = host_pools_utils.getPoolName(ifid, pool),
+						  url = getHostPoolUrl(pool),
+						  subject = i18n("alert_messages.proto_bytes_quotas", {proto=proto}),
+						  quota = bytesToSize(info.bytes_quota),
+						  value = bytesToSize(info.bytes_value)}))
 		  end
 
 		  if info.time_exceeded and not prev_exceeded[2] then
 		     interface.storeAlert(alertEntity("host_pool"), alertType("quota_exceeded"), alertSeverity("info"),
-						  i18n("alert_messages.subject_quota_exceeded", {
-							  pool = host_pools_utils.getPoolName(ifid, pool),
-							  url = getHostPoolUrl(pool),
-							  subject = i18n("alert_messages.proto_time_quotas", {proto=proto}),
-							  quota = secondsToTime(info.time_quota),
-							  value = secondsToTime(info.time_value)}))
+					  i18n("alert_messages.subject_quota_exceeded", {
+						  pool = host_pools_utils.getPoolName(ifid, pool),
+						  url = getHostPoolUrl(pool),
+						  subject = i18n("alert_messages.proto_time_quotas", {proto=proto}),
+						  quota = secondsToTime(info.time_quota),
+						  value = secondsToTime(info.time_value)}))
 		  end
 	       end
 
@@ -2400,15 +2481,15 @@ function check_host_pools_alerts(ifid, working_status)
 
 	       if alert_pool_connection_enabled then
 		  interface.storeAlert(alertEntity("host_pool"), tostring(pool),
-					       alertType("host_pool_connection"), alertSeverity("info"),
-					       i18n("alert_messages.host_pool_has_connected",
-						    {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
+				       alertType("host_pool_connection"), alertSeverity("info"),
+				       i18n("alert_messages.host_pool_has_connected",
+					    {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
 	       end
 	    end
 	 end
       end
    end
-   
+
    -- Pool presence
    for pool in pairs(prev_active_pools) do
       if not now_active_pools[pool] then
@@ -2417,10 +2498,10 @@ function check_host_pools_alerts(ifid, working_status)
 
          if alert_pool_connection_enabled then
             interface.storeAlert(alertEntity("host_pool"), tostring(pool),
-					 alertType("host_pool_disconnection"), alertSeverity("info"),
-					 i18n("alert_messages.host_pool_has_disconnected",
-					      {pool=host_pools_utils.getPoolName(ifid, pool),
-					       url=getHostPoolUrl(pool)}))            
+				 alertType("host_pool_disconnection"), alertSeverity("info"),
+				 i18n("alert_messages.host_pool_has_disconnected",
+				      {pool=host_pools_utils.getPoolName(ifid, pool),
+				       url=getHostPoolUrl(pool)}))
          end
       end
    end
@@ -2472,19 +2553,19 @@ function disableAlertsGeneration()
 
    -- Release any engaged alert
    callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
+				      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
 
-      local sql_res = performAlertsQuery("select *", "engaged", {}, true  --[[force]]) or {}
+				      local sql_res = performAlertsQuery("select *", "engaged", {}, true  --[[force]]) or {}
 
-      for _, res in pairs(sql_res) do
-         local entity_type = alertEntityRaw(res.alert_entity)
-         local entity_value = res.alert_entity_val
-         local atype = alertTypeRaw(res.alert_type)
-         local akey = res.alert_id
-         local engine = tonumber(res.alert_engine)
+				      for _, res in pairs(sql_res) do
+					 local entity_type = alertEntityRaw(res.alert_entity)
+					 local entity_value = res.alert_entity_val
+					 local atype = alertTypeRaw(res.alert_type)
+					 local akey = res.alert_id
+					 local engine = tonumber(res.alert_engine)
 
-         releaseAlert(ifstats.id, engine, entity_type, entity_value, atype, akey, {}, {}, true --[[force]])
-      end
+					 releaseAlert(ifstats.id, engine, entity_type, entity_value, atype, akey, {}, {}, true --[[force]])
+				      end
    end)
 
    deleteCachePattern(getEngagedAlertsCacheKey("*", "*"))
@@ -2510,15 +2591,15 @@ function flushAlertsData()
    os.execute("sleep 3")
 
    callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
+				      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
 
-      -- Clear hosts status
-      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
+				      -- Clear hosts status
+				      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
 
-      if(verbose) then io.write("[Alerts] Flushing SQLite configuration...\n") end
-      performAlertsQuery("DELETE", "engaged", {}, force_query)
-      performAlertsQuery("DELETE", "historical", {}, force_query)
-      performAlertsQuery("DELETE", "historical-flows", {}, force_query)
+				      if(verbose) then io.write("[Alerts] Flushing SQLite configuration...\n") end
+				      performAlertsQuery("DELETE", "engaged", {}, force_query)
+				      performAlertsQuery("DELETE", "historical", {}, force_query)
+				      performAlertsQuery("DELETE", "historical-flows", {}, force_query)
    end)
 
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
@@ -2533,8 +2614,8 @@ function flushAlertsData()
    ntop.setAlertsTemporaryDisabled(false);
 
    callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-      -- Reload hosts status
-      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
+				      -- Reload hosts status
+				      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
    end)
 
    ntop.setPref("ntopng.prefs.disable_alerts_generation", generation_toggle_backup)
@@ -2564,7 +2645,7 @@ end
 --
 -- Guidelines:
 --
---  - modules are enabled with the getAlertNotificationModuleEnableKey key 
+--  - modules are enabled with the getAlertNotificationModuleEnableKey key
 --  - module severity is defined with the getAlertNotificationModuleSeverityKey key
 --  - A [module] name must have a corresponding modules/[module]_utils.lua script
 --
@@ -2676,8 +2757,8 @@ function formatAlertNotification(notif, options)
 
    local msg_prefix = alertNotificationActionToLabel(notif.action)
    local msg = "[" .. formatEpoch(notif.tstamp or 0) .. "]" ..
-               ternary(defaults.show_severity == true, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), options.nohtml) .. "]") ..
-               "[" .. alertTypeLabel(alertType(notif.type), options.nohtml) .."]: "
+      ternary(defaults.show_severity == true, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), options.nohtml) .. "]") ..
+      "[" .. alertTypeLabel(alertType(notif.type), options.nohtml) .."]: "
 
    if options.nohtml then
       msg = msg .. noHtml(msg_prefix .. notif.message)
@@ -2728,6 +2809,26 @@ function processAlertNotifications(now, periodic_frequency, force_export)
       end
    end
 end
+
+local function notify_ntopng_status(started)
+   local info = ntop.getInfo()
+   local pid = info.pid
+   local msg
+   local obj
+
+   msg = 'ntopng v.'..info.version..' ('..info.OS..') '
+   if(started) then msg = msg.."start" else msg = msg.."stop" end
+
+   if(pid ~= nil) then msg = msg .. " [PID: "..pid.."] [ntopng "..info.command_line.."]" end
+
+   obj = { entity_type=1, entity_value="ntopng", type=20, severity=0, message=msg, when=os.time() }
+   
+   ntop.rpushCache(alert_process_queue, json.encode(obj))
+end
+
+
+function notify_ntopng_start() notify_ntopng_status(true) end
+function notify_ntopng_stop()  notify_ntopng_status(false) end
 
 -- DEBUG: uncomment this to test
 --~ scanAlerts("min", "wlan0")

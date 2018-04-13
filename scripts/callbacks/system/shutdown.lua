@@ -15,5 +15,6 @@ require "alert_utils"
 
 local now = os.time()
 
+notify_ntopng_stop()
 prefs_dump_utils.savePrefsToDisk()
 processAlertNotifications(now, 0, true --[[ force ]])

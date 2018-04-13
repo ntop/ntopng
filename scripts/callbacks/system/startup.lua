@@ -106,3 +106,4 @@ if  ntop.isnEdge() then
 end
 
 processAlertNotifications(os.time(), 0, true --[[ force ]])
+notify_ntopng_start()

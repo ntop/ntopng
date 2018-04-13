@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.
 require "lua_trace"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
+require "alert_consts"
 
 -- ##############################################
 
@@ -74,6 +75,16 @@ function getInterfaceId(interface_name)
    end
 
    return(-1)
+end
+
+function getFirstInterfaceId()
+   local ifnames = interface.getIfNames()
+
+   for if_id, if_name in pairs(ifnames) do
+      return tonumber(if_id), if_name
+   end
+
+   return -1, "" -- NOTREACHED
 end
 
 -- ##############################################

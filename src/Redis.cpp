@@ -1226,7 +1226,7 @@ int Redis::lrange(const char *list_name, char ***elements, int start_offset, int
 /* **************************************** */
 
 int Redis::ltrim(const char *queue_name, int start_idx, int end_idx) {
-  int rc;
+  int rc = 0;
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
@@ -1235,7 +1235,7 @@ int Redis::ltrim(const char *queue_name, int start_idx, int end_idx) {
   reply = (redisReply*)redisCommand(redis, "LTRIM %s %d %d", queue_name, start_idx, end_idx);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    rc = -1, ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);

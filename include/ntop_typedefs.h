@@ -72,6 +72,10 @@ typedef enum {
   alert_level_error
 } AlertLevel;
 
+/*
+  Keep in sync with alert_utils.lua:alert_entity_keys 
+  This is field "entity_type" of JSON put on "ntopng.alerts.notifications_queue"
+ */
 typedef enum {
   alert_entity_interface = 0,
   alert_entity_host,
@@ -79,7 +83,8 @@ typedef enum {
   alert_entity_snmp_device,
   alert_entity_flow,
   alert_entity_mac,
-  alert_entity_host_pool
+  alert_entity_host_pool,
+  alert_entity_process
 } AlertEntity;
 
 typedef enum {

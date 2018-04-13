@@ -1,6 +1,7 @@
 --
 -- (C) 2014-18 - ntop.org
 --
+
 i18n = require "i18n"
 
 function i18n.loadLocaleFile(path, locale)

@@ -5,6 +5,7 @@
 local pragma_once = 1
 local http_lint = {}
 local json = require "dkjson"
+local alert_consts = require "alert_consts"
 
 -- #################################################################
 
@@ -634,8 +635,8 @@ local function validateAlertDescriptor(d)
       d = split(d, "global_")[2]
    end
 
-   if ((validateChoiceByKeys(alert_functions_description, d)) or
-       (validateChoiceByKeys(network_alert_functions_description, d))) then
+   if ((validateChoiceByKeys(alert_consts.alert_functions_description, d)) or
+       (validateChoiceByKeys(alert_consts.network_alert_functions_description, d))) then
       return true
    else
       return false

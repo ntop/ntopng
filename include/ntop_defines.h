@@ -859,4 +859,8 @@
 
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
 
+#define ALERT_ACTION_ENGAGE           "engage"
+#define ALERT_ACTION_RELEASE          "release"
+#define ALERT_ACTION_STORE            "store"
+
 #endif /* _NTOP_DEFINES_H_ */

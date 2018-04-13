@@ -1452,8 +1452,6 @@ void Ntop::daemonize() {
       int rc;
 
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Bye bye: I'm becoming a daemon...");
-
-#if 1
       rc = chdir("/");
       if(rc != 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while moving to / directory");
@@ -1474,7 +1472,6 @@ void Ntop::daemonize() {
        */
       /* setlinebuf (stdout); */
       setvbuf(stdout, (char *)NULL, _IOLBF, 0);
-#endif
     } else /* father */
       exit(0);
   }

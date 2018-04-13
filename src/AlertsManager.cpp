@@ -220,8 +220,11 @@ int AlertsManager::openStore() {
 
 /* **************************************************** */
 
-bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
-		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp) {
+bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity,
+				   const char *alert_entity_value, const char *engaged_alert_id,
+				   AlertType *alert_type, AlertLevel *alert_severity,
+				   char **alert_json, char **alert_source,
+				   char **alert_target, time_t *alert_tstamp) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc;
@@ -519,10 +522,12 @@ bool AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
       json_object_object_add(notification, "severity", json_object_new_int(alert_severity));
       json_object_object_add(notification, "message", json_object_new_string(alert_json));
       json_object_object_add(notification, "tstamp",  json_object_new_int64(when));
-      json_object_object_add(notification, "action", json_object_new_string(
-	engaged_alert_id ? (engage ? "engage" : "release") : "store")
-      );
-
+      json_object_object_add(notification, "action",
+			     json_object_new_string(
+						    engaged_alert_id ? (engage ? ALERT_ACTION_ENGAGE : ALERT_ACTION_RELEASE)
+						    : ALERT_ACTION_STORE)
+			     );
+      
       /* optional */
       if(alert_origin) json_object_object_add(notification, "origin", json_object_new_string(alert_origin));
       if(alert_target) json_object_object_add(notification, "target", json_object_new_string(alert_target));
@@ -591,12 +596,11 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 			      AlertType alert_type, AlertLevel alert_severity,
 			      const char *alert_json,
 			      const char *alert_origin, const char *alert_target,
-			      bool check_maximum) {
+			      bool check_maximum, time_t when) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
-    time_t now = time(NULL);
 
     if(!store_initialized || !store_opened)
       return(-1);
@@ -605,7 +609,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
     notifyAlert(alert_entity, alert_entity_value, NULL,
 	  alert_type, alert_severity, alert_json,
-	  NULL, NULL, false, now, NULL);
+	  NULL, NULL, false, when, NULL);
 
     /* This alert is being engaged */
     snprintf(query, sizeof(query),
@@ -618,7 +622,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     m.lock(__FILE__, __LINE__);
 
     if(sqlite3_prepare(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(now))
+       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
        || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
        || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
        || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_entity))
@@ -898,10 +902,10 @@ int AlertsManager::storeHostAlert(Host *h,
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
-  return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
+  return(storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
 		    isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		    isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
-		    true);
+		    true, time(NULL)));
 };
 
 /* ******************************************* */
