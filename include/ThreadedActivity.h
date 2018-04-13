@@ -52,6 +52,7 @@ class ThreadedActivity {
 		   u_int8_t thread_pool_size = 1);
   ~ThreadedActivity();
 
+  const char *activityPath() { return path; };
   void activityBody();
   void runScript();
   void runScript(char *script_path, NetworkInterface *iface);

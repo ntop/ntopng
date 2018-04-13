@@ -24,6 +24,14 @@
 /* **************************************************** */
 
 static void* startActivity(void* ptr)  {
+#ifdef  __APPLE__
+  // Mac OS X: must be set from within the thread (can't specify thread ID)
+  char buf[MAX_PATH];
+  snprintf(buf, sizeof(buf), "ThreadedActivity %s", ((ThreadedActivity*)ptr)->activityPath());
+  if(pthread_setname_np(buf))
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set pthread name %s", buf);
+#endif
+
   ((ThreadedActivity*)ptr)->activityBody();
   return(NULL);
 }
