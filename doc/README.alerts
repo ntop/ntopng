@@ -1,0 +1,59 @@
+Alert Internals
+---------------
+
+This file documents how ntopng internally handles alerts. In ntopng emitted (e.g. after they have been triggered) alerts are put on a redis queue named "ntopng.alerts.notifications_queue" in JSON format. Periodically they are processed by scripts/callbacks/system/housekeeping.lua that dequeues and handles them. Users can exploit the ntopng engine to handle alerts by simply putting a message on such queue as follows
+
+redis-cli "RPUSH" "ntopng.alerts.notifications_queue" "{ \"ifid\": 0, \"entity_type\": 5, \"entity_value\": \"4a:00:06:a0:7c:51\", \"type\": 17, \"severity\": 1, \"message\": \"IP 1.2.3.4 changed association from <a href=\\\"\\/lua\\/mac_details.lua?host=4a:00:06:a0:7c:50\\\">4a:00:06:a0:7c:50<\\/a> to <a href=\\\"\\/lua\\/mac_details.lua?host=4a:00:06:a0:7c:51\\\">4a:00:06:a0:7c:51<\\/a>\", \"tstamp\": 1523616620, \"action\": \"store\" }"
+
+as long as the JSON format is valid as described below.
+
+
+JSON Alert Format
+-----------------
+
+Below you can find an example of a valid JSON alert
+
+{
+   "ifid":  0,
+   "entity_type":  5,
+   "entity_value":  "4A:00:06:A0:7C:51",
+   "type":  17,
+   "severity":  1,
+   "message":  "IP 1.2.3.4 changed association from <a href="/lua/mac_details.lua?host=4a:00:06:a0:7c:50">4a:00:06:a0:7c:50</a> to <a href="/lua/mac_details.lua?host=4a:00:06:a0:7c:51">4a:00:06:a0:7c:51</a>",
+   "tstamp":  1523616620,
+   "action":  "store" 
+}
+
+The alert fields are listed below:
+
+- ifid
+The numeric interface identifier that triggered this alert. You can find the inteface Id in the user interface at /lua/if_stats.lua
+
+- entity_type
+Identifies the id of the entity that triggered the alert. Please see AlertEntity in ntop_typedefs.h to see the numeric values currently defined. Shall you add new identifiers they MUST the appended at the end of AlertEntity.
+
+- entity_value
+A hook that uniquely identifies the entity
+
+- type
+It identifies the alert type. Please see alert_type_keys in scripts/lua/modules/alert_utils.lua to find the list of currently defined types. In our case 17 means that the MAC/IP has changed association. Shall you add new identifiers they MUST the appended at the end of alert_type_keys without reordering existing entries.
+
+- severity
+A numeric identifier defined in alert_severity_keys scripts/lua/modules/alert_utils.lua. The value 1 means that this is a warning.
+
+- message
+A string that is displayed in the ntopng GUI. Note that this message should be localized (the above message is not, and this is not a bonus).
+
+- tstamp
+The epoch of the alert triggering
+
+- action
+The action associated with this alert. Acceptable values are:
+    - "engage" 	      An alert that crossed a threshold and that alerted the 'entity_value')
+    - "release"       The opposite of "engage". Please make sure that you are releasing an alert that was really previously engaged
+    - "store"	      This alert has no engage/release state so it must just be stored with no further action
+
+
+TODO
+----
+Describe interface.storeAlert, interface.releaseHostAlert, interface.engageAlert, interface.releaseAlert....
