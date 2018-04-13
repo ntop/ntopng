@@ -7,8 +7,6 @@ local discover = {}
 
 discover.debug = false
 
-discover.debug = true
-
 discover.apple_osx_versions = {
    ['4'] = 'Mac OS X 10.0 (Cheetah)',
    ['5'] = 'Mac OS X 10.1 (Puma)',
