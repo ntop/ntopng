@@ -1124,6 +1124,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
       if (entity_type == "host") then
          print("<li>" .. i18n("alerts_thresholds_config.note_deltas_of_idle_host_become_active") .. "</li>")
+	 print("<li>" .. i18n("alerts_thresholds_config.note_checks_on_active_hosts") .. "</li>")
 	 print("<li>" .. i18n("alerts_thresholds_config.note_attacker_victime_threshold") .. "</li>")
       end
       print("</ul></div>")
@@ -2239,55 +2240,18 @@ function check_mac_ip_association_alerts()
       if((message == nil) or (message == "")) then
 	 break
       end
+      elems = json.decode(message)
 
-      elems = split(message, "|")
-
-      local interface_name    = elems[1]
-      local interface_id      = elems[2]
-      local ipaddr            = elems[3]
-      local old_mac_address   = elems[4]
-      local new_mac_address   = elems[5]
-
-      -- redis-cli lpush "ntopng.alert_mac_ip_queue" "en0|1|1.2.3.4|4a:00:06:a0:7c:50|4a:00:06:a0:7c:51"
-      io.write(ipaddr.." ==> "..message.."[".. interface_name .."]\n")
-
-      interface.select(interface_name)
-      interface.storeAlert(alertEntity("mac"), new_mac_address, alertType("mac_ip_association_change"), alertSeverity("warning"),
-			   i18n("alert_messages.mac_ip_association_change",
-				{device=name, ip=ipaddr,
-				 old_mac=old_mac_address, old_mac_url=getMacUrl(old_mac_address),
-				 new_mac=new_mac_address, new_mac_url=getMacUrl(new_mac_address)}))
-   end
-end
-
--- Global function
-function check_process_alerts()
-   while(true) do
-      local message = ntop.lpopCache(alert_process_queue)
-      local elems
-      -- FIX: In the future we must create a special "ntopng/localhost" interface
-      local if_id, if_name = getFirstInterfaceId()
-      
-      if((message == nil) or (message == "")) then
-	 break
+      if elems ~= nil then
+         --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
+         interface.select(elems.ifname)
+         interface.storeAlert(alertEntity("mac"), elems.new_mac, alertType("mac_ip_association_change"), alertSeverity("warning"),
+                  i18n("alert_messages.mac_ip_association_change",
+                  {device=name, ip=elems.ip,
+                  old_mac=elems.old_mac, old_mac_url=getMacUrl(elems.old_mac),
+                  new_mac=elems.new_mac, new_mac_url=getMacUrl(elems.new_mac)}))
       end
-
-      if(verbose) then print(message.."\n") end
-      
-      local decoded = json.decode(message)
-
-      if(decoded == nil) then
-	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
-      else 
-	 interface.select(if_name)
-	 interface.storeAlert(decoded.entity_type,
-			      decoded.entity_value,
-			      decoded.type,
-			      decoded.severity,
-			      decoded.message,
-			      decoded.when)
-      end
-   end
+   end   
 end
 
 local function check_macs_alerts(ifid, working_status)

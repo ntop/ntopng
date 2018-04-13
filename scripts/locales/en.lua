@@ -249,7 +249,7 @@ local lang = {
   },
   ["alerts_thresholds_config"] = {
     ["activity_time"] = "Activity Time",
-    ["alert_active_description"] = "Activity time since last check (seconds).",
+    ["alert_active_description"] = "Activity time delta (seconds).",
     ["alert_bytes_description"] = "Layer 2 bytes delta (sent + received)",
     ["alert_dns_description"] = "Layer 2 bytes delta (sent + received) for DNS detected traffic",
     ["alert_flows_description"] = "Flows delta (as client + as server)",
@@ -273,6 +273,7 @@ local lang = {
     ["note_attacker_victime_threshold"] = "An attacker/victim threshold is considered exceeded if the corresponding host has exceeded the configured threshold for at least three seconds when performing the periodic check.",
     ["note_consecutive_checks"] = "Consecutive checks are not necessarily performed on consecutive periods. For example, if an host goes idle, its thresholds will not be checked until it becomes active again.",
     ["note_control_threshold_checks_periods"] = "Thresholds listed in these tabs are checked periodically. Use tabs to control threshold checks periods.",
+    ["note_checks_on_active_hosts"] = "Checks are only performed for active hosts. Setting a 'less-than' condition implies greater than zero.",
     ["note_deltas_of_idle_host_become_active"] = "Deltas of an idle host that becomes active again will be computed as the difference of the same quantity during the latest check and the most recent check performed when the host was active before going idle.",
     ["note_thresholds_expressed_as_delta"] = "Some thresholds are expressed as a delta. A delta is the difference of the same quantity between two consecutive checks.",
     ["notes"] = "NOTES",
