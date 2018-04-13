@@ -2709,7 +2709,7 @@ function processAlertNotifications(now, periodic_frequency, force_export)
       -- dispatch
       for _, m in ipairs(modules) do
          if message.severity >= alertSeverity(m.severity) then
-            ntop.rpushCache(m.export_queue, json_message, MAX_NUM_PER_MODULE_QUEUED_ALERTS)
+	    ntop.rpushCache(m.export_queue, json_message, MAX_NUM_PER_MODULE_QUEUED_ALERTS)
          end
       end
    end

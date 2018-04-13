@@ -6,8 +6,8 @@ local email = {}
 
 email.EXPORT_FREQUENCY = 60
 
-local MAX_ALERTS_PER_EMAIL = 20
-local MAX_NUM_SEND_ATTEMPTS = 3
+local MAX_ALERTS_PER_EMAIL = 100
+local MAX_NUM_SEND_ATTEMPTS = 5
 local NUM_ATTEMPTS_KEY = "ntopng.alerts.modules_notifications_queue.email.num_attemps"
 
 local function buildMessageHeader(now_ts, from, to, subject, body)
@@ -88,6 +88,8 @@ function email.dequeueAlerts(queue)
 
       if num_attemps >= MAX_NUM_SEND_ATTEMPTS then
         ntop.delCache(NUM_ATTEMPTS_KEY)
+	-- Prevent alerts starvation if the plugin is not working after max num attempts
+        ntop.delCache(queue)
         return {success=false, error_message="Unable to send mails"}
       else
         ntop.setCache(NUM_ATTEMPTS_KEY, tostring(num_attemps))
