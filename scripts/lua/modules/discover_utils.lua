@@ -7,6 +7,8 @@ local discover = {}
 
 discover.debug = false
 
+discover.debug = true
+
 discover.apple_osx_versions = {
    ['4'] = 'Mac OS X 10.0 (Cheetah)',
    ['5'] = 'Mac OS X 10.1 (Puma)',
@@ -534,83 +536,85 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 
    if(discover.debug) then io.write("[manufacturer] "..manufacturer.."\n") end
 
-   if(string.contains(manufacturer, "Oki Electric") and (snmpName ~= nil)) then
+   if(string.contains(manufacturer, "oki electric") and (snmpName ~= nil)) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'printer', discover.asset_icons['printer'].. ' ('..snmpName..')', snmpName
-   elseif(string.contains(manufacturer, "Lexmark")) then
+   elseif(string.contains(manufacturer, "lexmark")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'printer', discover.asset_icons['printer'], nil
-   elseif(string.contains(manufacturer, "Hikvision")) then
+   elseif(string.contains(manufacturer, "hikvision")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'video', discover.asset_icons['video'], nil
-   elseif(string.contains(manufacturer, "Synology")) then
+   elseif(string.contains(manufacturer, "synology")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'nas', discover.asset_icons['nas'], nil
-   elseif(string.contains(manufacturer, "Sonos")) then
+   elseif(string.contains(manufacturer, "sonos")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'multimedia', discover.asset_icons['multimedia'], nil
-   elseif(string.contains(manufacturer, "Super Micro")) then
+   elseif(string.contains(manufacturer, "super micro")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
-   elseif(string.contains(manufacturer, "Quanta Computer Inc")) then -- Often Dell DRACK
+   elseif(string.contains(manufacturer, "quanta computer Inc")) then -- Often Dell DRACK
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
-   elseif(string.contains(manufacturer, "Fujitsu Technology Solutions")) then
+   elseif(string.contains(manufacturer, "fujitsu technology solutions")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
-   elseif(string.contains(manufacturer, "ASUSTek COMPUTER")) then
+   elseif(string.contains(manufacturer, "asustek computer")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['laptop'], nil
-   elseif(string.contains(manufacturer, "Raspberry")) then
+   elseif(string.contains(manufacturer, "raspberry")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
-   elseif(string.contains(manufacturer, "Juniper Networks")) then
+   elseif(string.contains(manufacturer, "juniper networks")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
-   elseif(string.contains(manufacturer, "Cisco")) then
+   elseif(string.contains(manufacturer, "cisco")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
-   elseif(string.contains(manufacturer, "Routerboard")
-	  or string.contains(manufacturer, "Netgear")) then
+   elseif(string.contains(manufacturer, "routerboard")
+	     or string.contains(manufacturer, "netgear") -- 
+	     or string.contains(manufacturer, "tp-link")
+   ) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "3com")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
-   elseif(string.contains(manufacturer, "Gigaset")) then
+   elseif(string.contains(manufacturer, "gigaset")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'phone', discover.extra_asset_icons['phone'], nil
-   elseif(string.contains(manufacturer, "Palo Alto Networks")) then
+   elseif(string.contains(manufacturer, "palo alto networks")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
-   elseif(string.contains(manufacturer, "Liteon Technology")) then
+   elseif(string.contains(manufacturer, "liteon technology")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
-   elseif(string.contains(manufacturer, "Realtek")) then
+   elseif(string.contains(manufacturer, "realtek")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
-   elseif(string.contains(manufacturer, 'TP%-LINK')) then -- % is the escape char in Lua
+   elseif(string.contains(manufacturer, 'tp%-link')) then -- % is the escape char in Lua
       if(discover.debug) then io.write(debug.traceback()) end
       return 'wifi', discover.asset_icons['wifi'], nil
-   elseif(string.contains(manufacturer, 'Broadband')) then -- % is the escape char in Lua
+   elseif(string.contains(manufacturer, 'broadband')) then -- % is the escape char in Lua
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
-   elseif(string.contains(manufacturer, 'Nest Labs')
-	  or string.contains(manufacturer, 'Netatmo')) then
+   elseif(string.contains(manufacturer, 'nest labs')
+	  or string.contains(manufacturer, 'netatmo')) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'iot', discover.asset_icons['iot'], nil
-   elseif(string.contains(manufacturer, "Samsung Electronics")
-	     or string.contains(manufacturer, "SAMSUNG ELECTRO")
-	     or string.contains(manufacturer, "HTC Corporation")
-	     or string.contains(manufacturer, "HUAWEI")
-	     or string.contains(manufacturer, "Xiaomi Communications")
-	     or string.contains(manufacturer, "Mobile Communications") -- LG Electronics (Mobile Communications)
+   elseif(string.contains(manufacturer, "samsung electronics")
+	     or string.contains(manufacturer, "samsung electro")
+	     or string.contains(manufacturer, "htc corporation")
+	     or string.contains(manufacturer, "huawei")
+	     or string.contains(manufacturer, "xiaomi communications")
+	     or string.contains(manufacturer, "mobile communications") -- LG Electronics (Mobile Communications)
    ) then
       if(discover.debug) then io.write(debug.traceback()) end
       interface.setMacOperatingSystem(mac, 5) -- 5 = Android
       return 'phone', discover.asset_icons['phone'].. ' ' ..discover.android_icon, nil
-   elseif((string.contains(manufacturer, "Hewlett Packard")
-	      or string.contains(manufacturer, "Hon Hai"))
+   elseif((string.contains(manufacturer, "hewlett packard")
+	      or string.contains(manufacturer, "hon hai"))
       and (snmpName ~= nil)) then
       local _snmpName  = string.lower(snmpName)
       local _snmpDescr
@@ -633,20 +637,20 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       else
 	 -- return 'unknown', snmpName, nil
       end
-   elseif(string.contains(manufacturer, "VMware")
-	     or string.contains(manufacturer, "QEMU")
-	     or string.contains(manufacturer, "Xen")
-	     or string.contains(manufacturer, "Parallel")
+   elseif(string.contains(manufacturer, "vmware")
+	     or string.contains(manufacturer, "qemu")
+	     or string.contains(manufacturer, "xen")
+	     or string.contains(manufacturer, "parallel")
    ) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation'].." (VM)", nil
-   elseif(string.contains(manufacturer, "Xerox")) then
+   elseif(string.contains(manufacturer, "xerox")) then
       local l = ""
 
       if(snmpName ~= nil) then l = ' ('..snmpName..')' end
       if(discover.debug) then io.write(debug.traceback()) end
       return 'printer', discover.asset_icons['printer']..l, snmpName
-   elseif(string.contains(manufacturer, "Apple, Inc.")) then
+   elseif(string.contains(manufacturer, "apple")) then
       if(string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
 	 interface.setMacOperatingSystem(mac, 4) -- 4 = iOS
 	 if(discover.debug) then io.write(debug.traceback()) end
@@ -708,7 +712,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    -- Logitech
-   if(string.contains(manufacturer, "Logitech")) then
+   if(string.contains(manufacturer, "logitech")) then
       if(string.contains(friendlyName, "Harmony")) then
 	 if(discover.debug) then io.write(debug.traceback()) end
 	 return 'iot', discover.asset_icons['iot'], nil
@@ -754,7 +758,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       end
    end
 
-   if(string.contains(manufacturer, "Ubiquity")) then
+   if(string.contains(manufacturer, "ubiquity")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
    end
