@@ -429,7 +429,7 @@
 #define CONST_IFACE_PACKET_DROPS_ALERT_PREFS "ntopng.prefs.iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     "ntopng.prefs.iface_%d.hide_from_top"
 #define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
-#define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"
+#define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        "ntopng.prefs.non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS           "ntopng.prefs.flow_max_idle"
 #define CONST_INTF_RRD_RAW_DAYS             "ntopng.prefs.intf_rrd_raw_days"
@@ -490,8 +490,10 @@
 #define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION         "ntopng.prefs.default_snmp_version"
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         "ntopng.prefs.ignored_interfaces"
+#ifdef HAVE_NEDGE
 #define CONST_RUNTIME_PREFS_LAN_INTERFACE              "ntopng.prefs.network.lan_if"
 #define CONST_RUNTIME_PREFS_WAN_INTERFACE              "ntopng.prefs.network.wan_if"
+#endif
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      "ntopng.prefs.l2_device_ndpi_timeseries_creation"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
 #define DISAGGREGATION_IFACE_ID                        "iface_idx"
@@ -706,8 +708,8 @@
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v7.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
-#define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.prefs.alerts.ifid_%i.make_room_closed_alerts"
-#define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.prefs.alerts.ifid_%i.make_room_flow_alerts"
+#define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
+#define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"
 #define ALERTS_MANAGER_TYPE_FIELD            "alert_type"
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"

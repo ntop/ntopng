@@ -231,7 +231,9 @@ class Prefs {
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
+#ifdef HAVE_NEDGE
   void refreshLanWanInterfaces();
+#endif
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };

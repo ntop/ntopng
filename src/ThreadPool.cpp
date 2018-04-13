@@ -26,6 +26,14 @@
 /* **************************************************** */
 
 static void* doRun(void* ptr)  {
+#ifdef  __APPLE__
+  // Mac OS X: must be set from within the thread (can't specify thread ID)
+  char buf[32];
+  snprintf(buf, sizeof(buf), "ThreadPool worker");
+  if(pthread_setname_np(buf))
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set pthread name %s", buf);
+#endif
+
   ((ThreadPool*)ptr)->run();
   return(NULL);
 }

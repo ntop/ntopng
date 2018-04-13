@@ -553,7 +553,9 @@ void Prefs::reloadPrefsFromRedis() {
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
+#ifdef HAVE_NEDGE
   refreshLanWanInterfaces();
+#endif
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
@@ -1534,7 +1536,7 @@ void Prefs::refreshHostsAlertsPrefs() {
 }
 
 /* *************************************** */
-
+#ifdef HAVE_NEDGE
 void Prefs::refreshLanWanInterfaces() {
   char rsp[32];
 
@@ -1553,7 +1555,7 @@ void Prefs::refreshLanWanInterfaces() {
   else
     wan_interface = NULL;
 }
-
+#endif
 /* *************************************** */
 
 void Prefs::registerNetworkInterfaces() {
