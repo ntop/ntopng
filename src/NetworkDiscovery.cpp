@@ -620,6 +620,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 	  }
 	}
       }
-    }
+    } else
+      break;
   }
 }
