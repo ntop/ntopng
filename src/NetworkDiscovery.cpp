@@ -285,7 +285,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   /* Query myself mith MDNS */
   mdns_dest.sin_addr.s_addr = sender_ip, dns_h->tr_id++;
-  if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+  errno = 0;
+  if((sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) && (errno != 0))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
 
   /* Final rush */
