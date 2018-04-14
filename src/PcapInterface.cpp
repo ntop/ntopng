@@ -248,7 +248,9 @@ void PcapInterface::shutdown() {
     void *res;
 
     NetworkInterface::shutdown();
+#ifndef WIN32
     pthread_kill(pollLoop, SIGTERM);
+#endif
     pthread_join(pollLoop, &res);
   }
 }

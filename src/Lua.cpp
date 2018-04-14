@@ -569,7 +569,7 @@ static int ntop_get_ndpi_category_name(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  category = (ndpi_protocol_category_t) lua_tonumber(vm, 1);
+  category = (ndpi_protocol_category_t)((int)lua_tonumber(vm, 1));
 
   if(ntop_interface && category)
     lua_pushstring(vm, ntop_interface->get_ndpi_category_name(category));
@@ -1531,7 +1531,7 @@ static int ntop_msleep(lua_State* vm) {
 
   if(duration > max_duration) duration = max_duration;
 
-  usleep(duration*1000);
+  _usleep(duration*1000);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -1554,12 +1554,20 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
   FD_SET(sock, &rset);
   wset = rset; //structure assignment ok
 
+#ifdef WIN32
+  // Wndows sockets are created in blocking mode by default
+  // currently on windows, there is no easy way to obtain the socket's current blocking mode since WSAIsBlocking was deprecated
+  u_long f = 1;
+  if (ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
+	  return -1;
+#else
   //set socket nonblocking flag
   if((flags = fcntl(sock, F_GETFL, 0)) < 0)
     return -1;
 
   if(fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0)
     return -1;
+#endif	
 
   //initiate non-blocking connect
   if( (ret = connect(sock, (struct sockaddr *)sa, sizeof(struct sockaddr_in))) < 0 )
@@ -1581,7 +1589,11 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
 
   // we had a positivite return so a descriptor is ready
   if (FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset)){
-    if(getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+	  if(getsockopt(sock, SOL_SOCKET, SO_ERROR,
+#ifdef WIN32
+		  (char*)
+#endif
+		  &error, &len) < 0)
       return -1;
   }else
     return -1;
@@ -1591,10 +1603,17 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
     return -1;
   }
 
- done:
+done:
+#ifdef WIN32
+  f = 0;
+
+  if (ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
+	  return -1;
+#else
   //put socket back in blocking mode
   if(fcntl(sock, F_SETFL, flags) < 0)
     return -1;
+#endif
 
   return 0;
 }
@@ -6508,7 +6527,7 @@ static int ntop_interface_engage_release_alert(lua_State* vm, bool engage) {
   alert_engine = (int)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity) lua_tonumber(vm, 2);
+  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 2));
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   entity_key = (char*)lua_tostring(vm, 3);
@@ -6586,7 +6605,7 @@ static int ntop_interface_store_alert(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity) lua_tonumber(vm, 1);
+  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 1));
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   entity_key = (char*)lua_tostring(vm, 2);

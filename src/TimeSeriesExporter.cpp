@@ -44,8 +44,15 @@ TimeSeriesExporter::~TimeSeriesExporter() {
 /* ******************************************************* */
 
 void TimeSeriesExporter::createDump() {
+#ifdef WIN32
+	if(tmpnam_s(fname, sizeof(fname)))
+		snprintf(fname, sizeof(fname), "%u", time(NULL));
+
+	fd = open (fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
+#else
   strcpy(fname, "/tmp/TimeSeriesExporter_XXXXXX");
   fd = mkstemp(fname);
+#endif
 
   if(fd == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to dump TS data onto %s: %s",
@@ -66,8 +73,8 @@ void TimeSeriesExporter::exportData(char *data) {
     createDump();
 
   if(fd != -1) {
-    ssize_t exp = strlen(data);
-    ssize_t l = write(fd, data, exp);
+    int exp = strlen(data);
+    int l = (int)write(fd, data, exp);
     
     num_cached_entries++;
     if(l == exp)
