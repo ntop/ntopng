@@ -2510,7 +2510,7 @@ function scanAlerts(granularity, ifstats)
    local ifname = ifstats["name"]
    local ifid = getInterfaceId(ifname)
 
-   if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
+   if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."\n") end
 
    local working_status = newAlertsWorkingStatus(ifstats, granularity)
 
