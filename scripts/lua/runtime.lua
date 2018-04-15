@@ -42,7 +42,9 @@ print("<tr><th nowrap>"..i18n("about.version").."</th><td>"..ntopng_git_url.." -
 printntopngRelease(info)
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
-print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
+if(info.pid ~= nil) then
+   print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
+end
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>ntopng "..info["command_line"].."</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
