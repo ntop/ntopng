@@ -240,13 +240,23 @@ else
 
       if(rtt > 0) then
 	 local cli2srv = round(((flow["tcp.nw_latency.client"] * 100) / rtt), 2)
-	 local srv2cli = round(((flow["tcp.nw_latency.server"] * 100) / rtt), 2)
-
+	 local srv2cli = round(((flow["tcp.nw_latency.server"] * 100) / rtt), 2)	 
+	 
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
+	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. round(flow["tcp.nw_latency.client"],2) .. '%;">'.. cli2srv ..' ms (client)</div>')
+	 print('<div class="progress-bar progress-bar-info" style="width: ' .. srv2cli .. '%;">' .. round(flow["tcp.nw_latency.server"],2) .. ' ms (server)</div></div>')
+	 print("</td></tr>\n")
 
-	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv .. '%;">'.. cli2srv ..' ms (client)</div>')
-
-	 print('<div class="progress-bar progress-bar-info" style="width: ' .. srv2cli .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
+	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
+	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")	 
+	 local c_vacuum_km_s = 299792
+	 local c_vacuum_mi_s = 186000
+	 local fiber_vf      = .67
+	 local delta_t       = rtt/1000
+	 local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
+	 local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
+	  
+	 print(toint(dd_fiber_km).." Km</td><td>"..toint(dd_fiber_mi).." Mi")
 	 print("</td></tr>\n")
       end
    end

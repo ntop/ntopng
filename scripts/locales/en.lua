@@ -642,6 +642,7 @@ local lang = {
     ["rtp_stream_peers"] = "RTP Stream Peers",
     ["rtp_transit_in_out"] = "RTP Transit IN / OUT",
     ["rtt_breakdown"] = "Round-Trip Time Breakdown",
+    ["rtt_distance"] = "Client/Server Estimated Distance",
     ["sac_service_area_code"] = "SAC (Service Area Code)",
     ["server_certificate"] = "Server Certificate",
     ["server_name"] = "Server Name",
