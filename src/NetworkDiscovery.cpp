@@ -592,10 +592,10 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   FD_SET(udp_sock, &fdset);
 
   while(select(udp_sock + 1, &fdset, NULL, NULL, &tv) > 0) {
-    struct sockaddr_in from;
-    socklen_t s;
+    struct sockaddr_in from = { 0 };
+    socklen_t s = sizeof(from);
     char ipbuf[32];
-    int len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
+    ssize_t len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (sockaddr*)&from, &s);
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Received SSDP packet from %s:%u",
 				 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
