@@ -62,7 +62,7 @@ class GenericHash {
   /**
    * @brief A Destructor
    */
-  ~GenericHash();
+  virtual ~GenericHash();
   /**
    * @brief Get number of entries.
    * @details Inline method.

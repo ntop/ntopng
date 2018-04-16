@@ -1725,7 +1725,7 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
 
 void Ntop::loadTrackers() {
   FILE *fd;
-  char line[255];
+  char line[MAX_PATH];
 
   snprintf(line, sizeof(line), "%s/other/trackers.txt", prefs->get_docs_dir());
 
