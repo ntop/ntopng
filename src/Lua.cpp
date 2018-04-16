@@ -5280,6 +5280,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion());
     lua_push_str_table_entry(vm, "version.httpd", (char*)mg_version());
     lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
+	lua_push_str_table_entry(vm, "version.curl", LIBCURL_VERSION);
     lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
 #ifdef HAVE_GEOIP
     lua_push_str_table_entry(vm, "version.geoip", (char*)GeoIP_lib_version());

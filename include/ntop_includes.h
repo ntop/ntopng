@@ -84,7 +84,6 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <string.h>
-#include <string.h>
 #include <math.h>
 #include <sys/stat.h>
 #include <zmq.h>
@@ -128,6 +127,7 @@ extern "C" {
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
+#include <curl/curl.h>
 
 #include "third-party/uthash.h"
 

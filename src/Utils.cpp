@@ -26,9 +26,6 @@
 #include <ifaddrs.h>
 #endif
 
-#include <curl/curl.h>
-#include <string.h>
-
 // A simple struct for strings.
 typedef struct {
   char *s;
