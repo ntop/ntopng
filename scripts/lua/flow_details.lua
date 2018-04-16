@@ -256,7 +256,7 @@ else
 	 local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
 	 local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
 	  
-	 print(toint(dd_fiber_km).." Km</td><td>"..toint(dd_fiber_mi).." Mi")
+	 print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
 	 print("</td></tr>\n")
       end
    end
