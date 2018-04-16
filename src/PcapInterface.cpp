@@ -29,9 +29,6 @@
 
 /* **************************************************** */
 
-static pthread_key_t pcap_t_key;
-static pthread_once_t pcap_t_key_once = PTHREAD_ONCE_INIT;
-
 PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
   struct stat buf;
@@ -95,8 +92,10 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
       read_pkts_from_pcap_dump = false;
       pcap_datalink_type = pcap_datalink(pcap_handle);
 
+#ifndef WIN32
       if(pcap_setdirection(pcap_handle, ntop->getPrefs()->getCaptureDirection()) != 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
+#endif
     } else
       throw 1;
   }
@@ -118,25 +117,11 @@ PcapInterface::~PcapInterface() {
 
 /* **************************************************** */
 
-/*
- * NOTE: we must call pcap_breakloop in the same thread of pcap_next_ex.
- * See https://www.tcpdump.org/manpages/pcap_breakloop.3pcap.html
- */
-static void term_loop_handler(int signo) {
-  pcap_t *handle;
-
-  if ((handle = (pcap_t*)pthread_getspecific(pcap_t_key)))
-    pcap_breakloop(handle);
-}
-
-static void make_key_once() {
-  pthread_key_create(&pcap_t_key, NULL);
-}
-
 static void* packetPollLoop(void* ptr) {
   PcapInterface *iface = (PcapInterface*)ptr;
-  pcap_t  *pd;
+  pcap_t *pd;
   FILE *pcap_list = iface->get_pcap_list();
+  int fd = -1;
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
@@ -176,12 +161,9 @@ static void* packetPollLoop(void* ptr) {
 
     pd = iface->get_pcap_handle();
 
-    if(pd) {
-      pthread_once(&pcap_t_key_once, make_key_once);
-      pthread_setspecific(pcap_t_key, pd);
-    }
-
-    signal(SIGTERM, term_loop_handler);
+#ifdef __linux__
+    fd = pcap_get_selectable_fd(pd);
+#endif
 
     while((pd != NULL) 
 	  && iface->isRunning() 
@@ -192,6 +174,18 @@ static void* packetPollLoop(void* ptr) {
 
       while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
 
+      if(fd > 0) {
+	fd_set rset;
+	struct timeval tv;
+	
+	FD_ZERO(&rset);
+	FD_SET(fd, &rset);
+	
+	tv.tv_sec = 1, tv.tv_usec = 0;
+	if(select(fd + 1, &rset, NULL, NULL, &tv) == 0)
+	  continue;
+	}
+      
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((pkt != NULL) && (hdr->caplen > 0)) {
 	  u_int16_t p;
@@ -256,7 +250,9 @@ void PcapInterface::shutdown() {
     void *res;
 
     NetworkInterface::shutdown();
+#ifndef WIN32
     pthread_kill(pollLoop, SIGTERM);
+#endif
     pthread_join(pollLoop, &res);
   }
 }

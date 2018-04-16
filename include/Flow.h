@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 typedef struct {
-  u_int32_t pktRetr, pktOOO, pktLost;
+  u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   u_int64_t last, next;
 } TCPPacketStats;
 

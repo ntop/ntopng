@@ -380,6 +380,17 @@ AC_CHECK_LIB([curl], [curl_easy_perform], [LDFLAGS="${LDFLAGS} -lcurl"])
 if test ${ac_cv_lib_curl_curl_easy_perform} = "no"; then
     echo "Please install libcurl(-dev) (http://curl.haxx.se/)"
     exit
+else
+    dnl> libcurl has CURLOPT_MAIL_RCPT only starting at version 7.20.0
+    dnl> https://github.com/curl/curl/blob/curl-7_20_0/TODO-RELEASE
+
+    AC_MSG_CHECKING(for curl SMTP support)
+    if `pkg-config --atleast-version="7.20.0" libcurl` ; then
+        AC_DEFINE_UNQUOTED(HAVE_CURL_SMTP, 1, [curl supports SMTP])
+	AC_MSG_RESULT(yes)
+    else
+	AC_MSG_RESULT(no)
+    fi
 fi
 
 CFLAGS="-Wall $CFLAGS"

@@ -51,7 +51,7 @@ class ThreadPool {
   
  public:
   ThreadPool(u_int8_t _pool_size);
-  ~ThreadPool();
+  virtual ~ThreadPool();
 
   void shutdown();
 

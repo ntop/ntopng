@@ -1452,8 +1452,6 @@ void Ntop::daemonize() {
       int rc;
 
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Bye bye: I'm becoming a daemon...");
-
-#if 1
       rc = chdir("/");
       if(rc != 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while moving to / directory");
@@ -1474,7 +1472,6 @@ void Ntop::daemonize() {
        */
       /* setlinebuf (stdout); */
       setvbuf(stdout, (char *)NULL, _IOLBF, 0);
-#endif
     } else /* father */
       exit(0);
   }
@@ -1641,12 +1638,19 @@ void Ntop::registerInterface(NetworkInterface *_if) {
 
 /* ******************************************* */
 
+void Ntop::sendNetworkInterfacesTermination() {
+  for(int i=0; i<num_defined_interfaces; i++)
+    iface[i]->sendTermination();
+}
+
+/* ******************************************* */
+
 void Ntop::runHousekeepingTasks() {
   if(globals->isShutdown()) return;
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
-
+ 
 #ifndef HAVE_NEDGE
   /* ES stats are updated once as the present implementation is not per-interface  */
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
@@ -1721,7 +1725,7 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
 
 void Ntop::loadTrackers() {
   FILE *fd;
-  char line[255];
+  char line[MAX_PATH];
 
   snprintf(line, sizeof(line), "%s/other/trackers.txt", prefs->get_docs_dir());
 

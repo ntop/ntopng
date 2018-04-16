@@ -45,51 +45,15 @@ if num_alerts == nil then
    num_alerts = getNumAlerts(status, alert_options)
 end
 
-local function record_to_description(alert_entity, record)
-   -- pretend record is a flow to reuse getFlowLabel
+local function formatAlertRecord(alert_entity, record)
    local flow = ""
+   local column_msg = record["alert_json"]
+
    if alert_entity == "flow" then
-      flow = {
-	 ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
-	 ["cli.blacklisted"] = record["cli_blacklisted"] == "1",
-	 ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
-	 ["srv.blacklisted"] = record["srv_blacklisted"] == "1",
-	 ["vlan"] = record["vlan_id"]}
-      flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
-
-      local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
-
-      if not isEmptyString(l4_proto_label) then
-	 flow = flow.."[" .. i18n("l4_protocol") .. ": " .. l4_proto_label .. "] "
-      end
-
-      if (l4_proto == "tcp") or (l4_proto =="udp") then
-	 local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
-
-	 if not isEmptyString(l7proto_name) then
-	    flow = flow.."["..i18n("db_explorer.application_protocol")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
-	 end
-      end
-      
+      column_msg = formatRawFlow(record, record["alert_json"])
    end
 
-   local column_msg      = json.decode(record["alert_json"])
-   if column_msg == nil then
-      column_msg = string.gsub(record["alert_json"], '"', "'")
-   else
-      -- render the json
-      local msg = ""
-      if not isEmptyString(record["flow_status"]) then
-	 msg = msg..getFlowStatus(tonumber(record["flow_status"])).." "
-      end
-      if not isEmptyString(flow) then
-	 msg = msg..flow.." "
-      end
-      if not isEmptyString(column_msg["info"]) then
-	 msg = msg.."["..i18n("info")..": "..column_msg["info"].."] "
-      end
-      column_msg = msg
-   end
+   column_msg = string.gsub(column_msg, '"', "'")
 
    return column_msg
 end
@@ -135,7 +99,7 @@ for _key,_value in ipairs(alerts) do
    local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
    local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
 
-   local column_msg      = record_to_description(alert_entity, _value) or ""
+   local column_msg      = formatAlertRecord(alert_entity, _value) or ""
 
    local column_id = tostring(alert_id)
 

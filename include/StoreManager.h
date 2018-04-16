@@ -37,7 +37,7 @@ class StoreManager {
 		 void *payload);
  public:
   StoreManager(int interface_id);
-  ~StoreManager();
+  virtual ~StoreManager();
 
   NetworkInterface* getNetworkInterface();
   

@@ -116,8 +116,13 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   ndpi_dns_packet_header *dns_h;
   u_int dns_query_len;
   struct sockaddr_in mdns_dest;
-
+  int fd = -1;
   char *ifname  = iface->altDiscoverableName();
+
+#ifndef WIN32
+  fd = pcap_get_selectable_fd(pd);
+#endif
+
   if(ifname == NULL)
     ifname = iface->get_name();
 
@@ -130,8 +135,20 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   /* Purge existing packets */
 
-  while((pcap_next(pd, &h) != NULL) && (!ntop->getGlobals()->isShutdown())) ;
-
+  while(!ntop->getGlobals()->isShutdown()) {
+    fd_set rset;
+    struct timeval tv;
+    
+    FD_ZERO(&rset);
+    FD_SET(fd, &rset);
+    
+    tv.tv_sec = 0, tv.tv_usec = 0;
+    if(select(fd + 1, &rset, NULL, NULL, &tv) > 0)
+      pcap_next(pd, &h);
+    else
+      break;
+  }
+  
   if(ntop->getGlobals()->isShutdown()) return;
 
   if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -213,14 +230,22 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	break;
 
       FD_ZERO(&rset);
+
+      if(fd != -1) {
+	FD_SET(fd, &rset);
+	if(fd > max_sock) max_sock = fd;
+      }
       if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
 
       tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
 
-      if(mdns_sock != -1)
+      if(max_sock != 0)
 	sel_rc = select(max_sock + 1, &rset, NULL, NULL, &tv);
 
-      reply = (struct arp_packet*)pcap_next(pd, &h);
+      if((fd == -1) || FD_ISSET(fd, &rset))
+	reply = (struct arp_packet*)pcap_next(pd, &h);
+      else
+	reply = NULL;
 
       if(reply) {
 	lua_push_str_table_entry(vm,
@@ -260,11 +285,24 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   /* Query myself mith MDNS */
   mdns_dest.sin_addr.s_addr = sender_ip, dns_h->tr_id++;
-  if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
+  errno = 0;
+  if((sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) && (errno != 0))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
 
   /* Final rush */
   while(true) {
+    if(fd != -1) {
+      fd_set rset;
+      struct timeval tv;
+      
+      FD_ZERO(&rset);
+      FD_SET(fd, &rset);
+      
+      tv.tv_sec = 0, tv.tv_usec = 0;
+      if(select(fd + 1, &rset, NULL, NULL, &tv) <= 0)
+	break;
+    }
+
     if((reply = (struct arp_packet*)pcap_next(pd, &h)) != NULL) {
       lua_push_str_table_entry(vm,
 			       Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
@@ -554,11 +592,11 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   FD_SET(udp_sock, &fdset);
 
   while(select(udp_sock + 1, &fdset, NULL, NULL, &tv) > 0) {
-    struct sockaddr_in from;
-    socklen_t s;
+    struct sockaddr_in from = { 0 };
+    socklen_t s = sizeof(from);
     char ipbuf[32];
-    int len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (struct sockaddr*)&from, &s);
-
+    int len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (sockaddr*)&from, &s);
+    
     ntop->getTrace()->traceEvent(TRACE_INFO, "Received SSDP packet from %s:%u",
 				 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
 				 ntohs(from.sin_port));
@@ -582,6 +620,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
 	  }
 	}
       }
-    }
+    } else
+      break;
   }
 }

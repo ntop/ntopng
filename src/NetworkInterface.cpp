@@ -43,7 +43,7 @@ NetworkInterface::NetworkInterface() {
 NetworkInterface::NetworkInterface(const char *name,
 				   const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
-  char _ifname[64], buf[64];
+  char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
@@ -108,9 +108,7 @@ NetworkInterface::NetworkInterface(const char *name,
   aggregated_flows_hash = NULL;
 #endif
 
-  snmp = new SNMP();
-
-  if(strchr(name, ':')
+    if(strchr(name, ':')
      || strchr(name, '@')
 	 || (!strcmp(name, "dummy"))
      || strchr(name, '/') /* file path */
@@ -220,7 +218,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if((host_pools = new HostPools(this)) == NULL)
     throw "Not enough memory";
 
-#ifdef linux
+#ifdef __linux__
   /*
     A bit aggressive but as people usually
     ignore warnings let's be proactive
@@ -279,7 +277,7 @@ void NetworkInterface::init() {
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
-    mdns = NULL, snmp = NULL, discovery = NULL, ifDescription = NULL,
+    mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none, tsExporter = NULL;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
 
@@ -397,6 +395,7 @@ void NetworkInterface::checkAggregationMode() {
        && (rsp[0] != '\0')) {
       if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
 	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+	else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
 	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
 	else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
@@ -412,6 +411,17 @@ void NetworkInterface::checkAggregationMode() {
 				       get_type(), rsp);
 
       }
+    }
+
+    /* Populate ignored interfaces */
+    rsp[0] = '\0';
+    if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IGNORED_INTERFACES, rsp, sizeof(rsp)))
+       && (rsp[0] != '\0')) {
+      char *token;
+      char *rest = rsp;
+
+      while((token = strtok_r(rest, ",", &rest)))
+	flowHashingIgnoredInterfaces.insert(atoi(token));
     }
   }
 }
@@ -661,7 +671,6 @@ NetworkInterface::~NetworkInterface() {
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(mdns)           delete mdns;
-  if(snmp)           delete snmp;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;
@@ -1069,6 +1078,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4(criteria, buf1, sizeof(buf1)));
 	  break;
 
+	case flowhashing_iface_idx:
 	case flowhashing_ingress_iface_idx:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [If Idx: %u]", ifname, criteria);
@@ -1153,15 +1163,22 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
-    NetworkInterface *vIface = NULL;
+    NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
       vIface = getSubInterface((u_int32_t)zflow->core.deviceIP, true);
       break;
 
+    case flowhashing_iface_idx:
+      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->core.outIndex) == flowHashingIgnoredInterfaces.end())
+	 vIfaceEgress = getSubInterface((u_int32_t)zflow->core.outIndex, true);
+      /* No break HERE, want to get two interfaces, one for the ingress
+         and one for the egress. */
+
     case flowhashing_ingress_iface_idx:
-      vIface = getSubInterface((u_int32_t)zflow->core.inIndex, true);
+      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->core.inIndex) == flowHashingIgnoredInterfaces.end())
+	vIface = getSubInterface((u_int32_t)zflow->core.inIndex, true);
       break;
 
     case flowhashing_vrfid:
@@ -1177,10 +1194,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       break;
     }
 
-    if(vIface) {
-      vIface->processFlow(zflow);
-      return;
-    }
+    if(vIface)       vIface->processFlow(zflow);
+    if(vIfaceEgress) vIfaceEgress->processFlow(zflow);
+
+    return;
   }
 
   srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
@@ -1963,17 +1980,21 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", ingressPacket ? "RX" : "TX");
-
+#if 0
+  static u_int n = 0;
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u %s", ++n, ingressPacket ? "RX" : "TX");
+#endif
+  
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
     rawsize += sizeof(struct ndpi_ethhdr);
 
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max-len: %u].", h->len, ifMTU);
+#ifdef __linux__
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max len: %u].", h->len, ifMTU);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
-#ifdef linux
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
 #endif
       mtuWarningShown = true;
@@ -6677,28 +6698,6 @@ int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, ch
   return rv;
 }
 
-/* **************************************** */
-
-int NetworkInterface::engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip,
-					     u_int16_t host_vlan, bool engage,
-					     AlertEngine alert_engine, char *engaged_alert_id,
-					     AlertType alert_type, AlertLevel alert_severity,
-					     const char *alert_json) {
-  AlertsManager *am;
-  int rv;
-
-  if((am = getAlertsManager()) != NULL) {
-    if(engage)
-      rv = am->engageHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
-			       alert_type, alert_severity, alert_json);
-    else
-      rv = am->releaseHostAlert(host_ip, host_vlan, alert_engine, engaged_alert_id,
-				alert_type, alert_severity, alert_json);
-  } else
-    rv = CONST_LUA_ERROR;
-  return rv;
-}
-
 /* *************************************** */
 
 void NetworkInterface::topItemsCommit(const struct timeval *tv) {
@@ -6741,10 +6740,11 @@ NIndexFlowDB* NetworkInterface::getNindex() {
 void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4) {
   if(!ntop->getPrefs()->are_ip_reassignment_alerts_enabled())
     return;
+
+  u_int64_t mac = Utils::mac2int(_mac);
   
-  if(ipv4 != 0) {
+  if((ipv4 != 0) && (mac != 0)) {
     std::map<u_int32_t, u_int64_t>::iterator it;
-    u_int64_t mac = Utils::mac2int(_mac);
 
     if(!triggerEvent)
       ip_mac[ipv4] = mac;
@@ -6752,8 +6752,9 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
       if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
 	/* Found entry */
 	if(it->second != mac) {
-	  char oldmac[32], newmac[32], ipbuf[32], buf[128], *ipa;
+	  char oldmac[32], newmac[32], ipbuf[32], *ipa;
 	  u_char tmp[6];
+	  json_object *jobject;
 
 	  Utils::int2mac(it->second, tmp);
 	  Utils::formatMac(tmp, oldmac, sizeof(oldmac));
@@ -6763,9 +6764,20 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
 				       ipa, oldmac, newmac);
 
-	  /* Format: <device id>:<IP>:<old MAC>:<new MAC> */
-	  snprintf(buf, sizeof(buf), "%s|%u|%s|%s|%s", get_name(), id, ipa, oldmac, newmac);
-	  ntop->getRedis()->rpush(CONST_ALERT_MAC_IP_QUEUE, buf, 0 /* No trim */);
+	  if((jobject = json_object_new_object()) != NULL) {
+	    json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+	    json_object_object_add(jobject, "ifid", json_object_new_int(id));
+	    json_object_object_add(jobject, "ip", json_object_new_string(ipa));
+	    json_object_object_add(jobject, "old_mac", json_object_new_string(oldmac));
+	    json_object_object_add(jobject, "new_mac", json_object_new_string(newmac));
+
+	    ntop->getRedis()->rpush(CONST_ALERT_MAC_IP_QUEUE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+	    /* Free Memory */
+	    json_object_put(jobject);
+	  } else
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "json_object_new_object: Not enough memory");
+
 	  ip_mac[ipv4] = mac;
 	}
       } else

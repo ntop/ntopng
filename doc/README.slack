@@ -10,8 +10,10 @@ All you need to do is:
    #interface
    #host
    #network
-   #snmp
+   #snmp_device
    #flow
+   #mac
+   #host_pool
 
    Each channel will receive notifications about a specific topic
 

@@ -8,6 +8,7 @@ Here is a list of some of the unique features nEdge provides:
 - Block/throttle undesired protocols
 - Create users to group device together and assign block/bandwidth limit policies
 - Protect children from inappropriate content
+- Define per-user and per-protocol time/traffic quotas
 - Define customized routing policies with failover and load balance
 - Assisted monitoring device configuration
 

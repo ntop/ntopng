@@ -26,6 +26,6 @@ local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 -- ########################################################
 
 -- This must be placed at the end of the script
-if(tostring(config.snmp_devices_rrd_creation) == "1") then
-   snmp_update_rrds(time_threshold, verbose)
+if ntop.isPro() then
+  snmp_update_rrds(config, time_threshold, verbose)
 end

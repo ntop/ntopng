@@ -1,3 +1,7 @@
+--
+-- (C) 2014-18 - ntop.org
+--
+
 require "lua_utils"
 require "flow_aggregation_utils"
 

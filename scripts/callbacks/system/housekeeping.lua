@@ -10,14 +10,12 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "slack_utils"
 require "lua_utils"
 require "alert_utils"
 local callback_utils = require "callback_utils"
+local now = os.time()
 
 local prefs_dump_utils = require "prefs_dump_utils"
-sendSlackMessages()
-
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
 
 if(prefs_changed == "true") then
@@ -27,7 +25,7 @@ if(prefs_changed == "true") then
 end
 
 check_mac_ip_association_alerts()
+check_process_alerts()
 callback_utils.uploadTSdata()
 
-
-
+processAlertNotifications(now, 3)

@@ -27,6 +27,19 @@
   Enable it with:
 
   redis-cli set "ntopng.prefs.ts_post_data_url" "http://localhost:8086/write?db=ntopng" [InfluxDB]
+
+  Start Influx
+  $ influxd -config /usr/local/etc/influxdb.conf
+
+  Initial database configuration
+  $ influx
+  Connected to http://localhost:8086 version v1.5.2
+  InfluxDB shell version: v1.5.2
+  > create database ntopng;
+  > quit
+
+  Start Chronograf
+  $ chronograf
 */
 TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if, char *_url) {
   fd = -1, iface = _if, url = strdup(_url), num_cached_entries = 0;
@@ -44,8 +57,15 @@ TimeSeriesExporter::~TimeSeriesExporter() {
 /* ******************************************************* */
 
 void TimeSeriesExporter::createDump() {
+#ifdef WIN32
+	if(tmpnam_s(fname, sizeof(fname)))
+		snprintf(fname, sizeof(fname), "%u", time(NULL));
+
+	fd = open (fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
+#else
   strcpy(fname, "/tmp/TimeSeriesExporter_XXXXXX");
   fd = mkstemp(fname);
+#endif
 
   if(fd == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to dump TS data onto %s: %s",
@@ -53,7 +73,7 @@ void TimeSeriesExporter::createDump() {
   else
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Dumping TS data onto %s",
 				 iface->get_name(), fname);
-  
+
   flushTime = time(NULL) + CONST_TS_FLUSH_TIME, num_cached_entries = 0;
 }
 
@@ -66,9 +86,9 @@ void TimeSeriesExporter::exportData(char *data) {
     createDump();
 
   if(fd != -1) {
-    ssize_t exp = strlen(data);
-    ssize_t l = write(fd, data, exp);
-    
+    int exp = strlen(data);
+    int l = (int)write(fd, data, exp);
+
     num_cached_entries++;
     if(l == exp)
       ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", iface->get_name(), data);
@@ -95,6 +115,6 @@ void TimeSeriesExporter::flush() {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Queueing TS file %s [%u entries]",
 				 iface->get_name(), fname, num_cached_entries);
   }
-  
+
   m.unlock(__FILE__, __LINE__);
 }

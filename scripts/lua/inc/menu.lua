@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
@@ -208,7 +208,12 @@ print(ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li>
       ]]
 
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
+if ifs["has_macs"] == true then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("layer_2")) print('</a></li>')
+end
+
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
+
 if not _ifstats.isView then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
 end
@@ -260,38 +265,6 @@ print("</ul> </li>")
 
 -- Devices
 info = ntop.getInfo()
-
-if((ifs["has_macs"] == true) or ntop.isEnterprise()) then
-if active_page == "devices_stats" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
-end
-
-   print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("users.devices")) print[[ <b class="caret"></b>
-      </a>
-      <ul class="dropdown-menu">
-   ]]
-
-   if ifs["has_macs"] == true then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("layer_2")) print('</a></li>')
-      if(info["version.enterprise_edition"] == true) then
-         print('<li class="divider"></li>')
-      end
-   end
-
-   if(info["version.enterprise_edition"] == true) then
-      if ifs["type"] == "zmq" then
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
-      end
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-   end
-
-   print("</ul> </li>")
-
-end
 
 local is_bridge_interface = isBridgeInterface(_ifstats)
 
@@ -368,8 +341,6 @@ for round = 1, 2 do
 	 else
 	    if(v ~= ifdescr[k]) then
 	       descr = descr .. " (".. ifdescr[k] ..")"
-	    elseif(v ~= descr) then
-	       descr = descr .. " (".. v ..")"
 	    end
 	 end
 
@@ -393,6 +364,32 @@ print [[
       </ul>
     </li>
 ]]
+end
+
+
+if(ntop.isEnterprise()) then
+   if active_page == "devices_stats" then
+     print [[ <li class="dropdown active"> ]]
+   else
+     print [[ <li class="dropdown"> ]]
+   end
+
+   print [[
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("users.devices")) print[[ <b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu">
+   ]]
+
+   if(info["version.enterprise_edition"] == true) then
+      if ifs["type"] == "zmq" then
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+      end
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+   end
+
+   print("</ul> </li>")
+
 end
 
 

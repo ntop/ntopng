@@ -240,13 +240,23 @@ else
 
       if(rtt > 0) then
 	 local cli2srv = round(((flow["tcp.nw_latency.client"] * 100) / rtt), 2)
-	 local srv2cli = round(((flow["tcp.nw_latency.server"] * 100) / rtt), 2)
-
+	 local srv2cli = round(((flow["tcp.nw_latency.server"] * 100) / rtt), 2)	 
+	 
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
+	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. round(flow["tcp.nw_latency.client"],2) .. '%;">'.. cli2srv ..' ms (client)</div>')
+	 print('<div class="progress-bar progress-bar-info" style="width: ' .. srv2cli .. '%;">' .. round(flow["tcp.nw_latency.server"],2) .. ' ms (server)</div></div>')
+	 print("</td></tr>\n")
 
-	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv .. '%;">'.. cli2srv ..' ms (client)</div>')
-
-	 print('<div class="progress-bar progress-bar-info" style="width: ' .. srv2cli .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
+	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
+	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")	 
+	 local c_vacuum_km_s = 299792
+	 local c_vacuum_mi_s = 186000
+	 local fiber_vf      = .67
+	 local delta_t       = rtt/1000
+	 local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
+	 local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
+	  
+	 print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
 	 print("</td></tr>\n")
       end
    end
@@ -277,10 +287,12 @@ else
 	  if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then rowspan = rowspan+1 end
 	  if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0)       then rowspan = rowspan+1 end
 	  if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0)                       then rowspan = rowspan+1 end
+	  if((flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0)           then rowspan = rowspan+1 end
 
-	  if(((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"])
-		   + (flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"])
-		+ (flow["cli2srv.lost"] + flow["srv2cli.lost"])) > 0) then
+	  if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]
+	      + flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]
+	      + flow["cli2srv.lost"] + flow["srv2cli.lost"]
+	      + flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0) then
 	     print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.tcp_packet_analysis").."</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
 	     print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
 
@@ -292,6 +304,9 @@ else
 	     end
 	     if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0) then
 		print("<tr><th>"..i18n("details.lost").."</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
+	     end
+	     if((flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0) then
+		print("<tr><th>"..i18n("details.keep_alive").."</th><td align=right><span id=c2skeep_alive>".. formatPackets(flow["cli2srv.keep_alive"]) .."</span> / <span id=s2ckeep_alive>".. formatPackets(flow["srv2cli.keep_alive"]) .."</span></td></tr>\n")
 	     end
 	  end
        end
@@ -595,21 +610,6 @@ if(flow ~= nil) then
 end
 
 print [[
- var jitter_in_trend = null;
- var jitter_out_trend = null;
- var packet_lost_in_trend = null;
- var packet_lost_out_trend = null;
- var packet_drop_in_trend = null;
- var packet_drop_out_trend = null;
- var max_delta_time_in_trend = null;
- var max_delta_time_out_trend = null;
- var mos_average_trend = null;
- var r_factor_average_trend = null;
- var mos_in_trend = null;
- var r_factor_in_trend = null;
- var mos_out_trend = null;
- var r_factor_out_trend = null;
- var rtp_rtt_trend = null;
 function update () {
 	  $.ajax({
 		    type: 'GET',
@@ -637,6 +637,8 @@ print [[/lua/flow_stats.lua',
 			$('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
 			$('#c2slost').html(formatPackets(rsp["c2slost"]));
 			$('#s2clost').html(formatPackets(rsp["s2clost"]));
+			$('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
+			$('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
 			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
 			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
 			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);

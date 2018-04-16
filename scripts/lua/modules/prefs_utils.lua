@@ -55,7 +55,7 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   end
 
-  if (subpage.disabled) or
+  if (subpage.hidden) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
      ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) or
@@ -71,7 +71,7 @@ local subpage_active = nil
 function prefsGetActiveSubpage(show_advanced_prefs, tab)
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
-      subpage.disabled = true
+      subpage.hidden = true
       
       if subpage.id == tab then
         -- will set to default
@@ -99,8 +99,17 @@ end
 
 function printMenuSubpages(tab)
   for _, subpage in ipairs(menu_subpages) do
-    if not subpage.disabled then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item menu-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+    if not subpage.hidden then
+      local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?tab=]] .. (subpage.id))
+      print[[<a href="]] print(url) print[[" class="list-group-item menu-item]]
+
+      if(tab == subpage.id) then
+        print(" active")
+      elseif subpage.disabled then
+        print(" disabled")
+      end
+
+      print[[">]] print(subpage.label) print[[</a>]]
     end
   end
 end
@@ -179,6 +188,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         	v_s = string.gsub(v_s, "ldap:__", "ldap://")
 		v_s = string.gsub(v_s, "http:__", "http://")
 		v_s = string.gsub(v_s, "https:__", "https://")
+		v_s = string.gsub(v_s, "smtp:__", "smtp://")
+		v_s = string.gsub(v_s, "smtps:__", "smtps://")
 	end
         ntop.setPref(k, v_s)
         value = v_s
@@ -291,6 +302,83 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 ]]
 
 end
+
+-- ############################################
+
+function prefsDropdownFieldPrefs(label, comment, key, values, default_value, showEnabled, extra)
+  extra = extra or {}
+
+  if extra.save_pref and table.len(_POST) > 0 and isEmptyString(_POST[key]) == false and isEmptyString(extra.pref_key) == false then
+     ntop.setPref(extra.pref_key, _POST[key])
+     default_value = _POST[key]
+  end
+
+  if ((showEnabled == nil) or (showEnabled == true)) then
+    showEnabled = "table-row"
+  else
+    showEnabled = "none"
+  end
+
+  local attributes = {}
+
+  if extra.disabled == true then attributes["disabled"] = "disabled" end
+  if extra.required == true then attributes["required"] = "" end
+
+  local input_type = "text"
+
+  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+
+  local style = {}
+  style["text-align"] = "right"
+  style["margin-bottom"] = "0.5em"
+
+  print [[
+    <td align=right>
+      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+        <tr>
+          <td width="100%;"></td>]]
+
+      if extra.width == nil then
+	 style["width"] = "20em"
+	 style["margin-left"] = "auto"
+      else
+        style["width"] = "15em"
+      end
+      style["margin-left"] = "auto"
+
+      style = table.merge(style, extra.style)
+      attributes = table.merge(attributes, extra.attributes)
+
+      print[[
+          <td style="vertical-align:top; padding-left: 2em;">
+            <select id="id_input_]] print(key)  print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print((value or '')..'"') print[[>]]
+      if extra.keys == nil then
+         for _, optname in pairs(values) do
+	 print("<option " .. ternary(optname == default_value, "selected", "") .. ">"..optname.."</option>")
+         end
+      else
+         for idx, _ in pairs(values) do
+            local key = extra.keys[idx]
+            local val = values[idx]
+            print("<option value=".. key .." " .. ternary(key == default_value, "selected", "") .. ">"..val.."</option>")
+         end
+      end
+      print[[
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="padding:0;">
+            <div class="help-block with-errors text-right" style="height:1em;"></div>
+          </td>
+        </tr>
+      </table>
+  </td></tr>
+]]
+
+end
+
+-- ############################################
 
 function prefsInformativeField(label, comment, showEnabled, extra)
   local extra = extra or {}

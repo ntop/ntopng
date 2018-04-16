@@ -309,3 +309,14 @@ tr.quotas > td {
   text-align: center;
   margin-right: 2px;
 }
+
+.list-group > a.disabled {
+  color: #999999;
+}
+.list-group > a.disabled:hover,
+.list-group > a.disabled:focus {
+  color: #999999;
+  text-decoration: none;
+  background-color: transparent;
+  cursor: not-allowed;
+}

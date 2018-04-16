@@ -66,18 +66,16 @@ typedef enum {
 	     */
 
 typedef enum {
-  notify_all_alerts = 0,
-  notify_errors_and_warnings,
-  notify_errors_only,
-} SlackNotificationChoice;
-
-typedef enum {
   alert_level_none = -1,
   alert_level_info = 0,
   alert_level_warning,
   alert_level_error
 } AlertLevel;
 
+/*
+  Keep in sync with alert_utils.lua:alert_entity_keys 
+  This is field "entity_type" of JSON put on "ntopng.alerts.notifications_queue"
+ */
 typedef enum {
   alert_entity_interface = 0,
   alert_entity_host,
@@ -85,7 +83,8 @@ typedef enum {
   alert_entity_snmp_device,
   alert_entity_flow,
   alert_entity_mac,
-  alert_entity_host_pool
+  alert_entity_host_pool,
+  alert_entity_process
 } AlertEntity;
 
 typedef enum {
@@ -330,6 +329,7 @@ typedef enum {
 typedef enum {
   flowhashing_none = 0,
   flowhashing_probe_ip,
+  flowhashing_iface_idx,
   flowhashing_ingress_iface_idx,
   flowhashing_vlan,
   flowhashing_vrfid /* VRF Id */
@@ -410,8 +410,7 @@ typedef struct {
 
 /*
   NOTE:
-  Keep in sync with Utils::deviceType2str / Utils::str2DeviceType
-  and discover.lua (asset_icons)
+  Keep in sync with discover.lua (asset_icons)
 */
 typedef enum {
   device_unknown = 0,
@@ -426,7 +425,8 @@ typedef enum {
   device_wifi,
   device_nas,
   device_multimedia,
-
+  device_iot,
+  
   device_max_type /* Leave it at the end */
 } DeviceType;
 
@@ -434,12 +434,15 @@ typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 
+class SNMP; /* Forward */
+
 struct ntopngLuaContext {
   char *ifname, *user;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+  SNMP *snmp;
 };
 
 typedef enum {

@@ -5,6 +5,7 @@
 local pragma_once = 1
 local http_lint = {}
 local json = require "dkjson"
+local alert_consts = require "alert_consts"
 
 -- #################################################################
 
@@ -366,7 +367,7 @@ local function validateUnassignedDevicesMode(mode)
 end
 
 local function validateSnmpAction(mode)
-   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling"}
+   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling", "startPortMonitor", "stopPortMonitor"}
 
    return validateChoice(modes, mode)
 end
@@ -401,6 +402,10 @@ local function validateTimeZoneName(tz)
 
    -- never reached as timezones are listed in a text file
    return false
+end
+
+local function validateNotificationSeverity(tz)
+   return validateChoiceInline({"error","warning","info"})
 end
 
 -- #################################################################
@@ -630,8 +635,8 @@ local function validateAlertDescriptor(d)
       d = split(d, "global_")[2]
    end
 
-   if ((validateChoiceByKeys(alert_functions_description, d)) or
-       (validateChoiceByKeys(network_alert_functions_description, d))) then
+   if ((validateChoiceByKeys(alert_consts.alert_functions_description, d)) or
+       (validateChoiceByKeys(alert_consts.network_alert_functions_description, d))) then
       return true
    else
       return false
@@ -753,7 +758,7 @@ local known_parameters = {
    ["entity_val"]              =  validateUnquoted,             -- An alert entity value
    ["full_name"]               =  validateUnquoted,             -- A user full name
    ["manufacturer"]            =  validateUnquoted,             -- A MAC manufacturer
-   ["sender_username"]         =  validateUnquoted,
+   ["slack_sender_username"]   =  validateUnquoted,
    ["slack_webhook"]           =  validateUnquoted,
    ["nagios_nsca_host"]        =  validateUnquoted,
    ["nagios_host_name"]        =  validateUnquoted,
@@ -892,6 +897,7 @@ local known_parameters = {
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["default_snmp_community"]  =  validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["default_snmp_version"]    =  validateSNMPversion,           -- Default SNMP protocol version
+   ["snmp_version"]            =  validateSNMPversion,           -- 0:v1 1:v2c
    ["cidr"]                    =  validateCIDR,                  -- /32 or /24
    ["snmp_port_idx"]           =  validateNumber,                -- SNMP port index
    ["snmp_recache" ]           =  validateBool,                  -- forces SNMP queries to be re-executed and cached
@@ -935,6 +941,7 @@ local known_parameters = {
    ["toggle_flow_db_dump_export"]                  =  validateBool,
    ["toggle_alert_syslog"]                         =  validateBool,
    ["toggle_slack_notification"]                   =  validateBool,
+   ["toggle_email_notification"]                   =  validateBool,
    ["toggle_alert_nagios"]                         =  validateBool,
    ["toggle_top_sites"]                            =  validateBool,
    ["toggle_captive_portal"]                       =  validateBool,
@@ -966,6 +973,7 @@ local known_parameters = {
    ["toggle_device_first_seen_alert"]              =  validateBool,
    ["toggle_pool_activation_alert"]                =  validateBool,
    ["toggle_quota_exceeded_alert"]                 =  validateBool,
+   ["toggle_external_alerts"]                      =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
@@ -1005,13 +1013,19 @@ local known_parameters = {
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
    ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
    ["redirection_url"]                             =  validateEmptyOr(validateSingleWord),
+   ["email_sender"]                                =  validateSingleWord,
+   ["email_recipient"]                             =  validateSingleWord,
+   ["smtp_server"]                                 =  validateSingleWord,
 
    -- Multiple Choice
-   ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "ingress_iface_idx", "ingress_vrf_id"}),
+   ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id"}),
+   ["ignored_interfaces"]                          =  validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["hosts_ndpi_timeseries_creation"]              =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["interfaces_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["l2_devices_ndpi_timeseries_creation"]         =  validateChoiceInline({"none", "per_category"}),
-   ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
+   ["slack_notification_severity_preference"]      =  validateNotificationSeverity,
+   ["nagios_notification_severity_preference"]     =  validateNotificationSeverity,
+   ["email_notification_severity_preference"]      =  validateNotificationSeverity,
    ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
@@ -1022,6 +1036,7 @@ local known_parameters = {
 
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,
+   ["send_test_email"]                             =  validateEmpty,
    ["network_discovery_interval"]                  =  validateNumber,
 --
 

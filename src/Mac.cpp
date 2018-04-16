@@ -32,7 +32,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
   device_type = device_unknown, os = os_unknown;
 
-  ndpiStats = NULL;
+  ndpiStats = NULL, model = NULL, ssid = NULL;
 
   if(ntop->getMacManufacturers()) {
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
@@ -122,6 +122,9 @@ Mac::~Mac() {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 
+  if(model) free((void*)model);
+  if(ssid) free((void*)ssid);
+  
   if(ndpiStats) {
     delete ndpiStats;
     ndpiStats = NULL;
@@ -196,6 +199,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
     lua_push_int_table_entry(vm, "devtype", device_type);
+    if(model) lua_push_str_table_entry(vm, "model", (char*)model);
+    if(ssid) lua_push_str_table_entry(vm, "ssid", (char*)ssid);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }
 
@@ -263,6 +268,8 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.first", &obj))  first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "model", &obj))       setModel((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "ssid", &obj))        setSSID((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
@@ -284,6 +291,8 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
+  if(model) json_object_object_add(my_object, "model", json_object_new_string(model));
+  if(ssid) json_object_object_add(my_object, "ssid", json_object_new_string(ssid));
   json_object_object_add(my_object, "dhcpHost", json_object_new_boolean(dhcpHost));
   json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
@@ -428,4 +437,25 @@ void Mac::checkDeviceTypeFromManufacturer() {
        )
       setDeviceType(device_workstation); /* VM */
   }
+}
+
+/* *************************************** */
+
+void Mac::setModel(char* m) {
+  if(model) free((void*)model);
+  model = strdup(m);
+
+  if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
+  else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
+  else if(strstr(model, "AirPort") != NULL) setDeviceType(device_wifi);
+  else if(strstr(model, "Mac")     != NULL) setDeviceType(device_workstation);
+  else if(strstr(model, "TimeCapsule") != NULL) setDeviceType(device_nas);
+}
+
+/* *************************************** */
+
+void Mac::setSSID(char* s) {
+  if(ssid) free((void*)ssid);
+  ssid = strdup(s);
+  setDeviceType(device_wifi);
 }

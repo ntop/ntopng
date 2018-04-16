@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.
 require "lua_trace"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
+require "alert_consts"
 
 -- ##############################################
 
@@ -45,24 +46,48 @@ end
 
 function getInterfaceName(interface_id, windows_skip_description)
    local ifnames = interface.getIfNames()
+   local iface = ifnames[tostring(interface_id)]
 
-   interface_id = tonumber(interface_id)
-   for _,if_name in pairs(ifnames) do
-      --io.write(if_name.."\n")
-      interface.select(if_name)
-      _ifstats = interface.getStats()
-      if(_ifstats.id == interface_id) then
-	 local ret = _ifstats.name
+   if iface ~= nil then
+      if(windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
+         local old_iface = interface.getStats().id
 
-	 if(windows_skip_description ~= true and string.contains(ret, "{")) then -- Windows
-	    ret = _ifstats.description
-	 end
-	 return(ret)
+         -- Use the interface description instead of the name
+         interface.select(tostring(iface))
+         iface = interface.getStats().description
+
+         interface.select(tostring(old_iface))
       end
+
+      return(iface)
    end
 
    return("")
 end
+
+function getInterfaceId(interface_name)
+   local ifnames = interface.getIfNames()
+
+   for if_id, if_name in pairs(ifnames) do
+      if if_name == interface_name then
+         return tonumber(if_id)
+      end
+   end
+
+   return(-1)
+end
+
+function getFirstInterfaceId()
+   local ifnames = interface.getIfNames()
+
+   for if_id, if_name in pairs(ifnames) do
+      return tonumber(if_id), if_name
+   end
+
+   return -1, "" -- NOTREACHED
+end
+
+-- ##############################################
 
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
@@ -244,9 +269,26 @@ end
 
 -- ##############################################
 
+function urlencode(str)
+   str = string.gsub (str, "\r?\n", "\r\n")
+   str = string.gsub (str, "([^%w%-%.%_%~ ])",
+		      function (c) return string.format ("%%%02X", string.byte(c)) end)
+   str = string.gsub (str, " ", "+")
+   return str
+end
+
+-- ##############################################
+
 function getPageUrl(base_url, params)
    for _,_ in pairs(params or {}) do
-      return base_url .. "?" .. table.tconcat(params, "=", "&")
+      local ret
+
+      for k, v in pairs(params) do
+	 params[k] = urlencode(v)
+      end
+
+      ret = base_url .. "?" .. table.tconcat(params, "=", "&")
+      return ret
    end
 
    return base_url
@@ -551,7 +593,9 @@ alert_type_keys = {
   { "<i class='fa fa-thermometer-full'></i> " .. i18n("alerts_dashboard.quota_exceeded"),         14, "quota_exceeded"      },
   { "<i class='fa fa-cog'></i> " .. i18n("alerts_dashboard.misconfigured_app"),                   15, "misconfigured_app"      },
   { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.too_many_drops"),                     16, "too_many_drops"      },
-  { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),          17, "mac_ip_association_change"      },
+  { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),      17, "mac_ip_association_change"   },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_status_change"),     18, "port_status_change"          },
+  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.unresponsive_device"),         19, "unresponsive_device"         },
 }
 
 local alert_entity_keys = {
@@ -591,7 +635,11 @@ network_alert_functions_description = {
 
 function noHtml(s)
    if s == nil then return nil end
-   return s:gsub("<.->(.-)</.->","%1"):gsub("^%s*(.-)%s*$", "%1")
+   local cleaned = s:gsub("<[aA].->(.-)</[aA]>","%1")
+      :gsub("%s*<[iI].->(.-)</[iI]>","%1")
+      :gsub("<.->(.-)</.->","%1") -- note: this does not handle nested tags
+      :gsub("^%s*(.-)%s*$", "%1")
+   return cleaned
 end
 
 function alertSeverityLabel(v, nohtml)
@@ -609,7 +657,7 @@ function alertSeverity(v)
 end
 
 function alertSeverityRaw(sev_idx)
-   sev_idx = sev_idx + 1
+   sev_idx = sev_idx + 2 -- -1 and 0
    if sev_idx <= #alert_level_keys then
       return alert_level_keys[sev_idx][3]
    end
@@ -642,6 +690,14 @@ function alertEngineLabel(v)
    return _handleArray(alert_engine_keys, tonumber(v))
 end
 
+function alertEngineRaw(idx)
+   idx = idx + 1
+   if idx <= #alert_engine_keys then
+      return alert_engine_keys[idx][3]
+   end
+   return nil
+end
+
 function alertLevel(v)
    local leveltable = {}
 
@@ -652,6 +708,8 @@ function alertLevel(v)
 end
 
 function alertTypeRaw(alert_idx)
+   if(alert_idx == nil) then return nil end
+
    alert_idx = alert_idx + 2 -- -1 and 0
    if alert_idx <= #alert_type_keys then
       return alert_type_keys[alert_idx][3]
@@ -691,6 +749,7 @@ function mustScanAlerts(ifstats)
 end
 
 function hasAlertsDisabled()
+  _POST = _POST or {}
   return ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
@@ -1279,18 +1338,6 @@ function http_escape(s)
   end)
   s = string.gsub(s, " ", "+")
   return s
-end
-
-function getInterfaceId(interface_name)
-  ifnames = interface.getIfNames()
-
-  for _,if_name in pairs(ifnames) do
-     interface.select(if_name)
-     _ifstats = interface.getStats()
-    if(_ifstats.name == interface_name) then return(_ifstats.id) end
-  end
-
-  return(-1)
 end
 
 -- Windows fixes for interfaces with "uncommon chars"
@@ -2205,28 +2252,6 @@ function tablePreferences(key, value, force_set)
   end
 end
 
-
-function getInterfaceNameAlias(interface_name, max_len)
-   if(interface_name == nil) then return("") end
-   -- io.write(debug.traceback().."\n")
-   local label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
-   if((label == nil) or (label == "")) then
-      if(string.contains(interface_name, "{")) then -- Windows
-	 -- attempt to print the description
-	 local _ifstats = interface.getStats()
-	 local nm = _ifstats.description
-	 if tonumber(max_len) ~= nil and tonumber(max_len) > 0 then
-	    nm = shortenString(_ifstats.description, tonumber(max_len))
-	 end
-	 return(nm)
-      else
-	 return(interface_name)
-      end
-   else
-      return(label)
-   end
-end
-
 function getInterfaceSpeed(ifstats)
    local ifspeed = ntop.getCache('ntopng.prefs.'..ifstats.name..'.speed')
    if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
@@ -2302,12 +2327,36 @@ function setCustomnDPIProtoCategory(if_name, app_id, new_cat_id)
    ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
 end
 
+-- "Some Very Long String" -> "Some Ver...g String"
+function shortenCollapse(s, max_len)
+   local replacement = "..."
+   local r_len = string.len(replacement)
+   local s_len = string.len(s)
+
+   if max_len == nil then
+      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
+      max_len = tonumber(max_len)
+      if(max_len == nil) then max_len = 24 end
+   end
+
+   if max_len <= r_len then
+      return replacement
+   end
+
+   if s_len > max_len then
+      local half = math.floor((max_len-r_len) / 2)
+      return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len-half+1)
+   end
+
+   return s
+end
+
 function getHumanReadableInterfaceName(interface_name)
    local key = 'ntopng.prefs.'..interface_name..'.name'
    local custom_name = ntop.getCache(key)
 
-   if((custom_name ~= nil) and (custom_name ~= "")) then
-      return(custom_name)
+   if not isEmptyString(custom_name) then
+      return(shortenCollapse(custom_name))
    else
       interface.select(interface_name)
       local _ifstats = interface.getStats()
@@ -2318,7 +2367,7 @@ function getHumanReadableInterfaceName(interface_name)
       end
 
       -- print(interface_name.."=".._ifstats.name)
-      return(nm)
+      return(shortenCollapse(nm or ''))
    end
 end
 

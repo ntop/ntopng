@@ -181,11 +181,7 @@ print [[
     <ul class="nav navbar-nav">
 ]]
 
-short_name = getHumanReadableInterfaceName(ifname)
-
-if(short_name ~= if_name) then
-   short_name = short_name .. "..."
-end
+local short_name = getHumanReadableInterfaceName(ifname)
 
 print("<li><a href=\"#\">" .. i18n("interface") .. ": " .. short_name .."</a></li>\n")
 
@@ -394,10 +390,10 @@ if((page == "overview") or (page == nil)) then
    local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 
    if not is_bridge_iface then
-      local label = getInterfaceNameAlias(ifstats.name)
+      local label = getHumanReadableInterfaceName(ifstats.name)
       local s
       if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
-         s = label .. " (" .. ifstats.name .. ")"
+         s = label.." (" .. ifstats.name .. ")"
       else
          s = ifstats.name
       end
@@ -1098,7 +1094,7 @@ elseif(page == "config") then
       <tr>
          <th>]] print(i18n("if_stats_config.custom_name")) print[[</th>
          <td>]]
-      local label = getInterfaceNameAlias(ifstats.name)
+      local label = getHumanReadableInterfaceName(ifstats.name)
       inline_input_form("custom_name", "Custom Name",
          i18n("if_stats_config.custom_name_popup_msg"),
          label, isAdministrator(), 'autocorrect="off" spellcheck="false"')
@@ -1229,7 +1225,7 @@ elseif(page == "config") then
       </tr>]]
 
    -- per-interface Network Discovery
-   if interface.isDiscoverableInterface() and (ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1") then
+   if interface.isDiscoverableInterface() then
       local discover = require "discover_utils"
 
       local interface_network_discovery = true

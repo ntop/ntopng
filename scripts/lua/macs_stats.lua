@@ -18,11 +18,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 local have_nedge = ntop.isnEdge()
 
-if have_nedge then
-   active_page = "hosts"
-else
-   active_page = "devices_stats"
-end
+active_page = "hosts"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -151,18 +147,19 @@ print('buttons: [')
           <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
-   for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
+for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
+   local _manuf = string.gsub(string.gsub(manuf, "'", "&#39;"), "\"", "&quot;")
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
-      print('><a href="'..getPageUrl(base_url, manufacturer_params)..'">'..manuf..' ('..count..')'..'</a></li>')
+      print('><a href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\
     </div>\
    ']]
 
-      -- Filter Device Type
+   -- Filter Device Type
    local devicetype_params = table.clone(page_params)
    devicetype_params.device_type = nil
    print[[, '\

@@ -76,13 +76,13 @@ class NetworkInterface : public Checkpointable {
   
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
+  set<u_int32_t>  flowHashingIgnoredInterfaces;
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
 
   /* Network Discovery */
   NetworkDiscovery *discovery;
   MDNS *mdns;
-  SNMP *snmp;
   
   string ip_addresses;
   int id;
@@ -589,9 +589,6 @@ class NetworkInterface : public Checkpointable {
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
   int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
-  int engageReleaseHostAlert(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool engage,
-			     AlertEngine alert_engine,
-			     char *engaged_alert_id, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   void reloadHideFromTop(bool refreshHosts=true);
   bool isHiddenFromTop(Host *host);
@@ -648,7 +645,6 @@ class NetworkInterface : public Checkpointable {
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
-  inline SNMP* getSNMP() { return(snmp); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
   inline void incPoolNumHosts(u_int16_t id, bool isInlineCall) {
@@ -669,6 +665,7 @@ class NetworkInterface : public Checkpointable {
   NIndexFlowDB* getNindex();
 #endif   
   inline TimeSeriesExporter* getTSExporter() { return(tsExporter); }
+  virtual void sendTermination()             { ; }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

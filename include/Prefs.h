@@ -63,13 +63,12 @@ class Prefs {
     enable_probing_alerts, enable_ssl_alerts, enable_ip_reassignment_alerts;
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
   bool enable_dropped_flows_alerts;
-  bool enable_syslog_alerts, enable_captive_portal, slack_notifications_enabled;
+  bool enable_syslog_alerts, enable_captive_portal, external_notifications_enabled;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool routing_mode_enabled, global_dns_forging_enabled;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
-  char *redirection_url, *redirection_url_shadow;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   u_int32_t max_ui_strlen;
   u_int8_t default_l7policy;
@@ -232,7 +231,9 @@ class Prefs {
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
+#ifdef HAVE_NEDGE
   void refreshLanWanInterfaces();
+#endif
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
@@ -287,7 +288,7 @@ class Prefs {
   inline bool are_remote_to_remote_alerts_enabled()      { return(enable_remote_to_remote_alerts);      };
   inline bool are_dropped_flows_alerts_enabled()         { return(enable_dropped_flows_alerts);         };
   inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };
-  inline bool are_slack_notification_enabled()           { return(slack_notifications_enabled);         };
+  inline bool are_ext_alerts_notifications_enabled()     { return(external_notifications_enabled);      };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
 
   inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };

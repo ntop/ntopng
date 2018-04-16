@@ -73,7 +73,7 @@
 #include <sys/select.h>
 #endif
 
-#ifdef linux
+#ifdef __linux__
 #define __FAVOR_BSD
 #endif
 
@@ -83,7 +83,6 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <getopt.h>
-#include <string.h>
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -128,6 +127,7 @@ extern "C" {
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
+#include <curl/curl.h>
 
 #include "third-party/uthash.h"
 
@@ -144,6 +144,7 @@ extern "C" {
 
 #include <fstream>
 #include <map>
+#include <set>
 #include <vector>
 #include <list>
 #include <iostream>

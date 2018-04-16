@@ -141,7 +141,7 @@
 #define MAX_NUM_POOL_MEMBERS        LIMITED_NUM_POOL_MEMBERS
 #endif
 
-#define MAX_INTERFACE_NAME_LEN    256
+#define MAX_INTERFACE_NAME_LEN    512
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
@@ -429,7 +429,7 @@
 #define CONST_IFACE_PACKET_DROPS_ALERT_PREFS "ntopng.prefs.iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     "ntopng.prefs.iface_%d.hide_from_top"
 #define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
-#define CONST_HOSTS_ALERT_COUNTERS          "ntopng.prefs.iface_%u.host_engaged_alert_counters"
+#define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        "ntopng.prefs.non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS           "ntopng.prefs.flow_max_idle"
 #define CONST_INTF_RRD_RAW_DAYS             "ntopng.prefs.intf_rrd_raw_days"
@@ -449,7 +449,6 @@
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
 #define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
-#define CONST_PREFS_REDIRECTION_URL         "ntopng.prefs.redirection_url"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED "ntopng.prefs.global_dns_forging"
 #define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
@@ -490,16 +489,20 @@
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
 #define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION         "ntopng.prefs.default_snmp_version"
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
+#define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         "ntopng.prefs.ignored_interfaces"
+#ifdef HAVE_NEDGE
 #define CONST_RUNTIME_PREFS_LAN_INTERFACE              "ntopng.prefs.network.lan_if"
 #define CONST_RUNTIME_PREFS_WAN_INTERFACE              "ntopng.prefs.network.wan_if"
+#endif
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      "ntopng.prefs.l2_device_ndpi_timeseries_creation"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
+#define DISAGGREGATION_IFACE_ID                        "iface_idx"
 #define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"
 #define DISAGGREGATION_INGRESS_VRF_ID                  "ingress_vrf_id"
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"
 #ifdef NTOPNG_PRO
-#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts.nagios_notifications_enabled"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */
 #endif
 #define CONST_RUNTIME_PREFS_HOSTMASK  "ntopng.prefs.host_mask"
@@ -698,7 +701,6 @@
 #define STORE_MANAGER_MAX_KEY                20
 #define DEFAULT_GLOBAL_DNS                   ""
 #define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
-#define DEFAULT_REDIRECTION_URL              "http://www.ntop.org"
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
@@ -706,17 +708,14 @@
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v7.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
-#define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.prefs.alerts.ifid_%i.make_room_closed_alerts"
-#define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.prefs.alerts.ifid_%i.make_room_flow_alerts"
+#define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
+#define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"
 #define ALERTS_MANAGER_TYPE_FIELD            "alert_type"
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
-#define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.prefs.alerts.sender_username"
-#define ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.slack_notifications_enabled"
-#define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.prefs.alerts.sender_username"
-#define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.prefs.alerts.slack_alert_severity"
+#define ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.external_notifications_enabled"
 #define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.prefs.alerts.dump_alerts_when_iface_is_alerted"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
@@ -861,5 +860,9 @@
 #define MIN_TIME_SPAWN_THREAD_POOL        10 /* sec */
 
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
+
+#define ALERT_ACTION_ENGAGE           "engage"
+#define ALERT_ACTION_RELEASE          "release"
+#define ALERT_ACTION_STORE            "store"
 
 #endif /* _NTOP_DEFINES_H_ */

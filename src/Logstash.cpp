@@ -58,7 +58,7 @@ void Logstash::updateStats(const struct timeval *tv) {
 
     if(tdiffMsec >= 1000) { /* al least one second */
       u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
-      
+
       elkLastExportedFlows = elkExportedFlows;
       elkExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
       if(elkExportRate < 0) elkExportRate = 0;
@@ -88,7 +88,7 @@ int Logstash::sendToLS(char* msg) {
   if(!msg || !strcmp(msg,"")) {
     return(-1);
   }
-  
+
   if(num_queued_elems >= LS_MAX_QUEUE_LEN) {
     if(!reportDrops) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] Export queue too long [%d]: expect drops",
@@ -159,13 +159,13 @@ void Logstash::sendLSdata() {
   portstr = ntop->getPrefs()->get_ls_port();
 
   if(server == NULL || portstr == NULL) {
-     //can't send
-     return;
+    // can't send
+    return;
   }
 
   proto = ntop->getPrefs()->get_ls_proto();
   if(proto && !strncmp(proto,"udp",3)) {
-     sendTCP = 0;
+    sendTCP = 0;
   }
   portno = atoi(portstr);
 
@@ -177,7 +177,7 @@ void Logstash::sendLSdata() {
   portstr = ntop->getPrefs()->get_ls_port();
 
   if(server == NULL || portstr == NULL) {
-    //can't send
+    // can't send
     return;
   }
 
@@ -197,18 +197,18 @@ void Logstash::sendLSdata() {
     if(num_queued_elems >= watermark) {
       if(sockfd<0||skipDequeue==1) {
         if(sockfd<0) {
-  	  if(!sendTCP) { //UDP socket
+  	  if(!sendTCP) { // UDP socket
             sockfd = socket(AF_INET,SOCK_DGRAM, IPPROTO_UDP);
-          } else {  //TCP socket
+          } else {  // TCP socket
             sockfd = socket(AF_INET, SOCK_STREAM, 0);
           }
 
 #ifndef WIN32
-          //Set nonblocking
+          // Set nonblocking
           retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
           if(retval == -1) {
             ntop->getTrace()->traceEvent(TRACE_WARNING,"[LS] Error  while setting NONBLOCK flag. Skipping dequeue.");
-            close(sockfd);
+            closesocket(sockfd);
 	    sockfd = -1;
             sleep(1);
             continue;
@@ -226,11 +226,11 @@ void Logstash::sendLSdata() {
         if(sendTCP
            && (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) <0)
 	   && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN
-           || errno == ENETUNREACH || errno == ETIMEDOUT )
-          ) {
+	       || errno == ENETUNREACH || errno == ETIMEDOUT )
+	   ) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,"[LS] Could not connect to remote party. Reinitializing");
           skipDequeue = 1;
-	  close(sockfd);
+	  closesocket(sockfd);
 	  sockfd=-1;
 	  sleep(4);
           continue;
@@ -238,19 +238,19 @@ void Logstash::sendLSdata() {
       }
 
       if(skipDequeue == 1) {
-	//Next loop should start dequeuing again if all goes well
+	// Next loop should start dequeuing again if all goes well
 	skipDequeue = 2;
       } else {
         len = 0, num_flows = 0;
         listMutex.lock(__FILE__, __LINE__);
-	      //clear buffer to get rid of garbage bytes
+	// clear buffer to get rid of garbage bytes
         memset(&postbuf[0],0,sizeof(postbuf));
         postbuf[0] = '\0';
 
         for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
           struct string_list *prev;
   	  if(!(tail && tail->str)) {
-            //No events in queue
+            // No events in queue
 	    break;
 	  }
           prev = tail->prev;
@@ -271,17 +271,16 @@ void Logstash::sendLSdata() {
 	continue;
       }
 
-
-      //try to send data
+      // try to send data
       if(skipDequeue == 1 || skipDequeue == 2) {
-        //Continue with the leftover data
+        // Continue with the leftover data
       } else {
         sent = 0;
         sentLength = len;
       }
 
       if(sendTCP) {
-	//TCP
+	// TCP
         while(sentLength > 0) {
           retval = send(sockfd,postbuf+sent,sentLength,0);
 	  if(retval <= 0 ) {
@@ -296,31 +295,31 @@ void Logstash::sendLSdata() {
         }
       }
       else{
-        //UDP
+        // UDP
         retval = sendto(sockfd, postbuf, sizeof(postbuf), 0,
-                   (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+			(struct sockaddr *)&serv_addr, sizeof(serv_addr));
 	if(retval <= 0) {
 	  skipDequeue = 1;
 	  break;
 	}
       }
       if(skipDequeue == 1) {
-	//Sending most likely failed.
+	// Sending most likely failed.
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] Sending failed. Scheduling retry..");
 	sleep(1);
 	continue;
       }
 
-      //If all steps succeded, increment exported flows
+      // If all steps succeded, increment exported flows
       elkExportedFlows += num_flows;
-      //Reset dequeue flag
+      // Reset dequeue flag
       skipDequeue = 0;
     } else {
       sleep(1);
     }
   } /* while */
 
-  close(sockfd);
+  closesocket(sockfd);
 }
 
 #endif

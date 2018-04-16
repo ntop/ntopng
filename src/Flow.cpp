@@ -228,7 +228,9 @@ void Flow::dumpFlowAlert() {
       break;
 
     case status_flow_when_interface_alerted /* 8 */:
+#if 0
       do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
+#endif
       break;
 
     case status_ssl_certificate_mismatch: /* 10 */
@@ -673,6 +675,10 @@ char* Flow::print(char *buf, u_int buf_len) {
     if((tcp_stats_s2d.pktRetr+tcp_stats_d2s.pktRetr) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Retr=%u/%u]",
 		      tcp_stats_s2d.pktRetr, tcp_stats_d2s.pktRetr);
+
+    if((tcp_stats_s2d.pktKeepAlive+tcp_stats_d2s.pktKeepAlive) > 0)
+      len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[KeepAlive=%u/%u]",
+		      tcp_stats_s2d.pktKeepAlive, tcp_stats_d2s.pktKeepAlive);
   }
 
   snprintf(buf, buf_len,
@@ -1535,9 +1541,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 				(tcp_stats_s2d.pktRetr
 				 | tcp_stats_s2d.pktOOO
 				 | tcp_stats_s2d.pktLost
+				 | tcp_stats_s2d.pktKeepAlive
 				 | tcp_stats_d2s.pktRetr
 				 | tcp_stats_d2s.pktOOO
-				 | tcp_stats_d2s.pktLost) ? true : false);
+				 | tcp_stats_d2s.pktLost
+				 | tcp_stats_d2s.pktKeepAlive) ? true : false);
 
       lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
       lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
@@ -1548,9 +1556,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_int_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);
       lua_push_int_table_entry(vm, "cli2srv.out_of_order", tcp_stats_s2d.pktOOO);
       lua_push_int_table_entry(vm, "cli2srv.lost", tcp_stats_s2d.pktLost);
+      lua_push_int_table_entry(vm, "cli2srv.keep_alive", tcp_stats_s2d.pktKeepAlive);
       lua_push_int_table_entry(vm, "srv2cli.retransmissions", tcp_stats_d2s.pktRetr);
       lua_push_int_table_entry(vm, "srv2cli.out_of_order", tcp_stats_d2s.pktOOO);
       lua_push_int_table_entry(vm, "srv2cli.lost", tcp_stats_d2s.pktLost);
+      lua_push_int_table_entry(vm, "srv2cli.keep_alive", tcp_stats_d2s.pktKeepAlive);
 
       lua_push_int_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
       lua_push_int_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
@@ -2335,27 +2345,35 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
   next_seq_num = getNextTcpSeq(flags, seq_num, payload_Len);
 
-  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][ack: %u]", seq_num, ack_seq_num);
+  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][next: %u][next - act (in flight): %d][ack: %u]",
+					 seq_num, next_seq_num,
+					 next_seq_num - seq_num,
+					 ack_seq_num);
 
   if(src2dst_direction) {
-    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[last: %u][next: %u]", tcp_stats_s2d.last, tcp_stats_s2d.next);
+    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst][last: %u][next: %u]", tcp_stats_s2d.last, tcp_stats_s2d.next);
 
     if(window > 0) srv2cli_window = window; /* Note the window is reverted */
     if(tcp_stats_s2d.next > 0) {
-      if((tcp_stats_s2d.next != seq_num)
-	 && (tcp_stats_s2d.next != (seq_num-1))) {
-	if(tcp_stats_s2d.last == seq_num) {
+      if((tcp_stats_s2d.next != seq_num) /* If equal, seq_num is the expected seq_num as determined with prev. segment */
+	 && (tcp_stats_s2d.next != (seq_num - 1))) {
+	if((seq_num == tcp_stats_s2d.next - 1)
+	   && (payload_Len == 0 || payload_Len == 1)
+	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
+	  tcp_stats_s2d.pktKeepAlive++, cli_host->incKeepAlivePkts(1);
+	} else if(tcp_stats_s2d.last == seq_num) {
 	  tcp_stats_s2d.pktRetr++, cli_host->incRetransmittedPkts(1), iface->incRetransmittedPkts(1);
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet retransmission");
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
 	} else if((tcp_stats_s2d.last > seq_num)
 		  && (seq_num < tcp_stats_s2d.next)) {
 	  tcp_stats_s2d.pktLost++, cli_host->incLostPkts(1), iface->incLostPkts(1);
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet lost [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet lost [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
 	} else {
 	  tcp_stats_s2d.pktOOO++, cli_host->incOOOPkts(1), iface->incOOOPkts(1);
 
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_s2d.last) ? true : false;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet OOO [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet OOO [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
 	}
       }
     }
@@ -2363,25 +2381,30 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
     tcp_stats_s2d.next = next_seq_num;
     if(update_last_seqnum) tcp_stats_s2d.last = seq_num;
   } else {
-    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
+    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src][last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
 
     if(window > 0) cli2srv_window = window; /* Note the window is reverted */
     if(tcp_stats_d2s.next > 0) {
       if((tcp_stats_d2s.next != seq_num)
 	 && (tcp_stats_d2s.next != (seq_num-1))) {
-	if(tcp_stats_d2s.last == seq_num) {
+	if((seq_num == tcp_stats_d2s.next - 1)
+	   && (payload_Len == 0 || payload_Len == 1)
+	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
+	  tcp_stats_d2s.pktKeepAlive++, srv_host->incKeepAlivePkts(1);
+	} else if(tcp_stats_d2s.last == seq_num) {
 	  tcp_stats_d2s.pktRetr++, srv_host->incRetransmittedPkts(1), iface->incRetransmittedPkts(1);
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet retransmission");
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
 	  // bytes
 	} else if((tcp_stats_d2s.last > seq_num)
 		  && (seq_num < tcp_stats_d2s.next)) {
 	  tcp_stats_d2s.pktLost++, srv_host->incLostPkts(1), iface->incLostPkts(1);
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet lost [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet lost [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
 	} else {
 	  tcp_stats_d2s.pktOOO++, srv_host->incOOOPkts(1), iface->incOOOPkts(1);
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_d2s.last) ? true : false;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet OOO [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] [last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet OOO [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
 	}
       }
     }
@@ -2620,7 +2643,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 /* *************************************** */
 
 void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
-  u_int16_t answers, i;
+  u_int16_t answers, i = 0;
 
   PACK_ON
     struct mdns_rsp_entry {
@@ -2642,7 +2665,12 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     char name[256];
     struct mdns_rsp_entry rsp;
     u_int j;
-
+    u_int16_t rsp_type, data_len;
+    bool device_info = false;
+    DeviceType dtype = device_unknown;
+    
+    memset(name, 0, sizeof(name));
+    
     for(j=0; (i < payload_len) && (j < (sizeof(name)-1)); i++) {
       if(payload[i] == 0x0) {
 	i++;
@@ -2658,43 +2686,28 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	break;
       } else if(payload[i] == 0xC0) {
 	u_int8_t offset;
-	u_int16_t i_save = 0;
+	u_int16_t i_save = i;
 
       nested_dns_definition:
 	offset = payload[i+1] - 12;
-
-	if(offset > payload_len)
+	i = offset;
+	
+	if((offset > i)|| (i > payload_len))
 	  return; /* Invalid packet */
 	else {
-	  /* Pointer back */
-          memset(name, 0, sizeof(name));
-	  
-	  while((offset < payload_len)
-		&& (offset < 255)
-		&& (payload[offset] != 0)
+	  /* Pointer back */  
+	  while((i < payload_len)
+		&& (payload[i] != 0)
 		&& (j < (sizeof(name)-1))) {
-	    if(payload[offset] == 0)
+	    if(payload[i] == 0)
 	      break;
-	    else if(payload[offset] == 0xC0) {
-	      /* Handle recursive pointers in names.
-	       * 2 levels of indirection are currently supported. */
-	      if((i != i_save) && (i_save == 0)) {
-		i_save = i;
-		i = offset;
-		goto nested_dns_definition;
-	      } else {
-		char buf[256];
-
-		print(buf, sizeof(buf));
-		ntop->getTrace()->traceEvent(TRACE_WARNING,
-					     "MDNS Loop detected [offset=%u][i=%u][%s]", offset, i, buf);
-	      }
-	      break;
-	    } else if(payload[offset] < 32) {
+	    else if(payload[i] == 0xC0) {
+	      goto nested_dns_definition;
+	    } else if(payload[i] < 32) {
 	      if(j > 0)	name[j++] = '.';
-	      offset++;
+	      i++;
 	    } else
-	      name[j++] = payload[offset++];
+	      name[j++] = payload[i++];
 	  }
 
 	  if(i_save > 0) {
@@ -2703,64 +2716,155 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  }
 
 	  i += 2;
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", offset, &payload[offset-12]);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]);
 	  break;
 	}
       } else
 	name[j++] = payload[i];
     }
 
-    name[j++] = '\0';
     memcpy(&rsp, &payload[i], sizeof(rsp));
+    data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
-    i += sizeof(rsp) + ntohs(rsp.data_len);
-
-    switch(ntohs(rsp.rsp_type)) {
+#ifdef DEBUG_DISCOVERY
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s]", ntohs(rsp.rsp_type) & 0xFFFF, name);
+#endif
+    
+    if(strstr(name, "._device-info._"))
+      device_info = true;
+    else if(strstr(name, "._airplay._") || strstr(name, "._spotify-connect._") )
+      dtype = device_multimedia;
+    else if(strstr(name, "_ssh._"))
+      dtype = device_workstation;
+    else if(strstr(name, "._daap._")
+	    || strstr(name, "_afpovertcp._")
+	    || strstr(name, "_adisk._")
+	    || strstr(name, "_smb._")
+      )
+      dtype = device_nas;
+    else if(strstr(name, "_hap._"))
+      dtype = device_iot;
+    else if(strstr(name, "_pdl-datastream._"))
+      dtype = device_printer;
+    
+    if((dtype != device_unknown) && cli_host && cli_host->getMac()) {
+      Mac *m = cli_host->getMac();
+      
+      if(m->getDeviceType() == device_unknown)
+	m->setDeviceType(dtype);
+    }
+  
+    switch(rsp_type) {
     case 0x1C: /* AAAA */
     case 0x01: /* AA */
+    case 0x10: /* TXT */
       {
 	int len = strlen(name);
-
-	if((len > 6)
-	   && (strcmp(&name[len-6], ".local") == 0))
+	char *c;
+	
+	if((len > 6) && (strcmp(&name[len-6], ".local") == 0))
 	  name[len-6] = 0;
+
+	c = strstr(name, "._");
+	if(c && (c != name) /* Does not begin with... */)
+	  c[0] = '\0';
       }
 
       if(cli_host) cli_host->setName(name);
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, ntohs(rsp.rsp_type), name);
-      return; /* It's enough to decode the first name */
+      if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
+	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
+	u_int16_t off = 0;
+
+	while(off < data_len) {
+	  u_int8_t txt_len = (u_int8_t)txt[off];
+
+	  if(txt_len < data_len) {
+	    txt_len = min_val(data_len-off, txt_len);
+
+	    off++;
+
+	    if(txt_len > 0) {
+	      char *model = NULL;
+	      
+	      strncpy(txt_buf, &txt[off], txt_len);
+	      txt_buf[txt_len] = '\0';
+	      off += txt_len;
+
+#ifdef DEBUG_DISCOVERY
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [TXT][%s]", txt_buf);
+#endif
+	      
+	      if(strncmp(txt_buf, "am=", 3 /* Apple Model */) == 0) model = &txt_buf[3];
+	      else if(strncmp(txt_buf, "model=", 6) == 0)           model = &txt_buf[6];
+	      else if(strncmp(txt_buf, "md=", 3) == 0)              model = &txt_buf[3];
+
+	      if(model && cli_host) {
+		Mac *mac = cli_host->getMac();
+
+		if(mac) {
+		  if(device_info) {
+		    /* Overrite only if model is empty */
+		    if(mac->getModel() == NULL)
+		      mac->setModel((char*)model);
+		  } else
+		    mac->setModel((char*)model);
+		}
+	      }
+
+	      if(strncmp(txt_buf, "nm=", 3) == 0) {
+		if(cli_host) cli_host->setName(&txt_buf[3]);
+	      }
+
+	      if(strncmp(txt_buf, "ssid=", 3) == 0) {
+		if(cli_host && cli_host->getMac())
+		  cli_host->getMac()->setSSID(&txt_buf[5]);
+	      }
+	    }
+	  }
+	}
+      }
+
+#ifdef DEBUG_DISCOVERY
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %u [%s]", answers, rsp_type, name);
+#endif
+      //return; /* It's enough to decode the first name */
     }
 
-    answers--;
+    i += sizeof(rsp) + data_len, answers--;
   }
 }
 
 /* *************************************** */
 
 void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
+  char url[512];
+  u_int i = 0;
+
   if(payload_len < 6 /* NOTIFY */) return;
 
   if(strncmp(payload, "NOTIFY", 6) == 0) {
-    char *location = strstr(payload, "Location:");
+    payload += 6, payload_len -= 6;
 
-    if(location) {
-      char url[512];
-      u_int i = 0;
+    for(; 0 < payload_len - 9 /* strlen("Location:") */; payload++, payload_len--) {
+      if(strncasecmp(payload, "Location:", 9)) {
+	continue;
+      } else {
+	payload += 9, payload_len -= 9;
 
-      location = &location[9];
-      if(location[0] == ' ') location++;
+	for(; (payload_len > 0)
+	      && (payload[0] != '\n')
+	      && (payload[0] != '\r'); payload++, payload_len--) {
+	  if(*payload == ' ')       continue;
+	  if(i == sizeof(url) - 1)  break;	
+	  url[i++] = *payload;
+	}
 
-      while((location[i] != '\r')
-	    && (location[i] != '\n')
-	    && (i < sizeof(url))
-	    ) {
-	url[i] = location[i];
-	i++;
+	url[i] = '\0';
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
+	if(cli_host) cli_host->setSSDPLocation(url);
+	break;
       }
-
-      url[i] = '\0';
-      cli_host->setSSDPLocation(url);
     }
   }
 }
@@ -3151,12 +3255,16 @@ FlowStatus Flow::getFlowStatus() {
 #ifndef HAVE_NEDGE
   if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
      && ! cli_host->get_ip()->isBroadcastAddress()
-     && ! srv_host->get_ip()->isBroadcastAddress())
+     && ! srv_host->get_ip()->isBroadcastAddress()
+     && ! cli_host->get_ip()->isMulticastAddress()
+     && ! srv_host->get_ip()->isMulticastAddress())
     return status_remote_to_remote;
 #endif
 
+#if 0
   if(iface->getAlertLevel() > 0)
    return(status_flow_when_interface_alerted);
+#endif
 
   return status_normal;
 }

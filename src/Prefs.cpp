@@ -46,7 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_remote_to_remote_alerts = true,
   enable_dropped_flows_alerts = true,
   enable_syslog_alerts = false, enable_captive_portal = false,
-  slack_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
+  external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
   override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
   hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
@@ -103,7 +103,6 @@ Prefs::Prefs(Ntop *_ntop) {
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
-  redirection_url = redirection_url_shadow = NULL;
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   ls_host = NULL;
@@ -159,8 +158,6 @@ Prefs::~Prefs() {
   if(https_binding_address) free(https_binding_address);
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
-  if(redirection_url)        free(redirection_url);
-  if(redirection_url_shadow) free(redirection_url_shadow);
 }
 
 /* ******************************************* */
@@ -245,7 +242,7 @@ void usage() {
 	 "                                    | A password can be specified after\n"
 	 "                                    | the port when Redis auth is required.\n"
 	 "                                    | By default password auth is disabled.\n"
-#ifdef linux
+#ifdef __linux__
 	 "                                    | On unix <fmt> can also be the redis socket file path.\n"
 	 "                                    | Port is ignored for socket-based connections.\n"
 #endif
@@ -254,7 +251,7 @@ void usage() {
 	 "                                    | -r 129.168.1.3\n"
 	 "                                    | -r 129.168.1.3:6379@3\n"
 	 "                                    | -r 129.168.1.3:6379:nt0pngPwD@0\n"
-#ifdef linux
+#ifdef __linux__
 	 "                                    | -r /var/run/redis/redis.sock\n"
 	 "                                    | -r /var/run/redis/redis.sock@2\n"
 	 "[--core-affinity|-g] <cpu core ids> | Bind the capture/processing threads to\n"
@@ -508,7 +505,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_dropped_flows_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS,
 							       CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
-    slack_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_SLACK_NOTIFICATIONS_ENABLED, false),
+    external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
@@ -552,18 +549,13 @@ void Prefs::reloadPrefsFromRedis() {
     free(aux);
   }
 
-  if(redirection_url_shadow) free(redirection_url_shadow);
-  redirection_url_shadow = redirection_url;
-#ifndef HAVE_NEDGE
-  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, DEFAULT_REDIRECTION_URL);
-#else
-  getDefaultStringPrefsValue(CONST_PREFS_REDIRECTION_URL, &redirection_url, "");
-#endif
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, true);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
+#ifdef HAVE_NEDGE
   refreshLanWanInterfaces();
+#endif
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
@@ -589,7 +581,6 @@ void Prefs::reloadPrefsFromRedis() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[mac_ndpi_stats: %u]",
 			       enable_mac_ndpi_stats ? 1 : 0);
 #endif
-
 }
 
 /* ******************************************* */
@@ -867,10 +858,14 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'i':
-    if(num_deferred_interfaces_to_register < MAX_NUM_INTERFACES)
+    if(strlen(optarg) > MAX_INTERFACE_NAME_LEN - 1)
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Interface name too long (exceeding %d characters): ignored %s",
+				   MAX_INTERFACE_NAME_LEN - 1, optarg);
+    else if(num_deferred_interfaces_to_register < MAX_NUM_INTERFACES)
       deferred_interfaces_to_register[num_deferred_interfaces_to_register++] = strdup(optarg);
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many interfaces specified with -i: ignored %s", optarg);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified with -i: ignored %s", optarg);
     break;
 
   case 'w':
@@ -1408,7 +1403,7 @@ void Prefs::add_default_interfaces() {
 /* *************************************** */
 
 void Prefs::lua(lua_State* vm) {
-  char buf[32], *red_url;
+  char buf[32];
 #ifdef NTOPNG_PRO
   char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
@@ -1492,7 +1487,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
-  lua_push_bool_table_entry(vm, "slack_enabled", slack_notifications_enabled);
 
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
@@ -1507,9 +1501,6 @@ void Prefs::lua(lua_State* vm) {
 			   global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
 
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
-
-  if((red_url = redirection_url))
-    lua_push_str_table_entry(vm, "redirection_url", red_url);
 
   lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 }
@@ -1545,7 +1536,7 @@ void Prefs::refreshHostsAlertsPrefs() {
 }
 
 /* *************************************** */
-
+#ifdef HAVE_NEDGE
 void Prefs::refreshLanWanInterfaces() {
   char rsp[32];
 
@@ -1564,7 +1555,7 @@ void Prefs::refreshLanWanInterfaces() {
   else
     wan_interface = NULL;
 }
-
+#endif
 /* *************************************** */
 
 void Prefs::registerNetworkInterfaces() {

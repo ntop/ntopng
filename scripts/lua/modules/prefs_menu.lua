@@ -7,7 +7,7 @@ local info = ntop.getInfo(false)
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
-  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true, nedge_hidden=true, disabled=false, entries={
+  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true, nedge_hidden=true, hidden=false, entries={
     multiple_ldap_authentication = {
       title       = i18n("prefs.multiple_ldap_authentication_title"),
       description = i18n("prefs.multiple_ldap_authentication_description"),
@@ -36,10 +36,13 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_ldap_anonymous_bind_title"),
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
     },
-  }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  disabled=false, nedge_hidden=true, entries={
+  }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
     dynamic_interfaces_creation = {
       title       = i18n("prefs.dynamic_interfaces_creation_title"),
       description = i18n("prefs.dynamic_interfaces_creation_description"),
+    }, ignored_interfaces = {
+      title       = i18n("prefs.ignored_interfaces_title"),
+      description = i18n("prefs.ignored_interfaces_description"),
     }, toggle_src_with_post_nat_src = {
       title       = i18n("prefs.toggle_src_with_post_nat_src_title"),
       description = i18n("prefs.toggle_src_with_post_nat_src_description"),
@@ -47,7 +50,7 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_dst_with_post_nat_dst_title"),
       description = i18n("prefs.toggle_dst_with_post_nat_dst_description"),
     },
-  }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  disabled=false, entries={
+  }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  hidden=false, entries={
     local_host_max_idle = {
       title       = i18n("prefs.local_host_max_idle_title"),
       description = i18n("prefs.local_host_max_idle_description"),
@@ -73,7 +76,7 @@ local menu_subpages = {
       title       = i18n("prefs.local_host_cache_duration_title"),
       description = i18n("prefs.local_host_cache_duration_description"),
     },
-  }}, {id="on_disk_ts",    label=i18n("prefs.timeseries"),       advanced=false, pro_only=false,  disabled=false, entries={
+  }}, {id="on_disk_ts",    label=i18n("prefs.timeseries"),       advanced=false, pro_only=false,  hidden=false, entries={
     toggle_interface_traffic_rrd_creation = {
       title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
       description = i18n("prefs.toggle_traffic_rrd_creation_description"),
@@ -118,10 +121,13 @@ local menu_subpages = {
       description = i18n("prefs.mysql_retention_description"),
       hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
     }
-  }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true), entries={
+  }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
       description = i18n("prefs.disable_alerts_generation_description"),
+    }, toggle_alert_syslog = {
+      title       = i18n("prefs.toggle_alert_syslog_title"),
+      description = i18n("prefs.toggle_alert_syslog_description"),
     }, toggle_flow_alerts_iface = {
       title       = i18n("prefs.toggle_flow_alerts_iface_title"),
       description = i18n("prefs.toggle_flow_alerts_iface_description"),
@@ -171,11 +177,28 @@ local menu_subpages = {
       hidden      = not ntop.isPro(),
     }
     
-  }}, {id="ext_alerts",    label=i18n("prefs.external_alerts"), advanced=false, pro_only=false,  disabled=hasAlertsDisabled(), entries={
-    toggle_alert_syslog = {
-      title       = i18n("prefs.toggle_alert_syslog_title"),
-      description = i18n("prefs.toggle_alert_syslog_description"),
-    }, toggle_slack_notification = {
+  }}, {id="ext_alerts",    label=i18n("prefs.alerts_notifications"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false, entries={
+    toggle_external_alerts = {
+      title       = i18n("prefs.toggle_alerts_notifications_title"),
+      description = i18n("prefs.toggle_alerts_notifications_description"),
+    },
+    toggle_email_notification = {
+      title       = i18n("prefs.toggle_email_notification_title"),
+      description = i18n("prefs.toggle_email_notification_description"),
+    },
+    email_notification_sender = {
+      title       = i18n("prefs.email_notification_sender_title"),
+      description = i18n("prefs.email_notification_sender_description"),
+    },
+    email_notification_recipient = {
+      title       = i18n("prefs.email_notification_recipient_title"),
+      description = i18n("prefs.email_notification_recipient_description"),
+    },
+    email_notification_server = {
+      title       = i18n("prefs.email_notification_server_title"),
+      description = i18n("prefs.email_notification_server_description"),
+    },
+    toggle_slack_notification = {
       title       = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"}),
       description = i18n("prefs.toggle_slack_notification_description", {url="https://github.com/ntop/ntopng/blob/dev/doc/README.slack"}),
     }, slack_notification_severity_preference = {
@@ -188,7 +211,7 @@ local menu_subpages = {
       title       = i18n("prefs.slack_webhook_title"),
       description = i18n("prefs.slack_webhook_description"),
     },
-  }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  disabled=false, entries={
+  }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
       description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"})},
@@ -196,7 +219,7 @@ local menu_subpages = {
       title       = i18n("prefs.ewma_alpha_percent_title"),
       description = i18n("prefs.ewma_alpha_percent_description"),
     },
-  }}, {id="logging",       label=i18n("prefs.logging"),              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true), entries={
+  }}, {id="logging",       label=i18n("prefs.logging"),              advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_trace_lvl == true), entries={
     toggle_logging_level = {
       title       = i18n("prefs.toggle_logging_level_title"),
       description = i18n("prefs.toggle_logging_level_description"),
@@ -204,7 +227,7 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_access_log_title"),
       description = i18n("prefs.toggle_access_log_description", {product=info["product"]}),
     },
-  }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  disabled=(prefs.is_dump_flows_enabled == false), entries={
+  }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(prefs.is_dump_flows_enabled == false), entries={
     toggle_flow_db_dump_export = {
       title       = i18n("prefs.toggle_flow_db_dump_export_title"),
       description = i18n("prefs.toggle_flow_db_dump_export_description"),
@@ -215,7 +238,7 @@ local menu_subpages = {
       title       = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
       description = i18n("prefs.max_num_bytes_per_tiny_flow_description"),
     },
-  }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   disabled=false, entries={
+  }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
     toggle_snmp_rrds = {
       title       = i18n("prefs.toggle_snmp_rrds_title"),
       description = i18n("prefs.toggle_snmp_rrds_description"),
@@ -226,7 +249,7 @@ local menu_subpages = {
        title       = i18n("prefs.default_snmp_proto_version_title"),
        description = i18n("prefs.default_snmp_proto_version_description"),
     },
-  }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,  nedge_hidden=true, disabled=false, entries={
+  }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,  nedge_hidden=true, hidden=false, entries={
     toggle_nbox_integration = {
       title       = i18n("prefs.toggle_nbox_integration_title"),
       description = i18n("prefs.toggle_nbox_integration_description"),
@@ -237,7 +260,7 @@ local menu_subpages = {
       title       = i18n("prefs.nbox_password_title"),
       description = i18n("prefs.nbox_password_description"),
     },
-  }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   disabled=false, entries={
+  }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   hidden=false, entries={
     toggle_network_discovery = {
       title       = i18n("prefs.toggle_network_discovery_title"),
       description = i18n("prefs.toggle_network_discovery_description"),
@@ -245,7 +268,7 @@ local menu_subpages = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
     },
-  }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  disabled=false, entries={
+  }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),
       description = i18n("prefs.toggle_autologout_description"),
@@ -265,7 +288,7 @@ local menu_subpages = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
     },
-  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, disabled=(not hasBridgeInterfaces()), nedge_hidden=true, entries={
+  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, hidden=(not hasBridgeInterfaces()), nedge_hidden=true, entries={
     safe_search_dns = {
       title       = i18n("prefs.safe_search_dns_title"),
       description = i18n("prefs.safe_search_dns_description", {url="https://en.wikipedia.org/wiki/SafeSearch"}),
@@ -302,7 +325,7 @@ if hasNagiosSupport() then
 	 local nagios = {
 	    toggle_alert_nagios = {
 	       title       = i18n("prefs.toggle_alert_nagios_title"),
-	       description = i18n("prefs.toggle_alert_nagios_description", {product=info["product"]}),
+	       description = i18n("prefs.toggle_alert_nagios_description"),
 	    }, nagios_nsca_host = {
 	       title       = i18n("prefs.nagios_nsca_host_title"),
 	       description = i18n("prefs.nagios_nsca_host_description"),

@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
+require "alert_utils"
 local template = require "template_utils"
 local callback_utils = require "callback_utils"
 local have_nedge = ntop.isnEdge()
@@ -20,11 +21,35 @@ sendHTTPContentTypeHeader('text/html')
 
 local show_advanced_prefs = false
 local alerts_disabled = false
+local message_info = ""
+local message_severity = "alert-warning"
 
 if(haveAdminPrivileges()) then
+   if(_POST["email_sender"] ~= nil) then
+    _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
+   end
+   if(_POST["email_recipient"] ~= nil) then
+    _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
+   end
+
    if(_POST["flush_alerts_data"] ~= nil) then
     require "alert_utils"
     flushAlertsData()
+   elseif(_POST["disable_alerts_generation"] == "1") then
+    require "alert_utils"
+    disableAlertsGeneration()
+   elseif(_POST["send_test_email"] ~= nil) then
+    local email_utils = require("email")
+
+    local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
+
+    if success then
+      message_info = i18n("prefs.email_sent_successfully")
+      message_severity = "alert-success"
+    else
+      message_info = i18n("prefs.email_send_error", {product=product})
+      message_severity = "alert-danger"
+    end
    end
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -33,6 +58,13 @@ if(haveAdminPrivileges()) then
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    prefs = ntop.getPrefs()
+
+if not isEmptyString(message_info) then
+  print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
+  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+  print(message_info)
+  print[[</div>]]
+end
 
    print [[
 	    <h2>Runtime Preferences</h2>
@@ -73,27 +105,40 @@ function printInterfaces()
   local labels = {i18n("prefs.none"),
 		  i18n("prefs.vlan"),
 		  i18n("prefs.probe_ip_address"),
+		  i18n("prefs.flow_interface"),
 		  i18n("prefs.ingress_flow_interface"),
 		  i18n("prefs.ingress_vrf_id")}
   local values = {"none",
 		  "vlan",
 		  "probe_ip",
+		  "iface_idx",
 		  "ingress_iface_idx",
 		  "ingress_vrf_id"}
 
   local elementToSwitch = {}
   local showElementArray = { true, false, false }
   local javascriptAfterSwitch = "";
+  local cur_mode_key = "ntopng.prefs.dynamic_flow_collection_mode"
+  local cur_mode = ntop.getPref(cur_mode_key)
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
-				    subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
-				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
-				    "<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li></ul>",
-				    labels, values, "none", "primary", "disaggregation_criterion", "ntopng.prefs.dynamic_flow_collection_mode", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+  prefsDropdownFieldPrefs(subpage_active.entries["dynamic_interfaces_creation"].title,
+			  subpage_active.entries["dynamic_interfaces_creation"].description.."<p><b>"..i18n("notes").."</b><ul>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
+			     "<li>"..i18n("prefs.dynamic_interfaces_creation_note_3").."</li></ul>",
+			  "disaggregation_criterion", labels,
+  			  ternary(not isEmptyString(cur_mode), cur_mode, "none"), true,
+			  {keys=values, save_pref=true, pref_key=cur_mode_key})
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.zmq_interfaces")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["ignored_interfaces"].title,
+		       subpage_active.entries["ignored_interfaces"].description,
+		       "ntopng.prefs.",
+		       "ignored_interfaces",
+		       "",
+		       false, nil, nil, nil,  {attributes={spellcheck="false", pattern="^([0-9]+,)*[0-9]+$", maxlength=32}})
 
   prefsToggleButton({
 	field = "toggle_dst_with_post_nat_dst",
@@ -144,7 +189,7 @@ function printAlerts()
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
-  "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert"}
+  "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert"}
 
   if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
     elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
@@ -165,11 +210,19 @@ function printAlerts()
   end
 
   prefsToggleButton({
+    field = "toggle_alert_syslog",
+    pref = "alerts_syslog",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  --[[
+  prefsToggleButton({
     field = "toggle_flow_alerts_iface",
     default = "0",
     pref = "alerts.dump_alerts_when_iface_is_alerted",
     hidden = not showElements,
-  })
+  })]]
 
   prefsToggleButton({
     field = "toggle_mysql_check_open_files_limit",
@@ -310,84 +363,172 @@ end
 function printExternalAlertsReport()
   if alerts_disabled then return end
 
-  print('<form method="post">')
+  print('<form method="post" id="external_alerts_form">')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.internal_log")..'</th></tr>')
 
   local showElements = true
 
-  prefsToggleButton({
-    field = "toggle_alert_syslog",
-    pref = "alerts_syslog",
-    default = "0"
-  })
+  local alert_sev_labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
+  local alert_sev_values = {"error", "warning", "info"}
 
-   print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
-
-   local elementToSwitchSlack = {"row_slack_notification_severity_preference", "sender_username", "slack_webhook"}
+  print('<tr><th colspan="2" class="info">'..i18n("prefs.alerts_notifications")..'</th></tr>')
 
   prefsToggleButton({
-    field = "toggle_slack_notification",
-    pref = "alerts.slack_notifications_enabled",
+    field = "toggle_external_alerts",
+    pref = "alerts.external_notifications_enabled",
     default = "0",
-    disabled = showElements==false,
-    to_switch = elementToSwitchSlack,
+    hidden = not showElements,
   })
 
-  local showSlackNotificationPrefs = false
-  if ntop.getPref("ntopng.prefs.alerts.slack_notifications_enabled") == "1" then
-     showSlackNotificationPrefs = true
-  else
-     showSlackNotificationPrefs = false
-  end
+  local external_alerts_enabled = ntop.getPref("ntopng.prefs.alerts.external_notifications_enabled") == "1"
 
-  local labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
-  local values = {"only_errors","errors_and_warnings","all_alerts"}
+  if external_alerts_enabled then
 
-  local retVal = multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
-               labels, values, "only_errors", "primary", "slack_notification_severity_preference",
-	       "ntopng.prefs.alerts.slack_alert_severity", nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
+     if ntop.sendMail then -- only if sendmail is defined, and thus, supported
+	print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
+	
+	local elementToSwitch = {"row_email_notification_severity_preference", "email_sender", "email_recipient", "smtp_server", "alerts_test"}
 
-  prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
-           "ntopng.prefs.alerts.", "sender_username",
-		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+	prefsToggleButton({
+	      field = "toggle_email_notification",
+	      pref = getAlertNotificationModuleEnableKey("email", true),
+	      default = "0",
+	      disabled = (showElements==false),
+	      to_switch = elementToSwitch,
+	})
 
-  prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
-		       "ntopng.prefs.alerts.", "slack_webhook",
-		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
+	local showEmailNotificationPrefs = false
+	if ntop.getPref(getAlertNotificationModuleEnableKey("email")) == "1" then
+	   showEmailNotificationPrefs = true
+	else
+	   showEmailNotificationPrefs = false
+	end
 
-  if(ntop.isPro() and hasNagiosSupport()) then
-    print('<tr><th colspan="2" class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
+	multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+				 alert_sev_labels, alert_sev_values, "error", "primary", "email_notification_severity_preference",
+				 getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
 
-    local alertsEnabled = showElements
+  local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}>?$]]
 
-    local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable","nagios_send_nsca_config","nagios_host_name","nagios_service_name"}
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
+			     "ntopng.prefs.alerts.", "smtp_server",
+			     "", nil, showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true, pattern="^(smtp://)?[a-zA-Z0-9-.]*(:[0-9]+)?$"})
+
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_sender"].title, subpage_active.entries["email_notification_sender"].description,
+			     "ntopng.prefs.alerts.", "email_sender",
+			     "", nil, showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, pattern=email_peer_pattern, required=true})
+
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_recipient"].title, subpage_active.entries["email_notification_recipient"].description,
+			     "ntopng.prefs.alerts.", "email_recipient",
+			     "", nil, showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, pattern=email_peer_pattern, required=true})
+
+  print('<tr id="alerts_test" style="' .. ternary(showEmailNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestEmail();" style="width:230px; float:left;">'..i18n("prefs.send_test_mail")..'</button></td></tr>')
+     end -- ntop.sendMail
+
+     print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
+
+     local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook"}
 
     prefsToggleButton({
-      field = "toggle_alert_nagios",
-      pref = "alerts_nagios",
+      field = "toggle_slack_notification",
+      pref = getAlertNotificationModuleEnableKey("slack", true),
       default = "0",
-      disabled = alertsEnabled==false,
-      to_switch = elementToSwitch,
+      disabled = showElements==false,
+      to_switch = elementToSwitchSlack,
     })
 
-    if ntop.getPref("ntopng.prefs.alerts_nagios") == "0" then
-      showElements = false
+    local showSlackNotificationPrefs = false
+    if ntop.getPref(getAlertNotificationModuleEnableKey("slack")) == "1" then
+       showSlackNotificationPrefs = true
+    else
+       showSlackNotificationPrefs = false
     end
-    showElements = alertsEnabled and showElements
 
-    prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
-    prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showElements, false, nil, {min=1, max=65535})
-    prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_executable"].title, subpage_active.entries["nagios_send_nsca_executable"].description, "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements, false)
-    prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_config"].title, subpage_active.entries["nagios_send_nsca_config"].description, "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements, false)
-    prefsInputFieldPrefs(subpage_active.entries["nagios_host_name"].title, subpage_active.entries["nagios_host_name"].description, "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements, false)
-    prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
+    multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+                 alert_sev_labels, alert_sev_values, "error", "primary", "slack_notification_severity_preference",
+           getAlertNotificationModuleSeverityKey("slack"), nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
+
+    prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
+             "ntopng.prefs.alerts.", "slack_sender_username",
+             "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=true})
+
+    prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
+             "ntopng.prefs.alerts.", "slack_webhook",
+             "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
+
+    if(ntop.isPro() and hasNagiosSupport()) then
+      print('<tr><th colspan="2" class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
+
+      local alertsEnabled = showElements
+
+      local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable",
+        "nagios_send_nsca_config","nagios_host_name","nagios_service_name",
+        "row_nagios_notification_severity_preference"}
+
+      prefsToggleButton({
+        field = "toggle_alert_nagios",
+        pref = getAlertNotificationModuleEnableKey("nagios", true),
+        default = "0",
+        disabled = alertsEnabled==false,
+        to_switch = elementToSwitch,
+      })
+
+      if ntop.getPref(getAlertNotificationModuleEnableKey("nagios")) == "0" then
+        showElements = false
+      end
+      showElements = alertsEnabled and showElements
+
+      multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
+                 alert_sev_labels, alert_sev_values, "error", "primary", "nagios_notification_severity_preference",
+           getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showElements, false)
+
+      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showElements, false, nil, {min=1, max=65535})
+      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_executable"].title, subpage_active.entries["nagios_send_nsca_executable"].description, "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_config"].title, subpage_active.entries["nagios_send_nsca_config"].description, "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_host_name"].title, subpage_active.entries["nagios_host_name"].description, "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
+    end
   end
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
+
+  print[[<script>
+    function sendTestEmail() {
+      var params = {};
+
+      params.send_test_email = "";
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+    }
+
+    function replace_email_special_characters(event) {
+      var form = $(this);
+
+      // e.g. when form is invalid
+      if(event.isDefaultPrevented())
+        return;
+
+      // this is necessary to escape "<" and ">" which are blocked on the backend to prevent injection
+      $("[name='email_sender'],[name='email_recipient']", form).each(function() {
+        var name = $(this).attr("name");
+        $(this).removeAttr("name");
+
+        $('<input type="hidden" name="' + name + '">')
+          .val(encodeURI($(this).val()))
+          .appendTo(form);
+      });
+    }
+
+    $(function() {
+      $("#external_alerts_form").submit(replace_email_special_characters);
+    });
+  </script>]]
 end
 
 -- ================================================================================
@@ -566,12 +707,12 @@ function printNetworkDiscovery()
    prefsToggleButton({
     field = "toggle_network_discovery",
     default = "0",
-    pref = "is_network_discovery_enabled",
+    pref = "is_periodic_network_discovery_enabled",
     to_switch = elementToSwitch,
   })
 
    local showNetworkDiscoveryInterval = false
-   if ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1" then
+   if ntop.getPref("ntopng.prefs.is_periodic_network_discovery_enabled") == "1" then
       showNetworkDiscoveryInterval = true
    end
 
@@ -1092,7 +1233,7 @@ end
       template.gen("typeahead_input.html", {
         typeahead={
           base_id     = "prefs_search",
-          action      = "/lua/admin/prefs.lua",
+          action      = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua",
           json_key    = "tab",
           query_field = "tab",
           query_url   = ntop.getHttpPrefix() .. "/lua/find_prefs.lua",
@@ -1215,7 +1356,9 @@ print[[
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
    print([[<script>
-aysHandleForm("form");
+aysHandleForm("form", {
+  disable_on_dirty: '.disable-on-dirty',
+});
 
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});

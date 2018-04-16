@@ -35,7 +35,7 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
   redis_host = _redis_host ? strdup(_redis_host) : NULL;
   redis_password = _redis_password ? strdup(_redis_password) : NULL;
   redis_port = _redis_port, redis_db_id = _redis_db_id;
-#ifdef linux
+#ifdef __linux__
   is_socket_connection = false;
 #endif
 
@@ -75,7 +75,7 @@ void Redis::reconnectRedis() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected: reconnecting...");
     redisFree(redis);
   }
-#ifdef linux
+#ifdef __linux__
   struct stat buf;
 
   if(!stat(redis_host, &buf) && S_ISSOCK(buf.st_mode))
@@ -122,7 +122,7 @@ void Redis::reconnectRedis() {
       goto redis_error_handler;
     } else {
       freeReplyObject(reply);
-#ifdef linux
+#ifdef __linux__
       if(!is_socket_connection)
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Successfully connected to redis %s:%u@%u",
@@ -167,6 +167,7 @@ int Redis::expire(char *key, u_int expire_secs) {
 
 bool Redis::isCacheable(char *key) {
   if((strstr(key, "ntopng.cache."))
+     || (strstr(key, "ntopng.prefs."))
      || (strstr(key, "ntopng.user.") && (!strstr(key, ".password"))))
     return(true);
 
@@ -988,12 +989,13 @@ int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool 
 
 /* Add at the bottom of the queue */
 int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("RPUSH", queue_name, msg, queue_trim_size));
+  return(msg_push("RPUSH", queue_name, msg, queue_trim_size, true, false));
 }
 
 /* ******************************************* */
 
-int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
+int Redis::msg_push(const char *cmd, const char *queue_name, char *msg,
+          u_int queue_trim_size, bool trace_errors, bool head_trim) {
   redisReply *reply;
   int rc = 0;
 
@@ -1013,7 +1015,10 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 
     if(queue_trim_size > 0) {
       num_requests++;
-      reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size - 1);
+      if(head_trim)
+        reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size - 1);
+      else
+        reply = (redisReply*)redisCommand(redis, "LTRIM %s -%u -1", queue_name, queue_trim_size);
       if(!reply) reconnectRedis();
       if(reply) {
 	if(reply->type == REDIS_REPLY_ERROR && trace_errors)
@@ -1212,6 +1217,26 @@ int Redis::lrange(const char *list_name, char ***elements, int start_offset, int
       (*elements)[i] = strdup(reply->element[i]->str);
     }
   }
+
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
+/* **************************************** */
+
+int Redis::ltrim(const char *queue_name, int start_idx, int end_idx) {
+  int rc = 0;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+  num_requests++;
+
+  reply = (redisReply*)redisCommand(redis, "LTRIM %s %d %d", queue_name, start_idx, end_idx);
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    rc = -1, ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);

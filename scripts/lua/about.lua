@@ -119,6 +119,8 @@ if (ndpi_ver ~= nil) then
   end
 end
 
+print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A></th><td>"..info["version.curl"].."</td></tr>\n")
+
 print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
 print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
 print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
