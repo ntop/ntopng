@@ -3843,13 +3843,28 @@ static int ntop_ts_set(lua_State* vm) {
     else
       _div = (char*)"", _key = (char*)"";
 
-    snprintf(buf, sizeof(buf),
-	     "%s,key=%s%s%s,metric=%s sent=%lu,rcvd=%lu %u000000000\n",
-	     ntop_interface->get_name(),
-	     label, _div, _key, metric,
-	     (unsigned long)sent,
-	     (unsigned long)rcvd,
-	     ts);
+    if((sent > 0) && (rcvd > 0))
+      snprintf(buf, sizeof(buf),
+	       "%s,metric=%s%s%s %s.sent=%lu,%s.rcvd=%lu %u000000000\n",
+	       ntop_interface->get_name(),
+	       label, _div, _key,
+	       metric, (unsigned long)sent,
+	       metric, (unsigned long)rcvd,
+	       ts);
+    else if(sent > 0)
+      snprintf(buf, sizeof(buf),
+	       "%s,metric=%s%s%s %s.sent=%lu %u000000000\n",
+	       ntop_interface->get_name(),
+	       label, _div, _key,
+	       metric, (unsigned long)sent,
+	       ts);
+    else if(rcvd > 0)
+      snprintf(buf, sizeof(buf),
+	       "%s,metric=%s%s%s %s.rcvd=%lu %u000000000\n",
+	       ntop_interface->get_name(),
+	       label, _div, _key,
+	       metric, (unsigned long)rcvd,
+	       ts);
 
     ntop_interface->getTSExporter()->exportData(buf);
   }
@@ -5280,7 +5295,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion());
     lua_push_str_table_entry(vm, "version.httpd", (char*)mg_version());
     lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
-	lua_push_str_table_entry(vm, "version.curl", LIBCURL_VERSION);
+    lua_push_str_table_entry(vm, "version.curl", (char*)LIBCURL_VERSION);
     lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
 #ifdef HAVE_GEOIP
     lua_push_str_table_entry(vm, "version.geoip", (char*)GeoIP_lib_version());
