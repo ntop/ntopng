@@ -1225,7 +1225,7 @@ elseif(page == "config") then
       </tr>]]
 
    -- per-interface Network Discovery
-   if interface.isDiscoverableInterface() and (ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1") then
+   if interface.isDiscoverableInterface() then
       local discover = require "discover_utils"
 
       local interface_network_discovery = true

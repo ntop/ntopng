@@ -1,60 +1,46 @@
 --
 -- (C) 2013-18 - ntop.org
 --
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+require "lua_utils"
+local discover_utils = require "discover_utils"
+local callback_utils = require "callback_utils"
 
-local discovery_enabled = (ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1")
+local ifnames = interface.getIfNames()
 
+local periodic_discovery_condition = function(ifId)
+   return discover_utils.interfaceNetworkDiscoveryEnabled(ifId) 
+end
+
+local oneshot_discovery_condition = function(ifId)
+   return discover_utils.networkDiscoveryRequested(ifId)
+end
+
+local discovery_function = function(ifname, ifstats)
+   if interface.isDiscoverableInterface() then
+      traceError(TRACE_ERROR,TRACE_CONSOLE, "[Discover] Started periodic discovery on interface "..ifname)
+
+      local res = discover_utils.discover2table(ifname, true --[[ recache --]])
+
+      traceError(TRACE_ERROR,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
+      discover_utils.clearNetworkDiscovery(ifstats.id)
+   end
+end
+
+-- periodic discovery enabled
+local discovery_enabled = (ntop.getPref("ntopng.prefs.is_periodic_network_discovery_enabled") == "1")
 if discovery_enabled then
-   
-   local dirs = ntop.getDirs()
-   package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
-   require "lua_utils"
-   local callback_utils = require "callback_utils"
-   local discover_utils = require "discover_utils"
-
-
-   local ifnames = interface.getIfNames()
-
-   local requests = false
-   callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-				      if discover_utils.networkDiscoveryRequested(ifstats.id) then
-					 requests = true
-				      end
-   end)
-
-   if requests then
+      local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
+      if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
 
       local now = os.time()
-      local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
-      if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 end
-
       local diff = now % tonumber(discovery_interval)
 
       if diff < 5 then
-	 callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-					    if interface.isDiscoverableInterface() and discover_utils.interfaceNetworkDiscoveryEnabled(ifstats.id) then
-					       local res
-
-					       ntop.traceEvent("[Discover] Started periodic discovery on interface "..ifname.."\n")
-					       res = discover_utils.discover2table(ifname, true --[[ recache --]])
-					       ntop.traceEvent("[Discover] Completed periodic discovery on interface "..ifname.."\n")
-					       discover_utils.clearNetworkDiscovery(ifstats.id)
-					    end
-	 end)
-
-      elseif requests then
-	 callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
-					    if discover_utils.networkDiscoveryRequested(ifstats.id) and interface.isDiscoverableInterface() then
-					       local res
-
-					       ntop.traceEvent("[Discover] Started triggered discovery on interface "..ifname.."\n")
-					       res = discover_utils.discover2table(ifname, true --[[ recache --]])
-					       ntop.traceEvent("[Discover] Completed triggered discovery on interface "..ifname.."\n")
-					       discover_utils.clearNetworkDiscovery(ifstats.id)
-					    end
-
-	 end)
+	 callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
       end
-   end
 end
+
+-- discovery requests performed by the user from the GUI
+callback_utils.foreachInterface(ifnames, oneshot_discovery_condition, discovery_function)

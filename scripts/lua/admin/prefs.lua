@@ -707,12 +707,12 @@ function printNetworkDiscovery()
    prefsToggleButton({
     field = "toggle_network_discovery",
     default = "0",
-    pref = "is_network_discovery_enabled",
+    pref = "is_periodic_network_discovery_enabled",
     to_switch = elementToSwitch,
   })
 
    local showNetworkDiscoveryInterval = false
-   if ntop.getPref("ntopng.prefs.is_network_discovery_enabled") == "1" then
+   if ntop.getPref("ntopng.prefs.is_periodic_network_discovery_enabled") == "1" then
       showNetworkDiscoveryInterval = true
    end
 
