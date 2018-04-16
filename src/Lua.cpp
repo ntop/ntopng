@@ -1665,7 +1665,7 @@ static int ntop_tcp_probe(lua_State* vm) {
       if(rc <= 0)
 	break;
       else {
-	ssize_t l = read(sockfd, &buf[offset], sizeof(buf)-offset-1);
+	int l = read(sockfd, &buf[offset], sizeof(buf)-offset-1);
 	
 	if(l <= 0)
 	  break;

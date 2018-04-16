@@ -2673,7 +2673,7 @@ void Utils::luaMeminfo(lua_State* vm) {
   long unsigned int memtotal = 0, memfree = 0, buffers = 0, cached = 0, sreclaimable = 0, shmem = 0;
   char *line = NULL;
   size_t len;
-  ssize_t read;
+  int read;
   FILE *fp;
 
   if(vm) {

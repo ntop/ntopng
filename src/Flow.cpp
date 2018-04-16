@@ -2849,11 +2849,12 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
     for(; 0 < payload_len - 9 /* strlen("Location:") */; payload++, payload_len--) {
       if(strncasecmp(payload, "Location:", 9)) {
 	continue;
-
       } else {
 	payload += 9, payload_len -= 9;
 
-	for(; 0 < payload_len && *payload != '\n' && *payload != '\r'; payload++, payload_len--) {
+	for(; (payload_len > 0)
+	      && (payload[0] != '\n')
+	      && (payload[0] != '\r'); payload++, payload_len--) {
 	  if(*payload == ' ')       continue;
 	  if(i == sizeof(url) - 1)  break;	
 	  url[i++] = *payload;
@@ -2861,11 +2862,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	url[i] = '\0';
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
-	if(src2dst_direction) {
-	  if(cli_host) cli_host->setSSDPLocation(url);
-	} else {
-	  if(srv_host) srv_host->setSSDPLocation(url);
-	}
+	if(cli_host) cli_host->setSSDPLocation(url);
 	break;
       }
     }
