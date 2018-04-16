@@ -66,6 +66,7 @@ ThreadPool::~ThreadPool() {
 #endif
     pthread_join(threadsState[i], &res);    
   }
+  free(threadsState);
 
   pthread_cond_destroy(&condvar);
   delete m;
