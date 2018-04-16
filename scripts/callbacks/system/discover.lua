@@ -19,11 +19,11 @@ end
 
 local discovery_function = function(ifname, ifstats)
    if interface.isDiscoverableInterface() then
-      traceError(TRACE_ERROR,TRACE_CONSOLE, "[Discover] Started periodic discovery on interface "..ifname)
+      traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Started periodic discovery on interface "..ifname)
 
       local res = discover_utils.discover2table(ifname, true --[[ recache --]])
 
-      traceError(TRACE_ERROR,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
+      traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
       discover_utils.clearNetworkDiscovery(ifstats.id)
    end
 end

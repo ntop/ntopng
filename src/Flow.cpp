@@ -2860,7 +2860,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 	}
 
 	url[i] = '\0';
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
 	if(src2dst_direction) {
 	  if(cli_host) cli_host->setSSDPLocation(url);
 	} else {
