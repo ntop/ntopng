@@ -59,24 +59,26 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
   u_char buf[1500];
   int operation = isGetNext ? SNMP_GETNEXT_REQUEST_TYPE : SNMP_GET_REQUEST_TYPE;
   
-  message = snmp_create_message();
-  snmp_set_version(message, version);
-  snmp_set_community(message, community);
-  snmp_set_pdu_type(message, operation);
-  snmp_set_request_id(message, request_id);
-  snmp_set_error(message, 0);
-  snmp_set_error_index(message, 0);
+  if((message = snmp_create_message())) {
+    snmp_set_version(message, version);
+    snmp_set_community(message, community);
+    snmp_set_pdu_type(message, operation);
+    snmp_set_request_id(message, request_id);
+    snmp_set_error(message, 0);
+    snmp_set_error_index(message, 0);
 
-  for(i=0; i<SNMP_MAX_NUM_OIDS; i++) {
-    if(oid[i] != NULL)
-      snmp_add_varbind_null(message, oid[i]);
+    for(i=0; i<SNMP_MAX_NUM_OIDS; i++) {
+      if(oid[i] != NULL)
+	snmp_add_varbind_null(message, oid[i]);
+    }
+
+    len = snmp_message_length(message);
+    snmp_render_message(message, buf);
+    snmp_destroy_message(message);
+    free(message); /* malloc'd by snmp_create_message */
+
+    send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
   }
-
-  len = snmp_message_length(message);
-  snmp_render_message(message, buf);
-  snmp_destroy_message(message);
-
-  send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
 }
 
 /* ******************************************* */
@@ -169,21 +171,25 @@ void SNMP::snmp_fetch_responses(lua_State* vm) {
     } else {
       char buf[BUFLEN];
       SNMPMessage *message;
-      char *sender_host, *oid_str, *value_str;
+      char *sender_host, *oid_str, *value_str = NULL;
       int sender_port, len;
 
       len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
-      message = snmp_parse_message(buf, len);
+      if((message = snmp_parse_message(buf, len))) {
 
       i = 0;
       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
-	if(value_str && (value_str[0] != '\0'))
+	if(value_str && (value_str[0] != '\0')) {
 	  lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
+	  free(value_str), value_str = NULL; /* malloc'd by snmp_get_varbind_as_string */
+	}
 	
 	i++;
       }
     
       snmp_destroy_message(message);
+      free(message); /* malloc'd by snmp_parse_message */
+      }
     }
   }
 }
