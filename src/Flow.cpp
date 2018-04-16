@@ -2838,28 +2838,36 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 /* *************************************** */
 
 void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
+  char url[512];
+  u_int i = 0;
+
   if(payload_len < 6 /* NOTIFY */) return;
 
   if(strncmp(payload, "NOTIFY", 6) == 0) {
-    char *location = strstr(payload, "Location:");
+    payload += 6, payload_len -= 6;
 
-    if(location) {
-      char url[512];
-      u_int i = 0;
+    for(; 0 < payload_len - 9 /* strlen("Location:") */; payload++, payload_len--) {
+      if(strncasecmp(payload, "Location:", 9)) {
+	continue;
 
-      location = &location[9];
-      if(location[0] == ' ') location++;
+      } else {
+	payload += 9, payload_len -= 9;
 
-      while((location[i] != '\r')
-	    && (location[i] != '\n')
-	    && (i < sizeof(url))
-	    ) {
-	url[i] = location[i];
-	i++;
+	for(; 0 < payload_len && *payload != '\n' && *payload != '\r'; payload++, payload_len--) {
+	  if(*payload == ' ')       continue;
+	  if(i == sizeof(url) - 1)  break;	
+	  url[i++] = *payload;
+	}
+
+	url[i] = '\0';
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
+	if(src2dst_direction) {
+	  if(cli_host) cli_host->setSSDPLocation(url);
+	} else {
+	  if(srv_host) srv_host->setSSDPLocation(url);
+	}
+	break;
       }
-
-      url[i] = '\0';
-      cli_host->setSSDPLocation(url);
     }
   }
 }
