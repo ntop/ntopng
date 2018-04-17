@@ -10,5 +10,3 @@ if(ntop.isPro()) then
   pcall(require, 'minute')
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
-
-ntop.tsFlush(tonumber(60))

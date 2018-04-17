@@ -151,7 +151,6 @@ if zoom_vals ~= nil then
 end
 print[[
 };
-console.log(zoom_vals);
 
 function populateHistoricalDbExplorerLink(the_td, host, l7_proto) {
   var url_params = getParams(window.location.href);
