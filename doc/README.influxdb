@@ -1,0 +1,18 @@
+Introduction
+------------
+This readme explains how to integrate ntopng with http://influxdb.org time series database.
+Influx is populated by ntopng periodically pushing data into it, using the TimeSeriesExporter class.
+
+*** THIS WORK IS IN BETA STAGE: IT WILL BE REFINED IN FUTURE VERSIONS AND IT IS SUBJECT TO CHANGES ***
+
+
+Installation
+------------
+By default Influx data export is disabled. You can enabled with
+
+redis-cli set "ntopng.prefs.ts_post_data_url" "http://<host where Influx is running>:8086/write?db=ntopng"
+
+and then ntopng will push data to Influx.
+
+At this point you can use Chronograf or Grafana to access your traffic metrics in ntopng.
+
