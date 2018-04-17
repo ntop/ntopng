@@ -3815,41 +3815,6 @@ static int ntop_ts_set(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_ts_flush(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int16_t step;
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 0, LUA_TNUMBER) != CONST_LUA_OK)
-    return(CONST_LUA_PARAM_ERROR);
-
-  step = (u_int32_t)lua_tonumber(vm, 0);
-
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-#if 0
-  if(ntop->getPro()->is_nindex_in_use()) {
-    int8_t series_id;
-
-    if((series_id = ntop_ts_step_to_series_id(step)) == -1)
-      return(CONST_LUA_ERROR);
-
-    ntop->tsFlush(series_id);
-  }
-#endif
-#endif
-
-  if((step != 1 /* Don't flush every second */)
-     && ntop_interface && ntop_interface->getTSExporter())
-    ntop_interface->getTSExporter()->flush();
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
 
 static int ntop_nindex_select(lua_State* vm) {
@@ -7378,9 +7343,8 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate",    ntop_rrd_lastupdate  },
 
-  /* nSeries */
+  /* Timeseries (Influx) */
   { "tsSet",            ntop_ts_set   },
-  { "tsFlush",          ntop_ts_flush },
 
   /* Prefs */
   { "getPrefs",         ntop_get_prefs },
