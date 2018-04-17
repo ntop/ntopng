@@ -10,6 +10,7 @@
   * SNMP alerts on port status change
   * Alerts at ntopng startup/shutdown
   * ARP/IP re-assignments alerts
+  * Beta support for InfluxDB and Prometheus
 * Multi-language support
   * English
   * Italian
