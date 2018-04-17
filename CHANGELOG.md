@@ -1,5 +1,45 @@
 # Changelog
 
+#### ntopng 3.2.2 (April 2018)
+
+
+## New features
+
+* Improved alerts generation
+  * Send alerts via email
+  * SNMP alerts on port status change
+  * Alerts at ntopng startup/shutdown
+  * ARP/IP re-assignments alerts
+* Multi-language support
+  * English
+  * Italian
+  * German
+* "hide-from-top" to selectively hide hosts from top stats
+
+
+## Improvements
+
+* Discovery with SSH scan and MDNS dissection
+* HTML documentation with ReadTheDocs
+* ERSPAN Type 2 detunneling
+* per-AS network latency stats
+* TCP KeepAlive stats
+* Redis connection via Unix domain socket
+
+
+## Security Fixes
+
+* Disables CGI support in mongoose
+* Hardened options parsing
+
+
+## Fixes
+
+* Fixes memory leaks with SNMP
+* Fixes possible out-of-bounds reads with SSDP dissection
+
+----------------------------------------------------------------
+
 #### ntopng 3.2 (December 2017)
 
 
