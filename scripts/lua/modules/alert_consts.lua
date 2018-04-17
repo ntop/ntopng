@@ -4,8 +4,8 @@
 -- This file contains the alert constats
 
 local alert_consts = {}
-locales_utils = require "locales_utils"
-local i18n = require "i18n"
+local locales_utils = require "locales_utils"
+local format_utils  = require "format_utils"
 
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
@@ -95,37 +95,37 @@ alert_consts.alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', '
 alert_consts.alert_functions_info = {
    ["active"] = {
       label = i18n("alerts_thresholds_config.activity_time"),
-      fmt = secondsToTime,
+      fmt = format_utils.secondsToTime,
    }, ["bytes"] = {
       label = i18n("traffic"),
-      fmt = bytesToSize,
+      fmt = format_utils.bytesToSize,
    }, ["dns"] = {
       label = i18n("alerts_thresholds_config.dns_traffic"),
-      fmt = bytesToSize,
+      fmt = format_utils.bytesToSize,
    }, ["idle"] = {
       label = i18n("alerts_thresholds_config.idle_time"),
-      fmt = secondsToTime,
+      fmt = format_utils.secondsToTime,
    }, ["packets"] = {
       label = i18n("packets"),
-      fmt = formatPackets,
+      fmt = format_utils.formatPackets,
    }, ["p2p"] = {
       label = i18n("alerts_thresholds_config.p2p_traffic"),
-      fmt = bytesToSize,
+      fmt = format_utils.bytesToSize,
    }, ["throughput"] = {
       label = i18n("alerts_thresholds_config.throughput"),
-      fmt = bytesToSize,
+      fmt = format_utils.bytesToSize,
    }, ["flows"] = {
       label = i18n("flows"),
-      fmt = formatFlows,
+      fmt = format_utils.formatFlows,
    }, ["inner"] = {
       label = i18n("alerts_thresholds_config.inner_traffic"),
-      fmt = bytesToSize
+      fmt = format_utils.bytesToSize
    }, ["ingress"] = {
       label = i18n("alerts_thresholds_config.ingress_traffic"),
-      fmt = bytesToSize
+      fmt = format_utils.bytesToSize
    }, ["egress"] = {
       label = i18n("alerts_thresholds_config.egress_traffic"),
-      fmt = bytesToSize
+      fmt = format_utils.bytesToSize
    },
 }
 

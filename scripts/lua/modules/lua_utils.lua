@@ -9,7 +9,23 @@ package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.
 require "lua_trace"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
+local format_utils = require "format_utils"
 require "alert_consts"
+
+-- ##############################################
+-- TODO: replace those globals with locals everywhere
+
+secondsToTime   = format_utils.secondsToTime
+msToTime        = format_utils.msToTime
+bytesToSize     = format_utils.bytesToSize
+formatPackets   = format_utils.formatPackets
+formatFlows     = format_utils.formatFlows
+formatValue     = format_utils.formatValue
+pktsToSize      = format_utils.pktsToSize
+bitsToSize      = format_utils.bitsToSize
+maxRateToString = format_utils.maxRateToString
+round           = format_utils.round
+bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
 
 -- ##############################################
 
@@ -828,101 +844,9 @@ function toint(num)
    return string.format("%u", num)
 end
 
--- Convert bytes to human readable format
-function bytesToSize(bytes)
-   if(bytes == nil) then
-      return("0")
-   else
-      precision = 2
-      kilobyte = 1024;
-      megabyte = kilobyte * 1024;
-      gigabyte = megabyte * 1024;
-      terabyte = gigabyte * 1024;
-
-      bytes = tonumber(bytes)
-      if bytes == 1 then return "1 Byte"
-	 elseif((bytes >= 0) and (bytes < kilobyte)) then
-	 return round(bytes, precision) .. " Bytes";
-	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
-	 return round(bytes / kilobyte, precision) .. ' KB';
-	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
-	 return round(bytes / megabyte, precision) .. ' MB';
-	 elseif((bytes >= gigabyte) and (bytes < terabyte)) then
-	 return round(bytes / gigabyte, precision) .. ' GB';
-	 elseif(bytes >= terabyte) then
-	 return round(bytes / terabyte, precision) .. ' TB';
-      else
-	 return round(bytes, precision) .. ' Bytes';
-      end
-   end
-end
-
--- Convert bits to human readable format
-
-function bitsToSizeMultiplier(bits, multiplier)
-   if(bits == nil) then return(0) end
-
-   precision = 2
-   kilobit = 1000;
-   megabit = kilobit * multiplier;
-   gigabit = megabit * multiplier;
-   terabit = gigabit * multiplier;
-
-   if((bits >= kilobit) and (bits < megabit)) then
-      return round(bits / kilobit, precision) .. ' kbit/s';
-   elseif((bits >= megabit) and (bits < gigabit)) then
-      return round(bits / megabit, precision) .. ' Mbit/s';
-   elseif((bits >= gigabit) and (bits < terabit)) then
-      return round(bits / gigabit, precision) .. ' Gbit/s';
-   elseif(bits >= terabit) then
-      return round(bits / terabit, precision) .. ' Tbit/s';
-   else
-      return round(bits, precision) .. ' bit/s';
-   end
-end
-
-function bitsToSize(bits)
-  return(bitsToSizeMultiplier(bits, 1000))
-end
-
--- Convert packets to pps readable format
-function pktsToSize(pkts)
-  precision = 2
-  if     (pkts >= 1000000) then return round(pkts/1000000, precision)..' Mpps';
-  elseif(pkts >=    1000) then return round(pkts/   1000, precision)..' Kpps';
-  else                     return round(pkts        , precision)..' pps';
-  end
-end
-
-function formatValue(amount)
-  local formatted = amount
-
-  if(formatted == nil) then return(0) end
-  while true do
-    formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-    if(k==0) then
-      break
-    end
-  end
-  return formatted
-end
-
-function formatPackets(amount)
-   local amount = tonumber(amount)
-   if (amount == 1) then return "1 Pkt" end
-   return formatValue(amount).." Pkts"
-end
-
-function formatFlows(amount)
-   local amount = tonumber(amount)
-   if (amount == 1) then return "1 Flow" end
-   return formatValue(amount).." Flows"
-end
-
 function capitalize(str)
   return (str:gsub("^%l", string.upper))
 end
-
 
 function isnumber(str)
    if((str ~= nil) and (string.len(str) > 0) and (tonumber(str) ~= nil)) then
@@ -1022,86 +946,6 @@ function formatEpoch(epoch)
     return("-")
   else
     return(os.date("%d/%m/%Y %X", epoch))
-  end
-end
-
-function secondsToTime(seconds)
-  local seconds = tonumber(seconds)
-  if(seconds == nil) then return "" end
-  if(seconds == 0) then
-   return("0 sec")
-  end
-  if(seconds < 1) then
-    return("< 1 sec")
-  end
-
-  local days = math.floor(seconds / 86400)
-  local hours =  math.floor((seconds / 3600) - (days * 24))
-  local minutes = math.floor((seconds / 60) - (days * 1440) - (hours * 60))
-  local sec = seconds % 60
-  local msg = ""
-
-  if(days > 0) then
-    years = math.floor(days/365)
-
-    if(years > 0) then
-      days = days % 365
-
-      msg = years .. " year"
-      if(years > 1) then msg = msg .. "s" end
-   end
-
-    if(days > 0) then
-       if(string.len(msg) > 0) then  msg = msg .. ", " end
-      msg = msg .. days .. " day"
-      if(days > 1) then msg = msg .. "s" end
-    end
-  end
-
-  if(hours > 0) then
-     if(string.len(msg) > 0) then  msg = msg .. ", " end
-    msg = msg .. string.format("%d ", hours)
-    if(hours > 1) then
-      msg = msg .. "h"
-    else
-      msg = msg .. "h"
-    end
-
-    --if(hours > 1) then msg = msg .. "s" end
-  end
-
-  if(minutes > 0) then
-     if(string.len(msg) > 0) then msg = msg .. ", " end
-     msg = msg .. string.format("%d min", minutes)
-  end
-
-  if(sec > 0) then
-    if(string.len(msg) > 0) then msg = msg .. ", " end
-    msg = msg .. string.format("%d sec", sec);
-  end
-
-  return msg
-end
-
-function compactTime(seconds)
-   if seconds == 0 then
-      return "< 1 sec"
-   elseif seconds >= 60 then
-      seconds = seconds - seconds % 60
-   end
-
-   return secondsToTime(seconds)
-end
-
-function msToTime(ms)
-  if(ms > 1000) then
-    return secondsToTime(ms/1000)
-  else
-    if(ms < 1) then
-      return("< 1 ms")
-    else
-      return(round(ms, 4).." ms")
-    end
   end
 end
 
@@ -2562,27 +2406,6 @@ function hasKey(key, theTable)
       return(true)
    end
 end
-
--- maxRateToString
-function maxRateToString(max_rate)
-   if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
-   max_rate = tonumber(max_rate)
-
-	 if(max_rate < 1000) then
-	    return(max_rate.." Kbit/s")
-	 else
-	    local mr
-	    mr = round(max_rate / 1000, 2)
-
-	    if(mr < 1000) then
-	       return(mr.." Mbit/s")
-	    else
-	       gbit = mr /1000
-	       return(gbit.." Gbit/s")
-	    end
-	 end
-end
-
 function getPasswordInputPattern()
   return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,}$]]
 end
@@ -3063,8 +2886,8 @@ looking_glass_criteria = {
    { "uploaders", i18n("uploaders"), "upload", bytesToSize },
    { "downloaders", i18n("downloaders"), "download", bytesToSize },
    { "unknowers", i18n("unknowers"), "unknown", bytesToSize },
-   { "incomingflows", i18n("incomingflows"), "incomingflows", formatValue },
-   { "outgoingflows", i18n("outgoingflows"), "outgoingflows", formatValue },
+   { "incomingflows", i18n("incomingflows"), "incomingflows", format_utils.formatValue },
+   { "outgoingflows", i18n("outgoingflows"), "outgoingflows", format_utils.formatValue },
 }
 
 function criteria2label(criteria)
@@ -3080,7 +2903,7 @@ function criteria2label(criteria)
     end
   end
 
-  return criteria, formatValue
+  return criteria, format_utils.formatValue
 end
 
 function label2criteriakey(what)
@@ -3096,7 +2919,7 @@ function label2criteriakey(what)
     end
   end
 
-  return what, formatValue
+  return what, format_utils.formatValue
 end
 
 --
