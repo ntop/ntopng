@@ -11,6 +11,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local prefs_dump_utils = require "prefs_dump_utils"
+require "lua_utils" -- NOTE: required by alert_utils
 require "alert_utils"
 
 local now = os.time()
