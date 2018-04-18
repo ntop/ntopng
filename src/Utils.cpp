@@ -2791,9 +2791,11 @@ int Utils::retainWriteCapabilities() {
 
   cap_free(caps);
 #else
+#ifndef __APPLE__
   rc = -1;
   ntop->getTrace()->traceEvent(TRACE_WARNING, "ntopng has not been compiled with libcap-dev");
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Network discovery and other privileged activities will fail");
+#endif
 #endif
 
 return(rc);
