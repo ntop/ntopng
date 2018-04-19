@@ -1272,7 +1272,7 @@ void Redis::flushCache() {
     free(current);
   }
 
-  numCached = 0;
+  stringCache = NULL, numCached = 0;
   l->unlock(__FILE__, __LINE__);
 
 #ifdef CACHE_DEBUG
