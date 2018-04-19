@@ -3620,6 +3620,23 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static int ntop_set_lan_interface(lua_State* vm) {
+  char *lan_ifname;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  lan_ifname = (char*)lua_tostring(vm, 1);
+
+  ntop->getPrefs()->set_lan_interface(lan_ifname);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_policy_change_marker(lua_State* vm) {
 #ifdef HAVE_NETFILTER
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -7424,6 +7441,7 @@ static const luaL_Reg ntop_reg[] = {
   { "shutdown",             ntop_shutdown             },
   { "setRoutingMode",       ntop_set_routing_mode     },
   { "isRoutingMode",        ntop_is_routing_mode      },
+  { "setLanInterface",      ntop_set_lan_interface    },
 #endif
   { NULL,          NULL}
 };
