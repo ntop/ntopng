@@ -1,6 +1,6 @@
 # Changelog
 
-#### ntopng 3.2.2 (April 2018)
+#### ntopng 3.4 (April 2018)
 
 
 ## New features
