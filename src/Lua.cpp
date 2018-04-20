@@ -3622,6 +3622,7 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int ntop_set_lan_interface(lua_State* vm) {
   char *lan_ifname;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3634,6 +3635,7 @@ static int ntop_set_lan_interface(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -3800,30 +3802,32 @@ static int ntop_ts_set(lua_State* vm) {
     else
       _div = (char*)"", _key = (char*)"";
 
-    if((sent > 0) && (rcvd > 0))
-      snprintf(buf, sizeof(buf),
-	       "%s,metric=%s%s%s %s.sent=%lu,%s.rcvd=%lu %u000000000\n",
-	       ntop_interface->get_name(),
-	       label, _div, _key,
-	       metric, (unsigned long)sent,
-	       metric, (unsigned long)rcvd,
-	       ts);
-    else if(sent > 0)
-      snprintf(buf, sizeof(buf),
-	       "%s,metric=%s%s%s %s.sent=%lu %u000000000\n",
-	       ntop_interface->get_name(),
-	       label, _div, _key,
-	       metric, (unsigned long)sent,
-	       ts);
-    else if(rcvd > 0)
-      snprintf(buf, sizeof(buf),
-	       "%s,metric=%s%s%s %s.rcvd=%lu %u000000000\n",
-	       ntop_interface->get_name(),
-	       label, _div, _key,
-	       metric, (unsigned long)rcvd,
-	       ts);
+    if((sent > 0) || (rcvd > 0)) {
+      if((sent > 0) && (rcvd > 0))
+	snprintf(buf, sizeof(buf),
+		 "%s,metric=%s%s%s %s.sent=%lu,%s.rcvd=%lu %u000000000\n",
+		 ntop_interface->get_name(),
+		 label, _div, _key,
+		 metric, (unsigned long)sent,
+		 metric, (unsigned long)rcvd,
+		 ts);
+      else if(sent > 0)
+	snprintf(buf, sizeof(buf),
+		 "%s,metric=%s%s%s %s.sent=%lu %u000000000\n",
+		 ntop_interface->get_name(),
+		 label, _div, _key,
+		 metric, (unsigned long)sent,
+		 ts);
+      else if(rcvd > 0)
+	snprintf(buf, sizeof(buf),
+		 "%s,metric=%s%s%s %s.rcvd=%lu %u000000000\n",
+		 ntop_interface->get_name(),
+		 label, _div, _key,
+		 metric, (unsigned long)rcvd,
+		 ts);
 
-    ntop_interface->getTSExporter()->exportData(buf);
+      ntop_interface->getTSExporter()->exportData(buf);
+    }
   }
 
   lua_pushnil(vm);
