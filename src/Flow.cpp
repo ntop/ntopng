@@ -2662,26 +2662,26 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
   payload = &payload[12], payload_len -= 12;
 
   while((answers > 0) && (i < payload_len)) {
-    char name[256];
+    char _name[256], *name;
     struct mdns_rsp_entry rsp;
     u_int j;
     u_int16_t rsp_type, data_len;
     bool device_info = false;
     DeviceType dtype = device_unknown;
     
-    memset(name, 0, sizeof(name));
+    memset(_name, 0, sizeof(_name));
     
-    for(j=0; (i < payload_len) && (j < (sizeof(name)-1)); i++) {
+    for(j=0; (i < payload_len) && (j < (sizeof(_name)-1)); i++) {
       if(payload[i] == 0x0) {
 	i++;
 	break;
       } else if(payload[i] < 32) {
-	if(j > 0) name[j++] = '.';
+	if(j > 0) _name[j++] = '.';
       } else if(payload[i] == 0x22) {
-	name[j++] = 'a';
-	name[j++] = 'r';
-	name[j++] = 'p';
-	name[j++] = 'a';
+	_name[j++] = 'a';
+	_name[j++] = 'r';
+	_name[j++] = 'p';
+	_name[j++] = 'a';
 	i++;
 	break;
       } else if(payload[i] == 0xC0) {
@@ -2698,16 +2698,16 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  /* Pointer back */  
 	  while((i < payload_len)
 		&& (payload[i] != 0)
-		&& (j < (sizeof(name)-1))) {
+		&& (j < (sizeof(_name)-1))) {
 	    if(payload[i] == 0)
 	      break;
 	    else if(payload[i] == 0xC0) {
 	      goto nested_dns_definition;
 	    } else if(payload[i] < 32) {
-	      if(j > 0)	name[j++] = '.';
+	      if(j > 0)	_name[j++] = '.';
 	      i++;
 	    } else
-	      name[j++] = payload[i++];
+	      _name[j++] = payload[i++];
 	  }
 
 	  if(i_save > 0) {
@@ -2720,12 +2720,15 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  break;
 	}
       } else
-	name[j++] = payload[i];
+	_name[j++] = payload[i];
     }
 
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
+    /* Skip lenght for strings >= 32 */
+    name = &_name[(data_len < 32) ? 0 : 1];
+    
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s]", ntohs(rsp.rsp_type) & 0xFFFF, name);
 #endif
@@ -2770,8 +2773,9 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  c[0] = '\0';
       }
 
-      if(cli_host) cli_host->setName(name);
-
+      if(cli_host)
+	cli_host->setName(name);
+      
       if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
 	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
 	u_int16_t off = 0;
