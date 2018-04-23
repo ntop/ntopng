@@ -1086,6 +1086,7 @@ local known_parameters = {
    ["sampling_rate"]           =  validateEmptyOr(validateNumber),            -- if_stats.lua
    ["resetstats_mode"]         =  validateResetStatsMode,        -- reset_stats.lua
    ["snmp_action"]             =  validateSnmpAction,            -- snmp specific
+   ["snmp_status"]             =  validateNumber,                -- snmp specific status (up: 1, down: 2, testing: 3)
    ["iftype_filter"]           =  validateSingleWord,            -- SNMP iftype filter name
    ["host_quota"]              =  validateEmptyOr(validateNumber),            -- max traffi quota for host
    ["allowed_interface"]       =  validateEmptyOr(validateInterface),         -- the interface an user is allowed to configure
