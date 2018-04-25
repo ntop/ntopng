@@ -41,7 +41,7 @@ class TimeSeriesExporter {
   TimeSeriesExporter(NetworkInterface *_if, char *_url);
   ~TimeSeriesExporter();
 
-  void exportData(char *data);
+  void exportData(char *data, bool do_lock = true);
   void flush();
 };
 

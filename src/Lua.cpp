@@ -3747,9 +3747,6 @@ static int ntop_ts_set(lua_State* vm) {
     const char *label = NULL, *metric = NULL, *key = "";
     /* u_int8_t ifaceId; */
     u_int8_t id = 1;
-#if 0
-    u_int16_t step;
-#endif
     u_int32_t ts;
     u_int64_t sent = 0, rcvd = 0;
     char buf[512], *_div, *_key;
@@ -3757,19 +3754,6 @@ static int ntop_ts_set(lua_State* vm) {
     if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK)
       return(CONST_LUA_PARAM_ERROR);
     ts = (u_int32_t)lua_tonumber(vm, id++);
-
-#if 0
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK)
-      return(CONST_LUA_PARAM_ERROR);
-    ifaceId = (u_int8_t)lua_tonumber(vm, id++);
-
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK)
-      return(CONST_LUA_PARAM_ERROR);
-    step = (u_int32_t)lua_tonumber(vm, id++);
-#else
-    id++; /* Ignore ifaceId */
-    id++; /* Ignore step    */
-#endif
 
     if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK)
       return(CONST_LUA_PARAM_ERROR);
@@ -3825,7 +3809,8 @@ static int ntop_ts_set(lua_State* vm) {
 		 label, _div, _key,
 		 metric, (unsigned long)rcvd,
 		 ts);
-
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf); */
+      
       ntop_interface->getTSExporter()->exportData(buf);
     }
   }

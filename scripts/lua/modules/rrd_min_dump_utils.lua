@@ -19,7 +19,7 @@ function rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbos
     local name = os_utils.fixPath(basedir .. "/"..k..".rrd")
     createSingleRRDcounter(name, 60, verbose)
     ntop.rrd_update(name, nil, tolongint(v))
-    ntop.tsSet(when, ifstats.id, 60, 'iface:ndpi', tostring(k), "bytes", ifstats["ndpi"][k]["bytes.sent"], ifstats["ndpi"][k]["bytes.rcvd"])
+    ntop.tsSet(when, 'iface:ndpi', tostring(k), "bytes", ifstats["ndpi"][k]["bytes.sent"], ifstats["ndpi"][k]["bytes.rcvd"])
     end
 end
 
@@ -33,7 +33,7 @@ function rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, 
     local name = os_utils.fixPath(basedir .. "/"..k..".rrd")
     createSingleRRDcounter(name, 60, verbose)
     ntop.rrd_update(name, nil, tolongint(v))
-    ntop.tsSet(when, ifstats.id, 60, 'iface:ndpi_categories', tostring(k), "bytes", v, 0)
+    ntop.tsSet(when, 'iface:ndpi_categories', tostring(k), "bytes", v, 0)
   end
 end
 
@@ -60,7 +60,7 @@ function rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbo
     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
   end
 
-  ntop.tsSet(when, ifstats.id, 60, "iface:localstats", "local2remote", "bytes",
+  ntop.tsSet(when, "iface:localstats", "local2remote", "bytes",
     ifstats["localstats"]["bytes"]["local2remote"], ifstats["localstats"]["bytes"]["remote2local"])
 end
 
@@ -80,12 +80,12 @@ function rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
     local bytes_rrd = os_utils.fixPath(rrdpath .. "/bytes.rrd")
     createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
     ntop.rrd_update(bytes_rrd, nil, tolongint(sstats["ingress"]), tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-    ntop.tsSet(when, ifstats.id, 60, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]))
+    ntop.tsSet(when, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]))
 
     local bytes_bcast_rrd = os_utils.fixPath(rrdpath .. "/broadcast_bytes.rrd")
     createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
     ntop.rrd_update(bytes_bcast_rrd, nil, tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
-    ntop.tsSet(when, ifstats.id, 60, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
+    ntop.tsSet(when, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
   end
 end
 
@@ -125,7 +125,7 @@ function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
     rrdpath = os_utils.fixPath(rrdpath .. "/bytes.rrd")
     createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
     ntop.rrd_update(rrdpath, nil, tolongint(ptraffic))
-    ntop.tsSet(when, ifstats.id, 60, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
+    ntop.tsSet(when, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
   end
 end
 

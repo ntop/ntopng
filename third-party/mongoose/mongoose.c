@@ -277,7 +277,9 @@ typedef int SOCKET;
 
 #include "mongoose.h"
 
-#ifdef USE_LUA
+#undef MONGOOSE_USE_LUA
+
+#ifdef MONGOOSE_USE_LUA
 
 #if 0
 #include <lua.h>
@@ -4044,7 +4046,7 @@ static uint32_t get_remote_ip(const struct mg_connection *conn) {
   return ntohl(* (uint32_t *) &conn->client.rsa.sin.sin_addr);
 }
 
-#ifdef USE_LUA
+#ifdef MONGOOSE_USE_LUA
 
 #ifdef _WIN32
 static void *mmap(void *addr, int64_t len, int prot, int flags, int fd,
@@ -4135,7 +4137,7 @@ static void prepare_lua_environment(struct mg_connection *conn, lua_State *L) {
   int i;
 
   luaL_openlibs(L);
-#ifdef USE_LUA_SQLITE3
+#ifdef MONGOOSE_USE_LUA_SQLITE3
   { extern int luaopen_lsqlite3(lua_State *); luaopen_lsqlite3(L); }
 #endif
 
@@ -4194,7 +4196,7 @@ static void handle_lsp_request(struct mg_connection *conn, const char *path,
   if (p) munmap(p, filep->size);
   mg_fclose(filep);
 }
-#endif // USE_LUA
+#endif // MONGOOSE_USE_LUA
 
 int mg_upload(struct mg_connection *conn, const char *destination_dir) {
   const char *content_type_header, *boundary_start;
@@ -4400,7 +4402,7 @@ static void handle_request(struct mg_connection *conn) {
       send_http_error(conn, 403, "Directory Listing Denied",
 		      "Directory listing denied");
     }
-#ifdef USE_LUA
+#ifdef MONGOOSE_USE_LUA
   } else if (match_prefix("**.lp$", 6, path) > 0) {
     handle_lsp_request(conn, path, &file);
 #endif

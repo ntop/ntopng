@@ -77,16 +77,15 @@ void TimeSeriesExporter::createDump() {
   flushTime = time(NULL) + CONST_TS_FLUSH_TIME, num_cached_entries = 0;
 
   if(!dbCreated) {
-    exportData((char*)"create database ntopng;\n");
     dbCreated = true;
   }
 }
 
 /* ******************************************************* */
 
-void TimeSeriesExporter::exportData(char *data) {
-  m.lock(__FILE__, __LINE__);
-
+void TimeSeriesExporter::exportData(char *data, bool do_lock) {
+  if(do_lock) m.lock(__FILE__, __LINE__);
+  
   if(fd == -1)
     createDump();
 
@@ -102,7 +101,7 @@ void TimeSeriesExporter::exportData(char *data) {
 				   iface->get_name(), data, exp, l);
   }
 
-  m.unlock(__FILE__, __LINE__);
+  if(do_lock) m.unlock(__FILE__, __LINE__);
 
   if(time(NULL) > flushTime)
     flush(); /* Auto-flush data */
