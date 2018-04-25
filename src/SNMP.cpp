@@ -133,14 +133,17 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   oid[oid_idx++] = (char*)lua_tostring(vm, 3);
 
+  i = 4;
+  
   /* Optional timeout: take the minimum */
-  if(lua_type(vm, 4) == LUA_TNUMBER) timeout = min(timeout, (u_int)lua_tointeger(vm, 4));
+  if(lua_type(vm, 4) == LUA_TNUMBER)
+    timeout = min(timeout, (u_int)lua_tointeger(vm, 4)), i++;
 
   /* Optional version */
-  if(lua_type(vm, 5) == LUA_TNUMBER) version = (u_int)lua_tointeger(vm, 5);
+  if(lua_type(vm, 5) == LUA_TNUMBER)
+    version = (u_int)lua_tointeger(vm, 5), i++;
 
   /* Add additional OIDs */
-  i = 4;
   while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, i) == LUA_TSTRING))
     oid[oid_idx++] = (char*)lua_tostring(vm, i), i++;  
 

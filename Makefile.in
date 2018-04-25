@@ -32,7 +32,8 @@ ifeq ($(HAS_LUAJIT), 0)
 	LUAJIT_INC = $(shell pkg-config --cflags luajit)
 	LUAJIT_LIB = $(shell pkg-config --libs luajit)
 else
-	LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.1.0-beta3
+	# LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.1.0-beta3
+	LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.1.0-git
 	LUAJIT_INC=-I$(LUAJIT_HOME)/src
 	LUAJIT_LIB=$(LUAJIT_HOME)/src/libluajit.a
 endif
