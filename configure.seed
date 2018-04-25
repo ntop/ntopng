@@ -394,9 +394,11 @@ else
 fi
 
 CFLAGS="-Wall $CFLAGS"
-
 OS=""
 if test $SYSTEM = "Darwin"; then
+   dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
+   CXX=clang++
+   dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
    OS="MacOSX $OSXV"
    if test $MACHINE = "x86_64"; then
@@ -552,6 +554,7 @@ AC_SUBST(LINK_OPTS)
 AC_SUBST(GEOIP_LIB)
 AC_SUBST(SQLITE_LIB)
 AC_SUBST(GMAKE)
+AC_SUBST(GPP)
 AC_SUBST(CXX)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)

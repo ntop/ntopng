@@ -42,7 +42,7 @@
   $ chronograf
 */
 TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if, char *_url) {
-  fd = -1, iface = _if, url = strdup(_url), num_cached_entries = 0;
+  fd = -1, iface = _if, url = strdup(_url), num_cached_entries = 0, dbCreated = false;
   ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Exporting TS data to %s",
 			       iface->get_name(), url);
 }
@@ -58,10 +58,10 @@ TimeSeriesExporter::~TimeSeriesExporter() {
 
 void TimeSeriesExporter::createDump() {
 #ifdef WIN32
-	if(tmpnam_s(fname, sizeof(fname)))
-		snprintf(fname, sizeof(fname), "%u", time(NULL));
-
-	fd = open (fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
+  if(tmpnam_s(fname, sizeof(fname)))
+    snprintf(fname, sizeof(fname), "%u", time(NULL));
+  
+  fd = open (fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
 #else
   strcpy(fname, "/tmp/TimeSeriesExporter_XXXXXX");
   fd = mkstemp(fname);
@@ -75,6 +75,11 @@ void TimeSeriesExporter::createDump() {
 				 iface->get_name(), fname);
 
   flushTime = time(NULL) + CONST_TS_FLUSH_TIME, num_cached_entries = 0;
+
+  if(!dbCreated) {
+    exportData((char*)"create database ntopng;\n");
+    dbCreated = true;
+  }
 }
 
 /* ******************************************************* */

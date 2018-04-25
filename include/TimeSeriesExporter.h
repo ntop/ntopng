@@ -33,6 +33,7 @@ class TimeSeriesExporter {
   char *url;
   u_int num_cached_entries; 
   Mutex m;
+  bool dbCreated;
   
   void createDump();
   
