@@ -7,6 +7,8 @@ local discover = {}
 
 discover.debug = false
 
+discover.progress_string = "discovery.progess"
+
 discover.apple_osx_versions = {
    ['4'] = 'Mac OS X 10.0 (Cheetah)',
    ['5'] = 'Mac OS X 10.1 (Puma)',
@@ -171,6 +173,19 @@ local id2label = {
 discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
 discover.android_icon = '<i class="fa fa-android fa-lg" aria-hidden="true"></i>'
 discover.apple_icon = '<i class="fa fa-apple fa-lg" aria-hidden="true"></i>'
+
+-- ################################################################################
+
+local discover_progress_key = "ntop.discovery_progress"
+
+function setDiscoveryProgress(progress)
+   -- io.write(progress.."\n")
+   ntop.setCache(discover_progress_key, progress, 60)
+end
+
+function discover.getDiscoveryProgress()
+   return(ntop.getCache(discover_progress_key) or "")
+end
 
 -- ################################################################################
 
@@ -1023,12 +1038,15 @@ function discover.discover2table(interface_name, recache)
       end
    end
 
+   setDiscoveryProgress("[0 %]")
    -- ARP
    local arp_d = discoverARP()
    if arp_d["status"]["code"] ~= "OK" then
       return {status = arp_d["status"]}
    end
 
+   setDiscoveryProgress("[10 %]")
+   
    local arp_mdns = arp_d["arp_mdns"] or {}
    local ghost_macs = arp_d["ghost_macs"]
    local ghost_found = arp_d["ghost_found"]
@@ -1073,11 +1091,15 @@ function discover.discover2table(interface_name, recache)
       end
    end
 
+   setDiscoveryProgress("[30 %]")
+   
    if(discover.debug) then io.write("Analyzing SSDP...\n") end
    ssdp = analyzeSSDP(ssdp)
 
    local show_services = false
 
+   setDiscoveryProgress("[40 %]")
+   
    if(discover.debug) then io.write("Collecting MDNS responses\n") end
    local mdns = interface.mdnsReadQueuedResponses()
 
@@ -1092,6 +1114,8 @@ function discover.discover2table(interface_name, recache)
       interface.mdnsQueueAnyQuery(ip, "_sftp-ssh._tcp.local")
    end
 
+   setDiscoveryProgress("[50 %]")
+   
    if(discover.debug) then io.write("Collecting SNMP responses\n") end
    local snmp = interface.snmpReadResponses()
 
@@ -1100,7 +1124,8 @@ function discover.discover2table(interface_name, recache)
       -- io.write("Requesting sysDescr for "..ip.."\n")
       interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.1.0", 0)
    end
-
+   setDiscoveryProgress("[60 %]")
+   
    if(discover.debug) then io.write("Collecting MDNS OSX responses\n") end
    osx_devices = interface.mdnsReadQueuedResponses()
    if(discover.debug) then io.write("Collected MDNS OSX responses\n") end
@@ -1110,7 +1135,8 @@ function discover.discover2table(interface_name, recache)
 	 io.write("[MDNS OSX] "..a.." / ".. b.. "\n")
       end
    end
-
+   setDiscoveryProgress("[70 %]")
+   
    local snmpSysDescr = interface.snmpReadResponses()
 
    if(discover.debug) then
@@ -1127,6 +1153,8 @@ function discover.discover2table(interface_name, recache)
       end
    end
 
+   setDiscoveryProgress("[80 %]")
+   
    -- Time to pack the results in a table...
    local status = discoverStatus("OK")
    local res = {}
@@ -1206,6 +1234,8 @@ function discover.discover2table(interface_name, recache)
       ::continue::
    end
 
+   setDiscoveryProgress("")
+   
    local response = {status = status, devices = res, ghost_found = ghost_found, discovery_timestamp = os.time()}
 
    ntop.setCache(discover.getCachedDiscoveryKey(interface_name), json.encode(response))
