@@ -26,5 +26,5 @@ if ntop.isPro() then
    local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 
    snmp_read_interface_counters(config, time_threshold, verbose)
-  snmp_check_device_status(config, time_threshold, verbose)
+   snmp_check_device_status(config, time_threshold, verbose)
 end
