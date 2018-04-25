@@ -1,2 +1,2 @@
 Wed Apr 25 14:11:57 CEST 2018
-git clone -b v2.1 http://luajit.org/git/luajit-2.0.git
+git clone -b v2.1 http://luajit.org/git/luajit-2.0.git /LuaJIT-2.1.0-git
