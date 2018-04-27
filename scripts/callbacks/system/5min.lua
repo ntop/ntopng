@@ -21,10 +21,53 @@ require "lua_utils"
 if ntop.isPro() then
    local rrd_dump = require "rrd_5min_dump_utils"     
    local verbose = ntop.verboseTrace()
-   local when = os.time()
    local config = rrd_dump.getConfig()
+   local when = os.time()
    local time_threshold = when - (when % 300) + 300 - 10 -- safe margin
 
-   snmp_read_interface_counters(config, time_threshold, verbose)
+   local snmp_rrds_enabled = tostring(config.snmp_devices_rrd_creation) == "1"
+   local snmpdevs = get_snmp_devices()
+
+   for _,device in pairs(snmpdevs) do
+      local snmp_device = require "snmp_device"
+
+      if isSNMPDeviceUnresponsive(device["ip"]) or is_snmp_polling_disabled(device["ip"]) then
+	 goto next_device
+      end
+
+      snmp_device.init(device["ip"])
+
+      if true then -- TODO: refine a policy to update system information (once per day maybe?)
+	 local res = snmp_device.cache_system()
+	 if res["status"] ~= "OK" then
+	    snmp_handle_cache_errors(device["ip"], res)
+	    goto next_device
+	 end
+      end
+
+      if true then -- TODO: refine a policy to interfaces information
+	 local res = snmp_device.cache_interfaces()
+	 if res["status"] ~= "OK" then
+	    snmp_handle_cache_errors(device["ip"], res)
+	    goto next_device
+	 end
+      end
+
+      if true then -- TODO: refine a policy to update interface counters (once every 1 minute or 10 minutes should be fine)
+	 local res = snmp_device.cache_counters()
+	 if res["status"] ~= "OK" then
+	    snmp_handle_cache_errors(device["ip"], res)
+	    goto next_device
+	 end
+      end
+
+      if snmp_rrds_enabled then
+	 local counters = snmp_device.get_device()["counters"]
+	 snmp_update_interface_counters(device, counters)
+      end
+
+      ::next_device::
+   end
+
    snmp_check_device_status(config, time_threshold, verbose)
 end
