@@ -45,6 +45,14 @@ if ntop.isPro() then
 	 end
       end
 
+      if true then -- TODO: refine a policy to update bridge information
+	 local res = snmp_device.cache_bridge()
+	 if res["status"] ~= "OK" then
+	    snmp_handle_cache_errors(device["ip"], res)
+	    goto next_device
+	 end
+      end
+
       if true then -- TODO: refine a policy to interfaces information
 	 local res = snmp_device.cache_interfaces()
 	 if res["status"] ~= "OK" then
