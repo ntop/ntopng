@@ -188,9 +188,6 @@ using namespace std;
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
 #endif
-#ifdef HAVE_KAFKA
-#include "KafkaManager.h"
-#endif
 #endif
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
