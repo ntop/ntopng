@@ -1087,6 +1087,7 @@ local known_parameters = {
    ["resetstats_mode"]         =  validateResetStatsMode,        -- reset_stats.lua
    ["snmp_action"]             =  validateSnmpAction,            -- snmp specific
    ["snmp_status"]             =  validateNumber,                -- snmp specific status (up: 1, down: 2, testing: 3)
+   ["snmp_if_type"]            =  validateNumber,                -- snmp interface type (see snmp_utils.lua fnmp_iftype)
    ["iftype_filter"]           =  validateSingleWord,            -- SNMP iftype filter name
    ["host_quota"]              =  validateEmptyOr(validateNumber),            -- max traffi quota for host
    ["allowed_interface"]       =  validateEmptyOr(validateInterface),         -- the interface an user is allowed to configure
