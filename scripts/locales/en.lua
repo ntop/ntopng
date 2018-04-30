@@ -2489,6 +2489,7 @@ local lang = {
     ["snmp_devices"] = "SNMP Devices",
     ["snmp_interface"] = "SNMP Interface",
     ["snmp_interfaces"] = "Interfaces",
+    ["snmp_all_interfaces"] = "All Interfaces",
     ["snmp_monitor_disable_confirm"] = "Do you really want to disable port status monitoring on SNMP device %{device}?",
     ["snmp_monitor_enable_confirm"] = "Do you really want to enable port status monitoring on SNMP device %{device}? Alerts will be generated whenever a port changes state.",
     ["snmp_polling"] = "SNMP polling",
