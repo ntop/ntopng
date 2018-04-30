@@ -174,6 +174,11 @@ if((page == "overview") or (page == nil)) then
 
    print("</td></tr>")
 
+   if ntop.isPro() then
+      print_host_snmp_localization_table_entry(mac)
+   end
+
+
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
    if isAdministrator() then

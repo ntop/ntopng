@@ -401,30 +401,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local recache = _GET["snmp_recache"] == "true"
-	 local ports = find_mac_snmp_ports(host["mac"], recache)
-
-	 if(ports ~= nil) then
-	    local rsps = 1
-
-	    for snmp_device_ip,port in pairs(ports) do
-	       rsps = rsps + 1
-	    end
-
-	    if(rsps > 1) then
-	       print('<tr><td width=35% rowspan='..rsps..'><b>'.. i18n("details.host_snmp_localization") ..' <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></b><p><small>'..i18n("details.note")..': '..i18n("details.note_hosts_located_snmp_device",{url="https://tools.ietf.org/html/rfc4188"})..'</small></td>')
-	       print("<th>"..i18n("snmp.snmp_device").."</th><th>"..i18n("details.device_port").."</th></tr>\n")
-		    for snmp_device_ip,port in pairs(ports) do
-		       local community = get_snmp_community(snmp_device_ip)
-		       local trunk
-
-		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..getResolvedAddress(hostkey2hostinfo(snmp_device_ip)).."</A></td>")
-
-		       if(port.trunk) then trunk = ' <span class="label label-info">trunk<span>' else trunk = "" end
-		       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip .. "&ifIdx="..port.id.."'>"..port.id.." <span class=\"label label-default\">"..get_snmp_port_label(snmp_device_ip, community, port.id).."</span>"..trunk.."</A></td></tr>\n")
-		    end
-	    end
-	 end
+	 print_host_snmp_localization_table_entry(host["mac"])
       end
       print("</tr>")
       
