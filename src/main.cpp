@@ -75,8 +75,8 @@ void sigproc(int sig) {
 #ifdef __linux__
   switch(afterShutdownAction) {
     case after_shutdown_nop: break;
-    case after_shutdown_reboot: system("/sbin/reboot"); break;
-    case after_shutdown_poweroff: system("/sbin/shutdown -h now"); break;
+    case after_shutdown_reboot: system("systemctl start systemd-reboot"); break;
+    case after_shutdown_poweroff: system("systemctl start systemd-poweroff"); break;
     default: break;
   }
 #endif
