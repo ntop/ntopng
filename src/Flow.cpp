@@ -2343,6 +2343,10 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
   bool update_last_seqnum = true;
   bool debug = false;
 
+#ifdef HAVE_NEDGE
+  return;
+#endif
+
   next_seq_num = getNextTcpSeq(flags, seq_num, payload_Len);
 
   if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][next: %u][next - act (in flight): %d][ack: %u]",
