@@ -23,7 +23,7 @@ On Debian 9 you need to do
 elsewhere
 - apt-get install libpng12-dev libmysqlclient-dev libzmq3-dev
 
-On Ubuntu16 you also need to do "apt-get install libtool-bin"
+On Ubuntu16/18 you also need to do "apt-get install libtool-bin"
 
 You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
 
