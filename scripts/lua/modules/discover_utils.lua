@@ -245,8 +245,16 @@ end
 
 function isPrinterMDNS(mdns)
    if(mdns == nil) then return false end
+
+   if(discover.debug) then
+      tprint(mdns)
+      io.write(debug.traceback())      
+   end
    
-   if((mdns["_printer._tcp.local"] ~= nil) or (mdns["_scanner._tcp.local"] ~= nil)) then
+   if((mdns["_printer._tcp.local"] ~= nil)
+      or (mdns["_scanner._tcp.local"] ~= nil)
+      or (mdns["_pdl-datastream._tcp.local"] ~= nil)
+   ) then
       return true
    end
 
@@ -548,6 +556,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    end
 
    if(discover.debug) then io.write("[manufacturer] "..manufacturer.."\n") end
+   if((discover.debug) and (snmpName ~= nil)) then io.write("[snmpName] "..snmpName.."\n") end
 
    if(string.contains(manufacturer, "oki electric") and (snmpName ~= nil)) then
       if(discover.debug) then io.write(debug.traceback()) end
@@ -580,6 +589,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..appendSSHOS(mac, ip), nil
    elseif(string.contains(manufacturer, "juniper networks")) then
+      if(discover.debug) then io.write(debug.traceback()) end
+      return 'networking', discover.asset_icons['networking'], nil
+   elseif(string.contains(manufacturer, "brocade communications")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "cisco")) then
@@ -657,7 +669,9 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    ) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation'].." (VM)", nil
-   elseif(string.contains(manufacturer, "xerox")) then
+   elseif(string.contains(manufacturer, "xerox")
+	     or string.contains(manufacturer, "ricoh")	  
+   ) then
       local l = ""
 
       if(snmpName ~= nil) then l = ' ('..snmpName..')' end
@@ -765,25 +779,28 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       elseif(string.contains(snmpName, "air")) then
 	 if(discover.debug) then io.write(debug.traceback()) end
 	 return 'wifi', discover.asset_icons['wifi']..' ('..snmpName..')', snmpName
-      else
-	 if(discover.debug) then io.write(debug.traceback()) end
-	 return 'unknown', snmpName, nil
       end
    end
 
-   if(string.contains(manufacturer, "ubiquity")) then
+   if(snmpName == nil) then
+      snmpName = ""
+   else
+      snmpName = ' ('..snmpName..')'
+   end
+   
+   if(string.contains(manufacturer, "ubiquiti")) then
       if(discover.debug) then io.write(debug.traceback()) end
-      return 'networking', discover.asset_icons['networking'], nil
+      return 'networking', discover.asset_icons['networking']..snmpName, nil
    end
 
-   if(isPrinterMDNS(msdn)) then
+   if(isPrinterMDNS(mdns)) then
       if(discover.debug) then io.write(debug.traceback()) end
-      return 'printer', discover.asset_icons['printer'], nil
+      return 'printer', discover.asset_icons['printer']..snmpName, nil
    end
 
    if(isNASMDNS(mdns)) then
       if(discover.debug) then io.write(debug.traceback()) end
-      return 'nas', discover.asset_icons['nas'], nil
+      return 'nas', discover.asset_icons['nas']..snmpName, nil
    end
 
    if(discover.debug) then
@@ -800,6 +817,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       local server = http_rsp.HTTP_HEADER["server"]
 
       if(server ~= nil) then
+	 if(discover.debug) then io.write("[SSH] "..server) end
 	 if(string.contains(server, "Ubuntu") or string.contains(server, "Debian") or string.contains(server, "Linux")) then
 	    interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
 	    if(discover.debug) then io.write(debug.traceback()) end
@@ -817,6 +835,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	 elseif(string.contains(server, "Virata%-EmWeb") or string.contains(server, "HP%-ChaiSOE") -- Usually LaserJet
 		   or string.contains(server, "EWS%-NIC5") -- Xerox
 		   or string.contains(server, "RomPager") -- Xerox
+		   or string.contains(server, "eHTTP") -- Aruba
+		   or string.contains(server, "Web-Server") -- Ricoh
 	 ) then
 	    if(discover.debug) then io.write(debug.traceback()) end
 	    return 'printer', discover.asset_icons['printer'], nil
@@ -881,9 +901,12 @@ local function analyzeSSDP(ssdp)
 
 		  for k,v in pairs(serviceList) do
 		     if(v.serviceId ~= nil) then
-			if(discover.debug) then io.write(v.serviceId:value().."\n") end
-
-			table.insert(services, v.serviceId:value())
+			local value = v.serviceId:value()
+			if(value ~= nil) then
+			   if(discover.debug) then io.write(value.."\n") end
+			   
+			   table.insert(services, value)
+			end
 		     end
 		  end
 	       end
