@@ -2731,10 +2731,10 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
     /* Skip lenght for strings >= 32 */
-    name = &_name[(data_len < 32) ? 0 : 1];
+    name = &_name[(data_len <= 32) ? 0 : 1];
     
 #ifdef DEBUG_DISCOVERY
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s]", ntohs(rsp.rsp_type) & 0xFFFF, name);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]", ntohs(rsp.rsp_type) & 0xFFFF, name, data_len);
 #endif
     
     if(strstr(name, "._device-info._"))
