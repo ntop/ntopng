@@ -509,6 +509,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "systemhost", systemHost);
   lua_push_bool_table_entry(vm, "is_blacklisted", blacklisted_host);
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
+  lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
   lua_push_int_table_entry(vm, "asn", asn);
   lua_push_int_table_entry(vm, "host_pool_id", host_pool_id);

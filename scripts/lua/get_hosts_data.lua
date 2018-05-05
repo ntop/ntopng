@@ -356,7 +356,13 @@ for _key, _value in pairsByKeys(vals, funct) do
    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
       print ("\", \"column_location\" : \"")
       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-	 print("<span class='label label-success'>"..i18n("hosts_stats.label_local_host").."</span>") else print("<span class='label label-default'>"..i18n("hosts_stats.label_remote_host").."</span>")
+	 print("<span class='label label-success'>"..i18n("hosts_stats.label_local_host").."</span>")
+      elseif value["is_multicast"] == true then
+	 print("<span class='label label-default'>Multicast</span>")
+      elseif value["is_broadcast"] == true then
+	 print("<span class='label label-default'>Broadcast</span>")
+      else
+	 print("<span class='label label-default'>"..i18n("hosts_stats.label_remote_host").."</span>")
       end
       if value["is_blacklisted"] == true then
 	 print(" <span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>")

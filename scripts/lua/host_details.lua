@@ -481,13 +481,19 @@ if((page == "overview") or (page == nil)) then
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 
---tprint(host) io.write("\n")
+      -- tprint(host) io.write("\n")
       print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
 
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
       print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
 
-      if(host["localhost"] == true) then print('<span class="label label-success">'..i18n("details.label_local_host")..'</span>') else print('<span class="label label-default">'..i18n("details.label_remote")..'</span>') end
+      if(host["localhost"] == true) then
+	 print('<span class="label label-success">'..i18n("details.label_local_host")..'</span>')
+      elseif(host["is_multicast"] == true) then print(' <span class="label label-default">Multicast</span> ')
+      elseif(host["is_broadcast"] == true) then print(' <span class="label label-default">Broadcast</span> ')
+      else print('<span class="label label-default">'..i18n("details.label_remote")..'</span>')
+      end
+      
       if(host["privatehost"] == true) then print(' <span class="label label-warning">'..i18n("details.label_private_ip")..'</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">'..i18n("details.label_system_ip")..' '..'<i class=\"fa fa-flag\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">'..i18n("details.label_blacklisted_host")..'</span>') end

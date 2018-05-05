@@ -454,7 +454,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("traffic")) print[[",
+			     title: "]] print(i18n("flows_page.total_bytes")) print[[",
 				 field: "column_traffic",
 				 sortable: true,
 	 	             css: { 
