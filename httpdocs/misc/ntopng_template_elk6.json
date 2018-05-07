@@ -1,0 +1,41 @@
+{
+    "index_patterns": "ntopng-*",
+    "settings": {
+	"index.refresh_interval": "5s"
+    },
+    "mappings": {
+	"_doc": {
+	    "dynamic_templates": [{
+		"geo_fields": {
+		    "match": "*_IP_LOCATION",
+		    "mapping": {
+			"type": "geo_point"
+		    }
+		}
+	    }, {
+		"ip_fields": {
+		    "match": "*IPV4*",
+		    "match_mapping_type": "string",
+		    "mapping": {
+			"type": "ip"
+		    }
+		}
+	    }, {
+		"strings_as_keywords": {
+		    "match_mapping_type": "string",
+		    "unmatch": "*IPV4*",
+		    "mapping": {
+			"type": "text",
+			"norms": false,
+			"fields": {
+			    "keyword": {
+				"type": "keyword",
+				"ignore_above": 256
+			    }
+			}
+		    }
+		}
+	    }]
+	}
+    }
+}

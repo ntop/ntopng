@@ -36,6 +36,10 @@ class ElasticSearch {
   u_int64_t elkExportedFlows, elkLastExportedFlows;
   float elkExportRate;
   u_int64_t checkpointDroppedFlows, checkpointExportedFlows; /* Those will hold counters at checkpoints */
+
+  char *es_template_push_url, *es_version_query_url;
+  char *es_version;
+  const char * const get_es_version();
  public:
   ElasticSearch();
   ~ElasticSearch();
@@ -43,6 +47,10 @@ class ElasticSearch {
     if(!drops_only)
       checkpointExportedFlows = elkExportedFlows;
     checkpointDroppedFlows = elkDroppedFlowsQueueTooLong;
+  };
+  inline bool atleast_version_6() {
+    const char * const ver = get_es_version();
+    return ver && strcmp(ver, "6") >= 0;
   };
   inline u_int32_t numDroppedFlows() const { return elkDroppedFlowsQueueTooLong; };
   int sendToES(char* msg);

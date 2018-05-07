@@ -34,6 +34,9 @@ static void* esLoop(void* ptr) {
 /* **************************************** */
 
 ElasticSearch::ElasticSearch() {
+  char *es_url, *es_host;
+
+  es_version = NULL;
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
@@ -43,12 +46,38 @@ ElasticSearch::ElasticSearch() {
   elkExportRate = 0;
   checkpointDroppedFlows = checkpointExportedFlows = 0;
   lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
+
+  if (!(es_template_push_url = (char*)malloc(MAX_PATH))
+      || !(es_version_query_url = (char*)malloc(MAX_PATH))
+      || !(es_url = strdup(ntop->getPrefs()->get_es_url())))
+    throw "Not enough memory";
+
+  es_template_push_url[0] = '\0', es_version_query_url[0] = '\0';
+
+  // Prepare ES urls (keep only host and port by retaining only characters left of the first slash)
+  if(!strncmp(es_url, "http://", 7)){  // url starts either with http or https
+    Utils::tokenizer(es_url + 7, '/', &es_host);
+    snprintf(es_template_push_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
+    snprintf(es_version_query_url, MAX_PATH, "http://%s/", es_host);
+  } else if(!strncmp(es_url, "https://", 8)){
+    Utils::tokenizer(es_url + 8, '/', &es_host);
+    snprintf(es_template_push_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
+    snprintf(es_version_query_url, MAX_PATH, "https://%s/", es_host);
+  } else {
+    Utils::tokenizer(es_url, '/', &es_host);
+    snprintf(es_template_push_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
+    snprintf(es_version_query_url, MAX_PATH, "%s/", es_host);
+  }
+
+  free(es_url);
 }
 
 /* **************************************** */
 
 ElasticSearch::~ElasticSearch() {
-
+  if(es_version) free(es_version);
+  if(es_template_push_url) free(es_template_push_url);
+  if(es_version_query_url) free(es_version_query_url);
 }
 
 /* ******************************************* */
@@ -168,7 +197,8 @@ void ElasticSearch::indexESdata() {
 
       snprintf(header, sizeof(header),
 	       "{\"index\": {\"_type\": \"%s\", \"_index\": \"%s\"}}",
-	       ntop->getPrefs()->get_es_type(), index_name);
+	       atleast_version_6() ? (char*)"_doc" /* types no longer supported in 6 */ : ntop->getPrefs()->get_es_type(),
+	       index_name);
       len = 0, num_flows = 0;
 
       listMutex.lock(__FILE__, __LINE__);
@@ -212,32 +242,87 @@ void ElasticSearch::indexESdata() {
 /* **************************************** */
 
 /* Send ntopng index template to Elastic Search */
+const char * const ElasticSearch::get_es_version() {
+  static bool version_inited = false;
+
+  if(!version_inited) { /* lazy... */
+    u_int buf_len =
+#ifdef HAVE_CURL
+      CURL_MAX_WRITE_SIZE;
+#else
+    1<<14; /* 16kB */
+#endif
+    char *buf = (char*)malloc(buf_len);
+
+    if(buf) {
+      long http_ret_code = Utils::httpGet(es_version_query_url,
+					  ntop->getPrefs()->get_es_user(), ntop->getPrefs()->get_es_pwd(),
+					  5,
+					  buf, buf_len);
+      if(http_ret_code == 200) {
+	json_object *o, *obj, *obj2;
+	enum json_tokener_error jerr = json_tokener_success;
+
+	ntop->getTrace()->traceEvent(TRACE_INFO, "%s [http return code: %d]", buf, http_ret_code);
+
+	if((o = json_tokener_parse_verbose(buf, &jerr)) == NULL) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s][%s]",
+				       json_tokener_error_desc(jerr),
+				       buf);
+	}
+
+	/* An example json response is:
+	  {
+	  "name" : "node-1",
+	  "cluster_name" : "ntop",
+	  "cluster_uuid" : "GnWshRUvTuePXKMO15gZBg",
+	  "version" : {
+	  "number" : "5.6.5",
+	  "build_hash" : "6a37571",
+	  "build_date" : "2017-12-04T07:50:10.466Z",
+	  "build_snapshot" : false,
+	  "lucene_version" : "6.6.1"
+	  },
+	  "tagline" : "You Know, for Search"
+	  }
+	 */
+
+	if(json_object_object_get_ex(o, "version", &obj)
+	   && json_object_object_get_ex(obj, "number", &obj2)) {
+	  const char *ver = json_object_get_string(obj2);
+
+	  if(es_version) free(es_version);
+	  if((es_version = (char*)malloc(strlen(ver) + 1))) {
+	    strcpy(es_version, ver);
+	    version_inited = true;
+	  }
+	}
+      } else {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to query ES to get its version");
+      }
+
+      free(buf);
+    }
+  }
+
+  return es_version;
+}
+
+/* **************************************** */
+
+/* Send ntopng index template to Elastic Search */
 void ElasticSearch::pushEStemplate() {
-  char *postbuf = NULL, *es_host = NULL;
-  char template_path[MAX_PATH], es_template_url[MAX_PATH], es_url[MAX_PATH];
+  char *postbuf = NULL;
+  char template_path[MAX_PATH];
   ifstream template_file;
   u_int8_t max_attempts = 3;
   u_int16_t length = 0;
   HTTPTranferStats stats;
 
-  // store the original es update url
-  strncpy(es_url, ntop->getPrefs()->get_es_url(), MAX_PATH);
-  // prepare the template file path...
   snprintf(template_path, sizeof(template_path), "%s/misc/%s",
-	   ntop->get_docs_dir(), NTOP_ES_TEMPLATE);
+	   ntop->get_docs_dir(),
+	   atleast_version_6() ? NTOP_ES6_TEMPLATE : NTOP_ES_TEMPLATE);
   ntop->fixPath(template_path);
-
-  // and the ES url (keep only host and port by retaining only characters left of the first slash)
-  if(!strncmp(es_url, "http://", 7)){  // url starts either with http or https
-    Utils::tokenizer(es_url + 7, '/', &es_host);
-    snprintf(es_template_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
-  } else if(!strncmp(es_url, "https://", 8)){
-    Utils::tokenizer(es_url + 8, '/', &es_host);
-    snprintf(es_template_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
-  } else {
-    Utils::tokenizer(es_url, '/', &es_host);
-    snprintf(es_template_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
-  }
 
   template_file.open(template_path);   // open input file
   template_file.seekg(0, ios::end);    // go to the end
@@ -252,7 +337,7 @@ void ElasticSearch::pushEStemplate() {
   while(max_attempts > 0) {
     if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				ntop->getPrefs()->get_es_pwd(),
-				es_template_url, postbuf, &stats)) {
+				es_template_push_url, postbuf, &stats)) {
       /* Post failure */
       sleep(1);
     } else {

@@ -754,6 +754,7 @@
 
 /* Elastic Search */
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
+#define NTOP_ES6_TEMPLATE             "ntopng_template_elk6.json"
 #define ES_MAX_QUEUE_LEN              32768
 #define ES_BULK_BUFFER_SIZE           1*1024*1024
 #define ES_BULK_MAX_DELAY             5

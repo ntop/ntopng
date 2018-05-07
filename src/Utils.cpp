@@ -952,7 +952,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
  * @return true if post was successful, false otherwise.
  */
 
-static int curl_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
+static int curl_post_writefunc(void *ptr, size_t size, size_t nmemb, void *stream) {
   char *str = (char*)ptr;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "[JSON] %s", str);
@@ -1097,7 +1097,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_post_writefunc);
 
     res = curl_easy_perform(curl);
 
@@ -1254,7 +1254,7 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
 /* **************************************** */
 
 /* curl calls this routine to get more data */
-static size_t curl_get_writefunc(char *buffer, size_t size,
+static size_t curl_writefunc_to_lua(char *buffer, size_t size,
 				 size_t nitems, void *userp) {
   DownloadState *state = (DownloadState*)userp;
   int len = size*nitems, diff;
@@ -1367,7 +1367,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 	memset(state, 0, sizeof(DownloadState));
 
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_to_lua);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, state);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_hdf);
 	
@@ -1425,6 +1425,98 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
   }
 
   return(ret);
+}
+
+/* **************************************** */
+
+/* holder for curl fetch */
+struct curl_fetcher_t {
+  char * const payload;
+  size_t cur_size;
+  const size_t max_size;
+};
+
+static size_t curl_get_writefunc(void *contents, size_t size, size_t nmemb, void *userp) {
+  size_t realsize = size * nmemb;
+  struct curl_fetcher_t *p = (struct curl_fetcher_t*)userp;
+
+  /* Leave the last position for a '\0' */
+  if(p->cur_size + realsize > p->max_size - 1)
+    realsize = p->max_size - p->cur_size - 1;
+
+  if(realsize) {
+    memcpy(&(p->payload[p->cur_size]), contents, realsize);
+    p->cur_size += realsize;
+    p->payload[p->cur_size] = 0;
+  }
+
+  return realsize;
+}
+
+/* **************************************** */
+
+long Utils::httpGet(const char * const url,
+		    const char * const username, const char * const password,
+		    int timeout,
+		    char * const resp, const u_int resp_len) {
+  CURL *curl;
+  long response_code = 0;
+  curl = curl_easy_init();
+
+  if(curl) {
+    char *content_type;
+    char ua[64];
+    curl_fetcher_t fetcher = {.payload = resp, .cur_size = 0, .max_size = resp_len};
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    if(username || password) {
+      char auth[64];
+
+      snprintf(auth, sizeof(auth), "%s:%s",
+	       username ? username : "",
+	       password ? password : "");
+      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    }
+
+    if(!strncmp(url, "https", 5)) {
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
+
+    if(resp && resp_len) {
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
+
+    snprintf(ua, sizeof(ua), "%s [%s][%s]",
+	     PACKAGE_STRING, PACKAGE_MACHINE, PACKAGE_OS);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
+
+    if(curl_easy_perform(curl) == CURLE_OK) {
+      if(curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK)   ;
+      if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
+	;
+      else
+	response_code = 0;
+    }
+
+    /* always cleanup */
+    curl_easy_cleanup(curl);
+  }
+
+  return response_code;
 }
 
 /* **************************************** */
@@ -1518,80 +1610,6 @@ static void newString(String *str) {
   return;
 }
 #endif
-
-/* **************************************************** */
-
-// This callback function will be passed to 'curl_easy_setopt' in order to write curl output to a variable.
-#ifdef NOTUSED
-static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
-  size_t new_len = str->l + (size * nmemb);
-  str->s = (char *) realloc(str->s, new_len + 1);
-  if(str->s == NULL) {
-    fprintf(stderr, "ERROR: realloc() failed!\n");
-    exit(EXIT_FAILURE);
-  }
-  memcpy(str->s+str->l, ptr, size * nmemb);
-  str->s[new_len] = '\0';
-  str->l = new_len;
-
-  return (size * nmemb);
-}
-#endif
-
-/* **************************************************** */
-
-bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len, HTTPTranferStats *stats) {
-  CURL *curl;
-  bool ret = true;
-
-  curl = curl_easy_init();
-  if(curl) {
-    curl_version_info_data *v;
-    DownloadState *state;
-    char ua[64];
-
-    memset(stats, 0, sizeof(HTTPTranferStats));
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-
-    if(!strncmp(url, "https", 5)) {
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    }
-
-    state = (DownloadState*)malloc(sizeof(DownloadState));
-    if(state != NULL) {
-      memset(state, 0, sizeof(DownloadState));
-
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
-      curl_easy_cleanup(curl);
-      return(false);
-    }
-
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10 /* sec */);
-
-    v = curl_version_info(CURLVERSION_NOW);
-    snprintf(ua, sizeof(ua), "ntopng v.%s (curl %s)", PACKAGE_VERSION, v->version);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
-
-    if(curl_easy_perform(curl) == CURLE_OK) {
-      snprintf(ret_buf, ret_buf_len, "%s", state->outbuf);
-      readCurlStats(curl, stats, NULL);
-    } else
-      ret_buf[0] = '\0';
-
-    free(state);
-
-    /* always cleanup */
-    curl_easy_cleanup(curl);
-  }
-
-  return(ret);
-}
 
 /* **************************************** */
 

@@ -70,8 +70,11 @@ class Utils {
   static bool postHTTPTextFile(char *username, char *password, char *url, char *path, HTTPTranferStats *stats);
   static bool httpGet(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content, HTTPTranferStats *stats);
+  static long httpGet(const char * const url,
+		      const char * const username, const char * const password,
+		      int timeout,
+		      char * const resp, const u_int resp_len);
   static char* urlEncode(char *url);
-  static bool httpGet(char *url, char *ret_buf, u_int ret_buf_len, HTTPTranferStats *stats);
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
