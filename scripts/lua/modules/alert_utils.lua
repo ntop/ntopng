@@ -1846,18 +1846,10 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
    local alert_type = alertType(atype)
    local alert_severity = alertSeverity(aseverity)
 
-   if entity_type == "host" then
-      if engaged then
-	 return interface.engageHostAlert(engine, entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
-      else
-	 return interface.releaseHostAlert(engine, entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
-      end
+   if engaged then
+      return interface.engageAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
    else
-      if engaged then
-	 return interface.engageAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
-      else
-	 return interface.releaseAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
-      end
+      return interface.releaseAlert(engine, alertEntity(entity_type), entity_value, alert_key, alert_type, alert_severity, alert_msg, force)
    end
 end
 
