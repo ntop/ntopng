@@ -1466,7 +1466,10 @@ long Utils::httpGet(const char * const url,
   if(curl) {
     char *content_type;
     char ua[64];
-    curl_fetcher_t fetcher = {.payload = resp, .cur_size = 0, .max_size = resp_len};
+    curl_fetcher_t fetcher = {
+      /* .payload =  */ resp,
+      /* .cur_size = */ 0,
+      /* .max_size = */ resp_len};
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
