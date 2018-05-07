@@ -26,6 +26,9 @@ In order to use SSL with ntopng (i.e. HTTPS) you need to
 4. Start ntopng
   "make cert" will create the certificate but you can see below the
   exact steps if you want to generate the certificate manually.
+  
+  You now need to locate your ntopng `share` directory. It is usually located at `/usr/share/ntopng` or at `/usr/local/share/ntopng`.
+  The next instructions assume it's located at `/usr/local/share/ntopng`.
 
 == Ubuntu and Centos packages ==
 
