@@ -1343,7 +1343,7 @@ int Redis::restore(char *key, char *buf) {
   int rc;
   redisReply *reply;
   char *buf_bin = (char*)malloc(strlen(buf));
-  const char * argv[5] = {"RESTORE", key, "0", buf_bin, "REPLACE"};
+  const char * argv[5] = {"RESTORE", key, "0", buf_bin};
   size_t argvlen[5] = {7, 0, 0, 0, 7};
 
   if(buf_bin == NULL)
@@ -1354,16 +1354,28 @@ int Redis::restore(char *key, char *buf) {
   l->lock(__FILE__, __LINE__);
   num_requests++;
 
-  argvlen[1] = strlen(argv[1]);
-  argvlen[2] = strlen(argv[2]);
-  argvlen[3] = strlen(buf) / 2;
+  /* Delete the key first */
+  reply = (redisReply*)redisCommand(redis, "DEL %s", key);
+  if(!reply) reconnectRedis();
 
-  reply = (redisReply*)redisCommandArgv(redis, 5, argv, argvlen);
+  if(reply && (reply->type == REDIS_REPLY_ERROR)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    rc = -1;
+  } else if(reply) {
+    freeReplyObject(reply);
 
-  rc = reply ? 0 : -1;
+    argvlen[1] = strlen(argv[1]);
+    argvlen[2] = strlen(argv[2]);
+    argvlen[3] = strlen(buf) / 2;
 
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [RESTORE %s]", reply->str ? reply->str : "???", key), rc = -1;
+    reply = (redisReply*)redisCommandArgv(redis, 4, argv, argvlen);
+
+    rc = reply ? 0 : -1;
+
+    if(reply && (reply->type == REDIS_REPLY_ERROR))
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [RESTORE %s]", reply->str ? reply->str : "???", key), rc = -1;
+  } else
+    rc = -1;
 
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
