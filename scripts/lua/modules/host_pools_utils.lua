@@ -395,7 +395,9 @@ function host_pools_utils.clearPools()
     if not ifstats.isView then
        local pools_list = host_pools_utils.getPoolsList(ifid)
        for _, pool in pairs(pools_list) do
-	  host_pools_utils.deletePool(ifid, pool["id"])
+          if pool["id"] ~= host_pools_utils.DEFAULT_POOL_ID then
+            host_pools_utils.deletePool(ifid, pool["id"])
+          end
        end
     end
 
