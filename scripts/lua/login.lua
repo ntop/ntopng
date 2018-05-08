@@ -77,7 +77,7 @@ for _,id in ipairs(additional_keys) do
   end
 end
 
-print(r)
+print(r or "")
 
 
 print [[">

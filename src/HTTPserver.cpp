@@ -432,18 +432,24 @@ static void redirect_to_login(struct mg_connection *conn,
     mg_get_cookie(conn, "session", session_id, sizeof(session_id));
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
-    mg_printf(conn,
+    if(referer)
+      mg_printf(conn,
+		"HTTP/1.1 302 Found\r\n"
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+		"Location: %s%s?referer=%s\r\n\r\n",
+		session_id,
+		get_secure_cookie_attributes(request_info),
+		ntop->getPrefs()->get_http_prefix(),
+		Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)), referer);
+    else
+      mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	      "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
+	      "Location: %s%s\r\n\r\n",
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
 	      ntop->getPrefs()->get_http_prefix(),
-	      Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
-	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
-	      conn->request_info.uri,
-	      conn->request_info.query_string ? "%3F" /* ? */: "",
-	      conn->request_info.query_string ? conn->request_info.query_string : "");
+	      Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)));
   }
 }
 
@@ -538,8 +544,10 @@ static void authorize(struct mg_connection *conn,
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
   } else {
     /* Referer url must begin with '/' */
-    if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0))
-      strcpy(referer, "/");
+    if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
+      char *r = strchr(referer, '/');
+      strcpy(referer, r ? r : "/");
+    }
 
     set_cookie(conn, user, referer);
   }
@@ -682,9 +690,17 @@ static int handle_lua_request(struct mg_connection *conn) {
     else if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
       // avoid sending login redirect to allow js itself to redirect the user
       return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
-    } else
-      redirect_to_login(conn, request_info, mg_get_header(conn, "Host") ?
-			mg_get_header(conn, "Host"): (char*)"");
+    } else {
+      char referer[255];
+
+      snprintf(referer, sizeof(referer), "%s%s%s%s",
+	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+	      conn->request_info.uri,
+	      conn->request_info.query_string ? "%3F" /* ? */: "",
+	      conn->request_info.query_string ? conn->request_info.query_string : "");
+
+      redirect_to_login(conn, request_info, referer);
+    }
 
     return(1);
   } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
