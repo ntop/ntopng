@@ -108,7 +108,10 @@ function http_bridge_conf_utils.configureBridge()
 
 	 -- SETUP HOST POOLS
 	 for username, user_config in pairs(rsp["users"] or {}) do
-	    users_utils.addUserIfNotExists(ifid, username, user_config["password"] or "", user_config["full_name"] or "")
+            if username ~= host_pools_utils.DEFAULT_POOL_NAME then
+              users_utils.addUserIfNotExists(ifid, username, user_config["password"] or "", user_config["full_name"] or "")
+            end
+
 	    local pool_id = host_pools_utils.usernameToPoolId(username) or host_pools_utils.DEFAULT_POOL_ID
 	    traceError(TRACE_NORMAL, TRACE_CONSOLE, ifname..": creating user: "..username.. " pool id: "..pool_id)
 
