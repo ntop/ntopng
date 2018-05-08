@@ -2480,6 +2480,7 @@ local lang = {
     ["object_id"] = "ObjectID",
     ["out_bytes"] = "Out Bytes",
     ["port_macs"] = "Seen Mac Addresses",
+    ["port_macs_short"] = "Macs",
     ["remove_snmp_device"] = "Remove SNMP Device",
     ["remove_snmp_device_confirm"] = "Do you really want to delete the SNMP device %{device}?",
     ["snmp_community"] = "SNMP Community",
