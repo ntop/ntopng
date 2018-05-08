@@ -16,6 +16,13 @@ use option --ndpi-protocols, e.g., --ndpi-protocols /tmp/custom.txt
 
 sample_bridge_config = {
     "users":{
+        "Not Assigned" : {
+            "default_policy": "drop",
+            "policies" : {10 : "slow_pass",
+                          "Facebook": "pass",
+                          "MyCustomProtocol": "pass",
+                          "YouTube": "pass"}
+        },
         "maina" : {
             "full_name": "Maina Fast",
             "password": "ntop0101",
@@ -48,7 +55,7 @@ class Handler(BaseHTTPRequestHandler):
 def run(port=8000):
     print('http server is starting...')
     #ip and port of server
-    server_address = ('127.0.0.1', port)
+    server_address = ('0.0.0.0', port)
     httpd = HTTPServer(server_address, Handler)
     print('http server is running...listening on port %s' %port)
     httpd.serve_forever()
@@ -63,4 +70,3 @@ if __name__ == '__main__':
     opts, args = op.parse_args(sys.argv)
 
     run(opts.port)
-
