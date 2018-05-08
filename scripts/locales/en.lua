@@ -2465,6 +2465,7 @@ local lang = {
     ["discover_devices"] = "Discover Devices",
     ["enable_polling"] = "Enable Polling",
     ["enable_port_monitor"] = "Enable Port Monitor",
+    ["snmp_device_last_system_update"] = "Last Update",
     ["ifindex"] = "Index",
     ["in_bytes"] = "In Bytes",
     ["in_discards"] = "In Discards",
