@@ -503,7 +503,7 @@ function makeFindHostBeforeSubmitCallback(http_prefix) {
     if (data.type == "mac")
       form.attr("action", http_prefix + "/lua/mac_details.lua");
     else if (data.type == "snmp")
-      form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_info.lua");
+      form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_details.lua");
     else
       form.attr("action", http_prefix + "/lua/host_details.lua");
 
