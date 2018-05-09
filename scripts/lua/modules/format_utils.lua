@@ -13,9 +13,7 @@ local round = format_utils.round
 function format_utils.secondsToTime(seconds)
    local seconds = tonumber(seconds)
    if(seconds == nil) then return "" end
-   if(seconds == 0) then
-      return("0 sec")
-   end
+
    if(seconds < 1) then
       return("< 1 sec")
    end
@@ -43,27 +41,13 @@ function format_utils.secondsToTime(seconds)
       end
    end
 
+   if(string.len(msg) > 0) then  msg = msg .. ", " end
+
    if(hours > 0) then
-      if(string.len(msg) > 0) then  msg = msg .. ", " end
-      msg = msg .. string.format("%d ", hours)
-      if(hours > 1) then
-	 msg = msg .. "h"
-      else
-	 msg = msg .. "h"
-      end
-
-      --if(hours > 1) then msg = msg .. "s" end
+      msg = msg .. string.format("%02d:", hours)
    end
-
-   if(minutes > 0) then
-      if(string.len(msg) > 0) then msg = msg .. ", " end
-      msg = msg .. string.format("%d min", minutes)
-   end
-
-   if(sec > 0) then
-      if(string.len(msg) > 0) then msg = msg .. ", " end
-      msg = msg .. string.format("%d sec", sec);
-   end
+   msg = msg .. string.format("%02d:", minutes)
+   msg = msg .. string.format("%02d", sec);
 
    return msg
 end

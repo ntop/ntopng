@@ -1,4 +1,4 @@
-// 2014-15 - ntop.org
+// 2014-18 - ntop.org
 
 function is_good_ipv4(ipv4) {
     if (/^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/.test(ipv4)) {
@@ -310,21 +310,17 @@ function secondsToTime(seconds) {
       msg = ""
    }
 
-   if(hours > 0) {
-      msg = hours + " hour";
-      if(hours > 1) { msg +=  "s" }
-      msg_array.push(msg)
-      msg = ""
-   }
-
-   if(minutes > 0) {
-      msg_array.push(minutes + " min")
-   }
-
-   if(sec > 0) {
-      msg_array.push(sec + " sec")
-   }
-
+    if(hours > 0) {
+	if(hours < 10) { msg = "0" }
+	msg += hours + ":";
+    }
+    
+    if(minutes < 10) { msg += "0" }
+    msg += minutes + ":";
+    if(sec < 10) { msg += "0" }
+    msg += sec;
+    msg_array.push(msg)
+    
    return msg_array.join(", ")
 }
 
