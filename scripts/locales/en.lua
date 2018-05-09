@@ -2453,6 +2453,7 @@ local lang = {
   },
   ["snmp"] = {
     ["add_device"] = "Add New Device",
+    ["delete_all_devices"] = "Delete All Devices",
     ["add_snmp_devices"] = "Add SNMP Devices",
     ["bound_interface_description"] = "Binding a network interface to an SNMP interface is useful to compare network traffic monitored by ntopng with that reported by SNMP",
     ["contact"] = "Contact",
@@ -2483,6 +2484,8 @@ local lang = {
     ["port_macs_short"] = "Macs",
     ["remove_snmp_device"] = "Remove SNMP Device",
     ["remove_snmp_device_confirm"] = "Do you really want to delete the SNMP device %{device}?",
+    ["remove_all_snmp_devices"] = "Remove All SNMP Devices",
+    ["remove_all_snmp_devices_confirm"] = "Do you really want to delete all the SNMP devices?",
     ["snmp_community"] = "SNMP Community",
     ["snmp_device"] = "SNMP Device",
     ["snmp_device_does_not_respond"] = "The SNMP device does not respond.",

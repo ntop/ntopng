@@ -367,7 +367,8 @@ local function validateUnassignedDevicesMode(mode)
 end
 
 local function validateSnmpAction(mode)
-   local modes = {"delete", "add", "addNewDevice", "startPolling", "stopPolling", "startPortMonitor", "stopPortMonitor"}
+   local modes = {"delete", "delete_all", "add",
+		  "addNewDevice", "startPolling", "stopPolling", "startPortMonitor", "stopPortMonitor"}
 
    return validateChoice(modes, mode)
 end
