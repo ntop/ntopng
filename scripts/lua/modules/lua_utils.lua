@@ -2493,7 +2493,11 @@ function get_manufacturer_mac(mac_address)
 
   if(ret == m) then ret = "n/a" end
 
-  return ret
+  if ret and ret ~= "" then
+     ret = ret:gsub("'"," ")
+  end
+
+  return ret or "n/a"
 end
 
 -- rrd_exists
