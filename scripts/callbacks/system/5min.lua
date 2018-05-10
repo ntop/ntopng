@@ -38,30 +38,11 @@ if ntop.isPro() then
       snmp_device.init(device["ip"])
       local cache_status = snmp_device.get_cache_status()
 
-      if true then -- TODO: refine a policy to update system information (once per day maybe?)
-	 local res = snmp_device.cache_system()
-	 if res["status"] ~= "OK" then
-	    snmp_handle_cache_errors(device["ip"], res)
-	    goto next_device
-	 end
-      end
-
       if true then -- TODO: refine a policy to update bridge information
 	 local res = snmp_device.cache_bridge()
 	 if res["status"] ~= "OK" then
 	    snmp_handle_cache_errors(device["ip"], res)
 	    goto next_device
-	 end
-      end
-
-      -- only retrieve printer information if it is the first time the device is being polled
-      -- or if the device is actually a printer
-      if not cache_status or not cache_status["printer"] or snmp_device.is_printer() then
-	 local res = snmp_device.cache_printer()
-	 if res["status"] ~= "OK" then
-	    snmp_handle_cache_errors(device["ip"], res)
-	    -- don't skip the device in case of errors (an error here can just means it's not a printer)
-	    -- dont' do: goto next_device
 	 end
       end
 
