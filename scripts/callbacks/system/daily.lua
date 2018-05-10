@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "blacklist_utils"
+local lists_utils = require "lists_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
@@ -19,4 +19,4 @@ end
 -- TODO: make 30 configurable
 harvestJSONTopTalkers(30)
 
-loadHostBlackList()
+lists_utils.reloadLists()

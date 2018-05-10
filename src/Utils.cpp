@@ -388,6 +388,10 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_remote_to_remote:
     *aType = alert_flow_remote_to_remote;
     return("Remote client and remote server");
+  case status_web_mining_detected:
+    *aType = alert_flow_web_mining;
+    *aLevel = alert_level_warning;
+    return("Web miner detected");
   case status_blacklisted:
     *aType = alert_flow_blacklisted;
     *aLevel = alert_level_error;

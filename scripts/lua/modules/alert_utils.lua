@@ -646,7 +646,12 @@ function formatRawFlow(record, flow_json)
          msg = msg..flow.." "
       end
       if not isEmptyString(decoded["info"]) then
-         msg = msg.."["..i18n("info")..": "..decoded["info"].."] "
+         local lb = ""
+         if (record["flow_status"] == "13") -- blacklisted flow
+                  and (not flow["srv.blacklisted"]) and (not flow["cli.blacklisted"]) then
+            lb = " <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
+         end
+         msg = msg.."["..i18n("info")..": "..decoded["info"]..lb.."] "
       end
 
       flow = msg

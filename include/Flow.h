@@ -206,7 +206,7 @@ class Flow : public GenericHashEntry {
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   inline bool isBlacklistedFlow() {
-    return(cli_host && srv_host && (cli_host->isBlacklisted() || srv_host->isBlacklisted()));
+    return(cli_host && srv_host && (cli_host->isBlacklisted() || srv_host->isBlacklisted() || ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE));
   };
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
     return(1000 /* msec */

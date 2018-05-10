@@ -10,7 +10,7 @@ require "lua_trace"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
-require "alert_consts"
+local alert_consts = require "alert_consts"
 
 -- ##############################################
 -- TODO: replace those globals with locals everywhere
@@ -578,77 +578,6 @@ function checkpointId(v)
    return(_handleArray(checkpointtable, v))
 end
 
--- ##############################################
-
--- Alerts (see ntop_typedefs.h)
--- each table entry is an array as:
--- {"alert html string", "alert C enum value", "plain string"}
-alert_level_keys = {
-  { "<span class='label label-info'>" .. i18n("alerts_dashboard.none") .. "</span>",      -1, "none"   },
-  { "<span class='label label-info'>" .. i18n("alerts_dashboard.info") .. "</span>",       0, "info"    },
-  { "<span class='label label-warning'>" .. i18n("alerts_dashboard.warning") .. "</span>", 1, "warning" },
-  { "<span class='label label-danger'>" .. i18n("alerts_dashboard.error") .. "</span>",    2, "error"   }
-}
-
-alert_type_keys = {
-  { "<i class='fa fa-ok'></i> " .. i18n("alerts_dashboard.no_alert"),                             -1, "alert_none"                 },
-  { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.tcp_syn_flood"),                  0, "tcp_syn_flood"              },
-  { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.flows_flood"),                    1, "flows_flood"                },
-  { "<i class='fa fa-arrow-circle-up'></i> " .. i18n("alerts_dashboard.threashold_cross"),          2, "threshold_cross"            },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_activity"),          3, "suspicious_activity"        },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.interface_alerted"),            4, "interface_alerted"          },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.flow_misbehaviour"),            5, "flow_misbehaviour"          },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.remote_to_remote_flow"),        6, "flow_remote_to_remote"      },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.blacklisted_flow"),             7, "flow_blacklisted"           },
-  { "<i class='fa fa-ban'></i> " .. i18n("alerts_dashboard.blocked_flow"),                         8, "flow_blocked"               },
-  { "<i class='fa fa-asterisk'></i> " .. i18n("alerts_dashboard.new_device"),                      9, "new_device"                 },
-  { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.device_connection"),               10, "device_connection"         },
-  { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.device_disconnection"),           11, "device_disconnection"         },
-  { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.host_pool_connection"),            12, "host_pool_connection"         },
-  { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.host_pool_disconnection"),        13, "host_pool_disconnection"      },
-  { "<i class='fa fa-thermometer-full'></i> " .. i18n("alerts_dashboard.quota_exceeded"),         14, "quota_exceeded"      },
-  { "<i class='fa fa-cog'></i> " .. i18n("alerts_dashboard.misconfigured_app"),                   15, "misconfigured_app"      },
-  { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.too_many_drops"),                     16, "too_many_drops"      },
-  { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),      17, "mac_ip_association_change"   },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_status_change"),     18, "port_status_change"          },
-  { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.unresponsive_device"),         19, "unresponsive_device"         },
-}
-
-local alert_entity_keys = {
-  { "Interface",       0, "interface"     },
-  { "Host",            1, "host"          },
-  { "Network",         2, "network"       },
-  { "SNMP device",     3, "snmp_device"   },
-  { "Flow",            4, "flow"          },
-  { "Device",          5, "mac"           },
-  { "Host Pool",       6, "host_pool"     },
-}
-
-local alert_engine_keys = {
-   {i18n("show_alerts.minute"),       0, "min"    },
-   {i18n("show_alerts.five_minutes"), 1, "5mins"  },
-   {i18n("show_alerts.hourly"),       2, "hour"   },
-   {i18n("show_alerts.daily"),        3, "day"    },
-}
-
--- Note: keep in sync with alarmable_metrics and alert_functions_infoes
-alert_functions_description = {
-   ["active"]  = i18n("alerts_thresholds_config.alert_active_description"),
-   ["bytes"]   = i18n("alerts_thresholds_config.alert_bytes_description"),
-   ["dns"]     = i18n("alerts_thresholds_config.alert_dns_description"),
-   ["idle"]    = i18n("alerts_thresholds_config.alert_idle_description"),
-   ["packets"] = i18n("alerts_thresholds_config.alert_packets_description"),
-   ["p2p"]     = i18n("alerts_thresholds_config.alert_p2p_description"),
-   ["throughput"]   = i18n("alerts_thresholds_config.alert_throughput_description"),
-   ["flows"]   = i18n("alerts_thresholds_config.alert_flows_description"),
-}
-
-network_alert_functions_description = {
-    ["ingress"] = i18n("alerts_thresholds_config.alert_network_ingress_description"),
-    ["egress"]  = i18n("alerts_thresholds_config.alert_network_egress_description"),
-    ["inner"]   = i18n("alerts_thresholds_config.alert_network_inner_description"),
-}
-
 function noHtml(s)
    if s == nil then return nil end
    local cleaned = s:gsub("<[aA].->(.-)</[aA]>","%1")
@@ -659,14 +588,14 @@ function noHtml(s)
 end
 
 function alertSeverityLabel(v, nohtml)
-   local res = _handleArray(alert_level_keys, tonumber(v))
+   local res = _handleArray(alert_consts.alert_severity_keys, tonumber(v))
    if res ~= nil and nohtml == true then res = noHtml(res) end
    return res
 end
 
 function alertSeverity(v)
    local severity_table = {}
-   for i, t in ipairs(alert_level_keys) do
+   for i, t in ipairs(alert_consts.alert_severity_keys) do
       severity_table[#severity_table + 1] = {t[2], t[3]}
    end
    return(_handleArray(severity_table, v))
@@ -674,21 +603,21 @@ end
 
 function alertSeverityRaw(sev_idx)
    sev_idx = sev_idx + 2 -- -1 and 0
-   if sev_idx <= #alert_level_keys then
-      return alert_level_keys[sev_idx][3]
+   if sev_idx <= #alert_consts.alert_severity_keys then
+      return alert_consts.alert_severity_keys[sev_idx][3]
    end
    return nil
 end
 
 function alertTypeLabel(v, nohtml)
-   local res = _handleArray(alert_type_keys, tonumber(v))
+   local res = _handleArray(alert_consts.alert_type_keys, tonumber(v))
    if res ~= nil and nohtml == true then res = noHtml(res) end
    return res
 end
 
 function alertType(v)
    local typetable = {}
-   for i, t in ipairs(alert_type_keys) do
+   for i, t in ipairs(alert_consts.alert_type_keys) do
       typetable[#typetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(typetable, v))
@@ -696,20 +625,20 @@ end
 
 function alertEngine(v)
    local enginetable = {}
-   for i, t in ipairs(alert_engine_keys) do
+   for i, t in ipairs(alert_consts.alert_consts.alert_functions_description) do
       enginetable[#enginetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(enginetable, v))
 end
 
 function alertEngineLabel(v)
-   return _handleArray(alert_engine_keys, tonumber(v))
+   return _handleArray(alert_consts.alert_consts.alert_functions_description, tonumber(v))
 end
 
 function alertEngineRaw(idx)
    idx = idx + 1
-   if idx <= #alert_engine_keys then
-      return alert_engine_keys[idx][3]
+   if idx <= #alert_consts.alert_consts.alert_functions_description then
+      return alert_consts.alert_consts.alert_functions_description[idx][3]
    end
    return nil
 end
@@ -717,7 +646,7 @@ end
 function alertLevel(v)
    local leveltable = {}
 
-   for i, t in ipairs(alert_level_keys) do
+   for i, t in ipairs(alert_consts.alert_severity_keys) do
       leveltable[#leveltable + 1] = {t[2], t[3]}
    end
    return(_handleArray(leveltable, v))
@@ -727,21 +656,21 @@ function alertTypeRaw(alert_idx)
    if(alert_idx == nil) then return nil end
 
    alert_idx = alert_idx + 2 -- -1 and 0
-   if alert_idx <= #alert_type_keys then
-      return alert_type_keys[alert_idx][3]
+   if alert_idx <= #alert_consts.alert_type_keys then
+      return alert_consts.alert_type_keys[alert_idx][3]
    end
    return nil
 end
 
 function alertEntityLabel(v, nothml)
-   local res = _handleArray(alert_entity_keys, tonumber(v))
+   local res = _handleArray(alert_consts.alert_entity_keys, tonumber(v))
    if res ~= nil and nohtml == true then res = noHtml(res) end
    return res
 end
 
 function alertEntity(v)
    local typetable = {}
-   for i, t in ipairs(alert_entity_keys) do
+   for i, t in ipairs(alert_consts.alert_entity_keys) do
       typetable[#typetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(typetable, v))
@@ -749,8 +678,8 @@ end
 
 function alertEntityRaw(entity_idx)
    entity_idx = entity_idx + 1
-   if entity_idx <= #alert_entity_keys then
-      return alert_entity_keys[entity_idx][3]
+   if entity_idx <= #alert_consts.alert_entity_keys then
+      return alert_consts.alert_entity_keys[entity_idx][3]
    end
    return nil
 end
@@ -1013,13 +942,37 @@ function isBroadcastMulticast(ip)
    return false
 end
 
-function isIPv4(ip)
-  if string.find(ip, "%.") then
+function isIPv4(address)
+  local chunks = {address:match("(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
+
+  if #chunks == 4 then
+    for _, v in pairs(chunks) do
+      if (tonumber(v) < 0) or (tonumber(v) > 255) then
+        return false
+      end
+    end
+
     return true
   end
+
   return false
 end
 
+function isIPv4Network(address)
+   local parts = split(address, "/")
+
+   if #parts == 2 then
+      local prefix = tonumber(parts[2])
+
+      if (prefix == nil) or (math.floor(prefix) ~= prefix) or (prefix < 0) or (prefix > 32) then
+         return false
+      end
+   elseif #parts ~= 1 then
+      return false
+   end
+
+   return isIPv4(parts[1])
+end
 
 function isIPv6(ip)
    if((string.find(ip, ":")) and (not isMacAddress(ip))) then
@@ -2620,6 +2573,7 @@ function getFlowStatus(status)
   elseif(status == 12) then return("<font color=orange>"..i18n("flow_details.remote_to_remote").."</font>")
   elseif(status == 13) then return("<font color=orange>"..i18n("flow_details.blacklisted_flow").."</font>")
   elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
+  elseif(status == 15) then return(""..i18n("flow_details.web_mining_detected").."")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end

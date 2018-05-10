@@ -1467,6 +1467,73 @@ static int ntop_addToHostBlacklist(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_loadCustomCategoryIp(lua_State* vm) {
+  char *net;
+  ndpi_protocol_category_t catid;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  net = (char*)lua_tostring(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
+
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    /* Note: we only load custom categories on packet interfaces right now */
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
+      ndpi_load_ip_category(iface->get_ndpi_struct(), net, catid);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_loadCustomCategoryHost(lua_State* vm) {
+  char *host;
+  ndpi_protocol_category_t catid;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  host = (char*)lua_tostring(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
+
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    /* Note: we only load custom categories on packet interfaces right now */
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
+      ndpi_load_hostname_category(iface->get_ndpi_struct(), host, catid);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_reloadCustomCategories(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    /* Note: we only load custom categories on packet interfaces right now */
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
+      iface->reloadCustomCategories();
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+  
+/* ****************************************** */
+
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushnil(vm);
@@ -7365,6 +7432,10 @@ static const luaL_Reg ntop_reg[] = {
   { "allocHostBlacklist",   ntop_allocHostBlacklist },
   { "swapHostBlacklist",    ntop_swapHostBlacklist  },
   { "addToHostBlacklist",   ntop_addToHostBlacklist },
+
+  { "loadCustomCategoryIp",   ntop_loadCustomCategoryIp },
+  { "loadCustomCategoryHost", ntop_loadCustomCategoryHost },
+  { "reloadCustomCategories", ntop_reloadCustomCategories },
 
   /* Privileges */
   { "gainWriteCapabilities",   ntop_gainWriteCapabilities },

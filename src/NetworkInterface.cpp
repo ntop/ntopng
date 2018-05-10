@@ -288,6 +288,7 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
+  reload_custom_categories = false;
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
@@ -1979,6 +1980,12 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
+
+  if(reload_custom_categories) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload categories..");
+    ndpi_enable_loaded_categories(ndpi_struct);
+    reload_custom_categories = false;
+  }
 
 #if 0
   static u_int n = 0;

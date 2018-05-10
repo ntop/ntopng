@@ -15,12 +15,12 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "blacklist_utils"
 require "alert_utils"
 
 local discover_utils = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
+local lists_utils = require "lists_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -95,7 +95,7 @@ end
 -- ##################################################################
 
 initCustomnDPIProtoCategories()
-loadHostBlackList()
+lists_utils.reloadLists()
 
 -- TODO: migrate custom re-arm settings
 

@@ -208,6 +208,7 @@ void Flow::dumpFlowAlert() {
       do_dump = false;
       break;
 
+    case status_web_mining_detected:
     case status_blacklisted:
       do_dump = true;
       break;
@@ -2888,7 +2889,7 @@ bool Flow::isPassVerdict() {
   if(cli_host && srv_host)
     return((!quota_exceeded)
 	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
-	   && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
+	   && (!isBlacklistedFlow()));
   else
     return(true);
 }
@@ -3189,6 +3190,9 @@ FlowStatus Flow::getFlowStatus() {
 
   if(isBlacklistedFlow())
     return status_blacklisted;
+
+  if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_WEB_MINING)
+    return status_web_mining_detected;
 
 #ifndef HAVE_NEDGE
   /* All flows */

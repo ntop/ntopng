@@ -40,6 +40,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_status_change"),     18, "port_status_change"         },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.unresponsive_device"),         19, "unresponsive_device"        },
    { "<i class='fa fa-truck'></i> " .. i18n("alerts_dashboard.process"),                     20, "process_notification"       },
+   { "<i class='fa fa-bitcoin'></i> " .. i18n("alerts_dashboard.web_mining"),                      21, "web_mining"                  },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

@@ -7,10 +7,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 require "prefs_utils"
-require "blacklist_utils"
 require "alert_utils"
 local template = require "template_utils"
 local callback_utils = require "callback_utils"
+local lists_utils = require "lists_utils"
 local have_nedge = ntop.isnEdge()
 
 if(ntop.isPro()) then
@@ -1370,7 +1370,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
 end
 
 if(_POST["toggle_malware_probing"] ~= nil) then
-  loadHostBlackList(true --[[ force the reload of the list ]])
+  lists_utils.reloadLists(true --[[ force the reload of the list ]])
 end
 
 end --[[ haveAdminPrivileges ]]

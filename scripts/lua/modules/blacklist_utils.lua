@@ -2,6 +2,10 @@
 -- (C) 2016-18 - ntop.org
 --
 
+-- NOTE: see lists_utils.lua
+
+local blacklist_utils = {}
+
 local blacklistURLs = {
    "https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"
 }
@@ -26,26 +30,40 @@ local function loadBlackListFromURL(url)
    end
 end
 
+local function shouldReload(force_purge)
+   return blacklist_utils.isBlacklistEnabled() or (force_purge)
+end
+
 -- ##################################################################
 
-function loadHostBlackList(force_purge)
+function blacklist_utils.isBlacklistEnabled()
+   local bl = ntop.getPref("ntopng.prefs.host_blacklist")
+   return (bl ~= "0")
+end
+
+-- ##################################################################
+
+function blacklist_utils.beginLoad(force_purge)
    local bl = ntop.getCache("ntopng.prefs.host_blacklist")
    local bl_enabled = ((bl == "1") or (bl == "enabled"))
-   local should_reload = ((bl_enabled) or (force_purge))
 
-   if should_reload then
+   if shouldReload(force_purge) then
       ntop.allocHostBlacklist()
    end
 
-   if bl_enabled then
+   if blacklist_utils.isBlacklistEnabled() then
       for _,url in pairs(blacklistURLs) do
 	 loadBlackListFromURL(url)
       end
    end
+end
 
-   if should_reload then
+-- ##################################################################
+
+function blacklist_utils.endLoad(force_purge)
+   if shouldReload(force_purge) then
       ntop.swapHostBlacklist()
    end
 end
 
-
+return blacklist_utils

@@ -57,12 +57,12 @@ typedef enum {
   alert_flow_misbehaviour,
   alert_flow_remote_to_remote,
   alert_flow_blacklisted,
-  alert_flow_blocked
+  alert_flow_blocked,
+  alert_flow_web_mining = 21,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
 	       in ntopng/scripts/lua/modules/lua_utils.lua
-	       and AlertsManager::getAlertType
 	     */
 
 typedef enum {
@@ -236,6 +236,7 @@ typedef enum {
   status_remote_to_remote /* 12 */,
   status_blacklisted /* 13 */,
   status_blocked /* 14 */,
+  status_web_mining_detected /* 15 */,
 } FlowStatus;
 
 typedef enum {

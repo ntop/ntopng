@@ -336,6 +336,9 @@
 #define CONST_LUA_FLOW_UPDATE       "flowUpdate"
 #define CONST_LUA_FLOW_NDPI_DETECT  "flowProtocolDetected"
 
+#define CUSTOM_CATEGORY_WEB_MINING  99
+#define CUSTOM_CATEGORY_MALWARE     100
+
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)
 #define CONST_PATH_SEP                    '\\'

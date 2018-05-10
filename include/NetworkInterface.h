@@ -87,6 +87,7 @@ class NetworkInterface : public Checkpointable {
   string ip_addresses;
   int id;
   bool bridge_interface, is_dynamic_interface;
+  bool reload_custom_categories;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE
@@ -591,6 +592,7 @@ class NetworkInterface : public Checkpointable {
   int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
 
   void reloadHideFromTop(bool refreshHosts=true);
+  inline void reloadCustomCategories()       { reload_custom_categories = true; }
   bool isHiddenFromTop(Host *host);
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
