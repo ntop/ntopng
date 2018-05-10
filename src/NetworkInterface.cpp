@@ -1131,6 +1131,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   Mac *srcMac, *dstMac;
   IpAddress srcIP, dstIP;
 
+  memset(&p, 0, sizeof(p));
+
   if(last_pkt_rcvd_remote > 0) {
     int drift = now - last_pkt_rcvd_remote;
 

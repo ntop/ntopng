@@ -40,8 +40,7 @@ Flow::Flow(NetworkInterface *_iface,
   l7_protocol_guessed = detection_completed = false,
     flow_packets_head = flow_packets_tail = NULL,
     dump_flow_traffic = false,
-    ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN,
-    ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
+    memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol));
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
