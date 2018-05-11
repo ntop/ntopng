@@ -223,6 +223,10 @@ if((page == "overview") or (page == nil)) then
 	     .."</th><td>"..mac_info.fingerprint.."</td><td>Operating System: "..getOperatingSystemIcon(mac_info.operatingSystem).."</td></tr>\n")
    end
 
+   if have_nedge then
+     print("<tr><th>" .. i18n("hosts_stats.location") .. " </th><td colspan=2>".. firstToUpper(mac_info.location) .."</td></tr>\n")
+   end
+
    print("<tr><th>".. i18n("details.first_last_seen") .. "</th><td nowrap><span id=first_seen>" .. formatEpoch(mac_info["seen.first"]) ..  " [" .. secondsToTime(os.time()-mac_info["seen.first"]) .. " " .. i18n("details.ago").."]" .. "</span></td>\n")
    print("<td  width='35%'><span id=last_seen>" .. formatEpoch(mac_info["seen.last"]) .. " [" .. secondsToTime(os.time()-mac_info["seen.last"]) .. " " .. i18n("details.ago").."]" .. "</span></td></tr>\n")
 
