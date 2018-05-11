@@ -2829,7 +2829,8 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 		  cli_host->getMac()->setSSID(&txt_buf[5]);
 	      }
 	    }
-	  }
+	  } else
+	    break;
 	}
       }
 
