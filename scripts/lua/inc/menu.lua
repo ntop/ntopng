@@ -443,7 +443,7 @@ end
       <li class="divider"></li>
       <li><a href="]]
    print(ntop.getHttpPrefix())
-   print [[/lua/export_data.lua"><i class="fa fa-share"></i> ]] print(i18n("export_data.export_data")) print[[</a></li>]]
+   print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
 print[[</ul>
     </li>

@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -10,10 +10,12 @@ local json = require("dkjson")
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="exported_data.json"')
 
-local mode = _GET["mode"]
+tprint(_POST)
+
+local mode = _POST["mode"]
 
 if mode == "filtered" then
-   local host_info = url2hostinfo(_GET)
+   local host_info = url2hostinfo(_POST)
    local host
 
    if not isEmptyString(host_info["host"]) then
