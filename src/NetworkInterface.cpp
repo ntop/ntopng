@@ -162,7 +162,7 @@ NetworkInterface::NetworkInterface(const char *name,
     if(ntop->getCustomnDPIProtos() != NULL)
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
-    ndpi_struct->http_dont_dissect_response = 1;
+    ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
 
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
@@ -4905,17 +4905,19 @@ void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_
 
 void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical) {
   int i;
-
+  u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(ndpi_struct);
+  ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(ndpi_struct);
+  
   lua_newtable(vm);
 
-  for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
+  for(i=0; i<(int)num_supported_protocols; i++) {
     char buf[8];
 
     if((((u_int8_t)filter == (u_int8_t)-1)
-	|| ndpi_struct->proto_defaults[i].protoCategory == filter) &&
+	|| proto_defaults[i].protoCategory == filter) &&
 	(!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
       snprintf(buf, sizeof(buf), "%d", i);
-      lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
+      lua_push_str_table_entry(vm, proto_defaults[i].protoName, buf);
     }
   }
 }
@@ -4990,16 +4992,17 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
   u_int32_t *num_flows;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
+  u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(ndpi_struct);
+  ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(ndpi_struct);
 
-  num_flows = (u_int32_t*)calloc(ndpi_struct->ndpi_num_supported_protocols,
-				 sizeof(u_int32_t));
+  num_flows = (u_int32_t*)calloc(num_supported_protocols, sizeof(u_int32_t));
 
   if(num_flows) {
     walker(&begin_slot, walk_all,  walker_flows, num_flows_walker, num_flows);
 
-    for(int i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
+    for(int i=0; i<(int)num_supported_protocols; i++) {
       if(num_flows[i] > 0)
-	lua_push_int_table_entry(vm, ndpi_struct->proto_defaults[i].protoName,
+	lua_push_int_table_entry(vm, proto_defaults[i].protoName,
 				 num_flows[i]);
     }
 
