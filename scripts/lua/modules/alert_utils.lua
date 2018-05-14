@@ -749,15 +749,15 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
    if entity_type == "network" then
-      descr = network_alert_functions_description
+      descr = table.clone(alert_consts.network_alert_functions_description)
    elseif entity_type == "interface" then
       -- interface
-      descr = table.clone(alert_functions_description)
+      descr = table.clone(alert_consts.alert_functions_description)
       descr["active"] = nil
       descr["flows"] = nil
    else
       -- host
-      descr = alert_functions_description
+      descr = table.clone(alert_consts.alert_functions_description)
    end
 
    local flow_rate_attacker_key = "flow_attacker_threshold"
