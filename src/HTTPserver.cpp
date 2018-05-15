@@ -808,6 +808,11 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 /* ****************************************** */
 
+static int handle_http_message(const struct mg_connection *conn, const char *message) {
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] %s", message);
+  return 1;
+}
+
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256], ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
@@ -928,6 +933,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
+  callbacks.log_message = handle_http_message;
 
   /* mongoose */
   http_prefix = ntop->getPrefs()->get_http_prefix(),
