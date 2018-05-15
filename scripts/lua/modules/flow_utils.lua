@@ -1844,23 +1844,39 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
    if available_devices == nil then available_devices = {} end
 
    for dev, _ in pairs(available_devices) do
+      local snmp_device = require "snmp_device"
+      snmp_device.init(dev)
+
       if dev == snmpdevice then
 	 local community = get_snmp_community(dev)
 	 local port_indexes = get_snmp_device_port_indexes(dev, community)
 	 if port_indexes == nil then port_indexes = {} end
 
-	 local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..dev.. "'>"..dev.."</A>"
+	 local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host="..dev.. "'>"..dev.."</A>"
 
-	 local inputurl = input_idx
-	 local outputurl = output_idx
-	 for _, idx in pairs(port_indexes) do
-	    if input_idx == idx then
-	       inputurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..dev.."&ifIdx="..input_idx.."'>"..input_idx.." <span class=\"label label-default\">"..get_snmp_port_label(dev, community, input_idx).."</span></A>"
+	 local snmp_interfaces = snmp_device.get_device()["interfaces"]
+	 local inputurl, outputurl
+
+	 local function prepare_interface_url(idx, port)
+	    local ifurl
+
+	    if port then
+	       local label = port["index"]
+
+	       if port["name"] and port["name"] ~= "" then
+		  label = shortenString(port["name"])
+	       end
+
+	       ifurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host="..dev.."&snmp_port_idx="..port["index"].."'>"..label.."</A>"
+	    else
+	       ifurl = idx
 	    end
-	    if output_idx == idx then
-	       outputurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..dev.."&ifIdx="..input_idx.."'>"..output_idx.." <span class=\"label label-default\">"..get_snmp_port_label(dev, community, output_idx).."</span></A>"
-	    end
+
+	    return ifurl
 	 end
+ 
+	 local inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
+	 local outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
 
 	 print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><th>"..i18n("details.input_device_port").." / "..i18n("details.output_device_port").."</th></tr>")
 	 print("<tr><td>"..snmpurl.."</td><td>"..inputurl.." / "..outputurl.."</td></tr>")
