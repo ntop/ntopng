@@ -1381,13 +1381,13 @@ elseif(page == "snmp_bind") then
       if (selected_device) {
          snmp_set_loading_status(true);
          $("#snmp_device_link").removeAttr("disabled");
-         $("#snmp_device_link").attr("href", "]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/snmp_device_info.lua?ip=" + selected_device);
+         $("#snmp_device_link").attr("href", "]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/snmp_device_details.lua?host=" + selected_device);
 
          snmp_bind_port_ajax = $.ajax({
           type: 'GET',
           url: ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/pro/enterprise/get_snmp_device_info.lua',
+   print [[/lua/pro/enterprise/get_snmp_device_details.lua',
           data: { ifid: ]] print(ifstats.id) print[[, ip: selected_device, iftype_filter:'snmp_binding' },
           success: function(rsp) {
             if (rsp.interfaces) {
