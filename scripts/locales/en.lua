@@ -235,7 +235,7 @@ local lang = {
     ["snmp_port_changed_status_at"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed on %{time} to %{op_status}",
     ["snmp_port_changed_status_from_to"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed from %{old_op} to %{new_op}",
     ["snmp_port_changed_status_from_to_at"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed on %{time} from %{old_op} to %{new_op}",
-    ["snmp_port_status_change"] = "Port Status Change",
+    ["snmp_port_status_change"] = "Interface Status Change",
     ["starting_on"] = "starting on",
     ["submit"] = "Update Dashboard",
     ["suspicious_activity"] = "Suspicious Activity",

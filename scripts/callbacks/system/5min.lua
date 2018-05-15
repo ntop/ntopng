@@ -52,6 +52,8 @@ if ntop.isPro() then
 	    snmp_handle_cache_errors(device["ip"], res)
 	    goto next_device
 	 end
+
+	 snmp_check_device_interfaces_status_change(snmp_device)
       end
 
       if true then -- TODO: refine a policy to update interface counters (once every 1 minute or 10 minutes should be fine)
