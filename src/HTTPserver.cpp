@@ -59,7 +59,7 @@ int send_error(struct mg_connection *conn, int status, const char *reason, const
     len = mg_vsnprintf(conn, buf, sizeof(buf), fmt, ap);
     va_end(ap);
     conn->num_bytes_sent += mg_write(conn, buf, len);
-    cry(conn, "%s", buf);
+    cry_connection(conn, buf);
   }
 
   return(1);

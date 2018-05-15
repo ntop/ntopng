@@ -681,12 +681,12 @@ static void sockaddr_to_string(char *buf, size_t len,
 static void cry(struct mg_connection *conn,
 		PRINTF_FORMAT_STRING(const char *fmt), ...) PRINTF_ARGS(2, 3);
 
+static void cry_connection(struct mg_connection *conn, const char *buf);
+
 // Print error message to the opened error log stream.
 static void cry(struct mg_connection *conn, const char *fmt, ...) {
-  char buf[MG_BUF_LEN], src_addr[20];
+  char buf[MG_BUF_LEN];
   va_list ap;
-  FILE *fp;
-  time_t timestamp;
 
   va_start(ap, fmt);
   (void) vsnprintf(buf, sizeof(buf), fmt, ap);
@@ -697,6 +697,15 @@ static void cry(struct mg_connection *conn, const char *fmt, ...) {
   // same way string option can.
   if (conn->ctx->callbacks.log_message == NULL ||
       conn->ctx->callbacks.log_message(conn, buf) == 0) {
+    cry_connection(conn, buf);
+  }
+}
+
+static void cry_connection(struct mg_connection *conn, const char *buf) {
+    char src_addr[20];
+    FILE *fp;
+    time_t timestamp;
+
     fp = conn->ctx == NULL || conn->ctx->config[ERROR_LOG_FILE] == NULL ? NULL :
       fopen(conn->ctx->config[ERROR_LOG_FILE], "a+");
 
@@ -718,7 +727,6 @@ static void cry(struct mg_connection *conn, const char *fmt, ...) {
       funlockfile(fp);
       fclose(fp);
     }
-  }
 }
 
 // Return fake connection structure. Used for logging, if connection
