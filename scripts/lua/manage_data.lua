@@ -65,7 +65,7 @@ print [[
 </div>
 
 <div class="panel-body">
-  <form action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="POST">
+  <form class="host_data_form" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="POST">
   <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
 
    <div class="row">
@@ -92,7 +92,9 @@ print [[
            </label>
          </div>
 
-         <input type="text" id="export_host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" disabled/>
+         <div class="form-group has-feedback" style="margin-bottom:0;">
+           <input type="text" id="export_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" disabled required/>
+         </div>
 
          <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="export_vlan" name="vlan" class="form-control" value="" disabled/>
 
@@ -140,7 +142,7 @@ print [[
 </div>
 
 <div class="panel-body">
-  <form method="POST">
+  <form class="host_data_form" method="POST">
   <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
 
    <div class="row">
@@ -158,7 +160,9 @@ print [[
            </label>
          </div>
 
-         <input type="text" id="delete_host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control"/>
+         <div class="form-group has-feedback" style="margin-bottom:0;">
+           <input type="text" id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" required/>
+         </div>
 
          <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="delete_vlan" name="vlan" class="form-control" value=""/>
 
@@ -179,8 +183,8 @@ print [[
        </div>
      </div>
    </div>
-  </form>
-      <button class="btn btn-default" onclick="delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
+      <button class="btn btn-default" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
+    </form>
 </section>
   <b>]] print(i18n('notes')) print[[</b>
 <ul>
@@ -202,6 +206,9 @@ var delete_data_show_modal = function() {
     $(".modal-body #modal_vlan").html("");
   }
   $('#delete_data').modal('show');
+
+  /* abort submit */
+  return false;
 };
 
 var delete_data = function() {
@@ -232,6 +239,9 @@ print [[/lua/find_host.lua', { query: query }, function (data) {
       }, afterSelect: function(item) {
         $('#' + host_id).val(item.ip.split("@")[0]);
         $('#' + vlan_id).val(item.ip.split("@")[1] || '');
+
+        /* retrigger validation */
+        $('#' + host_id).closest("form").data("bs.validator").validate();
       }
     });
 
@@ -247,6 +257,19 @@ print [[/lua/find_host.lua', { query: query }, function (data) {
   $(document).ready(function(){
     prepare_typeahead('export_host', 'export_vlan', 'export_hosts_buttons');
     prepare_typeahead('delete_host', 'delete_vlan', 'delete_hosts_buttons');
+
+    var validator_options = {
+      disable: true,
+      custom: {
+         host: hostOrMacValidator,
+      }, errors: {
+         host: "]] print(i18n("manage_data.mac_or_ip_required")) print[[.",
+      }
+    }
+
+    $(".host_data_form")
+      .validator(validator_options)
+      .find("[type='submit']").addClass("disabled");
   });
 </script>
 

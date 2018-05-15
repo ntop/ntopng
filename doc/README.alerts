@@ -92,7 +92,7 @@ In order to generate a new engaged alert, the following modifications should be 
   - extend `check_entity_alerts` to deal with the new kind of information (e.g. the port status of
     the SNMP device) and call `addAlertInfo(..., port_info)` when an alerted status is detected.
   - Extend `formatAlertMessage` to give a localized message of the alert (possibly using the
-    port_info field specified before, now availables as the *alert_info* parameter).
+    port_info field specified before, now available as the *alert_info* parameter).
 
 External Programs
 -----------------

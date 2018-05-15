@@ -307,6 +307,7 @@ local lang = {
      ["ip_or_mac_address"] = "IP or MAC Address",
      ["single"] = "Single",
      ["remote_hosts"] = "Remote",
+     ["mac_or_ip_required"] = "Please insert a valid IP or MAC Address",
   },
   ["export_data"] = {
     ["export_json_data"] = "Export JSON Data",
