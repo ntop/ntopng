@@ -1538,30 +1538,29 @@ print [[
 
 end
 elseif(page == "snmp" and ntop.isPro()) then
-   local sys_object_id = true
-   local community = get_snmp_community(host_ip)
-
    local snmp_devices = get_snmp_devices()
-   if snmp_devices[host_ip] == nil then -- host has not been configured
 
+   if snmp_devices[host_ip] == nil then -- host has not been configured
       local msg = i18n("snmp_page.not_configured_as_snmp_device_message",{host_ip=host_ip})
       msg = msg.." "..i18n("snmp_page.guide_snmp_page_message",{url=ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua"})
 
-      local trying =  "<span id='trying_default_community'> "..i18n("snmp_page.trying_to_retrive_message",{community=community})
-      trying = trying.. " <img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style='vertical-align:text-top;' id=throbber></span>"
       if ntop.isEnterprise() then
         print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
       end
-      print(trying)
-
-      sys_object_id = get_snmp_value(host_ip, community, "1.3.6.1.2.1.1.2.0", false)
-   end
-
-   if(sys_object_id ~= nil) then
-      print("<script type='text/javascript'>$('#trying_default_community').html(\""..i18n("snmp_page.showing_snmp_mib_info_default_community_message",{community=community})..":<br><br>\")</script>")
-      print_snmp_report(host_ip, true)
    else
-      print("<script type='text/javascript'>$('#trying_default_community').html(\"<div class='alert alert-warning'>"..i18n("snmp_page.unable_to_retrive_snmp_default_community_message",{community=community}).."</div>\")</script>")
+      local snmp_device = require "snmp_device"
+      local snmp_device_ip = snmp_devices[host_ip]["ip"]
+      snmp_device.init(snmp_device_ip)
+
+      local cache_status = snmp_device.get_cache_status()
+      if not cache_status["system"] or cache_status["system"]["last_updated"] < os.time() - 86400 then
+	 local res = snmp_device.cache_system()
+	 if res["status"] ~= "OK" then
+	    snmp_handle_cache_errors(snmp_device_ip, res)
+	 end
+      end
+
+      print_snmp_device_system_table(snmp_device.get_device())
    end
 
 elseif(page == "talkers") then
