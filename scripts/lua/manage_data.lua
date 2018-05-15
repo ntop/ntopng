@@ -20,10 +20,18 @@ if _POST and table.len(_POST) > 0 then
    local host_info = url2hostinfo(_POST)
 
    local res = delete_data_utils.delete_host(_POST["ifid"], host_info)
-   if res["status"] == "OK" then
+
+   local err_msgs = {}
+   for what, what_res in pairs(res) do
+      if what_res["status"] ~= "OK" then
+	 err_msgs[#err_msgs + 1] = i18n(delete_data_utils.status_to_i18n(what_res["status"]))
+      end
+   end
+
+   if #err_msgs == 0 then
       print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_ok', {host = hostinfo2hostkey(host_info)})..'</div>')
    else
-      print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_failed', {host = hostinfo2hostkey(host_info)})..'</div>')
+      print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_failed', {host = hostinfo2hostkey(host_info)})..' '..table.concat(err_msgs, ' ')..'</div>')
    end
 end
 

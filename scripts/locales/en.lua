@@ -319,6 +319,9 @@ local lang = {
     ["delete_ok"] = "Data for %{host} has been successfully deleted.",
     ["delete_failed"] = "Unable to delete data for %{host}.",
     ["note_persistent_data"] = "All the persistent host data is deleted. Data include stored timeseries, flows, alerts, and Redis caches.",
+    ["msg_err_no_fs_data"] = "No persistent data found for the specified host.",
+    ["msg_err_invalid_host"] = "The format of the specified host is not recognized.",
+    ["msg_err_unknown"] = "An unknown error occurred.",
   },
   ["bridge_wizard"] = {
     ["also_create_these_pools"] = "Also create these pools:",
