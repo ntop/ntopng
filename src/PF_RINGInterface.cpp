@@ -44,7 +44,11 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   else if(ntop->getPrefs()->are_vss_apcon_timestamps_enabled())
     flags |= PF_RING_VSS_APCON_TIMESTAMP;
 
+  errno = 0;
+
   if((pfring_handle = pfring_open(ifname, ntop->getGlobals()->getSnaplen(), flags)) == NULL) {
+    if(errno)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "errno %d: %s", errno, strerror(errno));
     throw 1;
   } else {
     u_int32_t version;
