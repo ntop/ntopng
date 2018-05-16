@@ -143,6 +143,7 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers)
   info = ntop.getInfo(false)
+  local cookie_attr = ntop.getCookieAttributes()
 
   print('HTTP/1.1 200 OK\r\n')
   print('Cache-Control: max-age=0, no-cache, no-store\r\n')
@@ -150,8 +151,8 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
   print('Pragma: no-cache\r\n')
   print('X-Frame-Options: DENY\r\n')
   print('X-Content-Type-Options: nosniff\r\n')
-  if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; HttpOnly\r\n') end
-  if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/\r\n') end
+  if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr .. '\r\n') end
+  if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr .. '\r\n') end
   print('Content-Type: '.. mime ..'\r\n')
   if(content_disposition ~= nil) then print('Content-Disposition: '..content_disposition..'\r\n') end
   if type(extra_headers) == "table" then

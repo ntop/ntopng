@@ -5308,6 +5308,24 @@ static int ntop_get_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_cookie_attributes(lua_State* vm) {
+  struct mg_request_info *request_info;
+  struct mg_connection *conn;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!(conn = getLuaVMUserdata(vm, conn)))
+    return(CONST_LUA_ERROR);
+
+  if(!(request_info = mg_get_request_info(conn)))
+    return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, (char*)get_secure_cookie_attributes(request_info));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_resolved_address(lua_State* vm) {
   char *key, *tmp,rsp[256],value[64];
   Redis *redis = ntop->getRedis();
@@ -7265,6 +7283,7 @@ static const luaL_Reg ntop_reg[] = {
   { "dumpFile",         ntop_dump_file },
   { "checkLicense",     ntop_check_license },
   { "systemHostStat",   ntop_system_host_stat },
+  { "getCookieAttributes", ntop_get_cookie_attributes },
 
   /* Redis */
   { "getCache",          ntop_get_redis },

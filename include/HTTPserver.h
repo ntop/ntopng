@@ -47,6 +47,7 @@ class HTTPserver {
 };
 
 extern int send_error(struct mg_connection *conn, int status, const char *reason, const char *fmt, ...);
+const char *get_secure_cookie_attributes(const struct mg_request_info *request_info);
 
 /* mongoose */
 extern int url_decode(const char *src, int src_len, char *dst, int dst_len, int is_form_url_encoded);
