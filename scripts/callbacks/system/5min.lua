@@ -71,6 +71,4 @@ if ntop.isPro() then
 
       ::next_device::
    end
-
-   snmp_check_device_status(config, time_threshold, verbose)
 end
