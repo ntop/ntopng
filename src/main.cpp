@@ -221,12 +221,18 @@ int main(int argc, char *argv[])
 #endif
 	
 #ifdef HAVE_PF_RING
-	if((iface == NULL) && (!strstr(ifName, ".pcap")))
+	if((iface == NULL) && (!strstr(ifName, ".pcap"))) {
+	  errno = 0;
 	  iface = new PF_RINGInterface(ifName);
+	}
 #endif
       }
+    } catch(int err) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during %s interface creation[%d]: %s. Falling back to pcap", ifName, err, strerror(err));
+      if(iface) delete iface;
+      iface = NULL;
     } catch(...) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during interface creation: %s. Falling back to pcap", ifName);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during %s interface creation. Falling back to pcap", ifName);
       if(iface) delete iface;
       iface = NULL;
     }
@@ -234,9 +240,10 @@ int main(int argc, char *argv[])
 #ifndef HAVE_NEDGE
     if(iface == NULL) {
       try {
+	errno = 0;
 	iface = new PcapInterface(ifName);
-      } catch(...) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during interface creation: %s", ifName);
+      } catch(int err) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during %s interface creation[%d]: %s", ifName, err, strerror(err));
 	if(iface) delete iface;
 	iface = NULL;
       }
