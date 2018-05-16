@@ -97,7 +97,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 #endif
     } else
-      throw 1;
+      throw errno;
   }
   
   if(ntop->getPrefs()->are_ixia_timestamps_enabled())
