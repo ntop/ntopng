@@ -1,5 +1,5 @@
 require "lua_utils"
-local os_utils = require "os_utils"
+require "graph_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -31,7 +31,7 @@ function as2record(as)
    record["column_traffic"] = bytesToSize(as["bytes.sent"] + as["bytes.rcvd"])
 
    record["column_chart"] = ""
-   local asnstats_rrd = os_utils.fixPath(dirs.workingdir .. "/" ..getInterfaceId(ifname)..'/asnstats/'..as["asn"]..'/bytes.rrd')
+   local asnstats_rrd = getRRDName(getInterfaceId(ifname), 'asn:'..as["asn"], "bytes.rrd")
    if ntop.exists(asnstats_rrd) then
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..as["asn"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
    end

@@ -93,19 +93,18 @@ end
 -- ########################################################
 
 function rrd_dump.asn_update_rrds(when, ifstats, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/asnstats')
   local asn_info = interface.getASesInfo({detailsLevel = "higher"})
 
   for _, asn_stats in ipairs(asn_info["ASes"]) do
     local asn = asn_stats["asn"]
-    local asnpath = os_utils.fixPath(basedir.. "/" .. asn)
+    local asnpath = getRRDName(ifstats.id, 'asn:'..asn)
 
     if not ntop.exists(asnpath) then
       ntop.mkdir(asnpath)
     end
 
     -- Save ASN bytes
-    local asn_bytes_rrd = os_utils.fixPath(asnpath .. "/bytes.rrd")
+    local asn_bytes_rrd = getRRDName(ifstats.id, 'asn:'..asn, "bytes.rrd")
     createRRDcounter(asn_bytes_rrd, 300, false)
     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..asn_bytes_rrd..'\n') end
     ntop.rrd_update(asn_bytes_rrd, nil, tolongint(asn_stats["bytes.sent"]), tolongint(asn_stats["bytes.rcvd"]))

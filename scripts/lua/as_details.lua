@@ -89,6 +89,18 @@ if isEmptyString(page) or page == "historical" then
       drawRRD(ifId, 'asn:'..asn, rrdfile, _GET["zoom"], asn_url, 1, _GET["epoch"])
    end
 
+   print[[
+     <br>
+       <div>
+         <b>]] print(i18n('notes')) print[[</b>
+         <ul>
+           <li>]] print(i18n('graphs.note_ases_traffic')) print[[</li>
+           <li>]] print(i18n('graphs.note_ases_sent')) print[[</li>
+           <li>]] print(i18n('graphs.note_ases_rcvd')) print[[</li>
+         </ul>
+       </div>
+]]
+
 elseif page == "flows" then
    
 print [[

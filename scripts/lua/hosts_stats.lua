@@ -14,34 +14,34 @@ sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-protocol     = _GET["protocol"]
-asn          = _GET["asn"]
-vlan         = _GET["vlan"]
-network      = _GET["network"]
-country      = _GET["country"]
-mac          = _GET["mac"]
-os_          = _GET["os"]
-community    = _GET["community"]
-pool         = _GET["pool"]
-ipversion    = _GET["version"]
+local protocol     = _GET["protocol"]
+local asn          = _GET["asn"]
+local vlan         = _GET["vlan"]
+local network      = _GET["network"]
+local country      = _GET["country"]
+local mac          = _GET["mac"]
+local os_          = _GET["os"]
+local community    = _GET["community"]
+local pool         = _GET["pool"]
+local ipversion    = _GET["version"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
 
-mode = _GET["mode"]
+local mode = _GET["mode"]
 if isEmptyString(mode) then
    mode = "all"
 else
    page_params["mode"] = mode
 end
 
-hosts_filter = ''
+local hosts_filter = ''
 
 if ((mode ~= "all") or (not isEmptyString(pool))) then
    hosts_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
 
-active_page = "hosts"
+local active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 prefs = ntop.getPrefs()
@@ -49,199 +49,199 @@ prefs = ntop.getPrefs()
 ifstats = interface.getStats()
 
 if (_GET["page"] ~= "historical") then
-if(asn ~= nil) then
-print [[
+   if(asn ~= nil) then
+      print [[
 <div class="container-fluid">
   <ul class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
 
-if(asn ~= "0") then
-print [[
+      if(asn ~= "0") then
+	 print [[
     <li><a data-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
     <li><a data-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
     <li><a data-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
     <li><a data-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
     <li><a data-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
 ]]
-end
-end
+      end
+   end
 
-print("</ul>")
+   print("</ul>")
 
-if(asn ~= nil) then
-print [[
+   if(asn ~= nil) then
+      print [[
   <div class="tab-content">
 <div id="home" class="tab-pane fade in active">
 ]]
-end
-
--- build the current filter url
-
-page_params["os"] = os_
-page_params["asn"] = asn
-page_params["community"] = community
-page_params["vlan"] = vlan
-page_params["country"] = country
-page_params["mac"] = mac
-page_params["pool"] = pool
-
-if(protocol ~= nil) then
-   -- Example HTTP.Facebook
-   dot = string.find(protocol, '%.')
-   if(dot ~= nil) then
-      protocol = string.sub(protocol, dot+1)
    end
 
-   page_params["protocol"] = protocol
-end
+   -- build the current filter url
 
-if(network ~= nil) then
-   page_params["network"] = network
-   network_name = ntop.getNetworkNameById(tonumber(network))
-else
-   network_name = ""
-end
+   page_params["os"] = os_
+   page_params["asn"] = asn
+   page_params["community"] = community
+   page_params["vlan"] = vlan
+   page_params["country"] = country
+   page_params["mac"] = mac
+   page_params["pool"] = pool
 
-local ipver_title
-if not isEmptyString(ipversion) then
-   page_params["version"] = ipversion
-   ipver_title = i18n("hosts_stats.ipver_title",{version_num=ipversion})
-else
-   ipver_title = ""
-end
+   if(protocol ~= nil) then
+      -- Example HTTP.Facebook
+      dot = string.find(protocol, '%.')
+      if(dot ~= nil) then
+	 protocol = string.sub(protocol, dot+1)
+      end
 
-print [[
+      page_params["protocol"] = protocol
+   end
+
+   if(network ~= nil) then
+      page_params["network"] = network
+      network_name = ntop.getNetworkNameById(tonumber(network))
+   else
+      network_name = ""
+   end
+
+   local ipver_title
+   if not isEmptyString(ipversion) then
+      page_params["version"] = ipversion
+      ipver_title = i18n("hosts_stats.ipver_title",{version_num=ipversion})
+   else
+      ipver_title = ""
+   end
+
+   print [[
       <hr>
       <div id="table-hosts"></div>
 	 <script>
 	 var url_update = "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_hosts_data.lua", page_params)) print[[";]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
+   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
 
-if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
+   if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
 
--- Set the host table option
-if(prefs.is_httpbl_enabled) then print ('host_rows_option["httpbl"] = true;\n') end
-if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
+   -- Set the host table option
+   if(prefs.is_httpbl_enabled) then print ('host_rows_option["httpbl"] = true;\n') end
+   if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
 
-print [[
+   print [[
 	 host_rows_option["ip"] = true;
 	 $("#table-hosts").datatable({
 			title: "Hosts List",
 			url: url_update ,
 	 ]]
 
-if(protocol == nil) then protocol = "" end
+   if(protocol == nil) then protocol = "" end
 
-if(asn ~= nil) then 
-	asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
-      "<small>&nbsp;<i class='fa fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
-      asn .. "'><i class='fa fa-external-link fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
-      "\\\"></i></A></small>"
-end
+   if(asn ~= nil) then 
+      asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
+	 "<small>&nbsp;<i class='fa fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
+	 asn .. "'><i class='fa fa-external-link fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
+	 "\\\"></i></A></small>"
+   end
 
-if(_GET["country"] ~= nil) then 
-   country = " " .. i18n("hosts_stats.country_title",{country=_GET["country"]})
-end
+   if(_GET["country"] ~= nil) then 
+      country = " " .. i18n("hosts_stats.country_title",{country=_GET["country"]})
+   end
 
-if(_GET["mac"] ~= nil) then 
-   mac = " " .. i18n("hosts_stats.mac_title",{mac=_GET["mac"]})
-end
+   if(_GET["mac"] ~= nil) then 
+      mac = " " .. i18n("hosts_stats.mac_title",{mac=_GET["mac"]})
+   end
 
-if(_GET["os"] ~= nil) then 
-   os_ = " ".._GET["os"] 
-end
+   if(_GET["os"] ~= nil) then 
+      os_ = " ".._GET["os"] 
+   end
 
-if(_GET["pool"] ~= nil) then
-   local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
-   local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
-   local pool_edit = ""
+   if(_GET["pool"] ~= nil) then
+      local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
+      local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+      local pool_edit = ""
 
-   -- TODO enable on nEdge when devices list will be implemented
-   if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not have_nedge) then
-      local pool_link
+      -- TODO enable on nEdge when devices list will be implemented
+      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not have_nedge) then
+	 local pool_link
 
-      if have_nedge then
-         pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
-      else
-         pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+	 if have_nedge then
+	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+	 else
+	    pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+	 end
+
+	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
       end
 
-      pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
+      pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
+			{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
+	 .."<small>".. pool_edit ..
+	 ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
+	 "</small>"
    end
 
-   pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
-		     {poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
-      .."<small>".. pool_edit ..
-      ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
-      "</small>"
-end
-
-if(_GET["vlan"] ~= nil) then
-  vlan_title = " ["..i18n("hosts_stats.vlan_title",{vlan=_GET["vlan"]}).."]"
-end
-
-local protocol_name = nil
-
-if((protocol ~= nil) and (protocol ~= "")) then
-   protocol_name = interface.getnDPIProtoName(tonumber(protocol))
-end
-
-if(protocol_name == nil) then protocol_name = protocol end
-
-function getPageTitle()
-   local mode_label = ""
-
-   if mode == "remote" then
-      mode_label = i18n("hosts_stats.remote")
-   elseif mode == "local" then
-      mode_label = i18n("hosts_stats.local")
-   elseif mode == "filtered" then
-      mode_label = i18n("hosts_stats.filtered")
-   elseif mode == "blacklisted" then
-      mode_label = i18n("hosts_stats.blacklisted")
+   if(_GET["vlan"] ~= nil) then
+      vlan_title = " ["..i18n("hosts_stats.vlan_title",{vlan=_GET["vlan"]}).."]"
    end
 
-   -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
-   return i18n("hosts_stats.hosts_page_title", {
-      all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
-      local_remote = mode_label,
-      protocol = protocol_name or "",
-      network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
-      ip_version = ipver_title or "",
-      ["os"] = os_ or "",
-      country_asn_or_mac = country or asninfo or mac or pool_ or "",
-      vlan = vlan_title or "",
-   })
-end
+   local protocol_name = nil
 
-print('title: "'..getPageTitle()..'",\n')
-print ('rowCallback: function ( row ) { return host_table_setID(row); },')
+   if((protocol ~= nil) and (protocol ~= "")) then
+      protocol_name = interface.getnDPIProtoName(tonumber(protocol))
+   end
 
-print [[
+   if(protocol_name == nil) then protocol_name = protocol end
+
+   function getPageTitle()
+      local mode_label = ""
+
+      if mode == "remote" then
+	 mode_label = i18n("hosts_stats.remote")
+      elseif mode == "local" then
+	 mode_label = i18n("hosts_stats.local")
+      elseif mode == "filtered" then
+	 mode_label = i18n("hosts_stats.filtered")
+      elseif mode == "blacklisted" then
+	 mode_label = i18n("hosts_stats.blacklisted")
+      end
+
+      -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
+      return i18n("hosts_stats.hosts_page_title", {
+		     all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
+		     local_remote = mode_label,
+		     protocol = protocol_name or "",
+		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
+		     ip_version = ipver_title or "",
+		     ["os"] = os_ or "",
+		     country_asn_or_mac = country or asninfo or mac or pool_ or "",
+		     vlan = vlan_title or "",
+      })
+   end
+
+   print('title: "'..getPageTitle()..'",\n')
+   print ('rowCallback: function ( row ) { return host_table_setID(row); },')
+
+   print [[
        tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
-print(i18n('hosts_stats.idle_hosts_not_listed'))
-print[['); },
+   print(i18n('hosts_stats.idle_hosts_not_listed'))
+   print[['); },
 ]]
 
--- Set the preference table
-preference = tablePreferences("rows_number",_GET["perPage"])
-if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
+   -- Set the preference table
+   preference = tablePreferences("rows_number",_GET["perPage"])
+   if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
--- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSortOrder("hosts").. '"] ],')
+   -- Automatic default sorted. NB: the column must exist.
+   print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSortOrder("hosts").. '"] ],')
 
-print [[    showPagination: true, ]]
+   print [[    showPagination: true, ]]
 
    print('buttons: [ ')
 
    
    --[[ if((page_params.network ~= nil) and (page_params.network ~= "-1")) then
       print('\'<div class="btn-group pull-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A></div>\', ')
-   elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
+      elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
       print('\'<div class="btn-group pull-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A></div>\', ')
-   end]]
+      end]]
 
    -- Ip version selector
    print[['<div class="btn-group pull-right">]]
@@ -287,12 +287,12 @@ print [[    showPagination: true, ]]
    print ('">'..i18n("hosts_stats.blacklisted_hosts_only")..'</a></li>')
 
    if isBridgeInterface(ifstats) then
-     hosts_filter_params.mode = "filtered"
-     print('<li')
-     if mode == hosts_filter_params.mode then print(' class="active"') end
-     print('><a href="')
-     print (getPageUrl(base_url, hosts_filter_params))
-     print ('">'..i18n("hosts_stats.filtered_hosts_only")..'</a></li>')
+      hosts_filter_params.mode = "filtered"
+      print('<li')
+      if mode == hosts_filter_params.mode then print(' class="active"') end
+      print('><a href="')
+      print (getPageUrl(base_url, hosts_filter_params))
+      print ('">'..i18n("hosts_stats.filtered_hosts_only")..'</a></li>')
    end
 
    -- Host pools
@@ -301,12 +301,12 @@ print [[    showPagination: true, ]]
       hosts_filter_params.pool = nil
       print('<li role="separator" class="divider"></li>')
       for _, _pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
-        hosts_filter_params.pool = _pool.id
-        print('<li')
-        if pool == _pool.id then print(' class="active"') end
-        print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'
-		 ..i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"),
-			{pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
+	 hosts_filter_params.pool = _pool.id
+	 print('<li')
+	 if pool == _pool.id then print(' class="active"') end
+	 print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'
+		  ..i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"),
+			 {pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
       end
    end
 
@@ -314,7 +314,7 @@ print [[    showPagination: true, ]]
    
    print(' ],')
 
-print [[
+   print [[
 	        columns: [
 	        	{
 	        		title: "Key",
@@ -340,17 +340,17 @@ print [[
                         },
 			  ]]
 
-if(show_vlan) then
-if(ifstats.sprobe) then
-   print('{ title: "'..i18n("hosts_stats.source_id")..'",\n')
-else
-   if(ifstats.vlan) then
-     print('{ title: "'..i18n("vlan")..'",\n')
-   end
-end
+   if(show_vlan) then
+      if(ifstats.sprobe) then
+	 print('{ title: "'..i18n("hosts_stats.source_id")..'",\n')
+      else
+	 if(ifstats.vlan) then
+	    print('{ title: "'..i18n("vlan")..'",\n')
+	 end
+      end
 
 
-print [[
+      print [[
 				 field: "column_vlan",
 				 sortable: true,
 	 	             css: {
@@ -359,9 +359,9 @@ print [[
 
 				 },
 ]]
-end
+   end
 
-print [[
+   print [[
 			     {
 			     title: "]] print(i18n("hosts_stats.location")) print[[",
 				 field: "column_location",
@@ -384,12 +384,12 @@ print [[
 				 field: "column_num_dropped_flows",
 				 sortable: true,
                                  hidden: ]]
-if isBridgeInterface(ifstats) then
-   print("false")
-else
-   print("true")
-end
-print[[,
+   if isBridgeInterface(ifstats) then
+      print("false")
+   else
+      print("true")
+   end
+   print[[,
 	 	             css: { 
 			        textAlign: 'center'
 			     }
@@ -423,8 +423,8 @@ print[[,
 
 ]]
 
-if(prefs.is_httpbl_enabled) then
-print [[
+   if(prefs.is_httpbl_enabled) then
+      print [[
 			     {
 			     title: "]] print(i18n("hosts_stats.httpbl")) print[[",
 				 field: "column_httpbl",
@@ -434,9 +434,9 @@ print [[
 			       }
 			       },
 		       ]]
-end
+   end
 
-print [[
+   print [[
 			     {
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
@@ -470,8 +470,8 @@ print [[
 ]]
 
 
-if(asn ~= nil) then
-print [[
+   if(asn ~= nil) then
+      print [[
 </div>
 
 <script src="/js/ripe_widget_api.js"></script>
@@ -497,8 +497,7 @@ print [[
 </div>
 </div>
 ]]
-
-end -- if(asn ~= nil)
+   end -- if(asn ~= nil)
 else
    -- historical page
    require "graph_utils"

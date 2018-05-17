@@ -218,6 +218,7 @@ function getRRDName(ifid, host_or_network, rrdFile)
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
       host_or_network = string.gsub(host_or_network, 'asn:', '')
+      host_or_network = host_or_network:gsub("(%d)", "%1/") -- asn 1234 becomes 1/2/3/4
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'country:') then
       host_or_network = string.gsub(host_or_network, 'country:', '')

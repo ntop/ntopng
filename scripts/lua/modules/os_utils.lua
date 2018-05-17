@@ -20,6 +20,8 @@ end
 
 -- Fix path format Unix <-> Windows
 function os_utils.fixPath(path)
+   path = string.gsub(path, "//+", '/') -- removes possibly empty parts of the path
+
    if(ntop.isWindows() and (string.len(path) > 2)) then
       path = string.gsub(path, "/", os_utils.getPathDivider())
    end
