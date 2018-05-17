@@ -413,8 +413,10 @@ end
 -- #################################################################
 
 local function validateHost(p)
-   -- TODO stricter checks, allow @vlan
-   if(isIPv4(p) or isIPv6(p) or isMacAddress(p)) then
+   local host = hostkey2hostinfo(p)
+
+   if(host.host ~= nil) and (host.vlan ~= nil)
+            and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
       return true
    else
       return false
