@@ -54,19 +54,19 @@ local device_types = {}
 
 for _, device in pairs(discovered["devices"] or {}) do
    local manuf = (device["manufacturer"] or get_manufacturer_mac(device["mac"]))
-   if manuf ~= nil then
+   if(manuf ~= nil) then
       manufactures[manuf] = manufactures[manuf] or 0
       manufactures[manuf] = manufactures[manuf] + 1
    end
 
    local dev_os = device["os_type"]
-   if dev_os ~= nil then
+   if(dev_os ~= nil) then
       operating_systems[dev_os] = operating_systems[dev_os] or 0
       operating_systems[dev_os] = operating_systems[dev_os] + 1
    end
 
    local dev_type = discover.devtype2id(device["device_type"])
-   if dev_type ~= nil then
+   if(dev_type ~= nil) then
       device_types[dev_type] = device_types[dev_type] or 0
       device_types[dev_type] = device_types[dev_type] + 1
    end
@@ -178,6 +178,9 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
             title: "]] print(i18n("os")) print[[",
             field: "column_os",
             sortable: "true",
+            css: {
+	       textAlign: 'center'
+	    }
          }, {
             title: "]] print(i18n("info")) print[[",
             field: "column_info",
