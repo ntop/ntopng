@@ -17,6 +17,10 @@ local perPage     = _GET["perPage"]
 local sortColumn  = _GET["sortColumn"]
 local sortOrder   = _GET["sortOrder"]
 
+local os_filter = tonumber(_GET["operating_system"])
+local devtype_filter = tonumber(_GET["device_type"])
+local manuf_filter = _GET["manufacturer"]
+
 local sortPrefs = "discovery_sort_col"
 
 -- ################################################
@@ -75,7 +79,6 @@ if(sortOrder == "desc") then sOrder = rev_insensitive else sOrder = asc_insensit
 local res = {data={}}
 
 local discovered = discover.discover2table(ifname)
-local tot_rows = #discovered["devices"]
 
 -- ################################################
 
@@ -88,6 +91,7 @@ local sort_2_field = {
   column_manufacturer = "manufacturer",
   column_os = "os",
   column_info = "info",
+  column_device = "device_type",
 }
 
 local sorted = {}
@@ -97,6 +101,7 @@ if sort_2_field[sortColumn] then
   sort_field = sort_2_field[sortColumn]
 end
 
+local tot_rows = 0
 discovered["devices"] = discovered["devices"] or {}
 
 for el_idx, el in pairs(discovered["devices"]) do
@@ -107,6 +112,9 @@ for el_idx, el in pairs(discovered["devices"]) do
   else
     manufacturer = get_manufacturer_mac(el["mac"])
   end
+
+  local actual_manuf = manufacturer
+
   if el["modelName"] then
     manufacturer = manufacturer .. " ["..el["modelName"].."]"
   end
@@ -150,9 +158,6 @@ for el_idx, el in pairs(discovered["devices"]) do
   end
   el.info = devinfo
 
-  -- SORT
-  sorted[el_idx] = el[sort_field]
-
   if(enable_doa_ox) then
     if el.os then
       el.operatingSystem = getOperatingSystemName(el.os)
@@ -160,6 +165,23 @@ for el_idx, el in pairs(discovered["devices"]) do
 
     doa_ox.device2OX(doa_ox_fd, el)
   end
+
+  -- Filter
+  if (os_filter ~= nil) and (el.os_type ~= os_filter) then
+    goto continue
+  end
+  if (manuf_filter ~= nil) and (actual_manuf ~= manuf_filter) then
+    goto continue
+  end
+
+  if (devtype_filter ~= nil) and (discover.devtype2id(el.device_type) ~= devtype_filter) then
+    goto continue
+  end
+
+  sorted[el_idx] = el[sort_field]
+  tot_rows = tot_rows + 1
+
+  ::continue::
 end
 
 if(enable_doa_ox) then
@@ -170,6 +192,7 @@ end
 
 local cur_num = 0
 
+-- Sort
 for idx, _ in pairsByValues(sorted, sOrder) do
   el = discovered["devices"][idx]
 
@@ -185,7 +208,7 @@ for idx, _ in pairsByValues(sorted, sOrder) do
   rec.column_ip = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/host_details.lua?host=]]
     ..tostring(el["ip"]).. [[">]] ..tostring(el["ip"]).. [[</a>]]
     ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
-    ..ternary(el["ghost"], "<font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
+    ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
 
   rec.column_mac = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..el["mac"].. [[</a>]]
   rec.column_name = el.name

@@ -18,6 +18,22 @@ if _GET["request_discovery"] == "true" then
    discover.requestNetworkDiscovery(ifId)
 end
 
+local os_filter = _GET["operating_system"]
+local manuf_filter = _GET["manufacturer"]
+local devtype_filter = _GET["device_type"]
+local base_url = ntop.getHttpPrefix() .. "/lua/discover.lua"
+local page_params = {}
+
+if(not isEmptyString(os_filter)) then
+   page_params.operating_system = os_filter
+end
+if(not isEmptyString(manuf_filter)) then
+   page_params.manufacturer = manuf_filter
+end
+if(not isEmptyString(devtype_filter)) then
+   page_params.device_type = devtype_filter
+end
+
 local discovery_requested = discover.networkDiscoveryRequested(ifId)
 
 if discovery_requested then
@@ -32,6 +48,23 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;'..refresh_button..'</H2><br>')
 
 local discovered = discover.discover2table(ifname)
+local manufactures = {}
+local operating_systems = {}
+local device_types = {}
+
+for _, device in pairs(discovered["devices"] or {}) do
+   local manuf = (device["manufacturer"] or get_manufacturer_mac(device["mac"]))
+   manufactures[manuf] = manufactures[manuf] or 0
+   manufactures[manuf] = manufactures[manuf] + 1
+
+   local dev_os = device["os_type"]
+   operating_systems[dev_os] = operating_systems[dev_os] or 0
+   operating_systems[dev_os] = operating_systems[dev_os] + 1
+
+   local dev_type = discover.devtype2id(device["device_type"])
+   device_types[dev_type] = device_types[dev_type] or 0
+   device_types[dev_type] = device_types[dev_type] + 1
+end
 
 if discovery_requested then
    print("<script>setTimeout(function(){window.location.href='"..ntop.getHttpPrefix().."/lua/discover.lua'}, 5000);</script>")   
@@ -50,11 +83,67 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 
    print[[<script>
       var dt_discover = $("#discover-table").datatable({
-         url: "]] print(ntop.getHttpPrefix()) print[[/lua/get_discover_data.lua",
+         url: "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_discover_data.lua", page_params)) print[[",
          title: "",
          showPagination: true,
          class: "table table-striped table-bordered table-condensed",
-         ]]
+         buttons: []]
+
+   -- Manufacturer filter
+   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+      i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+      '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+
+   local manuf_params = table.clone(page_params)
+   manuf_params.manufacturer = nil
+   print('<li><a href="' .. getPageUrl(base_url, manuf_params) .. '">' .. i18n("mac_stats.all_manufacturers") .. '</a></li>')
+
+   for manuf, count in pairsByKeys(manufactures) do
+      local _manuf = string.gsub(string.gsub(manuf, "'", "&#39;"), "\"", "&quot;")
+      manuf_params.manufacturer = manuf
+      print('<li' .. ternary(manuf_filter == manuf, ' class="active"', '') .. '><a href="' ..
+         getPageUrl(base_url, manuf_params) .. '">' ..
+         _manuf .." (" ..count.. ')</a></li>')
+   end
+   print('</ul></div>\',')
+
+   -- Device Type filter
+   local type_params = table.clone(page_params)
+   print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+      i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+      '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+
+   type_params.device_type = nil
+   print('<li><a href="' .. getPageUrl(base_url, type_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
+
+   for devtype, count in pairsByKeys(device_types) do
+      type_params.device_type = devtype
+
+      print('<li' .. ternary(devtype_filter == tostring(devtype), ' class="active"', '') .. '><a href="' ..
+         getPageUrl(base_url, type_params) .. '">' ..
+         discover.devtype2string(devtype)  .." (" ..count.. ')</a></li>')
+   end
+   print('</ul></div>\',')
+
+   -- OS filter
+   local os_params = table.clone(page_params)
+   print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+      i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+      '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+
+   os_params.operating_system = nil
+   print('<li><a href="' .. getPageUrl(base_url, os_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
+
+   for osid, count in pairsByKeys(operating_systems) do
+      local os_name = getOperatingSystemName(osid)
+      if isEmptyString(os_name) then os_name = i18n("unknown") end
+      os_params.operating_system = osid
+
+      print('<li' .. ternary(os_filter == tostring(osid), ' class="active"', '') .. '><a href="' ..
+         getPageUrl(base_url, os_params) .. '">' .. --(getOperatingSystemIcon(osid):gsub("'",'"') or "") ..
+         os_name  .." (" ..count.. ')</a></li>')
+   end
+   print('</ul></div>\'],')
 
    -- Set the preference table
    local preference = tablePreferences("rows_number_discovery", _GET["perPage"])
@@ -95,10 +184,12 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
          ]
       });
    </script>]]
+
+   print("<p>"..i18n("discover.network_discovery_datetime")..": "..formatEpoch(discovered["discovery_timestamp"]).."</p>")
 end
 
 if(discovered["ghost_found"]) then
-   print('<b>' .. i18n("notes") .. '</b>: ' .. i18n("discover.ghost_icon_descr", {ghost_icon='<font color=red>'..discover.ghost_icon..'</font>'}) .. '.')
+   print('<b>' .. i18n("notes") .. '</b> ' .. i18n("discover.ghost_icon_descr", {ghost_icon='<font color=red>'..discover.ghost_icon..'</font>'}) .. '.')
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

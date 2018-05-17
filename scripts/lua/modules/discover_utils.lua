@@ -1222,7 +1222,7 @@ function discover.discover2table(interface_name, recache)
 	 end
       end
 
-      if(ghost_macs[mac] == true) then entry["ghost"] = true end
+      if(ghost_macs[mac] ~= nil) then entry["ghost"] = true end
 
       device_type, device_label, device_info = findDevice(ip, mac, entry["manufacturer"] or get_manufacturer_mac(mac),
                                                           arp_mdns[ip], services, ssdp[ip],
