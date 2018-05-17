@@ -296,18 +296,17 @@ end
 -- ##############################################
 
 function getPageUrl(base_url, params)
-   for _,_ in pairs(params or {}) do
-      local ret
-
-      for k, v in pairs(params) do
-	 params[k] = urlencode(v)
-      end
-
-      ret = base_url .. "?" .. table.tconcat(params, "=", "&")
-      return ret
+   if table.empty(params) then
+      return base_url
    end
 
-   return base_url
+   local encoded = {}
+
+   for k, v in pairs(params) do
+      encoded[k] = urlencode(v)
+   end
+
+   return base_url .. "?" .. table.tconcat(encoded, "=", "&")
 end
 
 -- ##############################################
