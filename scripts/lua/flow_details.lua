@@ -563,7 +563,7 @@ else
 	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
       end
 
-      if not isEmptyString(snmpdevice) then
+      if not isEmptyString(snmpdevice) and syminfo["INPUT_SNMP"] and syminfo["OUTPUT_SNMP"] then
 	 printFlowSNMPInfo(snmpdevice, syminfo["INPUT_SNMP"], syminfo["OUTPUT_SNMP"])
       end
 
