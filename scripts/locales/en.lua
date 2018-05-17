@@ -232,7 +232,7 @@ local lang = {
     ["remote_to_remote_flow"] = "Remote to Remote Flow",
     ["search_criteria"] = "Dashboard Settings",
     ["snmp_device_is_unresponsive"] = "SNMP device <a href=\"%{url}\">%{device}</a> is unresponsive",
-    ["snmp_port_changed_operational_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed its operational status. Most recent SNMP walk returned status %{new_op}",
+    ["snmp_port_changed_operational_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed its status to %{new_op}",
     ["snmp_port_changed_status_at"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed on %{time} to %{op_status}",
     ["snmp_port_changed_status_from_to_at"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed on %{time} from %{old_op} to %{new_op}",
     ["snmp_port_status_change"] = "Interface Status Change",
