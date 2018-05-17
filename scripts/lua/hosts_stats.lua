@@ -476,26 +476,47 @@ if (_GET["page"] ~= "historical") then
 
 <script src="/js/ripe_widget_api.js"></script>
 
-<div id="asinfo" class="tab-pane fade">
-<div class="statwdgtauto"><script>ripestat.init("iana-registry-info",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+<div id="asinfo" class="tab-pane fade"></div>
+<div id="aspath" class="tab-pane fade"></div>
+<div id="geoloc" class="tab-pane fade"></div>
+<div id="prefix" class="tab-pane fade"></div>
+<div id="bgp" class="tab-pane fade"></div>
+
 </div>
 
-<div id="aspath" class="tab-pane fade">
-<div class="statwdgtauto"><script>ripestat.init("as-path-length",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
-</div>
+<script>
+   $(document).ready(function() {
+      var tab_id_to_widget = {
+         "#asinfo": "iana-registry-info",
+         "#aspath": "as-path-length",
+         "#geoloc": "geoloc",
+         "#prefix": "announced-prefixes",
+         "#bgp": "bgp-update-activity",
+      };
+      var loaded_widgets = {};
 
-<div id="geoloc" class="tab-pane fade">
-<div class="statwdgtauto"><script>ripestat.init("geoloc",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
-</div>
+      function load_widget(tab_id) {
+         var widget = tab_id_to_widget[tab_id];
 
-<div id="prefix" class="tab-pane fade">
-<div class="statwdgtauto"><script>ripestat.init("announced-prefixes",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
-</div>
+         if((typeof(widget) === "undefined") || loaded_widgets[widget])
+            return;
 
-<div id="bgp" class="tab-pane fade">
-<div class="statwdgtauto"><script>ripestat.init("bgp-update-activity",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
-</div>
-</div>
+         var tab = $(tab_id);
+         var script = $("<script>")
+         var div = $('<div class="statwdgtauto"></div>');
+         script.text('ripestat.init("' + widget + '",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]});');
+         script.appendTo(div);
+         div.appendTo(tab);
+
+         loaded_widgets[widget] = true;
+      }
+
+      $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+         var target = $(e.target).attr("href") // activated tab
+         load_widget(target);
+      });
+   });
+</script>
 ]]
    end -- if(asn ~= nil)
 else
