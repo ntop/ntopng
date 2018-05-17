@@ -17,7 +17,7 @@ local perPage     = _GET["perPage"]
 local sortColumn  = _GET["sortColumn"]
 local sortOrder   = _GET["sortOrder"]
 
-local sortPrefs = "number_discovery"
+local sortPrefs = "discovery_sort_col"
 
 -- ################################################
 
@@ -61,7 +61,7 @@ if(perPage == nil) then
    perPage = 10
 else
    perPage = tonumber(perPage)
-   tablePreferences("rows_number_policies", perPage)
+   tablePreferences("rows_number_discovery", perPage)
 end
 
 -- ################################################
@@ -127,13 +127,16 @@ for el_idx, el in pairs(discovered["devices"]) do
 
   -- Operating System
   local device_os = ""
-  local mac_info = interface.getMacInfo(el.mac)
 
-  if(mac_info ~= nil) then
-    tprint(el)
-    device_os = getOperatingSystemIcon(mac_info.operatingSystem)
+  if el.os_type == nil then
+    local mac_info = interface.getMacInfo(el.mac)
+
+    if(mac_info ~= nil) then
+      el.os_type = mac_info.operatingSystem
+    end
   end
-  el.os = device_os
+
+  el.os = getOperatingSystemIcon(el.os_type)
 
   -- Device info
   local devinfo = ""

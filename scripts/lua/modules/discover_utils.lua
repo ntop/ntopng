@@ -1229,13 +1229,18 @@ function discover.discover2table(interface_name, recache)
                                                           mdns, snmp[ip], snmpSysDescr[ip],
                                                           osx_devices[ip], sym)
 
-      if isEmptyString(device_label) then
-	 local mac_info = interface.getMacInfo(mac)
+      local mac_info = interface.getMacInfo(mac)
 
+      if isEmptyString(device_label) then
          entry["device_label_noicon"] = device_label
+
 	 if mac_info ~= nil then
 	    device_label = discover.devtype2icon(mac_info.devtype)
 	 end
+      end
+
+      if mac_info ~= nil then
+	 entry["os_type"] = mac_info.operatingSystem
       end
 
       interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
