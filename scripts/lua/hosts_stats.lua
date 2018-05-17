@@ -477,7 +477,7 @@ if (_GET["page"] ~= "historical") then
 <script src="/js/ripe_widget_api.js"></script>
 
 <div id="asinfo" class="tab-pane fade">
-<div class="statwdgtauto"><script>ripestat.init("registry-browser",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+<div class="statwdgtauto"><script>ripestat.init("iana-registry-info",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
 </div>
 
 <div id="aspath" class="tab-pane fade">
