@@ -91,7 +91,7 @@ end
 --------------------------------------------------------------------------------
 
 function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
-				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member)
+				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member, ignore_exist)
   local details_key = get_pool_details_key(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local members = ntop.getMembersCache(ids_key) or {}
@@ -102,10 +102,12 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
     return false
   end
 
-  for _, m in pairs(members) do
-     if m == pool_id then
-	return true
-     end
+  if not ignore_exist then
+    for _, m in pairs(members) do
+      if m == pool_id then
+        return true
+      end
+    end
   end
 
   ntop.setMembersCache(ids_key, pool_id)

@@ -42,9 +42,8 @@ if _POST["edit_pools"] ~= nil then
         enforce_shapers_per_pool_member = config["_shp_per_member_"..pool_id]
       end
 
-      -- create or rename
       host_pools_utils.createPool(ifId, pool_id, pool_name, children_safe,
-				  enforce_quotas_per_pool_member, enforce_shapers_per_pool_member)
+				  enforce_quotas_per_pool_member, enforce_shapers_per_pool_member, true --[[ create or rename ]])
 
       if(interface.isBridgeInterface(ifId) == true) then
         -- create default shapers
