@@ -68,14 +68,17 @@ The same description of "LDAP User Group" applies, with the only
 difference that users belonging to this group will be able to use
 ntopng with administrative privileges.
 
-* Note to create Posix accounts on an LDAP server
-- Assign to the "uid" account parameter the identificator that has to
-be used for logging.
-- To assign the user to a specific group, an additional value has to
-be added to group parameter "memberUid". The additional value has to
-contain the "uid" of the user that needs to be associated with the group.
 
+*IMPORTANT*
 
+When using Posix accounts, the LDAP server should be configured as follows in order
+to work correctly with ntopng:
 
+- Into the LDAP user configuration, note down the "uid" parameter. You will it it below.
 
+- Into the LDAP group configuration, you should add a new custom field "memberUid", with
+  the same value of the user "uid" field above.
 
+As an example, supposing there is a group "usersGroup" and a user "ntopngUser" as uid,
+a new field "memberUid" should be added to the "usersGroup" configuration with "ntopngUser" as
+value.
