@@ -104,11 +104,12 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
     while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
       if(!added) lua_newtable(vm), added = 1;
       lua_push_str_table_entry(vm, oid_str, value_str);
-      if(value_str) free(value_str);
+      if(value_str) free(value_str), value_str = NULL;
       i++;
     }
 
     snmp_destroy_message(message);
+    free(message); /* malloc'd by snmp_parse_message */
 
     if(!added)
       lua_pushnil(vm), rc = CONST_LUA_ERROR;    
