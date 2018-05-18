@@ -228,7 +228,7 @@ SNMPMessage *snmp_parse_message(void *buffer, int len)
   asn1_parse_sequence(parser);
   while (asn1_parse_sequence(parser))
     {
-      char *oid, *oid1;
+      char *oid = NULL, *oid1 = NULL;
       int type;
       Value value;
       asn1_parse_oid(parser, &oid);
@@ -265,6 +265,8 @@ SNMPMessage *snmp_parse_message(void *buffer, int len)
 	  break;
         }
         
+      if(oid)  free(oid);
+      if(oid1) free(oid1);
       asn1_parse_pop(parser);
     }
   asn1_parse_pop(parser);

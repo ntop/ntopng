@@ -643,10 +643,9 @@ int asn1_parse_pop(ASN1Parser *parser)
   if (parser->depth == 0)
     return 0;
     
-  if (parser->state->remaining != 0)
-    return 0;
-    
-  parser->depth--;
-  parser->state = parser->state->next;
+  /* if (parser->state->remaining != 0) */
+  /*   return 0; */
+  
+  pop_state(parser);
   return 1;
 }
