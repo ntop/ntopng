@@ -46,7 +46,7 @@ network segment of choice.
   nEdge integration in a small business environment
 
 It is important to note that nEdge is intended to secure the devices at the
-network edge. It does replace firewalls, it merely complements them.
+network edge. It does not replace firewalls, it merely complements them.
 
 Some interesting nEdge features for a network administrator are the ability to
 generate alerts when new devices connect to the network and to block possibly
@@ -59,7 +59,7 @@ and VPN tunnels.
   :scale: 85
 
 To get a full visibility of the network, by enabling `Network Discovery`
-it will also possible to discover and correctly identify idle devices like printers
+it will also be possible to discover and correctly identify idle devices like printers
 in an accurate way.
 
 Hotel
