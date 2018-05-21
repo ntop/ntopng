@@ -3323,16 +3323,16 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   nf_existing_flow = !(cli2srv_packets > s2d_pkts || cli2srv_bytes > s2d_bytes
 		    || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
 
-  iface->incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
+  iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		  nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
 		  nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
-		  overhead, true);
+		  overhead);
 
 
-  iface->incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
+  iface->_incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		  nf_existing_flow ? d2s_bytes - srv2cli_bytes : d2s_bytes,
 		  nf_existing_flow ? d2s_pkts - srv2cli_packets : d2s_pkts,
-		  overhead, true);
+		  overhead);
 
   if(nf_existing_flow)
     cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes,

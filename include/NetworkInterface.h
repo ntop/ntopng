@@ -335,18 +335,24 @@ class NetworkInterface : public Checkpointable {
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
 
-  inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
-  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
-		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead, bool conntrack_update=false) {
-#ifdef HAVE_NEDGE
-    if(! conntrack_update)
-      return;
-#endif
+  inline void _incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats.incCategoryStats(when, get_ndpi_proto_category(ndpi_proto), 0 /* see above comment */, pkt_len);
     pktStats.incStats(pkt_len);
+  };
+
+  inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
+  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+#ifdef HAVE_NEDGE
+    /* In nedge, we only update the stats periodically with conntrack */
+    return;
+#endif
+
+    _incStats(ingressPacket, when, eth_proto, ndpi_proto, pkt_len, num_pkts, pkt_overhead);
   };
 
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
