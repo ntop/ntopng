@@ -1079,6 +1079,9 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+  last_bytes = sent.getNumBytes() + rcvd.getNumBytes();
+  last_packets = sent.getNumPkts() + rcvd.getNumPkts();
+
   if(json_object_object_get_ex(o, "total_activity_time", &obj))  total_activity_time = json_object_get_int(obj);
 
   if(json_object_object_get_ex(o, "dns", &obj)) {
