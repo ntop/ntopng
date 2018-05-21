@@ -1020,17 +1020,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   }
 
   if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
-    if(dstMac->isSpecialMac()) {
-      if(getIfType() == interface_type_NETFILTER) {
-	/*
-	   In this case the destination Mac is unknown and thus we need to
-	   increase the bytes/packets counters for the flow peer (if set)
-	*/
-
-	if(!dstHost->getMac()->isSpecialMac())
-	  dstHost->getMac()->incRcvdStats(1, rawsize);
-      }
-    } else if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
+    if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
 #ifdef MAC_DEBUG
       char buf[32], bufm1[32], bufm2[32];
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
