@@ -82,7 +82,7 @@ picture.
 
   nEdge integration in a hotel
 
-The following nEdge will be used:
+The following nEdge configuration will be used:
 
   - Captive portal is enabled
   - The `Default` bandwidth class guarantees 65% bandwidth
