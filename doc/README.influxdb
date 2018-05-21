@@ -8,9 +8,12 @@ Influx is populated by ntopng periodically pushing data into it, using the TimeS
 
 Installation
 ------------
-By default Influx data export is disabled. You can enabled with
+By default Influx data export is disabled. You can enabled as follows:
 
-redis-cli set "ntopng.prefs.ts_post_data_url" "http://<host where Influx is running>:8086/write?db=ntopng"
+1. run `CREATE DATABASE ntopng` on the Influx server
+2. start ntopng
+3. run `redis-cli set "ntopng.prefs.ts_post_data_url" "http://<host where Influx is running>:8086/write?db=ntopng"`
+4. restart ntopng
 
 and then ntopng will push data to Influx.
 
