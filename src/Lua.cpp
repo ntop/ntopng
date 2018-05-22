@@ -7777,7 +7777,6 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
   char outbuf[FILENAME_MAX];
   char *where;
   char *tok;
-
   char *query_string = query ? strdup(query) : NULL;
 
   lua_newtable(L);
@@ -7804,7 +7803,6 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
-
           Utils::urlDecode(_equal, decoded_buf, len+1);
 
 	  Utils::purifyHTTPparam(tok, true, false);
@@ -7869,9 +7867,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
   content_type = mg_get_header(conn, "Content-Type");
 
   /* Check for POST requests */
-  if((strcmp(request_info->request_method, "POST") == 0) &&
-     ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
-
+  if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
     if((post_data = (char*)malloc(HTTP_MAX_POST_DATA_LEN * sizeof(char))) == NULL
        || (post_data_len = mg_read(conn, post_data, HTTP_MAX_POST_DATA_LEN)) == 0) {
       valid_csrf = 0;
@@ -7886,29 +7882,27 @@ int Lua::handle_script_request(struct mg_connection *conn,
       mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
       mg_get_cookie(conn, "user", user, sizeof(user));
 
-      if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
-	 || (strcmp(rsp, user) != 0)) {
-#if 0
-	const char *msg = "The submitted form is expired. Please reload the page and try again. <p>[ <A HREF=/>Home</A> ]";
-
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
-				     csrf, rsp, user, "csrf");
-
-	return(send_error(conn, 500 /* Internal server error */,
-			  msg, PAGE_ERROR, script_path, msg));
-#else
-	valid_csrf = 0;
-#endif
-      } else {
-	/* Invalidate csrf */
-	ntop->getRedis()->del(csrf);
+      if(strstr(content_type, "application/json"))
+	valid_csrf = 1;
+      else {
+	if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1) || (strcmp(rsp, user) != 0))
+	  valid_csrf = 0;
+	else {
+	  /* Invalidate csrf */
+	  ntop->getRedis()->del(csrf);
+	}
       }
     }
 
-    if(valid_csrf)
-      setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
-    else
+    if(valid_csrf) {
+      if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
+	setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
+      else {
+	lua_newtable(L);
+	lua_push_str_table_entry(L, "JSON", post_data);
+	lua_setglobal(L, "_POST");
+      }
+    } else
       setParamsTable(L, "_POST", NULL /* Empty */);
 
     if(post_data)

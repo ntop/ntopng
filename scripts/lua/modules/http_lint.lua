@@ -1172,7 +1172,8 @@ local known_parameters = {
    ["operating_system"]        =  validateNumber,
 
    -- json POST DATA
-   ["payload"]                 =  validateJSON
+   ["payload"]                 =  validateJSON,
+   ["JSON"]                    =  validateJSON
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
