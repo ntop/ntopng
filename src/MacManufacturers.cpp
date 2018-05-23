@@ -100,11 +100,11 @@ void MacManufacturers::init() {
 
 	    s->manufacturer_name = (char*)calloc(strlen(manuf) + 1, sizeof(char*));
 	    strcpy(s->manufacturer_name, manuf);
-	    Utils::purifyHTTPparam(s->manufacturer_name, false, false);
+	    Utils::purifyHTTPparam(s->manufacturer_name, false, false, false);
 
 	    s->short_name = (char*)calloc(strlen(shortmanuf) + 1, sizeof(char*));
 	    strcpy(s->short_name, shortmanuf);
-	    Utils::purifyHTTPparam(s->short_name, false, false);
+	    Utils::purifyHTTPparam(s->short_name, false, false, false);
 
 	    /* TODO: reduce memory usage for recurrent manufacturers */
 
