@@ -352,7 +352,7 @@ local function create_rrd(name, step, ds)
 	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*(3600/step)),   -- raw: 1 day = 86400
 	 'RRA:AVERAGE:0.5:'..(60/step)..':'..tostring(prefs.intf_rrd_1min_days*24*60),   -- 1 min resolution = 1 month
 	 'RRA:AVERAGE:0.5:'..(3600/step)..':'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:'..(86400)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
+	 'RRA:AVERAGE:0.5:'..(86400/step)..':'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
 	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
       )
    end
