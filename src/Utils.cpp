@@ -875,7 +875,7 @@ bool Utils::isPrintableChar(u_char c) {
 
 /* ************************************************************ */
 
-void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
+void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL, bool allowDots) {
   if(strict) {
     for(int i=0; xssAttempts[i] != NULL; i++) {
       if(strstr(param, xssAttempts[i])) {
@@ -930,7 +930,7 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
       param[i] = '_'; /* Invalid char: we discard it */
 
     if((i > 0)
-       && (((param[i] == '.') && (param[i-1] == '.'))
+       && (((!allowDots) && (param[i] == '.') && (param[i-1] == '.'))
 	   || ((!allowURL) && ((param[i] == '/') && (param[i-1] == '/')))
 	   || ((param[i] == '\\') && (param[i-1] == '\\'))
 	   )) {

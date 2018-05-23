@@ -7782,8 +7782,11 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
           Utils::urlDecode(_equal, decoded_buf, len+1);
 
-	  Utils::purifyHTTPparam(tok, true, false);
-	  Utils::purifyHTTPparam(decoded_buf, false, false);
+    /* Allow multiple dots in password fields */
+	  bool allow_dots = (strstr(tok, "password") != NULL);
+
+	  Utils::purifyHTTPparam(tok, true, false, false);
+	  Utils::purifyHTTPparam(decoded_buf, false, false, allow_dots);
 
 	  /* Now make sure that decoded_buf is not a file path */
 	  FILE *fd;
