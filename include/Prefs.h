@@ -47,7 +47,7 @@ class Prefs {
     enable_auto_logout, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
-    enable_access_log,
+    service_license_check, enable_access_log,
     flow_aggregation_enabled,
     enable_mac_ndpi_stats;
 
@@ -235,6 +235,7 @@ class Prefs {
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
   inline bool checkLicenseOnline()               { return(online_license_check);  };
+  inline bool checkServiceLicense()              { return(service_license_check); };
   inline char* get_es_type()  { return(es_type);  };
   inline char* get_es_index() { return(es_index); };
   inline char* get_es_url()   { return(es_url);   };
