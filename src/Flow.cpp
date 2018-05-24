@@ -801,7 +801,7 @@ bool Flow::dumpFlow(bool idle_flow) {
 /* *************************************** */
 
 void Flow::setDropVerdict() {
-#ifdef HAVE_NEDGE
+#if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
   if((iface->getIfType() == interface_type_NETFILTER) && (passVerdict == true))
    ((NetfilterInterface *) iface)->setPolicyChanged();
 #endif
@@ -2960,7 +2960,7 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
 
 void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
-#ifdef HAVE_NEDGE
+#if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
   bool old_verdict = passVerdict;
 
   u_int16_t old_cli2srv_in = cli2srv_in,
