@@ -4,11 +4,13 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 -- do NOT include lua_utils here, it's not necessary, keep it light!
-local rrd_utils = require "rrd_utils"
 local os_utils = require "os_utils"
 local callback_utils = require "callback_utils"
+local ts_utils = require("ts_utils")
+local ts_schemas = require("ts_schemas")
 
 -- Toggle debug
 local enable_second_debug = false
@@ -18,26 +20,17 @@ local when = os.time()
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
-   -- tprint(ifstats)
-   basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
-   
-   --io.write(basedir.."\n")
-   if(not(ntop.exists(basedir))) then
-      if(enable_second_debug) then io.write('Creating base directory ', basedir, '\n') end
-      ntop.mkdir(basedir)
-   end
-   
+
    -- Traffic stats
-   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "bytes", 1, ifstats.stats.bytes)
-   rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "packets", 1, ifstats.stats.packets)
-   
+   ts_utils.append(ts_schemas.iface_traffic(), {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
+   ts_utils.append(ts_schemas.iface_packets(), {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
+
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
-      rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_zmq_rcvd_flows",
-			1, ifstats.zmqRecvStats.flows)
+      ts_utils.append(ts_schemas.iface_zmq_recv_flows(), {ifid=ifstats.id, num_flows=ifstats.zmqRecvStats.flows}, when)
    else
       -- Packet interface
-      rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "drops", 1, ifstats.stats.drops)
+      ts_utils.append(ts_schemas.iface_drops(), {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
    end
 end)
 

@@ -465,33 +465,26 @@ function host_pools_utils.getRRDBase(ifid, pool_id)
 end
 
 function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
+  local ts_utils = require "ts_utils"
+  local ts_schemas = require "ts_schemas"
+
   -- NOTE: requires graph_utils
   for pool_id, pool_stats in pairs(interface.getHostPoolsStats() or {}) do
-    local pool_base = host_pools_utils.getRRDBase(ifid, pool_id)
-
-    if(not(ntop.exists(pool_base))) then
-      ntop.mkdir(pool_base)
-    end
-
-    -- Traffic stats
-    local rrdpath = os_utils.fixPath(pool_base .. "/bytes.rrd")
-    createRRDcounter(rrdpath, 300, verbose)
-    ntop.rrd_update(rrdpath, nil, tolongint(pool_stats["bytes.sent"]), tolongint(pool_stats["bytes.rcvd"]))
+    ts_utils.append(ts_schemas.host_pool_traffic(), {ifid=ifid, pool=pool_id,
+              bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
 
     if pool_id ~= tonumber(host_pools_utils.DEFAULT_POOL_ID) then
        local flows_dropped = pool_stats["flows.dropped"] or 0
 
-       rrdpath = os_utils.fixPath(pool_base .. "/blocked_flows.rrd")
-       createSingleRRDcounter(rrdpath, 300, verbose)
-       ntop.rrd_update(rrdpath, nil, tolongint(flows_dropped))
+       ts_utils.append(ts_schemas.host_pool_blocked_flows(), {ifid=ifid, pool=pool_id,
+              num_flows=flows_dropped}, when)
     end
 
     -- nDPI stats
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
-        local ndpiname = os_utils.fixPath(pool_base.."/"..proto..".rrd")
-        createRRDcounter(ndpiname, 300, verbose)
-        ntop.rrd_update(ndpiname, nil, tolongint(v["bytes.sent"]), tolongint(v["bytes.rcvd"]))
+        ts_utils.append(ts_schemas.host_pool_ndpi(), {ifid=ifid, pool=pool_id, protocol=proto,
+              bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
       end
     end
   end

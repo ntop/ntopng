@@ -3,9 +3,12 @@
 require "lua_utils"
 require "alert_utils"
 require "graph_utils"
-local rrd_utils = require "rrd_utils"
+require "rrd_utils"
+
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"
+local ts_utils = require("ts_utils")
+local ts_schemas = require("ts_schemas")
 
 local rrd_dump = {}
 
@@ -16,9 +19,7 @@ function rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbos
     local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    local name = os_utils.fixPath(basedir .. "/"..k..".rrd")
-    createSingleRRDcounter(name, 60, verbose)
-    ntop.rrd_update(name, nil, tolongint(v))
+    ts_utils.append(ts_schemas.iface_ndpi(), {ifid=ifstats.id, protocol=k, bytes=v}, when, verbose)
     ntop.tsSet(when, 'iface:ndpi', tostring(k), "bytes", ifstats["ndpi"][k]["bytes.sent"], ifstats["ndpi"][k]["bytes.rcvd"])
     end
 end
@@ -30,9 +31,7 @@ function rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, 
     v = v["bytes"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    local name = os_utils.fixPath(basedir .. "/"..k..".rrd")
-    createSingleRRDcounter(name, 60, verbose)
-    ntop.rrd_update(name, nil, tolongint(v))
+    ts_utils.append(ts_schemas.iface_ndpi_categories(), {ifid=ifstats.id, category=k, bytes=v}, when, verbose)
     ntop.tsSet(when, 'iface:ndpi_categories', tostring(k), "bytes", v, 0)
   end
 end
@@ -40,24 +39,13 @@ end
 -- ########################################################
 
 function rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
-  if(not ntop.exists(os_utils.fixPath(basedir.."/localstats/"))) then
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating localstats directory ", os_utils.fixPath(basedir.."/localstats"), '\n') end
-    ntop.mkdir(os_utils.fixPath(basedir.."/localstats/"))
-  end
-
   -- IN/OUT counters
   if(ifstats["localstats"]["bytes"]["local2remote"] > 0) then
-    local name = os_utils.fixPath(basedir .. "/localstats/local2remote.rrd")
-    createSingleRRDcounter(name, 60, verbose)
-    ntop.rrd_update(name, nil, tolongint(ifstats["localstats"]["bytes"]["local2remote"]))
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+    ts_utils.append(ts_schemas.iface_local2remote(), {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when, verbose)
   end
 
   if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
-    local name = os_utils.fixPath(basedir .. "/localstats/remote2local.rrd")
-    createSingleRRDcounter(name, 60, verbose)
-    ntop.rrd_update(name, nil, tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+    ts_utils.append(ts_schemas.iface_remote2local(), {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when, verbose)
   end
 
   ntop.tsSet(when, "iface:localstats", "local2remote", "bytes",
@@ -77,14 +65,14 @@ function rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
        ntop.mkdir(rrdpath)
     end
 
-    local bytes_rrd = os_utils.fixPath(rrdpath .. "/bytes.rrd")
-    createTripleRRDcounter(bytes_rrd, 60, false)  -- 60(s) == 1 minute step
-    ntop.rrd_update(bytes_rrd, nil, tolongint(sstats["ingress"]), tolongint(sstats["egress"]), tolongint(sstats["inner"]))
-    ntop.tsSet(when, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]))
+    ts_utils.append(ts_schemas.subnet_traffic(), {ifid=ifstats.id, subnet=subnet,
+              bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
+              bytes_inner=sstats["inner"]}, when)
+    ntop.tsSet(when, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]), verbose)
 
-    local bytes_bcast_rrd = os_utils.fixPath(rrdpath .. "/broadcast_bytes.rrd")
-    createTripleRRDcounter(bytes_bcast_rrd, 60, false)  -- 60(s) == 1 minute step
-    ntop.rrd_update(bytes_bcast_rrd, nil, tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]), tolongint(sstats["broadcast"]["inner"]))
+    ts_utils.append(ts_schemas.subnet_broadcast_traffic(), {ifid=ifstats.id, subnet=subnet,
+              bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
+              bytes_inner=sstats["broadcast"]["inner"]}, when, verbose)
     ntop.tsSet(when, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
   end
 end
@@ -93,23 +81,23 @@ end
 
 function rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
   -- General stats
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_hosts", 60, ifstats.stats.hosts)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_devices", 60, ifstats.stats.devices)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_flows", 60, ifstats.stats.flows)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "num_http_hosts", 60, ifstats.stats.http_hosts)
+  ts_utils.append(ts_schemas.iface_hosts(), {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when, verbose)
+  ts_utils.append(ts_schemas.iface_devices(), {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when, verbose)
+  ts_utils.append(ts_schemas.iface_flows(), {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when, verbose)
+  ts_utils.append(ts_schemas.iface_http_hosts(), {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
 end
 
 function rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_lost", 60, ifstats.tcpPacketStats.lost)
+  ts_utils.append(ts_schemas.iface_tcp_retransmissions(), {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_out_of_order(), {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_lost(), {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
 end
 
 function rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_syn", 60, ifstats.pktSizeDistribution.syn)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_synack", 60, ifstats.pktSizeDistribution.synack)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_finack", 60, ifstats.pktSizeDistribution.finack)
-  rrd_utils.makeRRD(basedir, when, ifstats.id, "iface", "tcp_rst", 60, ifstats.pktSizeDistribution.rst)
+  ts_utils.append(ts_schemas.iface_tcp_syn(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.syn}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_synack(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.synack}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_finack(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.finack}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_rst(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.rst}, when, verbose)
 end
 
 -- ########################################################
@@ -118,13 +106,7 @@ function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
   local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
 
   for pname, ptraffic in pairs(ifstats.profiles) do
-    local rrdpath = os_utils.fixPath(basedir.. "/" .. getPathFromKey(trimSpace(pname)))
-    if(not(ntop.exists(rrdpath))) then
-      ntop.mkdir(rrdpath)
-    end
-    rrdpath = os_utils.fixPath(rrdpath .. "/bytes.rrd")
-    createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
-    ntop.rrd_update(rrdpath, nil, tolongint(ptraffic))
+    ts_utils.append(ts_schemas.profile_traffic(), {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
     ntop.tsSet(when, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
   end
 end

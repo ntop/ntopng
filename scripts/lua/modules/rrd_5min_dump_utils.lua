@@ -1,10 +1,12 @@
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
-local rrd_utils = require "rrd_utils"
+require "rrd_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local os_utils = require "os_utils"
+local ts_utils = require "ts_utils"
+local ts_schemas = require "ts_schemas"
 
 local dirs = ntop.getDirs()
 local rrd_dump = {}
@@ -12,31 +14,22 @@ local rrd_dump = {}
 -- ########################################################
 
 function rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
-  local name = os_utils.fixPath(hostbase.."/".."bytes.rrd")
-  createRRDcounter(name, 300, verbose)
-  ntop.rrd_update(name, nil, tolongint(host["bytes.sent"]), tolongint(host["bytes.rcvd"]))
+  ts_utils.append(ts_schemas.host_traffic(), {ifid=ifstats.id, host=hostname,
+            bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when, verbose)
   ntop.tsSet(when, 'ip', hostname, "bytes", tolongint(host["bytes.sent"]), tolongint(host["bytes.rcvd"]))
 
-  if(verbose) then
-    print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
-  end
-
   -- Number of flows
-  rrd_utils.makeRRD(hostbase, when, ifstats.id, "ip:"..hostname, "num_flows", 300, host["active_flows.as_client"] + host["active_flows.as_server"])
+  ts_utils.append(ts_schemas.host_flows(), {ifid=ifstats.id, host=hostname,
+            num_flows=host["active_flows.as_client"] + host["active_flows.as_server"]}, when, verbose)
 
   -- L4 Protocols
   for id, _ in ipairs(l4_keys) do
     k = l4_keys[id][2]
     if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
-      if(verbose) then print("["..__FILE__()..":"..__LINE__().."]\t"..k.."\n") end
+      ts_utils.append(ts_schemas.host_l4protos(), {ifid=ifstats.id, host=hostname,
+                l4proto=tostring(k), bytes_sent=host[k..".bytes.sent"], bytes_rcvd=host[k..".bytes.rcvd"]}, when, verbose)
 
-      local name = os_utils.fixPath(hostbase .. "/".. k .. ".rrd")
-      createRRDcounter(name, 300, verbose)
-      -- io.write(name.."="..host[k..".bytes.sent"].."|".. host[k..".bytes.rcvd"] .. "\n")
-      ntop.rrd_update(name, nil, tolongint(host[k..".bytes.sent"]), tolongint(host[k..".bytes.rcvd"]))
-      ntop.tsSet(when, 'ip', hostname, tostring(k), tolongint(host[k..".bytes.sent"]), tolongint(host[k..".bytes.rcvd"]))
-
-      if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+      ntop.tsSet(when, 'ip', hostname, tostring(k), tolongint(host[k..".bytes.sent"]), tolongint(host[k..".bytes.rcvd"]), when)
     else
       -- L2 host
       --io.write("Discarding "..k.."@"..hostname.."\n")
@@ -47,24 +40,21 @@ end
 function rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
   -- nDPI Protocols
   for k in pairs(host["ndpi"] or {}) do
-    local name = os_utils.fixPath(hostbase .. "/".. k .. ".rrd")
-    createRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(host["ndpi"][k]["bytes.sent"]), tolongint(host["ndpi"][k]["bytes.rcvd"]))
-    ntop.tsSet(when, 'ip:ndpi', hostname, tostring(k),
-    tolongint(host["ndpi"][k]["bytes.sent"]), tolongint(host["ndpi"][k]["bytes.rcvd"]))
+    ts_utils.append(ts_schemas.host_ndpi(), {ifid=ifstats.id, host=hostname, protocol=k,
+              bytes_sent=host["ndpi"][k]["bytes.sent"], bytes_rcvd=host["ndpi"][k]["bytes.rcvd"]}, when, verbose)
 
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+    ntop.tsSet(when, 'ip:ndpi', hostname, tostring(k),
+              tolongint(host["ndpi"][k]["bytes.sent"]), tolongint(host["ndpi"][k]["bytes.rcvd"]))
   end
 end
 
 function rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(host["ndpi_categories"] or {}) do
-    local name = os_utils.fixPath(hostbase .. "/".. k .. ".rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(cat["bytes"]))
+    ts_utils.append(ts_schemas.host_ndpi_categories(), {ifid=ifstats.id, host=hostname, category=k,
+              bytes=cat["bytes"]}, when, verbose)
+
     ntop.tsSet(when, 'ip:ndpi_categories', hostname, tostring(k), tolongint(cat["bytes"]), 0)
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
   end
 end
 
@@ -73,20 +63,15 @@ end
 function rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(device["ndpi_categories"] or {}) do
-    local name = os_utils.fixPath(devicebase .. "/".. k .. ".rrd")
-    createSingleRRDcounter(name, 300, verbose)
-    ntop.rrd_update(name, nil, tolongint(cat["bytes"]))
+    ts_utils.append(ts_schemas.mac_ndpi_categories(), {ifid=ifstats.id, mac=devicename, category=k,
+              bytes=cat["bytes"]}, when, verbose)
     ntop.tsSet(when, 'mac:ndpi_categories', devicename, k, tolongint(cat["bytes"]), 0)
-
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
   end
 end
 
 function rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
-  local name = os_utils.fixPath(devicebase .. "/bytes.rrd")
-
-  createRRDcounter(name, 300, verbose)
-  ntop.rrd_update(name, nil, tolongint(device["bytes.sent"]), tolongint(device["bytes.rcvd"]))
+  ts_utils.append(ts_schemas.mac_traffic(), {ifid=ifstats.id, mac=devicename,
+              bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]}, when, verbose)
   ntop.tsSet(when, 'mac', devicename, "bytes", tolongint(device["bytes.sent"]), tolongint(device["bytes.rcvd"]))
 end
 
@@ -97,33 +82,26 @@ function rrd_dump.asn_update_rrds(when, ifstats, verbose)
 
   for _, asn_stats in ipairs(asn_info["ASes"]) do
     local asn = asn_stats["asn"]
-    local asnpath = getRRDName(ifstats.id, 'asn:'..asn)
-
-    if not ntop.exists(asnpath) then
-      ntop.mkdir(asnpath)
-    end
 
     -- Save ASN bytes
-    local asn_bytes_rrd = getRRDName(ifstats.id, 'asn:'..asn, "bytes.rrd")
-    createRRDcounter(asn_bytes_rrd, 300, false)
-    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..asn_bytes_rrd..'\n') end
-    ntop.rrd_update(asn_bytes_rrd, nil, tolongint(asn_stats["bytes.sent"]), tolongint(asn_stats["bytes.rcvd"]))
+    ts_utils.append(ts_schemas.asn_traffic(), {ifid=ifstats.id, asn=asn,
+              bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
     ntop.tsSet(when, 'asn', tostring(asn), "bytes",
-    tolongint(asn_stats["bytes.sent"]), tolongint(asn_stats["bytes.rcvd"]))
+              tolongint(asn_stats["bytes.sent"]), tolongint(asn_stats["bytes.rcvd"]))
 
     -- Save ASN ndpi stats
     if asn_stats["ndpi"] ~= nil then
       for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
-        local asn_ndpi_rrd = os_utils.fixPath(asnpath.."/"..proto_name..".rrd")
-        createRRDcounter(asn_ndpi_rrd, 300, verbose)
-        ntop.rrd_update(asn_ndpi_rrd, nil, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
+        ts_utils.append(ts_schemas.asn_ndpi(), {ifid=ifstats.id, asn=asn, protocol=proto_name,
+                  bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when, verbose)
         ntop.tsSet(when, 'asn:ndpi', tostring(asn), proto_name,
-          tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
+                  tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
       end
     end
 
     -- Save ASN RTT stats
-    rrd_utils.makeRRD(asnpath, when, ifstats.id, "asn:"..asn, "num_ms_rtt", 300, asn_stats["round_trip_time"])
+    ts_utils.append(ts_schemas.asn_rtt(), {ifid=ifstats.id, asn=asn,
+                millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
   end
 end
 
@@ -135,16 +113,10 @@ function rrd_dump.country_update_rrds(when, ifstats, verbose)
 
   for _, country_stats in ipairs(countries_info["Countries"] or {}) do
     local country = country_stats.country
-    local rrdpath = getPathFromKey(country)
 
-    rrdpath = os_utils.fixPath(basedir.. "/" .. rrdpath)
-    if(not(ntop.exists(rrdpath))) then
-       ntop.mkdir(rrdpath)
-    end
-
-    local bytes_rrd = os_utils.fixPath(rrdpath .. "/bytes.rrd")
-    createTripleRRDcounter(bytes_rrd, 300, false)  -- 300(s) == 5 minutes step
-    ntop.rrd_update(bytes_rrd, nil, tolongint(country_stats["ingress"]), tolongint(country_stats["egress"]), tolongint(country_stats["inner"]))
+    ts_utils.append(ts_schemas.country_traffic(), {ifid=ifstats.id, country=country,
+                bytes_ingress=country_stats["ingress"], bytes_egress=country_stats["egress"],
+                bytes_inner=country_stats["inner"]}, when, verbose)
     ntop.tsSet(when, "iface:countrystats", country, "bytes", tolongint(country_stats["egress"]), tolongint(country_stats["inner"]))
   end
 end
@@ -159,25 +131,18 @@ function rrd_dump.vlan_update_rrds(when, ifstats, verbose)
     for _, vlan_stats in pairs(vlan_info["VLANs"]) do
       local vlan_id = vlan_stats["vlan_id"]
 
-      local vlanpath = getPathFromKey(vlan_id)
-      vlanpath = os_utils.fixPath(basedir.. "/" .. vlanpath)
-      if not ntop.exists(vlanpath) then
-        ntop.mkdir(vlanpath)
-      end
+      ts_utils.append(ts_schemas.vlan_traffic(), {ifid=ifstats.id, vlan=vlan_id,
+                bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when, verbose)
 
-      local vlanbytes = os_utils.fixPath(vlanpath .. "/bytes.rrd")
-      createRRDcounter(vlanbytes, 300, false)
-      if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..vlanbytes..'\n') end
-      ntop.rrd_update(vlanbytes, nil, tolongint(vlan_stats["bytes.sent"]), tolongint(vlan_stats["bytes.rcvd"]))
       ntop.tsSet(when, 'vlan', tostring(vlan_id), "bytes",
-        tolongint(vlan_stats["bytes.sent"]), tolongint(vlan_stats["bytes.rcvd"]))
+                tolongint(vlan_stats["bytes.sent"]), tolongint(vlan_stats["bytes.rcvd"]))
 
       -- Save VLAN ndpi stats
       if vlan_stats["ndpi"] ~= nil then
         for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
-          local vlan_ndpi_rrd = os_utils.fixPath(vlanpath.."/"..proto_name..".rrd")
-          createRRDcounter(vlan_ndpi_rrd, 300, verbose)
-          ntop.rrd_update(vlan_ndpi_rrd, nil, tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
+          ts_utils.append(ts_schemas.vlan_ndpi(), {ifid=ifstats.id, vlan=vlan_id, protocol=proto_name,
+                    bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when, verbose)
+          
           ntop.tsSet(when, 'vlan:ndpi', tostring(vlan_id), proto_name,
             tolongint(proto_stats["bytes.sent"]), tolongint(proto_stats["bytes.rcvd"]))
         end
@@ -199,18 +164,11 @@ function rrd_dump.sflow_device_update_rrds(when, ifstats, verbose)
     end
 
     for port_idx,port_value in pairs(ports) do
-      local base = getRRDName(ifstats.id, "sflow:"..flow_device_ip, port_idx)
-      if(not(ntop.exists(base))) then ntop.mkdir(base) end
+      ts_utils.append(ts_schemas.sflowdev_port_traffic(), {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
+                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
 
-      local name = getRRDName(ifstats.id, "sflow:"..flow_device_ip, port_idx.."/bytes.rrd")
-      createRRDcounter(name, 300, verbose)
-      ntop.rrd_update(name, nil, tolongint(port_value.ifOutOctets), tolongint(port_value.ifInOctets))
       ntop.tsSet(when, "sflow", flow_device_ip, "bytes",
         tolongint(port_value.ifOutOctets), tolongint(port_value.ifInOctets))
-
-      if(verbose) then
-        print ("["..__FILE__()..":"..__LINE__().."]  Processing sFlow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
-      end
     end
   end
 end
@@ -226,18 +184,11 @@ function rrd_dump.flow_device_update_rrds(when, ifstats, verbose)
     if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n") end
 
     for port_idx,port_value in pairs(ports) do
-      local base = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx)
-      if(not(ntop.exists(base))) then ntop.mkdir(base) end
+      ts_utils.append(ts_schemas.flowdev_port_traffic(), {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
+                bytes_sent=port_value["bytes.out_bytes"], bytes_rcvd=port_value["bytes.in_bytes"]}, when, verbose)
 
-      local name = getRRDName(ifstats.id, "flow_device:"..flow_device_ip, port_idx.."/bytes.rrd")
-      createRRDcounter(name, 300, verbose)
-      ntop.rrd_update(name, nil, tolongint(port_value["bytes.out_bytes"]), tolongint(port_value["bytes.in_bytes"]))
       ntop.tsSet(when, "flow_device", flow_device_ip, "bytes",
           tolongint(port_value["bytes.out_bytes"]), tolongint(port_value["bytes.in_bytes"]))
-
-      if(verbose) then
-        print ("["..__FILE__()..":"..__LINE__().."]  Processing flow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
-      end
     end
   end
 end
