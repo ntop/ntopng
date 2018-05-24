@@ -848,7 +848,7 @@
 #define MIN_NUM_HASH_WALK_ELEMS      512
 
 
-#if defined(__arm__) || defined(__mips__)
+#ifdef NTOPNG_EMBEDDED_EDITION
 #define DEFAULT_THREAD_POOL_SIZE     1
 #define MAX_THREAD_POOL_SIZE         1
 #else

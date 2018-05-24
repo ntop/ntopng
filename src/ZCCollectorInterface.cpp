@@ -23,7 +23,7 @@
 
 #ifndef HAVE_NEDGE
 
-#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
+#if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
 
 /* **************************************************** */
 
