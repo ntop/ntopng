@@ -285,10 +285,10 @@ else
 end
 
 if host["localhost"] == true then
-   if(ntop.isPro()) then
+   if ntop.isEnterprise() then
       if(page == "snmp") then
 	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
-      elseif interface.isPcapDumpInterface() == false and not have_nedge then
+      else
 	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
       end
    end
@@ -1537,16 +1537,14 @@ print [[
    ]]
 
 end
-elseif(page == "snmp" and ntop.isPro()) then
+elseif(page == "snmp" and ntop.isEnterprise()) then
    local snmp_devices = get_snmp_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured
       local msg = i18n("snmp_page.not_configured_as_snmp_device_message",{host_ip=host_ip})
       msg = msg.." "..i18n("snmp_page.guide_snmp_page_message",{url=ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua"})
 
-      if ntop.isEnterprise() then
-        print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
-      end
+      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
    else
       local snmp_device = require "snmp_device"
       local snmp_device_ip = snmp_devices[host_ip]["ip"]
