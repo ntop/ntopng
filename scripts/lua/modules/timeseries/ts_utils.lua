@@ -29,16 +29,21 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua
 --TODO
 local dirs = ntop.getDirs()
 local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
+local influxdb_driver = nil
+
+if not isEmptyString(ntop.getCache("ntopng.prefs.ts_post_data_url")) then
+  influxdb_driver = require("influxdb"):new()
+end
 
 function ts_utils.listDrivers()
   --TODO
-  return {rrd_driver}
+  return {rrd_driver, influxdb_driver}
 end
 
 -- Only active drivers
 function ts_utils.listActiveDrivers()
   --TODO
-  return {rrd_driver}
+  return {rrd_driver, influxdb_driver}
 end
 
 function ts_utils.enableDriver(driver)
@@ -47,10 +52,6 @@ end
 
 function ts_utils.disableDriver(driver)
   --TODO
-end
-
-function ts_utils.newSchema(name, options)
-  return Schema:new(name, options)
 end
 
 -----------------------------------------------------------------------
@@ -81,10 +82,20 @@ function ts_utils.query(schema, tags, tstart, tend)
     return false
   end
 
+  driver = ts_utils.listActiveDrivers()[1]
+
+  if not driver then
+    return false
+  end
+
+  return driver:query(schema, tstart, tend, tags)
+end
+
+function ts_utils.flush()
   local rv = true
 
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
-    rv = driver:query(schema, tstart, tend, tags) and rv
+    rv = driver:flush() and rv
   end
 
   return rv

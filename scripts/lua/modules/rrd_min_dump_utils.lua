@@ -20,7 +20,6 @@ function rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbos
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
     ts_utils.append(ts_schemas.iface_ndpi(), {ifid=ifstats.id, protocol=k, bytes=v}, when, verbose)
-    ntop.tsSet(when, 'iface:ndpi', tostring(k), "bytes", ifstats["ndpi"][k]["bytes.sent"], ifstats["ndpi"][k]["bytes.rcvd"])
     end
 end
 
@@ -32,7 +31,6 @@ function rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, 
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
     ts_utils.append(ts_schemas.iface_ndpi_categories(), {ifid=ifstats.id, category=k, bytes=v}, when, verbose)
-    ntop.tsSet(when, 'iface:ndpi_categories', tostring(k), "bytes", v, 0)
   end
 end
 
@@ -47,9 +45,6 @@ function rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbo
   if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
     ts_utils.append(ts_schemas.iface_remote2local(), {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when, verbose)
   end
-
-  ntop.tsSet(when, "iface:localstats", "local2remote", "bytes",
-    ifstats["localstats"]["bytes"]["local2remote"], ifstats["localstats"]["bytes"]["remote2local"])
 end
 
 -- ########################################################
@@ -68,12 +63,10 @@ function rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
     ts_utils.append(ts_schemas.subnet_traffic(), {ifid=ifstats.id, subnet=subnet,
               bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
               bytes_inner=sstats["inner"]}, when)
-    ntop.tsSet(when, "iface:subnetstats", subnet, "bytes", tolongint(sstats["egress"]), tolongint(sstats["inner"]), verbose)
 
     ts_utils.append(ts_schemas.subnet_broadcast_traffic(), {ifid=ifstats.id, subnet=subnet,
               bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
               bytes_inner=sstats["broadcast"]["inner"]}, when, verbose)
-    ntop.tsSet(when, "iface:subnetstats", subnet, "broadcast_bytes", tolongint(sstats["broadcast"]["ingress"]), tolongint(sstats["broadcast"]["egress"]))
   end
 end
 
@@ -107,7 +100,6 @@ function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
 
   for pname, ptraffic in pairs(ifstats.profiles) do
     ts_utils.append(ts_schemas.profile_traffic(), {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
-    ntop.tsSet(when, 'profilestats', pname, "bytes", tolongint(ptraffic), 0)
   end
 end
 
@@ -165,6 +157,8 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
     rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
   end
+
+  ts_utils.flush()
 end
 
 -- ########################################################

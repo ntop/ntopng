@@ -252,9 +252,13 @@ function callback_utils.uploadTSdata()
       -- Delete the file after POST
       local delete_file_after_post = true
       ret = ntop.postHTTPTextFile("", "", url, fname, delete_file_after_post)
-      
+      --print(fname .. "\n")
+
       if(ret ~= true) then
 	 print("[ERROR] POST of "..fname.." failed\n")
+
+	 -- delete the file manually
+	 os.remove(fname)
       end
 
    end

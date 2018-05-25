@@ -248,13 +248,6 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   reloadHideFromTop(false);
-
-  if(ntop->getRedis()) {
-    char url[128];
-    
-    if((!ntop->getRedis()->get((char*)CONST_TS_POST_DATA_URL, url, sizeof(url))) && (url[0] != '\0'))
-      tsExporter = new TimeSeriesExporter(this, url);
-  }
 }
 
 /* **************************************************** */
@@ -278,7 +271,7 @@ void NetworkInterface::init() {
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
-    flowHashingMode = flowhashing_none, tsExporter = NULL;
+    flowHashingMode = flowhashing_none;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
 
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
@@ -710,8 +703,6 @@ NetworkInterface::~NetworkInterface() {
 #endif
   if(hide_from_top)         delete(hide_from_top);
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
-
-  if(tsExporter) delete tsExporter;
   
   termLuaInterpreter();
 }

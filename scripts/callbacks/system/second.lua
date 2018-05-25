@@ -34,3 +34,4 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    end
 end)
 
+ts_utils.flush()

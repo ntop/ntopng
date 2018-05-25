@@ -3807,87 +3807,6 @@ static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
 
 /* ****************************************** */
 
-static int ntop_ts_set(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_interface && ntop_interface->getTSExporter()) {
-    const char *label = NULL, *metric = NULL, *key = "";
-    /* u_int8_t ifaceId; */
-    u_int8_t id = 1;
-    u_int32_t ts;
-    u_int64_t sent = 0, rcvd = 0;
-    char buf[512], *_div, *_key;
-
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK)
-      return(CONST_LUA_PARAM_ERROR);
-    ts = (u_int32_t)lua_tonumber(vm, id++);
-
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK)
-      return(CONST_LUA_PARAM_ERROR);
-    if((label = (const char*)lua_tostring(vm, id++)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-    if(lua_type(vm, id) != LUA_TNIL) {
-      if(lua_type(vm, id) == LUA_TSTRING)
-	key = (const char*)lua_tostring(vm, id++);
-    } else
-      id++;
-
-    if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK)
-      return(CONST_LUA_PARAM_ERROR);
-    if((metric = (const char*)lua_tostring(vm, id++)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-    if(lua_type(vm, id) == LUA_TNUMBER)
-      sent = (u_int64_t)lua_tonumber(vm, id++);
-    else if(lua_type(vm, id) == LUA_TSTRING)
-      sent = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
-
-    if(lua_type(vm, id) == LUA_TNUMBER)
-      rcvd = (u_int64_t)lua_tonumber(vm, id++);
-    else if(lua_type(vm, id) == LUA_TSTRING)
-      rcvd = (u_int64_t)atoll((const char*)lua_tostring(vm, id++));
-
-    if(key && (key[0] != '\0'))
-      _div = (char*)":", _key = (char*)key;
-    else
-      _div = (char*)"", _key = (char*)"";
-
-    if((sent > 0) || (rcvd > 0)) {
-      if((sent > 0) && (rcvd > 0))
-	snprintf(buf, sizeof(buf),
-		 "%s,metric=%s%s%s %s.sent=%lu,%s.rcvd=%lu %u000000000\n",
-		 ntop_interface->get_name(),
-		 label, _div, _key,
-		 metric, (unsigned long)sent,
-		 metric, (unsigned long)rcvd,
-		 ts);
-      else if(sent > 0)
-	snprintf(buf, sizeof(buf),
-		 "%s,metric=%s%s%s %s.sent=%lu %u000000000\n",
-		 ntop_interface->get_name(),
-		 label, _div, _key,
-		 metric, (unsigned long)sent,
-		 ts);
-      else if(rcvd > 0)
-	snprintf(buf, sizeof(buf),
-		 "%s,metric=%s%s%s %s.rcvd=%lu %u000000000\n",
-		 ntop_interface->get_name(),
-		 label, _div, _key,
-		 metric, (unsigned long)rcvd,
-		 ts);
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf); */
-      
-      ntop_interface->getTSExporter()->exportData(buf);
-    }
-  }
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
 
 static int ntop_nindex_select(lua_State* vm) {
@@ -7384,9 +7303,6 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",         ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate",    ntop_rrd_lastupdate  },
-
-  /* Timeseries (Influx) */
-  { "tsSet",            ntop_ts_set   },
 
   /* Prefs */
   { "getPrefs",         ntop_get_prefs },
