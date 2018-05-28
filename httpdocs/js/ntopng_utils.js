@@ -74,7 +74,7 @@ function is_network_mask(what, optional_mask) {
 }
 
 function fbits(bits) {
-    var sizes = ['bps', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+    var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits <= 0) return '0';
     var bits_log1000 = Math.log(bits) / Math.log(1000)
     var i = parseInt(Math.floor(bits_log1000));
