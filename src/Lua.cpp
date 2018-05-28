@@ -2365,12 +2365,12 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  if((p = new(std::nothrow) Paginator()) == NULL)
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK
+     || (p = new(std::nothrow) Paginator()) == NULL)
     return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   group_col = lua_tostring(vm, 1);
 
   if(lua_type(vm, 2) == LUA_TTABLE)
@@ -2379,7 +2379,8 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
   if(ntop_interface)
     numGroups = ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
 
-  if(p) delete p;
+  delete p;
+
   return numGroups < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
 
