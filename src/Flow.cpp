@@ -370,8 +370,8 @@ void Flow::processDetectedProtocol() {
 #endif
 
     if((protos.ssl.certificate == NULL)
-       && (ndpiFlow->protos.ssl.client_certificate[0] != '\0')) {
-      protos.ssl.certificate = strdup(ndpiFlow->protos.ssl.client_certificate);
+       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
+      protos.ssl.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
 
       if(protos.ssl.certificate && (strncmp(protos.ssl.certificate, "www.", 4) == 0)) {
 	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
@@ -380,8 +380,8 @@ void Flow::processDetectedProtocol() {
     }
 
     if((protos.ssl.server_certificate == NULL)
-	      && (ndpiFlow->protos.ssl.server_certificate[0] != '\0')) {
-      protos.ssl.server_certificate = strdup(ndpiFlow->protos.ssl.server_certificate);
+	      && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
+      protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
     }
 
     if(check_tor) {

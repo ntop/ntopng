@@ -402,7 +402,7 @@ if test $SYSTEM = "Darwin"; then
    OSXV=`sw_vers -productVersion`
    OS="MacOSX $OSXV"
    if test $MACHINE = "x86_64"; then
-      LINK_OPTS="-pagezero_size 10000 -image_base 100000000"
+      LINK_OPTS="-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000"
       RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
       if test $RES -eq 0; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
