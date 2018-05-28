@@ -45,6 +45,15 @@ TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if, char *_url) {
   fd = -1, iface = _if, url = strdup(_url), num_cached_entries = 0, dbCreated = false;
   ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Exporting TS data to %s",
 			       iface->get_name(), url);
+
+  snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), -1);
+  ntop->fixPath(fbase);
+
+  if(!Utils::mkdir_tree(fbase)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Unable to create directory %s", fbase);
+    throw 1;
+  }
 }
 
 /* ******************************************************* */
@@ -57,14 +66,15 @@ TimeSeriesExporter::~TimeSeriesExporter() {
 /* ******************************************************* */
 
 void TimeSeriesExporter::createDump() {
+  flushTime = time(NULL) + CONST_INFLUXDB_FLUSH_TIME;
+
+  /* Use the flushTime as the fname */
+  snprintf(fname, sizeof(fname), "%s%lu", fbase, flushTime);
+
 #ifdef WIN32
-  if(tmpnam_s(fname, sizeof(fname)))
-    snprintf(fname, sizeof(fname), "%u", time(NULL));
-  
-  fd = open (fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
+  fd = open(fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
 #else
-  strcpy(fname, "/tmp/TimeSeriesExporter_XXXXXX");
-  fd = mkstemp(fname);
+  fd = open(fname, O_RDWR | O_CREAT | O_EXCL | S_IREAD | S_IWRITE);
 #endif
 
   if(fd == -1)
@@ -74,7 +84,7 @@ void TimeSeriesExporter::createDump() {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Dumping TS data onto %s",
 				 iface->get_name(), fname);
 
-  flushTime = time(NULL) + CONST_INFLUXDB_FLUSH_TIME, num_cached_entries = 0;
+  num_cached_entries = 0;
 
   if(!dbCreated) {
     dbCreated = true;
@@ -115,7 +125,10 @@ void TimeSeriesExporter::flush() {
   if(fd != -1) {
     close(fd);
     fd = -1;
-    ntop->getRedis()->rpush(CONST_INFLUXDB_FILE_QUEUE, fname, 0);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%lu", flushTime);
+
+    ntop->getRedis()->rpush(CONST_INFLUXDB_FILE_QUEUE, buf, 0);
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Queueing TS file %s [%u entries]",
 				 iface->get_name(), fname, num_cached_entries);
   }

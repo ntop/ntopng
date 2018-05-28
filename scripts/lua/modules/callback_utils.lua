@@ -242,12 +242,19 @@ function callback_utils.uploadTSdata()
    end
 
    while(true) do
-      local fname = ntop.lpopCache("ntopng.influx_file_queue")
+      local name_id = ntop.lpopCache("ntopng.influx_file_queue")
       local ret
       
-      if((fname == nil) or (fname == "")) then
+      if((name_id == nil) or (name_id == "")) then
         break
       end
+
+      if(tonumber(name_id) == nil) then
+	 print("[ERROR] Invalid name "..name_id.."\n")
+	 break
+      end
+
+      local fname = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/ts_export/" .. name_id)
 
       -- Delete the file after POST
       local delete_file_after_post = true

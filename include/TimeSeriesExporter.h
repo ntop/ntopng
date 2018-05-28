@@ -28,7 +28,7 @@ class TimeSeriesExporter {
  private:
   time_t flushTime;
   int fd;
-  char fname[PATH_MAX];
+  char fbase[PATH_MAX], fname[PATH_MAX];
   NetworkInterface *iface;
   char *url;
   u_int num_cached_entries; 
