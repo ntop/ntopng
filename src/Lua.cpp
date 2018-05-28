@@ -2304,7 +2304,7 @@ static int ntop_send_udp_data(lua_State* vm) {
 static int ntop_append_influx_db(lua_State* vm) {
   char *data;
   bool rv = false;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *ntop_interface = ntop->getFirstInterface();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
