@@ -1990,7 +1990,7 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
 #ifdef NTOPNG_PRO
-  if(iface->is_bridge_interface())
+  if(iface && iface->is_bridge_interface())
     json_object_object_add(my_object, "verdict.pass",
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 #endif

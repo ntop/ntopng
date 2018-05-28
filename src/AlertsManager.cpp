@@ -273,7 +273,6 @@ bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_e
 #endif
     } else if(rc == SQLITE_ERROR) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-      rc = 1;
       goto out;
     }
   }
