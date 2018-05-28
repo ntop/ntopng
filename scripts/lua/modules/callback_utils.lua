@@ -242,7 +242,7 @@ function callback_utils.uploadTSdata()
    end
 
    while(true) do
-      local fname = ntop.lpopCache("ntopng.ts_file_queue")
+      local fname = ntop.lpopCache("ntopng.influx_file_queue")
       local ret
       
       if((fname == nil) or (fname == "")) then

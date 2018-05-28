@@ -403,6 +403,8 @@
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
 
+#define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
+#define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
 #define CONST_ALERT_MAC_IP_QUEUE           "ntopng.alert_mac_ip_queue"
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"

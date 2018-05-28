@@ -48,7 +48,7 @@ NetworkInterface::NetworkInterface(const char *name,
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
   init();
-  customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
+  customIftype = custom_interface_type, flowHashingMode = flowhashing_none, tsExporter = NULL;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -248,6 +248,13 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   reloadHideFromTop(false);
+
+  if(ntop->getRedis()) {
+    char url[128];
+
+    if((!ntop->getRedis()->get((char*)CONST_TS_POST_DATA_URL, url, sizeof(url))) && (url[0] != '\0'))
+      tsExporter = new TimeSeriesExporter(this, url);
+  }
 }
 
 /* **************************************************** */
@@ -703,6 +710,7 @@ NetworkInterface::~NetworkInterface() {
 #endif
   if(hide_from_top)         delete(hide_from_top);
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
+  if(tsExporter) delete tsExporter;
   
   termLuaInterpreter();
 }

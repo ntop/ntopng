@@ -2301,6 +2301,27 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_append_influx_db(lua_State* vm) {
+  char *data;
+  bool rv = false;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  data = (char*)lua_tostring(vm, 1);
+
+  if(ntop_interface && ntop_interface->getTSExporter()) {
+    ntop_interface->getTSExporter()->exportData(data);
+    rv = true;
+  }
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
@@ -7303,6 +7324,9 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",         ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate",    ntop_rrd_lastupdate  },
+
+  /* InfluxDB */
+  { "appendInfluxDB",   ntop_append_influx_db },
 
   /* Prefs */
   { "getPrefs",         ntop_get_prefs },

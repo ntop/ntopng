@@ -223,6 +223,7 @@ using namespace std;
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif
+#include "TimeSeriesExporter.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
