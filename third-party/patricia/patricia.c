@@ -276,7 +276,7 @@ New_Prefix2 (int family, void *dest, int bitlen, prefix_t *prefix)
     if(family == AF_INET) {
       if(prefix == NULL) {
 #ifndef NT
-	prefix = (prefix_t*)calloc(1, sizeof (prefix4_t));
+	prefix = (prefix_t*)calloc(1, sizeof(prefix_t));
 #else
 	//for some reason, compiler is getting
 	//prefix4_t size incorrect on NT

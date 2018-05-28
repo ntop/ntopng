@@ -98,11 +98,11 @@ void MacManufacturers::init() {
 	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
 	    memcpy(s->mac_manufacturer, mac, 3);
 
-	    s->manufacturer_name = (char*)calloc(strlen(manuf) + 1, sizeof(char*));
+	    s->manufacturer_name = (char*)calloc(strlen(manuf) + 1, sizeof(char));
 	    strcpy(s->manufacturer_name, manuf);
 	    Utils::purifyHTTPparam(s->manufacturer_name, false, false, false);
 
-	    s->short_name = (char*)calloc(strlen(shortmanuf) + 1, sizeof(char*));
+	    s->short_name = (char*)calloc(strlen(shortmanuf) + 1, sizeof(char));
 	    strcpy(s->short_name, shortmanuf);
 	    Utils::purifyHTTPparam(s->short_name, false, false, false);
 

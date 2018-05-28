@@ -46,7 +46,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   stats = stats_shadow = NULL;
 
-  if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t))) == NULL
+  if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t*))) == NULL
      || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
      || (pool_shaper = (u_int16_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int16_t))) == NULL
      || (schedule_bitmap = (u_int32_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int32_t))) == NULL

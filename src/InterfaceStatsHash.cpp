@@ -25,7 +25,7 @@
 
 InterfaceStatsHash::InterfaceStatsHash(u_int _max_hash_size) {
   max_hash_size = _max_hash_size;
-  buckets = (sFlowInterfaceStats**)calloc(sizeof(sFlowInterfaceStats), max_hash_size);
+  buckets = (sFlowInterfaceStats**)calloc(sizeof(sFlowInterfaceStats*), max_hash_size);
 
   if(buckets == NULL)
     throw "Not enough memory";
