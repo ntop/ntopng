@@ -271,13 +271,13 @@ print [[<script>
   $("#lifetime_unlimited").click(function() {
     $("#lifetime_selection_table label").attr("disabled", "disabled");
     $("#lifetime_selection_table input").attr("disabled", "disabled");
-    $("#lifetime_limited").removeAttr("checked");
+    $("#lifetime_limited").removeAttr("checked").prop("checked", false);
   });
 
   $("#lifetime_limited").click(function() {
     $("#lifetime_selection_table input").removeAttr("disabled");
     $("#lifetime_selection_table label").removeAttr("disabled");
-    $("#lifetime_unlimited").removeAttr("checked");
+    $("#lifetime_unlimited").removeAttr("checked").prop("checked", false);
   });
 
   function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
