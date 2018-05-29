@@ -217,7 +217,7 @@ static int ntop_get_interface_names(lua_State* vm) {
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
-    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
+    if((iface = ntop->getInterface(i)) != NULL) {
       char num[8], *name = iface->get_name();
 
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name [%d][%s]", i, name);
