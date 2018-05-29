@@ -85,12 +85,14 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   
   static activity_descr ad[] = {
     { SECOND_SCRIPT_PATH,       1,     false, 1           },
+#ifndef PERIODIC_DEBUG
     { MINUTE_SCRIPT_PATH,       60,    false, num_threads },
     { FIVE_MINUTES_SCRIPT_PATH, 300,   false, num_threads },
     { HOURLY_SCRIPT_PATH,       3600,  false, num_threads },
     { DAILY_SCRIPT_PATH,        86400, true,  1           },
     { HOUSEKEEPING_SCRIPT_PATH, 3,     false, num_threads },
     { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
+#endif
 #ifdef HAVE_NEDGE
     { PINGER_SCRIPT_PATH,       5,     false, 1           },
 #endif

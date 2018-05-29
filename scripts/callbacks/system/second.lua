@@ -14,7 +14,6 @@ local ts_schemas = require("ts_schemas")
 
 -- Toggle debug
 local enable_second_debug = false
-
 local ifnames = interface.getIfNames()
 local when = os.time()
 

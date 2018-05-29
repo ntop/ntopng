@@ -181,22 +181,31 @@ void ThreadedActivity::aperiodicActivityBody() {
 void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   struct timeval begin, end;
   u_long usec_diff;
-
+#ifndef PERIODIC_DEBUG
+  u_long max_duration = periodicity * 1e6;
+#endif
+  
   while(!ntop->getGlobals()->isShutdown()) {
+#ifndef PERIODIC_DEBUG
     while(systemTaskRunning) _usleep(1000);
-
+#endif
+    
     gettimeofday(&begin, NULL);
     systemTaskRunning = true;
     runScript();
     gettimeofday(&end, NULL);
 
-    usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
+    usec_diff = (end.tv_sec - begin.tv_sec) * 1e6 + (end.tv_usec - begin.tv_usec);
 
-    if(usec_diff < periodicity * 1e6) {
-      u_int diff = (periodicity * 1e6) - usec_diff;
+#ifndef PERIODIC_DEBUG
+    if(usec_diff < max_duration) {
+      u_int diff = max_duration - usec_diff;
 
       _usleep(diff);
     } /* else { the script took too long } */
+#else
+    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__); */
+#endif
   }
 }
 

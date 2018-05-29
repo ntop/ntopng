@@ -1512,10 +1512,8 @@ long Utils::httpGet(const char * const url,
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
 
     if(curl_easy_perform(curl) == CURLE_OK) {
-      if(curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK)   ;
-      if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
-	;
-      else
+      if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) != CURLE_OK)
+	 || (curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) != CURLE_OK))
 	response_code = 0;
     }
 
