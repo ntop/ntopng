@@ -10,8 +10,6 @@ local json = require("dkjson")
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="exported_data.json"')
 
-tprint(_POST)
-
 local mode = _POST["mode"]
 
 if mode == "filtered" then
