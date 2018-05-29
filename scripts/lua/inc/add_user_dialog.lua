@@ -145,7 +145,7 @@ else -- a captive portal user is being added
         </select>
       </div>
       <input id="host_role" name="user_role" type="hidden" value="captive_portal" />
-      <input id="allowed_networks" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
+      <input id="allowed_networks_input" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
       <input id="allowed_interface" name="allowed_interface" type="hidden" value="]] print(tostring(getInterfaceId(ifname))) print[[" />
     </div>
 
@@ -251,13 +251,13 @@ print[[
   $("#add_lifetime_unlimited").click(function(){
     $("#add_lifetime_selection_table label").attr("disabled", "disabled");
     $("#add_lifetime_selection_table input").attr("disabled", "disabled");
-    $("#add_lifetime_limited").removeAttr("checked");
+    $("#add_lifetime_limited").removeAttr("checked").prop("checked", false);
   });
 
   $("#add_lifetime_limited").click(function() {
     $("#add_lifetime_selection_table label").removeAttr("disabled");
     $("#add_lifetime_selection_table input").removeAttr("disabled");
-    $("#add_lifetime_unlimited").removeAttr("checked");
+    $("#add_lifetime_unlimited").removeAttr("checked").prop("checked", false);
   });
 
   var frmadduser = $('#form_add_user');
