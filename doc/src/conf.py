@@ -9,6 +9,8 @@ import sphinx_rtd_theme
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 
+sys.path.append( "breathe/" )
+
 # -- General configuration ------------------------------------------------
 
 # If documentation needs a minimal Sphinx version, state it here.
@@ -19,7 +21,11 @@ import sphinx_rtd_theme
 # ones.
 extensions = [
     'sphinx.ext.intersphinx',
+    'breathe'
 ]
+
+breathe_projects = { "apidoc" : "doxygen/xml/" }
+breathe_default_project = "apidoc"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

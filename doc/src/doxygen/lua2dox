@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Doxygen::Lua;
+
+my $input = $ARGV[0];
+my $p = Doxygen::Lua->new;
+print $p->parse($input);

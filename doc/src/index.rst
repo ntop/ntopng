@@ -12,6 +12,7 @@ can be obtained from the traffic captured by the server.
    cli_options
    web_gui/index
    advanced_features/index
+   api/index
 
 .. Indices and tables
 .. ==================

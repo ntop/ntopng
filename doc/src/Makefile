@@ -51,9 +51,11 @@ help:
 .PHONY: clean
 clean:
 	rm -rf $(BUILDDIR)/*
+	cd doxygen; make clean
 
 .PHONY: html
 html:
+	cd doxygen; make
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
