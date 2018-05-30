@@ -164,6 +164,7 @@ static int ntop_dump_file(lua_State* vm) {
     }
 
     fclose(fd);
+    lua_pushnil(vm);
     return(CONST_LUA_OK);
   } else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read file %s", fname);
@@ -324,7 +325,8 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
 
     lua_newtable(vm);
     stats.lua(ntop_interface, vm);
-  }
+  } else
+    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -459,7 +461,8 @@ static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
   if(ntop_interface) {
     lua_newtable(vm);
     ntop_interface->getnDPIFlowsCount(vm);
-  }
+  } else
+    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -481,7 +484,8 @@ static int ntop_get_ndpi_interface_flows_status(lua_State* vm) {
   if(ntop_interface) {
     lua_newtable(vm);
     ntop_interface->getFlowsStatus(vm);
-  }
+  } else
+    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -616,7 +620,9 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
 
   if(ntop_interface)
     ntop_interface->setnDPIProtocolCategory(proto, category);
-
+  else
+    lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -682,7 +688,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
-             ipver_filter, proto_filter,
+					   ipver_filter, proto_filter,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -737,7 +743,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
-             ipver_filter, proto_filter, sortColumn, maxHits,
+					   ipver_filter, proto_filter, sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
@@ -890,9 +896,8 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
 
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    mac = (char*)lua_tostring(vm, 1);
-  }
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    mac = (char*)lua_tostring(vm, 1);  
 
   if((!ntop_interface)
      || (!mac)
@@ -1009,9 +1014,9 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
   }
 
   if(p) delete(p);
+  
   return(CONST_LUA_OK);
 }
-
 
 /* ****************************************** */
 
@@ -1043,10 +1048,10 @@ static int ntop_get_interface_countries_info(lua_State* vm) {
 static int ntop_get_interface_vlans_list(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
-  if(!ntop_interface ||
-     ntop_interface->getActiveVLANList(vm,
-				       (char*)"column_vlan", CONST_MAX_NUM_HITS,
-				       0, true, details_normal /* Minimum details */) < 0)
+  if((!ntop_interface)
+     || ntop_interface->getActiveVLANList(vm,
+					  (char*)"column_vlan", CONST_MAX_NUM_HITS,
+					  0, true, details_normal /* Minimum details */) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -1106,7 +1111,6 @@ static int ntop_get_interface_as_info(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-
 /* ****************************************** */
 
 static int ntop_get_interface_vlan_info(lua_State* vm) {
@@ -1165,6 +1169,7 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
   mac = (char*)lua_tostring(vm, 1);
 
   ntop->getMacManufacturer(mac, vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -1436,6 +1441,7 @@ static int ntop_allocHostBlacklist(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   ntop->allocHostBlacklist();
   lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -1445,6 +1451,7 @@ static int ntop_swapHostBlacklist(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   ntop->swapHostBlacklist();
   lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -1460,6 +1467,7 @@ static int ntop_addToHostBlacklist(lua_State* vm) {
 
   ntop->addToHostBlacklist(net);
   lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -1683,6 +1691,7 @@ done:
   return 0;
 }
 
+/* ****************************************** */
   
 /* Millisecond sleep */
 static int ntop_tcp_probe(lua_State* vm) {
@@ -1741,8 +1750,7 @@ static int ntop_tcp_probe(lua_State* vm) {
 
     buf[offset] = 0;
     lua_pushstring(vm, buf);
-  }
-    
+  }    
 
   closesocket(sockfd);
 
@@ -1831,6 +1839,8 @@ static int remove_recursively(const char * path) {
 
   return r;
 }
+
+/* ****************************************** */
 
 /**
  * @brief Scan the input directory, removes it and its contents.
@@ -2039,6 +2049,8 @@ static int ntop_add_set_member_redis(lua_State* vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Removes a member from a redis set.
@@ -2347,7 +2359,9 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
   if(ntop_interface)
     numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), host, p);
-
+  else
+    lua_pushnil(vm);
+  
   if(p) delete p;
   return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
@@ -2376,7 +2390,9 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
 
   if(ntop_interface)
     numGroups = ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
-
+  else
+    lua_pushnil(vm);
+  
   delete p;
 
   return numGroups < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
@@ -2413,8 +2429,11 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(ntop_interface) ntop_interface->getNetworksStats(vm);
-
+  if(ntop_interface)
+    ntop_interface->getNetworksStats(vm);
+  else
+    lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -2496,8 +2515,8 @@ static int ntop_get_grouped_interface_host(lua_State* vm) {
 					    network_ptr, (char*)"column_ip", (char*)"country",
 					    CONST_MAX_NUM_HITS, 0 /* toSkip */, true /* a2zSortOrder */) < 0)
     return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
+  
+  return(CONST_LUA_OK);
 }
 #endif
 
@@ -2862,10 +2881,9 @@ static int ntop_checkpoint_interface_host_talker(lua_State* vm) {
 
   if(lua_type(vm, 3) == LUA_TBOOLEAN) save_checkpoint = lua_toboolean(vm, 3);
 
-  if(!iface || iface->isView() || !iface->checkPointHostTalker(vm, host_ip, vlan_id, save_checkpoint)) {
-    lua_pushnil(vm);
+  if(!iface || iface->isView() || !iface->checkPointHostTalker(vm, host_ip, vlan_id, save_checkpoint))
     return(CONST_LUA_ERROR);
-  } else
+  else
     return(CONST_LUA_OK);
 }
 
@@ -2892,10 +2910,9 @@ static int ntop_checkpoint_interface_network(lua_State* vm) {
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
 
   if(!iface || iface->isView() || !iface->checkPointNetworkCounters(vm,
-              checkpoint_id, network_id, details_level)){
-    lua_pushnil(vm);
+              checkpoint_id, network_id, details_level))
     return(CONST_LUA_ERROR);
-  } else
+  else
     return(CONST_LUA_OK);
 }
 
@@ -2918,10 +2935,9 @@ static int ntop_checkpoint_network_interface(lua_State* vm) {
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
 
   if(!iface || iface->isView() || !iface->checkPointInterfaceCounters(vm,
-              checkpoint_id, details_level)){
-    lua_pushnil(vm);
+              checkpoint_id, details_level))
     return(CONST_LUA_ERROR);
-  } else
+  else
     return(CONST_LUA_OK);
 }
 
@@ -2964,9 +2980,8 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
      ||(cli = ntop_interface->getHost(cli_name, cli_vlan)) == NULL
      ||(srv = ntop_interface->getHost(srv_name, srv_vlan)) == NULL) {
     lua_pushnil(vm);
-  } else {
-    lua_pushnumber(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, protocol));
-  }
+  } else
+    lua_pushnumber(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, protocol));  
 
   return(CONST_LUA_OK);
 }
@@ -3108,6 +3123,7 @@ static int ntop_get_interface_find_user_flows(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   ntop_interface->findUserFlows(vm, key);
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3127,6 +3143,7 @@ static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   ntop_interface->findPidFlows(vm, pid);
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3146,6 +3163,7 @@ static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   ntop_interface->findFatherPidFlows(vm, father_pid);
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3165,6 +3183,7 @@ static int ntop_get_interface_find_proc_name_flows(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   ntop_interface->findProcNameFlows(vm, proc_name);
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3184,7 +3203,7 @@ static int ntop_list_http_hosts(lua_State* vm) {
     key = (char*)lua_tostring(vm, 1);
 
   ntop_interface->listHTTPHosts(vm, key);
-
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3201,7 +3220,7 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
   ntop_interface->findHostsByName(vm, get_allowed_nets(vm), key);
-
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3221,7 +3240,7 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
   Utils::parseMac(_mac, mac);
 
   ntop_interface->findHostsByMac(vm, _mac);
-
+  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3288,7 +3307,8 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  lua_pushboolean(vm, ntop_interface->setHostDumpTrafficPolicy(get_allowed_nets(vm), host_ip, vlan_id, dump_traffic_to_disk));
+  lua_pushboolean(vm, ntop_interface->setHostDumpTrafficPolicy(get_allowed_nets(vm),
+							       host_ip, vlan_id, dump_traffic_to_disk));
   return CONST_LUA_OK;
 }
 
@@ -4391,7 +4411,6 @@ static int ntop_get_user_group(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-
 /* ****************************************** */
 
 static int ntop_get_allowed_networks(lua_State* vm) {
@@ -4801,8 +4820,11 @@ static int ntop_get_interface_stats(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_interface) ntop_interface->lua(vm);
-  else lua_pushnil(vm);
+  if(ntop_interface)
+    ntop_interface->lua(vm);
+  else
+    lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -4895,6 +4917,8 @@ static int ntop_reset_pools_quotas(lua_State *vm) {
     return(CONST_LUA_ERROR);
 }
 
+/* ****************************************** */
+
 static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4908,6 +4932,8 @@ static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+
+/* ****************************************** */
 
 static int ntop_remove_volatile_member_from_pool(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4931,6 +4957,7 @@ static int ntop_remove_volatile_member_from_pool(lua_State *vm) {
     return(CONST_LUA_ERROR);
 }
 #endif
+
 /* ****************************************** */
 
 static int ntop_find_member_pool(lua_State *vm) {
@@ -5004,6 +5031,7 @@ static int ntop_find_mac_pool(lua_State *vm) {
       lua_pushnumber(vm, pool_id);
     else
       lua_pushnil(vm);
+    
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
@@ -5486,6 +5514,8 @@ static int ntop_stats_insert_minute_sampling(lua_State *vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Insert a new hour sampling in the historical database
  * @details Given a certain sampling point, store statistics for said
@@ -5524,6 +5554,8 @@ static int ntop_stats_insert_hour_sampling(lua_State *vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Insert a new day sampling in the historical database
@@ -5564,6 +5596,8 @@ static int ntop_stats_insert_day_sampling(lua_State *vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Get a minute sampling from the historical database
  * @details Given a certain sampling point, get statistics for said
@@ -5600,6 +5634,8 @@ static int ntop_stats_get_minute_sampling(lua_State *vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Delete minute stats older than a certain number of days.
@@ -5640,6 +5676,8 @@ static int ntop_stats_delete_minute_older_than(lua_State *vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Delete hour stats older than a certain number of days.
  * @details Given a number of days, delete stats for the current interface that
@@ -5679,6 +5717,8 @@ static int ntop_stats_delete_hour_older_than(lua_State *vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Delete day stats older than a certain number of days.
  * @details Given a number of days, delete stats for the current interface that
@@ -5717,6 +5757,8 @@ static int ntop_stats_delete_day_older_than(lua_State *vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get an interval of minute stats samplings from the historical database
@@ -5764,6 +5806,8 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Given an epoch, get minute stats for the latest n minutes
@@ -5817,6 +5861,8 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Given an epoch, get hour stats for the latest n hours
  * @details Given a certain sampling point, get statistics for that point and
@@ -5868,6 +5914,8 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Given an epoch, get hour stats for the latest n days
@@ -6013,6 +6061,7 @@ static int ntop_list_reports(lua_State* vm) {
     }
     closedir(dir);
   }
+  
   return(CONST_LUA_OK);
 }
 
@@ -6175,7 +6224,7 @@ static int ntop_get_keys_redis(lua_State* vm) {
   } else
     lua_pushnil(vm);
 
-  if (keys) free(keys);
+  if(keys) free(keys);
 
   return(CONST_LUA_OK);
 }
@@ -6210,6 +6259,7 @@ static int ntop_lrange_redis(lua_State* vm) {
       lua_rawseti(vm, -2, i+1);
       if(l_elements[i]) free(l_elements[i]);
     }
+    
     free(l_elements);
   } else
     lua_pushnil(vm);
@@ -6632,6 +6682,8 @@ static int ntop_nagios_reload_config(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int ntop_nagios_send_alert(lua_State* vm) {
   NagiosManager *nagios = ntop->getNagios();
   char *alert_source;
@@ -6654,6 +6706,8 @@ static int ntop_nagios_send_alert(lua_State* vm) {
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 static int ntop_nagios_withdraw_alert(lua_State* vm) {
   NagiosManager *nagios = ntop->getNagios();
@@ -6748,7 +6802,7 @@ static int ntop_set_redis(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_set_preference(lua_State* vm) {
-  return ntop_set_redis(vm);
+  return(ntop_set_redis(vm));
 }
 
 /* ****************************************** */
@@ -6761,8 +6815,8 @@ static int ntop_lua_http_print(lua_State* vm) {
   /* ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__); */
 
   /* Handle binary blob */
-  if(lua_type(vm, 2) == LUA_TSTRING &&
-     (printtype = (char*)lua_tostring(vm, 2)) != NULL)
+  if((lua_type(vm, 2) == LUA_TSTRING)
+     && (printtype = (char*)lua_tostring(vm, 2)) != NULL)
     if(!strncmp(printtype, "blob", 4)) {
       char *str = NULL;
 
@@ -6776,6 +6830,7 @@ static int ntop_lua_http_print(lua_State* vm) {
 	  return(CONST_LUA_PARAM_ERROR);
       }
 
+      lua_pushnil(vm);
       return(CONST_LUA_OK);
     }
 

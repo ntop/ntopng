@@ -30,7 +30,7 @@ local vlan         = _GET["vlan"]
 local network      = _GET["network"]
 local pool         = _GET["pool"]
 local country      = _GET["country"]
-local os_    	     = _GET["os"]
+local os_          = _GET["os"]
 local mac          = _GET["mac"]
 local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 
