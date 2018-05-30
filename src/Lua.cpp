@@ -37,8 +37,6 @@ extern "C" {
 #endif
 };
 
-#include "../third-party/lsqlite3/lsqlite3.c"
-
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 
 static Mutex rrd_lock;
@@ -7457,8 +7455,6 @@ void Lua::luaRegisterInternalRegs(lua_State *L) {
 
 void Lua::lua_register_classes(lua_State *L, bool http_mode) {
   if(!L) return;
-
-  luaopen_lsqlite3(L);
 
   Lua::luaRegisterInternalRegs(L);
 
