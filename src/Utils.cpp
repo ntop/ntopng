@@ -1654,10 +1654,11 @@ ticks Utils::getticks() {
 
 /* **************************************** */
 
-bool scan_dir(const char * dir_name, list<pair<struct dirent *, char * > > *dirlist,
-              unsigned long *total) {
+static bool scan_dir(const char * dir_name,
+		     list<pair<struct dirent *, char * > > *dirlist,
+		     unsigned long *total) {
   int path_length;
-  char path[MAX_PATH];
+  char path[MAX_PATH+2];
   DIR *d;
   struct stat file_stats;
 
@@ -1673,7 +1674,7 @@ bool scan_dir(const char * dir_name, list<pair<struct dirent *, char * > > *dirl
     d_name = entry->d_name;
 
     if(entry->d_type & DT_REG) {
-      snprintf(path, MAX_PATH, "%s/%s", dir_name, entry->d_name);
+      snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
       if(!stat(path, &file_stats)) {
         struct dirent *temp = (struct dirent *)malloc(sizeof(struct dirent));
         memcpy(temp, entry, sizeof(struct dirent));

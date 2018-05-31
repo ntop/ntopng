@@ -1345,7 +1345,7 @@ int Prefs::loadFromFile(const char *path) {
       break;
 
     line = Utils::trim(line);
-    value = '\0';
+    value = NULL;
 
     if((line_len = strlen(line)) < 2 || line[0] == '#')
       continue;
