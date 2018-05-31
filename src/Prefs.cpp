@@ -857,7 +857,9 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'i':
-    if(strlen(optarg) > MAX_INTERFACE_NAME_LEN - 1)
+    if(!optarg)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "No interface specified, -i ignored");
+    else if(strlen(optarg) > MAX_INTERFACE_NAME_LEN - 1)
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Interface name too long (exceeding %d characters): ignored %s",
 				   MAX_INTERFACE_NAME_LEN - 1, optarg);
@@ -1032,6 +1034,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'F':
 #ifndef HAVE_NEDGE
+    if(!optarg)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "No connection specified, -F ignored");
+    else
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(strncmp(optarg, "nindex", 2) == 0) {
 	dump_flows_on_nindex = true;
@@ -1322,6 +1327,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 
 int Prefs::loadFromFile(const char *path) {
   char buffer[4096], *line, *key, *value;
+  u_int line_len, opt_name_len;
   FILE *fd;
   const struct option *opt;
 
@@ -1339,35 +1345,43 @@ int Prefs::loadFromFile(const char *path) {
       break;
 
     line = Utils::trim(line);
+    value = '\0';
 
-    if(strlen(line) < 1 || line[0] == '#')
+    if((line_len = strlen(line)) < 2 || line[0] == '#')
       continue;
 
-    key = line;
-    key = Utils::trim(key);
+    if(!strncmp(line, "--", 2)) { /* long opt */
+      key = &line[2], line_len -= 2;
 
-    value = strrchr(line, '=');
+      opt = long_options;
+      while(opt->name != NULL) {
+	opt_name_len = strlen(opt->name);
 
-    /* Fallback to space */
-    if(value == NULL) value = strchr(line, ' ');
+	if(!strncmp(key, opt->name, opt_name_len)
+	   && (line_len <= opt_name_len
+	       || key[opt_name_len] == '\0'
+	       || key[opt_name_len] == ' '
+	       || key[opt_name_len] == '=')) {
+	  if(line_len > opt_name_len)	  key[opt_name_len] = '\0';
+	  if(line_len > opt_name_len + 1) value = Utils::trim(&key[opt_name_len + 1]);
 
-    if(value == NULL)
-      value = &line[strlen(line)]; /* empty */
-    else
-      value[0] = 0, value = &value[1];
-    value = Utils::trim(value);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "long key: %s value: %s", key, value);
+	  setOption(opt->val, value);
+	  break;
+	}
 
-    if(strlen(key) > 2) key = &key[2];
-    else key = &key[1];
-
-    opt = long_options;
-    while (opt->name != NULL) {
-      if((strcmp(opt->name, key) == 0)
-	 || ((key[1] == '\0') && (opt->val == key[0]))) {
-        setOption(opt->val, value);
-        break;
+	opt++;
       }
-      opt++;
+    } else if(line[0] == '-') { /* short opt */
+      key = &line[1], line_len--;
+      if(line_len > 1) key[1] = '\0';
+      if(line_len > 2) value = Utils::trim(&key[2]);
+
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "key: %c value: %s", key[0], value);
+      setOption(key[0], value);
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping unrecognized line: %s", line);
+      continue;
     }
   }
 
