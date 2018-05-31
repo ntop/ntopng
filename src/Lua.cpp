@@ -7106,9 +7106,22 @@ static int ntop_trace_event(lua_State* vm) {
 /* ****************************************** */
 
 static const luaL_Reg ntop_interface_reg[] = {
+  //Lua /// @brief Set the active interface by id.
+  //Lua /// @param id the interface id.
+  //Lua /// @return return the interface name on success, nil otherwise.
+  //Lua function setActiveInterfaceId(id);
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
+
+  //Lua /// @brief Get the ntopng interface names.
+  //Lua /// @return return a table with the interface names.
+  //Lua function getIfNames();
   { "getIfNames",               ntop_get_interface_names },
+
+  //Lua /// @brief Find a network interface and set it as global variable.
+  //Lua /// @param ifname the interface name.
+  //Lua function select(ifname);
   { "select",                   ntop_select_interface },
+
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "getStats",                 ntop_get_interface_stats },
   { "resetCounters",            ntop_interface_reset_counters },
