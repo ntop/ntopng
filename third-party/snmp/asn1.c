@@ -115,22 +115,24 @@ static void *render_null(void *dest)
 
 int integer_length(int x)
 {
-  return 4;
-  //assert(x <= 255);
-  //int data_len = 1;
-  //return data_len;
+  unsigned int i;
+
+  for(i = 4; i >= 1; i--) {
+    if((x >> (8 * (i - 1))) & 0xFF)
+      return i;
+  }
+
+  return 1;
 }
 
 static void *render_integer(int x, void *dest)
 {
-  //TODO optimise
-  dest = render_byte((x >> 24) & 0xFF, dest);
-  dest = render_byte((x >> 16) & 0xFF, dest);
-  dest = render_byte((x >> 8) & 0xFF, dest);
-  dest = render_byte(x & 0xFF, dest);
+  unsigned i, int_len = integer_length(x);
+
+  for(i = int_len; i >= 1; i--)
+    dest = render_byte((x >> (8 * (i - 1))) & 0xFF, dest);
+
   return dest;
-  //assert(x <= 255);
-  //return render_byte(x, dest);
 }
 
 void *render_integer_object(int x, void *dest)
