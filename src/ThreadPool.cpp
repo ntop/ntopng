@@ -79,22 +79,22 @@ void ThreadPool::run() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Starting thread [%u]", pthread_self());
 #endif
   
-  while(!terminating) {
+  while(!isTerminating()) {
     QueuedThreadData *q;
    
 #ifdef THREAD_DEBUG  
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** About to dequeue job [%u][terminating=%d]",
-				 pthread_self(), terminating);
+				 pthread_self(), isTerminating());
 #endif
     
     q = dequeueJob(true);
 
 #ifdef THREAD_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Dequeued job [%u][terminating=%d]",
-				 pthread_self(), terminating);
+				 pthread_self(), isTerminating());
 #endif
     
-    if((q == NULL) || terminating) {
+    if((q == NULL) || isTerminating()) {
       if(q) delete q;
       break;
     } else {
@@ -113,7 +113,7 @@ void ThreadPool::run() {
 bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface) {
   QueuedThreadData *q;
   
-  if(terminating)
+  if(isTerminating())
     return(false);
 
   q = new QueuedThreadData(j, path, iface);
@@ -139,11 +139,11 @@ QueuedThreadData* ThreadPool::dequeueJob(bool waitIfEmpty) {
 
   m->lock(__FILE__, __LINE__);
   if(waitIfEmpty) {
-    while((queue_len == 0) && (!terminating))
+    while((queue_len == 0) && (!isTerminating()))
       m->cond_wait(&condvar);
   }
   
-  if((queue_len == 0) || terminating) {
+  if((queue_len == 0) || isTerminating()) {
     q = NULL;
   } else {
     q = threads.front();

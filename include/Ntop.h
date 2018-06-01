@@ -421,6 +421,7 @@ class Ntop {
   void fixPath(char *str, bool replaceDots = true);
   void removeTrailingSlash(char *str);
   void daemonize();
+  void shutdownPeriodicActivities();
   void shutdown();
   void runHousekeepingTasks();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };

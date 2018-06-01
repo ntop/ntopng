@@ -46,8 +46,6 @@ void sigproc(int sig) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutting down...");
     called = 1;
   }
-
-  ntop->sendNetworkInterfacesTermination();
   
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
@@ -55,6 +53,13 @@ void sigproc(int sig) {
     shutdown_activity->runScript();
     delete shutdown_activity;
   }    
+
+  /* Wait until currently executing periodic activities are completed,
+     Periodic activites should not run during interfaces shutdown */
+  ntop->shutdownPeriodicActivities();
+
+  /* Not it is time to trear down running interfaces */
+  ntop->sendNetworkInterfacesTermination();
 
   ntop->getGlobals()->shutdown();
   sleep(2); /* Wait until all threads know that we're shutting down... */

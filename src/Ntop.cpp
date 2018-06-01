@@ -206,7 +206,7 @@ Ntop::~Ntop() {
   if(hostBlacklistShadow) delete hostBlacklistShadow;
 
   delete address;
-  delete pa;
+  if(pa)    delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
 
@@ -1667,6 +1667,15 @@ void Ntop::runHousekeepingTasks() {
 #endif
   
   ntop->rotateLogs();
+}
+
+/* ******************************************* */
+
+void Ntop::shutdownPeriodicActivities() {
+  if(pa) {
+    delete pa;
+    pa = NULL;
+  }
 }
 
 /* ******************************************* */

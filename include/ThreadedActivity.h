@@ -28,6 +28,7 @@ class ThreadPool;
 
 class ThreadedActivity {
  private:
+  bool terminating;
   pthread_t pthreadLoop;
   char *path;
   u_int32_t periodicity;
@@ -56,6 +57,9 @@ class ThreadedActivity {
   void activityBody();
   void runScript();
   void runScript(char *script_path, NetworkInterface *iface);
+
+  inline void shutdown()      { terminating = true; };
+  inline bool isTerminating() { return terminating; };
 
   void run();
 };

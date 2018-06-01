@@ -54,6 +54,7 @@ class ThreadPool {
   virtual ~ThreadPool();
 
   void shutdown();
+  inline bool isTerminating() { return terminating; };
 
   void run();
   bool queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface);

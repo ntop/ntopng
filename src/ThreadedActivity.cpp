@@ -42,6 +42,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   u_int32_t _periodicity_seconds,
 				   bool _align_to_localtime,
 				   u_int8_t thread_pool_size) {
+  terminating = false;
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
   thread_started = false, systemTaskRunning = false;
@@ -68,14 +69,21 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 ThreadedActivity::~ThreadedActivity() {
   void *res;
 
-  if(path) free(path);
+  shutdown();
+
   if(pool) delete pool;
 
   if(interfaceTasksRunning)
     free(interfaceTasksRunning);
 
-  if(thread_started)
+  if(thread_started) {
     pthread_join(pthreadLoop, &res);
+#ifdef THREAD_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Joined thread %s", path);
+#endif
+  }
+
+  if(path) free(path);
 }
 
 /* ******************************************* */
@@ -138,7 +146,7 @@ void ThreadedActivity::runScript() {
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   Lua *l;
 
-  if(ntop->getGlobals()->isShutdown()) return;
+  if(isTerminating()) return;
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
@@ -172,7 +180,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 /* ******************************************* */
 
 void ThreadedActivity::aperiodicActivityBody() {
-  if(!ntop->getGlobals()->isShutdown())
+  if(!isTerminating())
     runScript();
 }
 
@@ -185,7 +193,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   u_long max_duration = periodicity * 1e6;
 #endif
   
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(!isTerminating()) {
 #ifndef PERIODIC_DEBUG
     while(systemTaskRunning) _usleep(1000);
 #endif
@@ -219,7 +227,7 @@ void ThreadedActivity::periodicActivityBody() {
   if(align_to_localtime)
     next_run -= periodicity;
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(!isTerminating()) {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
@@ -245,8 +253,12 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
     snprintf(script_path, sizeof(script_path), "%s/system/%s",
        ntop->get_callbacks_dir(), path);
 
-    if(stat(script_path, &statbuf) == 0)
+    if(stat(script_path, &statbuf) == 0) {
       pool->queueJob(this, script_path, NULL);
+#ifdef THREAD_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
+#endif
+    }
   }
 
   /* Schedule interface script, one for each interface */
@@ -260,6 +272,9 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
       if(iface && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface);
         setInterfaceTaskRunning(iface, true);
+#ifdef THREAD_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued interface job %s", script_path);
+#endif
       }
     }
   }
