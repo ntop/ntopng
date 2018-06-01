@@ -19,6 +19,7 @@ local ts_utils = {}
 -- Import other modules
 ts_utils.metrics = require "ts_types"
 ts_utils.schema = require "ts_schema"
+require("ntop_utils")
 
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 

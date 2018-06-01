@@ -4,6 +4,8 @@
 
 local driver = {}
 
+require("ntop_utils")
+
 --
 -- Sample query:
 --    select * from "iface:ndpi" where ifid='0' and protocol='SSL'

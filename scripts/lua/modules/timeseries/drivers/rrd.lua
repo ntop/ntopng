@@ -6,9 +6,8 @@ local driver = {}
 
 local os_utils = require("os_utils")
 local ts_types = require("ts_types")
-
--- TODO remove this dependency
-require("graph_utils")
+require("ntop_utils")
+require("rrd_paths")
 
 local RRD_CONSOLIDATION_FUNCTION = "AVERAGE"
 local use_hwpredict = false
@@ -175,36 +174,34 @@ local function get_step_key(schema)
 end
 
 local function create_rrd(schema, path)
-  if not ntop.exists(path) then
-    local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
-    local params = {path, schema.options.step}
-    local supported_steps = supported_steps[get_step_key(schema)]
+  local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
+  local params = {path, schema.options.step}
+  local supported_steps = supported_steps[get_step_key(schema)]
 
-    local metrics_map = map_metrics_to_rrd_columns(schema)
-    if not metrics_map then
-      return false
-    end
-
-    for idx, metric in ipairs(schema._metrics) do
-      local info = schema.metrics[metric]
-      params[#params + 1] = "DS:" .. metrics_map[idx] .. ":" .. type_to_rrdtype[info.type] .. ':' .. heartbeat .. ':U:U'
-    end
-
-    for _, rra in ipairs(supported_steps.rra) do
-      params[#params + 1] = "RRA:" .. RRD_CONSOLIDATION_FUNCTION .. ":0.5:" .. rra.aggregation_dp .. ":" .. rra.retention_dp
-    end
-
-    if use_hwpredict then
-      -- NOTE: at most one RRA, otherwise rrd_update crashes.
-      local hwpredict = supported_steps.hwpredict
-      params[#params + 1] = "RRA:HWPREDICT:" .. hwpredict.row_count .. ":0.1:0.0035:" .. hwpredict.period
-    end
-
-    -- NOTE: this is either a bug with unpack or with Lua.cpp make_argv
-    params[#params + 1] = ""
-
-    ntop.rrd_create(unpack(params))
+  local metrics_map = map_metrics_to_rrd_columns(schema)
+  if not metrics_map then
+    return false
   end
+
+  for idx, metric in ipairs(schema._metrics) do
+    local info = schema.metrics[metric]
+    params[#params + 1] = "DS:" .. metrics_map[idx] .. ":" .. type_to_rrdtype[info.type] .. ':' .. heartbeat .. ':U:U'
+  end
+
+  for _, rra in ipairs(supported_steps.rra) do
+    params[#params + 1] = "RRA:" .. RRD_CONSOLIDATION_FUNCTION .. ":0.5:" .. rra.aggregation_dp .. ":" .. rra.retention_dp
+  end
+
+  if use_hwpredict then
+    -- NOTE: at most one RRA, otherwise rrd_update crashes.
+    local hwpredict = supported_steps.hwpredict
+    params[#params + 1] = "RRA:HWPREDICT:" .. hwpredict.row_count .. ":0.1:0.0035:" .. hwpredict.period
+  end
+
+  -- NOTE: this is either a bug with unpack or with Lua.cpp make_argv
+  params[#params + 1] = ""
+
+  ntop.rrd_create(unpack(params))
 
   return true
 end
@@ -245,8 +242,11 @@ function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-  ntop.mkdir(base)
-  create_rrd(schema, rrdfile)
+  if not ntop.exists(rrdfile) then
+    ntop.mkdir(base)
+    create_rrd(schema, rrdfile)
+  end
+
   update_rrd(schema, rrdfile, timestamp, metrics)
 
   return true

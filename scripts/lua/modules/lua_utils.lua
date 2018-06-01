@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 require "lua_trace"
+require "ntop_utils"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
@@ -195,17 +196,6 @@ end
 
 -- ##############################################
 
-function isEmptyString(str)
-  -- io.write(str..'\n')
-  if((str == nil) or (str == "")) then
-    return true
-  else
-    return false
-  end
-end
-
--- ##############################################
-
 -- Simplified checker
 function isIPv6Address(ip)
   if(string.find(ip, ":") ~= nil) then
@@ -213,16 +203,6 @@ function isIPv6Address(ip)
   end
 
     return false
-end
-
--- ##############################################
-
-function isMacAddress(address)
-   if(string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil)  or
-     (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x%@%d+$") ~= nil) then
-      return true
-   end
-   return false
 end
 
 -- ##############################################
@@ -254,24 +234,6 @@ function findStringArray(str, tofind)
   end
 
   return(rsp)
-end
-
--- ##############################################
-
-function string.starts(String,Start)
-   if type(String) ~= 'string' or type(Start) ~= 'string' then
-      return false
-   end
-   return string.sub(String,1,string.len(Start))==Start
-end
-
--- ##############################################
-
-function string.ends(String,End)
-   if type(String) ~= 'string' or type(End) ~= 'string' then
-      return false
-   end
-   return End=='' or string.sub(String,-string.len(End))==End
 end
 
 -- ##############################################
@@ -707,57 +669,6 @@ function hasNagiosSupport()
   return prefs.nagios_nsca_host ~= nil
 end
 
-function firstToUpper(str)
-   str = tostring(str)
-   return (str:gsub("^%l", string.upper))
-end
-
-function pairsByKeys(t, f)
-  local a = {}
-
-  -- io.write(debug.traceback().."\n")
-  for n in pairs(t) do table.insert(a, n) end
-  table.sort(a, f)
-  local i = 0      -- iterator variable
-  local iter = function ()   -- iterator function
-    i = i + 1
-    if a[i] == nil then return nil
-    else return a[i], t[a[i]]
-    end
-  end
-  return iter
-end
-
-function pairsByValues(t, f)
-  local a = {}
-  for n in pairs(t) do table.insert(a, n) end
-  table.sort(a, function(x, y) return f(t[x], t[y]) end)
-  local i = 0      -- iterator variable
-  local iter = function ()   -- iterator function
-    i = i + 1
-    if a[i] == nil then return nil
-    else return a[i], t[a[i]]
-    end
-  end
-  return iter
-end
-
-function asc(a,b)
-  return (a < b)
-end
-
-function rev(a,b)
-  return (a > b)
-end
-
-function asc_insensitive(a,b)
-  return (string.lower(a) < string.lower(b))
-end
-
-function rev_insensitive(a,b)
-  return (string.lower(a) > string.lower(b))
-end
-
 --for _key, _value in pairsByKeys(vals, rev) do
 --   print(_key .. "=" .. _value .. "\n")
 --end
@@ -843,32 +754,6 @@ function tmin(t)
 	end
     end
     return argmn, mn
-end
-
-string.split = function(s, p)
-  local temp = {}
-  local index = 0
-  local last_index = string.len(s)
-
-  while true do
-    local i, e = string.find(s, p, index)
-
-    if i and e then
-      local next_index = e + 1
-      local word_bound = i - 1
-      table.insert(temp, string.sub(s, index, word_bound))
-      index = next_index
-    else
-      if index > 0 and index <= last_index then
-	table.insert(temp, string.sub(s, index, last_index))
-      elseif index == 0 then
-	temp = nil
-      end
-      break
-    end
-  end
-
-  return temp
 end
 
 function formatEpoch(epoch)
@@ -973,13 +858,6 @@ function isIPv4Network(address)
    end
 
    return isIPv4(parts[1])
-end
-
-function isIPv6(ip)
-   if((string.find(ip, ":")) and (not isMacAddress(ip))) then
-     return true
-  end
-  return false
 end
 
 function addGoogleMapsScript()
@@ -1802,31 +1680,6 @@ function get_version_update_msg(info, latest_version)
   end
 end
 
-
--- Print contents of `tbl`, with indentation.
--- You can call it as tprint(mytable)
--- The other two parameters should not be set
-function tprint(s, l, i)
-   l = (l) or 1000; i = i or "";-- default item limit, indent string
-   if (l<1) then print("ERROR: Item limit reached.<br>\n"); return l-1 end;
-   local ts = type(s);
-   if (ts ~= "table") then print(i..' '..ts..' '..tostring(s)..'<br>\n'); return l-1 end
-   print(i..' '..ts..'<br>\n');
-   for k,v in pairs(s) do
-      local indent = ""
-
-      if(i ~= "") then
-	 indent = i .. "."
-      end
-      indent = indent .. tostring(k)
-
-      l = tprint(v, l, indent);
-      if (l < 0) then break end
-   end
-
-   return l
-end
-
 function table.empty(table)
   if(table == nil) then return true end
   if next(table) == nil then
@@ -1874,85 +1727,6 @@ function getRedisPrefix(str)
     -- Login disabled
     return (str)
   end
-end
-
-function getPathFromIPv6(addr)
-   local ipv6 = {"0000", "0000", "0000", "0000",
-		 "0000", "0000", "0000", "0000"}
-
-   local ip, subnet = (addr or ''):match("([^/]+)/?(%d*)")
-
-   if ip == nil then ip = '' end
-   if subnet == nil then subnet = '' end
-
-   local prefix = ip or ''
-   local suffix = ''
-   if ip:find("::") then
-      local s = ip:gsub("::","x")
-      local t = s:split("x")
-      prefix, suffix = t[1] or '', t[2] or ''
-   end
-
-   for i, p in ipairs(prefix:split(":") or {prefix}) do
-      ipv6[i] = string.format('%.4x', tonumber(p, 16) or 0)
-   end
-
-   local i = 1
-   for _, p in pairsByKeys(suffix:split(":") or {suffix}, rev) do
-      ipv6[8 - i + 1] = string.format('%.4x', tonumber(p, 16) or 0)
-      i = i + 1
-   end
-
-   local most_significant = {ipv6[1], ipv6[2], ipv6[3], ipv6[4]}
-   local interface_identifier = {ipv6[5], ipv6[6], ipv6[7], ipv6[8]}
-
-   -- most significant part of the address goes in a hierarchical structure
-   local res = table.concat(most_significant, "/")
-   -- the interface identifies goes as-is because it is non structured
-   res = os_utils.fixPath(res.."/"..table.concat(interface_identifier, "_"))
-
-   if not isEmptyString(subnet) then
-      res = os_utils.fixPath(res.."/"..subnet)
-   end
-
-   return res
-end
-
-function getPathFromMac(addr)
-   if not isMacAddress(addr) then return end
-
-   local mac = {}
-   local vlan = addr:match("@%d+$") or ''
-
-   for i, p in ipairs(addr:split(":")) do
-      mac[i] = string.format('%.2x', tonumber(p, 16) or 0)
-   end
-
-   local manufacturer = {mac[1], mac[2], mac[3]}
-   local nic = {mac[4], mac[5], mac[6]}
-
-   -- each manufacturer has its own directory
-   local res = os_utils.fixPath("macs/"..table.concat(manufacturer, "_"))
-   -- the nic identifier goes as-is because it is non structured
-   res = os_utils.fixPath(res.."/"..table.concat(nic, "/"))
-   -- finally the vlan
-   res = res..vlan
-
-   return res
-end
-
-function getPathFromKey(key)
-   if key == nil then key = "" end
-
-   if isIPv6(key) then
-      return getPathFromIPv6(key)
-   elseif isMacAddress(key) then
-      return getPathFromMac(key)
-   end
-
-   key = tostring(key):gsub("[%.:]", "/")
-
-   return os_utils.fixPath(key)
 end
 
 function getRedisIfacePrefix(ifid)
@@ -2519,16 +2293,6 @@ end
 
 -- ###############################################
 
-function tolongint(what)
-   if(what == nil) then
-      return(0)
-   else
-      return(string.format("%u", what))
-   end
-end
-
--- ###############################################
-
 function trimSpace(what)
    if(what == nil) then return("") end
    return(string.gsub(string.gsub(what, "%s+", ""), "+%s", ""))
@@ -2879,35 +2643,6 @@ function label2criteriakey(what)
   end
 
   return what, format_utils.formatValue
-end
-
---
--- Concatenates table keys to values with separators
---
--- Parameters
---    keys_values: the table which contains the items
---    kv_sep: a string to be put between a key and a value
---    group_sep: a string to be put between key-value groups
---    last_sep: a string to be put after last value, if table is not empty
---    value_quote: a string to be used to quote values
---
-function table.tconcat(keys_values, kv_sep, group_sep, last_sep, value_quote)
-  local groups = {}
-  kv_sep = kv_sep or ""
-  group_sep = group_sep or ""
-  last_sep = last_sep or ""
-  value_quote = value_quote or ""
-
-  for k, v in pairs(keys_values) do
-    local parts = {k, kv_sep, value_quote, v, value_quote}
-    groups[#groups + 1] = table.concat(parts, "")
-  end
-
-  if #groups > 0 then
-    return table.concat(groups, group_sep) .. last_sep
-  else
-    return ""
-  end
 end
 
 function table.merge(a, b)

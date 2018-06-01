@@ -4,6 +4,7 @@
 require "lua_utils"
 require "db_utils"
 require "historical_utils"
+require "rrd_paths"
 local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
@@ -180,58 +181,6 @@ function percentageBar(total, value, valueLabel)
    else
       print('&nbsp;')
    end
-end
-
--- ########################################################
--- host_or_network: host or network name.
--- If network, must be prefixed with 'net:'
--- If profile, must be prefixed with 'profile:'
--- If host pool, must be prefixed with 'pool:'
--- If vlan, must be prefixed with 'vlan:'
--- If asn, must be prefixed with 'asn:'
--- If country, must be prefixed with 'country:'
-function getRRDName(ifid, host_or_network, rrdFile)
-   if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
-      host_or_network = string.gsub(host_or_network, 'net:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
-      host_or_network = string.gsub(host_or_network, 'profile:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
-      host_or_network = string.gsub(host_or_network, 'vlan:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
-      host_or_network = string.gsub(host_or_network, 'pool:', '')
-      rrdname = host_pools_utils.getRRDBase(ifid, "")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'snmp:') then
-      host_or_network = string.gsub(host_or_network, 'snmp:', '')
-      -- snmpstats are ntopng-wide so ifid is ignored
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/snmpstats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
-      host_or_network = string.gsub(host_or_network, 'flow_device:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'sflow:') then
-      host_or_network = string.gsub(host_or_network, 'sflow:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/sflow/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
-      host_or_network = string.gsub(host_or_network, 'vlan:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'asn:') then
-      host_or_network = string.gsub(host_or_network, 'asn:', '')
-      host_or_network = host_or_network:gsub("(%d)", "%1/") -- asn 1234 becomes 1/2/3/4
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/asnstats/")
-   elseif host_or_network ~= nil and string.starts(host_or_network, 'country:') then
-      host_or_network = string.gsub(host_or_network, 'country:', '')
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/countrystats/")
-   else
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
-   end
-
-   if(host_or_network ~= nil) then
-      rrdname = rrdname .. getPathFromKey(host_or_network) .. "/"
-   end
-
-   return os_utils.fixPath(rrdname..(rrdFile or ''))
 end
 
 -- ########################################################
