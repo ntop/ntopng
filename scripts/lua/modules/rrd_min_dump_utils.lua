@@ -8,7 +8,7 @@ require "rrd_utils"
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"
 local ts_utils = require("ts_utils")
-local ts_schemas = require("ts_schemas")
+local ts_schemas = require("ts_minute")
 
 local rrd_dump = {}
 
@@ -19,7 +19,7 @@ function rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbos
     local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    ts_utils.append(ts_schemas.iface_ndpi(), {ifid=ifstats.id, protocol=k, bytes=v}, when, verbose)
+    ts_utils.append(ts_schemas.iface_ndpi, {ifid=ifstats.id, protocol=k, bytes=v}, when, verbose)
     end
 end
 
@@ -30,7 +30,7 @@ function rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, 
     v = v["bytes"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    ts_utils.append(ts_schemas.iface_ndpi_categories(), {ifid=ifstats.id, category=k, bytes=v}, when, verbose)
+    ts_utils.append(ts_schemas.iface_ndpi_categories, {ifid=ifstats.id, category=k, bytes=v}, when, verbose)
   end
 end
 
@@ -39,11 +39,11 @@ end
 function rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
   -- IN/OUT counters
   if(ifstats["localstats"]["bytes"]["local2remote"] > 0) then
-    ts_utils.append(ts_schemas.iface_local2remote(), {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when, verbose)
+    ts_utils.append(ts_schemas.iface_local2remote, {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when, verbose)
   end
 
   if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
-    ts_utils.append(ts_schemas.iface_remote2local(), {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when, verbose)
+    ts_utils.append(ts_schemas.iface_remote2local, {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when, verbose)
   end
 end
 
@@ -60,11 +60,11 @@ function rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
        ntop.mkdir(rrdpath)
     end
 
-    ts_utils.append(ts_schemas.subnet_traffic(), {ifid=ifstats.id, subnet=subnet,
+    ts_utils.append(ts_schemas.subnet_traffic, {ifid=ifstats.id, subnet=subnet,
               bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
               bytes_inner=sstats["inner"]}, when)
 
-    ts_utils.append(ts_schemas.subnet_broadcast_traffic(), {ifid=ifstats.id, subnet=subnet,
+    ts_utils.append(ts_schemas.subnet_broadcast_traffic, {ifid=ifstats.id, subnet=subnet,
               bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
               bytes_inner=sstats["broadcast"]["inner"]}, when, verbose)
   end
@@ -74,23 +74,23 @@ end
 
 function rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
   -- General stats
-  ts_utils.append(ts_schemas.iface_hosts(), {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when, verbose)
-  ts_utils.append(ts_schemas.iface_devices(), {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when, verbose)
-  ts_utils.append(ts_schemas.iface_flows(), {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when, verbose)
-  ts_utils.append(ts_schemas.iface_http_hosts(), {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
+  ts_utils.append(ts_schemas.iface_hosts, {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when, verbose)
+  ts_utils.append(ts_schemas.iface_devices, {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when, verbose)
+  ts_utils.append(ts_schemas.iface_flows, {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when, verbose)
+  ts_utils.append(ts_schemas.iface_http_hosts, {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
 end
 
 function rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_retransmissions(), {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_out_of_order(), {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_lost(), {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_retransmissions, {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_out_of_order, {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_lost, {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
 end
 
 function rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_syn(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.syn}, when, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_synack(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.synack}, when, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_finack(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.finack}, when, verbose)
-  ts_utils.append(ts_schemas.iface_tcp_rst(), {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.rst}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_syn, {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.syn}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_synack, {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.synack}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_finack, {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.finack}, when, verbose)
+  ts_utils.append(ts_schemas.iface_tcp_rst, {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.rst}, when, verbose)
 end
 
 -- ########################################################
@@ -99,7 +99,7 @@ function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
   local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
 
   for pname, ptraffic in pairs(ifstats.profiles) do
-    ts_utils.append(ts_schemas.profile_traffic(), {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
+    ts_utils.append(ts_schemas.profile_traffic, {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
   end
 end
 

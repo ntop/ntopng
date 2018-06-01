@@ -2,6 +2,9 @@
 -- (C) 2018 - ntop.org
 --
 
+-- NOTE: use the slim utils version here
+require("ntop_utils")
+
 local os_utils = require("os_utils")
 
 -- ########################################################

@@ -10,7 +10,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 local os_utils = require "os_utils"
 local callback_utils = require "callback_utils"
 local ts_utils = require("ts_utils")
-local ts_schemas = require("ts_schemas")
+local ts_schemas = require("ts_second")
 
 -- Toggle debug
 local enable_second_debug = false
@@ -21,15 +21,15 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
 
    -- Traffic stats
-   ts_utils.append(ts_schemas.iface_traffic(), {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
-   ts_utils.append(ts_schemas.iface_packets(), {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
+   ts_utils.append(ts_schemas.iface_traffic, {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
+   ts_utils.append(ts_schemas.iface_packets, {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
 
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
-      ts_utils.append(ts_schemas.iface_zmq_recv_flows(), {ifid=ifstats.id, num_flows=ifstats.zmqRecvStats.flows}, when)
+      ts_utils.append(ts_schemas.iface_zmq_recv_flows, {ifid=ifstats.id, num_flows=ifstats.zmqRecvStats.flows}, when)
    else
       -- Packet interface
-      ts_utils.append(ts_schemas.iface_drops(), {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
+      ts_utils.append(ts_schemas.iface_drops, {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
    end
 end)
 
