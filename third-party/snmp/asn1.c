@@ -117,7 +117,7 @@ int integer_length(int x)
 {
   unsigned int i;
 
-  for(i = 4; i >= 1; i--) {
+  for(i = sizeof(x); i >= 2; i--) {
     if((x >> (8 * (i - 1))) & 0xFF)
       return i;
   }
