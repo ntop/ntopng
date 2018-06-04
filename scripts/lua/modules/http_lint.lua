@@ -1217,8 +1217,8 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["iface_down_"]             =  {validateNumber, validateNumber},
 
    -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
-   ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
-   ["val_"]                    =  {validateNumber,   validateUnchecked},       -- key: an index, value: the pair value
+   ["key_"]                    =  {validateNumber,   validateUnchecked},      -- key: an index, value: the pair key
+   ["val_"]                    =  {validateNumber,   validateUnchecked},      -- key: an index, value: the pair value
 }
 
 -- #################################################################
