@@ -270,97 +270,6 @@ end
 
 -- ########################################################
 
-function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
-   rrdname = getRRDName(ifid, host, rrdFile)
-
-   if(zoomLevel == nil) then
-      zoomLevel = "1h"
-   end
-
-   nextZoomLevel = zoomLevel;
-   epoch = tonumber(selectedEpoch);
-
-   for k,v in ipairs(zoom_vals) do
-      if(zoom_vals[k][1] == zoomLevel) then
-	 if(k > 1) then
-	    nextZoomLevel = zoom_vals[k-1][1]
-	 end
-	 if(epoch) then
-	    start_time = epoch - zoom_vals[k][3]/2
-	    end_time = epoch + zoom_vals[k][3]/2
-	 else
-	    end_time = os.time()
-	    start_time = end_time - zoom_vals[k][3]/2
-	 end
-      end
-   end
-
-   --print("=> Found "..rrdname.."<p>\n")
-   if(ntop.notEmptyFile(rrdname)) then
-      --io.write("=> Found ".. start_time .. "|" .. end_time .. "<p>\n")
-      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-
-      if(fstart ~= nil) then
-	 local max_num_points = 512 -- This is to avoid having too many points and thus a fat graph
-	 local num_points_found = table.getn(fdata)
-	 local sample_rate = round(num_points_found / max_num_points)
-	 local num_points = 0
-	 local step = 1
-	 local series = {}
-
-	 if(sample_rate < 1) then
-	    sample_rate = 1
-	 end
-
-	 -- print("=> "..num_points_found.."[".. sample_rate .."]["..fstart.."]<p>")
-
-	 id = 0
-	 num = 0
-	 total = 0
-	 sample_rate = sample_rate-1
-	 points = {}
-	 for i, v in ipairs(fdata) do
-	    timestamp = fstart + (i-1)*fstep
-	    num_points = num_points + 1
-
-	    local elemId = 1
-	    for _, w in ipairs(v) do
-	       if(w ~= w) then
-		  -- This is a NaN
-		  v = 0
-	       else
-		  v = tonumber(w)
-		  if(v < 0) then
-		     v = 0
-		  end
-	       end
-
-	       value = v*8 -- bps
-
-	       total = total + value
-	       if(id == sample_rate) then
-		  points[num] = round(value)..""
-		  num = num+1
-		  id = 0
-	       else
-		  id = id + 1
-	       end
-	       elemId = elemId + 1
-	    end
-	 end
-      end
-   end
-
-   print("<td class=\"text-right\">"..round(total).."</td><td> <span class=\"peity-line\">")
-   for i=0,10 do
-      if(i > 0) then print(",") end
-      print(points[i])
-   end
-   print("</span>\n")
-end
-
--- ########################################################
-
 function isTopRRD(filename)
    for _,top in ipairs(top_rrds) do
       if top.rrd == filename then
@@ -369,16 +278,6 @@ function isTopRRD(filename)
          else
             return false
          end
-      end
-   end
-
-   return false
-end
-
-function isLayer4RRD(filename)
-   for _, l4 in pairs(l4_keys) do
-      if filename:starts(l4[2]) or filename:starts(l4[1]) then
-	 return true
       end
    end
 
@@ -1438,63 +1337,6 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    end
 
    return rrd2json_merge(ret, num)
-end
-
--- #################################################
-
-function showHostActivityStats(hostbase, selectedEpoch, zoomLevel)
-   local activbase = hostbase .. "/activity"
-   local nextZoomLevel = zoomLevel;
-   local start_time, end_time
-   
-   if ntop.isdir(activbase) then
-      local epoch = tonumber(selectedEpoch)
-
-      -- TODO separate function and join drawPeity
-      for k,v in ipairs(zoom_vals) do
-         if(zoom_vals[k][1] == zoomLevel) then
-            if(k > 1) then
-               nextZoomLevel = zoom_vals[k-1][1]
-            end
-            if(epoch) then
-               start_time = epoch - zoom_vals[k][3]/2
-               end_time = epoch + zoom_vals[k][3]/2
-            else
-               end_time = os.time()
-               start_time = end_time - zoom_vals[k][3]/2
-            end
-         end
-      end
-   
-      for key,value in pairs(ntop.readdir(activbase)) do
-         local activrrd = activbase .. "/" .. key;
-
-         if(ntop.notEmptyFile(activrrd)) then
-            local fstart, fstep, fnames, fdata = ntop.rrd_fetch(activrrd, 'AVERAGE', start_time, end_time)
-            local num_points = table.getn(fdata)
-
-            print(value.."["..num_points.." points] start="..formatEpoch(start)..", step="..fstep.."s<br><b>")
-
-            for i, v in ipairs(fdata) do
-               for _, w in ipairs(v) do
-                  if(w ~= w) then
-                     -- This is a NaN
-                     v = 0
-                  else
-                     --io.write(w.."\n")
-                     v = tonumber(w)
-                     if(v < 0) then
-                        v = 0
-                     end
-                  end
-               end
-               print(round(v, 2).." ")
-            end
-            
-            print("</b><br>")
-         end
-      end
-   end
 end
 
 -- #################################################
