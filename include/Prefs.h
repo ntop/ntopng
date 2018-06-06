@@ -295,9 +295,8 @@ class Prefs {
 
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);              }
   inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal);  }
-#ifdef NTOPNG_PRO
   const char * const getCaptivePortalUrl();
-#endif
+
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
 
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };

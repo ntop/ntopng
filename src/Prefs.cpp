@@ -1651,8 +1651,10 @@ void Prefs::validate() {
 /* *************************************** */
 
 const char * const Prefs::getCaptivePortalUrl() {
+#ifdef NTOPNG_PRO
   if(isInformativeCaptivePortalEnabled())
     return CAPTIVE_PORTAL_INFO_URL;
   else
+#endif
     return CAPTIVE_PORTAL_URL;
 }
