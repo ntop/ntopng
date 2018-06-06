@@ -31,7 +31,13 @@ end
 print [[
 </head>
 <body>
-Success ']] print(_GET["label"]) print [['.
+Success]]
+
+if _GET["label"] ~= nil then
+   print(" ".._GET["label"])
+end
+
+print [[.
 <p>
 ]]
 

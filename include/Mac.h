@@ -34,10 +34,11 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   bool source_mac, special_mac, dhcpHost, lockDeviceTypeChanges;
   ArpStats arp_stats;
   DeviceType device_type;
-  
-
+#ifdef NTOPNG_PRO
+  time_t captive_portal_notified;
+#endif
   void checkDeviceTypeFromManufacturer();
-  
+
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6]);
   ~Mac();
@@ -67,8 +68,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()                   { return(mac);                 }
   inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }
-  inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }      
-    
+  inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }
+
   bool equal(const u_int8_t _mac[6]);
   inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
     sent.incStats(num_pkts, num_bytes);
@@ -79,8 +80,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
     rcvd.incStats(num_pkts, num_bytes);
   }
   inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
-            u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-            u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
     if(ndpiStats || (ndpiStats = new nDPIStats())) {
       //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
       //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
@@ -94,6 +95,10 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
   inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
+#ifdef NTOPNG_PRO
+  inline time_t getNotifiedTime()    { return captive_portal_notified;       };
+  inline void   setNotifiedTime()    { captive_portal_notified = time(NULL); };
+  #endif
   inline void setSeenIface(u_int32_t idx)  { bridge_seen_iface_id = idx; setSourceMac(); }
   inline u_int32_t getSeenIface()     { return(bridge_seen_iface_id); }
   inline void setDeviceType(DeviceType devtype) { if(!lockDeviceTypeChanges) device_type = devtype; }
@@ -121,4 +126,3 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
 };
 
 #endif /* _MAC_H_ */
-

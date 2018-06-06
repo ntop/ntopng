@@ -214,6 +214,31 @@ static int checkCaptive(const struct mg_connection *conn,
 
 /* ****************************************** */
 
+static int checkInformativeCaptive(const struct mg_connection *conn,
+				   const struct mg_request_info *request_info) {
+#ifdef NTOPNG_PRO
+#ifdef DEBUG
+  char buf[32];
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] @ %s/%08X [Redirecting to %s%s]",
+			       Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+			       (unsigned int)conn->request_info.remote_ip,
+			       mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+			       request_info->uri);
+#endif
+
+  if(!ntop->addToNotifiedInformativeCaptivePortal(htonl((unsigned int)conn->request_info.remote_ip)))
+    return(0);
+
+  /* Success */
+  return(1);
+#endif
+
+  return(0);
+}
+
+/* ****************************************** */
+
 static int checkGrafana(const struct mg_connection *conn,
 			const struct mg_request_info *request_info) {
 
@@ -235,7 +260,7 @@ static int isWhitelistedURI(char *uri) {
      || (!strcmp(uri, PLEASE_WAIT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
-     || (!strcmp(uri, CAPTIVE_PORTAL_URL))
+     || (!strcmp(uri, ntop->getPrefs()->getCaptivePortalUrl()))
      || (!strcmp(uri, KINDLE_WIFISTUB_URL))
      )
     return(1);
@@ -274,13 +299,24 @@ static int is_authorized(const struct mg_connection *conn,
     1. KINDLE_WIFISTUB_URL
   */
   if(!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) {
-    if(request_info->query_string) {
-      get_qsvar(request_info, "username", username, username_len);
-      get_qsvar(request_info, "password", password, sizeof(password));
-    }
+    /* A captive portal request has been issued to the authorization url */
 
-    return(ntop->checkUserPassword(username, password)
-	   && checkCaptive(conn, request_info, username, password));
+    if(ntop->getPrefs()->isInformativeCaptivePortalEnabled()) {
+      /* If the captive portal is just informative, there's no need to check
+	 any username or password. The request per se means the internet user
+	 has accepted the 'terms of service'. */
+      return(checkInformativeCaptive(conn, request_info));
+    } else {
+      /* Here the captive portal is not just informative; it requires authentication.
+         For this reason it is necessary to check submitted username and password. */
+      if(request_info->query_string) {
+	get_qsvar(request_info, "username", username, username_len);
+	get_qsvar(request_info, "password", password, sizeof(password));
+      }
+
+      return(ntop->checkUserPassword(username, password)
+	     && checkCaptive(conn, request_info, username, password));
+    }
   }
 
   if(checkGrafana(conn, request_info) == 1) {
@@ -374,7 +410,7 @@ static int isCaptiveURL(char *url) {
   if((!strcmp(url, KINDLE_WIFISTUB_URL))
      || (!strcmp(url, HOTSPOT_DETECT_URL))
      || (!strcmp(url, HOTSPOT_DETECT_LUA_URL))
-     || (!strcmp(url, CAPTIVE_PORTAL_URL))
+     || (!strcmp(url, ntop->getPrefs()->getCaptivePortalUrl()))
      || (!strcmp(url, AUTHORIZE_CAPTIVE_LUA_URL))
      || (!strcmp(url, "/"))
      )
@@ -413,7 +449,7 @@ static void redirect_to_login(struct mg_connection *conn,
 		"Location: %s%s?referer=%s\r\n\r\n", /* FIX */
 		session_id,
 		get_secure_cookie_attributes(request_info),
-		ntop->getPrefs()->get_http_prefix(), CAPTIVE_PORTAL_URL, referer);
+		ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(), referer);
     else
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
@@ -421,7 +457,7 @@ static void redirect_to_login(struct mg_connection *conn,
 		"Location: %s%s\r\n\r\n", /* FIX */
 		session_id,
 		get_secure_cookie_attributes(request_info),
-		ntop->getPrefs()->get_http_prefix(), CAPTIVE_PORTAL_URL);
+		ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl());
   } else {
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]",
@@ -631,7 +667,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      && (!request_info->is_ssl)
      && isCaptiveURL(request_info->uri)
      && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
-     && (!strstr(referer, CAPTIVE_PORTAL_URL))
+     && (!strstr(referer, ntop->getPrefs()->getCaptivePortalUrl()))
      // && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
      ) {
     redirect_to_ssl(conn, request_info);
@@ -660,7 +696,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      "Location: http://%s%s%s%s\r\n\r\n",
 	      request_info->uri,
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
-	      CAPTIVE_PORTAL_URL,
+	      ntop->getPrefs()->getCaptivePortalUrl(),
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
     return(1);

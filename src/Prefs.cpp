@@ -46,6 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_remote_to_remote_alerts = true,
   enable_dropped_flows_alerts = true,
   enable_syslog_alerts = false, enable_captive_portal = false,
+  enable_informative_captive_portal = false,
   external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
   override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
   hostMask = no_host_mask;
@@ -518,6 +519,7 @@ void Prefs::reloadPrefsFromRedis() {
     ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
+    enable_informative_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false),
     default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
@@ -1497,6 +1499,7 @@ void Prefs::lua(lua_State* vm) {
 			   global_secondary_dns_ip ? Utils::intoaV4(ntohl(global_secondary_dns_ip), buf, sizeof(buf)) : (char*)"");
 
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
+  lua_push_bool_table_entry(vm, "is_informative_captive_portal_enabled", enable_informative_captive_portal);
 
   lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 }
@@ -1625,4 +1628,14 @@ void Prefs::validate() {
     }
   }
 #endif
+}
+
+
+/* *************************************** */
+
+const char * const Prefs::getCaptivePortalUrl() {
+  if(isInformativeCaptivePortalEnabled())
+    return CAPTIVE_PORTAL_INFO_URL;
+  else
+    return CAPTIVE_PORTAL_URL;
 }

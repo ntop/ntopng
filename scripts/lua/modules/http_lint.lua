@@ -945,6 +945,7 @@ local known_parameters = {
    ["toggle_alert_nagios"]                         =  validateBool,
    ["toggle_top_sites"]                            =  validateBool,
    ["toggle_captive_portal"]                       =  validateBool,
+   ["toggle_informative_captive_portal"]           =  validateBool,
    ["toggle_nbox_integration"]                     =  validateBool,
    ["toggle_autologout"]                           =  validateBool,
    ["toggle_ldap_anonymous_bind"]                  =  validateBool,
