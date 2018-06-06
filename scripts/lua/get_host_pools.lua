@@ -116,6 +116,9 @@ if((ifid ~= nil) and (isAdministrator())) then
             column_link = link,
             column_editable = tostring(tonumber(member.residual) == nil),
             column_residual = tonumber(member.residual) and secondsToTime(member.residual) or "Persistent",
+            column_icon_label = discover.devtype2string(icon),
+            column_member_key = member.key,
+            column_member_label = member2visual(member.key),
           }
         end
         i = i + 1

@@ -1476,6 +1476,20 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
   return rsp
 end
 
+function member2visual(member)
+   local info = hostkey2hostinfo(member)
+   local host = info.host
+   local hlen = string.len(host)
+
+   if string.ends(host, "/32") and isIPv4(string.sub(host, 1, hlen-3)) then
+    host = string.sub(host, 1, hlen-3)
+  elseif string.ends(host, "/128") and isIPv6(string.sub(host, 1, hlen-4)) then
+    host = string.sub(host, 1, hlen-4)
+  end
+
+  return hostinfo2hostkey({host=host, vlan=info.vlan})
+end
+
 --
 -- Analyze the get_info and return a new table containing the url information about an host.
 -- Example: url2host(_GET)

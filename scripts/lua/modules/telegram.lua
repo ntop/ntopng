@@ -34,7 +34,9 @@ end
 -- #    - Optional "turn on privacy"
 -- #
 -- # 2. Get the chat_id
+-- #    - Start a new chat on telegram with the bot name
 -- #    - Do curl -s -X POST https://api.telegram.org/bot<bot_token_id>/getUpdates
+-- #          e.g.  curl -s -X POST https://api.telegram.org/bot123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11/getUpdates
 -- #      and you will the chat id in the JSON response code
 -- #      as ..."chat":{"id":XXXXXXXX,
 -- #

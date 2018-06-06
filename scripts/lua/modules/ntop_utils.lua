@@ -31,8 +31,8 @@ function tprint(s, l, i)
    l = (l) or 1000; i = i or "";-- default item limit, indent string
    if (l<1) then print("ERROR: Item limit reached.\n"); return l-1 end;
    local ts = type(s);
-   if (ts ~= "table") then print(i..' '..ts..' '..tostring(s)..'\n'); return l-1 end
-   print(i..' '..ts..'\n');
+   if (ts ~= "table") then io.write(i..' '..ts..' '..tostring(s)..'\n'); return l-1 end
+   io.write(i..' '..ts..'\n');
    for k,v in pairs(s) do
       local indent = ""
 
