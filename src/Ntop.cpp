@@ -1789,4 +1789,15 @@ bool Ntop::addIPToLRUMatches(u_int32_t client_ip,
   return false;
 }
 
+/* ******************************************* */
+
+bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
+  for(int i = 0; i < num_defined_interfaces; i++) {
+    if(iface[i]->is_bridge_interface()) /* TODO: handle multiple interfaces separately */
+      iface[i]->addToNotifiedInformativeCaptivePortal(client_ip);
+  }
+
+  return true;
+}
+
 #endif

@@ -106,6 +106,7 @@
 #define LOGIN_URL                 "/lua/login.lua"
 #define LOGOUT_URL                "/lua/logout.lua"
 #define CAPTIVE_PORTAL_URL        "/lua/captive_portal.lua"
+#define CAPTIVE_PORTAL_INFO_URL   "/lua/info_portal.lua"
 #define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"
 #define BANNED_SITE_URL           "/lua/banned_site.lua"
@@ -450,6 +451,7 @@
 #define CONST_PROFILES_PREFS                "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
+#define CONST_PREFS_INFORM_CAPTIVE_PORTAL   "ntopng.prefs.enable_informative_captive_portal"
 #define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED "ntopng.prefs.global_dns_forging"
 #define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
@@ -460,6 +462,7 @@
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"
 #define CONST_USER_GROUP_CAPTIVE_PORTAL    "captive_portal"
+#define CONST_CAPTIVE_PORTAL_INFORM_SECS   86400
 
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
 #define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"

@@ -1628,6 +1628,8 @@ local lang = {
     ["jp"] = "Japanese",
   },
   ["login"] = {
+    ["informative_captive_portal_tos"] = "I have read and agreeed the <a target='_blank' href='%{url}'>terms of service</a>.",
+    ["informative_captive_join"] = "Access the Internet",
     ["add_captive_portal_user"] = "Add Captive Portal User",
     ["add_web_user"] = "Add Web User",
     ["auth_success"] = "Authentication Successful",
@@ -2210,6 +2212,8 @@ local lang = {
     ["toggle_autologout_title"] = "Auto Logout",
     ["toggle_captive_portal_description"] = "Enable the web captive portal for authenticating network users.",
     ["toggle_captive_portal_title"] = "Captive Portal",
+    ["toggle_informative_captive_portal_title"] = "Informative",
+    ["toggle_informative_captive_portal_description"] = "Do not authenticate users. Show only an informative page before letting users access the Internet.",
     ["toggle_country_rrds_description"] = "Toggle the creation of bytes timeseries for countries.",
     ["toggle_country_rrds_title"] = "Countries",
     ["toggle_device_activation_alert_description"] = "Toggle alerts genereted when devices connect or disconnect from the network.",

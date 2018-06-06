@@ -620,6 +620,7 @@ class NetworkInterface : public Checkpointable {
   inline void decAlertLevel()               { if(--alertLevel < 0) alertLevel = 0; }
   inline int8_t getAlertLevel()             { return(alertLevel);                  }
 #ifdef NTOPNG_PRO
+  virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };
   void aggregatePartialFlow(Flow *flow);

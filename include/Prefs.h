@@ -63,7 +63,8 @@ class Prefs {
     enable_probing_alerts, enable_ssl_alerts, enable_ip_reassignment_alerts;
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
   bool enable_dropped_flows_alerts;
-  bool enable_syslog_alerts, enable_captive_portal, external_notifications_enabled;
+  bool enable_syslog_alerts, external_notifications_enabled;
+  bool enable_captive_portal, enable_informative_captive_portal;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool routing_mode_enabled, global_dns_forging_enabled;
@@ -292,7 +293,11 @@ class Prefs {
   inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };
   inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
 
-  inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);  }
+  inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);              }
+  inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal);  }
+#ifdef NTOPNG_PRO
+  const char * const getCaptivePortalUrl();
+#endif
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
 
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
