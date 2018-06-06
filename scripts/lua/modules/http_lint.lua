@@ -1164,6 +1164,8 @@ local known_parameters = {
    ["hide_from_top"]           =  validateNetworksList,
    ["top_hidden"]              =  validateBool,
    ["packets_drops_perc"]      =  validateEmptyOr(validateNumber),
+   ["operating_system"]        =  validateNumber,
+   ["action"]                  =  validateSingleWord, -- generic
 
    -- json POST DATA
    ["payload"]                 =  validateJSON
