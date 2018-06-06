@@ -96,7 +96,7 @@ requirepass verylongredispassword
 
 Once the password is set and the Redis server service has been
 restarted, the ntopng `--redis` option can be used to specify the
-password. To use the `verylongredispassword` in ntopng is suffices to
+password. To use the `verylongredispassword` in ntopng it suffices to
 use the following option:
 
 ```
