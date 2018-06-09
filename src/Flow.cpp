@@ -294,6 +294,10 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_MDNS:
+    /*
+      The statement below can craete issues sometimes as devices publish
+      themselves with varisous names depending on the context (**)
+    */
     if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host)
       cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
     break;
@@ -2778,7 +2782,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       }
 
       if(cli_host)
-	cli_host->setName(name);
+	cli_host->setName(name); /* See (**) */
       
       if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
 	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];

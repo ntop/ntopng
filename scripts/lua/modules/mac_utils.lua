@@ -55,7 +55,7 @@ function mac2record(mac)
 					       + mac["arp_requests.rcvd"]
 					       + mac["arp_replies.rcvd"])
 
-   record["column_device_type"] = discover.devtype2icon(mac["devtype"]).." "..discover.devtype2string(mac["devtype"])
+   record["column_device_type"] = discover.devtype2string(mac["devtype"]).." "..discover.devtype2icon(mac["devtype"])
 
    record["column_hosts"] = mac["num_hosts"]..""
    record["column_since"] = secondsToTime(now - mac["seen.first"]+1)
