@@ -1172,6 +1172,7 @@ local known_parameters = {
    ["packets_drops_perc"]      =  validateEmptyOr(validateNumber),
    ["operating_system"]        =  validateNumber,
    ["action"]                  =  validateSingleWord, -- generic
+   ["mgnt_iface"]              =  validateNetworkInterface,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON,
