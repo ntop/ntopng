@@ -36,4 +36,22 @@ customized *redirection URL* can be set up to redirect the devices to a specific
 By leaving the field blank, the devices will be redirected to the original website
 they were trying to visit before the captive portal login.
 
+The captive portal can also operate in informative mode. No user
+authentication is performed in informative mode. An informative page
+is just shown to newely connected users, to present them the terms and
+conditions of the Internet access that is being provided. Users will
+be able to access the Internet upon acceptance of the presented terms
+and conditions.
+
+.. figure:: img/captive_portal_informative.png
+  :align: center
+  :alt: Informative Captive Portal Page
+
+  Informative Captive Portal Page
+
+Active users will be forced to renew their acceptance of the terms and
+conditions every day. Inactive users will be presented with the
+informative page as soon as they become active and try to access the
+Internet again.
+
 .. _users: users.html
