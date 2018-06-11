@@ -104,8 +104,12 @@
 extern "C" {
 #include "pcap.h"
 #include "ndpi_main.h"
+#ifdef DONT_USE_LUAJIT
+#include "lua.h"
+#else
 #include "lj_obj.h"
 #include "luajit.h"
+#endif
 #include "lauxlib.h"
 #include "lualib.h"
 #ifdef HAVE_PF_RING

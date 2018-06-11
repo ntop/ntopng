@@ -808,6 +808,10 @@ bool Utils::isUserAdministrator(lua_State* vm) {
   char *username;
   char key[64], val[64];
 
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+#endif
+
   if((username = getLuaVMUserdata(vm,user)) == NULL) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
     return(false); /* Unknown */

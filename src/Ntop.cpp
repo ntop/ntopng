@@ -448,7 +448,6 @@ void Ntop::start() {
     iface[i]->checkPointCounters(true); /* Reset drop counters */
   }
 
-
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     struct timeval begin, end;
     u_long usec_diff;
@@ -886,7 +885,10 @@ void Ntop::getUsers(lua_State* vm) {
 void Ntop::getUserGroup(lua_State* vm) {
   char key[64], val[64];
   char username[33];
-  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
+  struct mg_connection *conn;
+
+
+  conn = getLuaVMUserdata(vm,conn);
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
@@ -917,7 +919,9 @@ void Ntop::getUserGroup(lua_State* vm) {
 void Ntop::getAllowedNetworks(lua_State* vm) {
   char key[64], val[64];
   char username[33];
-  struct mg_connection *conn = getLuaVMUserdata(vm,conn);
+  struct mg_connection *conn;
+
+  conn = getLuaVMUserdata(vm,conn);
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
@@ -928,7 +932,9 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 /* ******************************************* */
 
 bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
-  char *allowed_ifname = getLuaVMUserdata(vm,ifname);
+  char *allowed_ifname;
+
+  allowed_ifname = getLuaVMUserdata(vm,ifname);
 
   if(ifname == NULL)
     return false;
@@ -945,12 +951,14 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
 /* ******************************************* */
 
 bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
-  char *allowed_ifname = getLuaVMUserdata(vm,ifname);
+  char *allowed_ifname;
   bool ret;
-
+    
   if(vm == NULL || ifname == NULL)
     return true; /* Always return true when no lua state is passed */  
 
+  allowed_ifname = getLuaVMUserdata(vm, ifname);
+  
   if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
 				 "No allowed interface found for %s", ifname);
@@ -1598,13 +1606,6 @@ int Ntop::getInterfaceIdByName(char *name) {
 
     return(-1);
   }
-}
-
-/* ******************************************* */
-
-void Ntop::reloadInterfacesLuaInterpreter() {
-  for(int i=0; i<num_defined_interfaces; i++)
-    iface[i]->forceLuaInterpreterReload();
 }
 
 /* ******************************************* */

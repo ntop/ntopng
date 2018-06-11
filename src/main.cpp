@@ -30,7 +30,7 @@ AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 /* ******************************** */
 
 void sighup(int sig) {
-  ntop->reloadInterfacesLuaInterpreter();
+  ;
 }
 
 /* ******************************** */

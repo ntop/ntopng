@@ -27,7 +27,18 @@ LIBPCAP=-lpcap
 MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
+
+# Set USE_LUAJIT=0 to use the standard Lua (no JIT)
+USE_LUAJIT=1
+
+ifeq ($(USE_LUAJIT), 0)
+LUAJIT_INC = $(shell pkg-config --cflags luajit) -DDONT_USE_LUAJIT
+LUAJIT_LIB = $(shell pkg-config --libs luajit)
+HAS_LUAJIT=0
+else
 HAS_LUAJIT=$(shell pkg-config --atleast-version=2.1.0 luajit; echo $$?)
+endif
+
 ifeq ($(HAS_LUAJIT), 0)
 	LUAJIT_INC = $(shell pkg-config --cflags luajit)
 	LUAJIT_LIB = $(shell pkg-config --libs luajit)
@@ -37,6 +48,7 @@ else
 	LUAJIT_INC=-I$(LUAJIT_HOME)/src
 	LUAJIT_LIB=$(LUAJIT_HOME)/src/libluajit.a
 endif
+
 ######
 LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
 HAS_LIBRRDTOOL=$(shell pkg-config --atleast-version=1.4.8 librrd; echo $$?)
@@ -126,7 +138,7 @@ LIB_TARGETS =
 
 ifneq ($(HAS_LUAJIT), 0)
 LIB_TARGETS += $(LUAJIT_LIB)
- endif
+endif
 
 ifneq ($(HAS_ZEROMQ), 0)
 LIB_TARGETS += $(ZEROMQ_LIB)

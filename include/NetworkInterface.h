@@ -119,10 +119,6 @@ class NetworkInterface : public Checkpointable {
   u_int8_t numSubInterfaces;
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
 
-  /* Lua */
-  bool user_scripts_reload_inline, user_scripts_reload_periodic;
-  lua_State *L_user_scripts_inline, *L_user_scripts_periodic;
-
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
@@ -165,8 +161,6 @@ class NetworkInterface : public Checkpointable {
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
 
-  lua_State* initUserScriptsInterpreter(const char *lua_file, const char *context);
-  void termLuaInterpreter();
   void init();
   void deleteDataStructures();
   NetworkInterface* getSubInterface(u_int32_t criteria, bool parser_interface);
@@ -600,8 +594,6 @@ class NetworkInterface : public Checkpointable {
   void reloadHideFromTop(bool refreshHosts=true);
   inline void reloadCustomCategories()       { reload_custom_categories = true; }
   bool isHiddenFromTop(Host *host);
-  int luaEvalFlow(Flow *f, const LuaCallback cb);
-  inline void forceLuaInterpreterReload() { user_scripts_reload_inline = user_scripts_reload_periodic = true; };
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac);

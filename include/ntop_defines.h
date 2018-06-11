@@ -831,8 +831,21 @@
    is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
 #define FLOW_AGGREGATION_DURATION       12 * 5 /* 1 minute * 5 = 5 minutes */
 
-#define getLuaVMUserdata(a,b)  (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
-#define getLuaVMUservalue(a,b) ((struct ntopngLuaContext*)G(a)->userdata)->b
+#ifdef DONT_USE_LUAJIT
+inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
+  if(vm) {
+    lua_getglobal(vm, "userdata");
+    return((struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm)));
+  } else
+    return(NULL);
+}
+
+#define getLuaVMUserdata(a,b)   (a ? getUserdata(a)->b : NULL)
+#define getLuaVMUservalue(a,b)  getUserdata(a)->b
+#else
+#define getLuaVMUserdata(a,b)   (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
+#define getLuaVMUservalue(a,b)  ((struct ntopngLuaContext*)G(a)->userdata)->b
+#endif
 
 /*
    We assume that a host with more than CONST_MAX_NUM_HOST_USES

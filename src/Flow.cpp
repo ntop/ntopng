@@ -111,8 +111,6 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&flowShaperIds, 0, sizeof(flowShaperIds));
 #endif
 
-  iface->luaEvalFlow(this, callback_flow_create);
-
   switch(protocol) {
   case IPPROTO_TCP:
   case IPPROTO_UDP:
@@ -482,7 +480,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     updateFlowShapers(true);
 #endif
     flushBufferedPackets();
-    iface->luaEvalFlow(this, callback_flow_proto_callback);
   }
 
 #ifdef NTOPNG_PRO
@@ -1207,17 +1204,12 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   if(dumpFlow(is_idle_flow /* whether this is an active or idle flow */)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
-      last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
+      last_db_dump.srv2cli_packets = srv2cli_packets,
+      last_db_dump.cli2srv_bytes = cli2srv_bytes,
       last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
       last_db_dump.srv2cli_bytes = srv2cli_bytes,
       last_db_dump.srv2cli_goodput_bytes = srv2cli_goodput_bytes,
       last_db_dump.last_dump = last_seen;
-  }
-
-  if(!is_idle_flow)
-    iface->luaEvalFlow(this, callback_flow_update);
-  else {
-    iface->luaEvalFlow(this, callback_flow_delete);
   }
 }
 
@@ -2511,12 +2503,11 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
   /* This dissector is called only for uTP/UDP protocol */
 
   if(payload_len > 47) {
-    char *bt_proto = ndpi_strnstr((const char *)&payload[20], "BitTorrent protocol", payload_len-20);
+    char *bt_proto = ndpi_strnstr((const char *)&payload[20],
+				  "BitTorrent protocol", payload_len-20);
 
-    if(bt_proto) {
+    if(bt_proto)
       setBittorrentHash(&bt_proto[27]);
-      iface->luaEvalFlow(this, callback_flow_proto_callback);
-    }
   }
 }
 
@@ -2636,7 +2627,6 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
             if(protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
 	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "LAST CONTENT TYPE: '%s'", protos.http.last_content_type);
-	    iface->luaEvalFlow(this, callback_flow_proto_callback);
             break;
           }
         }
@@ -3157,7 +3147,6 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
 	memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
 	protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time)
 					    - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
-	// iface->luaEvalFlow(this, callback_flow_proto_callback);
       }
 
       protos.ssl.hs_packets++;

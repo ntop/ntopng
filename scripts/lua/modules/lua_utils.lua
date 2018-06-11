@@ -83,6 +83,8 @@ function getInterfaceName(interface_id, windows_skip_description)
    return("")
 end
 
+-- ##############################################
+
 function getInterfaceId(interface_name)
    local ifnames = interface.getIfNames()
 
@@ -94,6 +96,8 @@ function getInterfaceId(interface_name)
 
    return(-1)
 end
+
+-- ##############################################
 
 function getFirstInterfaceId()
    local ifnames = interface.getIfNames()
