@@ -724,7 +724,7 @@ end
 -- #################################################################
 
 local function validateInterfaceConfMode(m)
-   return validateChoice({"dhcp", "static"}, m)
+   return validateChoice({"dhcp", "static", "vlan_trunk"}, m)
 end
 
 -- #################################################################

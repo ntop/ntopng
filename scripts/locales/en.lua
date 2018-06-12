@@ -1850,6 +1850,7 @@ local lang = {
     ["network_conf_iface_nmask"] = "Network mask of the interface (e.g. 255.255.255.0).",
     ["network_conf_iface_title"] = "%{ifrole} Interface %{ifname}",
     ["network_conf_static"] = "Static",
+    ["network_conf_vlan_trunk"] = "VLAN Trunk",
     ["no_gateways_defined"] = "No gateways defined.",
     ["no_interfaces_available"] = "No interfaces available.",
     ["no_routing_policies_defined"] = "No routing policies defined",
