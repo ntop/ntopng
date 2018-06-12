@@ -13,3 +13,4 @@ RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
+Alias=@SERVICE_ALIAS@
