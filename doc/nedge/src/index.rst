@@ -18,6 +18,7 @@ It Combines extensive network visibility with configurable security policies.
    captive_portal
    bridging
    routing
+   management
    recovery
    licenses
 
