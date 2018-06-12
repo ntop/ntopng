@@ -155,12 +155,14 @@ PRO_OBJECTS=
 PRO_HEADERS=
 PRO_LIBS=
 
+SERVICE_ALIAS=
 SERVICE_REQUIRES=
 if test "$MACHINE" = "armv7l"; then
 SERVICE_AFTER="network.target syslog.target redis.service"
 elif test "${with_nedge+set}" = "set"; then
 SERVICE_AFTER="network-online.target syslog.target redis.service"
 SERVICE_REQUIRES="nedge_pinger.service"
+SERVICE_ALIAS="nedge.service"
 else
 SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluster.service"
 SERVICE_REQUIRES="pf_ring.service cluster.service"
@@ -588,6 +590,7 @@ AC_SUBST(NEDGE)
 AC_SUBST(UGLIFYJS_MAJOR_VERSION)
 AC_SUBST(SERVICE_AFTER)
 AC_SUBST(SERVICE_REQUIRES)
+AC_SUBST(SERVICE_ALIAS)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
