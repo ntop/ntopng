@@ -88,6 +88,14 @@ ThreadedActivity::~ThreadedActivity() {
 
 /* ******************************************* */
 
+bool ThreadedActivity::isTerminating() {
+  return(terminating
+	 || ntop->getGlobals()->isShutdownRequested()
+	 || ntop->getGlobals()->isShutdown());
+};
+
+/* ******************************************* */
+
 void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool running) {
   const int iface_id = iface->get_id();
 
@@ -169,7 +177,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 
   l->run_script(script_path, iface);
 
-  if (iface == NULL)
+  if(iface == NULL)
     systemTaskRunning = false;
   else
     setInterfaceTaskRunning(iface, false);
@@ -234,11 +242,13 @@ void ThreadedActivity::periodicActivityBody() {
       scheduleJob(pool);
 
       next_run = Utils::roundTime(now, periodicity,
-			   align_to_localtime ? ntop->get_time_offset() : 0);
+				  align_to_localtime ? ntop->get_time_offset() : 0);
     }
 
     sleep(1);
   }
+
+  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating %s(%s) exit", __FUNCTION__, path); */
 }
 
 /* ******************************************* */
@@ -248,11 +258,11 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
   char script_path[MAX_PATH];
   struct stat statbuf;
 
-  if (! systemTaskRunning) {
+  if(!systemTaskRunning) {
     /* Schedule system script */
     snprintf(script_path, sizeof(script_path), "%s/system/%s",
-       ntop->get_callbacks_dir(), path);
-
+	     ntop->get_callbacks_dir(), path);
+    
     if(stat(script_path, &statbuf) == 0) {
       pool->queueJob(this, script_path, NULL);
 #ifdef THREAD_DEBUG
@@ -260,7 +270,7 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
 #endif
     }
   }
-
+  
   /* Schedule interface script, one for each interface */
   snprintf(script_path, sizeof(script_path), "%s/interface/%s",
 	   ntop->get_callbacks_dir(), path);

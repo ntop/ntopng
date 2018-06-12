@@ -43,6 +43,35 @@ static Mutex rrd_lock;
 
 /* ******************************* */
 
+static void stackDump(lua_State *L) {
+  int i;
+  int top = lua_gettop(L);
+
+  for(i = 1; i <= top; i++) {  /* repeat for each level */
+    int t = lua_type(L, i);
+
+    switch(t) {
+    case LUA_TSTRING:  /* strings */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s", i, lua_tostring(L, i));
+      break;
+
+    case LUA_TBOOLEAN:  /* booleans */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s", i, lua_toboolean(L, i) ? "true" : "false");
+      break;
+
+    case LUA_TNUMBER:  /* numbers */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %g", i, lua_tonumber(L, i));
+      break;
+
+    default:  /* other values */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s", i, lua_typename(L, t));
+      break;
+    }
+  }  
+}
+
+/* ******************************* */
+
 Lua::Lua() {
   void *ctx;
   
@@ -76,6 +105,8 @@ Lua::Lua() {
 Lua::~Lua() {
   if(L) {
     struct ntopngLuaContext *ctx;
+
+    stackDump(L);
     
 #ifdef DONT_USE_LUAJIT
     lua_getglobal(L, "userdata");
@@ -1247,6 +1278,14 @@ static int ntop_shutdown(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 #endif
+
+/* ****************************************** */
+
+static int ntop_is_shutdown(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getGlobals()->isShutdown());
+  return(CONST_LUA_OK);
+}
 
 /* ****************************************** */
 
@@ -7547,6 +7586,7 @@ static const luaL_Reg ntop_reg[] = {
   { "tcpProbe",             ntop_tcp_probe            },
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
   { "getHostInformation",   ntop_get_host_information },
+  { "isShutdown",           ntop_is_shutdown          },
 #ifdef HAVE_NEDGE
   { "shutdown",             ntop_shutdown             },
   { "setRoutingMode",       ntop_set_routing_mode     },

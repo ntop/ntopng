@@ -45,6 +45,7 @@ void sigproc(int sig) {
   } else {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutting down...");
     called = 1;
+    ntop->getGlobals()->requestShutdown();
   }
   
   /* Exec shutdown script before shutting down ntopng */

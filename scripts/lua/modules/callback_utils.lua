@@ -15,6 +15,8 @@ local callback_utils = {}
 -- Each valid interface is select-ed and passed to the callback.
 function callback_utils.foreachInterface(ifnames, condition, callback)
    for _,_ifname in pairs(ifnames) do
+      if(ntop.isShutdown()) then return true end
+
       interface.select(_ifname)
       local ifstats = interface.getStats()
 
@@ -114,30 +116,31 @@ function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
 
    for hostname, hoststats in iterator do
-    -- Note: this is expensive
-	 local host = interface.getHostInfo(hostname)
+      -- Note: this is expensive
+      local host = interface.getHostInfo(hostname)
 
-	 if ((deadline ~= nil) and (os.time() >= deadline)) then
-	    -- Out of time
+      if(ntop.isShutdown()) then return true end
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+	 -- Out of time
+	 return false
+      end
+
+      if host ~= nil then
+	 if(host.localhost) then
+	    local keypath = getPathFromKey(hostname)
+	    hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
+
+	    -- NOTE: filesystem activity here
+	    if(not(ntop.exists(hostbase))) then
+	       ntop.mkdir(hostbase)
+	    end
+	 end
+
+	 if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
 	    return false
 	 end
-	 
-	 if host ~= nil then
-	    if(host.localhost) then
-	       local keypath = getPathFromKey(hostname)
-	       hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
-
-          -- NOTE: filesystem activity here
-	       if(not(ntop.exists(hostbase))) then
-		  ntop.mkdir(hostbase)
-	       end
-	    end
-	    
-	    if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
-	       return false
-	    end
-	 end
       end
+   end
 
    return true
 end
@@ -154,6 +157,8 @@ function callback_utils.foreachHost(ifname, deadline, callback)
    local iterator = callback_utils.getHostsIterator(false --[[ no details ]])
 
    for hostname, hoststats in iterator do
+      if(ntop.isShutdown()) then return true end
+
       if ((deadline ~= nil) and (os.time() >= deadline)) then
 	 -- Out of time
 	 return false
@@ -179,6 +184,8 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
 
    for hostname, hoststats in iterator do
+      if(ntop.isShutdown()) then return true end
+
       if ((deadline ~= nil) and (os.time() >= deadline)) then
 	 -- Out of time
 	 return false
@@ -200,6 +207,7 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
    local devices_stats = callback_utils.getDevicesIterator()
 
    for devicename, devicestats in devices_stats do
+      if(ntop.isShutdown()) then return true end
       devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
 
       if ((deadline ~= nil) and (os.time() >= deadline)) then
@@ -238,15 +246,15 @@ function callback_utils.uploadTSdata()
    local url = ntop.getCache("ntopng.prefs.ts_post_data_url")
 
    if((url == nil) or (url == "")) then
-     return
+      return
    end
 
    while(true) do
       local name_id = ntop.lpopCache("ntopng.influx_file_queue")
       local ret
-      
+
       if((name_id == nil) or (name_id == "")) then
-        break
+	 break
       end
 
       if(tonumber(name_id) == nil) then
@@ -270,6 +278,6 @@ function callback_utils.uploadTSdata()
 
    end
 end
-      -- ########################################################
+-- ########################################################
 
 return callback_utils

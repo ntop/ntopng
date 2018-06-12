@@ -59,7 +59,7 @@ class ThreadedActivity {
   void runScript(char *script_path, NetworkInterface *iface);
 
   inline void shutdown()      { terminating = true; };
-  inline bool isTerminating() { return terminating; };
+  bool isTerminating();
 
   void run();
 };
