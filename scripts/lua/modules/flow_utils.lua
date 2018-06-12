@@ -519,7 +519,7 @@ function handleCustomFlowField(key, value, snmpdevice)
    elseif((key == 'FLOW_USER_NAME') or (key == '57593')) then
       elems = string.split(value, ';')
 
-      if((elems ~= nil) and (table.getn(elems) == 6)) then
+      if((elems ~= nil) and (#elems == 6)) then
           r = '<table class="table table-bordered table-striped">'
 	  imsi = elems[1]
 	  mcc = string.sub(imsi, 1, 3)

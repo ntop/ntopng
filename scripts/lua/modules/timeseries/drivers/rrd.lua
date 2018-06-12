@@ -201,7 +201,7 @@ local function create_rrd(schema, path)
   -- NOTE: this is either a bug with unpack or with Lua.cpp make_argv
   params[#params + 1] = ""
 
-  ntop.rrd_create(unpack(params))
+  ntop.rrd_create(table.unpack(params))
 
   return true
 end
@@ -215,7 +215,7 @@ local function update_rrd(schema, rrdfile, timestamp, data)
     params[#params + 1] = tolongint(data[metric])
   end
 
-  ntop.rrd_update(rrdfile, unpack(params))
+  ntop.rrd_update(rrdfile, table.unpack(params))
 end
 
 -------------------------------------------------------

@@ -28,7 +28,7 @@ if ntop.isdir(scripts_dir) then
             _G[callback_name] = function (...)
               -- Note: order is not currently preserved
               for _, callback in pairs(scripts_callbacks[callback_name]) do
-                callback(unpack(arg or {}))
+                callback(table.unpack(arg or {}))
               end
             end
 

@@ -65,7 +65,7 @@ local function getBatchedIterator(batched_function, field, function_params)
          end
 
          -- Assumption: nextSlot is always the first parameter
-         local slot = batched_function(nextSlot, unpack(function_params))
+         local slot = batched_function(nextSlot, table.unpack(function_params))
 
          if slot == nil then
             iterator_finished = true

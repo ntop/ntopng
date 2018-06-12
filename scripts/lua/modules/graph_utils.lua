@@ -55,7 +55,7 @@ function getProtoVolume(ifName, start_time, end_time)
 	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
 
 	    if(fstart ~= nil) then
-	       local num_points_found = table.getn(fdata)
+	       local num_points_found = #fdata
 
 	       accumulated = 0
 	       for i, v in ipairs(fdata) do
@@ -896,7 +896,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    --[[
    io.write('start time: '..start_time..'  end_time: '..end_time..'\n')
    io.write('fstart: '..fstart..'  fstep: '..fstep..' rrdname: '..rrdname..'\n')
-   io.write('len(fdata): '..table.getn(fdata)..'\n')
+   io.write('len(fdata): '..#fdata..'\n')
    --]]
    local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
 
@@ -904,7 +904,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       max_num_points = global_max_num_points
    end
 
-   local num_points_found = table.getn(fdata)
+   local num_points_found = #fdata
    local sample_rate = round(num_points_found / max_num_points)
    local port_mode = false
 

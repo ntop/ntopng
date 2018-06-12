@@ -19,6 +19,7 @@
  *
  */
 
+
 #include "ntop_includes.h"
 
 #ifndef _GETOPT_H
@@ -38,7 +39,6 @@ extern "C" {
 };
 
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
-
 static Mutex rrd_lock;
 
 /* ******************************* */
@@ -7569,10 +7569,11 @@ void Lua::luaRegister(lua_State *L, const ntop_class_reg *reg) {
   /* metatable = {} */
   luaL_newmetatable(L, reg->class_name);
   meta_id = lua_gettop(L);
-  luaL_register(L, NULL, _meta);
+  luaL_setfuncs(L, _meta, 0);
 
   /* metatable.__index = class_methods */
-  lua_newtable(L), luaL_register(L, NULL, reg->class_methods);
+  lua_newtable(L);
+  luaL_setfuncs(L, reg->class_methods, 0);
   lua_setfield(L, meta_id, "__index");
 
   /* class.__metatable = metatable */
