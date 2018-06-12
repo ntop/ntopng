@@ -84,7 +84,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   routing_mode_enabled = false;
-  global_dns_forging_enabled = true;
+  global_dns_forging_enabled = false;
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
   dump_flows_on_nindex = false;
 #endif
@@ -553,7 +553,7 @@ void Prefs::reloadPrefsFromRedis() {
     free(aux);
   }
 
-  global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, true);
+  global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
