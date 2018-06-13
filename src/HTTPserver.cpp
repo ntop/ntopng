@@ -75,6 +75,7 @@ const char *get_secure_cookie_attributes(const struct mg_request_info *request_i
 }
 
 /* ****************************************** */
+
 #ifndef HAVE_NEDGE
 static void redirect_to_ssl(struct mg_connection *conn,
                             const struct mg_request_info *request_info) {
@@ -97,6 +98,7 @@ static void redirect_to_ssl(struct mg_connection *conn,
   }
 }
 #endif
+
 /* ****************************************** */
 
 // Generate session ID. buf must be 33 bytes in size.
@@ -810,7 +812,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     }
 
     if(found) {
-      Lua *l = new Lua();
+      LuaEngine *l = new LuaEngine();
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s [%s]", request_info->uri, path);
 

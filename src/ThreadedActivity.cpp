@@ -152,7 +152,7 @@ void ThreadedActivity::runScript() {
 
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
-  Lua *l;
+  LuaEngine *l;
 
   if(isTerminating()) return;
 
@@ -163,7 +163,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_path, iface);
   
   try {
-    l = new Lua();
+    l = new LuaEngine();
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 

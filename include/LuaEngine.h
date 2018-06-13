@@ -23,21 +23,21 @@
 #define _LUA_H_
 
 #include "ntop_includes.h"
-/** @defgroup Lua Lua
+/** @defgroup LuaEngine LuaEngine
  * Main ntopng lua group.
  */
 
 /* ******************************* */
 
-/** @class Lua
+/** @class LuaEngine
  *  @brief Main class of lua.
  *
- *  @ingroup Lua
+ *  @ingroup LuaEngine
  *
  */
-class Lua {
+class LuaEngine {
  private:
-  lua_State *L; /**< The Lua state.*/
+  lua_State *L; /**< The LuaEngine state.*/
   
   void lua_register_classes(lua_State *L, bool http_mode);
 
@@ -48,13 +48,13 @@ class Lua {
   *
   * @return A new instance of lua.
   */
-  Lua();
+  LuaEngine();
  
   /**
    * @brief A Destructor.
    *
    */
-  ~Lua();
+  ~LuaEngine();
 
   /**
    * @brief Run a Lua script.

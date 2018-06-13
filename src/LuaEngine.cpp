@@ -43,6 +43,7 @@ static Mutex rrd_lock;
 
 /* ******************************* */
 
+#ifdef DUMP_STACK
 static void stackDump(lua_State *L) {
   int i;
   int top = lua_gettop(L);
@@ -69,17 +70,18 @@ static void stackDump(lua_State *L) {
     }
   }  
 }
+#endif
 
 /* ******************************* */
 
-Lua::Lua() {
+LuaEngine::LuaEngine() {
   void *ctx;
   
 #ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
-      ntop->getGlobals()->shutdown();
-      ntop->shutdown();
-      exit(0);
+    ntop->getGlobals()->shutdown();
+    ntop->shutdown();
+    exit(0);
   }
 #endif
 
@@ -102,11 +104,13 @@ Lua::Lua() {
 
 /* ******************************* */
 
-Lua::~Lua() {
+LuaEngine::~LuaEngine() {
   if(L) {
     struct ntopngLuaContext *ctx;
 
+#ifdef DUMP_STACK
     stackDump(L);
+#endif
     
 #ifdef DONT_USE_LUAJIT
     lua_getglobal(L, "userdata");
@@ -1050,8 +1054,8 @@ static int ntop_get_mac_device_types(lua_State* vm) {
 
   if((!ntop_interface)
      || (ntop_interface->getActiveDeviceTypes(vm, sourceMacsOnly,
-					       dhcpMacsOnly, 0 /* bridge_iface_idx - TODO */,
-                 maxHits, manufacturer, location_filter) < 0))
+					      dhcpMacsOnly, 0 /* bridge_iface_idx - TODO */,
+					      maxHits, manufacturer, location_filter) < 0))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -1503,7 +1507,7 @@ static int ntop_is_windows(lua_State* vm) {
 #else
 		  0
 #endif
-		  );
+    );
 
   return(CONST_LUA_OK);
 }
@@ -1705,7 +1709,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
   // currently on windows, there is no easy way to obtain the socket's current blocking mode since WSAIsBlocking was deprecated
   u_long f = 1;
   if (ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
-	  return -1;
+    return -1;
 #else
   //set socket nonblocking flag
   if((flags = fcntl(sock, F_GETFL, 0)) < 0)
@@ -1735,7 +1739,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
 
   // we had a positivite return so a descriptor is ready
   if (FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset)){
-	  if(getsockopt(sock, SOL_SOCKET, SO_ERROR,
+    if(getsockopt(sock, SOL_SOCKET, SO_ERROR,
 #ifdef WIN32
 		  (char*)
 #endif
@@ -1754,7 +1758,7 @@ done:
   f = 0;
 
   if (ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
-	  return -1;
+    return -1;
 #else
   //put socket back in blocking mode
   if(fcntl(sock, F_SETFL, flags) < 0)
@@ -1963,7 +1967,7 @@ static int ntop_gettimemsec(lua_State* vm) {
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
-*/
+ */
 
 static int ntop_tzset(lua_State* vm) {
 #ifndef WIN32
@@ -2090,7 +2094,7 @@ static int ntop_flush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!Utils::isUserAdministrator(vm))
-      return(CONST_LUA_ERROR);
+    return(CONST_LUA_ERROR);
 
   lua_pushboolean(vm, (ntop->getRedis()->flushDb() == 0) ? true : false);
   return(CONST_LUA_OK);
@@ -2931,7 +2935,7 @@ static int ntop_checkpoint_host(lua_State* vm) {
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
 
   if(!iface || iface->isView() || !iface->checkPointHostCounters(vm,
-            checkpoint_id, host_ip, vlan_id, details_level)){
+								 checkpoint_id, host_ip, vlan_id, details_level)){
     lua_pushnil(vm);
     return(CONST_LUA_ERROR);
   } else
@@ -2989,7 +2993,7 @@ static int ntop_checkpoint_network(lua_State* vm) {
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
 
   if(!iface || iface->isView() || !iface->checkPointNetworkCounters(vm,
-              checkpoint_id, network_id, details_level))
+								    checkpoint_id, network_id, details_level))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -3014,7 +3018,7 @@ static int ntop_checkpoint_interface(lua_State* vm) {
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 2);
 
   if(!iface || iface->isView() || !iface->checkPointInterfaceCounters(vm,
-              checkpoint_id, details_level))
+								      checkpoint_id, details_level))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -3040,7 +3044,7 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
      || (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) /* srv_host@srv_vlan */
      || (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) /* srv port          */
      || (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) /* protocol          */
-     ) return(CONST_LUA_ERROR);
+    ) return(CONST_LUA_ERROR);
 
   get_host_vlan_info((char*)lua_tostring(vm, 1), &cli_name, &cli_vlan, cli_buf, sizeof(cli_buf));
   cli_port = htons((u_int16_t)lua_tonumber(vm, 2));
@@ -4760,7 +4764,7 @@ static int ntop_add_user(lua_State* vm) {
     if((language = (char*)lua_tostring(vm, 8)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   lua_pushboolean(vm, ntop->addUser(username, full_name, password, host_role,
-		       allowed_networks, allowed_interface, host_pool_id, language));
+				    allowed_networks, allowed_interface, host_pool_id, language));
 
   return CONST_LUA_OK;
 }
@@ -5308,9 +5312,9 @@ static int ntop_get_info(lua_State* vm) {
 #endif
   lua_push_str_table_entry(vm, "copyright",
 #ifdef HAVE_NEDGE
-      ntop->getPro()->is_oem() ? (char*)"" :
+			   ntop->getPro()->is_oem() ? (char*)"" :
 #endif
-      (char*)"&copy; 1998-18 - ntop.org");
+			   (char*)"&copy; 1998-18 - ntop.org");
   lua_push_str_table_entry(vm, "authors",   (char*)"The ntop.org team");
   lua_push_str_table_entry(vm, "license",   (char*)"GNU GPLv3");
   lua_push_str_table_entry(vm, "platform",  (char*)PACKAGE_MACHINE);
@@ -5329,7 +5333,7 @@ static int ntop_get_info(lua_State* vm) {
 #else
 			   (char*)PACKAGE_OS
 #endif
-			   );
+    );
   lua_push_int_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
   lua_push_int_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "command_line", ntop->getPrefs()->get_command_line());
@@ -6612,22 +6616,22 @@ static int ntop_interface_engage_release_alert(lua_State* vm, bool engage) {
     /* Host Alert */
     if(engage)
       ret = am->engageHostAlert(entity_value, vlan_id, (AlertEngine)alert_engine, engaged_alert_id,
-        (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
+				(AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
     else
       ret = am->releaseHostAlert(entity_value, vlan_id, (AlertEngine)alert_engine, engaged_alert_id,
-				(AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
+				 (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
   } else {
     /* Other Alert */
     if(engage)
       ret = am->engageGenericAlert(alert_entity, entity_value,
-           (AlertEngine)alert_engine,
-           engaged_alert_id,
-           (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+				   (AlertEngine)alert_engine,
+				   engaged_alert_id,
+				   (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
     else
       ret = am->releaseGenericAlert(alert_entity, entity_value,
-            (AlertEngine)alert_engine,
-            engaged_alert_id,
-            (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
+				    (AlertEngine)alert_engine,
+				    engaged_alert_id,
+				    (AlertType)alert_type, (AlertLevel)alert_severity, alert_json, ignore_disabled);
   }
 
   lua_pushboolean(vm, ret >= 0);
@@ -6945,30 +6949,30 @@ static int ntop_lua_http_print(lua_State* vm) {
     break;
 
   case LUA_TBOOLEAN:
-    {
-      int v = lua_toboolean(vm, 1);
+  {
+    int v = lua_toboolean(vm, 1);
 
-      mg_printf(conn, "%s", v ? "true" : "false");
-    }
-    break;
+    mg_printf(conn, "%s", v ? "true" : "false");
+  }
+  break;
 
   case LUA_TSTRING:
-    {
-      char *str = (char*)lua_tostring(vm, 1);
+  {
+    char *str = (char*)lua_tostring(vm, 1);
 
-      if(str && (strlen(str) > 0))
-	mg_printf(conn, "%s", str);
-    }
-    break;
+    if(str && (strlen(str) > 0))
+      mg_printf(conn, "%s", str);
+  }
+  break;
 
   case LUA_TNUMBER:
-    {
-      char str[64];
+  {
+    char str[64];
 
-      snprintf(str, sizeof(str), "%f", (float)lua_tonumber(vm, 1));
-      mg_printf(conn, "%s", str);
-    }
-    break;
+    snprintf(str, sizeof(str), "%f", (float)lua_tonumber(vm, 1));
+    mg_printf(conn, "%s", str);
+  }
+  break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
@@ -6989,13 +6993,13 @@ int ntop_lua_cli_print(lua_State* vm) {
 
   switch(t = lua_type(vm, 1)) {
   case LUA_TSTRING:
-    {
-      char *str = (char*)lua_tostring(vm, 1);
+  {
+    char *str = (char*)lua_tostring(vm, 1);
 
-      if(str && (strlen(str) > 0))
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
-    }
-    break;
+    if(str && (strlen(str) > 0))
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
+  }
+  break;
 
   case LUA_TNUMBER:
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%f", (float)lua_tonumber(vm, 1));
@@ -7054,7 +7058,7 @@ static int ntop_lua_require(lua_State* L) {
 
 	So we need to revert this logic back and the code
 	below is doing exactly this
-       */
+      */
       if((first_dot != string::npos)
 	 && (last_dot != string::npos)
 	 && (first_dot != last_dot))
@@ -7591,7 +7595,7 @@ static const luaL_Reg ntop_reg[] = {
 
 /* ****************************************** */
 
-void Lua::luaRegister(lua_State *L, const ntop_class_reg *reg) {
+void LuaEngine::luaRegister(lua_State *L, const ntop_class_reg *reg) {
   static const luaL_Reg _meta[] = { { NULL, NULL } };
   int lib_id, meta_id;
 
@@ -7616,7 +7620,7 @@ void Lua::luaRegister(lua_State *L, const ntop_class_reg *reg) {
   lua_setglobal(L, reg->class_name);
 }
 
-void Lua::luaRegisterInternalRegs(lua_State *L) {
+void LuaEngine::luaRegisterInternalRegs(lua_State *L) {
   int i;
 
   ntop_class_reg ntop_lua_reg[] = {
@@ -7626,13 +7630,13 @@ void Lua::luaRegisterInternalRegs(lua_State *L) {
   };
 
   for(i=0; ntop_lua_reg[i].class_name != NULL; i++)
-    Lua::luaRegister(L, &ntop_lua_reg[i]);
+    LuaEngine::luaRegister(L, &ntop_lua_reg[i]);
 }
 
-void Lua::lua_register_classes(lua_State *L, bool http_mode) {
+void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   if(!L) return;
 
-  Lua::luaRegisterInternalRegs(L);
+  LuaEngine::luaRegisterInternalRegs(L);
 
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */
@@ -7697,7 +7701,7 @@ static int post_iterator(void *cls,
 /*
   Run a Lua script from within ntopng (no HTTP GUI)
 */
-int Lua::run_script(char *script_path, NetworkInterface *iface) {
+int LuaEngine::run_script(char *script_path, NetworkInterface *iface) {
   int rc = 0;
 
   if(!L) return(-1);
@@ -7767,7 +7771,7 @@ static char* http_encode(char *str) {
 
 /* ****************************************** */
 
-void Lua::purifyHTTPParameter(char *param) {
+void LuaEngine::purifyHTTPParameter(char *param) {
   char *ampersand;
   bool utf8_found = false;
 
@@ -7835,7 +7839,7 @@ void Lua::purifyHTTPParameter(char *param) {
 
 /* ****************************************** */
 
-void Lua::setInterface(const char *user) {
+void LuaEngine::setInterface(const char *user) {
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool enforce_allowed_interface = false;
 
@@ -7885,8 +7889,8 @@ void Lua::setInterface(const char *user) {
 
 /* ****************************************** */
 
-void Lua::setParamsTable(lua_State* vm, const char* table_name,
-			 const char* query) const {
+void LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
+			       const char* query) const {
   char outbuf[FILENAME_MAX];
   char *where;
   char *tok;
@@ -7918,7 +7922,7 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
           Utils::urlDecode(_equal, decoded_buf, len+1);
 
-    /* Allow multiple dots in password fields */
+	  /* Allow multiple dots in password fields */
 	  bool allow_dots = (strstr(tok, "password") != NULL);
 
 	  Utils::purifyHTTPparam(tok, true, false, false);
@@ -7960,9 +7964,9 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
 /* ****************************************** */
 
-int Lua::handle_script_request(struct mg_connection *conn,
-			       const struct mg_request_info *request_info,
-			       char *script_path) {
+int LuaEngine::handle_script_request(struct mg_connection *conn,
+				     const struct mg_request_info *request_info,
+				     char *script_path) {
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   char *_cookies, user[64] = { '\0' };
   AddressTree ptree;

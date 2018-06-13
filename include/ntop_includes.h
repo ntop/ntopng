@@ -307,7 +307,7 @@ using namespace std;
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"
 #include "PeriodicActivities.h"
-#include "Lua.h"
+#include "LuaEngine.h"
 #include "MacManufacturers.h"
 #include "AddressResolution.h"
 #include "HTTPBL.h"

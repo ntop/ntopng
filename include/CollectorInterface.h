@@ -26,7 +26,7 @@
 
 #ifndef HAVE_NEDGE
 
-class Lua;
+class LuaEngine;
 
 typedef struct {
   char *endpoint;
