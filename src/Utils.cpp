@@ -812,6 +812,11 @@ bool Utils::isUserAdministrator(lua_State* vm) {
   lua_getglobal(vm, "userdata");
 #endif
 
+  if(getLuaVMUservalue(vm,conn) == NULL) {
+    /* this is an internal script (e.g. periodic script), admin check should pass */
+    return(true);
+  }
+
   if((username = getLuaVMUserdata(vm,user)) == NULL) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
     return(false); /* Unknown */
