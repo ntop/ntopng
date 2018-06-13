@@ -2722,7 +2722,7 @@ static int ntop_restore_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_checkpoint_interface_host(lua_State* vm) {
+static int ntop_checkpoint_host(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
   char *host_ip;
@@ -2755,7 +2755,7 @@ static int ntop_checkpoint_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_checkpoint_interface_host_talker(lua_State* vm) {
+static int ntop_checkpoint_host_talker(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
   char *host_ip;
@@ -2784,7 +2784,7 @@ static int ntop_checkpoint_interface_host_talker(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_checkpoint_interface_network(lua_State* vm) {
+static int ntop_checkpoint_network(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
   u_int8_t network_id;
@@ -2814,7 +2814,7 @@ static int ntop_checkpoint_interface_network(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_checkpoint_network_interface(lua_State* vm) {
+static int ntop_checkpoint_interface(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
   u_int8_t checkpoint_id;
@@ -2828,7 +2828,7 @@ static int ntop_checkpoint_network_interface(lua_State* vm) {
 
   ifid = (int)lua_tointeger(vm, 1);
   iface = ntop->getInterfaceById(ifid);
-  checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
+  checkpoint_id = (u_int8_t)lua_tointeger(vm, 2);
 
   if(!iface || iface->isView() || !iface->checkPointInterfaceCounters(vm,
               checkpoint_id, details_level)){
@@ -7121,10 +7121,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats },
   { "restoreHost",              ntop_restore_interface_host },
-  { "checkpointHost",           ntop_checkpoint_interface_host },
-  { "checkpointHostTalker",     ntop_checkpoint_interface_host_talker },
-  { "checkpointNetwork",        ntop_checkpoint_interface_network },
-  { "checkpointInterface",      ntop_checkpoint_network_interface },
+  { "checkpointHost",           ntop_checkpoint_host },
+  { "checkpointHostTalker",     ntop_checkpoint_host_talker },
+  { "checkpointNetwork",        ntop_checkpoint_network },
+  { "checkpointInterface",      ntop_checkpoint_interface },
   { "getFlowsInfo",             ntop_get_interface_flows_info },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows },
   { "getFlowsStats",            ntop_get_interface_flows_stats },
