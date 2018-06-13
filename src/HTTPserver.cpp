@@ -128,6 +128,9 @@ static void set_cookie(const struct mg_connection *conn,
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
     return;
 
+  if(authorized_localhost_users_login_disabled(conn))
+    return;
+  
   // Authentication success:
   //   1. create new session
   //   2. set session ID token in the cookie
