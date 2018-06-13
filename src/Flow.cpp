@@ -2685,14 +2685,19 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       } else if(payload[i] == 0xC0) {
 	u_int8_t offset;
 	u_int16_t i_save = i;
+	u_int8_t num_loops = 0;
+	const u_int8_t max_nested_loops = 8;
 
       nested_dns_definition:
 	offset = payload[i+1] - 12;
 	i = offset;
 	
-	if((offset > i)|| (i > payload_len))
+	if((offset > i)|| (i > payload_len) || (num_loops > max_nested_loops)) {
+#ifdef DEBUG_DISCOVERY
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid MDNS packet");
+#endif
 	  return; /* Invalid packet */
-	else {
+	} else {
 	  /* Pointer back */  
 	  while((i < payload_len)
 		&& (payload[i] != 0)
@@ -2700,6 +2705,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	    if(payload[i] == 0)
 	      break;
 	    else if(payload[i] == 0xC0) {
+	      num_loops++;
 	      goto nested_dns_definition;
 	    } else if(payload[i] < 32) {
 	      if(j > 0)	_name[j++] = '.';
