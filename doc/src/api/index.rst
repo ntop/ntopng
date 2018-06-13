@@ -5,4 +5,4 @@ API Documentation
     :maxdepth: 2
     :numbered:
 
-    lua
+    lua/index
