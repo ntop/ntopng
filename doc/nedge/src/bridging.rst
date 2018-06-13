@@ -42,7 +42,7 @@ address and a netmask to that interface.
 
 .. code:: bash
 
- root@apu2:/home/simone# cat /etc/network/interfaces.d/nedge_mgmt.conf
+ $ cat /etc/network/interfaces.d/nedge_mgmt.conf
  # https://bugs.launchpad.net/ubuntu/+source/ifupdown/+bug/1643063
  # must specify the pre-up command and the vlan-raw-device
 
@@ -64,7 +64,8 @@ this mode as it cannot correctly guess the local network.
 
 .. warning::
 
-   Overlapping IP addresses across multiple VLANs are not handled.
+   Overlapping IP addresses across multiple VLANs are not handled. nedge will
+   show them as a single host
 
    
 .. warning::
