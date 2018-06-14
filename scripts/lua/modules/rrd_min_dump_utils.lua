@@ -158,6 +158,21 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
     rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
   end
 
+  if ntop.isnEdge() then
+     local st = ntop.systemHostStat()
+
+     local queue_dropped = st["queue_dropped"] or 0
+     local user_dropped  = st["user_dropped"]  or 0
+     local queue_total   = st["queue_total"]   or 0
+     local id_sequence   = st["id_sequence"]   or 0
+
+     -- tprint({queue_dropped=queue_dropped, user_dropped=user_dropped, queue_total=queue_total, id_sequence=id_sequence})
+
+     ts_utils.append(ts_schemas.iface_nfq_drops, {ifid=ifstats.id, num_nfq_drops=queue_dropped}, when, verbose)
+     ts_utils.append(ts_schemas.iface_nfq_udrops, {ifid=ifstats.id, num_nfq_udrops=user_dropped}, when, verbose)
+     ts_utils.append(ts_schemas.iface_nfq_total, {ifid=ifstats.id, num_nfq_total=queue_total}, when, verbose)
+  end
+
   ts_utils.flush()
 end
 

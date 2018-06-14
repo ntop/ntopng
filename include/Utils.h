@@ -131,6 +131,9 @@ class Utils {
   /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
   static void luaMeminfo(lua_State* vm);
+#ifdef HAVE_NEDGE
+  static void luaNetfilter(lua_State* vm);
+#endif
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();
   static int dropWriteCapabilities();

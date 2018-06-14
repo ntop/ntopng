@@ -33,6 +33,12 @@ local top_rrds = {
    {rrd="tcp_rst.rrd",                 label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
 }
 
+if ntop.isnEdge() then
+   top_rrds[#top_rrds + 1] = {rrd="num_nfq_drops.rrd",  label=i18n("graphs.num_nfq_drops")}
+   top_rrds[#top_rrds + 1] = {rrd="num_nfq_udrops.rrd", label=i18n("graphs.num_nfq_udrops")}
+   top_rrds[#top_rrds + 1] = {rrd="num_nfq_total.rrd",  label=i18n("graphs.num_nfq_total")}
+end
+
 -- ########################################################
 
 if(ntop.isPro()) then

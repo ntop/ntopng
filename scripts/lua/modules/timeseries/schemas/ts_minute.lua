@@ -152,4 +152,19 @@ ts_schemas.iface_tcp_rst = schema
 
 -- ##############################################
 
+schema = ts_utils.schema:new("iface:nfq_drops", {step=60, rrd_fname="num_nfq_drops"})
+schema:addTag("ifid")
+schema:addMetric("num_nfq_drops", ts_utils.metrics.gauge)
+ts_schemas.iface_nfq_drops = schema
+
+schema = ts_utils.schema:new("iface:nfq_udrops", {step=60, rrd_fname="num_nfq_udrops"})
+schema:addTag("ifid")
+schema:addMetric("num_nfq_udrops", ts_utils.metrics.gauge)
+ts_schemas.iface_nfq_udrops = schema
+
+schema = ts_utils.schema:new("iface:nfq_total", {step=60, rrd_fname="num_nfq_total"})
+schema:addTag("ifid")
+schema:addMetric("num_nfq_total", ts_utils.metrics.gauge)
+ts_schemas.iface_nfq_total = schema
+
 return ts_schemas
