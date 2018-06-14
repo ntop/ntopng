@@ -21,6 +21,7 @@
 
 #include "ntop_includes.h"
 
+// #define DEBUG_DISCOVERY
 
 /* *************************************** */
 
@@ -296,8 +297,10 @@ void Flow::processDetectedProtocol() {
       The statement below can craete issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
-    if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host)
+    if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[MDNS] %s", ndpiFlow->protos.mdns.answer);
       cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
+    }
     break;
 
   case NDPI_PROTOCOL_DNS:
@@ -2730,8 +2733,8 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
-    /* Skip lenght for strings >= 32 */
-    name = &_name[(data_len <= 32) ? 0 : 1];
+    /* Skip lenght for strings >= 32 with head length */
+    name = &_name[((data_len <= 32) || (_name[0] >= '0'))? 0 : 1];
     
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]", ntohs(rsp.rsp_type) & 0xFFFF, name, data_len);
