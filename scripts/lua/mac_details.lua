@@ -181,6 +181,10 @@ if((page == "overview") or (page == nil)) then
 
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
+   if(mac_info.operatingSystem ~= 0) then
+     print(" "..getOperatingSystemIcon(mac_info.operatingSystem).." ")
+   end
+
    if isAdministrator() then
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
       print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
@@ -220,7 +224,7 @@ if((page == "overview") or (page == nil)) then
 
    if(mac_info.fingerprint ~= "") then
     print("<tr><th><A HREF=https://en.wikipedia.org/wiki/Device_fingerprint>DHCP Fingerprint</A> "..'<i class="fa fa-hand-o-up fa-lg" aria-hidden="true"></i>'
-	     .."</th><td>"..mac_info.fingerprint.."</td><td>Operating System: "..getOperatingSystemIcon(mac_info.operatingSystem).."</td></tr>\n")
+	     .."</th><td colspan=2>"..mac_info.fingerprint.."</td></tr>\n")
    end
 
    if have_nedge then

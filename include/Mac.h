@@ -116,8 +116,9 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   json_object* getJSONObject();
   void updateFingerprint();
   void updateHostPool(bool isInlineCall);
-  inline void setOperatingSystem(OperatingSystem _os) { os = _os; }
-  inline char* getFingerprint()          { return(fingerprint); }
+  inline void setOperatingSystem(OperatingSystem _os) { os = _os;   }
+  inline OperatingSystem getOperatingSystem()         { return(os); }
+  inline char* getFingerprint()                       { return(fingerprint); }
   inline void setFingerprint(char *f) { if(f) { if(fingerprint) free(fingerprint); fingerprint = strdup(f); updateFingerprint(); } }
   void setModel(char* m);
   inline char* getModel() { return((char*)model); }

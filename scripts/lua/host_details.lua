@@ -407,7 +407,11 @@ if((page == "overview") or (page == nil)) then
       
       print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
       if(host.childSafe == true) then print(getSafeChildIcon()) end
-      
+
+     if(host.operatingSystem ~= 0) then
+       print(" "..getOperatingSystemIcon(host.operatingSystem).." ")
+     end
+
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
       
       if(host["local_network_name"] ~= nil) then

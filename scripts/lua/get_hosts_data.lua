@@ -225,8 +225,13 @@ for _key, _value in pairsByKeys(vals, funct) do
    print ("\"column_ip\" : \"<A HREF='")
    url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(hosts_stats[key])
    print(url .. "'>")
+
    print(mapOS2Icon(stripVlan(key)))
    print(" </A> ")
+
+   if((value.operatingSystem ~= 0) and (value["os"] == "")) then
+     print(" "..getOperatingSystemIcon(value.operatingSystem).." ")
+   end
 
    if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
    if(value["hiddenFromTop"] == true) then print("&nbsp;<i class='fa fa-eye-slash'></i>") end

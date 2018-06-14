@@ -45,7 +45,7 @@ function mac2record(mac)
 
    if(mac["model"] ~= nil) then
       local _model = discover.apple_products[mac["model"]] or mac["model"]
-      manufacturer = manufacturer .. " [ ".. _model .." ]"
+      manufacturer = manufacturer .. " [ ".. shortenString(_model) .." ]"
    end
    
    record["column_manufacturer"] = manufacturer

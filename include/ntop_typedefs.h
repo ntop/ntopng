@@ -467,6 +467,7 @@ typedef enum {
   interface_type_ZC_FLOW  
 } InterfaceType;
 
+/* Update Flow::dissectHTTP when extending the type below */
 typedef enum {
   os_unknown = 0,
   os_linux,

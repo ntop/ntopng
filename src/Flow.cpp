@@ -21,7 +21,8 @@
 
 #include "ntop_includes.h"
 
-// #define DEBUG_DISCOVERY
+//#define DEBUG_DISCOVERY
+//#define DEBUG_UA
 
 /* *************************************** */
 
@@ -2566,8 +2567,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  }
 	}
 
-	ua = strstr(payload, "User-Agent:");
-	if(ua) {
+	if((ua = strstr(payload, "User-Agent:")) != NULL) {
 	  char buf[128];
 	  u_int i;
 
@@ -2578,7 +2578,56 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	    buf[i] = ua[i];
 
 	  buf[i] = '\0';
-	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", buf); */
+
+#ifdef DEBUG_UA
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] %s", buf);
+#endif
+
+	  if(cli_host
+	     && cli_host->getMac()
+	     // && (cli_host->getMac()->getOperatingSystem() == os_unknown)
+	     ) {
+	    /*
+	      https://en.wikipedia.org/wiki/User_agent 
+
+	      Most Web browsers use a User-Agent string value as follows:
+	      Mozilla/[version] ([system and browser information]) [platform] ([platform details]) [extensions]
+	    */
+
+	    if((ua = strchr(buf, '(')) != NULL) {
+	      char *end = strchr(buf, ')');
+
+	      if(end) {
+		OperatingSystem os = os_unknown;
+
+		end[0] = '\0';
+		ua++;
+
+		if(strstr(ua, "iPad") || strstr(ua, "iPod") || strstr(ua, "iPhone"))
+		  os = os_ios;
+		else if(strstr(ua, "Android"))
+		  os = os_android;
+		else if(strstr(ua, "Airport"))
+		  os = os_apple_airport;
+		else if(strstr(ua, "Macintosh") || strstr(ua, "OS X"))
+		  os = os_macos;
+		else if(strstr(ua, "Windows"))
+		  os = os_windows;
+		else if(strcasestr(ua, "Linux") || strstr(ua, "Debian") || strstr(ua, "Ubuntu"))
+		  os = os_linux;
+
+		if(os != os_unknown) {
+#ifdef DEBUG_UA
+		  char mbuf[32];
+
+		  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] [%s][OS=%u][%s]", cli_host->getMac()->get_string_key(mbuf, sizeof(mbuf)), os, ua);
+#endif
+
+		  cli_host->getMac()->setOperatingSystem(os);
+		}
+	      }
+	    }
+	  }
 	}
       }
     }

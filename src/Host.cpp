@@ -486,6 +486,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf)));
   lua_push_int_table_entry(vm, "devtype", (localHost && m) ? m->getDeviceType() : device_unknown);
+  lua_push_int_table_entry(vm, "operatingSystem", m ? m->getOperatingSystem() : os_unknown);
 
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
