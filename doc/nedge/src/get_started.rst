@@ -3,10 +3,11 @@ Getting Started
 
 nEdge requires at least **two wired network interfaces** in order to run.
 
-**NOTE: nEdge will change the system configuration of the device where it's installed**.
-The original network configuration file is stored in `/etc/network/interfaces.old`.
-The nEdge package will force the removal of dnsmasq and network manager as they
-conflicts with the nEdge operation.
+.. warning::
+   nEdge will change the system configuration of the device where it's installed.
+   The original network configuration file is stored in `/etc/network/interfaces.old`.
+   The nEdge package will force the removal of dnsmasq and network manager as they
+   conflicts with the nEdge operation.
 
 Before installing nEdge, it's necessary to add the ntop repo to the system, by following the
 instructions at http://packages.ntop.org . After configuring the gateway, nEdge can be
