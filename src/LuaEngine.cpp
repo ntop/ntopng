@@ -228,12 +228,7 @@ static int ntop_dump_file(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Set the name of active interface id into lua stack.
- *
- * @param vm The lua stack.
- * @return @ref CONST_LUA_OK.
- */
+// ***API***
 static int ntop_set_active_interface_id(lua_State* vm) {
   NetworkInterface *iface;
   int id;
@@ -255,13 +250,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-/* ****************************************** */
-/**
- * @brief Get the ntopng interface names.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK.
- */
+// ***API***
 static int ntop_get_interface_names(lua_State* vm) {
   char *allowed_ifname = getLuaVMUserdata(vm, ifname);
   
@@ -317,12 +306,7 @@ static NetworkInterface* getCurrentInterface(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Find the network interface and set it as global variable to lua.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK
- */
+// ***API***
 static int ntop_select_interface(lua_State* vm) {
   char *ifname;
 
@@ -344,12 +328,7 @@ static int ntop_select_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Find the maximum speed of a given interface
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK
- */
+// ***API***
 static int ntop_get_max_if_speed(lua_State* vm) {
   char *ifname = NULL;
 
@@ -366,13 +345,7 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the nDPI statistics of interface.
- * @details Get the ntop interface global variable of lua, get nDpistats of interface and push it into lua stack.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK
- */
+// ***API***
 static int ntop_get_ndpi_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -402,6 +375,7 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_host_pools_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -515,13 +489,7 @@ static int ntop_get_host_used_quotas_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the ndpi flows count of interface.
- * @details Get the ntop interface global variable of lua, get nDpi flow count of interface and push it into lua stack.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK
- */
+// ***API***
 static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -538,13 +506,7 @@ static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the flow status for flows in cache
- * @details Get the ntop interface global variable of lua, get flow stats of interface and push it into lua stack.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK
- */
+// ***API***
 static int ntop_get_ndpi_interface_flows_status(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -561,13 +523,7 @@ static int ntop_get_ndpi_interface_flows_status(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the ndpi protocol name of protocol id of network interface.
- * @details Get the ntop interface global variable of lua. Once do that, get the protocol id of lua stack and return into lua stack "Host-to-Host Contact" if protocol id is equal to host family id; the protocol name or null otherwise.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
+// ***API***
 static int ntop_get_ndpi_protocol_name(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -592,6 +548,7 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_ndpi_protocol_id(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -612,6 +569,7 @@ static int ntop_get_ndpi_protocol_id(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_ndpi_category_id(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -632,6 +590,7 @@ static int ntop_get_ndpi_category_id(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_ndpi_category_name(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -652,6 +611,7 @@ static int ntop_get_ndpi_category_name(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_ndpi_protocol_category(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int proto;
@@ -675,6 +635,7 @@ static int ntop_get_ndpi_protocol_category(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_set_ndpi_protocol_category(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -689,9 +650,9 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
 
   if(ntop_interface)
     ntop_interface->setnDPIProtocolCategory(proto, category);
-  else
-    lua_pushnil(vm);
-  
+
+  lua_pushnil(vm);
+
   return(CONST_LUA_OK);
 }
 
@@ -839,12 +800,7 @@ static int ntop_add_macs_ip_addresses(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the host information of network interface grouped according to the criteria.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null or the host is null, CONST_LUA_OK otherwise.
- */
+// ***API***
 static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
@@ -896,6 +852,7 @@ static u_int8_t str_2_location(const char *s) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_macs_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_mac";
@@ -961,6 +918,7 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_mac_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -978,6 +936,7 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_set_mac_operating_system(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -1003,6 +962,7 @@ static int ntop_set_mac_operating_system(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_set_mac_device_type(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -1030,6 +990,7 @@ static int ntop_set_mac_device_type(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_mac_device_types(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t maxHits = CONST_MAX_NUM_HITS;
@@ -1063,6 +1024,7 @@ static int ntop_get_mac_device_types(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_ases_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1089,6 +1051,7 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_countries_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1114,6 +1077,7 @@ static int ntop_get_interface_countries_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_vlans_list(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1166,6 +1130,7 @@ static int ntop_get_interface_vlans_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_as_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t asn;
@@ -1182,6 +1147,7 @@ static int ntop_get_interface_as_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_vlan_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t vlan_id;
@@ -1198,6 +1164,7 @@ static int ntop_get_interface_vlan_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t maxHits = CONST_MAX_NUM_HITS;
@@ -1324,14 +1291,17 @@ static int ntop_is_routing_mode(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_all));
 }
 
+// ***API***
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_local_only));
 }
 
+// ***API***
 static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_remote_only));
 }
@@ -2413,6 +2383,7 @@ static int ntop_append_influx_db(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
@@ -2449,6 +2420,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Paginator *p = NULL;
@@ -2481,13 +2453,7 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get nDPI stats for flows
- * @details Compute nDPI flow statistics
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_get_interface_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -2499,13 +2465,7 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get interface stats for local networks
- * @details Returns traffic statistics per local network
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_get_interface_networks_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -2520,13 +2480,7 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the host information of network interface.
- * @details Get the ntop interface global variable of lua, the host ip and optional the VLAN id form the lua stack and push a new hash table of hash tables containing the host information into lua stack.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null or the host is null, CONST_LUA_OK otherwise.
- */
+// ***API***
 static int ntop_get_interface_host_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -2549,6 +2503,7 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -2841,6 +2796,7 @@ static int ntop_mdns_read_queued_responses(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_getsflowdevices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -2856,6 +2812,7 @@ static int ntop_getsflowdevices(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_getsflowdeviceinfo(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *device_ip;
@@ -3026,6 +2983,7 @@ static int ntop_checkpoint_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_flow_key(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Host *cli, *srv;
@@ -3071,6 +3029,7 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
@@ -3096,6 +3055,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_drop_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
@@ -3147,6 +3107,7 @@ static int ntop_drop_multiple_flows_traffic(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_dump_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key, what;
@@ -3292,6 +3253,7 @@ static int ntop_list_http_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_find_host(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *key;
@@ -3309,6 +3271,7 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac;
@@ -3369,6 +3332,7 @@ static int ntop_refresh_hosts_alerts_configuration(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_set_host_dump_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -3397,6 +3361,7 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_dump_tap_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool dump_traffic_to_tap;
@@ -3415,6 +3380,7 @@ static int ntop_get_interface_dump_tap_policy(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_dump_tap_name(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3430,6 +3396,7 @@ static int ntop_get_interface_dump_tap_name(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool dump_traffic_to_disk;
@@ -3448,6 +3415,7 @@ static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int max_pkts;
@@ -3466,6 +3434,7 @@ static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_dump_max_sec(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int max_sec;
@@ -3484,6 +3453,7 @@ static int ntop_get_interface_dump_max_sec(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_dump_max_files(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int max_files;
@@ -3502,6 +3472,7 @@ static int ntop_get_interface_dump_max_files(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int num_pkts;
@@ -3524,6 +3495,7 @@ static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int num_pkts;
@@ -3546,6 +3518,7 @@ static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_get_interface_endpoint(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int8_t id;
@@ -3569,6 +3542,7 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_interface_is_packet_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3582,6 +3556,7 @@ static int ntop_interface_is_packet_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_interface_is_discoverable_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3613,6 +3588,7 @@ static int ntop_interface_is_bridge_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *interface_type;
@@ -3632,6 +3608,7 @@ static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_is_running(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -3645,6 +3622,7 @@ static int ntop_interface_is_running(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_is_idle(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -3658,6 +3636,7 @@ static int ntop_interface_is_idle(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_set_idle(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool state;
@@ -3696,6 +3675,7 @@ static int ntop_interface_name2id(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_ndpi_protocols(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   ndpi_protocol_category_t category_filter = (ndpi_protocol_category_t)((u_int8_t)-1);
@@ -3712,8 +3692,10 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
   if((lua_type(vm, 1) == LUA_TNUMBER)) {
     category_filter = (ndpi_protocol_category_t)lua_tointeger(vm, 1);
 
-    if(category_filter >= NDPI_PROTOCOL_NUM_CATEGORIES)
-      return(CONST_LUA_ERROR);
+    if(category_filter >= NDPI_PROTOCOL_NUM_CATEGORIES) {
+      lua_pushnil(vm);
+      return(CONST_LUA_OK);
+    }
   }
   if((lua_type(vm, 2) == LUA_TBOOLEAN)) skip_critical = lua_toboolean(vm, 2);
 
@@ -3723,10 +3705,16 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_ndpi_categories(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) {
+    lua_pushnil(vm);
+    return(CONST_LUA_OK);
+  }
 
   lua_newtable(vm);
 
@@ -3734,10 +3722,7 @@ static int ntop_get_ndpi_categories(lua_State* vm) {
     char buf[8];
 
     snprintf(buf, sizeof(buf), "%d", i);
-    if(ntop_interface)
-      lua_push_str_table_entry(vm, ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i), buf);
-    else
-      lua_pushnil(vm);
+    lua_push_str_table_entry(vm, ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i), buf);
   }
 
   return(CONST_LUA_OK);
@@ -4933,6 +4918,7 @@ static int ntop_get_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_reset_counters(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool only_drops = true;
@@ -4984,6 +4970,7 @@ static int ntop_is_nedge_enterprise(lua_State *vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_reload_host_pools(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5117,6 +5104,7 @@ static int ntop_find_member_pool(lua_State *vm) {
 
 /* *******************************************/
 
+// ***API***
 static int ntop_find_mac_pool(lua_State *vm) {
   const char *mac;
   u_int8_t mac_parsed[6];
@@ -6652,6 +6640,7 @@ static int ntop_interface_release_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_store_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int alert_severity;
