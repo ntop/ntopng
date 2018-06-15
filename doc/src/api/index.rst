@@ -14,6 +14,5 @@ to figure out its format.
 
 .. toctree::
     :maxdepth: 2
-    :numbered:
 
-    lua/index
+    lua_c/index

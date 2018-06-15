@@ -1,7 +1,7 @@
-Lua API
-=======
+Lua C API
+=========
 
-The Lua API consists of two main objects:
+The Lua C API consists of two main objects:
 
     - the `ntop` object is used to access global ntopng functions, which are
       not bound to a specific network interface
@@ -15,5 +15,5 @@ so it's available through the interface object API via `interface.getFlowsInfo()
     :maxdepth: 2
     :numbered:
 
-    ntop
-    interface
+    ntop/ntop
+    interface/interface

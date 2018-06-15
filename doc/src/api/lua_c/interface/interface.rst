@@ -18,5 +18,12 @@ following snippet would be used:
   local res = interface.getLocalHostsInfo()
   -- tprint(res)
 
-.. doxygenfile:: interface.lua.cpp
+.. toctree::
+    :maxdepth: 2
 
+    interface_hosts
+    interface_flows
+    interface_misc
+    interface_macs
+    interface_ndpi
+    interface_dump
