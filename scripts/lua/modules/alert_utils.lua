@@ -2238,7 +2238,7 @@ function check_mac_ip_association_alerts()
 	 break
       end
 
-            elems = json.decode(message)
+      elems = json.decode(message)
 
       if elems ~= nil then
          --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
@@ -2248,6 +2248,38 @@ function check_mac_ip_association_alerts()
                   {device=name, ip=elems.ip,
                   old_mac=elems.old_mac, old_mac_url=getMacUrl(elems.old_mac),
                   new_mac=elems.new_mac, new_mac_url=getMacUrl(elems.new_mac)}))
+      end
+   end   
+end
+
+
+-- Global function
+function check_nfq_flushed_queue_alerts()
+   while(true) do
+      local message = ntop.lpopCache("ntopng.alert_nfq_flushed_queue")
+      local elems
+
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      elems = json.decode(message)
+
+      if elems ~= nil then
+	 local entity = alertEntity("interface")
+	 local entity_value = "iface_"..elems.ifid
+	 local alert_type = alertType("nfq_flushed")
+	 local alert_severity = alertSeverity("info")
+
+	 -- tprint(elems)
+         -- io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
+
+         interface.select(elems.ifname)
+         interface.storeAlert(entity, entity_value, alert_type, alert_severity,
+                  i18n("alert_messages.nfq_flushed",
+		       {name = elems.ifname, pct = elems.pct,
+			tot = elems.tot, dropped = elems.dropped,
+			url = ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..elems.ifid}))
       end
    end   
 end

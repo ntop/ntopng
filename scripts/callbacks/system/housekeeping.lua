@@ -25,6 +25,9 @@ if(prefs_changed == "true") then
 end
 
 check_mac_ip_association_alerts()
+if ntop.isnEdge() then
+   check_nfq_flushed_queue_alerts()
+end
 check_process_alerts()
 callback_utils.uploadTSdata()
 

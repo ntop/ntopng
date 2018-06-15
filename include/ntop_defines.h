@@ -408,6 +408,7 @@
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
 #define CONST_ALERT_MAC_IP_QUEUE           "ntopng.alert_mac_ip_queue"
+#define CONST_ALERT_NFQ_FLUSHED            "ntopng.alert_nfq_flushed_queue"
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192

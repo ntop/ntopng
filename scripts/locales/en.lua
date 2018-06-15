@@ -179,6 +179,7 @@ local lang = {
     ["host_pool_has_disconnected"] = "The host pool <a href=\"%{url}\">%{pool}</a> has disconnected from the network.",
     ["interface_entity"] = "interface %{entity_value}",
     ["mac_ip_association_change"] = "IP %{ip} changed association from <a href=\"%{old_mac_url}\">%{old_mac}</a> to <a href=\"%{new_mac_url}\">%{new_mac}</a>",
+    ["nfq_flushed"] = "Interface <a href=\"%{url}\">%{name}</a> packets queue flushed. Queue %{pct}%% full with %{tot} packets and %{dropped} drops.", 
     ["network_entity"] = "network %{entity_value}",
     ["open_files_limit_too_small"] = "Ntopng detected that the maximum number of files MySQL can open is potentially too small. This can result in flow data loss due to errors such as [Out of resources when opening file './ntopng/flowsv6#P#p22.MYD' (Errcode: 24 - Too many open files)][23]. Make sure to increase open_files_limit or, if you just want to ignore this warning, disable the check from the preferences.",
     ["proto_bytes_quotas"] = "%{proto} bytes",
@@ -247,6 +248,7 @@ local lang = {
     ["unresponsive_device"] = "Unresponsive Device",
     ["warning"] = "Warning",
     ["web_mining"] = "Web Mining",
+    ["nfq_flushed"] = "Packets Queue Flushed",
   },
   ["alerts_thresholds_config"] = {
     ["activity_time"] = "Activity Time",

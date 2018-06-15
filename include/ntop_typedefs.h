@@ -59,6 +59,7 @@ typedef enum {
   alert_flow_blacklisted,
   alert_flow_blocked,
   alert_flow_web_mining = 21,
+  alert_nfq_flushed = 22,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys

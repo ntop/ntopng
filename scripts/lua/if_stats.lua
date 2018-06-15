@@ -612,7 +612,7 @@ print("</script>\n")
       print("</tr>\n")
    end
 
-   if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
+   if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
       local st = ifstats.netfilter
 
       print("<tr><th colspan=6 nowrap>"..i18n("if_stats_overview.nf").."</th></tr>\n")
@@ -2443,7 +2443,7 @@ print [[/lua/network_load.lua',
 
 print(" Pkts\");")
 
-if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
+if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
    local st = ifstats.netfilter
 
    print("var last_nfq_time = 0;\n")
