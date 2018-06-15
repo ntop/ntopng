@@ -78,6 +78,8 @@ Doxyfile
 doc/doxydoc/
 doc/src/_build/
 doc/nedge/src/_build/
+doc/src/doxygen/html/
+doc/src/doxygen/xml/
 logo.png
 logo.xcf
 logobase.jpg
