@@ -121,7 +121,7 @@ function getHostInfo(string host_ip, int vlan_id=nil)
 
 --! @brief Get host country.
 --! @param host_ip host/host@vlan.
---! @return the host country code on success, nil otherwise
+--! @return the host country code on success, nil otherwise.
 function getHostCountry(string host_ip)
 
 --! @brief Group active hosts by a specific criteria.

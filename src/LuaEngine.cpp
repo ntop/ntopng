@@ -1198,6 +1198,7 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_mac_manufacturer(lua_State* vm) {
   const char *mac = NULL;
 
@@ -1211,6 +1212,7 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_host_information(lua_State* vm) {
   struct in_addr management_addr;
   management_addr.s_addr = Utils::getHostManagementIPv4Address();
@@ -1252,6 +1254,7 @@ static int ntop_shutdown(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_is_shutdown(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getGlobals()->isShutdown());
@@ -1322,13 +1325,7 @@ static int ntop_get_batched_interface_remote_hosts_info(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if the specified path is a directory and it exists.
- * @details True if if the specified path is a directory and it exists, false otherwise.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK
- */
+// ***API***
 static int ntop_is_dir(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -1347,13 +1344,7 @@ static int ntop_is_dir(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if the file is exists and is not empty
- * @details Simple check for existence + non empty file
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK
- */
+// ***API***
 static int ntop_is_not_empty_file(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -1373,13 +1364,7 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if the file or directory exists.
- * @details Get the path of file/directory from to lua stack and push true into lua stack if it exists, false otherwise.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK
- */
+// ***API***
 static int ntop_get_file_dir_exists(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -1399,13 +1384,7 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Return the epoch of the file last change
- * @details This function return that time (epoch) of the last change on a file, or -1 if the file does not exist.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK
- */
+// ***API***
 static int ntop_get_file_last_change(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -1425,12 +1404,7 @@ static int ntop_get_file_last_change(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if ntop has seen VLAN tagged packets on this interface.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_has_vlans(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1446,12 +1420,7 @@ static int ntop_has_vlans(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if ntop has loaded ASN information (via GeoIP)
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_has_geoip(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1461,13 +1430,7 @@ static int ntop_has_geoip(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if ntop is running on windows.
- * @details Push into lua stack 1 if ntop is running on windows, 0 otherwise.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_is_windows(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1603,13 +1566,7 @@ static int ntop_dropWriteCapabilities(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Wrapper for the libc call getservbyport()
- * @details Wrapper for the libc call getservbyport()
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_getservbyport(lua_State* vm) {
   int port;
   char *proto;
@@ -1640,7 +1597,7 @@ static int ntop_getservbyport(lua_State* vm) {
 
 /* ****************************************** */
 
-/* Millisecond sleep */
+// ***API***
 static int ntop_msleep(lua_State* vm) {
   u_int duration, max_duration = 60000 /* 1 min */;
 
@@ -1806,13 +1763,7 @@ static int ntop_tcp_probe(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Scan the input directory and return the list of files.
- * @details Get the path from the lua stack and push into a new hashtable the files name existing in the directory.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_list_dir_files(lua_State* vm) {
   char *path;
   DIR *dirp;
@@ -1889,12 +1840,7 @@ static int remove_recursively(const char * path) {
 
 /* ****************************************** */
 
-/**
- * @brief Scan the input directory, removes it and its contents.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_remove_dir_recursively(lua_State* vm) {
   char *path;
 
@@ -1912,12 +1858,7 @@ static int ntop_remove_dir_recursively(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the system time and push it into the lua stack.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_gettimemsec(lua_State* vm) {
   struct timeval tp;
   double ret;
@@ -1949,12 +1890,7 @@ static int ntop_tzset(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Lua-equivalent to C inet_ntoa
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_inet_ntoa(lua_State* vm) {
   u_int32_t ip;
   struct in_addr in;
@@ -1975,12 +1911,7 @@ static int ntop_inet_ntoa(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Mask an IPv4/v6 address with a bitmask and return the network prefix.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_network_prefix(lua_State* vm) {
   char *address;
   char buf[64];
@@ -2039,13 +1970,7 @@ static int ntop_zmq_connect(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Delete the specified member(field) from the redis hash stored at key.
- * @details Get the key parameter from the lua stack and delete it from redis.
- *
- * @param vm The lua stack.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_delete_redis_key(lua_State* vm) {
   char *key;
 
@@ -2060,6 +1985,7 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_flush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2072,12 +1998,7 @@ static int ntop_flush_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Add a member to the a redis set.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_add_set_member_redis(lua_State* vm) {
   char *key, *value;
 
@@ -2098,12 +2019,7 @@ static int ntop_add_set_member_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Removes a member from a redis set.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_del_set_member_redis(lua_State* vm) {
   char *key, *value;
 
@@ -2124,13 +2040,7 @@ static int ntop_del_set_member_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Get the members of a redis set.
- * @details Get the set key form the lua stack and push the members name into lua stack.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_get_set_members_redis(lua_State* vm) {
   char *key;
 
@@ -2139,31 +2049,6 @@ static int ntop_get_set_members_redis(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
   ntop->getRedis()->smembers(vm, key);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
- * @brief Delete the specified member(field) from the redis hash stored at key.
- * @details Get the member name and the hash key form the lua stack and remove the specified member.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
-static int ntop_delete_hash_redis_key(lua_State* vm) {
-  char *key, *member;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((member = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  ntop->getRedis()->hashDel(key, member);
-  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -2264,6 +2149,7 @@ static int ntop_zmq_receive(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_local_networks(lua_State* vm) {
   lua_newtable(vm);
   ntop->getLocalNetworks(vm);
@@ -2273,6 +2159,7 @@ static int ntop_get_local_networks(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_reload_preferences(lua_State* vm) {
   lua_newtable(vm);
   ntop->getPrefs()->reloadPrefsFromRedis();
@@ -2296,13 +2183,7 @@ static int ntop_temporary_disable_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Check if the trace level of ntop is verbose.
- * @details Push true into the lua stack if the trace level of ntop is set to MAX_TRACE_LEVEL, false otherwise.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
+// ***API***
 static int ntop_verbose_trace(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2312,6 +2193,7 @@ static int ntop_verbose_trace(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_send_udp_data(lua_State* vm) {
   int rc, port, sockfd = ntop->getUdpSock();
   char *host, *data;
@@ -4364,6 +4246,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_http_redirect(lua_State* vm) {
   char *url, str[512];
 
@@ -4391,6 +4274,7 @@ static int ntop_http_redirect(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
 static int ntop_http_get(lua_State* vm) {
   char *url, *username = NULL, *pwd = NULL;
   int timeout = 30;
@@ -4434,6 +4318,7 @@ static int ntop_http_get(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_http_get_prefix(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4443,6 +4328,7 @@ static int ntop_http_get_prefix(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_prefs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4463,6 +4349,7 @@ static int ntop_get_nologin_username(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_users(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4472,6 +4359,7 @@ static int ntop_get_users(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_user_group(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4481,6 +4369,7 @@ static int ntop_get_user_group(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_allowed_networks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4490,6 +4379,7 @@ static int ntop_get_allowed_networks(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
 
@@ -4517,6 +4407,7 @@ static int ntop_reset_user_password(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_change_user_role(lua_State* vm) {
   char *username, *user_role;
 
@@ -4536,6 +4427,7 @@ static int ntop_change_user_role(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_change_allowed_nets(lua_State* vm) {
   char *username, *allowed_nets;
 
@@ -4554,6 +4446,7 @@ static int ntop_change_allowed_nets(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_change_allowed_ifname(lua_State* vm) {
   char *username, *allowed_ifname;
 
@@ -4590,6 +4483,7 @@ static int ntop_change_user_host_pool(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_change_user_language(lua_State* vm) {
   char *username, *language;
 
@@ -4608,6 +4502,7 @@ static int ntop_change_user_language(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
   HTTPTranferStats stats;
@@ -4632,6 +4527,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_post_http_form(lua_State* vm) {
   char *username, *password, *url, *form_data;
 
@@ -4655,6 +4551,7 @@ static int ntop_post_http_form(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_post_http_text_file(lua_State* vm) {
   char *username, *password, *url, *path;
   bool delete_file_after_post = false;
@@ -4716,6 +4613,7 @@ static int ntop_send_mail(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_add_user(lua_State* vm) {
   char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
   char *host_pool_id = NULL, *language = NULL;
@@ -4796,6 +4694,7 @@ static int ntop_clear_user_lifetime(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_delete_user(lua_State* vm) {
   char *username;
 
@@ -5230,6 +5129,7 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5245,6 +5145,7 @@ static int ntop_get_dirs(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_uptime(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5254,6 +5155,7 @@ static int ntop_get_uptime(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_system_host_stat(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5279,6 +5181,7 @@ static int ntop_check_license(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
 #ifndef HAVE_NEDGE
@@ -5437,13 +5340,7 @@ static int ntop_snmpgetnext(lua_State* vm) { SNMP s; return(s.getnext(vm)); }
 
 /* ****************************************** */
 
-/**
- * @brief Send a message to the system syslog
- * @details Send a message to the syslog syslog: callers can specify if it is an error or informational message
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_ERROR if the expected type is equal to function type, @ref CONST_LUA_PARAM_ERROR otherwise.
- */
+// ***API***
 static int ntop_syslog(lua_State* vm) {
 #ifndef WIN32
   char *msg;
@@ -5469,10 +5366,8 @@ static int ntop_syslog(lua_State* vm) {
 /**
  * @brief Generate a random value to prevent CSRF and XSRF attacks
  * @details See http://blog.codinghorror.com/preventing-csrf-and-xsrf-attacks/
- *
- * @param vm The lua state.
- * @return The random value just generated
  */
+// ***API***
 static int ntop_generate_csrf_value(lua_State* vm) {
   char random_a[32], random_b[32], csrf[33], user[64] = { '\0' };
   Redis *redis = ntop->getRedis();
@@ -6121,6 +6016,7 @@ static int ntop_delete_old_rrd_files(lua_State *vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_mkdir_tree(lua_State* vm) {
   char *dir;
 
@@ -6131,7 +6027,8 @@ static int ntop_mkdir_tree(lua_State* vm) {
   if((dir = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
   if(dir[0] == '\0')                                   return(CONST_LUA_OK); /* Nothing to do */
 
-  return(Utils::mkdir_tree(dir));
+  lua_pushboolean(vm, Utils::mkdir_tree(dir));
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -6164,6 +6061,7 @@ static int ntop_list_reports(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_redis(lua_State* vm) {
   char *key, *rsp;
   u_int rsp_len = CONST_MAX_LEN_REDIS_VALUE;
@@ -6184,6 +6082,7 @@ static int ntop_get_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_hash_redis(lua_State* vm) {
   char *key, *member, *rsp;
   Redis *redis = ntop->getRedis();
@@ -6203,6 +6102,7 @@ static int ntop_get_hash_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_set_hash_redis(lua_State* vm) {
   char *key, *member, *value;
   Redis *redis = ntop->getRedis();
@@ -6222,24 +6122,26 @@ static int ntop_set_hash_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_del_hash_redis(lua_State* vm) {
+// ***API***
+static int ntop_delete_hash_redis_key(lua_State* vm) {
   char *key, *member;
-  Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-  if((member = (char*)lua_tostring(vm, 2)) == NULL)    return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  redis->hashDel(key, member);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((member = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
+  ntop->getRedis()->hashDel(key, member);
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_hash_keys_redis(lua_State* vm) {
   char *key, **vals;
   Redis *redis = ntop->getRedis();
@@ -6268,6 +6170,7 @@ static int ntop_get_hash_keys_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_hash_all_redis(lua_State* vm) {
   char *key, **keys, **values;
   Redis *redis = ntop->getRedis();
@@ -6299,6 +6202,7 @@ static int ntop_get_hash_all_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_get_keys_redis(lua_State* vm) {
   char *pattern, **keys = NULL;
   Redis *redis = ntop->getRedis();
@@ -6328,6 +6232,7 @@ static int ntop_get_keys_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_lrange_redis(lua_State* vm) {
   char *l_name, **l_elements;
   Redis *redis = ntop->getRedis();
@@ -6443,6 +6348,7 @@ static int ntop_list_index_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_lpop_redis(lua_State* vm) {
   char msg[1024], *list_name;
   Redis *redis = ntop->getRedis();
@@ -6461,6 +6367,7 @@ static int ntop_lpop_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_ltrim_redis(lua_State* vm) {
   char *list_name;
   int start_idx, end_idx;
@@ -6517,6 +6424,7 @@ static int ntop_push_redis(lua_State* vm, bool use_lpush) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_lpush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return ntop_push_redis(vm, true);
@@ -6524,6 +6432,7 @@ static int ntop_lpush_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_rpush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return ntop_push_redis(vm, false);
@@ -6531,6 +6440,7 @@ static int ntop_rpush_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_add_local_network(lua_State* vm) {
   char *local_network;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -7106,12 +7016,7 @@ static int ntop_lua_loadfile(lua_State* L) {
 
 /* ****************************************** */
 
-/**
- * @brief Return true if login has been disabled
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK and push the return code into the Lua stack
- */
+// ***API***
 static int ntop_is_login_disabled(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7125,12 +7030,7 @@ static int ntop_is_login_disabled(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Convert the network Id to a symbolic name (network/mask)
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK and push the return code into the Lua stack
- */
+// ***API***
 static int ntop_network_name_by_id(lua_State* vm) {
   int id;
   char *name;
@@ -7149,6 +7049,7 @@ static int ntop_network_name_by_id(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_set_logging_level(lua_State* vm) {
   char *lvlStr;
 
@@ -7394,11 +7295,10 @@ static const luaL_Reg ntop_reg[] = {
   { "getMembersCache",   ntop_get_set_members_redis },
   { "getHashCache",      ntop_get_hash_redis },
   { "setHashCache",      ntop_set_hash_redis },
-  { "delHashCache",      ntop_del_hash_redis },
+  { "delHashCache",      ntop_delete_hash_redis_key },
   { "getHashKeysCache",  ntop_get_hash_keys_redis },
   { "getHashAllCache",   ntop_get_hash_all_redis },
   { "getKeysCache",      ntop_get_keys_redis },
-  { "delHashCache",      ntop_delete_hash_redis_key },
   { "dumpCache",         ntop_redis_dump },
   { "restoreCache",      ntop_redis_restore },
   { "addLocalNetwork",   ntop_add_local_network },
