@@ -17,7 +17,7 @@ local top_rrds = {
    {rrd="bytes.rrd",                   label=i18n("traffic")},
    {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
    {rrd="packets.rrd",                 label=i18n("packets")},
-   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops"), nedge_exclude=1},
+   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
    {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
    {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
    {rrd="num_ms_rtt.rrd",              label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
@@ -34,9 +34,7 @@ local top_rrds = {
 }
 
 if ntop.isnEdge() then
-   top_rrds[#top_rrds + 1] = {rrd="num_nfq_drops.rrd",  label=i18n("graphs.num_nfq_drops")}
-   top_rrds[#top_rrds + 1] = {rrd="num_nfq_udrops.rrd", label=i18n("graphs.num_nfq_udrops")}
-   top_rrds[#top_rrds + 1] = {rrd="num_nfq_total.rrd",  label=i18n("graphs.num_nfq_total")}
+   top_rrds[#top_rrds + 1] = {rrd="num_nfq_pct.rrd",    label=i18n("graphs.num_nfq_pct")}
 end
 
 -- ########################################################

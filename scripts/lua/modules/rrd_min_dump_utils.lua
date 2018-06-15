@@ -158,13 +158,10 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
     rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
   end
 
-  if ntop.isnEdge() and ifstats.type == "netfilter" then
-     local st = ifstats.netfilter or {}
-     -- tprint({queue_dropped=queue_dropped, user_dropped=user_dropped, queue_total=queue_total, id_sequence=id_sequence})
+  if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
+     local st = ifstats.netfilter.nfq or {}
 
-     ts_utils.append(ts_schemas.iface_nfq_drops, {ifid=ifstats.id, num_nfq_drops = st.queue_dropped}, when, verbose)
-     ts_utils.append(ts_schemas.iface_nfq_udrops, {ifid=ifstats.id, num_nfq_udrops = st.user_dropped}, when, verbose)
-     ts_utils.append(ts_schemas.iface_nfq_total, {ifid=ifstats.id, num_nfq_total = st.queue_total}, when, verbose)
+     ts_utils.append(ts_schemas.iface_nfq_pct,   {ifid=ifstats.id, num_nfq_pct = st.queue_pct}, when, verbose)
   end
 
   ts_utils.flush()

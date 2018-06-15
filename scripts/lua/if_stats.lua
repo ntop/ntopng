@@ -615,23 +615,12 @@ print("</script>\n")
    if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
       local st = ifstats.netfilter
 
-      print("<tr><th colspan=6 nowrap>"..i18n("if_stats_overview.nf").."</th></tr>\n")
       print("<tr><th nowrap>"..i18n("if_stats_overview.nf_queue_total").."</th>")
-      print("<td width=20%><span id=nfq_queue_total>".. formatValue(st.queue_total) .."</span> <span id=nfq_queue_total_trend></span></td>")
-      print("<th nowrap><i class='fa fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.nf_queue_dropped").."</th>")
-      print("<td width=20%><span id=nfq_queue_dropped>"..formatValue(st.queue_dropped).."</span> <span id=nfq_queue_dropped_trend></span></td>")
-
-      print("<th nowrap><i class='fa fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.nf_queue_user_dropped").."</th>")
-      print("<td width=20%><span id=nfq_queue_user_dropped>"..formatValue(st.user_dropped).."</span> <span id=nfq_queue_user_dropped_trend></span></td>")
-
-      print("</tr>")
-
-      print("<tr><th nowrap>"..i18n("if_stats_overview.nf_queue_pct").."</th>")
       local span_class = ''
-      if st.queue_pct > 80 then
+      if st.nfq.queue_pct > 80 then
 	 span_class = "class='label label-danger'"
       end
-      print("<td width=20%><span id=nfq_queue_pct "..span_class..">"..formatValue(st.queue_pct).." %</span> <span id=nfq_queue_pct_trend></span></td>")
+      print("<td width=20%><span id=nfq_queue_total "..span_class..">"..string.format("%d [%d %%]", formatValue(st.nfq.queue_total), formatValue(st.nfq.queue_pct)).." </span> <span id=nfq_queue_total_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_handle_packet_failed").."</th>")
       print("<td width=20%><span id=nfq_handling_failed>"..formatValue(st.failures.handle_packet).."</span> <span id=nfq_handling_failed_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_enobufs").."</th>")
@@ -2446,28 +2435,18 @@ print(" Pkts\");")
 if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
    local st = ifstats.netfilter
 
-   print("var last_nfq_time = 0;\n")
-   print("var last_nfq_queue_total = ".. st.queue_total .. ";\n")
-   print("var last_nfq_queue_dropped = ".. st.queue_dropped .. ";\n")
-   print("var last_nfq_queue_user_dropped = ".. st.user_dropped .. ";\n")
-   print("var last_nfq_queue_pct = ".. st.queue_pct.. ";\n")
+   print("var last_nfq_queue_total = ".. st.nfq.queue_total .. ";\n")
    print("var last_nfq_handling_failed = ".. st.failures.handle_packet .. ";\n")
    print("var last_nfq_enobufs = ".. st.failures.no_buffers .. ";\n")
 
    print[[
-	$('#nfq_queue_total').html(fint(rsp.netfilter.queue_total));
-        $('#nfq_queue_total_trend').html(get_trend(last_nfq_queue_total, rsp.netfilter.queue_total));
-	$('#nfq_queue_dropped').html(fint(rsp.netfilter.queue_dropped));
-        $('#nfq_queue_dropped_trend').html(get_trend(last_nfq_queue_dropped, rsp.netfilter.queue_dropped));
-	$('#nfq_queue_user_dropped').html(fint(rsp.netfilter.user_dropped));
-        $('#nfq_queue_user_dropped_trend').html(get_trend(last_nfq_queue_user_dropped, rsp.netfilter.user_dropped));
-        if(rsp.netfilter.queue_pct > 80) {
-          $('#nfq_queue_pct').addClass("label label-danger");
+        if(rsp.netfilter.nfq.queue_pct > 80) {
+          $('#nfq_queue_total').addClass("label label-danger");
         } else {
-          $('#nfq_queue_pct').removeClass("label label-danger");
+          $('#nfq_queue_total').removeClass("label label-danger");
         }
-	$('#nfq_queue_pct').html(fint(rsp.netfilter.queue_pct) + " %");
-        $('#nfq_queue_pct_trend').html(get_trend(last_nfq_queue_pct, rsp.netfilter.queue_pct));
+	$('#nfq_queue_total').html(fint(rsp.netfilter.nfq.queue_total) + " [" + fint(rsp.netfilter.nfq.queue_pct) + " %]");
+        $('#nfq_queue_total_trend').html(get_trend(last_nfq_queue_total, rsp.netfilter.nfq.queue_total));
 	$('#nfq_handling_failed').html(fint(rsp.netfilter.failures.handle_packet));
         $('#nfq_handling_failed_trend').html(get_trend(last_nfq_handling_failed, rsp.netfilter.failures.handle_packet));
 	$('#nfq_enobufs').html(fint(rsp.netfilter.failures.no_buffers));
