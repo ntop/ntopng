@@ -18,16 +18,16 @@ where `{object}` is a C API reg (eg. `interface`) and `{api_group}` is a group o
 relevant to the same topic (e.g. `interface_hosts` is for api functions that work with hosts).
 
 Only a subset of the functions defined in `src/LuaEngine.cpp` are documented as API.
-The are marked with the `// ***API***` comment. Whenever an API function is modified,
-the corresponding documentation should be updated.
+They are marked with the `// ***API***` comment. Whenever an API function is modified,
+the corresponding documentation file should be updated.
 
 Here is how to perform some recurrent operations on the documentation:
 
   - Add/modify a function documentation: e.g. to update the `ntop.setCache` documentation,
-    the file `api/lua_c/ntop/ntop_cache.lua` is the file to modify.
+    the file `api/lua_c/ntop/ntop_cache.lua` should be modified.
 
   - Add a new group of api functions for an existing C API reg: e.g. to group together all the
-    host pools functions, the following file should be created:
+    host pools functions, the following modifications should be performed:
       - create `api/lua_c/interface/interface_host_pools.lua`.
       - create `api/lua_c/interface/interface_host_pools.rst`. Adapt this from an existing `.rst`.
       - edit `api/lua_c/interface/index.rst` and add `interface_host_pools` to the `toctree` section.
