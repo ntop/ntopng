@@ -1,6 +1,7 @@
 --! @brief Set a persistent preference.
 --! @param key the preference key.
 --! @param key the preference value.
+--! @note by convention, preference keys should start with "ntopng.prefs." .
 function setPref(string key, string value)
 
 --! @brief Get a persistent preference.

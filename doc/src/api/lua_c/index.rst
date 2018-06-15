@@ -15,5 +15,5 @@ so it's available through the interface object API via `interface.getFlowsInfo()
     :maxdepth: 2
     :numbered:
 
-    ntop/ntop
-    interface/interface
+    ntop/index
+    interface/index

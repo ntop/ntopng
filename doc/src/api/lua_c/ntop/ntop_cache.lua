@@ -8,6 +8,7 @@ function getCache(string key)
 --! @param key the item identifier.
 --! @param value the item value.
 --! @param expire_secs if set, the cache will expire after the specified seconds.
+--! @note by convention, cache keys should start with "ntopng.cache." .
 function setCache(string key, string value, int expire_secs=nil)
 
 --! @brief Delete a previously cached value.
