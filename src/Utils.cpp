@@ -2788,34 +2788,6 @@ void Utils::luaMeminfo(lua_State* vm) {
 
 /* ****************************************************** */
 
-#ifdef HAVE_NEDGE
-void Utils::luaNetfilter(lua_State* vm) {
-#if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
-  long unsigned int queue_number = 0, peer_portid = 0, queue_total = 0, copy_mode = 0,
-    copy_range = 0, queue_dropped = 0, user_dropped = 0, id_sequence = 0, one = 1;
-  FILE *fp;
-
-  if(vm) {
-    if((fp = fopen("/proc/net/netfilter/nfnetlink_queue", "r"))) {
-      fscanf(fp,"%lu %lu %lu %lu %lu %lu %lu %lu %lu",
-	     &queue_number, &peer_portid, &queue_total,
-	     &copy_mode, &copy_range,
-	     &queue_dropped, &user_dropped,
-	     &id_sequence, &one);
-      fclose(fp);
-
-      lua_push_int_table_entry(vm, "queue_total", queue_total);
-      lua_push_int_table_entry(vm, "queue_dropped", queue_dropped);
-      lua_push_int_table_entry(vm, "user_dropped", user_dropped);
-      lua_push_int_table_entry(vm, "id_sequence", id_sequence);
-    }
-  }
-#endif
-};
-#endif
-
-/* ****************************************************** */
-
 char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
   char ebuf[PCAP_ERRBUF_SIZE];
   pcap_if_t *devs, *devpointer;

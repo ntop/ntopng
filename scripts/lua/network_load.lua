@@ -108,6 +108,10 @@ function dumpInterfaceStats(interface_name)
         res["bytes_download"] = ifstats["eth"]["ingress"]["bytes"]
       end
 
+      if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
+	 res["netfilter"] = ifstats.netfilter
+      end
+
       if(ifstats.zmqRecvStats ~= nil) then
 	 res["zmqRecvStats"] = {}
 	 res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
