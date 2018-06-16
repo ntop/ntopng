@@ -7895,8 +7895,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
+	/* application/json" */
+	
 	lua_newtable(L);
-	lua_push_str_table_entry(L, "JSON", post_data);
+	lua_push_str_table_entry(L, "payload", post_data);
 	lua_setglobal(L, "_POST");
       }
     } else
@@ -7906,31 +7908,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       free(post_data);
   } else
     setParamsTable(L, "_POST", NULL /* Empty */);
-
-  /* Grafana */
-  if(!strcmp(request_info->request_method, "POST")
-     && ((content_type != NULL) && (strstr(content_type, "application/json") == content_type))
-     && (!strncmp(request_info->uri, GRAFANA_URL, strlen(GRAFANA_URL))
-	 || !strncmp(request_info->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
-     && (post_data = (char*)malloc(HTTP_MAX_POST_DATA_LEN * sizeof(char)))) {
-
-    lua_newtable(L);
-
-    if((post_data_len = mg_read(conn, post_data, HTTP_MAX_POST_DATA_LEN)) <= HTTP_MAX_POST_DATA_LEN - 1) {
-      post_data[post_data_len] = '\0';
-      lua_push_str_table_entry(L, "payload", post_data);
-    } else {
-      lua_push_nil_table_entry(L, "payload");
-    }
-
-    if(!strncmp(request_info->uri, GRAFANA_URL, strlen(GRAFANA_URL)))
-      lua_setglobal(L, "_GRAFANA");
-    else
-      lua_setglobal(L, "_POST");
-
-    free(post_data);
-  }
-
+  
   /* Put the GET params into the environment */
   if(request_info->query_string)
     setParamsTable(L, "_GET", request_info->query_string);
