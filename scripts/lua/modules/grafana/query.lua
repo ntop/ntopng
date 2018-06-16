@@ -19,18 +19,18 @@ else
    corsr["Access-Control-Allow-Origin"] = _SERVER["Origin"]
    sendHTTPHeader('application/json', nil, corsr)
 
-   local epoch_begin = toEpoch(_GRAFANA["payload"]["range"]["from"])
-   local epoch_end   = toEpoch(_GRAFANA["payload"]["range"]["to"])
+   local epoch_begin = toEpoch(_POST["payload"]["range"]["from"])
+   local epoch_end   = toEpoch(_POST["payload"]["range"]["to"])
 
    -- override max_num_points in singlerrd2json
-   global_max_num_points = _GRAFANA["payload"]["maxDataPoints"]
+   global_max_num_points = _POST["payload"]["maxDataPoints"]
    if global_max_num_points > 600 then
       global_max_num_points = 600 -- ensures 100% match between ntopng and grafana charts
    end
 
    local res = {}
 
-   for _, t in pairs(_GRAFANA["payload"]["targets"]) do
+   for _, t in pairs(_POST["payload"]["targets"]) do
       if t["target"] == nil then t["target"] = "" end
 
       local is_host = string.starts(t["target"] or '', "host_")
@@ -79,10 +79,10 @@ else
       -- tprint({target=target, is_traffic=is_traffic, is_packets=is_packets, entity_name=entity_name})
    end
 
-   --tprint(_GRAFANA["payload"])
+   --tprint(_POST["payload"])
 
    -- tprint("QUERY")
-   -- tprint(_GRAFANA)
+   -- tprint(_POST)
 
    print(json.encode(res, nil))
 end

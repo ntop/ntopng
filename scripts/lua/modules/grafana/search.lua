@@ -20,9 +20,9 @@ else
    sendHTTPHeader('application/json', nil, corsr)
 
    -- tprint("SEARCH")
-   -- tprint(_GRAFANA)
+   -- tprint(_POST)
 
-   local target = _GRAFANA["payload"]["target"]
+   local target = _POST["payload"]["target"]
    --[[
       example targets:
       interface_eth0

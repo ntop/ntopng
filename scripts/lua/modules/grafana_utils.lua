@@ -64,12 +64,12 @@ function toSeries(jsonrrd, res, label)
 
 end
 
-if _GRAFANA == nil then
-   _GRAFANA = {}
+if _POST == nil then
+   _POST = {}
 end
 
-if not isEmptyString(_GRAFANA["payload"]) then
-   _GRAFANA["payload"] = json.decode(_GRAFANA["payload"])
+if not isEmptyString(_POST["payload"]) then
+   _POST["payload"] = json.decode(_POST["payload"])
 else
-   _GRAFANA["payload"] = {}
+   _POST["payload"] = {}
 end
