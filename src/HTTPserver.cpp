@@ -864,7 +864,12 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   bool use_http = true;
   struct stat statsBuf;
   int stat_rc;
+  struct timeval tv;
 
+  /* Randomize data */
+  gettimeofday(&tv, NULL);
+  srand(tv.tv_sec + tv.tv_usec);
+  
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
