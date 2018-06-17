@@ -838,7 +838,6 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   bool use_http = true;
   struct stat statsBuf;
   int stat_rc;
-
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
@@ -848,6 +847,11 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     NULL, NULL, NULL, NULL,
     NULL
   };
+  struct timeval tv;
+
+  /* Randomize data */
+  gettimeofday(&tv, NULL);
+  srand(tv.tv_sec + tv.tv_usec);
 
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   httpserver = this;
