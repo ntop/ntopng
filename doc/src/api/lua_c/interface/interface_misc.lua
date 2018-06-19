@@ -96,3 +96,9 @@ function getSFlowDevices()
 --! @param device_ip the sFlow device IP.
 --! @return table (if_idx -> if_information) on success, nil otherwise.
 function getSFlowDeviceInfo(string device_ip)
+
+--! @brief Captures a 'duration' long pcap file
+--! @param duration The pcap duration (in seconds)
+--! @param bpf_filter An optional BPF filtering expression
+--! @return The path of the pcap file, nil otherwise.
+function captureToPcap(int duration, string bpf_filter)
