@@ -856,7 +856,8 @@ static int handle_http_message(const struct mg_connection *conn, const char *mes
 
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
-  static char ports[256], ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
+  static char ports[256], splash_ports[32], acl_management[64],
+    ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
   const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
   const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
   char tmpBuf[8];
@@ -865,21 +866,37 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct stat statsBuf;
   int stat_rc;
   struct timeval tv;
-
-  /* Randomize data */
-  gettimeofday(&tv, NULL);
-  srand(tv.tv_sec + tv.tv_usec);
-  
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
     (char*)"document_root",  (char*)_docs_dir,
+    (char*)"access_control_list", acl_management,
     /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
     (char*)"num_threads", (char*)"5",
     NULL, NULL, NULL, NULL,
     NULL
   };
+  static char *http_splash_options[] = {
+    (char*)"listening_ports", splash_ports,
+    (char*)"enable_directory_listing", (char*)"no",
+    (char*)"document_root",  (char*)_docs_dir,
+    (char*)"num_threads", (char*)"10",
+    NULL, NULL, NULL, NULL,
+    NULL
+  };
 
+  /* Randomize data */
+  gettimeofday(&tv, NULL);
+  srand(tv.tv_sec + tv.tv_usec);
+  
+  ntop->getRedis()->get((char*)SPLASH_HTTP_PORT, tmpBuf, sizeof(tmpBuf), true);
+  http_splash_port = (tmpBuf[0] != '\0') ? atoi(tmpBuf) : 0;
+
+  acl_management[0] = '\0';
+  ntop->getRedis()->get((char*)HTTP_ACL_MANAGEMENT_PORT, acl_management, sizeof(acl_management), true);
+  if(acl_management[0] == '\0')
+    snprintf(acl_management, sizeof(acl_management), "+0.0.0.0/0");
+  
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   httpserver = this;
   if(ntop->getPrefs()->get_http_port() == 0) use_http = false;
@@ -945,24 +962,17 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 				 "Starting the HTTP server on the default port");
     snprintf(ports, sizeof(ports), "%d", ntop->getPrefs()->get_http_port());
     use_http = true;
+  }  
+  
+  if(http_splash_port > 0) {
+    snprintf(splash_ports, sizeof(splash_ports) - 1, "%s%s%d",
+	     http_binding_addr,
+	     (http_binding_addr[0] == '\0') ? "" : ":",
+	     http_splash_port);
+    
+    /* Mongoose uses network byte order */
+    http_splash_port = ntohs(http_splash_port);
   }
-
-  ntop->getRedis()->get((char*)SPLASH_HTTP_PORT, tmpBuf, sizeof(tmpBuf), true);
-  if(tmpBuf[0] != '\0') {
-    http_splash_port = atoi(tmpBuf);
-
-    if(http_splash_port > 0) {
-      snprintf(&ports[strlen(ports)], sizeof(ports) - strlen(ports) - 1, ",%s%s%d",
-	       http_binding_addr,
-	       (http_binding_addr[0] == '\0') ? "" : ":",
-	       http_splash_port);
-
-      /* Mongoose uses network byte order */
-      http_splash_port = ntohs(http_splash_port);
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignoring HTTP splash port (%s)", tmpBuf);
-  } else
-    http_splash_port = 0;
 
   if(ntop->getPrefs()->is_access_log_enabled()) {
     int i;
@@ -988,12 +998,30 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   httpd_v4 = mg_start(&callbacks, NULL, (const char**)http_options);
 
   if(httpd_v4 == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start HTTP server (IPv4) on ports %s", ports);
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to start management HTTP server (IPv4) on ports %s",
+				 ports);
     if (errno)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
     exit(-1);
   }
+  
+  if(http_splash_port > 0) {
+    httpd_splash_v4 = mg_start(&callbacks, NULL, (const char**)http_splash_options);
+    
+    if(httpd_splash_v4 == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to start HTTP (splash) server (IPv4) on ports %s",
+				   splash_ports);
 
+      if(errno)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
+      
+      exit(-1);
+    }
+  } else
+      httpd_splash_v4 = NULL;
+  
   /* ***************************** */
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
@@ -1010,7 +1038,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 /* ****************************************** */
 
 HTTPserver::~HTTPserver() {
-  if(httpd_v4) mg_stop(httpd_v4);
+  if(httpd_v4)        mg_stop(httpd_v4);
+  if(httpd_splash_v4) mg_stop(httpd_splash_v4);
 
   free(docs_dir), free(scripts_dir);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");

@@ -23,7 +23,18 @@
 
 /* ******************************* */
 
+static void* resolverCheckFctn(void* ptr) {
+  MDNS *m = (MDNS*)ptr;
+
+  m->initializeResolver();
+  return(NULL);
+}
+
+/* ******************************* */
+
 MDNS::MDNS(NetworkInterface *iface) {
+  pthread_t resolverCheck;
+  
   if(((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
      || ((batch_udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1))
     throw("Unable to create socket");
@@ -31,6 +42,19 @@ MDNS::MDNS(NetworkInterface *iface) {
   /* Multicast group is 224.0.0.251 */
   gatewayIPv4 = Utils::findInterfaceGatewayIPv4(iface->get_name());
 
+  pthread_create(&resolverCheck, NULL, resolverCheckFctn, (void*)this);
+}
+
+/* ******************************* */
+
+MDNS::~MDNS() {
+  if(udp_sock != -1)       close(udp_sock);
+  if(batch_udp_sock != -1) close(batch_udp_sock);
+}
+
+/* ******************************* */
+
+void MDNS::initializeResolver() {
   if(gatewayIPv4) {
     /* Let's check if this resolver is active */
     u_int dns_query_len;
@@ -61,13 +85,6 @@ MDNS::MDNS(NetworkInterface *iface) {
 
     gatewayIPv4 = 0; /* Invalid */
   }
-}
-
-/* ******************************* */
-
-MDNS::~MDNS() {
-  if(udp_sock != -1)       close(udp_sock);
-  if(batch_udp_sock != -1) close(batch_udp_sock);
 }
 
 /* ******************************* */

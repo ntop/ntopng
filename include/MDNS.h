@@ -54,6 +54,8 @@ public:
   MDNS(NetworkInterface *iface);
   ~MDNS();
 
+  void initializeResolver();
+    
   /* Batch interface (via Lua) */
   bool sendAnyQuery(char *targetIPv4, char *query);
   bool queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS);

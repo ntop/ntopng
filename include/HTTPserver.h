@@ -30,7 +30,7 @@ extern bool enable_users_login;
 class HTTPserver {
  private:
   char *docs_dir, *scripts_dir;
-  struct mg_context *httpd_v4;
+  struct mg_context *httpd_v4, *httpd_splash_v4;
   bool ssl_enabled;
   u_int16_t http_splash_port;
   
