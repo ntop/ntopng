@@ -3068,7 +3068,7 @@ function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
    end
 
    local prefs = prefs or ntop.getPrefs()
-   return is_bridge_iface and (prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)
+   return is_bridge_iface and (prefs["http.port"] ~= 80)
 end
 
 -- Returns true if the captive portal is active right now

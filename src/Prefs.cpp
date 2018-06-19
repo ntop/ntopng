@@ -60,7 +60,7 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   prefs_dir = NULL;
   config_file_path = ndpi_proto_path = NULL;
-  http_port = CONST_DEFAULT_NTOP_PORT, alt_http_port = 0;
+  http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
@@ -681,13 +681,8 @@ void Prefs::parseHTTPPort(char *arg) {
   snprintf(tmp, sizeof(tmp), "%s", arg);
 
   a = strtok_r(tmp, ",", &_t);
-  if(a) {
+  if(a)
     http_port = atoi(a);
-
-    a = strtok_r(NULL, ",", &_t);
-    if(a)
-      alt_http_port = atoi(a);
-  }
 }
 
 /* ******************************************* */
@@ -1447,7 +1442,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   lua_push_int_table_entry(vm, "http.port", get_http_port());
-  lua_push_int_table_entry(vm, "http.alt_port", get_alt_http_port());
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
