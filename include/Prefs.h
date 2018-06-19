@@ -81,7 +81,7 @@ class Prefs {
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   u_int8_t ewma_alpha_percent;
-  u_int http_port, alt_http_port, https_port;
+  u_int http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex;
@@ -198,7 +198,6 @@ class Prefs {
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };
-  inline u_int get_alt_http_port()                      { return(alt_http_port);  };
   inline u_int get_https_port()                         { return(https_port);     };
   inline char* get_redis_host()                         { return(redis_host);     }
   inline char* get_redis_password()                     { return(redis_password); }

@@ -280,12 +280,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   initElasticSearch();
   initLogstash();
-#ifdef NTOPNG_PRO
-  if(((ntop->getPrefs()->get_http_port() != 80) && (ntop->getPrefs()->get_alt_http_port() != 80))
-     || ((ntop->getPrefs()->get_http_port() == 80) && (ntop->getPrefs()->get_alt_http_port() == 0))) {
-    redis->del((char*)CONST_PREFS_CAPTIVE_PORTAL);
-  }
 
+#ifdef NTOPNG_PRO
   pro->init_license();
 #endif
 
