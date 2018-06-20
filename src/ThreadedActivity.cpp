@@ -154,7 +154,7 @@ void ThreadedActivity::runScript() {
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   LuaEngine *l;
 
-  if(isTerminating()) return;
+  if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating()) return;
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
