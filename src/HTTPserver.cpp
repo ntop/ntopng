@@ -724,7 +724,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     ;
   else if((!whitelisted) && (!authorized)) {
 #ifdef HAVE_NEDGE
-    if(conn->client.lsa.sin.sin_port == ntop->get_HTTPserver()->getSplashPort())
+    if(conn->client.lsa.sin.sin_port == ntop->get_HTTPserver()->getCaptivePort())
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
 		"Location: %s%s?referer=%s\r\n\r\n",
@@ -858,6 +858,8 @@ static int handle_http_message(const struct mg_connection *conn, const char *mes
   return 1;
 }
 
+/* ****************************************** */
+
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256], acl_management[64],
@@ -981,50 +983,10 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     exit(-1);
   }
 
-  /* ***************************** */
-
 #ifdef HAVE_NEDGE
-  char tmpBuf[8];
-  static char splash_ports[32];
-
-  static char *http_splash_options[] = {
-    (char*)"listening_ports", splash_ports,
-    (char*)"enable_directory_listing", (char*)"no",
-    (char*)"document_root",  (char*)_docs_dir,
-    (char*)"num_threads", (char*)"10",
-    NULL, NULL, NULL, NULL,
-    NULL
-  };
-
-  ntop->getRedis()->get((char*)SPLASH_HTTP_PORT, tmpBuf, sizeof(tmpBuf), true);
-  http_splash_port = (tmpBuf[0] != '\0') ? atoi(tmpBuf) : 0;
-  /* Mongoose uses network byte order */
-  http_splash_port = ntohs(http_splash_port);
-
-  if(ntop->getPrefs()->isCaptivePortalEnabled()) {
-    snprintf(splash_ports, sizeof(splash_ports), "80");
-    
-    httpd_splash_v4 = mg_start(&callbacks, NULL, (const char**)http_splash_options);
-
-    if(httpd_splash_v4 == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to start HTTP (splash) server (IPv4) on ports %s. "
-				   "Captive portal needs port 80. Make sure this port"
-				   "is not in use by ntopng (option -w) or by any other process.",
-				   splash_ports);
-
-      if(errno)
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
-      
-      exit(-1);
-    } else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP (splash) server listening on port %s",
-				   splash_ports);
-  }
+  startCaptiveServer(_docs_dir, &callbacks);
 #endif
   
-  /* ***************************** */
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
 
   if(use_http)
@@ -1039,13 +1001,58 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 /* ****************************************** */
 
 HTTPserver::~HTTPserver() {
-  if(httpd_v4)        mg_stop(httpd_v4);
+  if(httpd_v4)         mg_stop(httpd_v4);
 #ifdef HAVE_NEDGE
-  if(httpd_splash_v4) mg_stop(httpd_splash_v4);
+  if(httpd_captive_v4) mg_stop(httpd_captive_v4);
 #endif
 
   free(docs_dir), free(scripts_dir);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
+
+/* ****************************************** */
+
+#ifdef HAVE_NEDGE
+
+void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks) {
+  if(ntop->getPrefs()->isCaptivePortalEnabled()) {
+    char tmpBuf[8];
+    static char captive_ports[32];
+    static char *http_captive_options[] = {
+      (char*)"listening_ports", captive_ports,
+      (char*)"enable_directory_listing", (char*)"no",
+      (char*)"document_root",  (char*)_docs_dir,
+      (char*)"num_threads", (char*)"10",
+      NULL, NULL, NULL, NULL,
+      NULL
+    };
+
+    ntop->getRedis()->get((char*)CAPTIVE_HTTP_PORT, tmpBuf, sizeof(tmpBuf), true);
+    http_captive_port = (tmpBuf[0] != '\0') ? atoi(tmpBuf) : 0;
+    /* Mongoose uses network byte order */
+    http_captive_port = ntohs(http_captive_port);
+
+    snprintf(captive_ports, sizeof(captive_ports), "80");
+    
+    httpd_captive_v4 = mg_start(callbacks, NULL, (const char**)http_captive_options);
+
+    if(httpd_captive_v4 == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to start HTTP (captive) server (IPv4) on ports %s. "
+				   "Captive portal needs port 80. Make sure this port"
+				   "is not in use by ntopng (option -w) or by any other process.",
+				   captive_ports);
+
+      if(errno)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
+      
+      exit(-1);
+    } else
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP (captive) server listening on port %s",
+				   captive_ports);
+  } else
+    httpd_captive_v4 = NULL;
+}
+#endif 
 
 /* ****************************************** */

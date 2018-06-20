@@ -181,7 +181,7 @@
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
 #define DUMP_HOST_TRAFFIC        "ntopng.prefs.dump_host_traffic"
 #define HOST_TRAFFIC_QUOTA       "ntopng.prefs.hosts_quota"
-#define SPLASH_HTTP_PORT         "ntopng.prefs.http_splash_port"
+#define CAPTIVE_HTTP_PORT        "ntopng.prefs.http_splash_port" // FIX splash -> captive in the key name
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"
 
 #define TRAFFIC_FILTERING_CACHE_DURATION  43200 /* 12 h */
