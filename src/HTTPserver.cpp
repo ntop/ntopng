@@ -1015,11 +1015,13 @@ HTTPserver::~HTTPserver() {
 #ifdef HAVE_NEDGE
 
 void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks) {
+  httpd_captive_v4 = NULL;
+  
   if(ntop->getPrefs()->isCaptivePortalEnabled()) {
     char tmpBuf[8];
     static char captive_ports[32];
     static char *http_captive_options[] = {
-      (char*)"listening_ports", captive_ports,
+      (char*)"listening_ports", (char*)"80",
       (char*)"enable_directory_listing", (char*)"no",
       (char*)"document_root",  (char*)_docs_dir,
       (char*)"num_threads", (char*)"10",
@@ -1027,22 +1029,16 @@ void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *
       NULL
     };
 
-    ntop->getRedis()->get((char*)CAPTIVE_HTTP_PORT, tmpBuf, sizeof(tmpBuf), true);
-    http_captive_port = (tmpBuf[0] != '\0') ? atoi(tmpBuf) : 0;
-    /* Mongoose uses network byte order */
-    http_captive_port = ntohs(http_captive_port);
-
-    snprintf(captive_ports, sizeof(captive_ports), "80");
-    
+    http_captive_port = ntohs(80);
     httpd_captive_v4 = mg_start(callbacks, NULL, (const char**)http_captive_options);
-
+    
     if(httpd_captive_v4 == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Unable to start HTTP (captive) server (IPv4) on ports %s. "
 				   "Captive portal needs port 80. Make sure this port"
 				   "is not in use by ntopng (option -w) or by any other process.",
 				   captive_ports);
-
+      
       if(errno)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
       
@@ -1050,8 +1046,7 @@ void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP (captive) server listening on port %s",
 				   captive_ports);
-  } else
-    httpd_captive_v4 = NULL;
+  }
 }
 #endif 
 
