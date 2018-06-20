@@ -3423,7 +3423,8 @@ void Flow::addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet) {
 
 /* ***************************************************** */
 
-void Flow::flushBufferedPackets() {  
+/* NOTE: only for unknown protocol flows */
+void Flow::flushBufferedPackets() {
   if(iface->do_dump_unknown_traffic()
      && flow_packets_head
      && (get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN)

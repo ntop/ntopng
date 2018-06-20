@@ -209,7 +209,6 @@ NetworkInterface::NetworkInterface(const char *name,
   flow_interfaces_stats = NULL; /* Lazy, instantiated on demand */
 #endif
 
-  loadDumpPrefs();
   loadScalingFactorPrefs();
   loadPacketsDropsAlertPrefs();
 
@@ -1910,14 +1909,19 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool dump_if_unknown = dump_unknown_traffic
     && ((!flow->isDetectionCompleted())
 	&& (flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN));
+  bool dump_flow_to_disk = dump_to_disk && !isSampledTraffic();
 
+  /* Special handler for unknown traffic */
+  if(dump_if_unknown && dump_flow_to_disk)
+    flow->addPacketToDump(h, packet);
+
+  /* General packet dump */
   if(dump_if_unknown
      || dump_all_traffic
      || flow->dumpFlowTraffic()) {
-    if(dump_to_disk && (!isSampledTraffic())) {
-      // dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
-      flow->addPacketToDump(h, packet);
-    }
+    /* Dump to separate file only if general packet dump is enabled */
+    if(dump_flow_to_disk && (dump_all_traffic || flow->dumpFlowTraffic()))
+      dumpPacketDisk(h, packet, GUI);
 
     if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
   }

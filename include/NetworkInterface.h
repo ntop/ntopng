@@ -662,6 +662,7 @@ class NetworkInterface : public Checkpointable {
   };
   Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   inline bool do_dump_unknown_traffic() { return(dump_unknown_traffic); }
+  inline bool do_dump_all_traffic()     { return(dump_unknown_traffic); }
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif
