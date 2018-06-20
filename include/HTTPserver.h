@@ -32,12 +32,13 @@ class HTTPserver {
   char *docs_dir, *scripts_dir;
   struct mg_context *httpd_v4;
   bool ssl_enabled;
+  bool check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len);
 
 #ifdef HAVE_NEDGE
   struct mg_context *httpd_captive_v4;
   u_int16_t http_captive_port;
 
-  void startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks);
+  void startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks, const char * const ssl_cert_path);
 #endif
 
  public:

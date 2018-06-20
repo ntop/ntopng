@@ -860,16 +860,39 @@ static int handle_http_message(const struct mg_connection *conn, const char *mes
 
 /* ****************************************** */
 
-HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
-  struct mg_callbacks callbacks;
-  static char ports[256], acl_management[64],
-    ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
-  const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
-  const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
-  bool use_ssl = false;
-  bool use_http = true;
+bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
   struct stat statsBuf;
   int stat_rc;
+  ssl_cert_path[0] = '\0';
+
+  snprintf(ssl_cert_path, ssl_cert_path_len, "%s/ssl/%s",
+	   docs_dir, CONST_HTTPS_CERT_NAME);
+
+  stat_rc = stat(ssl_cert_path, &statsBuf);
+
+  if(stat_rc == 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Found SSL certificate %s", ssl_cert_path);
+    return true;
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "HTTPS Disabled: missing SSL certificate %s", ssl_cert_path);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable SSL.");
+
+  return false;
+}
+
+/* ****************************************** */
+
+HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
+  struct mg_callbacks callbacks;
+  static char ports[256] = { 0 }, acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH] = { 0 };
+  const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
+  const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
+  bool use_http = true;
+  bool good_ssl_cert = false;
+
   struct timeval tv;
   static char *http_options[] = {
     (char*)"listening_ports", ports,
@@ -892,7 +915,9 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     snprintf(acl_management, sizeof(acl_management), "+0.0.0.0/0");
   
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
+  ssl_enabled = false;
   httpserver = this;
+
   if(ntop->getPrefs()->get_http_port() == 0) use_http = false;
 
   if(use_http) {
@@ -902,54 +927,30 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 	     ntop->getPrefs()->get_http_port());
   }
 
-  snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s",
-	   docs_dir, CONST_HTTPS_CERT_NAME);
-
-  stat_rc = stat(ssl_cert_path, &statsBuf);
-
-  if((ntop->getPrefs()->get_https_port() > 0) && (stat_rc == 0)) {
+  good_ssl_cert = check_ssl_cert(ssl_cert_path, sizeof(ssl_cert_path));
+  if(good_ssl_cert && ntop->getPrefs()->get_https_port() > 0) {
+    ssl_enabled = true;
     int i;
 
-    use_ssl = true;
-    if(use_http)
-      snprintf(ports, sizeof(ports), "%s%s%d,%s%s%ds",
-	       http_binding_addr,
-	       (http_binding_addr[0] == '\0') ? "" : ":",
-	       ntop->getPrefs()->get_http_port(),
-	       https_binding_addr,
-	       (https_binding_addr[0] == '\0') ? "" : ":",
-	       ntop->getPrefs()->get_https_port());
-    else
-      snprintf(ports, sizeof(ports), "%s%s%ds",
-	       https_binding_addr,
-	       (https_binding_addr[0] == '\0') ? "" : ":",
-	       ntop->getPrefs()->get_https_port());
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Found SSL certificate %s", ssl_cert_path);
-
-    for(i=0; http_options[i] != NULL; i++) ;
-
+    for(i = 0; http_options[i] != NULL; i++) ;
     http_options[i] = (char*)"ssl_certificate", http_options[i+1] = ssl_cert_path;
-    ssl_enabled = true;
-  } else {
-    if(stat_rc != 0)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "HTTPS Disabled: missing SSL certificate %s", ssl_cert_path);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable SSL.");
-    ssl_enabled = false;
+
+    snprintf(&ports[strlen(ports)],
+	     sizeof(ports) - strlen(ports) - 1,
+	     "%s%s%s%ds",
+	     use_http ? (char*)"," : "",
+	     https_binding_addr,
+	     (https_binding_addr[0] == '\0') ? "" : ":",
+	     ntop->getPrefs()->get_https_port());
+
   }
 
-  if((!use_http) && (!use_ssl) & (!ssl_enabled)) {
-    if(stat_rc != 0)
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Unable to start HTTP server: HTTP is disabled and the SSL certificate is missing.");
+  if((!use_http) && (!ssl_enabled)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
 				 "Starting the HTTP server on the default port");
     snprintf(ports, sizeof(ports), "%d", ntop->getPrefs()->get_http_port());
     use_http = true;
-  }  
-  
+  }
 
   if(ntop->getPrefs()->is_access_log_enabled()) {
     int i;
@@ -984,17 +985,21 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   }
 
 #ifdef HAVE_NEDGE
-  startCaptiveServer(_docs_dir, &callbacks);
+  startCaptiveServer(_docs_dir, &callbacks, good_ssl_cert ? ssl_cert_path : NULL);
 #endif
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
 
   if(use_http)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on port(s) %s",
-				 ports);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on %s%s%d",
+				 http_binding_addr[0] != '\0' ? http_binding_addr : (char*)"",
+				 http_binding_addr[0] != '\0' ? (char*)":" : (char*)"",
+				 ntop->getPrefs()->get_http_port());
 
-  if(use_ssl & ssl_enabled)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTPS server listening on port %d",
+  if(ssl_enabled)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTPS server listening on %s%s%d",
+				 https_binding_addr[0] != '\0' ? https_binding_addr : (char*)"",
+				 https_binding_addr[0] != '\0' ? (char*)":" : (char*)"",
 				 ntop->getPrefs()->get_https_port());
 };
 
@@ -1014,7 +1019,7 @@ HTTPserver::~HTTPserver() {
 
 #ifdef HAVE_NEDGE
 
-void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks) {
+void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks, const char * const ssl_cert_path) {
   httpd_captive_v4 = NULL;
   
   if(ntop->getPrefs()->isCaptivePortalEnabled()) {
