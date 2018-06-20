@@ -120,9 +120,15 @@ LuaEngine::~LuaEngine() {
 #endif
 
     if(ctx) {
-      SNMP *snmp = ((struct ntopngLuaContext*)ctx)->snmp;
+      SNMP *snmp = ctx->snmp;
 
       if(snmp) delete snmp;
+
+      if(ctx->pkt_capture.end_capture > 0) {
+	ctx->pkt_capture.end_capture = 0; /* Force stop */
+	pthread_join(ctx->pkt_capture.captureThreadLoop, NULL);
+      }
+
       free(ctx);
     }
 
@@ -3845,19 +3851,65 @@ static int ntop_nindex_select(lua_State* vm) {
 
 /* ****************************************** */
 
+static void* pcapDumpLoop(void* ptr) {
+  struct ntopngLuaContext *c = (struct ntopngLuaContext*)ptr;
+
+  while(c->pkt_capture.captureInProgress) {
+    u_char *pkt;
+    struct pcap_pkthdr *h;
+    int rc = pcap_next_ex(c->pkt_capture.pd, &h, (const u_char **) &pkt);
+    
+    if(rc > 0) {
+      pcap_dump((u_char*)c->pkt_capture.dumper, (const struct pcap_pkthdr*)h, pkt);
+      
+      if(h->ts.tv_sec > c->pkt_capture.end_capture)
+	break;
+    } else if(rc < 0) {
+      break;
+    } else if(rc == 0) {
+      if(time(NULL) > c->pkt_capture.end_capture)
+	break;
+    }
+  } /* while */
+
+  if(c->pkt_capture.dumper) {
+    pcap_dump_close(c->pkt_capture.dumper);
+    c->pkt_capture.dumper = NULL;
+  }
+  
+  if(c->pkt_capture.pd) {
+    pcap_close(c->pkt_capture.pd);
+    c->pkt_capture.pd = NULL;
+  }
+  
+  c->pkt_capture.captureInProgress = false;
+
+  return(NULL);
+}
+
+/* ****************************************** */
+
 static int ntop_capture_to_pcap(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int8_t capture_duration;
   char *bpfFilter = NULL, ftemplate[64];
   char errbuf[PCAP_ERRBUF_SIZE];
-  pcap_t *pd;
   struct bpf_program fcode;
-  pcap_dumper_t *dumper;
-  time_t end_capture;
-  
-  if(!ntop_interface)
+  struct ntopngLuaContext *c;
+
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(L, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(L));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
 
+  if(c->pkt_capture.pd != NULL /* Another capture is in progress */)
+    return(CONST_LUA_ERROR);  
+   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   capture_duration = (u_int32_t)lua_tonumber(vm, 1);
 
@@ -3869,8 +3921,8 @@ static int ntop_capture_to_pcap(lua_State* vm) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
   
-  if((pd = pcap_open_live(ntop_interface->get_name(),
-			  1514, 0 /* promisc */, 500, errbuf)) == NULL) {
+  if((c->pkt_capture.pd = pcap_open_live(ntop_interface->get_name(),
+					 1514, 0 /* promisc */, 500, errbuf)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s for capture: %s",
 				 ntop_interface->get_name(), errbuf);
 #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
@@ -3881,11 +3933,11 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   }
 
   if(bpfFilter != NULL) {
-    if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_compile error: '%s'", pcap_geterr(pd));
+    if(pcap_compile(c->pkt_capture.pd, &fcode, bpfFilter, 1, 0xFFFFFF00) < 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_compile error: '%s'", pcap_geterr(c->pkt_capture.pd));
     } else {
-      if(pcap_setfilter(pd, &fcode) < 0) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_setfilter error: '%s'", pcap_geterr(pd));
+      if(pcap_setfilter(c->pkt_capture.pd, &fcode) < 0) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_setfilter error: '%s'", pcap_geterr(c->pkt_capture.pd));
       }
     }
   }
@@ -3896,9 +3948,9 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   
   snprintf(ftemplate, sizeof(ftemplate), "/tmp/ntopng_%s_%u.pcap",
 	   ntop_interface->get_name(), (unsigned int)time(NULL));
-  dumper = pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);
+  c->pkt_capture.dumper = pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);
 
-  if(dumper == NULL) {
+  if(c->pkt_capture.dumper == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create dump file %s\n", ftemplate);
     return(CONST_LUA_ERROR);
   }
@@ -3906,30 +3958,54 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   /* Capture sessions can't be longer than 30 sec */
   if(capture_duration > 30) capture_duration = 30;
 
-  end_capture = time(NULL) + capture_duration;
+  c->pkt_capture.end_capture = time(NULL) + capture_duration;
 
-  while(1) {
-    u_char *pkt;
-    struct pcap_pkthdr *h;
-    int rc = pcap_next_ex(pd, &h, (const u_char **) &pkt);
-
-    if(rc > 0) {
-      pcap_dump((u_char*)dumper, (const struct pcap_pkthdr*)h, pkt);
-
-      if(h->ts.tv_sec > end_capture)
-	break;
-    } else if(rc < 0) {
-      break;
-    } else if(rc == 0) {
-      if(time(NULL) > end_capture)
-	break;
-    }
-  } /* while */
-
-  pcap_dump_close(dumper);
-  pcap_close(pd);
-
+  c->pkt_capture.captureInProgress = true;
+  pthread_create(&c->pkt_capture.captureThreadLoop, NULL, pcapDumpLoop, (void*)c);
+  
   lua_pushstring(vm, ftemplate);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_capture_running(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  struct ntopngLuaContext *c;
+
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(L, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(L));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if((!ntop_interface) || (!c))
+    return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (c->pkt_capture.pd != NULL /* Another capture is in progress */) ? true : false);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_stop_running_capture(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  struct ntopngLuaContext *c;
+
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(L, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(L));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if((!ntop_interface) || (!c))
+    return(CONST_LUA_ERROR);
+
+  c->pkt_capture.end_capture = 0;
+  
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -7349,6 +7425,8 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Packet Capture */
   { "captureToPcap",                   ntop_capture_to_pcap           },
+  { "isCaptureRunning",                ntop_is_capture_running        },
+  { "stopRunningCapture",              ntop_stop_running_capture      },
 
   /* Alert Generation */
   { "getCachedNumAlerts",     ntop_interface_get_cached_num_alerts    },

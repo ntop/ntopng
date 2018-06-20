@@ -445,6 +445,15 @@ struct ntopngLuaContext {
   AddressTree *allowedNets;
   NetworkInterface *iface;
   SNMP *snmp;
+
+  /* Packet capture */
+  struct {
+    bool captureInProgress;
+    pthread_t captureThreadLoop;
+    pcap_t *pd;
+    pcap_dumper_t *dumper;
+    u_int32_t end_capture;
+  } pkt_capture;
 };
 
 typedef enum {
