@@ -3852,10 +3852,8 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   char errbuf[PCAP_ERRBUF_SIZE];
   pcap_t *pd;
   struct bpf_program fcode;
-  char *out_dump;
   pcap_dumper_t *dumper;
   time_t end_capture;
-  int l;
   
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
@@ -3868,31 +3866,31 @@ static int ntop_capture_to_pcap(lua_State* vm) {
 
   if((pd = pcap_open_live(ntop_interface->get_name(),
 			  1514, 0 /* promisc */, 500, errbuf)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "pcap_open_live: %s\n", errbuf);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s for capture: %s",
+				 ntop_interface->get_name(), errbuf);
     return(CONST_LUA_ERROR);
   }
 
   if(bpfFilter != NULL) {
     if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "pcap_compile error: '%s'\n", pcap_geterr(pd));
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_compile error: '%s'", pcap_geterr(pd));
     } else {
       if(pcap_setfilter(pd, &fcode) < 0) {
-	ntop->getTrace()->traceEvent(TRACE_INFO, "pcap_setfilter error: '%s'\n", pcap_geterr(pd));
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_setfilter error: '%s'", pcap_geterr(pd));
       }
     }
   }
 
-  snprintf(ftemplate, sizeof(ftemplate), "/tmp/tmpXXXXXX");
-  out_dump = mktemp(ftemplate);
-  l = strlen(out_dump);
-  snprintf(&out_dump[l], sizeof(out_dump)-l, ".pcap");
-  dumper = pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), out_dump);
+  snprintf(ftemplate, sizeof(ftemplate), "/tmp/ntopng_%s_%u.pcap",
+	   ntop_interface->get_name(), (unsigned int)time(NULL));
+  dumper = pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);
 
   if(dumper == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to create dump file %s\n", out_dump);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create dump file %s\n", ftemplate);
     return(CONST_LUA_ERROR);
   }
 
+  /* Capture sessions can't be longer than 30 sec */
   if(capture_duration > 30) capture_duration = 30;
 
   end_capture = time(NULL) + capture_duration;
@@ -3918,7 +3916,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   pcap_dump_close(dumper);
   pcap_close(pd);
 
-  lua_pushstring(vm, out_dump);
+  lua_pushstring(vm, ftemplate);
   return(CONST_LUA_OK);
 }
 
