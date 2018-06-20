@@ -1312,7 +1312,24 @@ end
 
 -- #################################################################
 
+local function clearNotAllowedParams()
+   local not_allowed_uris = {"/lua/info_portal.lua", "/lua/captive_portal.lua"}
+
+   if (table.len(_GET) > 0 or table.len(_POST) > 0) and _SERVER["URI"] then
+      for _, uri in pairs(not_allowed_uris) do
+	 if string.ends(uri, _SERVER["URI"]) then
+	    _GET  = {}
+	    _POST = {}
+	    break
+	 end
+      end
+   end
+end
+      
+-- #################################################################
+
 if(pragma_once) then
+   clearNotAllowedParams()
    lintParams()
    pragma_once = 0
 end

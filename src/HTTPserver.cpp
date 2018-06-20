@@ -257,7 +257,7 @@ static int checkGrafana(const struct mg_connection *conn,
 
 /* ****************************************** */
 
-static int isWhitelistedURI(char *uri) {
+static int isWhitelistedURI(const char * const uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
@@ -443,26 +443,18 @@ static bool isStaticResourceUrl(const struct mg_request_info *request_info, u_in
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
-			      const char *referer) {
+			      const char * const referer) {
   char session_id[33], buf[128];
 
   if(isCaptiveConnection(conn)) {
-    if(referer)
-      mg_printf(conn,
-		"HTTP/1.1 302 Found\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-		"Location: %s%s?referer=%s\r\n\r\n", /* FIX */
-		session_id,
-		get_secure_cookie_attributes(request_info),
-		ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(), referer);
-    else
-      mg_printf(conn,
-		"HTTP/1.1 302 Found\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-		"Location: %s%s\r\n\r\n", /* FIX */
-		session_id,
-		get_secure_cookie_attributes(request_info),
-		ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl());
+    mg_printf(conn,
+	      "HTTP/1.1 302 Found\r\n"
+	      "Set-Cookie: session=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+	      "Location: %s%s%s%s\r\n\r\n", /* FIX */
+	      get_secure_cookie_attributes(request_info),
+	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
+	      referer ? (char*)"?referer=" : "",
+	      referer ? referer : (char*)"");
   } else {
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]",
