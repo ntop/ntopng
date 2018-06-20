@@ -3864,10 +3864,19 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   if(lua_type(vm, 2) != LUA_TSTRING) /* Optional */
     bpfFilter = (char*)lua_tostring(vm, 2);
 
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+  if(Utils::gainWriteCapabilities() == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+#endif
+  
   if((pd = pcap_open_live(ntop_interface->get_name(),
 			  1514, 0 /* promisc */, 500, errbuf)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s for capture: %s",
 				 ntop_interface->get_name(), errbuf);
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+    Utils::dropWriteCapabilities();
+#endif
+    
     return(CONST_LUA_ERROR);
   }
 
@@ -3881,6 +3890,10 @@ static int ntop_capture_to_pcap(lua_State* vm) {
     }
   }
 
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+  Utils::dropWriteCapabilities();
+#endif
+  
   snprintf(ftemplate, sizeof(ftemplate), "/tmp/ntopng_%s_%u.pcap",
 	   ntop_interface->get_name(), (unsigned int)time(NULL));
   dumper = pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);

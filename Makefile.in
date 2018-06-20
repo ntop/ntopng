@@ -31,6 +31,10 @@ MONGOOSE_INC=-I$(MONGOOSE_HOME)
 # Set USE_LUAJIT=0 to use the standard Lua (no JIT)
 USE_LUAJIT=1
 
+ifeq ($(OS),Darwin)
+USE_LUAJIT=0
+endif
+
 ifeq ($(USE_LUAJIT), 0)
   LUAJIT_INC = $(shell pkg-config --cflags lua) -DDONT_USE_LUAJIT
   LUAJIT_LIB = $(shell pkg-config --libs lua)
