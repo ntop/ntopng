@@ -261,7 +261,6 @@ static int isWhitelistedURI(char *uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
-     || (!strcmp(uri, BANNED_SITE_URL))
      || (!strcmp(uri, PLEASE_WAIT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
@@ -723,15 +722,6 @@ static int handle_lua_request(struct mg_connection *conn) {
   if(isStaticResourceUrl(request_info, len))
     ;
   else if((!whitelisted) && (!authorized)) {
-#ifdef HAVE_NEDGE
-    if(conn->client.lsa.sin.sin_port == ntop->get_HTTPserver()->getCaptivePort())
-      mg_printf(conn,
-		"HTTP/1.1 302 Found\r\n"
-		"Location: %s%s?referer=%s\r\n\r\n",
-		ntop->getPrefs()->get_http_prefix(), BANNED_SITE_URL,
-		mg_get_header(conn, "Host"));
-    else
-#endif
       if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
       // avoid sending login redirect to allow js itself to redirect the user
       return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
@@ -1023,7 +1013,6 @@ void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *
   httpd_captive_v4 = NULL;
   
   if(ntop->getPrefs()->isCaptivePortalEnabled()) {
-    char tmpBuf[8];
     static char captive_ports[32];
     static char *http_captive_options[] = {
       (char*)"listening_ports", (char*)"80",
