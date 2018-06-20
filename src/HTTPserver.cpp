@@ -887,6 +887,10 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     NULL
   };
 
+  memset(&callbacks, 0, sizeof(callbacks));
+  callbacks.begin_request = handle_lua_request;
+  callbacks.log_message = handle_http_message;
+
   /* Randomize data */
   gettimeofday(&tv, NULL);
   srand(tv.tv_sec + tv.tv_usec);
@@ -899,6 +903,9 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   ssl_enabled = false;
   httpserver = this;
+#ifdef HAVE_NEDGE
+  httpd_captive_v4 = NULL;
+#endif
 
   if(ntop->getPrefs()->get_http_port() == 0) use_http = false;
 
@@ -947,10 +954,6 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP logs will be stored on %s", access_log_path);
   }
 
-  memset(&callbacks, 0, sizeof(callbacks));
-  callbacks.begin_request = handle_lua_request;
-  callbacks.log_message = handle_http_message;
-
   /* mongoose */
   http_prefix = ntop->getPrefs()->get_http_prefix(),
     http_prefix_len = strlen(ntop->getPrefs()->get_http_prefix());
@@ -965,10 +968,6 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
     exit(-1);
   }
-
-#ifdef HAVE_NEDGE
-  startCaptiveServer(_docs_dir, &callbacks, good_ssl_cert ? ssl_cert_path : NULL);
-#endif
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
 
@@ -1001,29 +1000,38 @@ HTTPserver::~HTTPserver() {
 
 #ifdef HAVE_NEDGE
 
-void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks, const char * const ssl_cert_path) {
-  httpd_captive_v4 = NULL;
+void HTTPserver::startCaptiveServer() {
+  struct mg_callbacks captive_callbacks;
+  static char * captive_port = (char*)"80";
+
+  static const char * http_captive_options[] = {
+    (char*)"listening_ports", captive_port,
+    (char*)"enable_directory_listing", (char*)"no",
+    (char*)"document_root",  (char*)docs_dir,
+    (char*)"num_threads", (char*)"10",
+    NULL, NULL, NULL, NULL,
+    NULL
+  };  
+
+  if(httpd_captive_v4) {
+    mg_stop(httpd_captive_v4);
+    httpd_captive_v4 = NULL;
+  }
   
   if(ntop->getPrefs()->isCaptivePortalEnabled()) {
-    static char captive_ports[32];
-    static char *http_captive_options[] = {
-      (char*)"listening_ports", (char*)"80",
-      (char*)"enable_directory_listing", (char*)"no",
-      (char*)"document_root",  (char*)_docs_dir,
-      (char*)"num_threads", (char*)"10",
-      NULL, NULL, NULL, NULL,
-      NULL
-    };
+    /* TODO: make simpler callbacks for the captive portal */
+    memset(&captive_callbacks, 0, sizeof(captive_callbacks));
+    captive_callbacks.begin_request = handle_lua_request;
+    captive_callbacks.log_message = handle_http_message;
 
-    http_captive_port = ntohs(80);
-    httpd_captive_v4 = mg_start(callbacks, NULL, (const char**)http_captive_options);
+    httpd_captive_v4 = mg_start(&captive_callbacks, NULL, http_captive_options);
     
     if(httpd_captive_v4 == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to start HTTP (captive) server (IPv4) on ports %s. "
-				   "Captive portal needs port 80. Make sure this port"
+				   "Unable to start HTTP (captive) server (IPv4) on port %s. "
+				   "Captive portal needs port %s. Make sure this port"
 				   "is not in use by ntopng (option -w) or by any other process.",
-				   captive_ports);
+				   captive_port, captive_port);
       
       if(errno)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
@@ -1031,7 +1039,7 @@ void HTTPserver::startCaptiveServer(const char *_docs_dir, struct mg_callbacks *
       exit(-1);
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP (captive) server listening on port %s",
-				   captive_ports);
+				   captive_port);
   }
 }
 #endif 

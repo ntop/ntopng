@@ -36,9 +36,6 @@ class HTTPserver {
 
 #ifdef HAVE_NEDGE
   struct mg_context *httpd_captive_v4;
-  u_int16_t http_captive_port;
-
-  void startCaptiveServer(const char *_docs_dir, struct mg_callbacks *callbacks, const char * const ssl_cert_path);
 #endif
 
  public:
@@ -50,8 +47,10 @@ class HTTPserver {
   inline char*     get_docs_dir()    { return(docs_dir);         };
   inline char*     get_scripts_dir() { return(scripts_dir);      };
   inline bool      is_ssl_enabled()  { return(ssl_enabled);      };
+
 #ifdef HAVE_NEDGE
-  inline u_int16_t getCaptivePort()   { return(http_captive_port); };
+  void startCaptiveServer();
+  void stopCaptiveServer();
 #endif
 };
 
