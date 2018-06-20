@@ -209,3 +209,12 @@ Packet Dump
 -----------
 
 This page allows you to save to disk selected packets that match various criteria.
+
+Ntopng can dump packets to disk or to a TAP interface. Moreover, it can be configured
+to dump all the traffic or just the unknown traffic. The latter feature can be enabled
+to generate a PCAP file containing the traffic of all the flows marked as "Unknown",
+which can then be submitted to the ntop team for further analysis.
+
+Pcap files are generated under the ntopng data directory, into the "pcap" folder
+of a specific network inteface id (e.g. `/var/tmp/ntopng/0/pcap`). In particular,
+The unknown traffic is stored into the folder "pcap/ndpi_unknown".
