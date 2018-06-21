@@ -655,6 +655,31 @@ local function validateNetworksList(l)
    return validateListOfType(l, validateNetwork)
 end
 
+local function validateACLNetworksList(l)
+   -- networks in the ACL are preceeded by a + or a - sign
+   -- and are (currently) used for the mongoose webserver ACL
+   -- Examples:
+   -- +0.0.0.0/0,-192.168.0.0/16
+   -- +127.0.0.0/8
+   if isEmptyString(l) then
+      return true
+   end
+
+   local items = split(l, ',')
+
+   -- make sure each item has a leading + or -
+   for _, i in pairs(items) do
+      if not starts(i, '+') and not starts(i, '-') then
+	 return false
+      end
+   end
+
+   -- now we can safely replace + and - and do a normal network validation
+   l = l:gsub("+", ""):gsub("-", "")
+
+   return validateListOfType(l, validateNetwork)
+end
+
 local function validateCategoriesList(mode)
    return validateListOfType(l, validateCategory)
 end
@@ -1014,6 +1039,7 @@ local known_parameters = {
    ["host_activity_rrd_1d_days"]                   =  validateNumber,
    ["host_activity_rrd_raw_hours"]                 =  validateNumber,
    ["max_ui_strlen"]                               =  validateNumber,
+   ["http_acl_management_port"]                    =  validateACLNetworksList,
    ["safe_search_dns"]                             =  validateIPV4,
    ["global_dns"]                                  =  validateEmptyOr(validateIPV4),
    ["secondary_dns"]                               =  validateEmptyOr(validateIPV4),
