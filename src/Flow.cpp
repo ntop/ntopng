@@ -862,7 +862,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     ndpi_protocol proto_id = { NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN };
     setDetectedProtocol(proto_id, true);
   }
-    
+
   if((is_idle_flow = isReadyToPurge())) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
     set_to_purge();
@@ -2158,6 +2158,12 @@ void Flow::addFlowStats(bool cli2srv_direction,
   else
     cli2srv_packets += out_pkts, cli2srv_bytes += out_bytes, cli2srv_goodput_bytes += out_goodput_bytes,
       srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes, srv2cli_goodput_bytes += in_goodput_bytes;
+
+  if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
+    /* Do a fist estimation while waiting for the periodic activities */
+    bytes_thpt = (cli2srv_bytes + srv2cli_bytes) / (float)(last_seen - first_seen),
+      pkts_thpt = (cli2srv_packets + srv2cli_packets) / (float)(last_seen - first_seen);
+  }
 }
 
 /* *************************************** */
