@@ -756,7 +756,8 @@ function printMisc()
   prefsInputFieldPrefs(subpage_active.entries["mgmt_acl"].title, subpage_active.entries["mgmt_acl"].description,
 		       "ntopng.prefs.",
 		       "http_acl_management_port",
-		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
+		       "", false, nil, nil, nil, {style = {width = "25em;"},
+						  attributes = {spellcheck = "false", maxlength = 64, pattern = getACLPattern()}})
 
   prefsInputFieldPrefs(subpage_active.entries["google_apis_browser_key"].title, subpage_active.entries["google_apis_browser_key"].description,
 		       "ntopng.prefs.",

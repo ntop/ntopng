@@ -867,6 +867,45 @@ bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
 
 /* ****************************************** */
 
+void HTTPserver::parseACL(char * const acl, ssize_t acl_len) {
+  char *net, *net_ctx, *slash, *sign, *acl_key;
+  u_int32_t mask, bits, num = 0;
+  struct in_addr ipaddr;
+  const char * const comma = ",";
+
+  if(!acl || !acl_len | !(acl_key = (char*)malloc(acl_len)))
+    return;
+
+  acl[0] = '\0';
+  ntop->getRedis()->get((char*)HTTP_ACL_MANAGEMENT_PORT, acl_key, acl_len, true);
+
+  if(acl_key[0] == '\0')
+    snprintf(acl, acl_len, "+0.0.0.0/0");
+  else {
+    for(net = strtok_r(acl_key, comma, &net_ctx); net; net = strtok_r(NULL, comma, &net_ctx)) {
+      sign = net++; /* Either a + or a - */
+
+      if((slash = strchr(net, '/'))) {
+	*slash++ = '\0';
+	bits = atoi(slash);
+	mask = 1 << (32 - bits);
+
+	if(inet_pton(AF_INET, net, &ipaddr) == 1) {
+	  ipaddr.s_addr = htonl(ntohl(ipaddr.s_addr) & ~(mask - 1));
+	  snprintf(&acl[strlen(acl)], acl_len - strlen(acl) - 1,
+		   "%s%c%s/%d",
+		   num++ ? (char*)"," : (char*)"", *sign, inet_ntoa(ipaddr), bits);
+	}
+      }
+    }
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Access Control List set to: %s", acl);
+  }
+
+  free(acl_key);
+}
+
+/* ****************************************** */
+
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256] = { 0 }, acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH] = { 0 };
@@ -895,10 +934,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   gettimeofday(&tv, NULL);
   srand(tv.tv_sec + tv.tv_usec);
 
-  acl_management[0] = '\0';
-  ntop->getRedis()->get((char*)HTTP_ACL_MANAGEMENT_PORT, acl_management, sizeof(acl_management), true);
-  if(acl_management[0] == '\0')
-    snprintf(acl_management, sizeof(acl_management), "+0.0.0.0/0");
+  parseACL(acl_management, sizeof(acl_management));
   
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   ssl_enabled = false;

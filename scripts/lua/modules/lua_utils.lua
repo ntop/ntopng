@@ -2160,6 +2160,14 @@ function getIPv4Pattern()
   return "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 end
 
+function getACLPattern()
+  local ipv4 = "(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
+  local netmask = "(\\/([0-9]|[1-2][0-9]|3[0-2]))"
+  local cidr = ipv4..netmask
+  local yesorno_cidr = "[\\+\\-]"..cidr
+  return "^"..yesorno_cidr.."(,"..yesorno_cidr..")*$"
+end
+
 function getMacPattern()
   return "^([0-9a-fA-F][0-9a-fA-F]:){5}[0-9a-fA-F]{2}$"
 end
