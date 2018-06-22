@@ -3898,8 +3898,8 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   struct ntopngLuaContext *c;
 
 #ifdef DONT_USE_LUAJIT
-  lua_getglobal(L, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(L));
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
 #else
   c = (struct ntopngLuaContext*)(G(vm)->userdata);
 #endif
@@ -3974,8 +3974,8 @@ static int ntop_is_capture_running(lua_State* vm) {
   struct ntopngLuaContext *c;
 
 #ifdef DONT_USE_LUAJIT
-  lua_getglobal(L, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(L));
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
 #else
   c = (struct ntopngLuaContext*)(G(vm)->userdata);
 #endif
@@ -3994,8 +3994,8 @@ static int ntop_stop_running_capture(lua_State* vm) {
   struct ntopngLuaContext *c;
 
 #ifdef DONT_USE_LUAJIT
-  lua_getglobal(L, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(L));
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
 #else
   c = (struct ntopngLuaContext*)(G(vm)->userdata);
 #endif
