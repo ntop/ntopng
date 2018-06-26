@@ -861,6 +861,27 @@ end
 
 -- ########################################################
 
+-- TODO: remove after migration
+local function data_to_old_format(data)
+   local fdata = {}
+   for idx, _ in ipairs(data.series[1].data) do
+      fdata[idx] = {}
+
+      for i, serie in ipairs(data.series) do
+	 fdata[idx][i] = serie.data[idx]
+      end
+   end
+
+   local fnames = {}
+   for i, serie in ipairs(data.series) do
+      fnames[i] = serie.label
+   end
+
+   return data.start, data.step, fnames, fdata
+end
+
+-- ########################################################
+
 -- reads one or more RRDs and returns a json suitable to feed rickshaw
 
 function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels, transform_columns_function)
@@ -888,8 +909,41 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
-   local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-   if(fstart == nil) then return '{}' end
+   local fstart, fstep, fnames, fdata
+
+   -- Uncomment HERE to enable the new API
+   --local use_new_api = true
+
+   if use_new_api then
+      local ts_utils = require("ts_utils")
+      require("ts_second")
+      require("ts_minute")
+      require("ts_5min")
+
+      local tags = {ifid=ifid, host=host}
+      local schema = find_schema(rrdname, rrdFile, tags, ts_utils)
+
+      if schema then
+        fdata = ts_utils.query(schema, tags, start_time, end_time)
+
+        if(fdata == nil) then
+          -- failed, fall back to default api
+          use_new_api = false
+	  traceError(TRACE_NORMAL, TRACE_CONSOLE, "fetch failed, falling back to old api for RRD " .. rrdname)
+        else
+	  fstart, fstep, fnames, fdata = data_to_old_format(fdata)
+        end
+      else
+        -- failed, fall back to default api
+        use_new_api = false
+	traceError(TRACE_NORMAL, TRACE_CONSOLE, "falling back to old api for RRD " .. rrdname)
+      end
+   end
+
+   if not use_new_api then
+      fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+      if(fstart == nil) then return '{}' end
+   end
 
    if transform_columns_function ~= nil then
       --~ tprint(rrdname)

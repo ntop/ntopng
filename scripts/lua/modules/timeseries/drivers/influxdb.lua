@@ -4,6 +4,9 @@
 
 local driver = {}
 
+local ts_types = require("ts_types")
+
+local json = require("dkjson")
 require("ntop_utils")
 
 --
@@ -12,6 +15,8 @@ require("ntop_utils")
 --
 -- See also callback_utils.uploadTSdata
 --
+
+local INFLUX_QUERY_TIMEMOUT_SEC = 5
 
 -------------------------------------------------------
 
@@ -35,6 +40,118 @@ function driver:append(schema, timestamp, tags, metrics)
   local api_line = schema.name .. "," .. tags_string .. " " .. metrics_string .. " " .. timestamp .. "000000000\n"
 
   return ntop.appendInfluxDB(api_line)
+end
+
+-------------------------------------------------------
+
+function driver:query(schema, tstart, tend, tags, options)
+  local metrics = {}
+
+  -- For now we assume that the step of the data is the raw step, ignoring the data aggregations
+  local time_step = schema.options.step
+
+  for i, metric in ipairs(schema._metrics) do
+    local data_type = schema.metrics[metric].type
+
+    if data_type == ts_types.counter then
+      metrics[i] = "DERIVATIVE(\"" .. metric .. "\") as " .. metric
+    else
+      metrics[i] = metric
+    end
+  end
+
+  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
+
+  local query = 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000"
+
+  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+  local res = ntop.httpGet(full_url, "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
+
+  if not res then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid reply")
+    return nil
+  end
+
+  if res.RESPONSE_CODE ~= 200 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad response code[" .. res.RESPONSE_CODE .. "]: " .. (res.CONTENT or ""))
+    return nil
+  end
+
+  if res.CONTENT == nil then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing content")
+    return nil
+  end
+
+  local jres = json.decode(res.CONTENT)
+
+  if (not jres) or (not jres.results) or (not #jres.results) or (not jres.results[1].series) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid JSON reply[" .. res.CONTENT_LEN .. " bytes]: " .. string.sub(res.CONTENT, 1, 50))
+    return nil
+  end
+
+  data = jres.results[1].series[1]
+  
+  local series = {}
+
+  -- Create the columns
+  for i=2, #data.columns do
+    series[i-1] = {label=data.columns[i], data={}}
+  end
+
+  -- Time tracking to fill the missing points
+   -- NOTE: "prev_t = tstart" and not "prev_t = tstart - time_step": there is a shift between RRD and influx data
+  local prev_t = tstart
+  local series_idx = 1
+
+  -- Convert the data
+  for idx, values in ipairs(data.values) do
+    local cur_t = data.values[idx][1]
+
+    -- Fill the missing points
+    while((cur_t - prev_t) > time_step) do
+      for _, serie in pairs(series) do
+        serie.data[series_idx] = options.fill_value
+      end
+
+      series_idx = series_idx + 1
+      prev_t = prev_t + time_step
+    end
+
+    for i=2, #values do
+      local val = values[i]
+
+      if val < options.min_value then
+        val = min_value
+      elseif val > options.max_value then
+        val = max_value
+      end
+
+      series[i-1].data[series_idx] = val
+    end
+
+    series_idx = series_idx + 1
+    prev_t = cur_t
+  end
+
+  -- Fill the missing points at the end
+  while((tend - prev_t) > time_step) do
+    for _, serie in pairs(series) do
+      serie.data[series_idx] = options.fill_value
+    end
+
+    series_idx = series_idx + 1
+    prev_t = prev_t + time_step
+  end
+
+  local rv = {
+    start = tstart,
+    step = time_step,
+    count = series_idx - 1,
+    series = series,
+  }
+
+  return rv
 end
 
 -------------------------------------------------------

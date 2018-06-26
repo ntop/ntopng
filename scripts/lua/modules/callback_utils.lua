@@ -266,7 +266,7 @@ function callback_utils.uploadTSdata()
 
       -- Delete the file after POST
       local delete_file_after_post = true
-      ret = ntop.postHTTPTextFile("", "", url, fname, delete_file_after_post)
+      ret = ntop.postHTTPTextFile("", "", url .. "/write?db=ntopng", fname, delete_file_after_post)
       --print(fname .. "\n")
 
       if(ret ~= true) then
