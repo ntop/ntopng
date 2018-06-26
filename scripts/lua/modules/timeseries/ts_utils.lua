@@ -163,7 +163,7 @@ function ts_utils.query(schema, tags, tstart, tend, options)
   }, options or {})
 
   if not schema:verifyTags(tags) then
-    return false
+    return nil
   end
 
   local drivers = ts_utils.listActiveDrivers()
@@ -172,7 +172,7 @@ function ts_utils.query(schema, tags, tstart, tend, options)
   local driver = ts_utils.getQueryDriver()
 
   if not driver then
-    return false
+    return nil
   end
 
   -- Prevent queries returning too much points
@@ -203,7 +203,7 @@ function ts_utils.listSeries(schema, tags_filter)
   local driver = ts_utils.getQueryDriver()
 
   if not driver then
-    return false
+    return nil
   end
 
   return driver:listSeries(schema, tags_filter)
