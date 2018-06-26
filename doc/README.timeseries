@@ -1,0 +1,60 @@
+Timeseries Framework
+--------------------
+
+ntopng is now based on a generic timeseries library with support to different endpoints
+(called *drivers*). Thanks to this decoupling, it is now possible to store and retrieve
+timeseries in a consistent way from RRD, InfluxDB [..]. The driver implements
+the driver specific logic, while the rest of the code works on an abstraction.
+
+Data Model
+----------
+
+Here is a description of the data model employed by the ntopng timeseries framework.
+
+A `Schema`: we can think about a schema as a descriptor of a data layout. A schema
+includes the following information:
+
+- A `name`, which uniquely identifies it.
+- An ordered list of `tag`s names.
+- An ordered list of `metric`s names.
+- A set of options.
+
+`Tag`s are used, together with timestamp, to identify a particular instance of data.
+For exanmple, an host ip address and interface id are both meaningful `tag`s.
+
+On the other end, a `metric` represents a particular value for a timeserie. A metric
+has a type. Currently only "counter" and "gauge" are supported.
+
+Schema Example
+--------------
+
+The following is an example on how to prepare a schema to hold the npdi traffic for
+an host:
+
+- `name`: host:ndpi
+- `tag`s: ifid, host, protocol
+- `metric`s: in_bytes, out_bytes
+
+It can be defined by using the following API:
+
+```
+  host_schema = ts_utils.newSchema("host:ndpi", {step=300})
+  host_schema:addTag("ifid")
+  host_schema:addTag("host")
+  host_schema:addTag("protocol")
+  host_schema:addMetric("bytes_sent", ts_utils.metrics.counter)
+  host_schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
+```
+
+In order to store data relevant to the created schema, the following can be used:
+
+```
+  ts_utils.append(host_schema, {ifid="1", host="192.168.1.1", protocol="HTTP",
+    bytes_sent=5050, bytes_rcvd=1256})
+```
+
+And to query data:
+
+```
+ts_utils.query(host_schema, {ifid="1", host="192.168.1.1", protocol="HTTP"}, 0, 1526987811)
+```
