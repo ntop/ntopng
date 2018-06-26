@@ -44,28 +44,7 @@ end
 
 -------------------------------------------------------
 
-function driver:query(schema, tstart, tend, tags, options)
-  local metrics = {}
-
-  -- For now we assume that the step of the data is the raw step, ignoring the data aggregations
-  local time_step = schema.options.step
-
-  for i, metric in ipairs(schema._metrics) do
-    local data_type = schema.metrics[metric].type
-
-    if data_type == ts_types.counter then
-      metrics[i] = "DERIVATIVE(\"" .. metric .. "\") as " .. metric
-    else
-      metrics[i] = metric
-    end
-  end
-
-  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
-
-  local query = 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000"
-
-  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+local function influx_query(full_url)
   local res = ntop.httpGet(full_url, "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
 
   if not res then
@@ -90,7 +69,38 @@ function driver:query(schema, tstart, tend, tags, options)
     return nil
   end
 
-  data = jres.results[1].series[1]
+  return jres.results[1].series[1]
+end
+
+-------------------------------------------------------
+
+function driver:query(schema, tstart, tend, tags, options)
+  local metrics = {}
+
+  -- For now we assume that the step of the data is the raw step, ignoring the data aggregations
+  local time_step = schema.options.step
+
+  for i, metric in ipairs(schema._metrics) do
+    local data_type = schema.metrics[metric].type
+
+    if data_type == ts_types.counter then
+      metrics[i] = "DERIVATIVE(\"" .. metric .. "\") as " .. metric
+    else
+      metrics[i] = metric
+    end
+  end
+
+  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
+
+  local query = 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000"
+
+  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+  local data = influx_query(full_url)
+
+  if not data then
+    return nil
+  end
   
   local series = {}
 
@@ -158,6 +168,41 @@ end
 
 function driver:flush()
   return true
+end
+
+-------------------------------------------------------
+
+function driver:listSeries(schema, tags_filter)
+  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
+
+  local query = 'SHOW SERIES FROM "' .. schema.name .. '" WHERE ' ..
+      table.tconcat(tags_filter, "=", " AND ", nil, "'")
+
+  local full_url = url .. "/query?db=ntopng&q=" .. urlencode(query)
+  local data = influx_query(full_url)
+
+  if not data then
+    return nil
+  end
+
+  local res = {}
+
+  for _, value in pairs(data.values) do
+    local v = split(value[1], ",")
+    local rec = {}
+
+    for i=2, #v do
+      local key_val = split(v[i], "=")
+
+      if #key_val == 2 then
+        rec[key_val[1]] = key_val[2]
+      end
+    end
+
+    res[#res + 1] = rec
+  end
+
+  return res
 end
 
 -------------------------------------------------------

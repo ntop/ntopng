@@ -72,6 +72,16 @@ function ts_utils.disableDriver(driver)
   --TODO
 end
 
+-- Get the driver to use to query data
+function ts_utils.getQueryDriver()
+  local drivers = ts_utils.listActiveDrivers()
+
+  -- TODO: for now prefer the influx driver if present
+  local driver = drivers[2] or drivers[1]
+
+  return driver
+end
+
 -----------------------------------------------------------------------
 
 function ts_utils.append(schema, tags_and_metrics, timestamp, verbose)
@@ -143,6 +153,8 @@ local function aggregate_dp(schema, select_data, max_points)
   return select_data
 end
 
+-----------------------------------------------------------------------
+
 function ts_utils.query(schema, tags, tstart, tend, options)
   local query_options = table.merge({
     fill_value = 0,         -- e.g. 0/0 for nan
@@ -157,7 +169,7 @@ function ts_utils.query(schema, tags, tstart, tend, options)
   local drivers = ts_utils.listActiveDrivers()
 
   -- TODO: for now prefer the influx driver if present
-  local driver = drivers[2] or drivers[1]
+  local driver = ts_utils.getQueryDriver()
 
   if not driver then
     return false
@@ -183,6 +195,22 @@ function ts_utils.query(schema, tags, tstart, tend, options)
   return rv
 end
 
+-----------------------------------------------------------------------
+
+-- List all the data series matching the given filter.
+-- Returns a list of expanded tags based on the matches.
+function ts_utils.listSeries(schema, tags_filter)
+  local driver = ts_utils.getQueryDriver()
+
+  if not driver then
+    return false
+  end
+
+  return driver:listSeries(schema, tags_filter)
+end
+
+-----------------------------------------------------------------------
+
 function ts_utils.flush()
   local rv = true
 
@@ -192,6 +220,8 @@ function ts_utils.flush()
 
   return rv
 end
+
+-----------------------------------------------------------------------
 
 function ts_utils.delete(schema, tags)
   if not schema:verifyTags(data) then

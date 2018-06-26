@@ -84,6 +84,13 @@ local function schema_get_path(schema, tags)
   return path, rrd
 end
 
+local function schema_get_full_path(schema, tags)
+  local base, rrd = schema_get_path(schema, tags)
+  local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+
+  return full_path
+end
+
 -- TODO remove after migration
 function find_schema(rrdFile, rrdfname, tags, ts_utils)
   -- try to guess additional tags
@@ -106,8 +113,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
       end
     end
 
-    local base, rrd = schema_get_path(schema, tags)
-    local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+    local full_path = schema_get_full_path(schema, tags)
 
     if full_path == rrdFile then
       return schema
@@ -225,9 +231,6 @@ function driver:query(schema, tstart, tend, tags, options)
         v = options.min_value
       elseif v > options.max_value then
         v = options.max_value
-      elseif schema.metrics[name].type == ts_types.counter then -- DERIVE type
-        -- Multiply the derivate to get the total value for the minute
-        v = v * fstep
       end
 
       serie[i] = v
@@ -248,8 +251,62 @@ function driver:query(schema, tstart, tend, tags, options)
   }
 end
 
+-------------------------------------------------------
+
+-- *Limitation*
+-- tags_filter is expected to contain all the tags of the schema except the last
+-- one. For such tag, a list of available values will be returned.
+function driver:listSeries(schema, tags_filter)
+  local wildcard_tag = nil
+
+  for tag in pairs(schema.tags) do
+    if not tags_filter[tag] then
+      if wildcard_tag then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
+        return nil
+      else
+        wildcard_tag = tag
+      end
+    end
+  end
+
+  if not wildcard_tag then
+    -- simple existance check
+    local full_path = schema_get_full_path(schema, tags_filter)
+
+    if ntop.exists(full_path) then
+      return {tags_filter}
+    else
+      return {}
+    end
+  end
+
+  if wildcard_tag ~= schema._tags[#schema._tags] then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver only support listSeries with wildcard in the last tag, got wildcard on '" .. wildcard_tag .. "'")
+    return nil
+  end
+
+  local base, rrd = schema_get_path(schema, table.merge(tags_filter, {[wildcard_tag] = ""}))
+  local files = ntop.readdir(base)
+  local res = {}
+
+  for f in pairs(files or {}) do
+    local v = split(f, ".rrd")
+
+    if #v == 2 then
+      res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = v[1]})
+    end
+  end
+
+  return res
+end
+
+-------------------------------------------------------
+
 function driver:delete(schema, tags)
   tprint("TODO DELETE")
 end
+
+-------------------------------------------------------
 
 return driver
