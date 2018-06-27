@@ -40,6 +40,12 @@ end
 
 function ts_utils.newSchema(name, options)
   local schema = ts_utils.schema:new(name, options)
+
+  if loaded_schemas[name] ~= nil then
+    traceError(TRACE_WARNING, TRACE_CONSOLE, "Schema already defined: " .. name)
+    return loaded_schemas[name]
+  end
+
   loaded_schemas[name] = schema
 
   return schema
@@ -84,8 +90,15 @@ end
 
 -----------------------------------------------------------------------
 
-function ts_utils.append(schema, tags_and_metrics, timestamp, verbose)
+function ts_utils.append(schema_name, tags_and_metrics, timestamp, verbose)
   timestamp = timestamp or os.time()
+  local schema = ts_utils.getSchema(schema_name)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return false
+  end
+
   local tags, data = schema:verifyTagsAndMetrics(tags_and_metrics)
 
   if not tags then
@@ -155,12 +168,19 @@ end
 
 -----------------------------------------------------------------------
 
-function ts_utils.query(schema, tags, tstart, tend, options)
+function ts_utils.query(schema_name, tags, tstart, tend, options)
   local query_options = table.merge({
     fill_value = 0,         -- e.g. 0/0 for nan
     min_value = 0,          -- minimum value of a data point
     max_value = math.huge,  -- maximum value for a data point
   }, options or {})
+
+  local schema = ts_utils.getSchema(schema_name)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return false
+  end
 
   if not schema:verifyTags(tags) then
     return nil
@@ -198,15 +218,31 @@ end
 -----------------------------------------------------------------------
 
 -- List all the data series matching the given filter.
+-- Only data series updated after start_time will be returned.
 -- Returns a list of expanded tags based on the matches.
-function ts_utils.listSeries(schema, tags_filter)
+function ts_utils.listSeries(schema_name, tags_filter, start_time)
+  local schema = ts_utils.getSchema(schema_name)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return false
+  end
+
   local driver = ts_utils.getQueryDriver()
 
   if not driver then
     return nil
   end
 
-  return driver:listSeries(schema, tags_filter)
+  local wildcard_tags = {}
+
+  for tag in pairs(schema.tags) do
+    if not tags_filter[tag] then
+      wildcard_tags[#wildcard_tags + 1] = tag
+    end
+  end
+
+  return driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 end
 
 -----------------------------------------------------------------------
@@ -223,7 +259,14 @@ end
 
 -----------------------------------------------------------------------
 
-function ts_utils.delete(schema, tags)
+function ts_utils.delete(schema_name, tags)
+  local schema = ts_utils.getSchema(schema_name)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return false
+  end
+
   if not schema:verifyTags(data) then
     return false
   end

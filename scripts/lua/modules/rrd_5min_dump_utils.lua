@@ -6,7 +6,7 @@ local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local os_utils = require "os_utils"
 local ts_utils = require "ts_utils"
-local ts_schemas = require "ts_5min"
+require "ts_5min"
 
 local dirs = ntop.getDirs()
 local rrd_dump = {}
@@ -14,18 +14,18 @@ local rrd_dump = {}
 -- ########################################################
 
 function rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
-  ts_utils.append(ts_schemas.host_traffic, {ifid=ifstats.id, host=hostname,
+  ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
             bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when, verbose)
 
   -- Number of flows
-  ts_utils.append(ts_schemas.host_flows, {ifid=ifstats.id, host=hostname,
+  ts_utils.append("host:flows", {ifid=ifstats.id, host=hostname,
             num_flows=host["active_flows.as_client"] + host["active_flows.as_server"]}, when, verbose)
 
   -- L4 Protocols
   for id, _ in ipairs(l4_keys) do
     k = l4_keys[id][2]
     if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
-      ts_utils.append(ts_schemas.host_l4protos, {ifid=ifstats.id, host=hostname,
+      ts_utils.append("host:l4protos", {ifid=ifstats.id, host=hostname,
                 l4proto=tostring(k), bytes_sent=host[k..".bytes.sent"], bytes_rcvd=host[k..".bytes.rcvd"]}, when, verbose)
     else
       -- L2 host
@@ -37,7 +37,7 @@ end
 function rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
   -- nDPI Protocols
   for k in pairs(host["ndpi"] or {}) do
-    ts_utils.append(ts_schemas.host_ndpi, {ifid=ifstats.id, host=hostname, protocol=k,
+    ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
               bytes_sent=host["ndpi"][k]["bytes.sent"], bytes_rcvd=host["ndpi"][k]["bytes.rcvd"]}, when, verbose)
   end
 end
@@ -45,7 +45,7 @@ end
 function rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(host["ndpi_categories"] or {}) do
-    ts_utils.append(ts_schemas.host_ndpi_categories, {ifid=ifstats.id, host=hostname, category=k,
+    ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
               bytes=cat["bytes"]}, when, verbose)
   end
 end
@@ -55,13 +55,13 @@ end
 function rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(device["ndpi_categories"] or {}) do
-    ts_utils.append(ts_schemas.mac_ndpi_categories, {ifid=ifstats.id, mac=devicename, category=k,
+    ts_utils.append("mac:ndpi_categories", {ifid=ifstats.id, mac=devicename, category=k,
               bytes=cat["bytes"]}, when, verbose)
   end
 end
 
 function rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
-  ts_utils.append(ts_schemas.mac_traffic, {ifid=ifstats.id, mac=devicename,
+  ts_utils.append("mac:traffic", {ifid=ifstats.id, mac=devicename,
               bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]}, when, verbose)
 end
 
@@ -74,19 +74,19 @@ function rrd_dump.asn_update_rrds(when, ifstats, verbose)
     local asn = asn_stats["asn"]
 
     -- Save ASN bytes
-    ts_utils.append(ts_schemas.asn_traffic, {ifid=ifstats.id, asn=asn,
+    ts_utils.append("asn:traffic", {ifid=ifstats.id, asn=asn,
               bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
 
     -- Save ASN ndpi stats
     if asn_stats["ndpi"] ~= nil then
       for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
-        ts_utils.append(ts_schemas.asn_ndpi, {ifid=ifstats.id, asn=asn, protocol=proto_name,
+        ts_utils.append("asn:ndpi", {ifid=ifstats.id, asn=asn, protocol=proto_name,
                   bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when, verbose)
       end
     end
 
     -- Save ASN RTT stats
-    ts_utils.append(ts_schemas.asn_rtt, {ifid=ifstats.id, asn=asn,
+    ts_utils.append("asn:rtt", {ifid=ifstats.id, asn=asn,
                 millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
   end
 end
@@ -100,7 +100,7 @@ function rrd_dump.country_update_rrds(when, ifstats, verbose)
   for _, country_stats in ipairs(countries_info["Countries"] or {}) do
     local country = country_stats.country
 
-    ts_utils.append(ts_schemas.country_traffic, {ifid=ifstats.id, country=country,
+    ts_utils.append("country:traffic", {ifid=ifstats.id, country=country,
                 bytes_ingress=country_stats["ingress"], bytes_egress=country_stats["egress"],
                 bytes_inner=country_stats["inner"]}, when, verbose)
   end
@@ -116,13 +116,13 @@ function rrd_dump.vlan_update_rrds(when, ifstats, verbose)
     for _, vlan_stats in pairs(vlan_info["VLANs"]) do
       local vlan_id = vlan_stats["vlan_id"]
 
-      ts_utils.append(ts_schemas.vlan_traffic, {ifid=ifstats.id, vlan=vlan_id,
+      ts_utils.append("vlan:traffic", {ifid=ifstats.id, vlan=vlan_id,
                 bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when, verbose)
 
       -- Save VLAN ndpi stats
       if vlan_stats["ndpi"] ~= nil then
         for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
-          ts_utils.append(ts_schemas.vlan_ndpi, {ifid=ifstats.id, vlan=vlan_id, protocol=proto_name,
+          ts_utils.append("vlan:ndpi", {ifid=ifstats.id, vlan=vlan_id, protocol=proto_name,
                     bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when, verbose)
         end
       end
@@ -143,7 +143,7 @@ function rrd_dump.sflow_device_update_rrds(when, ifstats, verbose)
     end
 
     for port_idx,port_value in pairs(ports) do
-      ts_utils.append(ts_schemas.sflowdev_port_traffic, {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
+      ts_utils.append("sflowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
                 bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
     end
   end
@@ -160,7 +160,7 @@ function rrd_dump.flow_device_update_rrds(when, ifstats, verbose)
     if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n") end
 
     for port_idx,port_value in pairs(ports) do
-      ts_utils.append(ts_schemas.flowdev_port_traffic, {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
+      ts_utils.append("flowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
                 bytes_sent=port_value["bytes.out_bytes"], bytes_rcvd=port_value["bytes.in_bytes"]}, when, verbose)
     end
   end

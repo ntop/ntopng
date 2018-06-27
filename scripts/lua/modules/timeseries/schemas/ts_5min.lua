@@ -3,7 +3,7 @@
 --
 
 local ts_utils = require "ts_utils"
-local ts_schemas = {}
+local schema
 
 -- TODO: remove rrd_fname after new paths migration
 -- NOTE: when rrd_fname is empty, the last tag value is used as file name
@@ -18,7 +18,6 @@ schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.mac_traffic = schema
 
 -- ##############################################
 
@@ -28,7 +27,6 @@ schema:addTag("ifid")
 schema:addTag("mac")
 schema:addTag("category")
 schema:addMetric("bytes", ts_utils.metrics.counter)
-ts_schemas.mac_ndpi_categories = schema
 
 -------------------------------------------------------
 -- HOST POOLS SCHEMAS
@@ -39,7 +37,6 @@ schema:addTag("ifid")
 schema:addTag("pool")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.host_pool_traffic = schema
 
 -- ##############################################
 
@@ -47,7 +44,6 @@ schema = ts_utils.newSchema("host_pool:blocked_flows", {step=300, rrd_fname="blo
 schema:addTag("ifid")
 schema:addTag("pool")
 schema:addMetric("num_flows", ts_utils.metrics.counter)
-ts_schemas.host_pool_blocked_flows = schema
 
 -- ##############################################
 
@@ -57,7 +53,6 @@ schema:addTag("pool")
 schema:addTag("protocol")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.host_pool_ndpi = schema
 
 -------------------------------------------------------
 -- ASN SCHEMAS
@@ -68,7 +63,6 @@ schema:addTag("ifid")
 schema:addTag("asn")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.asn_traffic = schema
 
 -- ##############################################
 
@@ -78,7 +72,6 @@ schema:addTag("asn")
 schema:addTag("protocol")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.asn_ndpi = schema
 
 -- ##############################################
 
@@ -86,7 +79,6 @@ schema = ts_utils.newSchema("asn:rtt", {step=300, rrd_fname="num_ms_rtt"})
 schema:addTag("ifid")
 schema:addTag("asn")
 schema:addMetric("millis_rtt", ts_utils.metrics.gauge)
-ts_schemas.asn_rtt = schema
 
 -------------------------------------------------------
 -- COUNTRIES SCHEMAS
@@ -98,7 +90,6 @@ schema:addTag("country")
 schema:addMetric("bytes_ingress", ts_utils.metrics.counter)
 schema:addMetric("bytes_egress", ts_utils.metrics.counter)
 schema:addMetric("bytes_inner", ts_utils.metrics.counter)
-ts_schemas.country_traffic = schema
 
 -------------------------------------------------------
 -- VLAN SCHEMAS
@@ -109,7 +100,6 @@ schema:addTag("ifid")
 schema:addTag("vlan")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.vlan_traffic = schema
 
 -- ##############################################
 
@@ -119,7 +109,6 @@ schema:addTag("vlan")
 schema:addTag("protocol")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.vlan_ndpi = schema
 
 -------------------------------------------------------
 -- FLOW DEVICES SCHEMAS
@@ -131,7 +120,6 @@ schema:addTag("device")
 schema:addTag("port")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.sflowdev_port_traffic = schema
 
 -- ##############################################
 
@@ -141,7 +129,6 @@ schema:addTag("device")
 schema:addTag("port")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.flowdev_port_traffic = schema
 
 -------------------------------------------------------
 -- SNMP SCHEMAS
@@ -153,7 +140,6 @@ schema:addTag("device")
 schema:addTag("if_index")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.snmp_if_traffic = schema
 
 -------------------------------------------------------
 -- HOSTS SCHEMAS
@@ -164,7 +150,6 @@ schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.host_traffic = schema
 
 -- ##############################################
 
@@ -172,7 +157,6 @@ schema = ts_utils.newSchema("host:flows", {step=300, rrd_fname="num_flows"})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("num_flows", ts_utils.metrics.gauge)
-ts_schemas.host_flows = schema
 
 -- ##############################################
 
@@ -183,7 +167,6 @@ schema:addTag("host")
 schema:addTag("l4proto")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.host_l4protos = schema
 
 -- ##############################################
 
@@ -193,7 +176,6 @@ schema:addTag("host")
 schema:addTag("protocol")
 schema:addMetric("bytes_sent", ts_utils.metrics.counter)
 schema:addMetric("bytes_rcvd", ts_utils.metrics.counter)
-ts_schemas.host_ndpi = schema
 
 -- ##############################################
 
@@ -202,8 +184,3 @@ schema:addTag("ifid")
 schema:addTag("host")
 schema:addTag("category")
 schema:addMetric("bytes", ts_utils.metrics.counter)
-ts_schemas.host_ndpi_categories = schema
-
--- ##############################################
-
-return ts_schemas
