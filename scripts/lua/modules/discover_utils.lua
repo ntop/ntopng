@@ -3,6 +3,8 @@
 --
 local json = require "dkjson"
 
+require "xmlSimple"
+
 local discover = {}
 
 discover.debug = false
@@ -231,7 +233,7 @@ end
 
 -- ################################################################################
 
-function discover.clearNetworkDiscovery(ifid)
+function discover.clearNetworkDiscovery(ifid)   
    ntop.delCache(getRequestNetworkDiscoveryKey(ifid))
 end
 
@@ -872,7 +874,7 @@ local function analyzeSSDP(ssdp)
       local friendlyName = ""
 
       if(hresp ~= nil) then
-	 local xml = require("xmlSimple").newParser()
+	 local xml = newParser()
 	 local r = xml:ParseXmlText(hresp["CONTENT"])
 
 	 if(r.root ~= nil) then
