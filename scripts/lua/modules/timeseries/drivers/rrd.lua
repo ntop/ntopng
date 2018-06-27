@@ -105,7 +105,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
     end
   end
 
-  for _, schema in pairs(ts_utils.getLoadedSchemas()) do
+  for schema_name, schema in pairs(ts_utils.getLoadedSchemas()) do
     -- verify tags compatibility
     for tag in pairs(schema.tags) do
       if tags[tag] == nil then
@@ -116,7 +116,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
     local full_path = schema_get_full_path(schema, tags)
 
     if full_path == rrdFile then
-      return schema
+      return schema_name
     end
 
     ::next_schema::

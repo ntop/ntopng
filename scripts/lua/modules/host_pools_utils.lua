@@ -466,24 +466,24 @@ end
 
 function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
   local ts_utils = require "ts_utils"
-  local ts_schemas = require "ts_5min"
+  require "ts_5min"
 
   -- NOTE: requires graph_utils
   for pool_id, pool_stats in pairs(interface.getHostPoolsStats() or {}) do
-    ts_utils.append(ts_schemas.host_pool_traffic, {ifid=ifid, pool=pool_id,
+    ts_utils.append("host_pool:traffic", {ifid=ifid, pool=pool_id,
               bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
 
     if pool_id ~= tonumber(host_pools_utils.DEFAULT_POOL_ID) then
        local flows_dropped = pool_stats["flows.dropped"] or 0
 
-       ts_utils.append(ts_schemas.host_pool_blocked_flows, {ifid=ifid, pool=pool_id,
+       ts_utils.append("host_pool:blocked_flows", {ifid=ifid, pool=pool_id,
               num_flows=flows_dropped}, when)
     end
 
     -- nDPI stats
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
-        ts_utils.append(ts_schemas.host_pool_ndpi, {ifid=ifid, pool=pool_id, protocol=proto,
+        ts_utils.append("host_pool:ndpi", {ifid=ifid, pool=pool_id, protocol=proto,
               bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
       end
     end
