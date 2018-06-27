@@ -1270,7 +1270,7 @@ end
 
 -- #################################################
 
-function rrd2json_merge(ret, num, show_other)
+function rrd2json_merge(ret, num, interval, show_other)
    -- if we are expanding an interface view, we want to concatenate
    -- jsons for single interfaces, and not for the view. Since view statistics
    -- are in ret[1], it suffices to aggregate jsons from index i >= 2
@@ -1280,13 +1280,12 @@ function rrd2json_merge(ret, num, show_other)
    -- sort by "totalval" to get the top "num" results
    local by_totalval = {}
    local totalval = 0
-   local tot_avg = 0
+
    for i = 1, #ret do
       by_totalval[i] = ret[i].totalval
 
       -- update total statistics, calculated on *all* the elements
       totalval = totalval + ret[i].totalval
-      tot_avg = tot_avg + ret[i].average
    end
 
    local ctr = 0
@@ -1337,7 +1336,7 @@ function rrd2json_merge(ret, num, show_other)
       -- update the total with the sum of the totals of each timeseries
       ret[1].totalval = totalval
       -- update the average
-      ret[1].average = tot_avg / #ret
+      ret[1].average = totalval / interval
 
       -- remove metrics that are no longer valid for merged rrds
       for _, k in pairs({'minval', 'minval_time',
@@ -1427,7 +1426,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
       return(ret)
    end
 
-   return rrd2json_merge(ret, num)
+   return rrd2json_merge(ret, num, end_time-start_time)
 end
 
 -- #################################################
