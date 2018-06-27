@@ -256,25 +256,19 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-function driver:listSeries(schema, tags_filter)
-  local wildcard_tag = nil
-
-  for tag in pairs(schema.tags) do
-    if not tags_filter[tag] then
-      if wildcard_tag then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
-        return nil
-      else
-        wildcard_tag = tag
-      end
-    end
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  if #wildcard_tags > 1 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
+    return nil
   end
 
-  if not wildcard_tag then
-    -- simple existance check
-    local full_path = schema_get_full_path(schema, tags_filter)
+  local wildcard_tag = wildcard_tags[1]
 
-    if ntop.exists(full_path) then
+  if not wildcard_tag then
+    local full_path = schema_get_full_path(schema, tags_filter)
+    local last_update = ntop.rrd_lastupdate(full_path)
+
+    if last_update ~= nil and last_update >= start_time then
       return {tags_filter}
     else
       return {}
@@ -294,7 +288,12 @@ function driver:listSeries(schema, tags_filter)
     local v = split(f, ".rrd")
 
     if #v == 2 then
-      res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = v[1]})
+      local fpath = base .. "/" .. f
+      local last_update = ntop.rrd_lastupdate(fpath)
+
+      if last_update ~= nil and last_update >= start_time then
+        res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = v[1]})
+      end
     end
   end
 

@@ -69,7 +69,7 @@ local function influx_query(full_url)
     return nil
   end
 
-  return jres.results[1].series[1]
+  return jres.results[1]
 end
 
 -------------------------------------------------------
@@ -96,7 +96,7 @@ function driver:query(schema, tstart, tend, tags, options)
       table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000"
 
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url)
+  local data = influx_query(full_url).series[1]
 
   if not data then
     return nil
@@ -172,11 +172,16 @@ end
 
 -------------------------------------------------------
 
-function driver:listSeries(schema, tags_filter)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
 
-  local query = 'SHOW SERIES FROM "' .. schema.name .. '" WHERE ' ..
-      table.tconcat(tags_filter, "=", " AND ", nil, "'")
+  -- NOTE: time based query not currently supported on show tags/series, using select
+  -- https://github.com/influxdata/influxdb/issues/5668
+  local query = 'SELECT * FROM "' .. schema.name .. '" WHERE ' ..
+      table.tconcat(tags_filter, "=", " AND ", nil, "'") ..
+      " AND time >= " .. start_time .. "000000000" ..
+      ternary(wildcard_tags, " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
+      " LIMIT 1"
 
   local full_url = url .. "/query?db=ntopng&q=" .. urlencode(query)
   local data = influx_query(full_url)
@@ -187,19 +192,25 @@ function driver:listSeries(schema, tags_filter)
 
   local res = {}
 
-  for _, value in pairs(data.values) do
-    local v = split(value[1], ",")
-    local rec = {}
+  for _, serie in pairs(data.series) do
+    for _, value in pairs(serie.values) do
+      local tags = {}
 
-    for i=2, #v do
-      local key_val = split(v[i], "=")
+      for i=2, #value do
+        local tag = serie.columns[i]
 
-      if #key_val == 2 then
-        rec[key_val[1]] = key_val[2]
+        -- exclude metrics
+        if schema.tags[tag] ~= nil then
+          tags[tag] = value[i]
+        end
       end
-    end
 
-    res[#res + 1] = rec
+      for key, val in pairs(serie.tags) do
+        tags[key] = val
+      end
+
+      res[#res + 1] = tags
+    end
   end
 
   return res

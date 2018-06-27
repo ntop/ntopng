@@ -198,15 +198,24 @@ end
 -----------------------------------------------------------------------
 
 -- List all the data series matching the given filter.
+-- Only data series updated after start_time will be returned.
 -- Returns a list of expanded tags based on the matches.
-function ts_utils.listSeries(schema, tags_filter)
+function ts_utils.listSeries(schema, tags_filter, start_time)
   local driver = ts_utils.getQueryDriver()
 
   if not driver then
     return nil
   end
 
-  return driver:listSeries(schema, tags_filter)
+  local wildcard_tags = {}
+
+  for tag in pairs(schema.tags) do
+    if not tags_filter[tag] then
+      wildcard_tags[#wildcard_tags + 1] = tag
+    end
+  end
+
+  return driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 end
 
 -----------------------------------------------------------------------
