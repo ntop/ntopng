@@ -5,6 +5,7 @@ require "lua_utils"
 require "db_utils"
 require "historical_utils"
 require "rrd_paths"
+local dkjson = require("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
@@ -1269,7 +1270,7 @@ end
 
 -- #################################################
 
-function rrd2json_merge(ret, num)
+function rrd2json_merge(ret, num, show_other)
    -- if we are expanding an interface view, we want to concatenate
    -- jsons for single interfaces, and not for the view. Since view statistics
    -- are in ret[1], it suffices to aggregate jsons from index i >= 2
@@ -1279,23 +1280,53 @@ function rrd2json_merge(ret, num)
    -- sort by "totalval" to get the top "num" results
    local by_totalval = {}
    local totalval = 0
-   local minval = 0
+   local tot_avg = 0
    for i = 1, #ret do
       by_totalval[i] = ret[i].totalval
-      -- update total
+
+      -- update total statistics, calculated on *all* the elements
       totalval = totalval + ret[i].totalval
+      tot_avg = tot_avg + ret[i].average
    end
 
    local ctr = 0
+   local other = {}
 
    for i,_ in pairsByValues(by_totalval, rev) do
-      if ctr >= num then break end
+      if ctr >= num then
+	 if not show_other then
+	    break
+	 else
+	    local j = dkjson.decode(ret[i].json)
+
+	    if not other.values then
+	       other.area = j.area
+	       other.key = i18n("other")
+	       other.values = table.clone(j.values)
+	    else
+	       for i=1, #j.values do
+		  for k=2, #j.values[i] do
+		     other.values[i][k] = other.values[i][k] + j.values[i][k]
+		  end
+	       end
+	    end
+
+	    goto continue
+	 end
+      end
       if(debug_metric) then io.write("->"..i.."\n") end
       if not first then json = json.."," end
       json = json..ret[i].json
+
+      ::continue::
       first = false
       ctr = ctr + 1
    end
+
+   if show_other and not table.empty(other) then
+      json = json..","..dkjson.encode(other)
+   end
+
    json = json.."]"
    -- the (possibly aggregated) json always goes into ret[1]
    -- ret[1] possibly contains aggregated view statistics such as
@@ -1305,9 +1336,11 @@ function rrd2json_merge(ret, num)
    if #ret > 1 then
       -- update the total with the sum of the totals of each timeseries
       ret[1].totalval = totalval
+      -- update the average
+      ret[1].average = tot_avg / #ret
+
       -- remove metrics that are no longer valid for merged rrds
-      for _, k in pairs({'average',
-			 'minval', 'minval_time',
+      for _, k in pairs({'minval', 'minval_time',
 			 'maxval', 'maxval_time',
 			 'lastval', 'lastval_time', 'percentile'}) do
 	 ret[1][k] = nil
