@@ -179,7 +179,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
 
   if not schema then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
-    return false
+    return nil
   end
 
   if not schema:verifyTags(tags) then
@@ -225,7 +225,7 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
 
   if not schema then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
-    return false
+    return nil
   end
 
   local driver = ts_utils.getQueryDriver()

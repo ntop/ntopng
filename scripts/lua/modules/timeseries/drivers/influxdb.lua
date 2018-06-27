@@ -96,12 +96,14 @@ function driver:query(schema, tstart, tend, tags, options)
       table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000"
 
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url).series[1]
+  local data = influx_query(full_url)
 
   if not data then
     return nil
   end
-  
+
+  data = data.series[1]
+
   local series = {}
 
   -- Create the columns
