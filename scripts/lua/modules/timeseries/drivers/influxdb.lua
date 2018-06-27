@@ -132,9 +132,9 @@ function driver:query(schema, tstart, tend, tags, options)
       local val = values[i]
 
       if val < options.min_value then
-        val = min_value
+        val = options.min_value
       elseif val > options.max_value then
-        val = max_value
+        val = options.max_value
       end
 
       series[i-1].data[series_idx] = val
