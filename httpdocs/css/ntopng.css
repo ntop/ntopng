@@ -320,3 +320,7 @@ tr.quotas > td {
   background-color: transparent;
   cursor: not-allowed;
 }
+
+.line-dashed {
+  stroke-dasharray: 5, 5;
+}
