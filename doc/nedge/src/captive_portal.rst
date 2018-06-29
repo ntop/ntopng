@@ -20,6 +20,11 @@ device first connects to the network.
 
   Android captive portal login notification
 
+.. warning::
+
+   On Windows 10 hosts with chrome browser, captive portal is only detected while
+   connected to a WiFi network.
+
 The access credentials for the captive portal are the ones configured in the
 users_ page. A device label is also required. Although this is a free field, the user is
 expected to insert a string to describe its device, e.g. `Joe's Laptop`.
