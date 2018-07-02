@@ -324,3 +324,10 @@ tr.quotas > td {
 .line-dashed {
   stroke-dasharray: 5, 5;
 }
+
+.chart-loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 50px;
+}

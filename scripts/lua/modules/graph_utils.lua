@@ -315,6 +315,7 @@ function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
                needs_separator = false
             end
 
+	    -- CHANGEME
             print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. (zoomLevel or '') .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
          end
       end
@@ -351,7 +352,11 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	 if(typeof talkers_loaded == 'undefined'
              && typeof protocols_loaded == 'undefined'
              && typeof flows_loaded == 'undefined'){
+]] if not ntop.isPro() then print[[
 	   window.location.reload(); /* do not reload, it's annoying */
+]]
+end -- CHANGEME
+print[[
 	 }
        }, 60*1000);
        </script>]]

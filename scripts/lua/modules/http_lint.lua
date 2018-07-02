@@ -1200,6 +1200,8 @@ local known_parameters = {
    ["packets_drops_perc"]      =  validateEmptyOr(validateNumber),
    ["operating_system"]        =  validateNumber,
    ["action"]                  =  validateSingleWord, -- generic
+   ["ts_schema"]               =  validateSingleWord,
+   ["ts_query"]                =  validateListOfTypeInline(validateSingleWord),
 
    -- json POST DATA
    ["payload"]                 =  validateJSON,
