@@ -26,22 +26,28 @@
 
 #include "ntop_includes.h"
 
+#define PF_RING_MAX_SOCKETS 2
+
 class PF_RINGInterface : public NetworkInterface {
  private:
-  pfring *pfring_handle;
+  pfring *pfring_handle[PF_RING_MAX_SOCKETS];
+  int num_pfring_handles;
 
   pfring_stat last_pfring_stat;
   u_int32_t getNumDroppedPackets();
+  pfring *pfringSocketInit(const char *name);
 
  public:
   PF_RINGInterface(const char *name);
   ~PF_RINGInterface();
 
+  void singlePacketPollLoop();
+  void multiPacketPollLoop();
   inline bool areTrafficDirectionsSupported()  { return(true); };
   inline bool isDiscoverableInterface()        { return(true);                         };
   inline InterfaceType getIfType()             { return(interface_type_PF_RING);       };
   inline const char* get_type()                { return(CONST_INTERFACE_TYPE_PF_RING); };
-  inline pfring* get_pfring_handle()           { return(pfring_handle);                };
+  inline int get_num_pfring_handles()          { return(num_pfring_handles); };
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);
