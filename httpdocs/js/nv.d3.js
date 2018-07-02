@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-06-28 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-02 */
 (function(){
 
 // set up main nv object
@@ -13041,6 +13041,7 @@ nv.models.multiChart = function() {
         useInteractiveGuideline = false,
         zoomType = null,
         legendRightAxisHint = ' (right axis)',
+        zoom_stack = [],
         duration = 250
         ;
 
@@ -13373,19 +13374,16 @@ nv.models.multiChart = function() {
                         .append('text')
                         .attr('x', availableWidth - 72 - 10)
                         .attr('y', 22)
-                        .text('Rest Zoom');
+                        .text('Zoom Out');
 
                     resetZoomButton.on('click', function() {
-                        var min = d3.min(container.data()[0], function(d) {
-                            return d3.min(d.values, function(d) {
-                                return chart.x()(d);
-                            })
-                        });
-                        var max = d3.max(container.data()[0], function(d) {
-                            return d3.max(d.values, function(d) {
-                                return chart.x()(d);
-                            })
-                        });
+                        if(!zoom_stack.length)
+                            return;
+
+                        var new_zoom = zoom_stack.pop();
+                        var min = new_zoom[0];
+                        var max = new_zoom[1];
+
                         chart.options({
                             xDomain: [min, max]
                         });
@@ -13657,7 +13655,23 @@ nv.models.multiChart = function() {
                     });
 
                     zoomLayer.dispatch.on("elementDragEnd", function(e) {
-                        if (dragStartXValue != currentXValue) {
+                        var MIN_X_DISTANCE = 3;
+
+                        if (Math.abs(dragStartXValue - currentXValue) >= MIN_X_DISTANCE) {
+                            var min = d3.min(container.data()[0], function(d) {
+                                return d3.min(d.values, function(d) {
+                                    return chart.x()(d);
+                                })
+                            });
+                            var max = d3.max(container.data()[0], function(d) {
+                                return d3.max(d.values, function(d) {
+                                    return chart.x()(d);
+                                })
+                            });
+
+                            // save current zoom
+                            zoom_stack.push([min, max]);
+
                             var xDomain = [
                                 d3.min([dragStartXValue, currentXValue]),
                                 d3.max([dragStartXValue, currentXValue])
