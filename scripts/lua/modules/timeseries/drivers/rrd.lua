@@ -291,13 +291,21 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   for f in pairs(files or {}) do
     local v = split(f, ".rrd")
+    local fpath = base .. "/" .. f
 
     if #v == 2 then
-      local fpath = base .. "/" .. f
       local last_update = ntop.rrd_lastupdate(fpath)
 
       if last_update ~= nil and last_update >= start_time then
         res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = v[1]})
+      end
+    elseif ntop.isdir(fpath) then
+      fpath = fpath .. "/" .. rrd .. ".rrd"
+
+      local last_update = ntop.rrd_lastupdate(fpath)
+
+      if last_update ~= nil and last_update >= start_time then
+        res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = f})
       end
     end
   end
