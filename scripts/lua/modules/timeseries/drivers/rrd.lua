@@ -217,10 +217,12 @@ function driver:query(schema, tstart, tend, tags, options)
 
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
   local serie_idx = 1
+  local count = 0
   local series = {}
 
   for _, serie in pairs(fdata) do
     local name = schema._metrics[serie_idx]
+    count = 0
 
     -- unify the format
     for i, v in pairs(serie) do
@@ -234,10 +236,13 @@ function driver:query(schema, tstart, tend, tags, options)
       end
 
       serie[i] = v
+      count = count + 1
     end
 
     -- Remove the last value: RRD seems to give an additional point
     serie[#serie] = nil
+    count = count - 1
+
     series[serie_idx] = {label=name, data=serie}
 
     serie_idx = serie_idx + 1
@@ -246,7 +251,7 @@ function driver:query(schema, tstart, tend, tags, options)
   return {
     start = fstart,
     step = fstep,
-    count = fcount,
+    count = count,
     series = series
   }
 end
