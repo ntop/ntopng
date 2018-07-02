@@ -326,9 +326,9 @@ end
 
 -- ########################################################
 
-function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
-		 selectedEpoch, selected_epoch_sanitized)
+function drawRRD(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, get_top, options)
    local debug_rrd = false
+   options = options or {}
 
    if(zoomLevel == nil) then zoomLevel = "1h" end
 
@@ -364,9 +364,11 @@ print[[
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized)
+      drawProGraph(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, get_top, options)
       return
    end
+
+   -- CHANGEME
 
    dirs = ntop.getDirs()
    rrdname = getRRDName(ifid, host, rrdFile)
@@ -454,7 +456,7 @@ print[[
 ]]
 
 
-if(show_timeseries == 1) then
+if(options.show_timeseries) then
    print [[
 <div class="btn-group">
   <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
@@ -473,6 +475,7 @@ if(show_timeseries == 1) then
    local d = os_utils.fixPath(p)
 
    -- nDPI protocols
+   -- CHANGEME
    navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
 	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPIProtocols())
 
@@ -484,7 +487,7 @@ if(show_timeseries == 1) then
   </ul>
 </div><!-- /btn-group -->
 ]]
-end -- show_timeseries == 1
+end -- show_options == 1
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
 
@@ -511,7 +514,7 @@ for k,v in ipairs(zoom_vals) do
       print("active")
    end
    print('">')
-   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
    ::continue::
 end
 
@@ -798,7 +801,7 @@ yAxis.render();
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
-print(baseurl .. '&rrd_file=' .. rrdFile .. '&zoom=' .. nextZoomLevel .. '&epoch=')
+print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel .. '&epoch=')
 print[['+hover.selected_epoch;
 });
 

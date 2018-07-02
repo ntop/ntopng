@@ -3238,6 +3238,26 @@ function printWarningAlert(message)
 end
 
 -- ###########################################
+
+function tsQueryToTags(query)
+   local tags = {}
+
+   for _, part in pairs(split(query, ",")) do
+     local parts = split(part, ":")
+
+     if #parts == 2 then
+       tags[parts[1]] = parts[2]
+     end
+   end
+
+   return tags
+end
+
+function tsTagsToQuery(tags)
+   return table.tconcat(tags, ":", ",")
+end
+
+-- ###########################################
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

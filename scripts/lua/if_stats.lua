@@ -881,24 +881,27 @@ setInterval(update_arp_table, 5000);
 ]]
    
 elseif(page == "historical") then
-   rrd_file = _GET["rrd_file"]
-   selected_epoch = _GET["epoch"]
-   if(selected_epoch == nil) then selected_epoch = "" end
+   local schema = _GET["ts_schema"] or "iface:traffic"
+   local selected_epoch = _GET["epoch"] or ""
+   local tags = tsQueryToTags(_GET["ts_query"] or "")
+   local get_top = tonumber(_GET["ts_top"])
 
-   if(rrd_file == nil) then rrd_file = "bytes.rrd" end
-   drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch)
-   --drawRRD(ifstats.id, nil, rrd_file, _GET["zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
+   drawRRD(ifstats.id, schema, tags, _GET["zoom"], url.."&page=historical", selected_epoch, get_top, {
+      show_timeseries = true,
+      top_protocols = "iface:ndpi",
+      top_categories = "iface:ndpi_categories",
+      top_profiles = "profile:traffic",
+      top_senders_receivers = true,
+      custom_graph = _GET["custom_graph"],
+   })
 
    if ntop.isPro() then
-
       print[[
-
 <br>
 
 <div>
   <b>]] print(i18n('notes')) print[[</b>
   <ul>
-    <li>]] print(i18n('graphs.note_click_to_zoom')) print[[</li>
     <li>]] print(i18n('graphs.note_protocols_shown')) print[[</li>
   </ul>
 </div>
