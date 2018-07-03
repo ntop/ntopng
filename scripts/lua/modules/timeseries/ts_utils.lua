@@ -169,13 +169,19 @@ end
 
 -----------------------------------------------------------------------
 
-function ts_utils.query(schema_name, tags, tstart, tend, options)
-  local query_options = table.merge({
+local function getQueryOptions(overrides)
+  return table.merge({
     fill_value = 0,         -- e.g. 0/0 for nan
     min_value = 0,          -- minimum value of a data point
     max_value = math.huge,  -- maximum value for a data point
-  }, options or {})
+    top = 5,                -- topk number of items
+  }, overrides or {})
+end
 
+-----------------------------------------------------------------------
+
+function ts_utils.query(schema_name, tags, tstart, tend, options)
+  local query_options = getQueryOptions(options)
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then
@@ -187,9 +193,6 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     return nil
   end
 
-  local drivers = ts_utils.listActiveDrivers()
-
-  -- TODO: for now prefer the influx driver if present
   local driver = ts_utils.getQueryDriver()
 
   if not driver then
@@ -214,6 +217,63 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
   end
 
   return rv
+end
+
+-----------------------------------------------------------------------
+
+function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
+  local query_options = getQueryOptions(options)
+
+  -- TODO handle special schemas (e.g. local_senders)
+
+  local schema = ts_utils.getSchema(schema_id)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return nil
+  end
+
+  local top_tags = {}
+  for _, tag in ipairs(schema._tags) do
+    if not tags[tag] then
+      top_tags[#top_tags + 1] = tag
+    end
+  end
+
+  if table.empty(top_tags) then
+    -- no top tags, just a plain query
+    return ts_utils.query(schema_id, tags, tstart, tend, query_options)
+  end
+
+  local driver = ts_utils.getQueryDriver()
+
+  if not driver then
+    return nil
+  end
+
+  -- Find the top items
+  local top_items = driver:topk(schema, tags, tstart, tend, query_options, top_tags)
+  if not top_items then
+    return nil
+  end
+
+  local res = {series={}}
+
+  -- Query the top items
+  for _, top in ipairs(top_items) do
+    local top_res = driver:query(schema, tstart, tend, top.tags, query_options)
+
+    -- TODO add more checks on consistency?
+    res.step = top_res.step
+    res.count = top_res.count
+    res.start = top_res.start
+
+    for _, serie in ipairs(top_res.series) do
+      res.series[#res.series + 1] = serie
+    end
+  end
+
+  return res
 end
 
 -----------------------------------------------------------------------

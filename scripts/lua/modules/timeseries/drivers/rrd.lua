@@ -321,6 +321,71 @@ end
 
 -------------------------------------------------------
 
+function driver:topk(schema, tags, tstart, tend, options, top_tags)
+  if #top_tags > 1 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")
+    return nil
+  end
+
+  local top_tag = top_tags[1]
+
+  if top_tag ~= schema._tags[#schema._tags] then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver only support topk with topk tag in the last tag, got topk on '" .. topk .. "'")
+    return nil
+  end
+
+  local series = self:listSeries(schema, tags, top_tags, tstart)
+  if not series then
+    return nil
+  end
+
+  local items = {}
+  local tag_2_series = {}
+
+  for _, serie_tags in pairs(series) do
+    local rrdfile = schema_get_full_path(schema, serie_tags)
+    local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+    local sum = 0
+
+    for _, serie in pairs(fdata) do
+      for i, v in pairs(serie) do
+        if v ~= v then
+          -- NaN value
+          v = options.fill_value
+        elseif v < options.min_value then
+          v = options.min_value
+        elseif v > options.max_value then
+          v = options.max_value
+        end
+
+        if type(v) == "number" then
+          sum = sum + v
+        end
+      end
+    end
+
+    items[serie_tags[top_tag]] = sum
+    tag_2_series[serie_tags[top_tag]] = serie_tags
+  end
+
+  local topk = {}
+
+  for top_item, value in pairsByValues(items, rev) do
+    topk[#topk + 1] = {
+      tags = tag_2_series[top_item],
+      value = value,
+    }
+
+    if #topk >= options.top then
+      break
+    end
+  end
+
+  return topk
+end
+
+-------------------------------------------------------
+
 function driver:delete(schema, tags)
   tprint("TODO DELETE")
 end

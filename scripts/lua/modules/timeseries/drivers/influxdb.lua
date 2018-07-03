@@ -238,4 +238,53 @@ end
 
 -------------------------------------------------------
 
+function driver:topk(schema, tags, tstart, tend, options, top_tags)
+  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
+
+  if #top_tags ~= 1 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
+    return nil
+  end
+
+  local top_tag = top_tags[1]
+  local query = 'SELECT TOP("value", "'.. top_tag ..'", '.. options.top ..') FROM (SELECT '.. top_tag ..
+      ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. ');'
+  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+
+  local data = influx_query(full_url)
+
+  if not data then
+    return nil
+  end
+
+  if table.empty(data.series) then
+    return {}
+  end
+
+  data = data.series[1]
+
+  local res = {}
+
+  for idx, value in pairs(data.values) do
+    -- top value
+    res[idx] = value[2]
+  end
+
+  local sorted = {}
+
+  for idx in pairsByValues(res, rev) do
+    local value = data.values[idx]
+
+    sorted[#sorted + 1] = {
+      tags = table.merge(tags, {[top_tag] = value[3]}),
+      value = value[2],
+    }
+  end
+
+  return sorted
+end
+
+-------------------------------------------------------
+
 return driver
