@@ -297,7 +297,13 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       local last_update = ntop.rrd_lastupdate(fpath)
 
       if last_update ~= nil and last_update >= start_time then
-        res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = v[1]})
+        -- TODO remove after migration
+        local value = v[1]
+
+        if ((wildcard_tag ~= "protocol") or (interface.getnDPIProtoId(value) ~= -1)) and
+            ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
+          res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
+        end
       end
     elseif ntop.isdir(fpath) then
       fpath = fpath .. "/" .. rrd .. ".rrd"
