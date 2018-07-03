@@ -64,8 +64,13 @@ local function influx_query(full_url)
 
   local jres = json.decode(res.CONTENT)
 
-  if (not jres) or (not jres.results) or (not #jres.results) or (not jres.results[1].series) then
+  if (not jres) or (not jres.results) or (not #jres.results) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid JSON reply[" .. res.CONTENT_LEN .. " bytes]: " .. string.sub(res.CONTENT, 1, 50))
+    return nil
+  end
+
+  if not jres.results[1].series then
+    -- no results fount
     return nil
   end
 
@@ -182,7 +187,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local query = 'SELECT * FROM "' .. schema.name .. '" WHERE ' ..
       table.tconcat(tags_filter, "=", " AND ", nil, "'") ..
       " AND time >= " .. start_time .. "000000000" ..
-      ternary(wildcard_tags, " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
+      ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
       " LIMIT 1"
 
   local full_url = url .. "/query?db=ntopng&q=" .. urlencode(query)
@@ -190,6 +195,19 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   if not data then
     return nil
+  end
+
+  if table.empty(data.series) then
+    return {}
+  end
+
+  if table.empty(wildcard_tags) then
+    -- Simple "exists" check
+    if not table.empty(data.series[1].values) then
+      return tags_filter
+    else
+      return {}
+    end
   end
 
   local res = {}
