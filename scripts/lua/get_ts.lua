@@ -28,7 +28,15 @@ require("ts_second")
 require("ts_minute")
 require("ts_5min")
 
-local res = ts_utils.query(schema_id, tags, tstart, tend)
+local res
+
+if starts(schema_id, "top:") then
+  local schema_id = split(schema_id, "top:")[2]
+
+  res = ts_utils.queryTopk(schema_id, tags, tstart, tend)
+else
+  res = ts_utils.query(schema_id, tags, tstart, tend)
+end
 
 if not res then
   print("[]")

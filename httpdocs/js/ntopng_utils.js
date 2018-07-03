@@ -497,6 +497,12 @@ String.prototype.sformat = function() {
   });
 };
 
+if (typeof(String.prototype.contains) === "undefined") {
+  String.prototype.contains = function(s) {
+    return this.indexOf(s) !== -1;
+  }
+}
+
 /* Used while searching hosts a and macs with typeahead */
 function makeFindHostBeforeSubmitCallback(http_prefix) {
   return function(form, data) {

@@ -216,6 +216,11 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     rv = compact
   end
 
+  -- Add tags information for consistency with queryTopk
+  for _, serie in pairs(rv.series) do
+    serie.tags = tags
+  end
+
   return rv
 end
 
@@ -269,6 +274,7 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
     res.start = top_res.start
 
     for _, serie in ipairs(top_res.series) do
+      serie.tags = top.tags
       res.series[#res.series + 1] = serie
     end
   end
