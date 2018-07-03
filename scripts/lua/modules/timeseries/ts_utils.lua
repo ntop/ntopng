@@ -226,29 +226,72 @@ end
 
 -----------------------------------------------------------------------
 
-function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
-  local query_options = getQueryOptions(options)
+local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
+  package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+  local top_utils = require "top_utils"
+  local num_minutes = (tend-tstart)/60
+  local top_talkers = top_utils.getAggregatedTop(getInterfaceName(ifId), tend, num_minutes)
 
-  -- TODO handle special schemas (e.g. local_senders)
+  local direction
+  local select_col
 
-  local schema = ts_utils.getSchema(schema_id)
-
-  if not schema then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
-    return nil
+  if schema_id == "local_senders" then
+     direction = "senders"
+     select_col = "sent"
+  else
+     direction = "receivers"
+     select_col = "rcvd"
   end
 
-  local top_tags = {}
-  for _, tag in ipairs(schema._tags) do
-    if not tags[tag] then
-      top_tags[#top_tags + 1] = tag
+  local tophosts = {}
+
+  for idx1, vlan in pairs(top_talkers.vlan or {}) do
+    for idx2, host in pairs(vlan.hosts[1][direction] or {}) do
+      if host["local"] == "true" then
+        tophosts[idx1.."_"..idx2] = host.value
+      end
     end
   end
 
-  if table.empty(top_tags) then
-    -- no top tags, just a plain query
-    return ts_utils.query(schema_id, tags, tstart, tend, query_options)
+  local res = {}
+  for item in pairsByValues(tophosts, rev) do
+    local parts = split(item, "_")
+    local idx1 = tonumber(parts[1])
+    local idx2 = tonumber(parts[2])
+    local host = top_talkers.vlan[idx1].hosts[1][direction][idx2]
+
+    res[#res + 1] = {
+      value = host.value,
+      tags = {ifid=tags.ifid, host=host.address},
+    }
+
+    if #res >= options.top then
+      break
+    end
   end
+
+  return {
+    topk = res,
+    schema = ts_utils.getSchema("host:traffic"),
+  }
+end
+
+-- A bunch of pre-computed top items functions
+-- Must return in the same format as driver:topk
+local function getPrecomputedTops(schema_id, tags, tstart, tend, options)
+  if (schema_id == "local_senders") or (schema_id == "local_receivers") then
+    return getLocalTopTalkers(schema_id, tags, tstart, tend, options)
+  end
+
+  return nil
+end
+
+-----------------------------------------------------------------------
+
+function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
+  local query_options = getQueryOptions(options)
+  local top_items = nil
+  local schema = nil
 
   local driver = ts_utils.getQueryDriver()
 
@@ -256,15 +299,44 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
     return nil
   end
 
-  -- Find the top items
-  local top_items = driver:topk(schema, tags, tstart, tend, query_options, top_tags)
+  local pre_computed = getPrecomputedTops(schema_id, tags, tstart, tend, query_options)
+
+  if pre_computed then
+    -- Use precomputed top items
+    top_items = pre_computed.topk
+    schema = pre_computed.schema
+  else
+    schema = ts_utils.getSchema(schema_id)
+
+    if not schema then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+      return nil
+    end
+
+    local top_tags = {}
+
+    for _, tag in ipairs(schema._tags) do
+      if not tags[tag] then
+        top_tags[#top_tags + 1] = tag
+      end
+    end
+
+    if table.empty(top_tags) then
+      -- no top tags, just a plain query
+      return ts_utils.query(schema_id, tags, tstart, tend, query_options)
+    end
+
+    -- Find the top items
+    top_items = driver:topk(schema, tags, tstart, tend, query_options, top_tags)
+  end
+
   if not top_items then
     return nil
   end
 
   local res = {series={}}
 
-  -- Query the top items
+  -- Query the top items data
   for _, top in ipairs(top_items) do
     local top_res = driver:query(schema, tstart, tend, top.tags, query_options)
 

@@ -17,7 +17,9 @@ function getSerieLabel(schema, serie) {
   if(data_2_label[data_label])
     return data_2_label[data_label];
 
-  if(data_label != "bytes") {
+  if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
+    return serie.tags.host + " (" + ((serie.label == "bytes_sent") ? "sent" : "rcvd") + ")"
+  } else if(data_label != "bytes") {
     if(serie.tags.protocol)
       return serie.tags.protocol + " (" + data_label + ")";
     else if(serie.tags.category)

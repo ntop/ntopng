@@ -330,7 +330,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local top_tag = top_tags[1]
 
   if top_tag ~= schema._tags[#schema._tags] then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver only support topk with topk tag in the last tag, got topk on '" .. topk .. "'")
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
     return nil
   end
 
