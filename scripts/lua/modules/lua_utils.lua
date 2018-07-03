@@ -274,7 +274,12 @@ function getPageUrl(base_url, params)
       encoded[k] = urlencode(v)
    end
 
-   return base_url .. "?" .. table.tconcat(encoded, "=", "&")
+   local delim = "&"
+   if not string.find(base_url, "?") then
+     delim = "?"
+   end
+
+   return base_url .. delim .. table.tconcat(encoded, "=", "&")
 end
 
 -- ##############################################

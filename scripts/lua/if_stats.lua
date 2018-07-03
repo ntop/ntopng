@@ -883,16 +883,20 @@ setInterval(update_arp_table, 5000);
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "iface:traffic"
    local selected_epoch = _GET["epoch"] or ""
-   local tags = tsQueryToTags(_GET["ts_query"] or "")
-   local get_top = tonumber(_GET["ts_top"])
+   local tags = {
+      ifid = ifid,
+      protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+      category = _GET["category"],
+   }
 
-   drawRRD(ifstats.id, schema, tags, _GET["zoom"], url.."&page=historical", selected_epoch, get_top, {
+   drawRRD(ifstats.id, schema, tags, _GET["zoom"], url.."&page=historical", selected_epoch, {
       show_timeseries = true,
-      top_protocols = "iface:ndpi",
-      top_categories = "iface:ndpi_categories",
-      top_profiles = "profile:traffic",
-      top_senders_receivers = true,
-      custom_graph = _GET["custom_graph"],
+      show_iface_series = true,
+      top_protocols = "top:iface:ndpi",
+      top_categories = "top:iface:ndpi_categories",
+      top_profiles = "top:profile:traffic",
+      top_senders = "top:local_senders",
+      top_receivers = "top:local_receivers",
    })
 
    if ntop.isPro() then

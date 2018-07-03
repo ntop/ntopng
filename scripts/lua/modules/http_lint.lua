@@ -1202,8 +1202,6 @@ local known_parameters = {
    ["action"]                  =  validateSingleWord, -- generic
    ["ts_schema"]               =  validateSingleWord,
    ["ts_query"]                =  validateListOfTypeInline(validateSingleWord),
-   ["ts_top"]                  =  validateNumber,
-   ["custom_graph"]            =  validateSingleWord,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON,

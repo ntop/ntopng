@@ -10,32 +10,55 @@ local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
 
-local top_rrds = {
-   {rrd="num_flows.rrd",               label=i18n("graphs.active_flows")},
-   {rrd="num_hosts.rrd",               label=i18n("graphs.active_hosts")},
-   {rrd="num_devices.rrd",             label=i18n("graphs.active_devices")},
-   {rrd="num_http_hosts.rrd",          label=i18n("graphs.active_http_servers"), nedge_exclude=1},
-   {rrd="bytes.rrd",                   label=i18n("traffic")},
-   {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
-   {rrd="packets.rrd",                 label=i18n("packets")},
-   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
-   {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
-   {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-   {rrd="num_ms_rtt.rrd",              label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+local ts_utils = require("ts_utils")
+require("ts_second")
+require("ts_minute")
+require("ts_5min")
+
+iface_series = {
+   {schema="iface:flows",                 label=i18n("graphs.active_flows")},
+   {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
+   {schema="iface:devices",               label=i18n("graphs.active_devices")},
+   {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
+   {schema="iface:traffic",               label=i18n("traffic")},
+   {schema="iface:packets",               label=i18n("packets")},
+   {schema="iface:drops",                 label=i18n("graphs.packet_drops")},
+   
+   {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
    {separator=1, nedge_exclude=1},
-   {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
-   {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
-   {rrd="tcp_retransmissions.rrd",     label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-   {rrd="tcp_retr_ooo_lost.rrd",       label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
+   {schema="iface:tcp_lost",              label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+   {schema="iface:tcp_out_of_order",      label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+   --{schema="tcp_retr_ooo_lost",   label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
+   {schema="iface:tcp_retransmissions",   label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
    {separator=1},
-   {rrd="tcp_syn.rrd",                 label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
-   {rrd="tcp_synack.rrd",              label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
-   {rrd="tcp_finack.rrd",              label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
-   {rrd="tcp_rst.rrd",                 label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
+   {schema="iface:tcp_syn",               label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
+   {schema="iface:tcp_synack",            label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
+   {schema="iface:tcp_finack",            label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
+   {schema="iface:tcp_rst",               label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
+}
+
+host_pool_series = {
+   {schema="host_pool:traffic",           label=i18n("traffic")},
+   {schema="host_pool:blocked_flows",     label=i18n("graphs.blocked_flows")},
+}
+
+host_series = {
+   {schema="host:traffic",                label=i18n("traffic")},
+   {schema="host:flows",                  label=i18n("graphs.active_flows")},
+}
+
+subnet_series = {
+   {schema="subnet:traffic",              label=i18n("traffic")},
+   {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
+}
+
+asn_series = {
+   {schema="asn:traffic",                 label=i18n("traffic")},
+   {schema="asn:rtt",                     label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
 }
 
 if ntop.isnEdge() then
-   top_rrds[#top_rrds + 1] = {rrd="num_nfq_pct.rrd",    label=i18n("graphs.num_nfq_pct")}
+   iface_series[#iface_series + 1] = {schema="iface:nfq_pct",    label=i18n("graphs.num_nfq_pct")}
 end
 
 -- ########################################################
@@ -275,26 +298,27 @@ end
 
 -- ########################################################
 
-function isTopRRD(filename)
-   for _,top in ipairs(top_rrds) do
-      if top.rrd == filename then
-         if not have_nedge or not top.nedge_exclude then
-            return true
-         else
-            return false
-         end
-      end
+function printGraphMenuEntry(label, base_url, params, tab_id)
+   local url = getPageUrl(base_url, params)
+
+   print[[<li><a href="]]
+   print(url)
+   print[[" ]]
+
+   if not isEmptyString(tab_id) then
+      print[[id="]] print(tab_id) print[[" ]]
    end
 
-   return false
+   print[[> ]] print(label) print[[</a></li>]]
+   print("\n")
 end
 
 -- ########################################################
 
-function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+function printSeries(series, tags, start_time, base_url, params)
    local needs_separator = false
 
-   for _,top in ipairs(top_rrds) do
+   for _,top in ipairs(series) do
       if have_nedge and top.nedge_exclude then
          goto continue
       end
@@ -302,22 +326,21 @@ function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
       if top.separator then
          needs_separator = true
      else
-         local k = top.rrd
+         local k = top.schema
          local v = top.label
 
-         -- only show if there has been an update within the specified time frame
-         local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
-
-         if last_update ~= nil and last_update >= start_time then
-            if needs_separator then
+	 -- only show if there has been an update within the specified time frame
+	 local res = ts_utils.listSeries(k, tags, start_time)
+   
+	 if not table.empty(res) then
+	    if needs_separator then
                -- Only add the separator if there are actually some entries in the group
                print('<li class="divider"></li>\n')
                needs_separator = false
             end
 
-	    -- CHANGEME
-            print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. (zoomLevel or '') .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
-         end
+	    printGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
+	 end
       end
 
       ::continue::
@@ -326,7 +349,7 @@ end
 
 -- ########################################################
 
-function drawRRD(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, get_top, options)
+function drawRRD(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
    options = options or {}
 
@@ -364,7 +387,7 @@ print[[
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      drawProGraph(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, get_top, options)
+      drawProGraph(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
       return
    end
 
@@ -463,7 +486,8 @@ if(options.show_timeseries) then
   <ul class="dropdown-menu">
 ]]
 
-   printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+   -- CHANGEME
+   printSeries(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
 
    local dirs = ntop.getDirs()
    local p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
@@ -924,11 +948,6 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    --local use_new_api = true
 
    if use_new_api then
-      local ts_utils = require("ts_utils")
-      require("ts_second")
-      require("ts_minute")
-      require("ts_5min")
-
       local tags = {ifid=ifid, host=host}
       local schema = find_schema(rrdname, rrdFile, tags, ts_utils)
 
