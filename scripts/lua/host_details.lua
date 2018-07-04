@@ -1910,11 +1910,6 @@ elseif (page == "config") then
    </script>]]
 
 elseif(page == "historical") then
-if(_GET["rrd_file"] == nil) then
-   rrdfile = "bytes.rrd"
-else
-   rrdfile=_GET["rrd_file"]
-end
 
 host_url = "host="..host_ip
 host_key = host_ip
@@ -1923,7 +1918,25 @@ if(host_vlan and (host_vlan > 0)) then
    host_key = host_key.."@"..host_vlan
 end
 
-drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"])
+local schema = _GET["ts_schema"] or "host:traffic"
+local selected_epoch = _GET["epoch"] or ""
+
+local tags = {
+   ifid = ifId,
+   host = host_key,
+   protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+   category = _GET["category"],
+}
+
+local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical'
+
+drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   show_timeseries = true,
+   show_host_series = true,
+   top_protocols = "top:host:ndpi",
+   top_categories = "top:host:ndpi_categories",
+})
+
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 elseif(page == "sprobe") then

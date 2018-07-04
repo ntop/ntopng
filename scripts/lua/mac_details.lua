@@ -338,12 +338,21 @@ elseif(page == "packets") then
    </script>]]
 
 elseif(page == "historical") then
+   local schema = _GET["ts_schema"] or "mac:traffic"
+   local selected_epoch = _GET["epoch"] or ""
 
-   if not isEmptyString(_GET["rrd_file"]) then
-      rrdfile = _GET["rrd_file"]
-   end
+   local tags = {
+      ifid = ifId,
+      mac = mac,
+      protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+      category = _GET["category"],
+   }
 
-   drawRRD(ifId, devicekey, rrdfile, _GET["zoom"], url..'&page=historical', 1, _GET["epoch"])
+   drawRRD(ifId, schema, tags, _GET["zoom"], url..'&page=historical', selected_epoch, {
+      show_timeseries = true,
+      show_mac_series = true,
+      top_categories = "top:mac:ndpi_categories",
+   })
 
 elseif(page == "config") then
    

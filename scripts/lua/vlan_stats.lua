@@ -24,7 +24,6 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
---print [[/lua/get_grouped_hosts_data.lua?grouped_by=vlan]]
 print [[/lua/get_vlans_data.lua]]
 
 print ('";')

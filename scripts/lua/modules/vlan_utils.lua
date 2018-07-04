@@ -31,7 +31,7 @@ function vlan2record(vlan)
    record["column_chart"] = ""
    local vlanstats_rrd = os_utils.fixPath(dirs.workingdir .. "/" ..getInterfaceId(ifname)..'/vlanstats/'..vlan["vlan_id"]..'/bytes.rrd')
    if ntop.exists(vlanstats_rrd) then
-      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan["vlan_id"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan='..vlan["vlan_id"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
    end
 
    return record

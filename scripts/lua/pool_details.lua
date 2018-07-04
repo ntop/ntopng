@@ -129,15 +129,22 @@ elseif page == "historical" then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
     print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
   else
-    local rrdfile
-    if(not isEmptyString(_GET["rrd_file"])) then
-      rrdfile = _GET["rrd_file"]
-    else
-      rrdfile = "bytes.rrd"
-    end
+    local schema = _GET["ts_schema"] or "host_pool:traffic"
+    local selected_epoch = _GET["epoch"] or ""
+    local url = getPageUrl(base_url, page_params)
 
-    local host_url = getPageUrl(base_url, page_params)
-    drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
+    local tags = {
+      ifid = ifId,
+      pool = pool_id,
+      protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+      category = _GET["category"],
+    }
+
+    drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      show_timeseries = true,
+      show_pool_series = true,
+      top_protocols = "top:host_pool:ndpi",
+    })
   end
 end
 

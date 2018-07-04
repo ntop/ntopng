@@ -10,26 +10,33 @@ function initLabelMaps(_schema_2_label, _data_2_label) {
 
 function getSerieLabel(schema, serie) {
   var data_label = serie.label;
-
-  if(schema_2_label[schema])
-    return schema_2_label[schema];
-
-  if(data_2_label[data_label])
-    return data_2_label[data_label];
+  var new_label = data_2_label[data_label];
 
   if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
     return serie.tags.host + " (" + ((serie.label == "bytes_sent") ? "sent" : "rcvd") + ")"
   } else if(data_label != "bytes") {
     if(serie.tags.protocol)
-      return serie.tags.protocol + " (" + data_label + ")";
+      return serie.tags.protocol + " (" + new_label + ")";
     else if(serie.tags.category)
-      return serie.tags.category + " (" + data_label + ")";
+      return serie.tags.category + " (" + new_label + ")";
+    else if(serie.tags.if_index)
+      return "Port " + serie.tags.if_index + " (" + new_label + ")";
+    else if(serie.tags.port)
+      return "Port " + serie.tags.port + " (" + new_label + ")";
   } else {
       if(serie.tags.protocol)
         return serie.tags.protocol;
       else if(serie.tags.category)
         return serie.tags.category;
+      else if(serie.tags.profile)
+        return serie.tags.profile;
   }
+
+  if(schema_2_label[schema])
+    return capitaliseFirstLetter(schema_2_label[schema]);
+
+  if(new_label)
+    return capitaliseFirstLetter(new_label);
 
   // default
   return capitaliseFirstLetter(data_label);
@@ -46,6 +53,8 @@ function getValueFormatter(schema, series) {
       return fpackets;
     else if(label.contains("flows"))
       return fflows;
+    else if(label.contains("millis"))
+      return fmillis;
   }
 
   // fallback

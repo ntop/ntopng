@@ -47,6 +47,26 @@ host_series = {
    {schema="host:flows",                  label=i18n("graphs.active_flows")},
 }
 
+mac_series = {
+   {schema="mac:traffic",                 label=i18n("traffic")},
+}
+
+country_series = {
+   {schema="country:traffic",             label=i18n("traffic")},
+}
+
+vlan_series = {
+   {schema="vlan:traffic",             	  label=i18n("traffic")},
+}
+
+profile_series = {
+   {schema="profile:traffic",             label=i18n("traffic")},
+}
+
+snmp_iface_series = {
+   {schema="snmp_if:traffic",             label=i18n("traffic")},
+}
+
 subnet_series = {
    {schema="subnet:traffic",              label=i18n("traffic")},
    {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},

@@ -62,14 +62,19 @@ print [[
 Selectively render information pages
 --]]
 if page == "historical" then
-    if(_GET["rrd_file"] == nil) then
-        rrdfile = "bytes.rrd"
-    else
-        rrdfile=_GET["rrd_file"]
-    end
+    local schema = _GET["ts_schema"] or "country:traffic"
+    local selected_epoch = _GET["epoch"] or ""
+    local url = ntop.getHttpPrefix()..'/lua/country_details.lua?ifid='..ifId..'&country='..country..'&page=historical'
 
-    host_url = ntop.getHttpPrefix()..'/lua/country_details.lua?ifid='..ifId..'&country='..country..'&page=historical'
-    drawRRD(ifId, 'country:'..country, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
+    local tags = {
+      ifid = ifId,
+      country = country,
+    }
+
+    drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      show_timeseries = true,
+      show_country_series = true,
+    })
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

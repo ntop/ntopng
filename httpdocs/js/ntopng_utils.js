@@ -123,6 +123,11 @@ function fint(value) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function fmillis(value) {
+    var x = Math.round(value);
+    return x.toString() + " ms";
+}
+
 function fdate(when) {
     var epoch = when*1000;
     var d = new Date(epoch);

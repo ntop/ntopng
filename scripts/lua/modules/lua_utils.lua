@@ -3248,11 +3248,13 @@ function tsQueryToTags(query)
    local tags = {}
 
    for _, part in pairs(split(query, ",")) do
-     local parts = split(part, ":")
+      local sep_pos = string.find(part, ":")
 
-     if #parts == 2 then
-       tags[parts[1]] = parts[2]
-     end
+      if sep_pos then
+         local k = string.sub(part, 1, sep_pos-1)
+         local v = string.sub(part, sep_pos+1)
+         tags[k] = v
+      end
    end
 
    return tags

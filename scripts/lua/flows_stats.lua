@@ -58,39 +58,6 @@ local ndpicatstats = ifstats["ndpi_categories"]
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
 
-if (network_id ~= nil) then
-local network_name = ntop.getNetworkNameById(tonumber(network_id))
-local url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network='..network_id
-
-print [[
-  <nav class="navbar navbar-default" role="navigation">
-  <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
-]]
-print("<li><a href=\"#\"> Network "..network_name)
-print("</a></li>\n")
-
-page = _GET["page"]
-
-if(page == "flows") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("flows").."</a></li>\n")
-else
-  print("<li><a href=\""..url.."&page=flows\">"..i18n("flows").."</a></li>")
-end
-if (page == "historical") then
-  print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-else
-  print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-   ]]
-end
-
 if (page == "flows" or page == nil) then
 
 print [[
@@ -481,16 +448,5 @@ print[[
    });
 </script>
 ]]
-
-if (page == "historical" and network_name ~= nil) then
-  local netname_format = string.gsub(network_name, "_", "/")
-  local rrd_file = _GET["rrd_file"]
-  if (rrd_file == nil or rrd_file == "all") then
-    rrd_file = "all"
-  else
-    rrd_file = getPathFromKey(netname_format).."/"..rrd_file
-  end
-  drawRRD(ifstats.id, nil, rrd_file, "1d", url.."&page=historical", 1, os.time() , "", nil)
-end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

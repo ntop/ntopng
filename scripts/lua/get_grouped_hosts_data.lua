@@ -105,8 +105,6 @@ function print_single_group(value)
    print ("\"column_id\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/")
    if (group_col == "asn" or as_n ~= nil) then
       print("hosts_stats.lua?asn=" ..tostring(value["id"]) .. "'>")
-   elseif (group_col == "vlan" or vlan_n ~= nil) then
-      print("hosts_stats.lua?vlan="..value["id"].."'>")
    elseif (group_col == "country" or country_n ~= nil) then
       print("hosts_stats.lua?country="..value["id"].."'>")
       print(getFlag(value["country"]).."&nbsp&nbsp")
@@ -136,15 +134,6 @@ function print_single_group(value)
 	 print("-")
       end
       print('", ')
-
-   elseif group_col == "vlan" or vlan_n ~= nil then
-      print(value["id"]..'</A> ')
-      print('", "column_chart": "')
-      if value["id"] ~= "0" then
-	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
-      end
-      print('", ')
-
    elseif(group_col == "mac") then
       manufacturer = get_manufacturer_mac(value["name"])
       if(manufacturer == nil) then manufacturer = "" end

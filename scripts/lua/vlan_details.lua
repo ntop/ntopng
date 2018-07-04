@@ -72,8 +72,22 @@ else
       Selectively render information pages
    --]]
    if page == "historical" then
-      vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan'..vlan_id..'&page=historical'
-      drawRRD(ifId, 'vlan:'..vlan_id, rrdfile, _GET["zoom"], vlan_url, 1, _GET["epoch"])
+      local schema = _GET["ts_schema"] or "vlan:traffic"
+      local selected_epoch = _GET["epoch"] or ""
+      local vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan='..vlan_id..'&page=historical'
+
+      local tags = {
+         ifid = ifId,
+         vlan = vlan_id,
+         protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+         category = _GET["category"],
+      }
+
+      drawRRD(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
+         show_timeseries = true,
+         show_vlan_series = true,
+         top_protocols = "top:vlan:ndpi",
+      })
    end
 
 end

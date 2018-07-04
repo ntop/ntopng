@@ -100,15 +100,19 @@ print [[
 Selectively render information pages
 --]]
 if page == "historical" then
-    if(_GET["rrd_file"] == nil) then
-        rrdfile = "bytes.rrd"
-    else
-        rrdfile=_GET["rrd_file"]
-    end
+    local schema = _GET["ts_schema"] or "subnet:traffic"
+    local selected_epoch = _GET["epoch"] or ""
+    local url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
 
-    host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
-    drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
+    local tags = {
+      ifid = ifId,
+      subnet = network_name,
+    }
 
+    drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      show_timeseries = true,
+      show_subnet_series = true,
+    })
 elseif (page == "config") then
     if(not isAdministrator()) then
       return
