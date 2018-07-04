@@ -888,8 +888,15 @@ elseif(page == "historical") then
       protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
       category = _GET["category"],
    }
+   url = url.."&page=historical"
+   if not isEmptyString(_GET["protocol"]) then
+      url = url .. "&protocol=" .. _GET["protocol"]
+   end
+   if not isEmptyString(_GET["category"]) then
+      url = url .. "&category=" .. _GET["category"]
+   end
 
-   drawRRD(ifstats.id, schema, tags, _GET["zoom"], url.."&page=historical", selected_epoch, {
+   drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:iface:ndpi",
       top_categories = "top:iface:ndpi_categories",
       top_profiles = "top:profile:traffic",

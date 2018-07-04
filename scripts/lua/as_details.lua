@@ -88,10 +88,13 @@ if isEmptyString(page) or page == "historical" then
          ifid = ifId,
          asn = asn,
          protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
-         category = _GET["category"],
        }
 
-       drawRRD(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
+      if not isEmptyString(_GET["protocol"]) then
+         asn_url = asn_url .. "&protocol=" .. _GET["protocol"]
+      end
+
+       drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
          top_protocols = "top:asn:ndpi",
          timeseries = {
             {schema="asn:traffic",                 label=i18n("traffic")},

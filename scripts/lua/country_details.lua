@@ -71,7 +71,7 @@ if page == "historical" then
       country = country,
     }
 
-    drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
         {schema="country:traffic",             label=i18n("traffic")},
       }

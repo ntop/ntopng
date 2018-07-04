@@ -137,10 +137,13 @@ elseif page == "historical" then
       ifid = ifId,
       pool = pool_id,
       protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
-      category = _GET["category"],
     }
 
-    drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+    if not isEmptyString(_GET["protocol"]) then
+       url = url .. "&protocol=" .. _GET["protocol"]
+    end
+
+    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:host_pool:ndpi",
       timeseries = {
         {schema="host_pool:traffic",           label=i18n("traffic")},

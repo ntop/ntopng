@@ -307,7 +307,7 @@ end
 
 -- ########################################################
 
-function drawRRD(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
+function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
    options = options or {}
 

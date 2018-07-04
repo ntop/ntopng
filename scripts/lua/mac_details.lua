@@ -340,15 +340,19 @@ elseif(page == "packets") then
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "mac:traffic"
    local selected_epoch = _GET["epoch"] or ""
+   url = url..'&page=historical'
 
    local tags = {
       ifid = ifId,
       mac = mac,
-      protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
       category = _GET["category"],
    }
 
-   drawRRD(ifId, schema, tags, _GET["zoom"], url..'&page=historical', selected_epoch, {
+   if not isEmptyString(_GET["category"]) then
+      url = url .. "&category=" .. _GET["category"]
+   end
+
+   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_categories = "top:mac:ndpi_categories",
       timeseries = {
          {schema="mac:traffic",                 label=i18n("traffic")},

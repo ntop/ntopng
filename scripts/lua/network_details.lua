@@ -109,7 +109,7 @@ if page == "historical" then
       subnet = network_name,
     }
 
-    drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
          {schema="subnet:traffic",              label=i18n("traffic")},
          {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
