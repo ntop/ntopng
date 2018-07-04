@@ -1039,6 +1039,7 @@ HTTPserver::~HTTPserver() {
 void HTTPserver::startCaptiveServer() {
   struct mg_callbacks captive_callbacks;
   static char * captive_port = (char*)"80";
+  char access_log_path[MAX_PATH] = {0};
 
   static const char * http_captive_options[] = {
     (char*)"listening_ports", captive_port,
@@ -1047,7 +1048,20 @@ void HTTPserver::startCaptiveServer() {
     (char*)"num_threads", (char*)"10",
     NULL, NULL, NULL, NULL,
     NULL
-  };  
+  };
+
+  if(ntop->getPrefs()->is_access_log_enabled()) {
+    int i;
+
+    snprintf(access_log_path, sizeof(access_log_path), "%s/captive_access.log",
+	     ntop->get_working_dir());
+
+    for(i=0; http_captive_options[i] != NULL; i++)
+      ;
+
+    http_captive_options[i] = (char*)"access_log_file", http_captive_options[i+1] = access_log_path;
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Captive portal HTTP logs will be stored on %s", access_log_path);
+  }
 
   if(httpd_captive_v4) {
     mg_stop(httpd_captive_v4);
