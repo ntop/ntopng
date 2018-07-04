@@ -110,8 +110,10 @@ if page == "historical" then
     }
 
     drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      show_timeseries = true,
-      show_subnet_series = true,
+      timeseries = {
+         {schema="subnet:traffic",              label=i18n("traffic")},
+         {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
+      }
     })
 elseif (page == "config") then
     if(not isAdministrator()) then

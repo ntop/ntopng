@@ -72,8 +72,9 @@ if page == "historical" then
     }
 
     drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      show_timeseries = true,
-      show_country_series = true,
+      timeseries = {
+        {schema="country:traffic",             label=i18n("traffic")},
+      }
     })
 end
 

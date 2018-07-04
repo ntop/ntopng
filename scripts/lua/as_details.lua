@@ -92,9 +92,11 @@ if isEmptyString(page) or page == "historical" then
        }
 
        drawRRD(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
-         show_timeseries = true,
-         show_asn_series = true,
          top_protocols = "top:asn:ndpi",
+         timeseries = {
+            {schema="asn:traffic",                 label=i18n("traffic")},
+            {schema="asn:rtt",                     label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+         },
        })
    end
 

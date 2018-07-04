@@ -1931,10 +1931,12 @@ local tags = {
 local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical'
 
 drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-   show_timeseries = true,
-   show_host_series = true,
    top_protocols = "top:host:ndpi",
    top_categories = "top:host:ndpi_categories",
+   timeseries = {
+      {schema="host:traffic",                label=i18n("traffic")},
+      {schema="host:flows",                  label=i18n("graphs.active_flows")},
+   }
 })
 
 elseif(page == "traffic_report") then

@@ -890,13 +890,32 @@ elseif(page == "historical") then
    }
 
    drawRRD(ifstats.id, schema, tags, _GET["zoom"], url.."&page=historical", selected_epoch, {
-      show_timeseries = true,
-      show_iface_series = true,
       top_protocols = "top:iface:ndpi",
       top_categories = "top:iface:ndpi_categories",
       top_profiles = "top:profile:traffic",
       top_senders = "top:local_senders",
       top_receivers = "top:local_receivers",
+      timeseries = {
+         {schema="iface:flows",                 label=i18n("graphs.active_flows")},
+         {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
+         {schema="iface:devices",               label=i18n("graphs.active_devices")},
+         {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
+         {schema="iface:traffic",               label=i18n("traffic")},
+         {schema="iface:packets",               label=i18n("packets")},
+         {schema="iface:drops",                 label=i18n("graphs.packet_drops")},
+         
+         {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
+         {separator=1, nedge_exclude=1},
+         {schema="iface:tcp_lost",              label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+         {schema="iface:tcp_out_of_order",      label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+         --{schema="tcp_retr_ooo_lost",   label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
+         {schema="iface:tcp_retransmissions",   label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
+         {separator=1},
+         {schema="iface:tcp_syn",               label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
+         {schema="iface:tcp_synack",            label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
+         {schema="iface:tcp_finack",            label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
+         {schema="iface:tcp_rst",               label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
+      }
    })
 
    if ntop.isPro() then

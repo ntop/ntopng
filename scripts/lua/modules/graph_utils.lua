@@ -15,68 +15,6 @@ require("ts_second")
 require("ts_minute")
 require("ts_5min")
 
-iface_series = {
-   {schema="iface:flows",                 label=i18n("graphs.active_flows")},
-   {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
-   {schema="iface:devices",               label=i18n("graphs.active_devices")},
-   {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
-   {schema="iface:traffic",               label=i18n("traffic")},
-   {schema="iface:packets",               label=i18n("packets")},
-   {schema="iface:drops",                 label=i18n("graphs.packet_drops")},
-   
-   {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-   {separator=1, nedge_exclude=1},
-   {schema="iface:tcp_lost",              label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
-   {schema="iface:tcp_out_of_order",      label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
-   --{schema="tcp_retr_ooo_lost",   label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
-   {schema="iface:tcp_retransmissions",   label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-   {separator=1},
-   {schema="iface:tcp_syn",               label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
-   {schema="iface:tcp_synack",            label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
-   {schema="iface:tcp_finack",            label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
-   {schema="iface:tcp_rst",               label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
-}
-
-host_pool_series = {
-   {schema="host_pool:traffic",           label=i18n("traffic")},
-   {schema="host_pool:blocked_flows",     label=i18n("graphs.blocked_flows")},
-}
-
-host_series = {
-   {schema="host:traffic",                label=i18n("traffic")},
-   {schema="host:flows",                  label=i18n("graphs.active_flows")},
-}
-
-mac_series = {
-   {schema="mac:traffic",                 label=i18n("traffic")},
-}
-
-country_series = {
-   {schema="country:traffic",             label=i18n("traffic")},
-}
-
-vlan_series = {
-   {schema="vlan:traffic",             	  label=i18n("traffic")},
-}
-
-profile_series = {
-   {schema="profile:traffic",             label=i18n("traffic")},
-}
-
-snmp_iface_series = {
-   {schema="snmp_if:traffic",             label=i18n("traffic")},
-}
-
-subnet_series = {
-   {schema="subnet:traffic",              label=i18n("traffic")},
-   {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
-}
-
-asn_series = {
-   {schema="asn:traffic",                 label=i18n("traffic")},
-   {schema="asn:rtt",                     label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
-}
-
 if ntop.isnEdge() then
    iface_series[#iface_series + 1] = {schema="iface:nfq_pct",    label=i18n("graphs.num_nfq_pct")}
 end

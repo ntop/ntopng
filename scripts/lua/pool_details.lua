@@ -141,9 +141,11 @@ elseif page == "historical" then
     }
 
     drawRRD(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      show_timeseries = true,
-      show_pool_series = true,
       top_protocols = "top:host_pool:ndpi",
+      timeseries = {
+        {schema="host_pool:traffic",           label=i18n("traffic")},
+        {schema="host_pool:blocked_flows",     label=i18n("graphs.blocked_flows")},
+      },
     })
   end
 end

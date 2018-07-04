@@ -349,9 +349,10 @@ elseif(page == "historical") then
    }
 
    drawRRD(ifId, schema, tags, _GET["zoom"], url..'&page=historical', selected_epoch, {
-      show_timeseries = true,
-      show_mac_series = true,
       top_categories = "top:mac:ndpi_categories",
+      timeseries = {
+         {schema="mac:traffic",                 label=i18n("traffic")},
+      }
    })
 
 elseif(page == "config") then

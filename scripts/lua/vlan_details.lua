@@ -84,9 +84,10 @@ else
       }
 
       drawRRD(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
-         show_timeseries = true,
-         show_vlan_series = true,
          top_protocols = "top:vlan:ndpi",
+         timeseries = {
+            {schema="vlan:traffic",             	  label=i18n("traffic")},
+         },
       })
    end
 
