@@ -5,6 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+if ntop.isPro() then
+  package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+end
+
 require "lua_utils"
 local ts_utils = require("ts_utils")
 local json = require("dkjson")
@@ -38,8 +42,31 @@ else
   res = ts_utils.query(schema_id, tags, tstart, tend)
 end
 
-if not res then
+if res == nil then
   print("[]")
+  return
+end
+
+-- TODO make a script parameter?
+local extend_labels = true
+
+if extend_labels then
+  local tags = res.series and res.series[1] and res.series[1].tags
+
+  if tags then
+    if tags.if_index and tags.device then
+      -- SNMP port name
+      local snmp_device = require "snmp_device"
+      snmp_device.init(tags.device)
+
+      for _, serie in pairs(res.series) do
+        local interfaces = snmp_device.get_device()["interfaces"]
+        local label = shortenString(get_snmp_interface_label(interfaces[serie.tags.if_index]))
+
+        serie.ext_label = label
+      end
+    end
+  end
 end
 
 print(json.encode(res))

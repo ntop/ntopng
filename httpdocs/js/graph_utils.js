@@ -20,9 +20,9 @@ function getSerieLabel(schema, serie) {
     else if(serie.tags.category)
       return serie.tags.category + " (" + new_label + ")";
     else if(serie.tags.if_index)
-      return "Port " + serie.tags.if_index + " (" + new_label + ")";
+      return serie.ext_label + " (" + new_label + ")";
     else if(serie.tags.port)
-      return "Port " + serie.tags.port + " (" + new_label + ")";
+      return serie.ext_label + " (" + new_label + ")";
   } else {
       if(serie.tags.protocol)
         return serie.tags.protocol;
