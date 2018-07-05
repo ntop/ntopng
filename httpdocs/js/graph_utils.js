@@ -104,6 +104,49 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         });
       }
 
+      if(data.additional_series) {
+        for(var key in data.additional_series) {
+          var values = [];
+          var serie_data = data.additional_series[key];
+
+          var t = data.start;
+          for(var i=0; i<serie_data.length; i++) {
+            values[i] = [t, serie_data[i] ];
+            t += data.step;
+          }
+
+          res.push({
+            key: capitaliseFirstLetter(key),
+            yAxis: 1,
+            values: values,
+            type: "line",
+            classed: "line-dashed",
+            color: "#ff0000",
+          });
+        }
+      }
+
+      if(data.statistics) {
+        if(data.statistics.average) {
+          var t = data.start;
+          var values = [];
+
+          for(var i=0; i<data.count; i++) {
+            values[i] = [t, data.statistics.average];
+            t += data.step;
+          }
+
+          res.push({
+            key: "Avg", // TODO localize
+            yAxis: 1,
+            values: values,
+            type: "line",
+            classed: "line-dashed",
+            color: "#00ff00",
+          });
+        }
+      }
+
       // get the value formatter
       var formatter = getValueFormatter(schema_name, series);
       chart.yAxis1.tickFormat(formatter);

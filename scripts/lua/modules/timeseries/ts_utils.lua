@@ -303,7 +303,7 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
 
   if pre_computed then
     -- Use precomputed top items
-    top_items = pre_computed.topk
+    top_items = pre_computed
     schema = pre_computed.schema
   else
     schema = ts_utils.getSchema(schema_id)
@@ -334,24 +334,24 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
     return nil
   end
 
-  local res = {series={}}
+  top_items.series = {}
 
   -- Query the top items data
-  for _, top in ipairs(top_items) do
+  for _, top in ipairs(top_items.topk) do
     local top_res = driver:query(schema, tstart, tend, top.tags, query_options)
 
     -- TODO add more checks on consistency?
-    res.step = top_res.step
-    res.count = top_res.count
-    res.start = top_res.start
+    top_items.step = top_res.step
+    top_items.count = top_res.count
+    top_items.start = top_res.start
 
     for _, serie in ipairs(top_res.series) do
       serie.tags = top.tags
-      res.series[#res.series + 1] = serie
+      top_items.series[#top_items.series + 1] = serie
     end
   end
 
-  return res
+  return top_items
 end
 
 -----------------------------------------------------------------------

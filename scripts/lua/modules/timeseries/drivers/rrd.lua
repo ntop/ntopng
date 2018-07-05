@@ -341,13 +341,25 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   local items = {}
   local tag_2_series = {}
+  local total_serie = {}
+  local init_total = true
+  local step = 0
 
   for _, serie_tags in pairs(series) do
     local rrdfile = schema_get_full_path(schema, serie_tags)
     local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
     local sum = 0
+    step = fstep
 
     for _, serie in pairs(fdata) do
+      if init_total then
+        for i=1, #serie do
+          total_serie[i] = 0
+        end
+
+        init_total = false
+      end
+
       for i, v in pairs(serie) do
         if v ~= v then
           -- NaN value
@@ -360,6 +372,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
         if type(v) == "number" then
           sum = sum + v
+          total_serie[i] = total_serie[i] + v
         end
       end
     end
@@ -381,7 +394,44 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
   end
 
-  return topk
+  -- calculate statistics
+  local total = 0
+  local min_val, max_val
+  local min_val_pt, max_val_pt
+
+  for idx, val in pairs(total_serie) do
+     --integrate
+    total = total + val * step
+
+    if (min_val_pt == nil) or (val < min_val) then
+      min_val = val
+      min_val_pt = idx
+    end
+    if (max_val_pt == nil) or (val > max_val) then
+      max_val = val
+      max_val_pt = idx
+    end
+  end
+
+  local avg = total / (tend - tstart)
+
+  -- Remove additional point
+  total_serie[#total_serie] = nil
+
+  return {
+    topk = topk,
+    additional_series = {
+      total = total_serie,
+    },
+    statistics = {
+      total = total,
+      average = avg,
+      min_val = min_val,
+      max_val = max_val,
+      min_val_idx = min_val_pt,
+      max_val_idx = max_val_pt,
+    }
+  }
 end
 
 -------------------------------------------------------
