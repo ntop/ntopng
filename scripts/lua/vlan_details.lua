@@ -82,10 +82,6 @@ else
          protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
       }
 
-      if not isEmptyString(_GET["protocol"]) then
-         vlan_url = vlan_url .. "&protocol=" .. _GET["protocol"]
-      end
-
       drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
          top_protocols = "top:vlan:ndpi",
          timeseries = {

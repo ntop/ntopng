@@ -90,10 +90,6 @@ if isEmptyString(page) or page == "historical" then
          protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
        }
 
-      if not isEmptyString(_GET["protocol"]) then
-         asn_url = asn_url .. "&protocol=" .. _GET["protocol"]
-      end
-
        drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
          top_protocols = "top:asn:ndpi",
          timeseries = {

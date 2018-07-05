@@ -1929,16 +1929,11 @@ local tags = {
 }
 
 local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical'
-if not isEmptyString(_GET["protocol"]) then
-   url = url .. "&protocol=" .. _GET["protocol"]
-end
-if not isEmptyString(_GET["category"]) then
-   url = url .. "&category=" .. _GET["category"]
-end
 
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_protocols = "top:host:ndpi",
    top_categories = "top:host:ndpi_categories",
+   show_historical = true,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:flows",                  label=i18n("graphs.active_flows")},

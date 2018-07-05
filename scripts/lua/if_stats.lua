@@ -889,12 +889,6 @@ elseif(page == "historical") then
       category = _GET["category"],
    }
    url = url.."&page=historical"
-   if not isEmptyString(_GET["protocol"]) then
-      url = url .. "&protocol=" .. _GET["protocol"]
-   end
-   if not isEmptyString(_GET["category"]) then
-      url = url .. "&category=" .. _GET["category"]
-   end
 
    drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:iface:ndpi",
@@ -902,6 +896,7 @@ elseif(page == "historical") then
       top_profiles = "top:profile:traffic",
       top_senders = "top:local_senders",
       top_receivers = "top:local_receivers",
+      show_historical = true,
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
