@@ -126,13 +126,21 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         }
       }
 
-      if(data.statistics) {
-        if(data.statistics.average) {
+      // get the value formatter
+      var formatter = getValueFormatter(schema_name, series);
+      chart.yAxis1.tickFormat(formatter);
+      chart.interactiveLayer.tooltip.valueFormatter(formatter);
+
+      var stats_table = $chart.closest("table").find(".graph-statistics");
+      var stats = data.statistics;
+
+      if(stats) {
+        if(stats.average) {
           var t = data.start;
           var values = [];
 
           for(var i=0; i<data.count; i++) {
-            values[i] = [t, data.statistics.average];
+            values[i] = [t, stats.average];
             t += data.step;
           }
 
@@ -145,12 +153,20 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             color: "#00ff00",
           });
         }
-      }
 
-      // get the value formatter
-      var formatter = getValueFormatter(schema_name, series);
-      chart.yAxis1.tickFormat(formatter);
-      chart.interactiveLayer.tooltip.valueFormatter(formatter);
+        // TODO formatters
+
+        // fill the stats
+        if(stats.total) stats_table.find(".graph-val-total").show().find("span").html(stats.total);
+        if(stats.average) stats_table.find(".graph-val-average").show().find("span").html(stats.average);
+        if(stats.min_val) stats_table.find(".graph-val-min").show().find("span").html(stats.min_val + "@" + stats.min_val_idx);
+        if(stats.max_val) stats_table.find(".graph-val-max").show().find("span").html(stats.max_val + "@" + stats.max_val_idx);
+        if(stats["95th_percentile"]) stats_table.find(".graph-val-95percentile").show().find("span").html(stats["95th_percentile"]);
+
+        stats_table.show();
+      } else {
+        stats_table.hide();
+      }
 
       // todo stop loading indicator
       d3_sel.datum(res).transition().duration(500).call(chart);
