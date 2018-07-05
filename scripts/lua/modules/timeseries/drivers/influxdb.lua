@@ -249,7 +249,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local top_tag = top_tags[1]
   local query = 'SELECT TOP("value", "'.. top_tag ..'", '.. options.top ..') FROM (SELECT '.. top_tag ..
       ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. ');'
+      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000);'
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
 
   local data = influx_query(full_url)
