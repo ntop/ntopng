@@ -450,8 +450,14 @@ void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
   if(!wispr_captive_data)
     wispr_captive_data = (char *) malloc(max_wispr_size);
 
-  const char *name = ntop->getPro()->get_product_name();
-
+  const char *name =
+#ifdef HAVE_NEDGE
+    ntop->getPro()->get_product_name()
+#else
+  "ntopng"
+#endif
+    ;
+  
   snprintf(wispr_captive_data, max_wispr_size, "<HTML>\n\
 <!--\n\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
