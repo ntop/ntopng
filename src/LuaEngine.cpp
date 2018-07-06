@@ -3675,8 +3675,13 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
 
+  const char* ip = lua_tostring(vm, 1);
+
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
-    ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(lua_tostring(vm, 1)));
+    ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(ip));
+
+  if(ntop->get_HTTPserver())
+    ntop->get_HTTPserver()->setCaptiveRedirectAddress(ip);
 #endif
 
   lua_pushnil(vm);

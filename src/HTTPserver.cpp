@@ -439,6 +439,42 @@ static bool isStaticResourceUrl(const struct mg_request_info *request_info, u_in
 
 /* ****************************************** */
 
+void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
+#ifdef NTOPNG_PRO
+  size_t max_wispr_size = 1024;
+
+  if(captive_redirect_addr)
+    free(captive_redirect_addr);
+  captive_redirect_addr = strdup(addr);
+
+  if(!wispr_captive_data)
+    wispr_captive_data = (char *) malloc(max_wispr_size);
+
+  const char *name = ntop->getPro()->get_product_name();
+
+  snprintf(wispr_captive_data, max_wispr_size, "<HTML>\n\
+<!--\n\
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<WISPAccessGatewayParam xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n\
+  xsi:noNamespaceSchemaLocation=\"http://www.acmewisp.com/WISPAccessGatewayParam.xsd\">\n\
+  <Redirect>\n\
+    <AccessProcedure>1.0</AccessProcedure>\n\
+    <AccessLocation>%s Network</AccessLocation>\n\
+    <LocationName>%s</LocationName>\n\
+    <LoginURL>http://%s%s%s</LoginURL>\n\
+    <MessageType>100</MessageType>\n\
+    <ResponseCode>0</ResponseCode>\n\
+  </Redirect>\n\
+</WISPAccessGatewayParam>\n\
+-->\n\
+</HTML>", name, name, addr,
+	ntop->getPrefs()->get_http_prefix(),
+	ntop->getPrefs()->getCaptivePortalUrl());
+#endif
+}
+
+/* ****************************************** */
+
 // Redirect user to the login form. In the cookie, store the original URL
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
@@ -447,14 +483,21 @@ static void redirect_to_login(struct mg_connection *conn,
   char session_id[33], buf[128];
 
   if(isCaptiveConnection(conn)) {
-    mg_printf(conn,
-	      "HTTP/1.1 302 Found\r\n"
-	      "Set-Cookie: session=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	      "Location: %s%s%s%s\r\n\r\n", /* FIX */
-	      get_secure_cookie_attributes(request_info),
+    const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData();
+
+    mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Expires: 0\r\n"
+	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
+	      "Pragma: no-cache\r\n"
+              "Content-Type: text/html; charset=UTF-8\r\n"
+              "Content-Length: %lu\r\n"
+	      "Location: http://%s%s%s%s%s\r\n\r\n%s",
+              strlen(wispr_data),
+              ntop->get_HTTPserver()->getCaptiveRedirectAddress(),
 	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
 	      referer ? (char*)"?referer=" : "",
-	      referer ? referer : (char*)"");
+	      referer ? referer : (char*)"",
+              wispr_data);
   } else {
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]",
@@ -913,6 +956,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
   bool use_http = true;
   bool good_ssl_cert = false;
+  wispr_captive_data = NULL;
+  captive_redirect_addr = NULL;
 
   struct timeval tv;
   static char *http_options[] = {
@@ -1028,6 +1073,8 @@ HTTPserver::~HTTPserver() {
   if(httpd_captive_v4) mg_stop(httpd_captive_v4);
 #endif
 
+  if(wispr_captive_data) free(wispr_captive_data);
+  if(captive_redirect_addr) free(captive_redirect_addr);
   free(docs_dir), free(scripts_dir);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };

@@ -32,6 +32,8 @@ class HTTPserver {
   char *docs_dir, *scripts_dir;
   struct mg_context *httpd_v4;
   bool ssl_enabled;
+  char *captive_redirect_addr;
+  char *wispr_captive_data;
   bool check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len);
 
   static void parseACL(char * const acl, ssize_t acl_len);
@@ -48,6 +50,10 @@ class HTTPserver {
   inline char*     get_docs_dir()    { return(docs_dir);         };
   inline char*     get_scripts_dir() { return(scripts_dir);      };
   inline bool      is_ssl_enabled()  { return(ssl_enabled);      };
+
+  inline const char* getWisprCaptiveData() { return(wispr_captive_data ? wispr_captive_data : ""); }
+  inline const char* getCaptiveRedirectAddress() { return(captive_redirect_addr ? captive_redirect_addr : ""); }
+  void setCaptiveRedirectAddress(const char*addr);
 
 #ifdef HAVE_NEDGE
   void startCaptiveServer();
