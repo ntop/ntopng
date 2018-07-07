@@ -2088,8 +2088,27 @@ datalink_check:
 decode_packet_eth:
   switch(eth_type) {
   case ETHERTYPE_PPOE:
-    eth_type = ETHERTYPE_IP;
-    ip_offset += 8;
+    ip_offset += 6 /* PPPoE */;
+    /* Now we need to skip the PPP header */
+    if(packet[ip_offset] == 0x0)
+      eth_type = packet[ip_offset+1], ip_offset += 2; /* 2 Byte protocol */
+    else
+      eth_type = packet[ip_offset], ip_offset += 1; /* 1 Byte protocol */
+
+    switch(eth_type) {
+    case 0x21:
+      eth_type = ETHERTYPE_IP;
+      break;
+
+    case 0x57:
+      eth_type = ETHERTYPE_IPV6;
+      break;
+
+    default:
+      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
+	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      return(pass_verdict);
+    }
     goto decode_packet_eth;
     break;
 
