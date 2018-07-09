@@ -251,6 +251,8 @@ local lang = {
     ["web_mining"] = "Web Mining",
   },
   ["alerts_thresholds_config"] = {
+    ["active_local_hosts"] = "Local Hosts",
+    ["active_local_hosts_threshold_descr"] = "Number of active local hosts",
     ["activity_time"] = "Activity Time",
     ["alert_active_description"] = "Activity time delta (seconds).",
     ["alert_bytes_description"] = "Layer 2 bytes delta (sent + received)",

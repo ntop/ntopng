@@ -3244,6 +3244,7 @@ bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel 
 
   json_object_object_add(my_object, "seen.last", json_object_new_int64(getTimeLastPktRcvd()));
   json_object_object_add(my_object, "ndpiStats", ndpiStats.getJSONObjectForCheckpoint(this));
+  json_object_object_add(my_object, "local_hosts", json_object_new_int64(getNumLocalHosts()));
   json_object_object_add(inner, "bytes", json_object_new_int64(getNumBytes()));
   json_object_object_add(inner, "packets", json_object_new_int64(getNumPackets()));
   json_object_object_add(my_object, "stats", inner);

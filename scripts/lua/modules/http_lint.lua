@@ -640,6 +640,7 @@ local function validateAlertDescriptor(d)
    end
 
    if ((validateChoiceByKeys(alert_consts.alert_functions_description, d)) or
+       (validateChoiceByKeys(alert_consts.iface_alert_functions_description, d)) or
        (validateChoiceByKeys(alert_consts.network_alert_functions_description, d))) then
       return true
    else

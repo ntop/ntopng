@@ -223,6 +223,10 @@ function flows(old, new, interval)
    return new_flows - old_flows
 end
 
+function active_local_hosts(old, new, interval)
+   return new["local_hosts"]
+end
+
 -- ##############################################################################
 
 local function getInterfacePacketDropPercAlertKey(ifname)
@@ -752,7 +756,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       descr = table.clone(alert_consts.network_alert_functions_description)
    elseif entity_type == "interface" then
       -- interface
-      descr = table.clone(alert_consts.alert_functions_description)
+      descr = table.merge(alert_consts.alert_functions_description, alert_consts.iface_alert_functions_description)
       descr["active"] = nil
       descr["flows"] = nil
    else

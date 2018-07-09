@@ -75,6 +75,10 @@ alert_consts.alert_functions_description = {
    ["flows"]   = i18n("alerts_thresholds_config.alert_flows_description"),
 }
 
+alert_consts.iface_alert_functions_description = {
+   ["active_local_hosts"] = i18n("alerts_thresholds_config.active_local_hosts_threshold_descr"),
+}
+
 alert_consts.network_alert_functions_description = {
    ["ingress"] = i18n("alerts_thresholds_config.alert_network_ingress_description"),
    ["egress"]  = i18n("alerts_thresholds_config.alert_network_egress_description"),
@@ -128,7 +132,10 @@ alert_consts.alert_functions_info = {
    }, ["egress"] = {
       label = i18n("alerts_thresholds_config.egress_traffic"),
       fmt = format_utils.bytesToSize
-   },
+   }, ["active_local_hosts"] = {
+      label = i18n("alerts_thresholds_config.active_local_hosts"),
+      fmt = format_utils.formatValue
+   }
 }
 
 return alert_consts
