@@ -683,10 +683,14 @@ function round(num, idp)
 end
 --function round(num) return math.floor(num+.5) end
 
+function truncate(x)
+   return x<0 and math.ceil(x) or math.floor(x)
+end
+
 -- Note that the function below returns a string as returning a number
 -- would not help as a new float would be returned
 function toint(num)
-   return string.format("%u", num)
+   return string.format("%u", truncate(num))
 end
 
 function capitalize(str)
