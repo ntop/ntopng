@@ -1068,6 +1068,7 @@ local known_parameters = {
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,
    ["send_test_email"]                             =  validateEmpty,
+   ["send_test_slack"]                             =  validateEmpty,
    ["network_discovery_interval"]                  =  validateNumber,
 --
 

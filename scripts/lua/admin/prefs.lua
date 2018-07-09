@@ -50,6 +50,18 @@ if(haveAdminPrivileges()) then
       message_info = i18n("prefs.email_send_error", {product=product})
       message_severity = "alert-danger"
     end
+   elseif(_POST["send_test_slack"] ~= nil) then
+    local slack_utils = require("slack")
+
+    local success = slack_utils.sendMessage("interface", "info", "Slack notification is working")
+
+    if success then
+      message_info = i18n("prefs.slack_sent_successfully", {channel="interface"})
+      message_severity = "alert-success"
+    else
+      message_info = i18n("prefs.slack_send_error", {product=product})
+      message_severity = "alert-danger"
+    end
    end
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -427,7 +439,7 @@ function printExternalAlertsReport()
 
      print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 
-     local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook"}
+     local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook", "slack_test"}
 
     prefsToggleButton({
       field = "toggle_slack_notification",
@@ -455,6 +467,7 @@ function printExternalAlertsReport()
     prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
              "ntopng.prefs.alerts.", "slack_webhook",
              "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
+    print('<tr id="slack_test" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestSlack();" style="width:230px; float:left;">'..i18n("prefs.send_test_slack")..'</button></td></tr>')
 
     if(ntop.isPro() and hasNagiosSupport()) then
       print('<tr><th colspan="2" class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
@@ -501,6 +514,16 @@ function printExternalAlertsReport()
       var params = {};
 
       params.send_test_email = "";
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+    }
+
+    function sendTestSlack() {
+      var params = {};
+
+      params.send_test_slack = "";
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
       var form = paramsToForm('<form method="post"></form>', params);

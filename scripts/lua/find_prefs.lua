@@ -36,7 +36,7 @@ local function queryResultShorten(result, query, context)
 end
 
 local function addResult(result, tab, context)
-  results[#results + 1] = {name=queryResultShorten(result, query, context), tab=tab.id}
+  results[#results + 1] = {name=queryResultShorten(noHtml(result), query, context), tab=tab.id}
 end
 
 for _, tab in pairs(menu_subpages) do
