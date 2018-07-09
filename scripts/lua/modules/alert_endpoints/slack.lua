@@ -18,7 +18,18 @@ local alert_severity_to_emoji = {
   default = ":warning:",
 }
 
-function slack.sendMessage(channel_name, severity, text)
+function slack.getChannelName(entity_type)
+  local custom_chan = ntop.getHashCache("ntopng.prefs.alerts.slack_channels", entity_type)
+
+  if not isEmptyString(custom_chan) then
+    return custom_chan
+  else
+    return entity_type
+  end
+end
+
+function slack.sendMessage(entity_type, severity, text)
+  local channel_name = slack.getChannelName(entity_type)
   local webhook = ntop.getPref("ntopng.prefs.alerts.slack_webhook")
   local sender_username = ntop.getPref("ntopng.prefs.alerts.slack_sender_username")
 

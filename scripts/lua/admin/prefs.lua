@@ -11,6 +11,8 @@ require "alert_utils"
 local template = require "template_utils"
 local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
+local alert_consts = require "alert_consts"
+local slack_utils = require("slack")
 local have_nedge = ntop.isnEdge()
 
 if(ntop.isPro()) then
@@ -51,16 +53,32 @@ if(haveAdminPrivileges()) then
       message_severity = "alert-danger"
     end
    elseif(_POST["send_test_slack"] ~= nil) then
-    local slack_utils = require("slack")
-
     local success = slack_utils.sendMessage("interface", "info", "Slack notification is working")
 
     if success then
-      message_info = i18n("prefs.slack_sent_successfully", {channel="interface"})
+      message_info = i18n("prefs.slack_sent_successfully", {channel=slack_utils.getChannelName("interface")})
       message_severity = "alert-success"
     else
       message_info = i18n("prefs.slack_send_error", {product=product})
       message_severity = "alert-danger"
+    end
+   end
+
+   local slack_channels_key = "ntopng.prefs.alerts.slack_channels"
+
+   for k, v in pairs(_POST) do
+    if starts(k, "slack_ch_") then
+      local alert_entity = tonumber(split(k, "slack_ch_")[2])
+      local alert_entity_raw = alertEntityRaw(alert_entity)
+
+      if alert_entity_raw then
+        -- map entity -> channel name
+        if alert_entity_raw == v then
+          ntop.delHashCache(slack_channels_key, alert_entity_raw)
+        else
+          ntop.setHashCache(slack_channels_key, alert_entity_raw, v)
+        end
+      end
     end
    end
 
@@ -467,6 +485,21 @@ function printExternalAlertsReport()
     prefsInputFieldPrefs(subpage_active.entries["slack_webhook"].title, subpage_active.entries["slack_webhook"].description,
              "ntopng.prefs.alerts.", "slack_webhook",
              "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
+
+    -- Channel settings
+    print('<tr id="slack_channels" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><strong>' .. i18n("prefs.slack_channel_names") .. '</strong><p><small>' .. i18n("prefs.slack_channel_names_descr") .. '</small></p></td><td><table class="table table-bordered table-condensed"><tr><th>'.. i18n("prefs.alert_entity") ..'</th><th>' .. i18n("prefs.slack_channel") ..'</th></tr>')
+
+    for _, entity in ipairs(alert_consts.alert_entity_keys) do
+      local label = entity[1]
+      local entity_type = entity[2]
+      local entity_type_raw = entity[3]
+      local channel = slack_utils.getChannelName(entity_type_raw)
+
+      print('<tr><td>'.. label ..'</td><td><div class="form-group" style="margin:0"><input class="form-control input-sm" name="slack_ch_'.. entity_type ..'" pattern="[^\' \']*" value="'.. channel ..'"></div></td></tr>')
+    end
+
+    print('</table></td></tr>')
+
     print('<tr id="slack_test" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestSlack();" style="width:230px; float:left;">'..i18n("prefs.send_test_slack")..'</button></td></tr>')
 
     if(ntop.isPro() and hasNagiosSupport()) then
