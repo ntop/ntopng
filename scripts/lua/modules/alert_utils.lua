@@ -2680,7 +2680,7 @@ end
 
 -- NOTE: order is important as it defines evaluation order
 local ALERT_NOTIFICATION_MODULES = {
-   "nagios", "slack"
+   "custom", "nagios", "slack"
 }
 
 if ntop.sendMail then -- only if email support is available
@@ -2721,10 +2721,6 @@ local function getEnabledAlertNotificationModules()
       local min_severity = ntop.getPref(getAlertNotificationModuleSeverityKey(modname))
       local req_name = modname
 
-      if isEmptyString(min_severity) then
-         min_severity = "warning"
-      end
-
       if module_enabled == "1" then
          local ok, _module = pcall(require, req_name)
 
@@ -2734,6 +2730,10 @@ local function getEnabledAlertNotificationModules()
             -- the traceback
             io.write(_module)
          else
+	    if isEmptyString(min_severity) then
+	       min_severity = _module.DEFAULT_SEVERITY or "warning"
+	    end
+
             enabled_modules[#enabled_modules + 1] = {
                name = modname,
                severity = min_severity,
