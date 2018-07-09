@@ -2687,7 +2687,10 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(isView()) return;
 
-  gettimeofday(&tv, NULL);
+  if(!read_from_pcap_dump())
+    gettimeofday(&tv, NULL);
+  else
+    tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
 
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->checkPoolsStatsReset();

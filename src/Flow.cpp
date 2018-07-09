@@ -370,9 +370,9 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_SSL:
 #if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [%s][%s]",
-				 ndpiFlow->protos.ssl.client_certificate,
-				 ndpiFlow->protos.ssl.server_certificate);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
+				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
+				 ndpiFlow->protos.stun_ssl.ssl.server_certificate);
 #endif
 
     if((protos.ssl.certificate == NULL)
@@ -386,7 +386,7 @@ void Flow::processDetectedProtocol() {
     }
 
     if((protos.ssl.server_certificate == NULL)
-	      && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
+       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
       protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
     }
 
@@ -468,6 +468,14 @@ void Flow::guessProtocol() {
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
     ndpiDetectedProtocol = proto_id;
+     
+    if((proto_id.master_protocol == NDPI_PROTOCOL_SSL)
+       && (get_packets() < NDPI_MIN_NUM_PACKETS)
+       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
+      get_ndpi_flow()->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
+      return;
+    }
+    
     processDetectedProtocol();
     detection_completed = true;
   } else if(forceDetection
@@ -2629,6 +2637,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 		  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] [%s][OS=%u][%s]", cli_host->getMac()->get_string_key(mbuf, sizeof(mbuf)), os, ua);
 #endif
 
+		  if(!(cli_host->get_ip()->isBroadcastAddress()
+		       || cli_host->get_ip()->isMulticastAddress()))		     
 		  cli_host->getMac()->setOperatingSystem(os);
 		}
 	      }

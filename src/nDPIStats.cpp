@@ -30,6 +30,7 @@ nDPIStats::nDPIStats() {
 }
 
 /* *************************************** */
+
 nDPIStats::nDPIStats(const nDPIStats &stats) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(stats.counters[i] != NULL) {

@@ -668,6 +668,7 @@ class NetworkInterface : public Checkpointable {
 #endif
   inline TimeSeriesExporter* getTSExporter() { return(tsExporter); }
   virtual void sendTermination()             { ; }
+  virtual bool read_from_pcap_dump()         { return(false); };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
