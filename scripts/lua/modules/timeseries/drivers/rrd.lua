@@ -211,6 +211,73 @@ end
 
 -------------------------------------------------------
 
+-- Find the percentile of a list of values
+-- N - A list of values.  N must be sorted.
+-- P - A float value from 0.0 to 1.0
+local function percentile(N, P)
+   local n = math.floor(math.floor(P * #N + 0.5))
+   return(N[n-1])
+end
+
+-- NOTE: N is changed after this call!
+local function ninetififthPercentile(N)
+   table.sort(N) -- <<== Sort first
+   return(percentile(N, 0.95))
+end
+
+-------------------------------------------------------
+
+local function makeTotalSerie(series, count)
+  local total = {}
+
+  for i=1,count do
+    total[i] = 0
+  end
+
+  for _, serie in pairs(series) do
+    for i, val in pairs(serie.data) do
+      total[i] = total[i] + val
+    end
+  end
+
+  return total
+end
+
+-------------------------------------------------------
+
+local function calcStats(total_serie, step, tdiff)
+  local total = 0
+  local min_val, max_val
+  local min_val_pt, max_val_pt
+
+  for idx, val in pairs(total_serie) do
+    -- integrate
+    total = total + val * step
+
+    if (min_val_pt == nil) or (val < min_val) then
+      min_val = val
+      min_val_pt = idx
+    end
+    if (max_val_pt == nil) or (val > max_val) then
+      max_val = val
+      max_val_pt = idx
+    end
+  end
+
+  local avg = total / tdiff
+
+  return {
+    total = total,
+    average = avg,
+    min_val = min_val,
+    max_val = max_val,
+    min_val_idx = min_val_pt,
+    max_val_idx = max_val_pt,
+  }
+end
+
+-------------------------------------------------------
+
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
@@ -248,11 +315,16 @@ function driver:query(schema, tstart, tend, tags, options)
     serie_idx = serie_idx + 1
   end
 
+  local total_serie = makeTotalSerie(series, count)
+  local stats = calcStats(total_serie, fstep, tend - tstart)
+  stats["95th_percentile"] = ninetififthPercentile(total_serie)
+
   return {
     start = fstart,
     step = fstep,
     count = count,
-    series = series
+    series = series,
+    statistics = stats,
   }
 end
 
@@ -394,43 +466,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
   end
 
-  -- calculate statistics
-  local total = 0
-  local min_val, max_val
-  local min_val_pt, max_val_pt
-
-  for idx, val in pairs(total_serie) do
-     --integrate
-    total = total + val * step
-
-    if (min_val_pt == nil) or (val < min_val) then
-      min_val = val
-      min_val_pt = idx
-    end
-    if (max_val_pt == nil) or (val > max_val) then
-      max_val = val
-      max_val_pt = idx
-    end
-  end
-
-  local avg = total / (tend - tstart)
-
-  -- Remove additional point
-  total_serie[#total_serie] = nil
-
   return {
     topk = topk,
     additional_series = {
       total = total_serie,
     },
-    statistics = {
-      total = total,
-      average = avg,
-      min_val = min_val,
-      max_val = max_val,
-      min_val_idx = min_val_pt,
-      max_val_idx = max_val_pt,
-    }
+    statistics = calcStats(total_serie, step, tend - tstart),
   }
 end
 

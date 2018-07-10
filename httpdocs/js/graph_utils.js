@@ -61,6 +61,18 @@ function getValueFormatter(schema, series) {
   return fint;
 }
 
+function makeFlatLineValues(tstart, tstep, num, data) {
+  var t = tstart;
+  var values = [];
+
+  for(var i=0; i<num; i++) {
+    values[i] = [t, data ];
+    t += tstep;
+  }
+
+  return values;
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var pending_request = null;
@@ -136,13 +148,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
       if(stats) {
         if(stats.average) {
-          var t = data.start;
-          var values = [];
-
-          for(var i=0; i<data.count; i++) {
-            values[i] = [t, stats.average];
-            t += data.step;
-          }
+          var values = makeFlatLineValues(data.start, data.step, data.count, stats.average);
 
           res.push({
             key: "Avg", // TODO localize
@@ -161,7 +167,20 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         if(stats.average) stats_table.find(".graph-val-average").show().find("span").html(stats.average);
         if(stats.min_val) stats_table.find(".graph-val-min").show().find("span").html(stats.min_val + "@" + stats.min_val_idx);
         if(stats.max_val) stats_table.find(".graph-val-max").show().find("span").html(stats.max_val + "@" + stats.max_val_idx);
-        if(stats["95th_percentile"]) stats_table.find(".graph-val-95percentile").show().find("span").html(stats["95th_percentile"]);
+        if(stats["95th_percentile"]) {
+          var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
+
+          stats_table.find(".graph-val-95percentile").show().find("span").html(stats["95th_percentile"]);
+
+          res.push({
+            key: "95th Perc", // TODO localize
+            yAxis: 1,
+            values: values,
+            type: "line",
+            classed: "line-dashed",
+            color: "#ff0000",
+          });
+        }
 
         stats_table.show();
       } else {
