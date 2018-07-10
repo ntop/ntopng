@@ -256,11 +256,11 @@ local function calcStats(total_serie, step, tdiff)
 
     if (min_val_pt == nil) or (val < min_val) then
       min_val = val
-      min_val_pt = idx
+      min_val_pt = idx - 1
     end
     if (max_val_pt == nil) or (val > max_val) then
       max_val = val
-      max_val_pt = idx
+      max_val_pt = idx - 1
     end
   end
 
