@@ -3275,10 +3275,11 @@ FlowStatus Flow::getFlowStatus() {
   if(iface->getIfType() == interface_type_ZMQ) {
     /* ZMQ flows */
   } else {
-#ifndef HAVE_NEDGE
     /* Packet flows */
     bool isIdle = isIdleFlow();
+#ifndef HAVE_NEDGE
     bool lowGoodput = isLowGoodput();
+#endif
 
     if(protocol == IPPROTO_TCP) {
       if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > CONST_ALERT_PROBING_TIME))
@@ -3294,8 +3295,10 @@ FlowStatus Flow::getFlowStatus() {
 
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
+#ifndef HAVE_NEDGE
 	  if(!protos.ssl.firstdata_seen && isIdle)
 	    return status_slow_application_header;
+#endif
 
 	  if(protos.ssl.certificate && protos.ssl.server_certificate) {
 	    if(protos.ssl.server_certificate[0] == '*') {
@@ -3306,6 +3309,7 @@ FlowStatus Flow::getFlowStatus() {
 	  }
 	  break;
 
+#ifndef HAVE_NEDGE
 	case NDPI_PROTOCOL_HTTP:
 	  if(/* !header_HTTP_completed &&*/isIdle)
 	    return status_slow_application_header;
@@ -3314,15 +3318,19 @@ FlowStatus Flow::getFlowStatus() {
 
 	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
 	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
+
 	if(!isIdle && lowGoodput) {
 	  if((src2dst_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_RST))
 	    return status_tcp_connection_refused;
 	  else
 	    return status_low_goodput;
 	}
+#else
+	}
+#endif
       }
     }
-#endif // HAVE_NEDGE
+
     /* If here is either UDP or TCP */
     switch(l7proto) {
     case NDPI_PROTOCOL_DNS:
@@ -3331,14 +3339,12 @@ FlowStatus Flow::getFlowStatus() {
     }
   }
 
-#ifndef HAVE_NEDGE
   if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
      && ! cli_host->get_ip()->isBroadcastAddress()
      && ! srv_host->get_ip()->isBroadcastAddress()
      && ! cli_host->get_ip()->isMulticastAddress()
      && ! srv_host->get_ip()->isMulticastAddress())
     return status_remote_to_remote;
-#endif
 
 #if 0
   if(iface->getAlertLevel() > 0)
