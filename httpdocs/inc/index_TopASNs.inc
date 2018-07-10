@@ -1,6 +1,6 @@
 <h4>Top Talker ASNs</h4>
 <div class="pie-chart" id="topASN"></div>
-
+<span class="help-block" style="color: #dddddd;">Click on the ASN for more information.</span>
 <script type='text/javascript'>
 
 window.onload=function() {

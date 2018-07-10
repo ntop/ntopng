@@ -46,6 +46,13 @@ if json_res ~= nil then
 
         if (perc >= min_percentage) and (item.address ~= "Other") then
           if isEmptyString(item.label) then item.label = item.address end
+
+          if top_type == "top_talkers" then
+            item.url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. item.address
+          elseif top_type == "top_asn" then
+            item.url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. item.address
+          end
+
           final_data[#final_data + 1] = item
         else
           other_value = other_value + item.value
