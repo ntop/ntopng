@@ -179,7 +179,7 @@ function bytesToSize(bytes) {
     var terabyte = gigabyte * 1024;
 
     if ((bytes >= 0) && (bytes < kilobyte))
-	return bytes + " Bytes";
+	return bytes.toFixed(precision) + " Bytes";
     else if ((bytes >= kilobyte) && (bytes < megabyte))
 	return (bytes / kilobyte).toFixed(precision) + ' KB';
     else if((bytes >= megabyte) && (bytes < gigabyte))
@@ -189,7 +189,7 @@ function bytesToSize(bytes) {
     else if(bytes >= terabyte)
 	return (bytes / terabyte).toFixed(precision) + ' TB';
     else
-	return bytes + ' Bytes';
+	return bytes.toFixed(precision) + ' Bytes';
 }
 
 String.prototype.capitalizeSingleWord = function() {
@@ -259,7 +259,11 @@ function addCommas(nStr) {
 }
 
 function formatPackets(n) {
-  return(addCommas(n)+" Pkts");
+  return(addCommas(n.toFixed(2))+" Pkts");
+}
+
+function formatFlows(n) {
+  return(addCommas(n.toFixed(2))+" Flows");
 }
 
 function bytesToVolume(bytes) {

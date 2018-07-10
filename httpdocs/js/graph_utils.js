@@ -48,17 +48,17 @@ function getValueFormatter(schema, series) {
     var label = series[0].label;
 
     if(label.contains("bytes"))
-      return fbits;
+      return [fbits, bytesToSize];
     else if(label.contains("packets"))
-      return fpackets;
+      return [fpackets, formatPackets];
     else if(label.contains("flows"))
-      return fflows;
+      return [fflows, formatFlows];
     else if(label.contains("millis"))
-      return fmillis;
+      return [fmillis, fmillis];
   }
 
   // fallback
-  return fint;
+  return [fint,fint];
 }
 
 function makeFlatLineValues(tstart, tstep, num, data) {
@@ -140,8 +140,10 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
       // get the value formatter
       var formatter = getValueFormatter(schema_name, series);
-      chart.yAxis1.tickFormat(formatter);
-      chart.interactiveLayer.tooltip.valueFormatter(formatter);
+      var value_formatter = formatter[0];
+      var tot_formatter = formatter[1];
+      chart.yAxis1.tickFormat(value_formatter);
+      chart.interactiveLayer.tooltip.valueFormatter(value_formatter);
 
       var stats_table = $chart.closest("table").find(".graph-statistics");
       var stats = data.statistics;
@@ -160,17 +162,19 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
           });
         }
 
-        // TODO formatters
-
         // fill the stats
-        if(stats.total) stats_table.find(".graph-val-total").show().find("span").html(stats.total);
-        if(stats.average) stats_table.find(".graph-val-average").show().find("span").html(stats.average);
-        if(stats.min_val) stats_table.find(".graph-val-min").show().find("span").html(stats.min_val + "@" + stats.min_val_idx);
-        if(stats.max_val) stats_table.find(".graph-val-max").show().find("span").html(stats.max_val + "@" + stats.max_val_idx);
+        if(stats.total)
+          stats_table.find(".graph-val-total").show().find("span").html(tot_formatter(stats.total));
+        if(stats.average)
+          stats_table.find(".graph-val-average").show().find("span").html(value_formatter(stats.average));
+        if(stats.min_val)
+          stats_table.find(".graph-val-min").show().find("span").html(value_formatter(stats.min_val) + "@" + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
+        if(stats.max_val)
+          stats_table.find(".graph-val-max").show().find("span").html(value_formatter(stats.max_val) + "@" + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
         if(stats["95th_percentile"]) {
-          var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
+          stats_table.find(".graph-val-95percentile").show().find("span").html(value_formatter(stats["95th_percentile"]));
 
-          stats_table.find(".graph-val-95percentile").show().find("span").html(stats["95th_percentile"]);
+          var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
 
           res.push({
             key: "95th Perc", // TODO localize
@@ -178,11 +182,15 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             values: values,
             type: "line",
             classed: "line-dashed",
-            color: "#ff0000",
+            color: "#0000ff",
           });
         }
 
-        stats_table.show();
+        // only show if there are visible elements
+        if(stats_table.find("td").filter(function(){ return $(this).css("display") != "none"; }).length > 0)
+          stats_table.show();
+        else
+          stats_table.hide();
       } else {
         stats_table.hide();
       }

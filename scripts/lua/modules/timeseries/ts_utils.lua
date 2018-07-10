@@ -119,58 +119,11 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp, verbose)
   return rv
 end
 
--- NOTE: data aggregation/sampling should be avoided when possible by appropriately
--- tuning the retention policies to provide a reasonable amount of data.
-local function aggregate_dp(schema, select_data, max_points)
-  local cur_points = select_data.count
-  local step = select_data.step
-  local sampled_dp = math.ceil(select_data.count / max_points)
-
-  local count = nil
-
-  for _, data_serie in pairs(select_data.series) do
-    local serie = data_serie.data
-    local num = 0
-    local sum = 0
-    local end_idx = 1
-
-    for _, dp in ipairs(serie) do
-      sum = sum + dp
-      num = num + 1
-
-      if num == sampled_dp then
-        -- A data group is ready
-        serie[end_idx] = sum
-        end_idx = end_idx + 1
-
-        num = 0
-        sum = 0
-      end
-    end
-
-    -- Last group
-    if num > 0 then
-      serie[end_idx] = sum
-      end_idx = end_idx + 1
-    end
-
-    count = end_idx-1
-
-    -- remove the exceeding points
-    for i = end_idx, #serie do
-      serie[i] = nil
-    end
-  end
-
-  select_data.step = select_data.step * sampled_dp
-  select_data.count = count
-  return select_data
-end
-
 -----------------------------------------------------------------------
 
 local function getQueryOptions(overrides)
   return table.merge({
+    max_num_points = 480,   -- maximum number of points per data serie
     fill_value = 0,         -- e.g. 0/0 for nan
     min_value = 0,          -- minimum value of a data point
     max_value = math.huge,  -- maximum value for a data point
@@ -199,22 +152,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     return nil
   end
 
-  -- Prevent queries returning too much points
-  local MAX_NUM_POINTS = 480
   local rv = driver:query(schema, tstart, tend, tags, query_options)
-
-  if rv and (rv.count > MAX_NUM_POINTS) then
-    -- try to aggregate
-    local compact = aggregate_dp(schema, rv, MAX_NUM_POINTS)
-
-    if (not compact) or (compact.count > MAX_NUM_POINTS) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "TS.QUERY: Max number of points exceeded: " .. rv.count .. " > " .. MAX_NUM_POINTS)
-      return nil
-    end
-
-    -- successfully compacted
-    rv = compact
-  end
 
   -- Add tags information for consistency with queryTopk
   for _, serie in pairs(rv.series) do

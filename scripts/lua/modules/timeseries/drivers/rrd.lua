@@ -278,6 +278,50 @@ end
 
 -------------------------------------------------------
 
+local function sampleSeries(schema, cur_points, step, max_points, series)
+  local sampled_dp = math.ceil(cur_points / max_points)
+  local count = nil
+
+  for _, data_serie in pairs(series) do
+    local serie = data_serie.data
+    local num = 0
+    local sum = 0
+    local end_idx = 1
+
+    for _, dp in ipairs(serie) do
+      sum = sum + dp
+      num = num + 1
+
+      if num == sampled_dp then
+        -- A data group is ready
+        serie[end_idx] = sum / num
+        end_idx = end_idx + 1
+
+        num = 0
+        sum = 0
+      end
+    end
+
+    -- Last group
+    if num > 0 then
+      serie[end_idx] = sum / num
+      end_idx = end_idx + 1
+    end
+
+    count = end_idx-1
+
+    -- remove the exceeding points
+    for i = end_idx, #serie do
+      serie[i] = nil
+    end
+  end
+
+  -- new step, new count, new data
+  return step * sampled_dp, count, series
+end
+
+-------------------------------------------------------
+
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
@@ -313,6 +357,10 @@ function driver:query(schema, tstart, tend, tags, options)
     series[serie_idx] = {label=name, data=serie}
 
     serie_idx = serie_idx + 1
+  end
+
+  if count > options.max_num_points then
+    fstep, count, series = sampleSeries(schema, count, fstep, options.max_num_points, series)
   end
 
   local total_serie = makeTotalSerie(series, count)
@@ -466,12 +514,15 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
   end
 
+  local stats = calcStats(total_serie, step, tend - tstart)
+  stats["95th_percentile"] = ninetififthPercentile(table.clone(total_serie))
+
   return {
     topk = topk,
     additional_series = {
       total = total_serie,
     },
-    statistics = calcStats(total_serie, step, tend - tstart),
+    statistics = stats,
   }
 end
 
