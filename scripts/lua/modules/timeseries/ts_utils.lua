@@ -128,6 +128,7 @@ local function getQueryOptions(overrides)
     min_value = 0,          -- minimum value of a data point
     max_value = math.huge,  -- maximum value for a data point
     top = 5,                -- topk number of items
+    calculate_stats = true,      -- calculate stats if possible
   }, overrides or {})
 end
 
@@ -279,8 +280,10 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
   top_items.series = {}
 
   -- Query the top items data
+  local options = table.merge(query_options, {calculate_stats = false})
+
   for _, top in ipairs(top_items.topk) do
-    local top_res = driver:query(schema, tstart, tend, top.tags, query_options)
+    local top_res = driver:query(schema, tstart, tend, top.tags, options)
 
     if not top_res then
       --traceError(TRACE_WARNING, TRACE_CONSOLE, "Topk series query on '" .. schema.name .. "' with filter '".. table.tconcat(top.tags, "=", ",") .."' returned nil")

@@ -48,11 +48,11 @@ function getValueFormatter(schema, series) {
     var label = series[0].label;
 
     if(label.contains("bytes"))
-      return [fbits, bytesToSize];
+      return [fbits_from_bytes, bytesToSize];
     else if(label.contains("packets"))
       return [fpackets, formatPackets];
     else if(label.contains("flows"))
-      return [fflows, formatFlows];
+      return [formatFlows, formatFlows];
     else if(label.contains("millis"))
       return [fmillis, fmillis];
   }

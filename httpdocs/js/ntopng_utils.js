@@ -96,6 +96,10 @@ function fbits(bits) {
 //    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
+function fbits_from_bytes(bytes) {
+  return(fbits(bytes * 8));
+}
+
 function fpackets(pps) {
     var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
     if(pps == 0) return '0';
@@ -263,7 +267,7 @@ function formatPackets(n) {
 }
 
 function formatFlows(n) {
-  return(addCommas(n.toFixed(2))+" Flows");
+  return(addCommas(n.toFixed(0))+" Flows");
 }
 
 function bytesToVolume(bytes) {

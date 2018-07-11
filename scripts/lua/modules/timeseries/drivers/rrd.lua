@@ -364,8 +364,12 @@ function driver:query(schema, tstart, tend, tags, options)
   end
 
   local total_serie = makeTotalSerie(series, count)
-  local stats = calcStats(total_serie, fstep, tend - tstart)
-  stats["95th_percentile"] = ninetififthPercentile(total_serie)
+  local stats = nil
+
+  if options.calculate_stats then
+    stats = calcStats(total_serie, fstep, tend - tstart)
+    stats["95th_percentile"] = ninetififthPercentile(total_serie)
+  end
 
   return {
     start = fstart,
@@ -514,8 +518,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
   end
 
-  local stats = calcStats(total_serie, step, tend - tstart)
-  stats["95th_percentile"] = ninetififthPercentile(table.clone(total_serie))
+  local stats = nil
+
+  if options.calculate_stats then
+    stats = calcStats(total_serie, step, tend - tstart)
+    stats["95th_percentile"] = ninetififthPercentile(table.clone(total_serie))
+  end
 
   return {
     topk = topk,
