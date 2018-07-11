@@ -81,24 +81,29 @@ end
 
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
-
-  -- For now we assume that the step of the data is the raw step, ignoring the data aggregations
+  local estimed_num_points = math.ceil((tend - tstart) / schema.options.step)
   local time_step = schema.options.step
+
+  if estimed_num_points > options.max_num_points then
+    -- downsample
+    time_step = math.ceil(estimed_num_points / options.max_num_points) * schema.options.step
+  end
 
   for i, metric in ipairs(schema._metrics) do
     local data_type = schema.metrics[metric].type
 
     if data_type == ts_types.counter then
-      metrics[i] = "DERIVATIVE(\"" .. metric .. "\") as " .. metric
+      metrics[i] = "DERIVATIVE(MEAN(\"" .. metric .. "\")) as " .. metric
     else
-      metrics[i] = metric
+      metrics[i] = "MEAN(\"".. metric .."\") as " .. metric
     end
   end
 
   local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
 
   local query = 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000"
+      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
+      " GROUP BY TIME(".. time_step .."s ) FILL(" .. options.fill_value .. ")"
 
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url)
@@ -125,16 +130,6 @@ function driver:query(schema, tstart, tend, tags, options)
   for idx, values in ipairs(data.values) do
     local cur_t = data.values[idx][1]
 
-    -- Fill the missing points
-    while((cur_t - prev_t) > time_step) do
-      for _, serie in pairs(series) do
-        serie.data[series_idx] = options.fill_value
-      end
-
-      series_idx = series_idx + 1
-      prev_t = prev_t + time_step
-    end
-
     for i=2, #values do
       local val = values[i]
 
@@ -149,16 +144,6 @@ function driver:query(schema, tstart, tend, tags, options)
 
     series_idx = series_idx + 1
     prev_t = cur_t
-  end
-
-  -- Fill the missing points at the end
-  while((tend - prev_t) > time_step) do
-    for _, serie in pairs(series) do
-      serie.data[series_idx] = options.fill_value
-    end
-
-    series_idx = series_idx + 1
-    prev_t = prev_t + time_step
   end
 
   local rv = {
@@ -282,7 +267,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     }
   end
 
-  return sorted
+  return {
+    topk = sorted,
+  }
 end
 
 -------------------------------------------------------

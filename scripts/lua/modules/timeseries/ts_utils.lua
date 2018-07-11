@@ -154,6 +154,10 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
 
   local rv = driver:query(schema, tstart, tend, tags, query_options)
 
+  if not rv then
+    return nil
+  end
+
   -- Add tags information for consistency with queryTopk
   for _, serie in pairs(rv.series) do
     serie.tags = tags
@@ -278,6 +282,11 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
   for _, top in ipairs(top_items.topk) do
     local top_res = driver:query(schema, tstart, tend, top.tags, query_options)
 
+    if not top_res then
+      --traceError(TRACE_WARNING, TRACE_CONSOLE, "Topk series query on '" .. schema.name .. "' with filter '".. table.tconcat(top.tags, "=", ",") .."' returned nil")
+      goto continue
+    end
+
     -- TODO add more checks on consistency?
     top_items.step = top_res.step
     top_items.count = top_res.count
@@ -287,6 +296,8 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
       serie.tags = top.tags
       top_items.series[#top_items.series + 1] = serie
     end
+
+    ::continue::
   end
 
   return top_items
