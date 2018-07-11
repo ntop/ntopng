@@ -87,11 +87,9 @@ ntopng-data:
 	@SUDO@ \rm -rf ./usr ./debian/ntopng-data
 	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/ntopng-data
 	cd ../../ ; ./configure; make geoip
-	cp ../../httpdocs/geoip/*.dat* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
-	-gunzip ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/*.gz
-	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
-	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
-	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".git" | xargs /bin/rm -rf
+	cp ../../httpdocs/geoip/*.dat  ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
+	cp ../../httpdocs/geoip/*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
+	find ${NTOPNG_BUILD}/usr/share/ntopng -type f -not -name "*.dat" -not -name "*.mmdb" | xargs /bin/rm -rf
 	@echo
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng-data_*deb

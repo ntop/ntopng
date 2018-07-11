@@ -25,7 +25,9 @@
 #include "ntop_includes.h"
 
 extern "C" {
-#ifdef HAVE_GEOIP
+#ifdef HAVE_MAXMINDDB
+#include <maxminddb.h>
+#elif defined(HAVE_GEOIP)
 #include "GeoIP.h"
 #include "GeoIPCity.h"
 #endif
@@ -33,13 +35,22 @@ extern "C" {
 
 class Geolocation {
  private:
-#ifdef HAVE_GEOIP
+#ifdef HAVE_MAXMINDDB
+  MMDB_s geo_ip_asn_mmdb, geo_ip_city_mmdb;
+  bool loadMaxMindDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const;
+  bool mmdbs_ok;
+
+#elif defined(HAVE_GEOIP)
   GeoIP *geo_ip_asn_db, *geo_ip_asn_db_v6;
   GeoIP *geo_ip_city_db, *geo_ip_city_db_v6;
 
   GeoIP* loadGeoDB(char *base_path, const char *db_name);
 #endif
 
+#define TEST_GEOLOCATION 1
+#ifdef TEST_GEOLOCATION
+  void testme();
+#endif
  public:
   Geolocation(char *db_home);
   ~Geolocation();

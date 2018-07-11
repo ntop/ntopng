@@ -45,7 +45,7 @@ class IpAddress {
   char* intoa(char* buf, u_short bufLen, u_int8_t bitmask);
   void checkIP();
   void compute_key();
-  
+
  public:
   IpAddress();
 
@@ -77,6 +77,7 @@ class IpAddress {
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();
   char* serialize();
+  bool get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len) const;
   json_object* getJSONObject();
   bool match(AddressTree *tree);
   void* findAddress(AddressTree *ptree);

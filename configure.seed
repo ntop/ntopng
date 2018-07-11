@@ -426,28 +426,18 @@ fi
 dnl> Remove spaces
 OS="${OS#"${OS%%[![:space:]]*}"}"
 
-dnl> Check for package install
-DOWNLOAD_GEOIP=0
-AC_CHECK_LIB([GeoIP], [GeoIP_record_by_ipnum])
-AC_HAVE_HEADERS(GeoIP.h)
-if test ".${ac_cv_lib_GeoIP_GeoIP_record_by_ipnum}" = ".yes" &&
-   test ".${ac_cv_header_GeoIP_h}" = ".yes"; then
-
-   AC_CHECK_LIB([GeoIP], [GeoIP_lib_version])
-   if test ".${ac_cv_lib_GeoIP_GeoIP_lib_version}" = ".yes"; then
-     AC_DEFINE_UNQUOTED(HAVE_GEOIP_IPv6, 1, [GeoIP IPv6 support is present])
-     dnl> LIBS="$LIBS -lGeoIP"
-     AC_DEFINE_UNQUOTED(HAVE_GEOIP, 1, [GeoIP support is present])
-     GEOIP_LIB="-lGeoIP"
-     dnl> Download databases
-     DOWNLOAD_GEOIP=1
-   else
-     AC_DEFINE_UNQUOTED(HAVE_GEOIP_IPv6, 1, [GeoIP not supported: library too old, please upgrade first])
-   fi
+AC_CHECK_LIB([maxminddb], [MMDB_lookup_sockaddr])
+AC_HAVE_HEADERS(maxminddb.h)
+if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
+   test ".${ac_cv_header_maxminddb_h}" = ".yes"; then
+   DOWNLOAD_GEOIP=1
+   MAXMINDDB_LIB=-lmaxminddb
+   AC_DEFINE_UNQUOTED(HAVE_MAXMINDDB, 1, [MaxMind DB support])
+   AC_MSG_RESULT(Building with libmaxminddb (https://github.com/maxmind/libmaxminddb))
 else
-AC_MSG_RESULT(Build ntop without geolocation - GeoIP (http://www.maxmind.com/))
-GEOIP_DEP=""
+   AC_MSG_RESULT(Building without libmaxminddb (https://github.com/maxmind/libmaxminddb))
 fi
+
 
 AC_CHECK_LIB([sqlite3], [sqlite3_open], sqlite=true)
 if test x$sqlite = xtrue
@@ -554,7 +544,6 @@ AC_SUBST(DATE)
 AC_SUBST(KERNEL)
 AC_SUBST(GIT_RELEASE)
 AC_SUBST(LINK_OPTS)
-AC_SUBST(GEOIP_LIB)
 AC_SUBST(SQLITE_LIB)
 AC_SUBST(GMAKE)
 AC_SUBST(GPP)
@@ -577,6 +566,7 @@ AC_SUBST(NDPI_LIB)
 AC_SUBST(NDPI_LIB_DEP)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
+AC_SUBST(MAXMINDDB_LIB)
 AC_SUBST(SSL_INC)
 AC_SUBST(SSL_LIB)
 AC_SUBST(PRO_OBJECTS)
@@ -610,7 +600,7 @@ echo "You are now ready to compile typing $GMAKE"
 
 if test $DOWNLOAD_GEOIP = "1"
 then
-if ! test -f "./httpdocs/geoip/GeoIPASNum.dat"; then
+if ! test -f "./httpdocs/geoip/GeoLite2-ASN.mmdb"; then
   echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
 fi
 fi

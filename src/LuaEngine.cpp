@@ -5416,7 +5416,9 @@ static int ntop_get_info(lua_State* vm) {
 #else
     lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
 #endif
-#ifdef HAVE_GEOIP
+#ifdef HAVE_MAXMINDDB
+    lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
+#elif defined(HAVE_GEOIP)
     lua_push_str_table_entry(vm, "version.geoip", (char*)GeoIP_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());

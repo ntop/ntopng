@@ -67,9 +67,13 @@ ifeq ($(OS), $(filter $(OS), FreeBSD))
 		LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
 	endif
 endif
+
 ######
+
 HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
+
 ######
+
 HAS_JSON=$(shell pkg-config --exists json-c; echo $$?)
 ifeq ($(HAS_JSON), 0)
 	JSON_INC = $(shell pkg-config --cflags json-c)
@@ -79,6 +83,7 @@ else
 	JSON_INC=-I$(JSON_HOME)
 	JSON_LIB=$(JSON_HOME)/.libs/libjson-c.a
 endif
+
 ######
 
 ifeq (@NEDGE@, 0)
@@ -114,7 +119,7 @@ endif
 
 ######
 TARGET = ntopng
-NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ $(ZSTD_LIB) -lm -lpthread
+NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) @MAXMINDDB_LIB@ $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @LDFLAGS@ @PRO_LIBS@ $(ZSTD_LIB) -lm -lpthread
 CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SODIUM_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INCS@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
@@ -206,6 +211,11 @@ geoip:
 	  $(GET_UTIL) http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz; \
 	  $(GET_UTIL) http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNumv6.dat.gz; \
 	  gunzip -f *.dat.gz ; \
+	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz; \
+	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz; \
+	  tar xfvz GeoLite2-ASN.tar.gz --strip 1 --wildcards "**/*.mmdb"; \
+	  tar xfvz GeoLite2-City.tar.gz --strip 1 --wildcards "**/*.mmdb"; \
+          rm -rf GeoLite2*.tar.gz; \
 	fi
 
 trackers:

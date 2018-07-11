@@ -222,6 +222,35 @@ void* IpAddress::findAddress(AddressTree *ptree) {
 
 /* ******************************************* */
 
+bool IpAddress::get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len) const {
+  if(!sa || !sa_len)
+    return false;
+
+  if(addr.ipVersion == 4) {
+    struct sockaddr_in *in4 = (struct sockaddr_in*)calloc(1, sizeof(struct sockaddr_in));
+
+    if(in4) {
+      in4->sin_family = AF_INET, in4->sin_addr.s_addr = addr.ipType.ipv4,
+	*sa_len = sizeof(struct sockaddr_in), *sa = (struct sockaddr*)in4;
+      return true;
+    }
+
+  } else if(addr.ipVersion == 6) {
+    struct sockaddr_in6 *in6 = (struct sockaddr_in6*)calloc(1, sizeof(struct sockaddr_in6));
+
+    if(in6) {
+      in6->sin6_family = AF_INET6, memcpy((void*)&in6->sin6_addr, (void*)&addr.ipType.ipv6, sizeof(addr.ipType.ipv6)),
+	*sa_len = sizeof(struct sockaddr_in6), *sa = (struct sockaddr*)in6;
+      return true;
+    }
+
+  }
+
+  return false;
+}
+
+/* ******************************************* */
+
 char* IpAddress::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));

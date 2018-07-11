@@ -131,9 +131,9 @@ if info["version.zmq"] ~= nil then
    print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><td>"..info["version.zmq"].."</td></tr>\n")
 end
 if(info["version.geoip"] ~= nil) then
-print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoIP</A></th><td>"..info["version.geoip"])
+print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoLite</A></th><td>"..info["version.geoip"])
 
-print [[ <br>&nbsp;<br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxmind.com/"})) print[[</small>
+print [[ <br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxmind.com/"})) print[[</small>
 ]]
 
 print("</td></tr>\n")
