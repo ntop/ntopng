@@ -454,7 +454,7 @@ function printExternalAlertsReport()
 
      print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr>')
 
-     local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook", "slack_test"}
+     local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook", "slack_test", "slack_channels"}
 
     prefsToggleButton({
       field = "toggle_slack_notification",
