@@ -205,6 +205,7 @@
 #define CONST_DEFAULT_PASSWORD_CHANGED "ntopng.prefs.admin_password_changed"
 #define CONST_STR_NEDGE_LICENSE        "nedge.license"
 #define CONST_STR_NTOPNG_LICENSE       "ntopng.license"
+#define CONST_STR_NTOPNG_KEY           "ntopng.key"
 #define CONST_STR_USER_GROUP           "ntopng.user.%s.group"
 #define CONST_STR_USER_FULL_NAME       "ntopng.user.%s.full_name"
 #define CONST_STR_USER_PASSWORD        "ntopng.user.%s.password"
