@@ -78,7 +78,9 @@ class Ntop {
 
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
-  
+
+  bool checkUserPassword(const char * const user, const char * const password) const;
+
  public:
   /**
    * @brief A Constructor
@@ -396,10 +398,11 @@ class Ntop {
   void getUsers(lua_State* vm);
   void getUserGroup(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
-  bool getInterfaceAllowed(lua_State* vm, char *ifname)      const;
-  bool isInterfaceAllowed(lua_State* vm, const char *ifname) const;
-  bool isInterfaceAllowed(lua_State* vm, int ifid)           const;
-  bool checkUserPassword(const char *user, const char *password);
+  bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
+  bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
+  bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
+  bool checkUser(const char * const user, const char *password) const;
+  bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);
   bool changeUserRole(char *username, char *user_role) const;
@@ -415,7 +418,7 @@ class Ntop {
   bool isCaptivePortalUser(const char * const username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
-  bool getUserAllowedIfname(char *username, char *buf, size_t buflen);
+  bool getUserAllowedIfname(const char * const username, char *buf, size_t buflen) const;
   bool hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);
@@ -453,7 +456,7 @@ class Ntop {
   void swapHostBlacklist();
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
-  bool isExistingInterface(char *name);
+  bool isExistingInterface(const char * const name) const;
   inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
 #ifdef NTOPNG_PRO

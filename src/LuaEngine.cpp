@@ -8179,7 +8179,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       if(!ntop->isExistingInterface(ifname)) {
 	NetworkInterface *iface = ntop->getFirstInterface();
 
-	ntop->getRedis()->set(key, iface->get_name());
 	getLuaVMUservalue(L,ifname) = iface->get_name();
 	getLuaVMUservalue(L,iface)  = iface;
       } else {

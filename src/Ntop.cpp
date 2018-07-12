@@ -984,8 +984,35 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, int ifid) const {
 
 /* ******************************************* */
 
+bool Ntop::checkUserInterfaces(const char * const user) const {
+  char ifbuf[MAX_INTERFACE_NAME_LEN];
+
+  /* Check if the user has an allowed interface and that interface has not yet been
+     instantiated in ntopng (e.g, this can happen with dynamic interfaces after ntopng
+     has been restarted.) */
+  getUserAllowedIfname(user, ifbuf, sizeof(ifbuf));
+  if(ifbuf[0] != '\0' && !isExistingInterface(ifbuf))
+    return false;
+
+  return true;
+}
+
+/* ******************************************* */
+
+bool Ntop::checkUser(const char * const user, const char *password) const {
+  if(!checkUserPassword(user, password))
+    return false;
+
+  if(!checkUserInterfaces(user))
+    return false;
+
+  return true;
+}
+
+/* ******************************************* */
+
 // Return 1 if username/password is allowed, 0 otherwise.
-bool Ntop::checkUserPassword(const char *user, const char *password) {
+bool Ntop::checkUserPassword(const char * const user, const char * const password) const {
   char key[64], val[64], password_hash[33];
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   bool localAuth = true;
@@ -1356,7 +1383,7 @@ bool Ntop::getUserHostPool(char *username, u_int16_t *host_pool_id) {
 
 /* ******************************************* */
 
-bool Ntop::getUserAllowedIfname(char *username, char *buf, size_t buflen) {
+bool Ntop::getUserAllowedIfname(const char * const username, char *buf, size_t buflen) const {
   char key[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username ? username : "");
@@ -1525,7 +1552,7 @@ NetworkInterface* Ntop::getInterfaceById(int if_id) {
 
 /* ******************************************* */
 
-bool Ntop::isExistingInterface(char *name) {
+bool Ntop::isExistingInterface(const char * const name) const {
   if(name == NULL) return(false);
 
   for(int i=0; i<num_defined_interfaces; i++) {

@@ -318,7 +318,7 @@ static int is_authorized(const struct mg_connection *conn,
 	get_qsvar(request_info, "password", password, sizeof(password));
       }
 
-      return(ntop->checkUserPassword(username, password)
+      return(ntop->checkUser(username, password)
 	     && checkCaptive(conn, request_info, username, password));
     }
   }
@@ -349,7 +349,7 @@ static int is_authorized(const struct mg_connection *conn,
     getline(authss, user_s, ':');
     getline(authss, pword_s, ':');
 
-    return ntop->checkUserPassword(user_s.c_str(), pword_s.c_str());
+    return ntop->checkUser(user_s.c_str(), pword_s.c_str());
   }
 
   mg_get_cookie(conn, "user", username, username_len);
@@ -364,8 +364,12 @@ static int is_authorized(const struct mg_connection *conn,
     /* Last resort: see if we have a user and password matching */
     mg_get_cookie(conn, "password", password, sizeof(password));
 
-    return(ntop->checkUserPassword(username, password));
+    return(ntop->checkUser(username, password));
   }
+
+  /* Make sure there are existing interfaces for username */
+  if(!ntop->checkUserInterfaces(username))
+     return(0);
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Received session %s/%s", session_id, username);
 
@@ -620,8 +624,9 @@ static void authorize(struct mg_connection *conn,
     }
   }
 
-  if(isCaptiveConnection(conn) || ntop->isCaptivePortalUser(user) ||
-	    (!ntop->checkUserPassword(user, password))) {
+  if(isCaptiveConnection(conn)
+     || ntop->isCaptivePortalUser(user)
+     || !ntop->checkUser(user, password)) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
   } else {
