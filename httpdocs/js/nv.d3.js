@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-02 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-12 */
 (function(){
 
 // set up main nv object
@@ -13104,19 +13104,27 @@ nv.models.multiChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-            var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
-                .map(function(d) {
-                    return d.values.map(function(d,i) {
-                        return { x: getX(d), y: getY(d) }
-                    })
+            var series_mapper = function(d) {
+                return d.values.map(function(d,i) {
+                    return { x: getX(d), y: getY(d) }
                 });
+            }
+
+            var is_stacked = function(d) {
+                return (d.type == 'area') || (d.type == 'bar');
+            }
+
+            var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
+                .map(series_mapper);
+
+            var series1_stacked = data.filter(function(d) {return !d.disabled && d.yAxis == 1 && is_stacked(d)})
+                .map(series_mapper);
 
             var series2 = data.filter(function(d) {return !d.disabled && d.yAxis == 2})
-                .map(function(d) {
-                    return d.values.map(function(d,i) {
-                        return { x: getX(d), y: getY(d) }
-                    })
-                });
+                .map(series_mapper);
+
+            var series2_stacked = data.filter(function(d) {return !d.disabled && d.yAxis == 2 && is_stacked(d)})
+                .map(series_mapper);
 
             x   .domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x }))
                 .range([0, availableWidth]);
@@ -13271,20 +13279,22 @@ nv.models.multiChart = function() {
 
             lines1.yDomain(yScale1.domain());
             scatters1.yDomain(yScale1.domain());
-            var yStackScale1 = yScale1.domain([0, d3.max(getStackedAreaYs(series1))]).range([0, availableHeight]);
-            if(bars1.stacked())
+            var yStackScale1 = yScale1.domain([0, Math.max(d3.max(getStackedAreaYs(series1_stacked)), yScale1.domain()[1])]).range([0, availableHeight]);
+            if(bars1.stacked()) {
                 bars1.yDomain(yStackScale1.domain())
-            else
+            } else {
                 bars1.yDomain(yScale1.domain());
+            }
             stack1.yDomain(yStackScale1.domain());
 
             lines2.yDomain(yScale2.domain());
             scatters2.yDomain(yScale2.domain());
-            var yStackScale2 = yScale2.domain([0, d3.max(getStackedAreaYs(series2))]).range([0, availableHeight]);
-            if(bars2.stacked())
+            var yStackScale2 = yScale2.domain([0, Math.max(d3.max(getStackedAreaYs(series2_stacked)), yScale2.domain()[1])]).range([0, availableHeight]);
+            if(bars2.stacked()) {
                 bars2.yDomain(yStackScale2.domain())
-            else
+            } else {
                 bars2.yDomain(yScale2.domain());
+            }
             stack2.yDomain(yStackScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
@@ -13541,7 +13551,10 @@ nv.models.multiChart = function() {
               };
 
               var relevantChart = chartMap[series.type]['yAxis' + series.yAxis].chart;
-              var relevantDatasets = chartMap[series.type]['yAxis' + series.yAxis].data;
+              var relevantDatasets = chartMap[series.type]['yAxis' + series.yAxis].data.filter(function(series) {
+                return(!series.disabled);
+              });
+
               var seriesIndex = relevantDatasets.reduce(function (seriesIndex, dataSet, i) {
                 return dataSet.key === series.key ? i : seriesIndex;
               }, 0);
