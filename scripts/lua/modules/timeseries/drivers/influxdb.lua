@@ -80,8 +80,7 @@ end
 -------------------------------------------------------
 
 local function influx2Series(schema, tstart, tend, tags, options, data, time_step)
-    -- ASSUMPTION: all the data types are equal within a schema
-  local data_type = schema.metrics[schema._metrics[1]].type
+  local data_type = schema.options.metrics_type
   local series = {}
 
   -- Create the columns
@@ -163,8 +162,7 @@ end
 -------------------------------------------------------
 
 local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
-  -- ASSUMPTION: all the data types are equal within a schema
-  local data_type = schema.metrics[schema._metrics[1]].type
+  local data_type = schema.options.metrics_type
   local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
 
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
@@ -186,8 +184,7 @@ end
 -------------------------------------------------------
 
 local function calcStats(schema, tstart, tend, tags, time_step, url)
-  -- ASSUMPTION: all the data types are equal within a schema
-  local data_type = schema.metrics[schema._metrics[1]].type
+  local data_type = schema.options.metrics_type
   local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
   query = 'SELECT SUM("total_serie") * ' .. schema.options.step .. ', MEAN("total_serie"), PERCENTILE("total_serie", 95) FROM (' .. query .. ")"
 
@@ -233,10 +230,9 @@ end
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
+  local data_type = schema.options.metrics_type
 
   for i, metric in ipairs(schema._metrics) do
-    local data_type = schema.metrics[metric].type
-
     -- NOTE: why we need to device by time_step ? is MEAN+GROUP BY TIME bugged?
     if data_type == ts_types.counter then
       metrics[i] = "(DERIVATIVE(MEAN(\"" .. metric .. "\")) / ".. time_step ..") as " .. metric

@@ -151,6 +151,7 @@ end
 
 local function create_rrd(schema, path)
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
+  local rrd_type = type_to_rrdtype[schema.options.metrics_type]
   local params = {path, schema.options.step}
 
   local metrics_map = map_metrics_to_rrd_columns(schema)
@@ -159,8 +160,7 @@ local function create_rrd(schema, path)
   end
 
   for idx, metric in ipairs(schema._metrics) do
-    local info = schema.metrics[metric]
-    params[#params + 1] = "DS:" .. metrics_map[idx] .. ":" .. type_to_rrdtype[info.type] .. ':' .. heartbeat .. ':U:U'
+    params[#params + 1] = "DS:" .. metrics_map[idx] .. ":" .. rrd_type .. ':' .. heartbeat .. ':U:U'
   end
 
   for _, rra in ipairs(schema.retention) do
