@@ -342,7 +342,8 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "--capture-direction                 | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
-	 "--online-license-check              | Check license online\n"
+	 /* "--online-check                      | Check the license using the online service\n" */
+	 "--online-license-check              | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
 	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
 	 "[--enable-user-scripts]             | Enable LUA user scripts\n"
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
@@ -646,6 +647,7 @@ static const struct option long_options[] = {
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
+  { "online-check",                      no_argument,       NULL, 209 },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
@@ -1199,6 +1201,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'X':
     max_num_flows = max_val(atoi(optarg), 1024);
+    break;
+
+  case 209:
+    service_license_check = true;
     break;
 
   case 210:
