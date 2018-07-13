@@ -598,7 +598,7 @@ AC_OUTPUT
 echo ""
 echo "You are now ready to compile typing $GMAKE"
 
-if test $DOWNLOAD_GEOIP = "1"
+if test "$DOWNLOAD_GEOIP" = "1"
 then
 if ! test -f "./httpdocs/geoip/GeoLite2-ASN.mmdb"; then
   echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
