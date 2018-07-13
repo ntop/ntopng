@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-12 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-13 */
 (function(){
 
 // set up main nv object
@@ -13111,7 +13111,9 @@ nv.models.multiChart = function() {
             }
 
             var is_stacked = function(d) {
-                return (d.type == 'area') || (d.type == 'bar');
+                return (d.type == 'area')
+                    || (d.type == 'bar' && d.yAxis == 1 && bars1.stacked())
+                    || (d.type == 'bar' && d.yAxis == 2 && bars2.stacked());
             }
 
             var series1 = data.filter(function(d) {return !d.disabled && d.yAxis == 1})
@@ -13270,32 +13272,30 @@ nv.models.multiChart = function() {
                         });
                     }).map(function(x) {return d3.sum(x);})
             }
-            
+
             yScale1 .domain(yDomain1 || d3.extent(d3.merge(series1).concat(extraValue1BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
+            var series1_stacked_y_domain = d3.max(getStackedAreaYs(series1_stacked));
+            if(series1_stacked_y_domain) {
+                yScale1 .domain([0, Math.max(series1_stacked_y_domain, yScale1.domain()[1])]).range([0, availableHeight]);
+            }
 
             yScale2 .domain(yDomain2 || d3.extent(d3.merge(series2).concat(extraValue2BarStacked), function(d) { return d.y } ))
                 .range([0, availableHeight]);
+            var series2_stacked_y_domain = d3.max(getStackedAreaYs(series2_stacked))
+            if(series2_stacked_y_domain) {
+                yScale2 .domain([0, Math.max(series2_stacked_y_domain, yScale2.domain()[1])]).range([0, availableHeight]);
+            }
 
             lines1.yDomain(yScale1.domain());
             scatters1.yDomain(yScale1.domain());
-            var yStackScale1 = yScale1.domain([0, Math.max(d3.max(getStackedAreaYs(series1_stacked)), yScale1.domain()[1])]).range([0, availableHeight]);
-            if(bars1.stacked()) {
-                bars1.yDomain(yStackScale1.domain())
-            } else {
-                bars1.yDomain(yScale1.domain());
-            }
-            stack1.yDomain(yStackScale1.domain());
+            bars1.yDomain(yScale1.domain())
+            stack1.yDomain(yScale1.domain());
 
             lines2.yDomain(yScale2.domain());
             scatters2.yDomain(yScale2.domain());
-            var yStackScale2 = yScale2.domain([0, Math.max(d3.max(getStackedAreaYs(series2_stacked)), yScale2.domain()[1])]).range([0, availableHeight]);
-            if(bars2.stacked()) {
-                bars2.yDomain(yStackScale2.domain())
-            } else {
-                bars2.yDomain(yScale2.domain());
-            }
-            stack2.yDomain(yStackScale2.domain());
+            bars2.yDomain(yScale2.domain())
+            stack2.yDomain(yScale2.domain());
 
             if(dataStack1.length){d3.transition(stack1Wrap).call(stack1);}
             if(dataStack2.length){d3.transition(stack2Wrap).call(stack2);}
