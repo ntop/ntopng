@@ -322,9 +322,34 @@ end
 
 -------------------------------------------------------
 
+-- Make sure we do not fetch data from RRDs that have been update too much long ago
+-- as this creates issues with the consolidation functions when we want to compare
+-- results coming from different RRDs.
+-- This is also needed to make sure that multiple data series on graphs have the
+-- same number of points, otherwise d3js will generate errors.
+local function touchRRD(rrdname)
+  local now  = os.time()
+  local last, ds_count = ntop.rrd_lastupdate(rrdname)
+
+  if((last ~= nil) and ((now-last) > 3600)) then
+    local tdiff = now - 1800 -- This avoids to set the update continuously
+
+    if(ds_count == 1) then
+      ntop.rrd_update(rrdname, tdiff.."", "0")
+    elseif(ds_count == 2) then
+      ntop.rrd_update(rrdname, tdiff.."", "0", "0")
+    elseif(ds_count == 3) then
+      ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
+    end
+  end
+end
+
+-------------------------------------------------------
+
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+  touchRRD(rrdfile)
 
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
   local serie_idx = 1
@@ -471,6 +496,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   for _, serie_tags in pairs(series) do
     local rrdfile = schema_get_full_path(schema, serie_tags)
+    touchRRD(rrdfile)
+
     local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
     local sum = 0
     step = fstep
@@ -519,6 +546,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local stats = nil
+
+  -- Remove the last value: RRD seems to give an additional point
+  total_serie[#total_serie] = nil
+
+  local fstep, count, total_serie = sampleSeries(schema, #total_serie, step, options.max_num_points, {{data=total_serie}})
+  total_serie = total_serie[1].data
 
   if options.calculate_stats then
     stats = calcStats(total_serie, step, tend - tstart)

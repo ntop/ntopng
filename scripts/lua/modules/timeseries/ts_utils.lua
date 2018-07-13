@@ -123,7 +123,7 @@ end
 
 local function getQueryOptions(overrides)
   return table.merge({
-    max_num_points = 480,   -- maximum number of points per data serie
+    max_num_points = 240,   -- maximum number of points per data serie
     fill_value = 0,         -- e.g. 0/0 for nan
     min_value = 0,          -- minimum value of a data point
     max_value = math.huge,  -- maximum value for a data point
