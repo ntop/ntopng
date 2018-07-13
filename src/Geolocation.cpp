@@ -370,6 +370,8 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	}
       }
     }
+
+    free(sa);
   } else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Lookup failed [%s]", MMDB_strerror(mmdb_error));
 
