@@ -31,19 +31,6 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   if(ifname == NULL)
     ifname = iface->get_name();
 
-  if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
-    int rc;
-
-    errno = 0;
-    rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
-
-    if((rc < 0) && (errno != 0)) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
-				   ifname, errno, strerror(errno));
-    }
-  } else
-    throw("Unable to start network discovery");
-
 #if ! defined(__arm__)
   if((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL) {
 #else
@@ -54,7 +41,9 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 		(pcap_set_immediate_mode(pd, 1) != 0) || /* enable immediate mode */
 		(pcap_activate(pd) != 0)) {
 #endif
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create pcap socket [%d/%s]", errno, strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create pcap socket on %s [%d/%s]", ifname, errno, strerror(errno));
+	udp_sock = -1;
+	throw("Unable to start network discovery");
   } else {
     const char* bpfFilter = "arp && arp[6:2] = 2";  // arp[x:y] - from byte 6 for 2 bytes (arp.opcode == 2 -> reply)
     struct bpf_program fcode;
@@ -63,6 +52,20 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
     if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0)
       pcap_setfilter(pd, &fcode);
   }
+
+  if ((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
+	  int rc;
+
+	  errno = 0;
+	  rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
+
+	  if ((rc < 0) && (errno != 0)) {
+		  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
+			  ifname, errno, strerror(errno));
+	  }
+  }
+  else
+	  throw("Unable to start network discovery");
 }
 
 /* ******************************* */

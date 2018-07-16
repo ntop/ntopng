@@ -125,8 +125,22 @@ NetworkInterface::NetworkInterface(const char *name,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
 				   ifname, pcap_error_buffer);
     } else {
-      mdns = new MDNS(this);
-      discovery = new NetworkDiscovery(this);
+ 
+	
+	  try {
+        discovery = new NetworkDiscovery(this);
+	  } catch (...) {
+		discovery = NULL;
+	  }
+
+	  if (discovery) {
+		  try {
+			  mdns = new MDNS(this);
+		  }
+		  catch (...) {
+			  mdns = NULL;
+		  }
+	  }
     }
   }
 

@@ -184,6 +184,12 @@ struct win_in6_addr
 
 #define in6_addr win_in6_addr
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
+
 struct ip6_hdr
 {
   union

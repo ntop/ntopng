@@ -479,6 +479,10 @@ typedef struct Node {
 
 LJ_STATIC_ASSERT(offsetof(Node, val) == 0);
 
+#ifndef linux /* ntop */
+#define int8_t char
+#endif
+
 typedef struct GCtab {
   GCHeader;
   uint8_t nomm;		/* Negative cache for fast metamethods. */

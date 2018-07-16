@@ -374,6 +374,7 @@ struct arp_header {
   u_int32_t arp_tpa;/* target protocol address */
 } PACK_OFF;
 
+PACK_ON
 struct arp_packet {
   u_char dst_mac[6], src_mac[6];
   u_int16_t proto;

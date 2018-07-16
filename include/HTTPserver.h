@@ -36,7 +36,7 @@ class HTTPserver {
   char *wispr_captive_data;
   bool check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len);
 
-  static void parseACL(char * const acl, ssize_t acl_len);
+  static void parseACL(char * const acl, u_int acl_len);
 #ifdef HAVE_NEDGE
   struct mg_context *httpd_captive_v4;
 #endif

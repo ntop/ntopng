@@ -10,7 +10,7 @@
 
 #if defined(_MSC_VER)
 /* MSVC is stuck in the last century and doesn't have C99's stdint.h. */
-typedef __int8 int8_t;
+//typedef __int8 int8_t;
 typedef __int16 int16_t;
 typedef __int32 int32_t;
 typedef __int64 int64_t;
@@ -262,6 +262,7 @@ static LJ_AINLINE uint32_t lj_fls(uint32_t x)
   return _CountLeadingZeros(x) ^ 31;
 }
 #else
+#ifndef WIN32
 unsigned char _BitScanForward(uint32_t *, unsigned long);
 unsigned char _BitScanReverse(uint32_t *, unsigned long);
 #pragma intrinsic(_BitScanForward)
@@ -276,6 +277,7 @@ static LJ_AINLINE uint32_t lj_fls(uint32_t x)
 {
   uint32_t r; _BitScanReverse(&r, x); return r;
 }
+#endif
 #endif
 
 unsigned long _byteswap_ulong(unsigned long);

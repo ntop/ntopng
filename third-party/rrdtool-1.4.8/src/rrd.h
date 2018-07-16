@@ -63,7 +63,14 @@ extern    "C" {
 #endif
 	#define strtoll _strtoi64 
 #endif
+#if 0
 	typedef unsigned int ssize_t;
+#else
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+	typedef SSIZE_T ssize_t;
+#endif
+#endif
 	typedef long off_t;
 #endif 
 

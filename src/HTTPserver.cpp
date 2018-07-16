@@ -921,7 +921,7 @@ bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
 
 /* ****************************************** */
 
-void HTTPserver::parseACL(char * const acl, ssize_t acl_len) {
+void HTTPserver::parseACL(char * const acl, u_int acl_len) {
   char *net, *net_ctx, *slash, *sign, *acl_key;
   u_int32_t mask, bits, num = 0;
   struct in_addr ipaddr;
