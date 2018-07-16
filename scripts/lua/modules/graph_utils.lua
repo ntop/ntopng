@@ -256,19 +256,55 @@ end
 
 -- ########################################################
 
-function printGraphMenuEntry(label, base_url, params, tab_id)
-   local url = getPageUrl(base_url, params)
+local graph_menu_entries = {}
 
-   print[[<li><a href="]]
-   print(url)
-   print[[" ]]
+function populateGraphMenuEntry(label, base_url, params, tab_id)
+   local url = getPageUrl(base_url, params)
+   local parts = {}
+
+   parts[#parts + 1] = [[<li><a href="]] .. url .. [[" ]]
 
    if not isEmptyString(tab_id) then
-      print[[id="]] print(tab_id) print[[" ]]
+      parts[#parts + 1] = [[id="]] .. tab_id .. [[" ]]
    end
 
-   print[[> ]] print(label) print[[</a></li>]]
-   print("\n")
+   parts[#parts + 1] = [[> ]] .. label .. [[</a></li>]]
+
+   local entry_str = table.concat(parts, "")
+
+   graph_menu_entries[#graph_menu_entries + 1] = {
+      html = entry_str,
+      label = label,
+      params = params,
+   }
+end
+
+function graphMenuDivider()
+   graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="divider"></li>'}
+end
+
+function graphMenuGetTitle(schema, params)
+   for _, entry in pairs(graph_menu_entries) do
+      if entry.params then
+	 for k, v in pairs(entry.params) do
+	    if params[k] ~= v then
+	       goto continue
+	    end
+	 end
+
+	 return entry.label
+      end
+
+      ::continue::
+   end
+
+   return i18n("prefs.timeseries")
+end
+
+function printGraphMenuEntries()
+   for _, entry in ipairs(graph_menu_entries) do
+      print(entry.html)
+   end
 end
 
 -- ########################################################
@@ -297,7 +333,7 @@ function printSeries(series, tags, start_time, base_url, params)
                needs_separator = false
             end
 
-	    printGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
+	    populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
 	 end
       end
 

@@ -331,3 +331,9 @@ tr.quotas > td {
   left: 50%;
   font-size: 50px;
 }
+
+.timeseries-dropdown {
+  padding-left: 5px;
+  padding-right: 10px;
+  min-width: 5em;
+}

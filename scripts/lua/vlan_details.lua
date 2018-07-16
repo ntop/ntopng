@@ -79,7 +79,7 @@ else
       local tags = {
          ifid = ifId,
          vlan = vlan_id,
-         protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+         protocol = _GET["protocol"],
       }
 
       drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {

@@ -885,7 +885,7 @@ elseif(page == "historical") then
    local selected_epoch = _GET["epoch"] or ""
    local tags = {
       ifid = ifid,
-      protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+      protocol = _GET["protocol"],
       category = _GET["category"],
    }
    url = url.."&page=historical"

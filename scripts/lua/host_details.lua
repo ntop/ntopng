@@ -61,8 +61,6 @@ if((host_name == nil) or (host_ip == nil)) then
    return
 end
 
-if(protocol_id == nil) then protocol_id = "" end
-
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
 
@@ -1924,7 +1922,7 @@ local selected_epoch = _GET["epoch"] or ""
 local tags = {
    ifid = ifId,
    host = host_key,
-   protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+   protocol = _GET["protocol"],
    category = _GET["category"],
 }
 

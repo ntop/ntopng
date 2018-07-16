@@ -540,7 +540,9 @@ local function validateApplication(app)
 end
 
 local function validateProtocolId(p)
-   return validateChoice(ndpi_protos, p)
+   return validateChoice(ndpi_protos, p) or
+      p == "icmp" or
+      validateChoiceByKeys(ndpi_protos, p)
 end
 
 function http_lint.validateTrafficProfile(p)
@@ -842,7 +844,7 @@ local known_parameters = {
    ["l7_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
    ["l4proto"]                 =  validateProtocolId,            -- An nDPI application protocol ID, layer 4
    ["l7proto"]                 =  validateProtocolId,            -- An nDPI application protocol ID, layer 7
-   ["protocol"]                =  validateProtocolId,            -- An nDPI application protocol ID, (layer 7? Duplicate?)
+   ["protocol"]                =  validateProtocolId,           -- An nDPI application protocol ID or name
    ["ndpi"]                    =  validateApplicationsList,      -- a list applications
    ["ndpi_new_cat_id"]         =  validateNumber,                -- An ndpi category id after change
    ["ndpi_old_cat_id"]         =  validateNumber,                -- An ndpi category id before change

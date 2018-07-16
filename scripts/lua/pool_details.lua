@@ -136,7 +136,7 @@ elseif page == "historical" then
     local tags = {
       ifid = ifId,
       pool = pool_id,
-      protocol = _GET["protocol"] and interface.getnDPIProtoName(tonumber(_GET["protocol"])),
+      protocol = _GET["protocol"],
     }
 
     drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
