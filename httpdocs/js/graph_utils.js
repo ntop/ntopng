@@ -19,10 +19,10 @@ function getSerieLabel(schema, serie) {
       return serie.tags.protocol + " (" + new_label + ")";
     else if(serie.tags.category)
       return serie.tags.category + " (" + new_label + ")";
-    else if(serie.tags.if_index)
+    else if(serie.tags.device && serie.tags.if_index) // SNMP interface
       return serie.ext_label + " (" + new_label + ")";
-    else if(serie.tags.port)
-      return serie.ext_label + " (" + new_label + ")";
+    else if(serie.tags.device && serie.tags.port) // Flow device
+      return serie.tags.port + " (" + new_label + ")";
   } else {
       if(serie.tags.protocol)
         return serie.tags.protocol;
