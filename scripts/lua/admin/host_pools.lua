@@ -499,12 +499,19 @@ print[[
         vlan_field.attr("disabled", true);
         vlanicon_disabled = false;
       } else {
-        var is_cidr = is_network_mask(member, true);
+        var cidr = is_network_mask(member, true);
 
-        if (is_cidr) {
+        if (cidr) {
           vlan_field.removeAttr("disabled");
           select_field.attr("disabled", true);
-          vlanicon_disabled = null;
+
+          if((cidr.type == "ipv6" && cidr.mask == 128)
+              || (cidr.type == "ipv4" && cidr.mask == 32)) {
+            /* Custom alias only allowed for IP addresses */
+            vlanicon_disabled = false;
+          } else {
+            vlanicon_disabled = true;
+          }
         }
       }
 
