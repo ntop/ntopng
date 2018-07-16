@@ -1697,6 +1697,10 @@ void Ntop::runHousekeepingTasks() {
 #endif
   
   ntop->rotateLogs();
+
+#ifdef NTOPNG_PRO
+  pro->runHousekeepingTasks();
+#endif
 }
 
 /* ******************************************* */
@@ -1719,6 +1723,40 @@ void Ntop::shutdown() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s [running: %d]",
 				 iface[i]->get_name(), iface[i]->isRunning());
   }
+}
+
+/* ******************************************* */
+
+void Ntop::shutdownAll() {
+  ThreadedActivity *shutdown_activity;
+
+  /* Exec shutdown script before shutting down ntopng */
+  if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
+    /* Don't call run() as by the time the script will be run the delete below will free the memory */
+    shutdown_activity->runScript();
+    delete shutdown_activity;
+  }    
+
+  /* Wait until currently executing periodic activities are completed,
+   Periodic activites should not run during interfaces shutdown */
+  ntop->shutdownPeriodicActivities();
+
+  /* Not it is time to trear down running interfaces */
+  ntop->sendNetworkInterfacesTermination();
+
+  ntop->getGlobals()->shutdown();
+  sleep(2); /* Wait until all threads know that we're shutting down... */
+  ntop->shutdown();
+
+#ifndef WIN32
+  if(ntop->getPrefs()->get_pid_path() != NULL) {
+    int rc = unlink(ntop->getPrefs()->get_pid_path());
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s: [rc: %d][%s]",
+				 ntop->getPrefs()->get_pid_path(),
+				 rc, strerror(errno));
+  }
+#endif
 }
 
 /* ******************************************* */

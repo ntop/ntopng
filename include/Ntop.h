@@ -426,6 +426,7 @@ class Ntop {
   void daemonize();
   void shutdownPeriodicActivities();
   void shutdown();
+  void shutdownAll();
   void runHousekeepingTasks();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
   inline char* getLocalNetworkName(int16_t local_network_id) {
