@@ -290,6 +290,23 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
       goto continue
     end
 
+    if #top_res.series > 1 then
+      -- Unify multiple series into one (e.g. for Top Protocols)
+      local aggregated = {}
+
+      for i=1,top_res.count do
+        aggregated[i] = 0
+      end
+
+      for _, serie in pairs(top_res.series) do
+        for i, v in pairs(serie.data) do
+          aggregated[i] = aggregated[i] + v
+        end
+      end
+
+      top_res.series = {{label="bytes", data=aggregated}}
+    end
+
     -- TODO add more checks on consistency?
     top_items.step = top_res.step
     top_items.count = top_res.count

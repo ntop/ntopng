@@ -13,8 +13,20 @@ function getSerieLabel(schema, serie) {
   var new_label = data_2_label[data_label];
 
   if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
-    return serie.tags.host + " (" + ((serie.label == "bytes_sent") ? "sent" : "rcvd") + ")"
-  } else if(data_label != "bytes") {
+    return serie.tags.host
+  } else if(schema.startsWith("top:")) { // topk graphs
+    if(serie.tags.protocol)
+      return serie.tags.protocol;
+    else if(serie.tags.category)
+      return serie.tags.category
+    else if(serie.tags.device && serie.tags.if_index) { // SNMP interface
+      if(serie.tags.if_index != serie.ext_label)
+        return serie.ext_label + " (" + serie.tags.if_index + ")";
+      else
+        return serie.ext_label;
+    } else if(serie.tags.device && serie.tags.port) // Flow device
+      return serie.tags.port;
+  } else if(data_label != "bytes") { // single series
     if(serie.tags.protocol)
       return serie.tags.protocol + " (" + new_label + ")";
     else if(serie.tags.category)
