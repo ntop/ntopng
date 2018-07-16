@@ -83,6 +83,13 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
   $chart.parent().css("position", "relative");
 
+  var update_chart_data = function(new_data) {
+    d3_sel.datum(new_data).transition().duration(500).call(chart);
+    nv.utils.windowResize(chart.update);
+    pending_request = null;
+    spinner.remove();
+  }
+
   chart.updateStackedChart = function (tstart, tend) {
     if(pending_request)
       pending_request.abort();
@@ -94,6 +101,11 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
+      if(!data || !data.series) {
+        update_chart_data([]);
+        return;
+      }
+
       // Adapt data
       var res = [];
       var series = data.series;
@@ -195,11 +207,10 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         stats_table.hide();
       }
 
-      // todo stop loading indicator
-      d3_sel.datum(res).transition().duration(500).call(chart);
-      nv.utils.windowResize(chart.update);
-      pending_request = null;
-      spinner.remove();
+      update_chart_data(res);
+    }).fail(function(xhr, status, error) {
+      console.error("Error while retrieving the timeseries data [" + status + "]: " + error);
+      update_chart_data([]);
     });
   }
 }
