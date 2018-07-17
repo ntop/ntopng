@@ -869,8 +869,8 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    if(not ts_utils.exists("host:ndpi", {ifid=ifId, host=host_ip, protocol=k})) then
-	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=".. k ..".rrd\">".. label .."</A>")
+	    if(ts_utils.exists("host:ndpi", {ifid=ifId, host=host_ip, protocol=k})) then
+	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi&protocol=".. k .."\">".. label .."</A>")
 	    else
 	       print(label)
 	    end

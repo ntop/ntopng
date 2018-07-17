@@ -540,8 +540,10 @@ local function validateApplication(app)
 end
 
 local function validateProtocolId(p)
+   local l4 = {"icmp", "tcp", "udp"}
+
    return validateChoice(ndpi_protos, p) or
-      p == "icmp" or
+      validateChoice(l4, p) or
       validateChoiceByKeys(ndpi_protos, p)
 end
 

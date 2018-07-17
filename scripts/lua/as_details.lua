@@ -74,7 +74,6 @@ print [[
 ]]
 
 if isEmptyString(page) or page == "historical" then   
-   --local rrdname = getRRDName(ifId, 'asn:'..asn, 'bytes.rrd')
    local default_schema = "asn:traffic"
 
    if(not ts_utils.exists(default_schema, {ifid=ifId, asn=asn})) then

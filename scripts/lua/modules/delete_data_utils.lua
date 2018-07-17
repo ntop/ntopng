@@ -17,6 +17,7 @@ function delete_data_utils.status_to_i18n(err)
    return map[err] or 'delete_data.msg_err_unknown'
 end
 
+-- TODO: move to timeseries API
 local function delete_host_fs_data(interface_id, host_info)
    local status = "OK"
 

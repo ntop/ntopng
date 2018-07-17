@@ -434,6 +434,9 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
     return nil
   end
 
+  -- TODO remove after migration
+  local l4_keys = {tcp=1, udp=1, icmp=1}
+
   local base, rrd = schema_get_path(schema, table.merge(tags_filter, {[wildcard_tag] = ""}))
   local files = ntop.readdir(base)
   local res = {}
@@ -449,7 +452,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
         -- TODO remove after migration
         local value = v[1]
 
-        if ((wildcard_tag ~= "protocol") or (interface.getnDPIProtoId(value) ~= -1)) and
+        if ((wildcard_tag ~= "protocol") or (l4_keys[value] ~= nil) or (interface.getnDPIProtoId(value) ~= -1)) and
             ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
           res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
         end
