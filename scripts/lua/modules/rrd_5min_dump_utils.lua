@@ -5,7 +5,7 @@ require "rrd_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local os_utils = require "os_utils"
-local ts_utils = require "ts_utils"
+local ts_utils = require "ts_utils_core"
 require "ts_5min"
 
 local dirs = ntop.getDirs()

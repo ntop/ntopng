@@ -7,7 +7,7 @@ require "rrd_utils"
 
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"
-local ts_utils = require("ts_utils")
+local ts_utils = require("ts_utils_core")
 require("ts_minute")
 
 local rrd_dump = {}

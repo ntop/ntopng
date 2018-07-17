@@ -11,9 +11,6 @@ local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
-require("ts_second")
-require("ts_minute")
-require("ts_5min")
 
 if ntop.isnEdge() then
    iface_series[#iface_series + 1] = {schema="iface:nfq_pct",    label=i18n("graphs.num_nfq_pct")}

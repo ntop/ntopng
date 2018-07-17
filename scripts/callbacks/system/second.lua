@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 
 -- do NOT include lua_utils here, it's not necessary, keep it light!
 local callback_utils = require "callback_utils"
-local ts_utils = require("ts_utils")
+local ts_utils = require("ts_utils_core")
 require("ts_second")
 
 -- Toggle debug

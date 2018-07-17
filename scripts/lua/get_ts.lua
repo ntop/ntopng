@@ -27,11 +27,6 @@ end
 
 sendHTTPHeader('application/json')
 
--- Load all the schemas
-require("ts_second")
-require("ts_minute")
-require("ts_5min")
-
 local res
 
 if starts(schema_id, "top:") then
