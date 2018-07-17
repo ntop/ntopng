@@ -40,6 +40,7 @@ extern "C" {
 
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 static Mutex rrd_lock;
+static std::list<char*> new_custom_categories, custom_categories_to_purge;
 
 /* ******************************* */
 
@@ -1504,8 +1505,11 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
     NetworkInterface *iface;
 
     /* Note: we only load custom categories on packet interfaces right now */
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
-      ndpi_load_ip_category(iface->get_ndpi_struct(), net, catid);
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface()) {
+      char *toadd = strdup(net);
+      new_custom_categories.push_front(toadd);
+      ndpi_load_ip_category(iface->get_ndpi_struct(), toadd, catid);
+    }
   }
 
   lua_pushnil(vm);
@@ -1529,8 +1533,11 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
     NetworkInterface *iface;
 
     /* Note: we only load custom categories on packet interfaces right now */
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
-      ndpi_load_hostname_category(iface->get_ndpi_struct(), host, catid);
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())  {
+      char *toadd = strdup(host);
+      new_custom_categories.push_front(toadd);
+      ndpi_load_hostname_category(iface->get_ndpi_struct(), toadd, catid);
+    }
   }
 
   lua_pushnil(vm);
@@ -1549,6 +1556,15 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
     if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
       iface->reloadCustomCategories();
   }
+
+  /* Remove old strings */
+  for(std::list<char*>::iterator it = custom_categories_to_purge.begin(); it != custom_categories_to_purge.end(); it++)
+    free(*it);
+  custom_categories_to_purge.clear();
+
+  /* Will purge on next reload */
+  custom_categories_to_purge = new_custom_categories;
+  new_custom_categories.clear();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
