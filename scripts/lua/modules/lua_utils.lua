@@ -592,20 +592,20 @@ end
 
 function alertEngine(v)
    local enginetable = {}
-   for i, t in ipairs(alert_consts.alert_consts.alert_functions_description) do
+   for i, t in ipairs(alert_consts.alert_functions_description) do
       enginetable[#enginetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(enginetable, v))
 end
 
 function alertEngineLabel(v)
-   return _handleArray(alert_consts.alert_consts.alert_functions_description, tonumber(v))
+   return _handleArray(alert_consts.alert_functions_description, tonumber(v))
 end
 
 function alertEngineRaw(idx)
    idx = idx + 1
-   if idx <= #alert_consts.alert_consts.alert_functions_description then
-      return alert_consts.alert_consts.alert_functions_description[idx][3]
+   if idx <= #alert_consts.alert_functions_description then
+      return alert_consts.alert_functions_description[idx][3]
    end
    return nil
 end
