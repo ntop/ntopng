@@ -16,7 +16,6 @@ local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
-local ts_utils = require "ts_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -24,6 +23,7 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 require "rrd_utils"
+local ts_utils = require "ts_utils"
 
 local have_nedge = ntop.isnEdge()
 
