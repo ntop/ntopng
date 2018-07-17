@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+local ts_utils = require("ts_utils")
 
 local have_nedge = ntop.isnEdge()
 
@@ -154,8 +155,7 @@ if (_GET["page"] ~= "historical") then
    end
 
    if(_GET["pool"] ~= nil) then
-      local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
-      local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]})
       local pool_edit = ""
 
       -- TODO enable on nEdge when devices list will be implemented

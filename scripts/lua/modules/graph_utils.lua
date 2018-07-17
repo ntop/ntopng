@@ -284,7 +284,7 @@ function graphMenuGetTitle(schema, params)
    for _, entry in pairs(graph_menu_entries) do
       if entry.params then
 	 for k, v in pairs(entry.params) do
-	    if params[k] ~= v then
+	    if params[k] ~= tostring(v) then
 	       goto continue
 	    end
 	 end

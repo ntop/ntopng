@@ -356,6 +356,12 @@ end
 
 -----------------------------------------------------------------------
 
+function ts_utils.exists(schema_name, tags_filter)
+  return not table.empty(ts_utils.listSeries(schema_name, tags_filter, 0))
+end
+
+-----------------------------------------------------------------------
+
 function ts_utils.flush()
   local rv = true
 

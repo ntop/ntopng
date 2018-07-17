@@ -16,6 +16,7 @@ require "graph_utils"
 require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
+local ts_utils = require "ts_utils"
 
 local have_nedge = ntop.isnEdge()
 
@@ -123,9 +124,7 @@ if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAU
   print[[<br/><br/>]]
   
 elseif page == "historical" then
-  local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)
-
-  if(not ntop.exists(rrdbase.."/bytes.rrd")) then
+  if(not ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=pool_id})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
     print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
   else

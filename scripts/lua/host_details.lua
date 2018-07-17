@@ -20,6 +20,7 @@ require "historical_utils"
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
+local ts_utils = require "ts_utils"
 local info = ntop.getInfo()
 
 local have_nedge = ntop.isnEdge()
@@ -102,7 +103,7 @@ end
 
 if(host == nil) then
    -- NOTE: this features is not currently enabled as it may incur into thread concurrency issues
-   if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
+   if (ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip}) and always_show_hist == "true") then
       page = "historical"
       only_historical = true
       sendHTTPContentTypeHeader('text/html')
@@ -176,9 +177,6 @@ else
       host["label"] = getHostAltName(host["ip"])
    end
 
-   hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
-   rrdname = hostbase .. "/bytes.rrd"
-   -- print(rrdname)
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
@@ -328,7 +326,7 @@ if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifst
    end
 end
 
-if(ntop.exists(rrdname)) then
+if(ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -871,8 +869,7 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    fname = getRRDName(ifId, hostinfo2hostkey(host_info), k)
-	    if(not ntop.exists(fname)) then
+	    if(not ts_utils.exists("host:ndpi", {ifid=ifId, host=host_ip, protocol=k})) then
 	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=".. k ..".rrd\">".. label .."</A>")
 	    else
 	       print(label)

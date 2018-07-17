@@ -21,7 +21,7 @@ local as = interface.getASInfo(asn)
 
 local res = {}
 if as ~= nil then
-   res = as2record(as)
+   res = as2record(getInterfaceId(ifname), as)
 end
 
 print(json.encode(res, nil))

@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+local ts_utils = require("ts_utils")
 
 local network        = _GET["network"]
 local page           = _GET["page"]
@@ -35,9 +36,7 @@ if(network == nil) then
     return
 end
 
-rrdname = dirs.workingdir .. "/" .. ifId .. "/subnetstats/" .. getPathFromKey(network_name) .. "/bytes.rrd"
-
-if(not ntop.exists(rrdname)) then
+if(not ts_utils.exists("subnet:traffic", {ifid=ifId, subnet=network_name})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("network_details.no_available_stats_for_network",{network=network_name}) .. "</div>")
     return
 end

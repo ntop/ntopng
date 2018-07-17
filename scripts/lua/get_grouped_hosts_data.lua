@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -139,13 +140,12 @@ function print_single_group(value)
       if(manufacturer == nil) then manufacturer = "" end
       print(manufacturer..'</A>", ')
    elseif(group_col == "pool_id") then
-      local poolstats_rrd = host_pools_utils.getRRDBase(ifstats.id, value["id"])
       local pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
 
       print(pool_name..'</A> " , ')
       print('"column_chart": "')
 
-      if (ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ntop.exists(poolstats_rrd)) then
+      if (ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=getInterfaceId(ifname), pool=value["id"]})) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
          print('')
@@ -155,8 +155,8 @@ function print_single_group(value)
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
-      local asnstats_rrd = getRRDName(ifstats.id, 'asn:'..value["id"], 'bytes.rrd')
-      if ntop.exists(asnstats_rrd) then
+
+      if ts_utils.exists("asn:traffic", {ifid=getInterfaceId(ifname), asn=value["id"]}) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
          print('')

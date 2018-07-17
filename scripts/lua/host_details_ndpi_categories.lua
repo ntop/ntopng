@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 require "historical_utils"
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -37,10 +38,9 @@ print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_
 
 for k, v in pairsByKeys(host["ndpi_categories"], desc) do
    print("<tr><td>")
-   local fname = getRRDName(ifid, hostinfo2hostkey(host_info), k..".rrd")
 
-   if(ntop.exists(fname)) then
-      print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=".. k ..".rrd\">"..k.."</A>")
+   if(ts_utils.exists("host:ndpi_categories", {ifid=ifid, host=host_ip, category=k})) then
+      print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi_categories&category=".. k .."\">"..k.."</A>")
    else
       print(k)
    end

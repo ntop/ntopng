@@ -16,6 +16,7 @@ local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
+local ts_utils = require "ts_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -167,8 +168,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(msg)
 
-rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
-
 url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -221,7 +220,7 @@ if ifstats["has_macs"] then
    end
 end
 
-if(ntop.exists(rrdname) and not is_historical) then
+if(ts_utils.exists("iface:traffic", {ifid=ifid}) and not is_historical) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    else
@@ -939,9 +938,9 @@ elseif(page == "trafficprofiles") then
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
-     local rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
      local statschart_icon = ''
-     if ntop.exists(rrdname) then
+
+     if ts_utils.exists("profile:traffic", {ifid=ifid}) then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
@@ -1677,8 +1676,7 @@ print('</select>')
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
   print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-cog" aria-hidden="true"></i></A>')
 
-  local poolstats_rrd = host_pools_utils.getRRDBase(ifstats.id, selected_pool.id)
-  if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ntop.exists(poolstats_rrd) then
+  if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifid, pool=selected_pool.id}) then
     print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-area-chart'></i></a>")
   end
 end

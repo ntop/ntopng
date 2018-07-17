@@ -14,7 +14,7 @@ local rrd_dump = {}
 
 -- ########################################################
 
-function rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
+function rrd_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose)
   for k in pairs(ifstats["ndpi"]) do
     local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
@@ -25,7 +25,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
+function rrd_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
   for k, v in pairs(ifstats["ndpi_categories"]) do
     v = v["bytes"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
@@ -36,7 +36,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
+function rrd_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
   -- IN/OUT counters
   if(ifstats["localstats"]["bytes"]["local2remote"] > 0) then
     ts_utils.append("iface:local2remote", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when, verbose)
@@ -49,17 +49,10 @@ end
 
 -- ########################################################
 
-function rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats')
+function rrd_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
 
   for subnet,sstats in pairs(subnet_stats) do
-    local rrdpath = getPathFromKey(subnet)
-    rrdpath = os_utils.fixPath(basedir.. "/" .. rrdpath)
-    if(not(ntop.exists(rrdpath))) then
-       ntop.mkdir(rrdpath)
-    end
-
     ts_utils.append("subnet:traffic", {ifid=ifstats.id, subnet=subnet,
               bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
               bytes_inner=sstats["inner"]}, when)
@@ -72,7 +65,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
+function rrd_dump.iface_update_general_stats(when, ifstats, verbose)
   -- General stats
   ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when, verbose)
   ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when, verbose)
@@ -80,13 +73,13 @@ function rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
 end
 
-function rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
+function rrd_dump.iface_update_tcp_stats(when, ifstats, verbose)
   ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
   ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
   ts_utils.append("iface:tcp_lost", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
 end
 
-function rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
+function rrd_dump.iface_update_tcp_flags(when, ifstats, verbose)
   ts_utils.append("iface:tcp_syn", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.syn}, when, verbose)
   ts_utils.append("iface:tcp_synack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.synack}, when, verbose)
   ts_utils.append("iface:tcp_finack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.finack}, when, verbose)
@@ -95,9 +88,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
-
+function rrd_dump.profiles_update_stats(when, ifstats, verbose)
   for pname, ptraffic in pairs(ifstats.profiles) do
     ts_utils.append("profile:traffic", {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
   end
@@ -127,35 +118,32 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
     return
   end
 
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
-  if not ntop.exists(basedir) then ntop.mkdir(basedir) end
-
-  rrd_dump.iface_update_stats_rrds(when, basedir, _ifname, ifstats, verbose)
-  rrd_dump.iface_update_general_stats(when, ifstats, basedir, verbose)
+  rrd_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
+  rrd_dump.iface_update_general_stats(when, ifstats, verbose)
 
   if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-     rrd_dump.iface_update_ndpi_rrds(when, basedir, _ifname, ifstats, verbose)
+     rrd_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose)
   end
 
   if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
-     rrd_dump.iface_update_categories_rrds(when, basedir, _ifname, ifstats, verbose)
+     rrd_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
   end
 
-  rrd_dump.subnet_update_rrds(when, ifstats, basedir, verbose)
+  rrd_dump.subnet_update_rrds(when, ifstats, verbose)
 
   -- TCP stats
   if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-    rrd_dump.iface_update_tcp_stats(when, ifstats, basedir, verbose)
+    rrd_dump.iface_update_tcp_stats(when, ifstats, verbose)
   end
 
   -- TCP Flags
   if config.tcp_flags_rrd_creation == "1" then
-    rrd_dump.iface_update_tcp_flags(when, ifstats, basedir, verbose)
+    rrd_dump.iface_update_tcp_flags(when, ifstats, verbose)
   end
 
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
-    rrd_dump.profiles_update_stats(when, ifstats, basedir, verbose)
+    rrd_dump.profiles_update_stats(when, ifstats, verbose)
   end
 
   if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then

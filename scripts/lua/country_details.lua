@@ -14,6 +14,7 @@ local page           = _GET["page"]
 interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -24,9 +25,7 @@ if(country == nil) then
     return
 end
 
-rrdname = dirs.workingdir .. "/" .. ifId .. "/countrystats/" .. getPathFromKey(country) .. "/bytes.rrd"
-
-if(not ntop.exists(rrdname)) then
+if(not ts_utils.exists("country:traffic", {ifid=ifId, country=country})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("country_details.no_available_stats_for_country",{country=country}) .. "</div>")
     return
 end

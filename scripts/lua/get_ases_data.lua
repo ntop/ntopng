@@ -69,7 +69,7 @@ ases_stats = ases_stats["ASes"]
 local res_formatted = {}
 
 for _, as in ipairs(ases_stats) do
-   local record = as2record(as)
+   local record = as2record(getInterfaceId(ifname), as)
    res_formatted[#res_formatted + 1] = record
 end
 

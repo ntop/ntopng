@@ -21,7 +21,7 @@ local vlan = interface.getVLANInfo(vlan_id)
 
 local res = {}
 if vlan ~= nil then
-   res = vlan2record(vlan)
+   res = vlan2record(getInterfaceId(ifname), vlan)
 end
 
 print(json.encode(res, nil))

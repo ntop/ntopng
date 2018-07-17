@@ -2263,20 +2263,6 @@ function get_manufacturer_mac(mac_address)
   return ret or "n/a"
 end
 
--- rrd_exists
-function rrd_exists(host_ip, rrdname)
-if(host_ip == nil) then return false end
-   dirs = ntop.getDirs()
-   rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
-   if(ntop.exists(rrdpath)) then return true end
-
-   -- Let's now try SNMP counters
-   rrdpath = dirs.workingdir .. "/" .. ifId .. "/snmpstats/" .. getPathFromKey(host_ip) .. "/" .. rrdname
-
-   -- print(rrdpath)
-   return ntop.exists(rrdpath)
-end
-
 -- getservbyport
 function getservbyport(port_num, proto)
    if(proto == nil) then proto = "TCP" end
