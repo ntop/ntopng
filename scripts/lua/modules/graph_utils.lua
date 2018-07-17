@@ -25,45 +25,37 @@ end
 
 -- ########################################################
 
+function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
+   if(zoomLevel == nil) then zoomLevel = "1h" end
+   local d = getZoomDuration(zoomLevel)
+   local end_time
+   local start_time
+
+   if((selectedEpoch == nil) or (selectedEpoch == "")) then 
+      selectedEpoch = os.time() 
+      end_time = tonumber(selectedEpoch)   
+      start_time = end_time-d
+   else
+      end_time = tonumber(selectedEpoch) + d/2
+      start_time = tonumber(selectedEpoch) - d/2
+   end
+
+   return ts_utils.query(schema, tags, start_time, end_time, options)
+end
+
+-- ########################################################
+
 function getProtoVolume(ifName, start_time, end_time)
    ifId = getInterfaceId(ifName)
-   path = os_utils.fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
-   rrds = ntop.readdir(path)
-   
+   local series = ts_utils.listSeries("iface:ndpi", {ifid=ifId}, start_time)
+
    ret = { }
-   for rrdFile,v in pairs(rrds) do
-      if((string.ends(rrdFile, ".rrd")) and (not isTopRRD(rrdFile))) then
-	 rrdname = getRRDName(ifId, nil, rrdFile)
-	 if(ntop.notEmptyFile(rrdname)) then
-	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+   for _, tags in ipairs(series) do
+      -- NOTE: this could be optimized via a dedicated driver call
+      local data = ts_utils.query("iface:ndpi", tags, start_time, end_time)
 
-	    if(fstart ~= nil) then
-	       local num_points_found = #fdata
-
-	       accumulated = 0
-	       for i, v in ipairs(fdata) do
-		  for _, w in ipairs(v) do
-		     if(w ~= w) then
-			-- This is a NaN
-			v = 0
-		     else
-			--io.write(w.."\n")
-			v = tonumber(w)
-			if(v < 0) then
-			   v = 0
-			end
-		     end
-		  end
-
-		  accumulated = accumulated + v
-	       end
-
-	       if(accumulated > 0) then
-		  rrdFile = string.sub(rrdFile, 1, string.len(rrdFile)-4)
-		  ret[rrdFile] = accumulated
-	       end
-	    end
-	 end
+      if(data ~= nil) then
+	 ret[tags.protocol] = data.statistics.total
       end
    end
 
@@ -277,6 +269,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id)
    graph_menu_entries[#graph_menu_entries + 1] = {
       html = entry_str,
       label = label,
+      schema = params.ts_schema,
       params = entry_params, -- for graphMenuGetTitle
    }
 end
@@ -287,7 +280,7 @@ end
 
 function graphMenuGetTitle(schema, params)
    for _, entry in pairs(graph_menu_entries) do
-      if entry.params then
+      if entry.schema == schema and entry.params then
 	 for k, v in pairs(params) do
 	    if tostring(entry.params[k]) ~= tostring(v) then
 	       goto continue
