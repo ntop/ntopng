@@ -3251,6 +3251,32 @@ function tsTagsToQuery(tags)
 end
 
 -- ###########################################
+
+function splitUrl(url)
+   local params = {}
+   local parts = split(url, "?")
+
+   if #parts == 2 then
+      url = parts[1]
+      parts = split(parts[2], "&")
+
+      for _, param in pairs(parts) do
+         local p = split(param, "=")
+
+         if #p == 2 then
+            params[p[1]] = p[2]
+         end
+      end
+   end
+
+   return {
+      url = url,
+      params = params,
+   }
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

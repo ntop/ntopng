@@ -269,10 +269,15 @@ function populateGraphMenuEntry(label, base_url, params, tab_id)
 
    local entry_str = table.concat(parts, "")
 
+   local entry_params = table.clone(params)
+   for k, v in pairs(splitUrl(base_url).params) do
+      entry_params[k] = v
+   end
+
    graph_menu_entries[#graph_menu_entries + 1] = {
       html = entry_str,
       label = label,
-      params = params,
+      params = entry_params, -- for graphMenuGetTitle
    }
 end
 
@@ -283,8 +288,8 @@ end
 function graphMenuGetTitle(schema, params)
    for _, entry in pairs(graph_menu_entries) do
       if entry.params then
-	 for k, v in pairs(entry.params) do
-	    if params[k] ~= tostring(v) then
+	 for k, v in pairs(params) do
+	    if tostring(entry.params[k]) ~= tostring(v) then
 	       goto continue
 	    end
 	 end
