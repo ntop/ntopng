@@ -158,6 +158,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             type: "line",
             classed: "line-dashed",
             color: "#ff0000",
+            disabled: true, /* hide additional series by default */
           });
         }
       }
