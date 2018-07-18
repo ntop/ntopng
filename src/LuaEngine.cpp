@@ -7168,13 +7168,7 @@ static int ntop_lua_require(lua_State* L) {
   }
 
   if(script_path == "" ||
-     __ntop_lua_handlefile(L, (char *)script_path.c_str(),
-#ifdef WIN32
-			   true
-#else
-			   false
-#endif
-			   ))
+     __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false))
     return 0;
 
   return 1;
