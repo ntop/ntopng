@@ -102,10 +102,10 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
     spinner.remove();
   }
 
-  chart.updateStackedChart = function (tstart, tend) {
+  chart.updateStackedChart = function (tstart, tend, no_spinner) {
     if(pending_request)
       pending_request.abort();
-    else
+    else if(!no_spinner)
       spinner.appendTo($chart.parent());
 
     if(tstart) params.epoch_begin = tstart;

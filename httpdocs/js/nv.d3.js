@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-17 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-18 */
 (function(){
 
 // set up main nv object
@@ -13069,7 +13069,7 @@ nv.models.multiChart = function() {
         yAxis1 = nv.models.axis().scale(yScale1).orient('left').duration(duration),
         yAxis2 = nv.models.axis().scale(yScale2).orient('right').duration(duration),
 
-        legend = nv.models.legend().height(30),
+        legend = nv.models.legend().height(30).align(false),
         tooltip = nv.models.tooltip(),
         dispatch = d3.dispatch('zoom');
 

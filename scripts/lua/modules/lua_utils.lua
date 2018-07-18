@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/flow_dbms/?.lua;" .. package.path
 
 require "lua_trace"
 require "ntop_utils"
