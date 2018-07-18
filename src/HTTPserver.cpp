@@ -1054,10 +1054,12 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   if(httpd_v4 == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Unable to start management HTTP server (IPv4) on ports %s",
+				 "Unable to start HTTP server (IPv4) on ports %s",
 				 ports);
-    if (errno)
+    if(errno)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
+
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Either port in use or another ntopng instance is running (using the same port)");
     exit(-1);
   }
   
