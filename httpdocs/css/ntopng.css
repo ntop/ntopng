@@ -321,7 +321,7 @@ tr.quotas > td {
   cursor: not-allowed;
 }
 
-.line-dashed {
+.line-dashed .nv-line {
   stroke-dasharray: 5, 5;
 }
 
