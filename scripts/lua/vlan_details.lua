@@ -12,14 +12,11 @@ end
 
 require "lua_utils"
 require "graph_utils"
+local ts_utils = require"ts_utils"
 
 local info = ntop.getInfo(false)
 local vlan_id        = _GET["vlan"]
 local page           = "historical" -- only historical for now _GET["page"]
-local rrdfile        = "bytes.rrd"
-if(_GET["rrd_file"] ~= nil) then
-   rrdfile=_GET["rrd_file"]
-end
 
 interface.select(ifname)
 ifId = getInterfaceId(ifname)
@@ -33,9 +30,7 @@ if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
     return
 end
 
-local rrdname = getRRDName(ifId, "vlan:"..vlan_id, rrdfile)
-
-if(not ntop.exists(rrdname) and rrdfile ~= "all") then
+if(not ts_utils.exists("vlan:traffic", {ifid=ifId, vlan=vlan_id})) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
 
 else
@@ -72,8 +67,22 @@ else
       Selectively render information pages
    --]]
    if page == "historical" then
-      vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan'..vlan_id..'&page=historical'
-      drawRRD(ifId, 'vlan:'..vlan_id, rrdfile, _GET["zoom"], vlan_url, 1, _GET["epoch"])
+      local schema = _GET["ts_schema"] or "vlan:traffic"
+      local selected_epoch = _GET["epoch"] or ""
+      local vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan='..vlan_id..'&page=historical'
+
+      local tags = {
+         ifid = ifId,
+         vlan = vlan_id,
+         protocol = _GET["protocol"],
+      }
+
+      drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
+         top_protocols = "top:vlan:ndpi",
+         timeseries = {
+            {schema="vlan:traffic",             	  label=i18n("traffic")},
+         },
+      })
    end
 
 end

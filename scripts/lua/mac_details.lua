@@ -15,6 +15,7 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 require "discover_utils"
+local ts_utils = require("ts_utils")
 
 local have_nedge = ntop.isnEdge()
 
@@ -65,8 +66,6 @@ local vlanId      = host_info["vlan"]
 local label       = getHostAltName(mac)
 
 local devicekey = hostinfo2hostkey(host_info)
-local devicebase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(devicekey)
-local rrdfile = "bytes.rrd"
 
 if(vlanId == nil) then vlanId = 0 end
 
@@ -116,7 +115,7 @@ if((mac_info ~= nil) and (not have_nedge) and
    end
 end
 
-if(ntop.exists(os_utils.fixPath(devicebase.."/"..rrdfile))) then
+if(ts_utils.exists("mac:traffic", {ifid=ifId, mac=devicekey})) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -338,12 +337,22 @@ elseif(page == "packets") then
    </script>]]
 
 elseif(page == "historical") then
+   local schema = _GET["ts_schema"] or "mac:traffic"
+   local selected_epoch = _GET["epoch"] or ""
+   url = url..'&page=historical'
 
-   if not isEmptyString(_GET["rrd_file"]) then
-      rrdfile = _GET["rrd_file"]
-   end
+   local tags = {
+      ifid = ifId,
+      mac = mac,
+      category = _GET["category"],
+   }
 
-   drawRRD(ifId, devicekey, rrdfile, _GET["zoom"], url..'&page=historical', 1, _GET["epoch"])
+   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      top_categories = "top:mac:ndpi_categories",
+      timeseries = {
+         {schema="mac:traffic",                 label=i18n("traffic")},
+      }
+   })
 
 elseif(page == "config") then
    

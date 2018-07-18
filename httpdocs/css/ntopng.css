@@ -320,3 +320,20 @@ tr.quotas > td {
   background-color: transparent;
   cursor: not-allowed;
 }
+
+.line-dashed {
+  stroke-dasharray: 5, 5;
+}
+
+.chart-loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 50px;
+}
+
+.timeseries-dropdown {
+  padding-left: 5px;
+  padding-right: 10px;
+  min-width: 7em;
+}

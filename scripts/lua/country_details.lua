@@ -14,6 +14,7 @@ local page           = _GET["page"]
 interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -24,9 +25,7 @@ if(country == nil) then
     return
 end
 
-rrdname = dirs.workingdir .. "/" .. ifId .. "/countrystats/" .. getPathFromKey(country) .. "/bytes.rrd"
-
-if(not ntop.exists(rrdname)) then
+if(not ts_utils.exists("country:traffic", {ifid=ifId, country=country})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("country_details.no_available_stats_for_country",{country=country}) .. "</div>")
     return
 end
@@ -62,14 +61,20 @@ print [[
 Selectively render information pages
 --]]
 if page == "historical" then
-    if(_GET["rrd_file"] == nil) then
-        rrdfile = "bytes.rrd"
-    else
-        rrdfile=_GET["rrd_file"]
-    end
+    local schema = _GET["ts_schema"] or "country:traffic"
+    local selected_epoch = _GET["epoch"] or ""
+    local url = ntop.getHttpPrefix()..'/lua/country_details.lua?ifid='..ifId..'&country='..country..'&page=historical'
 
-    host_url = ntop.getHttpPrefix()..'/lua/country_details.lua?ifid='..ifId..'&country='..country..'&page=historical'
-    drawRRD(ifId, 'country:'..country, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
+    local tags = {
+      ifid = ifId,
+      country = country,
+    }
+
+    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      timeseries = {
+        {schema="country:traffic",             label=i18n("traffic")},
+      }
+    })
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

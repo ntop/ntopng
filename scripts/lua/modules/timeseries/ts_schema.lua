@@ -3,6 +3,7 @@
 --
 
 local ts_schema = {}
+local ts_types = require("ts_types")
 
 -- NOTE: to get the actual rentention period, multiply retention_dp * aggregation_dp * step
 ts_schema.supported_steps = {
@@ -42,6 +43,7 @@ ts_schema.supported_steps = {
 
 function ts_schema:new(name, options)
   options = options or {}
+  options.metrics_type = options.metrics_type or ts_types.counter
 
   -- required options
   if not options.step then
@@ -74,10 +76,9 @@ function ts_schema:addTag(name)
   self.tags[name] = 1
 end
 
--- metric_type: a type in ts_utils.metrics
-function ts_schema:addMetric(name, metric_type)
+function ts_schema:addMetric(name)
   self._metrics[#self._metrics + 1] = name
-  self.metrics[name] = {["type"]=metric_type}
+  self.metrics[name] = 1
 end
 
 function ts_schema:verifyTags(tags)

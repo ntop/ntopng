@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+local ts_utils = require("ts_utils")
 
 local network        = _GET["network"]
 local page           = _GET["page"]
@@ -35,9 +36,7 @@ if(network == nil) then
     return
 end
 
-rrdname = dirs.workingdir .. "/" .. ifId .. "/subnetstats/" .. getPathFromKey(network_name) .. "/bytes.rrd"
-
-if(not ntop.exists(rrdname)) then
+if(not ts_utils.exists("subnet:traffic", {ifid=ifId, subnet=network_name})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("network_details.no_available_stats_for_network",{network=network_name}) .. "</div>")
     return
 end
@@ -100,15 +99,21 @@ print [[
 Selectively render information pages
 --]]
 if page == "historical" then
-    if(_GET["rrd_file"] == nil) then
-        rrdfile = "bytes.rrd"
-    else
-        rrdfile=_GET["rrd_file"]
-    end
+    local schema = _GET["ts_schema"] or "subnet:traffic"
+    local selected_epoch = _GET["epoch"] or ""
+    local url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
 
-    host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
-    drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
+    local tags = {
+      ifid = ifId,
+      subnet = network_name,
+    }
 
+    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      timeseries = {
+         {schema="subnet:traffic",              label=i18n("traffic")},
+         {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
+      }
+    })
 elseif (page == "config") then
     if(not isAdministrator()) then
       return

@@ -5,7 +5,7 @@ require "rrd_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local os_utils = require "os_utils"
-local ts_utils = require "ts_utils"
+local ts_utils = require "ts_utils_core"
 require "ts_5min"
 
 local dirs = ntop.getDirs()
@@ -13,7 +13,7 @@ local rrd_dump = {}
 
 -- ########################################################
 
-function rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
+function rrd_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
             bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when, verbose)
 
@@ -34,7 +34,7 @@ function rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats
   end
 end
 
-function rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
+function rrd_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocols
   for k in pairs(host["ndpi"] or {}) do
     ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
@@ -42,7 +42,7 @@ function rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats,
   end
 end
 
-function rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
+function rrd_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(host["ndpi_categories"] or {}) do
     ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
@@ -52,7 +52,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
+function rrd_dump.l2_device_update_categories_rrds(when, devicename, device, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(device["ndpi_categories"] or {}) do
     ts_utils.append("mac:ndpi_categories", {ifid=ifstats.id, mac=devicename, category=k,
@@ -60,7 +60,7 @@ function rrd_dump.l2_device_update_categories_rrds(when, devicename, device, dev
   end
 end
 
-function rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
+function rrd_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
   ts_utils.append("mac:traffic", {ifid=ifstats.id, mac=devicename,
               bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]}, when, verbose)
 end
@@ -94,7 +94,6 @@ end
 -- ########################################################
 
 function rrd_dump.country_update_rrds(when, ifstats, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/countrystats')
   local countries_info = interface.getCountriesInfo({detailsLevel = "higher", sortColumn = "column_country"})
 
   for _, country_stats in ipairs(countries_info["Countries"] or {}) do
@@ -109,7 +108,6 @@ end
 -- ########################################################
 
 function rrd_dump.vlan_update_rrds(when, ifstats, verbose)
-  local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
   local vlan_info = interface.getVLANsInfo()
 
   if(vlan_info ~= nil) and (vlan_info["VLANs"] ~= nil) then
@@ -223,7 +221,7 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
 
   -- Save hosts stats (if enabled from the preferences)
   if is_rrd_creation_enabled or are_alerts_enabled then
-    local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, function (hostname, host, hostbase)
+    local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, function (hostname, host)
       if are_alerts_enabled then
         -- Check alerts first
         check_host_alerts(ifstats.id, working_status, hostname)
@@ -234,15 +232,15 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
         if config.host_rrd_creation ~= "0" then
           -- Traffic stats
           if(config.host_rrd_creation == "1") then
-            rrd_dump.host_update_stats_rrds(when, hostname, hostbase, host, ifstats, verbose)
+            rrd_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
           end
 
           if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
-            rrd_dump.host_update_ndpi_rrds(when, hostname, hostbase, host, ifstats, verbose)
+            rrd_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
           end
 
           if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then
-            rrd_dump.host_update_categories_rrds(when, hostname, hostbase, host, ifstats, verbose)
+            rrd_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
           end
         end
       end
@@ -261,11 +259,11 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
 
   if is_rrd_creation_enabled then
     if config.l2_device_rrd_creation ~= "0" then
-      local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device, devicebase)
-        rrd_dump.l2_device_update_stats_rrds(when, devicename, device, devicebase, ifstats, verbose)
+      local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device)
+        rrd_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
 
         if config.l2_device_ndpi_timeseries_creation == "per_category" then
-          rrd_dump.l2_device_update_categories_rrds(when, devicename, device, devicebase, ifstats, verbose)
+          rrd_dump.l2_device_update_categories_rrds(when, devicename, device, ifstats, verbose)
         end
       end)
 

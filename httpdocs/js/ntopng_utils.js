@@ -96,6 +96,10 @@ function fbits(bits) {
 //    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
+function fbits_from_bytes(bytes) {
+  return(fbits(bytes * 8));
+}
+
 function fpackets(pps) {
     var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
     if(pps == 0) return '0';
@@ -121,6 +125,11 @@ function fflows(fps) {
 function fint(value) {
     var x = Math.round(value);
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function fmillis(value) {
+    var x = Math.round(value);
+    return x.toString() + " ms";
 }
 
 function fdate(when) {
@@ -174,7 +183,7 @@ function bytesToSize(bytes) {
     var terabyte = gigabyte * 1024;
 
     if ((bytes >= 0) && (bytes < kilobyte))
-	return bytes + " Bytes";
+	return bytes.toFixed(precision) + " Bytes";
     else if ((bytes >= kilobyte) && (bytes < megabyte))
 	return (bytes / kilobyte).toFixed(precision) + ' KB';
     else if((bytes >= megabyte) && (bytes < gigabyte))
@@ -184,7 +193,7 @@ function bytesToSize(bytes) {
     else if(bytes >= terabyte)
 	return (bytes / terabyte).toFixed(precision) + ' TB';
     else
-	return bytes + ' Bytes';
+	return bytes.toFixed(precision) + ' Bytes';
 }
 
 String.prototype.capitalizeSingleWord = function() {
@@ -254,7 +263,11 @@ function addCommas(nStr) {
 }
 
 function formatPackets(n) {
-  return(addCommas(n)+" Pkts");
+  return(addCommas(n.toFixed(2))+" Pkts");
+}
+
+function formatFlows(n) {
+  return(addCommas(n.toFixed(0))+" Flows");
 }
 
 function bytesToVolume(bytes) {
@@ -496,6 +509,12 @@ String.prototype.sformat = function() {
     ;
   });
 };
+
+if (typeof(String.prototype.contains) === "undefined") {
+  String.prototype.contains = function(s) {
+    return this.indexOf(s) !== -1;
+  }
+}
 
 /* Used while searching hosts a and macs with typeahead */
 function makeFindHostBeforeSubmitCallback(http_prefix) {

@@ -12,6 +12,7 @@ end
 
 require "lua_utils"
 require "graph_utils"
+local ts_utils = require("ts_utils")
 
 local asn         = tonumber(_GET["asn"])
 local page        = _GET["page"]
@@ -73,20 +74,30 @@ print [[
 ]]
 
 if isEmptyString(page) or page == "historical" then   
-   local rrdname = getRRDName(ifId, 'asn:'..asn, 'bytes.rrd')
+   local default_schema = "asn:traffic"
 
-   if(not ntop.exists(rrdname)) then
+   if(not ts_utils.exists(default_schema, {ifid=ifId, asn=asn})) then
       print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("as_details.no_available_data_for_as",{asn = label}))
       print(" "..i18n("as_details.as_timeseries_enable_message",{url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
 
    else
-      local rrdfile = "bytes.rrd"
-      if not isEmptyString(_GET["rrd_file"]) then
-	 rrdfile=_GET["rrd_file"]
-      end
-
+      local schema = _GET["ts_schema"] or default_schema
+      local selected_epoch = _GET["epoch"] or ""
       local asn_url = ntop.getHttpPrefix()..'/lua/as_details.lua?ifid='..ifId..'&asn='..asn..'&page=historical'
-      drawRRD(ifId, 'asn:'..asn, rrdfile, _GET["zoom"], asn_url, 1, _GET["epoch"])
+
+      local tags = {
+         ifid = ifId,
+         asn = asn,
+         protocol = _GET["protocol"],
+       }
+
+       drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
+         top_protocols = "top:asn:ndpi",
+         timeseries = {
+            {schema="asn:traffic",                 label=i18n("traffic")},
+            {schema="asn:rtt",                     label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+         },
+       })
    end
 
    print[[

@@ -16,6 +16,7 @@ require "graph_utils"
 require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
+local ts_utils = require "ts_utils"
 
 local have_nedge = ntop.isnEdge()
 
@@ -123,21 +124,27 @@ if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAU
   print[[<br/><br/>]]
   
 elseif page == "historical" then
-  local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)
-
-  if(not ntop.exists(rrdbase.."/bytes.rrd")) then
+  if(not ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=pool_id})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
     print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
   else
-    local rrdfile
-    if(not isEmptyString(_GET["rrd_file"])) then
-      rrdfile = _GET["rrd_file"]
-    else
-      rrdfile = "bytes.rrd"
-    end
+    local schema = _GET["ts_schema"] or "host_pool:traffic"
+    local selected_epoch = _GET["epoch"] or ""
+    local url = getPageUrl(base_url, page_params)
 
-    local host_url = getPageUrl(base_url, page_params)
-    drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"])
+    local tags = {
+      ifid = ifId,
+      pool = pool_id,
+      protocol = _GET["protocol"],
+    }
+
+    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      top_protocols = "top:host_pool:ndpi",
+      timeseries = {
+        {schema="host_pool:traffic",           label=i18n("traffic")},
+        {schema="host_pool:blocked_flows",     label=i18n("graphs.blocked_flows")},
+      },
+    })
   end
 end
 

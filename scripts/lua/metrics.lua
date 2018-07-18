@@ -131,7 +131,7 @@ callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
 				      interface.select(ifname)
 				      
 				      in_time = callback_utils.foreachLocalHost(ifname, os.time() + 60,
-										function (hostname, host, hostbase)
+										function (hostname, host)
 										   printHostSample(ifname, host, now)
 										end, time_threshold)
 				      

@@ -8,6 +8,7 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 local template = require "template_utils"
+local ts_utils = require "ts_utils"
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -305,8 +306,7 @@ if is_bridge_iface and selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
 end
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-    local poolstats_rrd = host_pools_utils.getRRDBase(ifstats.id, selected_pool.id)
-    if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ntop.exists(poolstats_rrd) then
+    if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=selected_pool.id}) then
       print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-area-chart'></i></a>")
     end
 end

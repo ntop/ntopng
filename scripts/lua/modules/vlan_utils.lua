@@ -1,12 +1,13 @@
 require "lua_utils"
 local os_utils = require "os_utils"
+local ts_utils = require "ts_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
 
 local now = os.time()
 
-function vlan2record(vlan)
+function vlan2record(ifId, vlan)
    local record = {}
    record["key"] = tostring(vlan["vlan_id"])
 
@@ -29,9 +30,9 @@ function vlan2record(vlan)
    record["column_traffic"] = bytesToSize(vlan["bytes.sent"] + vlan["bytes.rcvd"])
 
    record["column_chart"] = ""
-   local vlanstats_rrd = os_utils.fixPath(dirs.workingdir .. "/" ..getInterfaceId(ifname)..'/vlanstats/'..vlan["vlan_id"]..'/bytes.rrd')
-   if ntop.exists(vlanstats_rrd) then
-      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan["vlan_id"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+
+   if ts_utils.exists("vlan:traffic", {ifid=ifId, vlan=vlan["vlan_id"]}) then
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan='..vlan["vlan_id"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
    end
 
    return record

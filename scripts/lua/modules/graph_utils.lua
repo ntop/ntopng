@@ -10,32 +10,10 @@ local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
 
-local top_rrds = {
-   {rrd="num_flows.rrd",               label=i18n("graphs.active_flows")},
-   {rrd="num_hosts.rrd",               label=i18n("graphs.active_hosts")},
-   {rrd="num_devices.rrd",             label=i18n("graphs.active_devices")},
-   {rrd="num_http_hosts.rrd",          label=i18n("graphs.active_http_servers"), nedge_exclude=1},
-   {rrd="bytes.rrd",                   label=i18n("traffic")},
-   {rrd="broadcast_bytes.rrd",         label=i18n("broadcast_traffic")},
-   {rrd="packets.rrd",                 label=i18n("packets")},
-   {rrd="drops.rrd",                   label=i18n("graphs.packet_drops")},
-   {rrd="blocked_flows.rrd",           label=i18n("graphs.blocked_flows")},
-   {rrd="num_zmq_rcvd_flows.rrd",      label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-   {rrd="num_ms_rtt.rrd",              label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
-   {separator=1, nedge_exclude=1},
-   {rrd="tcp_lost.rrd",                label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
-   {rrd="tcp_ooo.rrd",                 label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
-   {rrd="tcp_retransmissions.rrd",     label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-   {rrd="tcp_retr_ooo_lost.rrd",       label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
-   {separator=1},
-   {rrd="tcp_syn.rrd",                 label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
-   {rrd="tcp_synack.rrd",              label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
-   {rrd="tcp_finack.rrd",              label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
-   {rrd="tcp_rst.rrd",                 label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
-}
+local ts_utils = require("ts_utils")
 
 if ntop.isnEdge() then
-   top_rrds[#top_rrds + 1] = {rrd="num_nfq_pct.rrd",    label=i18n("graphs.num_nfq_pct")}
+   iface_series[#iface_series + 1] = {schema="iface:nfq_pct",    label=i18n("graphs.num_nfq_pct")}
 end
 
 -- ########################################################
@@ -47,109 +25,74 @@ end
 
 -- ########################################################
 
-function getProtoVolume(ifName, start_time, end_time)
-   ifId = getInterfaceId(ifName)
-   path = os_utils.fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
-   rrds = ntop.readdir(path)
-   
-   ret = { }
-   for rrdFile,v in pairs(rrds) do
-      if((string.ends(rrdFile, ".rrd")) and (not isTopRRD(rrdFile))) then
-	 rrdname = getRRDName(ifId, nil, rrdFile)
-	 if(ntop.notEmptyFile(rrdname)) then
-	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+local graph_colors = {
+   '#1f77b4',
+   '#ff7f0e',
+   '#2ca02c',
+   '#d62728',
+   '#9467bd',
+   '#8c564b',
+   '#e377c2',
+   '#7f7f7f',
+   '#bcbd22',
+   '#17becf',
+   -- https://github.com/mbostock/d3/wiki/Ordinal-Scales
+   '#ff7f0e',
+   '#ffbb78',
+   '#1f77b4',
+   '#aec7e8',
+   '#2ca02c',
+   '#98df8a',
+   '#d62728',
+   '#ff9896',
+   '#9467bd',
+   '#c5b0d5',
+   '#8c564b',
+   '#c49c94',
+   '#e377c2',
+   '#f7b6d2',
+   '#7f7f7f',
+   '#c7c7c7',
+   '#bcbd22',
+   '#dbdb8d',
+   '#17becf',
+   '#9edae5'
+}
 
-	    if(fstart ~= nil) then
-	       local num_points_found = #fdata
+-- ########################################################
 
-	       accumulated = 0
-	       for i, v in ipairs(fdata) do
-		  for _, w in ipairs(v) do
-		     if(w ~= w) then
-			-- This is a NaN
-			v = 0
-		     else
-			--io.write(w.."\n")
-			v = tonumber(w)
-			if(v < 0) then
-			   v = 0
-			end
-		     end
-		  end
+function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
+   if(zoomLevel == nil) then zoomLevel = "1h" end
+   local d = getZoomDuration(zoomLevel)
+   local end_time
+   local start_time
 
-		  accumulated = accumulated + v
-	       end
-
-	       if(accumulated > 0) then
-		  rrdFile = string.sub(rrdFile, 1, string.len(rrdFile)-4)
-		  ret[rrdFile] = accumulated
-	       end
-	    end
-	 end
-      end
+   if((selectedEpoch == nil) or (selectedEpoch == "")) then 
+      selectedEpoch = os.time() 
+      end_time = tonumber(selectedEpoch)   
+      start_time = end_time-d
+   else
+      end_time = tonumber(selectedEpoch) + d/2
+      start_time = tonumber(selectedEpoch) - d/2
    end
 
-   return(ret)
+   return ts_utils.query(schema, tags, start_time, end_time, options)
 end
 
 -- ########################################################
 
-function navigatedir(url, label, base, path, print_html, ifid, host, start_time, end_time, filter)
-   local shown = false
-   local to_skip = false
-   local ret = { }
-   local do_debug = false
-   local printed = false
+function getProtoVolume(ifName, start_time, end_time)
+   ifId = getInterfaceId(ifName)
+   local series = ts_utils.listSeries("iface:ndpi", {ifid=ifId}, start_time)
 
-   -- io.write(debug.traceback().."\n")
+   ret = { }
+   for _, tags in ipairs(series) do
+      -- NOTE: this could be optimized via a dedicated driver call
+      local data = ts_utils.query("iface:ndpi", tags, start_time, end_time)
 
-   local rrds = ntop.readdir(path)
-
-   for k,v in pairsByKeys(rrds, asc) do
-      if(v ~= nil) then
-	 local p = os_utils.fixPath(path .. "/" .. v)
-
-	 if not ntop.isdir(p) then
-	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
-
-	    if last_update ~= nil and last_update >= start_time then
-
-	       -- only show if there has been an update within the specified time frame
-
-	       if not isTopRRD(v) and (not filter or filter[k:gsub('.rrd','')]) then
-
-		  if(label == "*") then
-		     to_skip = true
-		  else
-		     if(not(shown) and not(to_skip)) then
-			if(print_html) then
-			   if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
-			   print('<li class="dropdown-submenu"><a tabindex="-1" href="#">'..label..'</a>\n<ul class="dropdown-menu">\n')
-			end
-			shown = true
-		     end
-		  end
-
-		  what = string.sub(path.."/"..v, string.len(base)+2)
-
-		  label = string.sub(v,  1, string.len(v)-4)
-		  label = l4Label(string.gsub(label, "_", " "))
-
-		  ret[label] = what
-		  if(do_debug) then print(what.."<br>\n") end
-
-		  if(print_html) then
-		     if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
-		     print("<li> <A HREF=\""..url..what.."\">"..label.."</A>  </li>\n")
-		  end
-	       end
-	    end
-	 end
+      if(data ~= nil) then
+	 ret[tags.protocol] = data.statistics.total
       end
-   end
-
-   if(shown) then
-      if(print_html) then print('</ul></li>\n') end
    end
 
    return(ret)
@@ -236,20 +179,6 @@ end
 
 -- ########################################################
 
-function zoomLevel2sec(zoomLevel)
-   if(zoomLevel == nil) then zoomLevel = "1h" end
-
-   for k,v in ipairs(zoom_vals) do
-      if(zoom_vals[k][1] == zoomLevel) then
-	 return(zoom_vals[k][3])
-      end
-   end
-
-   return(3600) -- NOT REACHED
-end
-
--- ########################################################
-
 function getZoomTicksInterval(cur_zoom)
    for k,v in pairs(zoom_vals) do
       if(zoom_vals[k][1] == cur_zoom) then
@@ -275,26 +204,70 @@ end
 
 -- ########################################################
 
-function isTopRRD(filename)
-   for _,top in ipairs(top_rrds) do
-      if top.rrd == filename then
-         if not have_nedge or not top.nedge_exclude then
-            return true
-         else
-            return false
-         end
-      end
+local graph_menu_entries = {}
+
+function populateGraphMenuEntry(label, base_url, params, tab_id)
+   local url = getPageUrl(base_url, params)
+   local parts = {}
+
+   parts[#parts + 1] = [[<li><a href="]] .. url .. [[" ]]
+
+   if not isEmptyString(tab_id) then
+      parts[#parts + 1] = [[id="]] .. tab_id .. [[" ]]
    end
 
-   return false
+   parts[#parts + 1] = [[> ]] .. label .. [[</a></li>]]
+
+   local entry_str = table.concat(parts, "")
+
+   local entry_params = table.clone(params)
+   for k, v in pairs(splitUrl(base_url).params) do
+      entry_params[k] = v
+   end
+
+   graph_menu_entries[#graph_menu_entries + 1] = {
+      html = entry_str,
+      label = label,
+      schema = params.ts_schema,
+      params = entry_params, -- for graphMenuGetTitle
+   }
+end
+
+function graphMenuDivider()
+   graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="divider"></li>'}
+end
+
+function graphMenuGetTitle(schema, params)
+   for _, entry in pairs(graph_menu_entries) do
+      if entry.schema == schema and entry.params then
+	 for k, v in pairs(params) do
+	    if tostring(entry.params[k]) ~= tostring(v) then
+	       goto continue
+	    end
+	 end
+
+	 return entry.label
+      end
+
+      ::continue::
+   end
+
+   return i18n("prefs.timeseries")
+end
+
+function printGraphMenuEntries()
+   for _, entry in ipairs(graph_menu_entries) do
+      print(entry.html)
+   end
 end
 
 -- ########################################################
 
-function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+function printSeries(options, tags, start_time, base_url, params)
+   local series = options.timeseries
    local needs_separator = false
 
-   for _,top in ipairs(top_rrds) do
+   for _,top in ipairs(series) do
       if have_nedge and top.nedge_exclude then
          goto continue
       end
@@ -302,32 +275,94 @@ function printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
       if top.separator then
          needs_separator = true
      else
-         local k = top.rrd
+         local k = top.schema
          local v = top.label
 
-         -- only show if there has been an update within the specified time frame
-         local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
-
-         if last_update ~= nil and last_update >= start_time then
-            if needs_separator then
+	 -- only show if there has been an update within the specified time frame
+	 local res = ts_utils.listSeries(k, tags, start_time)
+   
+	 if not table.empty(res) then
+	    if needs_separator then
                -- Only add the separator if there are actually some entries in the group
-               print('<li class="divider"></li>\n')
+               graphMenuDivider()
                needs_separator = false
             end
 
-            print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. (zoomLevel or '') .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
-         end
+	    populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
+	 end
       end
 
       ::continue::
+   end
+
+   -- nDPI applications
+   if options.top_protocols then
+      local schema = split(options.top_protocols, "top:")[2]
+      local proto_tags = table.clone(tags)
+      proto_tags.protocol = nil
+
+      local series = ts_utils.listSeries(schema, proto_tags, start_time)
+
+      if not table.empty(series) then
+         graphMenuDivider()
+
+         local by_protocol = {}
+
+         for _, serie in pairs(series) do
+            by_protocol[serie.protocol] = 1
+         end
+
+         for protocol in pairsByKeys(by_protocol, asc) do
+            local proto_id = protocol
+            populateGraphMenuEntry(protocol, base_url, table.merge(params, {ts_schema=schema, protocol=proto_id}))
+         end
+      end
+   end
+
+   -- nDPI application categories
+   if options.top_categories then
+      local schema = split(options.top_categories, "top:")[2]
+      local cat_tags = table.clone(tags)
+      cat_tags.category = nil
+      local series = ts_utils.listSeries(schema, cat_tags, start_time)
+
+      if not table.empty(series) then
+         graphMenuDivider()
+
+         local by_category = {}
+
+         for _, serie in pairs(series) do
+            by_category[serie.category] = 1
+         end
+
+         for category in pairsByKeys(by_category, asc) do
+            populateGraphMenuEntry(category, base_url, table.merge(params, {ts_schema=schema, category=category}))
+         end
+      end
    end
 end
 
 -- ########################################################
 
-function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
-		 selectedEpoch, selected_epoch_sanitized)
+function getMinZoomResolution(schema)
+   local schema_obj = ts_utils.getSchema(schema)
+
+   if schema_obj then
+      if schema_obj.options.step >= 300 then
+	 return '10m'
+      elseif schema_obj.options.step >= 60 then
+         return '5m'
+      end
+   end
+
+   return '1m'
+end
+
+-- ########################################################
+
+function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
+   options = options or {}
 
    if(zoomLevel == nil) then zoomLevel = "1h" end
 
@@ -351,7 +386,11 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	 if(typeof talkers_loaded == 'undefined'
              && typeof protocols_loaded == 'undefined'
              && typeof flows_loaded == 'undefined'){
+]] if not ntop.isPro() then print[[
 	   window.location.reload(); /* do not reload, it's annoying */
+]]
+end
+print[[
 	 }
        }, 60*1000);
        </script>]]
@@ -359,14 +398,9 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized)
+      drawProGraph(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
       return
    end
-
-   dirs = ntop.getDirs()
-   rrdname = getRRDName(ifid, host, rrdFile)
-   names =  {}
-   series = {}
 
    nextZoomLevel = zoomLevel;
    epoch = tonumber(selectedEpoch);
@@ -386,15 +420,11 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       end
    end
 
-   prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
+   
 
-   -- io.write(prefixLabel.."\n")
-   if(prefixLabel == "Bytes") then
-      prefixLabel = "Traffic"
-   end
-
-   if(ntop.notEmptyFile(rrdname)) then
-
+   local data = ts_utils.query(schema, tags, start_time, end_time)
+   
+   if(data) then
       print [[
 
 <style>
@@ -425,14 +455,9 @@ font-family: Arial, Helvetica, sans-serif;
     <li class="active"> <a href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
 ]]
 
-if ntop.getPrefs().is_dump_flows_to_mysql_enabled
-   -- hide historical tabs for networks and pools
-   and not string.starts(host, 'net:')
-   and not string.starts(host, 'pool:')
-   and not string.starts(host, 'vlan:')
-   and not string.starts(host, 'asn:')
-   and not string.starts(host, 'country:')
-then
+local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
+
+if show_historical_tabs then
    print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
 end
 
@@ -448,57 +473,41 @@ print[[
 <tr><td valign="top">
 ]]
 
+local page_params = {
+   ts_schema = schema,
+   zoom = zoomLevel or '',
+   epoch = selectedEpoch or '',
+}
 
-if(show_timeseries == 1) then
+if(options.timeseries) then
    print [[
 <div class="btn-group">
   <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 
-   printTopRRDs(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+   printSeries(options, tags, start_time, baseurl, page_params)
 
-   local dirs = ntop.getDirs()
-   local p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
-
-   if(host ~= nil) then
-      p = p .. getPathFromKey(host)
-   end
-
-   local d = os_utils.fixPath(p)
-
-   -- nDPI protocols
-   navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPIProtocols())
-
-   -- nDPI categories
-   navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPICategories())
+   printGraphMenuEntries()
 
    print [[
   </ul>
 </div><!-- /btn-group -->
 ]]
-end -- show_timeseries == 1
+end -- options.timeseries
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
+
+local min_zoom = getMinZoomResolution(schema)
 
 for k,v in ipairs(zoom_vals) do
    -- display 1 minute button only for networks and interface stats
    -- but exclude applications. Application statistics are gathered
    -- every 5 minutes
-   local net_or_profile = false
-
-   if host and (string.starts(host, 'net:')
-      or string.starts(host, 'profile:')
-      or string.starts(host, 'pool:')
-      or string.starts(host, 'vlan:')
-      or string.starts(host, 'country:')
-      or string.starts(host, 'asn:')) then
-       net_or_profile = true
-   end
-   if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not isTopRRD(rrdFile))) then
-       goto continue
+   if zoom_vals[k][1] == '1m' and min_zoom ~= '1m' then
+      goto continue
+   elseif zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
+      goto continue
    end
    print('<label class="btn btn-link ')
 
@@ -506,7 +515,20 @@ for k,v in ipairs(zoom_vals) do
       print("active")
    end
    print('">')
-   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
+
+   local params = table.merge(page_params, {zoom=zoom_vals[k][1]})
+
+   -- Additional parameters
+   if tags.protocol ~= nil then
+      params["protocol"] = tags.protocol
+   end
+   if tags.category ~= nil then
+      params["category"] = tags.category
+   end
+
+   local url = getPageUrl(baseurl, params)
+   
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..url..'">'.. zoom_vals[k][1] ..'</input></label>\n')
    ::continue::
 end
 
@@ -538,16 +560,18 @@ print [[
 <div style="margin-left: 10px; display: table">
 <div id="chart_container" style="display: table-row">
 
-
 ]]
 
-if(string.contains(rrdFile, "num_")) then
+local format_as_bps = true
+local formatter_fctn
+local label = data.series[1].label
+
+if string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") then
+   format_as_bps = false
    formatter_fctn = "fint"
 else
-   formatter_fctn = "fpackets"
+   formatter_fctn = "fbits"
 end
-
-rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
 print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
@@ -555,21 +579,30 @@ print [[
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
-   print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
-   print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
-   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(rrd.average, 2)) .. '</td></tr>\n')
-   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(rrd.percentile, 2)) .. '</td></tr>\n')
-   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(rrd.totalval)) .. '</td></tr>\n')
+local stats = data.statistics
+local minval_time = stats.min_val_idx and (data.start + data.step * stats.min_val_idx) or ""
+local maxval_time = stats.max_val_idx and (data.start + data.step * stats.max_val_idx) or ""
+local lastval_time = data.start + data.step * (data.count-1)
+local lastval = 0
+
+for _, serie in pairs(data.series) do
+   lastval = lastval + serie.data[data.count]
+end
+
+if(not format_as_bps) then
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. formatValue(stats.min_val or "") .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. formatValue(stats.max_val or "") .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
+   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
+   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
+   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(stats.total)) .. '</td></tr>\n')
 else
-   formatter_fctn = "fbits"
-   print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. bitsToSize(rrd.minval) .. '</td></tr>\n')
-   print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. bitsToSize(rrd.maxval) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. bitsToSize(rrd.lastval)  .. '</td></tr>\n')
-   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(rrd.average*8) .. '</td></tr>\n')
-   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(rrd.percentile) .. '</td></tr>\n')
-   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(rrd.totalval) .. '</td></tr>\n')
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize(stats.min_val or "") .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize(stats.max_val or "") .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bitsToSize(lastval)  .. '</td></tr>\n')
+   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(stats.average*8) .. '</td></tr>\n')
+   print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(stats["95th_percentile"]) .. '</td></tr>\n')
+   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(stats.total) .. '</td></tr>\n')
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
@@ -585,22 +618,17 @@ print[[</div></td></tr></table>
     </div> <!-- closes div id "historical-tab-chart "-->
 ]]
 
-if ntop.getPrefs().is_dump_flows_to_mysql_enabled
-   -- hide historical tabs for networks and profiles and pools
-   and not string.starts(host, 'net:')
-   and not string.starts(host, 'pool:')
-   and not string.starts(host, 'vlan:')
-   and not string.starts(host, 'asn:')
-   and not string.starts(host, 'country:')
-then
+if show_historical_tabs then
+   local host = tags.host -- can be nil
+   local l7proto = tags.protocol or ""
    local k2info = hostkey2hostinfo(host)
 
    print('<div class="tab-pane fade" id="historical-flows">')
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
       -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
-      historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, rrdFile, '', '', '', k2info["vlan"])
+      historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, l7proto, '', '', '', k2info["vlan"])
    else
-      printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, rrdFile, k2info["vlan"])
+      printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, l7proto, k2info["vlan"])
    end
    print('</div>')
 end
@@ -618,13 +646,26 @@ var graph = new Rickshaw.Graph( {
 				   width: 600,
 				   height: 300,
 				   renderer: 'area',
-				   series:
+				   series: [
 				]]
 
-print(rrd.json)
+for serie_idx, serie in ipairs(data.series) do
+   print("{name: \"" .. serie.label .. "\"")
+   print("\n, color: '".. graph_colors[serie_idx] .."', data: [")
+
+   local t = data.start
+
+   for i, val in ipairs(serie.data) do
+      print("{x: " .. t)
+      print(",y: " .. val .. "},\n")
+      t = t + data.step
+   end
+
+   print("]},")
+end
 
 print [[
-				} );
+				]} );
 
 graph.render();
 
@@ -637,40 +678,6 @@ function fdate(when) {
 
       return(d);
 }
-
-function capitaliseFirstLetter(string)
-{
-   return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-/**
- * Convert number of bytes into human readable format
- *
- * @param integer bytes     Number of bytes to convert
- * @param integer precision Number of digits after the decimal separator
- * @return string
- */
-   function formatBytes(bytes, precision)
-      {
-	 var kilobyte = 1024;
-	 var megabyte = kilobyte * 1024;
-	 var gigabyte = megabyte * 1024;
-	 var terabyte = gigabyte * 1024;
-
-	 if((bytes >= 0) && (bytes < kilobyte)) {
-	    return bytes + ' B';
-	 } else if((bytes >= kilobyte) && (bytes < megabyte)) {
-	    return (bytes / kilobyte).toFixed(precision) + ' KB';
-	 } else if((bytes >= megabyte) && (bytes < gigabyte)) {
-	    return (bytes / megabyte).toFixed(precision) + ' MB';
-	 } else if((bytes >= gigabyte) && (bytes < terabyte)) {
-	    return (bytes / gigabyte).toFixed(precision) + ' GB';
-	 } else if(bytes >= terabyte) {
-	    return (bytes / terabyte).toFixed(precision) + ' TB';
-	 } else {
-	    return bytes + ' B';
-	 }
-      }
 
 var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
     graph: graph,
@@ -793,7 +800,7 @@ yAxis.render();
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
-print(baseurl .. '&rrd_file=' .. rrdFile .. '&zoom=' .. nextZoomLevel .. '&epoch=')
+print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel .. '&epoch=')
 print[['+hover.selected_epoch;
 });
 
@@ -801,8 +808,8 @@ print[['+hover.selected_epoch;
 
 ]]
 else
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
-end
+   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No data found</div>")
+end -- if(data)
 end
 
 function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto, vlan)
@@ -818,615 +825,6 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto, vlan)
    epoch_begin = epoch-d
 
    historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', vlan)
-end
-
--- ########################################################
-
--- Make sure we do not fetch data from RRDs that have been update too much long ago
--- as this creates issues with the consolidation functions when we want to compare
--- results coming from different RRDs.
--- This is also needed to make sure that multiple data series on graphs have the
--- same number of points, otherwise d3js will generate errors.
-function touchRRD(rrdname)
-   local now  = os.time()
-   local last, ds_count = ntop.rrd_lastupdate(rrdname)
-
-   if((last ~= nil) and ((now-last) > 3600)) then
-      local tdiff = now - 1800 -- This avoids to set the update continuously
-
-      if(ds_count == 1) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0")
-      elseif(ds_count == 2) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0", "0")
-      elseif(ds_count == 3) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
-      end
-
-   end
-end
-
--- ########################################################
-
--- Find the percentile of a list of values
--- N - A list of values.  N must be sorted.
--- P - A float value from 0.0 to 1.0
-local function percentile(N, P)
-   local n = math.floor(math.floor(P * #N + 0.5))
-   return(N[n-1])
-end
-
-local function ninetififthPercentile(N)
-   table.sort(N) -- <<== Sort first
-   return(percentile(N, 0.95))
-end
-
--- ########################################################
-
--- TODO: remove after migration
-local function data_to_old_format(data)
-   local fdata = {}
-   for idx, _ in ipairs(data.series[1].data) do
-      fdata[idx] = {}
-
-      for i, serie in ipairs(data.series) do
-	 fdata[idx][i] = serie.data[idx]
-      end
-   end
-
-   local fnames = {}
-   for i, serie in ipairs(data.series) do
-      fnames[i] = serie.label
-   end
-
-   return data.start, data.step, fnames, fdata
-end
-
--- ########################################################
-
--- reads one or more RRDs and returns a json suitable to feed rickshaw
-
-function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels, transform_columns_function)
-   local rrdname = getRRDName(ifid, host, rrdFile)
-   local names =  {}
-   local names_cache = {}
-   local series = {}
-   local prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
-   -- with a scaling factor we can stretch or shrink rrd values
-   -- by default we set this to a value of 8, in order to convert bytes
-   -- rrds into bits.
-   local scaling_factor = 8
-
-   touchRRD(rrdname)
-   --io.write(prefixLabel.."\n")
-
-   if(prefixLabel == "Bytes") then
-      prefixLabel = i18n("traffic")
-   end
-
-   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops") or string.contains(rrdFile, "flows")) then
-      -- do not scale number, packets, and drops
-      scaling_factor = 1
-   end
-
-   if(not ntop.notEmptyFile(rrdname)) then return '{}' end
-
-   local fstart, fstep, fnames, fdata
-
-   -- Uncomment HERE to enable the new API
-   --local use_new_api = true
-
-   if use_new_api then
-      local ts_utils = require("ts_utils")
-      require("ts_second")
-      require("ts_minute")
-      require("ts_5min")
-
-      local tags = {ifid=ifid, host=host}
-      local schema = find_schema(rrdname, rrdFile, tags, ts_utils)
-
-      if schema then
-        fdata = ts_utils.query(schema, tags, start_time, end_time)
-
-        if(fdata == nil) then
-          -- failed, fall back to default api
-          use_new_api = false
-	  traceError(TRACE_NORMAL, TRACE_CONSOLE, "fetch failed, falling back to old api for RRD " .. rrdname)
-        else
-	  fstart, fstep, fnames, fdata = data_to_old_format(fdata)
-        end
-      else
-        -- failed, fall back to default api
-        use_new_api = false
-	traceError(TRACE_NORMAL, TRACE_CONSOLE, "falling back to old api for RRD " .. rrdname)
-      end
-   end
-
-   if not use_new_api then
-      fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-      if(fstart == nil) then return '{}' end
-   end
-
-   if transform_columns_function ~= nil then
-      --~ tprint(rrdname)
-      fstart, fstep, fnames, fdata, prefixLabel = transform_columns_function(fstart, fstep, fnames, fdata)
-      prefixLabel = prefixLabel or ""
-   end
-
-   --[[
-   io.write('start time: '..start_time..'  end_time: '..end_time..'\n')
-   io.write('fstart: '..fstart..'  fstep: '..fstep..' rrdname: '..rrdname..'\n')
-   io.write('len(fdata): '..#fdata..'\n')
-   --]]
-   local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
-
-   if tonumber(global_max_num_points) ~= nil then
-      max_num_points = global_max_num_points
-   end
-
-   local num_points_found = #fdata
-   local sample_rate = round(num_points_found / max_num_points)
-   local port_mode = false
-
-   if(sample_rate < 1) then sample_rate = 1 end
-   
-   -- Pretty printing for flowdevs/a.b.c.d/e.rrd
-   local elems = split(prefixLabel, "/")
-   if((elems[#elems] ~= nil) and (#elems > 1)) then
-      prefixLabel = capitalize(elems[#elems] or "")
-      port_mode = true
-   end
-   
-   -- prepare rrd labels
-   local protocol_categories = interface.getnDPICategories()
-   for i, n in ipairs(fnames) do
-      -- handle duplicates
-      if (names_cache[n] == nil) then
-	 local extra_info = ''
-	 names_cache[n] = true
-	 if append_ifname_to_labels then
-	     extra_info = getInterfaceName(ifid)
-	 end
-
-	 if host ~= nil and not string.starts(host, 'profile:')
-	    and protocol_categories[prefixLabel] == nil then
-	     extra_info = extra_info..firstToUpper(n)
-	 end
-
-	 if string.starts(host, 'asn:') then
-	    extra_info = i18n("graphs.metrics_suffixes.by_as", {metric=i18n("graphs.metrics_suffixes." .. string.lower(extra_info)) or ""})
-	 end
-
-	 if extra_info ~= "" and extra_info ~= prefixLabel then
-	    if(port_mode) then
-	       if(#names == 0) then
-		  names[#names+1] = prefixLabel..i18n("graphs.metrics_suffixes.egress") .. " ("..extra_info..") "
-	       else
-		  names[#names+1] = prefixLabel..i18n("graphs.metrics_suffixes.ingress") .. " ("..extra_info..") "
-	       end
-	    elseif prefixLabel ~= "" then
-	       local prefix = i18n("graphs.metrics_prefixes." .. string.lower(prefixLabel)) or prefixLabel
-	       local suffix = i18n("graphs.metrics_suffixes." .. string.lower(extra_info)) or extra_info
-
-	       names[#names+1] = prefix.." ("..suffix..") "
-	    else
-	       names[#names+1] = extra_info
-	    end
-	 else
-	     names[#names+1] = prefixLabel
-	 end
-      end
-    end
-
-   local minval, maxval, lastval = 0, 0, 0
-   local maxval_time, minval_time, lastval_time = nil, nil, nil
-   local first_time, last_time = nil, nil
-   local sampling = 1
-   local s = {}
-   local totalval, avgval = {}, {}
-   local now = os.time()
-
-   for i, v in ipairs(fdata) do
-      local instant = fstart + i * fstep  -- this is the instant in time corresponding to the datapoint
-      if instant > now then break end
-
-      s[0] = instant  -- s holds the instant and all the values
-      totalval[instant] = 0  -- totalval holds the sum of all values of this instant
-      avgval[instant] = 0
-
-      local elemId = 1
-      for _, w in ipairs(v) do
-
-	 if(w ~= w) then
-	    -- This is a NaN
-	    w = 0
-	 else
-	    -- io.write(w.."\n")
-	    w = tonumber(w)
-	    if(w < 0) then
-	       w = 0
-	    end
-	 end
-
-	 -- update the total value counter, which is the non-scaled integral over time
-	 totalval[instant] = totalval[instant] + w * fstep
-	 -- also update the average val (do not multiply by fstep, this is not the integral)
-	 avgval[instant] = avgval[instant] + w
-	 -- and the scaled current value (remember that these are derivatives)
-	 w = w * scaling_factor
-	 -- the scaled current value w goes into its own element elemId
-	 if (s[elemId] == nil) then s[elemId] = 0 end
-	 s[elemId] = s[elemId] + w
-	 --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
-	 elemId = elemId + 1
-      end
-
-      last_time = instant
-      if(first_time == nil) then first_time = instant end
-	 
-      -- stops every sample_rate samples, or when there are no more points
-      if(sampling == sample_rate or num_points_found == i) then
-	 local sample_sum = 0
-	 for elemId=1,#s do
-	    -- calculate the average in the sampling period
-	    s[elemId] = s[elemId] / sampling
-	    sample_sum = sample_sum + s[elemId]
-	 end
-	 -- update last instant
-	 if lastval_time == nil or instant > lastval_time then
-	    lastval = sample_sum
-	    lastval_time = instant
-	 end
-	 -- possibly update maximum value (grab the most recent in case of a tie)
-	 if maxval_time == nil or (sample_sum >= maxval and instant > maxval_time) then
-	    maxval = sample_sum
-	    maxval_time = instant
-	 end
-	 -- possibly update the minimum value (grab the most recent in case of a tie)
-	 if minval_time == nil or (sample_sum <= minval and instant > minval_time) then
-	    minval = sample_sum
-	    minval_time = instant
-	 end
-	 series[#series+1] = s
-	 sampling = 1
-	 s = {}
-     else
-	 sampling = sampling + 1
-      end
-   end
-
-   local tot = 0
-   for k, v in pairs(totalval) do
-      tot = tot + v
-   end
-
-   local vals = {}
-   for k, v in pairs(series) do
-      if(v[2] ~= nil) then
-	 -- io.write(v[1]+v[2].."\n")
-	 table.insert(vals, v[1]+v[2])
-      else
-	 -- io.write(v[1].."\n")
-	 table.insert(vals, v[1])
-      end
-   end
-   
-   totalval = tot
-   tot = 0
-   for k, v in pairs(avgval) do tot = tot + v end
-   local average = tot / num_points_found
-   local percentile = ninetififthPercentile(vals)
-
-   -- io.write("percentile="..percentile.."\n")
-   local colors = {
-      '#1f77b4',
-      '#ff7f0e',
-      '#2ca02c',
-      '#d62728',
-      '#9467bd',
-      '#8c564b',
-      '#e377c2',
-      '#7f7f7f',
-      '#bcbd22',
-      '#17becf',
-      -- https://github.com/mbostock/d3/wiki/Ordinal-Scales
-      '#ff7f0e',
-      '#ffbb78',
-      '#1f77b4',
-      '#aec7e8',
-      '#2ca02c',
-      '#98df8a',
-      '#d62728',
-      '#ff9896',
-      '#9467bd',
-      '#c5b0d5',
-      '#8c564b',
-      '#c49c94',
-      '#e377c2',
-      '#f7b6d2',
-      '#7f7f7f',
-      '#c7c7c7',
-      '#bcbd22',
-      '#dbdb8d',
-      '#17becf',
-      '#9edae5'
-   }
-
-   if(names ~= nil) then
-      json_ret = ''
-
-      if(rickshaw_json) then
-	 for elemId=1,#names do
-	    if(elemId > 1) then
-	       json_ret = json_ret.."\n,\n"
-	    end
-	    local name = names[elemId]
-	    json_ret = json_ret..'{"name": "'.. name .. '",\n'
-	    json_ret = json_ret..'color: \''.. colors[elemId] ..'\',\n'
-	    json_ret = json_ret..'"data": [\n'
-	    n = 0
-	    for key, value in pairs(series) do
-	       if(n > 0) then
-		  json_ret = json_ret..',\n'
-	       end
-	       json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId] .. '}'
-	       n = n + 1
-	    end
-
-	    json_ret = json_ret.."\n]}\n"
-	 end
-      else
-	 -- NV3
-	 local num_entries = 0;
-
-	 for elemId=1,#names do
-	    num_entries = num_entries + 1
-	    if(elemId > 1) then
-	       json_ret = json_ret.."\n,\n"
-	    end
-	    name = names[elemId]
-
-	    json_ret = json_ret..'{"key": "'.. name .. '",\n'
---	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
-	    json_ret = json_ret..'"area": true,\n'
-	    json_ret = json_ret..'"values": [\n'
-	    n = 0
-	    for key, value in pairs(series) do
-	       if(n > 0) then
-		  json_ret = json_ret..',\n'
-	       end
-	       json_ret = json_ret..'\t[ '..value[0] .. ', '.. value[elemId] .. ' ]'
-	       --json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId] .. '}'
-	       n = n + 1
-	    end
-
-	    json_ret = json_ret.."\n] }\n"
-	 end
-
-	 if(false) then
-	    json_ret = json_ret..",\n"
-
-	    num_entries = num_entries + 1
-	    json_ret = json_ret..'\n{"key": "Average",\n'
-	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
-	    json_ret = json_ret..'"type": "line",\n'
-
-	    json_ret = json_ret..'"values": [\n'
-	    n = 0
-	    for key, value in pairs(series) do
-	       if(n > 0) then
-		  json_ret = json_ret..',\n'
-	       end
-	       --json_ret = json_ret..'\t[ '..value[0] .. ', '.. value[elemId] .. ' ]'
-	       json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. average .. '}'
-	       n = n + 1
-	    end
-	    json_ret = json_ret..'\n] },\n'
-
-
-	    num_entries = num_entries + 1
-	    json_ret = json_ret..'\n{"key": "95th Percentile",\n'
-	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
-	    json_ret = json_ret..'"type": "line",\n'
-	    json_ret = json_ret..'"yAxis": 1,\n'
-	    json_ret = json_ret..'"values": [\n'
-	    n = 0
-	    for key, value in pairs(series) do
-	       if(n > 0) then
-		  json_ret = json_ret..',\n'
-	       end
-	       --json_ret = json_ret..'\t[ '..value[0] .. ', '.. value[elemId] .. ' ]'
-	       json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. percentile .. '}'
-	       n = n + 1
-	    end
-
-	    json_ret = json_ret..'\n] }\n'
-	 end
-      end
-   end
-
-   local ret = {}
-   ret.maxval_time = maxval_time
-   ret.maxval = round(maxval, 0)
-
-   ret.minval_time = minval_time
-   ret.minval = round(minval, 0)
-
-   ret.lastval_time = lastval_time
-   ret.lastval = round(lastval, 0)
-
-   ret.totalval = round(totalval, 0)
-   ret.percentile = round(percentile, 0)
-   ret.average = round(average, 0)
-   ret.json = json_ret
-
-   if(last_time ~= nil) then
-     ret.duration = last_time - first_time
-   else
-     ret.duration = 1
-   end
-
-  return(ret)
-end
-
--- #################################################
-
-function rrd2json_merge(ret, num, interval, show_other)
-   -- if we are expanding an interface view, we want to concatenate
-   -- jsons for single interfaces, and not for the view. Since view statistics
-   -- are in ret[1], it suffices to aggregate jsons from index i >= 2
-   local json = "["
-   local first = true  -- used to decide where to append commas
-
-   -- sort by "totalval" to get the top "num" results
-   local by_totalval = {}
-   local totalval = 0
-
-   for i = 1, #ret do
-      by_totalval[i] = ret[i].totalval
-
-      -- update total statistics, calculated on *all* the elements
-      totalval = totalval + ret[i].totalval
-   end
-
-   local ctr = 0
-   local other = {}
-
-   for i,_ in pairsByValues(by_totalval, rev) do
-      if ctr >= num then
-	 if not show_other then
-	    break
-	 else
-	    local j = dkjson.decode(ret[i].json)
-
-	    if not other.values then
-	       other.area = j.area
-	       other.key = i18n("other")
-	       other.values = table.clone(j.values)
-	    else
-	       for i=1, #j.values do
-		  for k=2, #j.values[i] do
-		     other.values[i][k] = other.values[i][k] + j.values[i][k]
-		  end
-	       end
-	    end
-
-	    goto continue
-	 end
-      end
-      if(debug_metric) then io.write("->"..i.."\n") end
-      if not first then json = json.."," end
-      json = json..ret[i].json
-
-      ::continue::
-      first = false
-      ctr = ctr + 1
-   end
-
-   if show_other and not table.empty(other) then
-      json = json..","..dkjson.encode(other)
-   end
-
-   json = json.."]"
-   -- the (possibly aggregated) json always goes into ret[1]
-   -- ret[1] possibly contains aggregated view statistics such as
-   -- maxval and maxval_time or minval and minval_time
-   ret[1].json = json
-
-   if #ret > 1 then
-      -- update the total with the sum of the totals of each timeseries
-      ret[1].totalval = totalval
-      -- update the average
-      ret[1].average = totalval / interval
-
-      -- remove metrics that are no longer valid for merged rrds
-      for _, k in pairs({'minval', 'minval_time',
-			 'maxval', 'maxval_time',
-			 'lastval', 'lastval_time', 'percentile'}) do
-	 ret[1][k] = nil
-      end
-   end
-
-   -- io.write(json.."\n")
-   return(ret[1])
-end
-
-function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expand_interface_views)
-   local ret = {}
-   local num = 0
-   local debug_metric = false
-
-   interface.select(getInterfaceName(ifid))
-   local ifstats = interface.getStats()
-   local rrd_if_ids = {}  -- read rrds for interfaces listed here
-   rrd_if_ids[1] = ifid -- the default submitted interface
-   -- interface.select(getInterfaceName(ifid))
-
-   if(debug_metric) then
-       io.write('ifid: '..ifid..' ifname:'..getInterfaceName(ifid)..'\n')
-       io.write('expand_interface_views: '..tostring(expand_interface_views)..'\n')
-   end
-
-   if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
-
-   -- the following code is used to compute stacked charts of top protocols and applications
-   if(rrdFile == "all" or rrdFile == "all_ndpi_categories") then -- all means all l-7 applications
-       -- disable expand interface views for rrdFile == all
-       local expand_interface_views = false
-       local dirs = ntop.getDirs()
-       local d = getRRDName(ifid, host)
-
-       if(debug_metric) then io.write("Navigating: "..p.."\n") end
-
-       local ndpi_protocols = interface.getnDPIProtocols()
-       local ndpi_categories = interface.getnDPICategories()
-       local filter = ndpi_protocols
-       if rrdFile == "all_ndpi_categories" then filter = ndpi_categories end
-
-       local rrds = navigatedir("", "*", d, d, false, ifid, host, start_time, end_time, filter)
-
-       local traffic_array = {}
-
-       for key, value in pairs(rrds) do
-	  local rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json, expand_interface_views)
-	  if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
-
-	  if(total > 0) then
-	     traffic_array[total] = rsp
-	     if(debug_metric) then io.write("Analyzing: "..value.." [total "..total.."]\n") end
-	  end
-
-	  ::continue::
-       end
-
-       for key, value in pairsByKeys(traffic_array, rev) do
-	   ret[#ret+1] = value
-	   if(ret[#ret].json ~= nil) then
-	       if(debug_metric) then io.write(key.."\n") end
-	       num = num + 1
-	       if(num >= 10) then break end
-	   end
-       end
-   else
-       num = 0
-       for _,iface in pairs(rrd_if_ids) do
-	   if(debug_metric) then io.write('iface: '..iface..'\n') end
-	    for i,rrd in pairs(split(rrdFile, ",")) do
-		if(debug_metric) then io.write("["..i.."] "..rrd..' iface: '..iface.."\n") end
-		ret[#ret + 1] = singlerrd2json(iface, host, rrd, start_time, end_time, rickshaw_json, expand_interface_views)
-		if(ret[#ret].json ~= nil) then num = num + 1 end
-	    end
-       end
-
-   end
-
-   if(debug_metric) then io.write("#rrds="..num.."\n") end
-   if(num == 0) then
-      ret = {}
-      ret.json = "[]"
-      return(ret)
-   end
-
-   return rrd2json_merge(ret, num, end_time-start_time)
 end
 
 -- #################################################

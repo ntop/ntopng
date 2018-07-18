@@ -109,8 +109,6 @@ end
 -- Iterates each active host on the ifname interface for RRD creation.
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
-   local hostbase
-
    interface.select(ifname)
 
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
@@ -126,17 +124,7 @@ function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
       end
 
       if host ~= nil then
-	 if(host.localhost) then
-	    local keypath = getPathFromKey(hostname)
-	    hostbase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
-
-	    -- NOTE: filesystem activity here
-	    if(not(ntop.exists(hostbase))) then
-	       ntop.mkdir(hostbase)
-	    end
-	 end
-
-	 if callback(hostname, host--[[hostinfo]], hostbase--[[base RRD host directory]]) == false then
+	 if callback(hostname, host--[[hostinfo]]) == false then
 	    return false
 	 end
       end
@@ -150,8 +138,6 @@ end
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachHost(ifname, deadline, callback)
-   local hostbase
-
    interface.select(ifname)
 
    local iterator = callback_utils.getHostsIterator(false --[[ no details ]])
@@ -177,8 +163,6 @@ end
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
 function callback_utils.foreachLocalHost(ifname, deadline, callback)
-   local hostbase
-
    interface.select(ifname)
 
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
@@ -215,14 +199,7 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
          return false
       end
 
-      local keypath = getPathFromKey(devicename)
-      local devicebase = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/rrd/" .. keypath)
-
-      if(not(ntop.exists(devicebase))) then
-	 ntop.mkdir(devicebase)
-      end
-
-      if callback(devicename, devicestats, devicebase) == false then
+      if callback(devicename, devicestats) == false then
 	 return false
       end
    end

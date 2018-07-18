@@ -274,7 +274,12 @@ function getPageUrl(base_url, params)
       encoded[k] = urlencode(v)
    end
 
-   return base_url .. "?" .. table.tconcat(encoded, "=", "&")
+   local delim = "&"
+   if not string.find(base_url, "?") then
+     delim = "?"
+   end
+
+   return base_url .. delim .. table.tconcat(encoded, "=", "&")
 end
 
 -- ##############################################
@@ -2258,20 +2263,6 @@ function get_manufacturer_mac(mac_address)
   return ret or "n/a"
 end
 
--- rrd_exists
-function rrd_exists(host_ip, rrdname)
-if(host_ip == nil) then return false end
-   dirs = ntop.getDirs()
-   rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
-   if(ntop.exists(rrdpath)) then return true end
-
-   -- Let's now try SNMP counters
-   rrdpath = dirs.workingdir .. "/" .. ifId .. "/snmpstats/" .. getPathFromKey(host_ip) .. "/" .. rrdname
-
-   -- print(rrdpath)
-   return ntop.exists(rrdpath)
-end
-
 -- getservbyport
 function getservbyport(port_num, proto)
    if(proto == nil) then proto = "TCP" end
@@ -3238,6 +3229,54 @@ function printWarningAlert(message)
 end
 
 -- ###########################################
+
+function tsQueryToTags(query)
+   local tags = {}
+
+   for _, part in pairs(split(query, ",")) do
+      local sep_pos = string.find(part, ":")
+
+      if sep_pos then
+         local k = string.sub(part, 1, sep_pos-1)
+         local v = string.sub(part, sep_pos+1)
+         tags[k] = v
+      end
+   end
+
+   return tags
+end
+
+function tsTagsToQuery(tags)
+   return table.tconcat(tags, ":", ",")
+end
+
+-- ###########################################
+
+function splitUrl(url)
+   local params = {}
+   local parts = split(url, "?")
+
+   if #parts == 2 then
+      url = parts[1]
+      parts = split(parts[2], "&")
+
+      for _, param in pairs(parts) do
+         local p = split(param, "=")
+
+         if #p == 2 then
+            params[p[1]] = p[2]
+         end
+      end
+   end
+
+   return {
+      url = url,
+      params = params,
+   }
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

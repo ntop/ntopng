@@ -171,7 +171,7 @@ function populateHistoricalDbExplorerLink(the_td, host, l7_proto) {
   if(url_params["zoom"]) { /* This is a chart url */
     var zoom = url_params["zoom"];
     var epoch = url_params["epoch"];
-    if(epoch === undefined) {
+    if(!epoch) {
       url_params["epoch_end"] = Math.round(new Date() / 1000); /* now */
       url_params["epoch_begin"] = url_params["epoch_end"] - zoom_vals[zoom];
     } else {
@@ -443,7 +443,6 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    if l7proto ~= "" and l7proto ~= nil and not string.starts(tostring(l7proto), 'all') then
       if not isnumber(l7proto) then
 	 local id
-	 l7proto = string.gsub(l7proto, "%.rrd", "")
 	 id = interface.getnDPIProtoId(l7proto)
 	 if id ~= -1 then
 	    l7proto = id
@@ -1569,7 +1568,6 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
    end
    if l7proto ~= "" and l7proto ~= nil and not string.starts(tostring(l7proto), 'all') then
       if not isnumber(l7proto) then
-	 l7proto = string.gsub(l7proto, "%.rrd", "")
 	 local id = interface.getnDPIProtoId(l7proto)
 	 if id ~= -1 then
 	    l7proto = id
@@ -1792,10 +1790,6 @@ function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l
 	 local id
 
 	 -- io.write(l7proto.."\n")
-	 l7proto = string.gsub(l7proto, "%.rrd", "")
-
-	 if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
-
 	 id = interface.getnDPIProtoId(l7proto)
 
 	 if(id ~= -1) then

@@ -20,6 +20,7 @@ require "historical_utils"
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
+local ts_utils = require "ts_utils"
 local info = ntop.getInfo()
 
 local have_nedge = ntop.isnEdge()
@@ -60,8 +61,6 @@ if((host_name == nil) or (host_ip == nil)) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("host_details.host_parameter_missing_message") .. "</div>")
    return
 end
-
-if(protocol_id == nil) then protocol_id = "" end
 
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
@@ -104,7 +103,7 @@ end
 
 if(host == nil) then
    -- NOTE: this features is not currently enabled as it may incur into thread concurrency issues
-   if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
+   if (ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip}) and always_show_hist == "true") then
       page = "historical"
       only_historical = true
       sendHTTPContentTypeHeader('text/html')
@@ -178,9 +177,6 @@ else
       host["label"] = getHostAltName(host["ip"])
    end
 
-   hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
-   rrdname = hostbase .. "/bytes.rrd"
-   -- print(rrdname)
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
@@ -330,7 +326,7 @@ if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifst
    end
 end
 
-if(ntop.exists(rrdname)) then
+if(ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -873,9 +869,8 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    fname = getRRDName(ifId, hostinfo2hostkey(host_info), k)
-	    if(not ntop.exists(fname)) then
-	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=".. k ..".rrd\">".. label .."</A>")
+	    if(ts_utils.exists("host:ndpi", {ifid=ifId, host=host_ip, protocol=k})) then
+	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi&protocol=".. k .."\">".. label .."</A>")
 	    else
 	       print(label)
 	    end
@@ -1910,11 +1905,6 @@ elseif (page == "config") then
    </script>]]
 
 elseif(page == "historical") then
-if(_GET["rrd_file"] == nil) then
-   rrdfile = "bytes.rrd"
-else
-   rrdfile=_GET["rrd_file"]
-end
 
 host_url = "host="..host_ip
 host_key = host_ip
@@ -1923,7 +1913,28 @@ if(host_vlan and (host_vlan > 0)) then
    host_key = host_key.."@"..host_vlan
 end
 
-drawRRD(ifId, host_key, rrdfile, _GET["zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"])
+local schema = _GET["ts_schema"] or "host:traffic"
+local selected_epoch = _GET["epoch"] or ""
+
+local tags = {
+   ifid = ifId,
+   host = host_key,
+   protocol = _GET["protocol"],
+   category = _GET["category"],
+}
+
+local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical'
+
+drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   top_protocols = "top:host:ndpi",
+   top_categories = "top:host:ndpi_categories",
+   show_historical = true,
+   timeseries = {
+      {schema="host:traffic",                label=i18n("traffic")},
+      {schema="host:flows",                  label=i18n("graphs.active_flows")},
+   }
+})
+
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 elseif(page == "sprobe") then

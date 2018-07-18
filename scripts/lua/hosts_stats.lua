@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+local ts_utils = require("ts_utils")
 
 local have_nedge = ntop.isnEdge()
 
@@ -154,8 +155,7 @@ if (_GET["page"] ~= "historical") then
    end
 
    if(_GET["pool"] ~= nil) then
-      local rrdbase = host_pools_utils.getRRDBase(ifstats.id, _GET["pool"])
-      local charts_available = ntop.exists(rrdbase.."/bytes.rrd")
+      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]})
       local pool_edit = ""
 
       -- TODO enable on nEdge when devices list will be implemented
@@ -543,34 +543,6 @@ else
       </div>
       </nav>
    </div>]]
-
-   local rrdfile
-   if(_GET["rrd_file"] == nil) then
-      rrdfile = "bytes.rrd"
-   else
-      rrdfile = _GET["rrd_file"]
-   end
-
-   if asn ~= nil then
-      drawRRD(ifstats.id, 'asn:'..asn, rrdfile, _GET["zoom"], base_url.."?asn="..asn.."&page=historical", 1, _GET["epoch"])
-      print[[
-
-<br>
-
-<div>
-  <b>]] print(i18n('notes')) print[[</b>
-  <ul>
-    <li>]] print(i18n('graphs.note_ases_traffic')) print[[</li>
-    <li>]] print(i18n('graphs.note_ases_sent')) print[[</li>
-    <li>]] print(i18n('graphs.note_ases_rcvd')) print[[</li>
-  </ul>
-</div>
-
-]]
-
-   elseif vlan ~= nil then
-      drawRRD(ifstats.id, 'vlan:'..vlan, rrdfile, _GET["zoom"], base_url.."?vlan="..vlan.."&page=historical", 1, _GET["epoch"])
-   end
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
