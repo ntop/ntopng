@@ -198,18 +198,20 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
 
     while(buf[strlen(buf)-1] == '\n') buf[strlen(buf)-1] = '\0';
 
-
     snprintf(out_buf, sizeof(out_buf), "%s [%s:%d] %s%s", theDate, file, line, extra_msg, buf);
 
 #ifdef WIN32
     rotate_mutex.lock(__FILE__, __LINE__); /* Need to lock as a rotation may be in progress */
 #endif
 
+	/* @simonemainardi: Please fix this code as I have no clue what is doing */
+#ifndef WIN32
     if((log_fd = logFd) && (count = logFileTracesCount)) {
       (*count)++;  /* Avoid locking even if there's some chance of simultaneous increments */
       fprintf(log_fd, "%s\n", out_buf);
       fflush(log_fd);
     }
+#endif
 
 #ifdef WIN32
     rotate_mutex.unlock(__FILE__, __LINE__);

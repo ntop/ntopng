@@ -1813,7 +1813,7 @@ void Ntop::loadTrackers() {
       return;
     }
 
-    while(fscanf(fd, "%254s", line) != EOF)
+	while (fgets(line, MAX_PATH, fd) != NULL)
       ndpi_add_string_to_automa(trackers_automa, line);
 
     fclose(fd);
