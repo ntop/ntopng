@@ -410,7 +410,7 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_l4)
   if #wildcard_tags > 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
     return nil
@@ -452,7 +452,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
         -- TODO remove after migration
         local value = v[1]
 
-        if ((wildcard_tag ~= "protocol") or (l4_keys[value] ~= nil) or (interface.getnDPIProtoId(value) ~= -1)) and
+        if ((wildcard_tag ~= "protocol") or (with_l4 and l4_keys[value] ~= nil) or (interface.getnDPIProtoId(value) ~= -1)) and
             ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
           res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
         end
@@ -473,6 +473,12 @@ end
 
 -------------------------------------------------------
 
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  return _listSeries(schema, tags_filter, wildcard_tags, start_time, true --[[ with l4 protos ]])
+end
+
+-------------------------------------------------------
+
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if #top_tags > 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")
@@ -486,7 +492,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     return nil
   end
 
-  local series = self:listSeries(schema, tags, top_tags, tstart)
+  local series = _listSeries(schema, tags, top_tags, tstart, false --[[ no l4 protos ]])
   if not series then
     return nil
   end
