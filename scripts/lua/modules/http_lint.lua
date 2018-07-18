@@ -410,27 +410,6 @@ local function validateNotificationSeverity(tz)
    return validateChoiceInline({"error","warning","info"})
 end
 
--- #################################################################
-
-local function validateHost(p)
-   local host = hostkey2hostinfo(p)
-
-   if(host.host ~= nil) and (host.vlan ~= nil)
-            and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
-      return true
-   else
-      return false
-   end
-end
-
-local function validateMac(p)
-   if isMacAddress(p) then
-      return true
-   else
-      return false
-   end
-end
-
 local function validateIPV4(p)
    return isIPv4(p)
 end
@@ -596,6 +575,27 @@ local function validateNetwork(i)
          end
       end
 
+      return false
+   end
+end
+
+-- #################################################################
+
+local function validateHost(p)
+   local host = hostkey2hostinfo(p)
+
+   if(host.host ~= nil) and (host.vlan ~= nil)
+            and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
+      return true
+   else
+      return validateNetwork(p)
+   end
+end
+
+local function validateMac(p)
+   if isMacAddress(p) then
+      return true
+   else
       return false
    end
 end
