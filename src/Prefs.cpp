@@ -435,7 +435,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 bool Prefs::getDefaultBoolPrefsValue(const char *pref_key, const bool default_value) {
   char rsp[8];
 
-  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
+  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
     return((rsp[0] == '1') ? true : false);
   else
     return(default_value);

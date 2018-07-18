@@ -237,7 +237,6 @@ using namespace std;
 #include "PF_RINGInterface.h"
 #endif
 #include "AlertCounter.h"
-#include "GenericHost.h"
 #include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
@@ -287,12 +286,13 @@ using namespace std;
 #endif
 
 #include "Geolocation.h"
-#include "GenericHost.h"
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Country.h"
 #include "Mac.h"
 #include "Host.h"
+#include "LocalHost.h"
+#include "RemoteHost.h"
 #include "Flow.h"
 #include "FlowHash.h"
 #include "MacHash.h"

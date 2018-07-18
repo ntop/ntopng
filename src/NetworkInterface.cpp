@@ -2535,6 +2535,7 @@ void NetworkInterface::cleanup() {
 void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 				     Mac *src_mac, IpAddress *_src_ip, Host **src,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
+  int16_t local_network_id;
 
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
   (*src) = hosts_hash->get(vlanId, _src_ip);
@@ -2546,7 +2547,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       return;
     }
 
-    (*src) = new Host(this, src_mac, vlanId, _src_ip);
+    if(_src_ip && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress()))
+      (*src) = new LocalHost(this, src_mac, vlanId, _src_ip);
+    else
+      (*src) = new RemoteHost(this, src_mac, vlanId, _src_ip);
+
     if(!hosts_hash->add(*src)) {
       //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *src;
@@ -2571,7 +2576,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       return;
     }
 
-    (*dst) = new Host(this, dst_mac, vlanId, _dst_ip);
+    if(_dst_ip && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress()))
+      (*dst) = new LocalHost(this, dst_mac, vlanId, _dst_ip);
+    else
+      (*dst) = new RemoteHost(this, dst_mac, vlanId, _dst_ip);
+    
     if(!hosts_hash->add(*dst)) {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *dst;
@@ -3095,7 +3104,16 @@ static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *ma
 /* **************************************************** */
 
 bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
-  Host *h = new Host(this, host_ip, vlan_id);
+  Host *h;
+  int16_t local_network_id;
+  IpAddress ipa;
+
+  ipa.set(host_ip);
+
+  if(ipa.isLocalHost(&local_network_id))
+    h = new LocalHost(this, host_ip, vlan_id);
+  else
+    h = new RemoteHost(this, host_ip, vlan_id);
 
   if(!h) return(false);
 

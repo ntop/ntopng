@@ -19,31 +19,30 @@
  *
  */
 
-#ifndef _CHECKPOINTABLE_H_
-#define _CHECKPOINTABLE_H_
+#ifndef _REMOTE_HOST_H_
+#define _REMOTE_HOST_H_
 
 #include "ntop_includes.h"
 
-class NetworkInterface;
-
-class Checkpointable {
+class RemoteHost : public Host {
  private:
-  char *checkpoints[CONST_MAX_NUM_CHECKPOINTS]; /* controllable json serializations */
+  bool blacklisted_host;
+  char trafficCategory[12];
 
-#ifdef HAVE_ZLIB
-  u_int16_t compressed_lengths[CONST_MAX_NUM_CHECKPOINTS];
-#endif
+  void initialize();
 
  public:
-  Checkpointable();
-  virtual ~Checkpointable();
-  bool checkpoint(lua_State* vm, NetworkInterface *iface, u_int8_t checkpoint_id, DetailsLevel details_level);
+  RemoteHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
+  RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
+  virtual ~RemoteHost();
 
-  /* This function must return a serialization of the entity information needed
-   * for the checkpoint. The returned string is dynamically allocated and will be
-   * free by the caller.
-   */
-  virtual bool serializeCheckpoint(json_object* my_object, DetailsLevel details_level) = 0;
+  virtual char* get_traffic_category()   { return(trafficCategory);   };
+  virtual int16_t get_local_network_id() { return(-1);                };
+  virtual bool isBlacklisted()           { return(blacklisted_host);  };
+  virtual bool isLocalHost()             { return(false);             };
+  virtual bool isSystemHost()            { return(false);             };
+
+  virtual void refreshHTTPBL();
 };
 
-#endif
+#endif /* _REMOTE_HOST_H_ */
