@@ -263,7 +263,8 @@ end
 
 -- ########################################################
 
-function printSeries(series, tags, start_time, base_url, params)
+function printSeries(options, tags, start_time, base_url, params)
+   local series = options.timeseries
    local needs_separator = false
 
    for _,top in ipairs(series) do
@@ -293,6 +294,52 @@ function printSeries(series, tags, start_time, base_url, params)
 
       ::continue::
    end
+
+   -- nDPI applications
+   if options.top_protocols then
+      local schema = split(options.top_protocols, "top:")[2]
+      local proto_tags = table.clone(tags)
+      proto_tags.protocol = nil
+
+      local series = ts_utils.listSeries(schema, proto_tags, start_time)
+
+      if not table.empty(series) then
+         graphMenuDivider()
+
+         local by_protocol = {}
+
+         for _, serie in pairs(series) do
+            by_protocol[serie.protocol] = 1
+         end
+
+         for protocol in pairsByKeys(by_protocol, asc) do
+            local proto_id = protocol
+            populateGraphMenuEntry(protocol, base_url, table.merge(params, {ts_schema=schema, protocol=proto_id}))
+         end
+      end
+   end
+
+   -- nDPI application categories
+   if options.top_categories then
+      local schema = split(options.top_categories, "top:")[2]
+      local cat_tags = table.clone(tags)
+      cat_tags.category = nil
+      local series = ts_utils.listSeries(schema, cat_tags, start_time)
+
+      if not table.empty(series) then
+         graphMenuDivider()
+
+         local by_category = {}
+
+         for _, serie in pairs(series) do
+            by_category[serie.category] = 1
+         end
+
+         for category in pairsByKeys(by_category, asc) do
+            populateGraphMenuEntry(category, base_url, table.merge(params, {ts_schema=schema, category=category}))
+         end
+      end
+   end
 end
 
 -- ########################################################
@@ -301,7 +348,9 @@ function getMinZoomResolution(schema)
    local schema_obj = ts_utils.getSchema(schema)
 
    if schema_obj then
-      if schema_obj.options.step > 60 then
+      if schema_obj.options.step >= 300 then
+	 return '10m'
+      elseif schema_obj.options.step >= 60 then
          return '5m'
       end
    end
@@ -340,7 +389,7 @@ function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, optio
 ]] if not ntop.isPro() then print[[
 	   window.location.reload(); /* do not reload, it's annoying */
 ]]
-end -- CHANGEME
+end
 print[[
 	 }
        }, 60*1000);
@@ -424,40 +473,28 @@ print[[
 <tr><td valign="top">
 ]]
 
+local page_params = {
+   ts_schema = schema,
+   zoom = zoomLevel or '',
+   epoch = selectedEpoch or '',
+}
 
-if(options.show_timeseries) then
+if(options.timeseries) then
    print [[
 <div class="btn-group">
   <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 
-   -- CHANGEME
-   printSeries(ifid, host, start_time, baseurl, zoomLevel, selectedEpoch)
+   printSeries(options, tags, start_time, baseurl, page_params)
 
-   local dirs = ntop.getDirs()
-   local p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
-
-   if(host ~= nil) then
-      p = p .. getPathFromKey(host)
-   end
-
-   local d = os_utils.fixPath(p)
-
-   -- nDPI protocols
-   -- CHANGEME
-   navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPIProtocols())
-
-   -- nDPI categories
-   navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
-	       "*", d, d, true, ifid, host, start_time, end_time, interface.getnDPICategories())
+   printGraphMenuEntries()
 
    print [[
   </ul>
 </div><!-- /btn-group -->
 ]]
-end -- options.show_timeseries
+end -- options.timeseries
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
 
@@ -468,7 +505,9 @@ for k,v in ipairs(zoom_vals) do
    -- but exclude applications. Application statistics are gathered
    -- every 5 minutes
    if zoom_vals[k][1] == '1m' and min_zoom ~= '1m' then
-       goto continue
+      goto continue
+   elseif zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
+      goto continue
    end
    print('<label class="btn btn-link ')
 
@@ -476,7 +515,20 @@ for k,v in ipairs(zoom_vals) do
       print("active")
    end
    print('">')
-   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
+
+   local params = table.merge(page_params, {zoom=zoom_vals[k][1]})
+
+   -- Additional parameters
+   if tags.protocol ~= nil then
+      params["protocol"] = tags.protocol
+   end
+   if tags.category ~= nil then
+      params["category"] = tags.category
+   end
+
+   local url = getPageUrl(baseurl, params)
+   
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..url..'">'.. zoom_vals[k][1] ..'</input></label>\n')
    ::continue::
 end
 
@@ -567,14 +619,16 @@ print[[</div></td></tr></table>
 ]]
 
 if show_historical_tabs then
+   local host = tags.host -- can be nil
+   local l7proto = tags.protocol or ""
    local k2info = hostkey2hostinfo(host)
 
    print('<div class="tab-pane fade" id="historical-flows">')
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
       -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
-      historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, rrdFile, '', '', '', k2info["vlan"])
+      historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, l7proto, '', '', '', k2info["vlan"])
    else
-      printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, rrdFile, k2info["vlan"])
+      printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, l7proto, k2info["vlan"])
    end
    print('</div>')
 end
