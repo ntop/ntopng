@@ -26,7 +26,8 @@
 Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
-  ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
+  ntop = _ntop, sticky_hosts = location_none,
+    ignore_vlans = false, simulate_vlans = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
@@ -358,6 +359,7 @@ void usage() {
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
 	 "[--version|-V]                      | Print version and quit\n"
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
+	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
 	 "[--help|-h]                         | Help\n",
 #ifdef HAVE_NEDGE
@@ -655,6 +657,7 @@ static const struct option long_options[] = {
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
   { "enable-user-scripts",               no_argument,       NULL, 216 },
+  { "ignore-vlans",                      no_argument,       NULL, 217 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1240,6 +1243,10 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 216:
     enable_user_scripts = true;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "User scripts enabled");
+    break;
+
+  case 217:
+    ignore_vlans = true;
     break;
 
 #ifdef NTOPNG_PRO

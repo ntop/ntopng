@@ -89,7 +89,7 @@ class Prefs {
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
-  bool local_networks_set, shutdown_when_done, simulate_vlans;
+  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *export_endpoint;
   char *categorization_key;
@@ -195,6 +195,7 @@ class Prefs {
 
   inline bool  are_user_scripts_enabled()               { return(enable_user_scripts);              };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
+  inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };

@@ -2292,6 +2292,8 @@ decode_packet_eth:
 	}
       }
 
+      if(vlan_id && ntop->getPrefs()->do_ignore_vlans())
+	vlan_id = 0;
       if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
@@ -2424,6 +2426,8 @@ decode_packet_eth:
 	  }
 	}
 
+	if(vlan_id && ntop->getPrefs()->do_ignore_vlans())
+	  vlan_id = 0;
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
