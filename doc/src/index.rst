@@ -8,6 +8,7 @@ can be obtained from the traffic captured by the server.
    :maxdepth: 3
 
    what_is_ntopng
+   basic_concepts/index
    how_to_start/index
    cli_options
    web_gui/index
