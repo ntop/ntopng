@@ -27,107 +27,68 @@ Trace::Trace() {
   traceLevel = TRACE_LEVEL_NORMAL;
   logFile = NULL;
   logFd = NULL;
-  logFileTracesCount = new int(0);
   traceRedis = NULL;
-#ifndef WIN32
-  logFileMsg = false;
-  logFdShadow = NULL;
-  logFileTracesCountShadow = NULL;
-#endif
+
+  open_log();
 };
 
 /* ******************************* */
 
 Trace::~Trace() {
-  if(logFd)                    fclose(logFd);
-  if(logFile)                  free(logFile);
-  if(logFileTracesCount)       delete logFileTracesCount;
-  if(traceRedis)               delete traceRedis;
-#ifndef WIN32
-  if(logFdShadow)              fclose(logFdShadow);
-  if(logFileTracesCountShadow) delete logFileTracesCountShadow;
-#endif
+  if(logFd)      fclose(logFd);
+  if(logFile)    free(logFile);
+  if(traceRedis) delete traceRedis;
 };
 
 /* ******************************* */
 
-void Trace::rotate_logs(bool force_rotation) {
-  int rc;
+void Trace::rotate_logs(bool forceRotation) {
   char buf1[MAX_PATH], buf2[MAX_PATH];
+  const int max_num_lines = TRACES_PER_LOG_FILE_HIGH_WATERMARK;
 
-#ifndef WIN32
-  if(logFdShadow)
-    fclose(logFdShadow), logFdShadow = NULL;
-  if(logFileTracesCountShadow)
-    delete logFileTracesCountShadow, logFileTracesCountShadow = NULL;
-#endif
+  if(!logFd) return;
+  else if((!forceRotation) && (numLogLines < max_num_lines)) return;
 
-  if(!logFile
-     || ((!logFileTracesCount
-	  || *logFileTracesCount < TRACES_PER_LOG_FILE_HIGH_WATERMARK)
-	 && !force_rotation))
-    return;
-
-#ifdef WIN32
-  /* Unsafe to rename with an open file descriptor under WIN */
-  rotate_mutex.lock(__FILE__, __LINE__);
-  if(logFd) fclose(logFd), logFd = NULL;
-  if(logFileTracesCount) *logFileTracesCount = 0;
-#endif
+  fclose(logFd);
+  logFd = NULL;
 
   for(int i = MAX_NUM_NTOPNG_LOG_FILES - 1; i >= 1; i--) {
     snprintf(buf1, sizeof(buf1), "%s.%u", logFile, i);
     snprintf(buf2, sizeof(buf2), "%s.%u", logFile, i + 1);
 
-    if(Utils::file_exists(buf1)) {
-      if((rc = rename(buf1, buf2)))
-#ifndef WIN32
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to rename file %s -> %s", logFile, buf1);
-#else
-	;
-#endif
-    }
-  }
+    if(Utils::file_exists(buf1))
+      rename(buf1, buf2);
+  } /* for */
 
   if(Utils::file_exists(logFile)) {
     snprintf(buf1, sizeof(buf1), "%s.1", logFile);
-    if((rc = rename(logFile, buf1)))
-#ifndef WIN32
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to rename file %s -> %s", logFile, buf1);
-#else
-      ;
-#endif
+    rename(logFile, buf1);
   }
 
-  /* It's safe to rename even if another thread is writing as the FS inode doesn't change */
-#ifndef WIN32
-  logFdShadow = logFd;
-  logFileTracesCountShadow = logFileTracesCount;
+  open_log();
+}
 
-  logFileTracesCount = new int(0);
-#endif
-  logFd = fopen(logFile, "w");
+/* ******************************* */
 
-#ifdef WIN32
-  rotate_mutex.unlock(__FILE__, __LINE__);
-#else
-  if(!logFileMsg) {
-    if(logFd)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Logging into %s", logFile);
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", logFile);
+void Trace::open_log() {
+  if(logFile) {
+    logFd = fopen(logFile, "w");
 
-    logFileMsg = true;
+    if(!logFd)
+      traceEvent(TRACE_ERROR, "Unable to create log %s", logFile);
+    
+    numLogLines = 0;
   }
-#endif
 }
 
 /* ******************************* */
 
 void Trace::set_log_file(const char* log_file) {
   if(log_file && log_file[0] != '\0') {
+    rotate_logs(true);
     if(logFile) free(logFile);
     logFile = strndup(log_file, MAX_PATH);
+    open_log();
   }
 }
 
@@ -141,8 +102,10 @@ void Trace::set_trace_level(u_int8_t id) {
 
 /* ******************************* */
 
-void Trace::initRedis(const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id) {
-  Utils::initRedis(&traceRedis, redis_host, redis_password, redis_port, _redis_db_id);
+void Trace::initRedis(const char *redis_host, const char *redis_password,
+		      u_int16_t redis_port, u_int8_t _redis_db_id) {
+  Utils::initRedis(&traceRedis, redis_host, redis_password,
+		   redis_port, _redis_db_id);
 }
 
 /* ******************************* */
@@ -150,8 +113,6 @@ void Trace::initRedis(const char *redis_host, const char *redis_password, u_int1
 void Trace::traceEvent(int eventTraceLevel, const char* _file,
 		       const int line, const char * format, ...) {
   va_list va_ap;
-  FILE *log_fd;
-  int *count;
 #ifndef WIN32
   struct tm result;
 #endif
@@ -200,22 +161,14 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
 
     snprintf(out_buf, sizeof(out_buf), "%s [%s:%d] %s%s", theDate, file, line, extra_msg, buf);
 
-#ifdef WIN32
-    rotate_mutex.lock(__FILE__, __LINE__); /* Need to lock as a rotation may be in progress */
-#endif
-
-	/* @simonemainardi: Please fix this code as I have no clue what is doing */
-#ifndef WIN32
-    if((log_fd = logFd) && (count = logFileTracesCount)) {
-      (*count)++;  /* Avoid locking even if there's some chance of simultaneous increments */
-      fprintf(log_fd, "%s\n", out_buf);
-      fflush(log_fd);
+    if(logFd) {
+      rotate_mutex.lock(__FILE__, __LINE__); /* Need to lock as a rotation may be in progress */
+      numLogLines++;
+      fprintf(logFd, "%s\n", out_buf);
+      fflush(logFd);
+      rotate_logs(false);
+      rotate_mutex.unlock(__FILE__, __LINE__);
     }
-#endif
-
-#ifdef WIN32
-    rotate_mutex.unlock(__FILE__, __LINE__);
-#endif
 
     printf("%s\n", out_buf);
     fflush(stdout);
@@ -224,8 +177,9 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
       traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
 			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
 
-
-#ifndef WIN32
+#ifdef WIN32
+    AddToMessageLog(out_buf);
+#else
     syslogMsg = &out_buf[strlen(theDate)+1];
     if(eventTraceLevel == 0 /* TRACE_ERROR */)
       syslog(LOG_ERR, "%s", syslogMsg);
@@ -249,15 +203,14 @@ extern "C" {
 
 /* ******************************* */
 
-#if 0
-VOID Trace::AddToMessageLog(LPTSTR lpszMsg) {
+void Trace::AddToMessageLog(LPTSTR lpszMsg) {
   HANDLE  hEventSource;
   TCHAR	szMsg[4096];
 
 #ifdef UNICODE
-  LPCWSTR  lpszStrings[1];
+  LPCWSTR lpszStrings[1];
 #else
-  LPCSTR   lpszStrings[1];
+  LPCSTR  lpszStrings[1];
 #endif
 
   if(!isWinNT()) {
@@ -268,30 +221,28 @@ VOID Trace::AddToMessageLog(LPTSTR lpszMsg) {
     return;
   }
 
-  if (!szMsg)
-    {
-      hEventSource = RegisterEventSource(NULL, TEXT(SZSERVICENAME));
+  if(!szMsg) {
+    hEventSource = RegisterEventSource(NULL, TEXT(SZSERVICENAME));
 
-      snprintf(szMsg, sizeof(szMsg), TEXT("%s: %s"), SZSERVICENAME, lpszMsg);
+    snprintf(szMsg, sizeof(szMsg), TEXT("%s: %s"), SZSERVICENAME, lpszMsg);
 
-      lpszStrings[0] = szMsg;
+    lpszStrings[0] = szMsg;
 
-      if (hEventSource != NULL) {
-	ReportEvent(hEventSource,
-		    EVENTLOG_INFORMATION_TYPE,
-		    0,
-		    EVENT_GENERIC_INFORMATION,
-		    NULL,
-		    1,
-		    0,
-		    lpszStrings,
-		    NULL);
+    if (hEventSource != NULL) {
+      ReportEvent(hEventSource,
+		  EVENTLOG_INFORMATION_TYPE,
+		  0,
+		  EVENT_GENERIC_INFORMATION,
+		  NULL,
+		  1,
+		  0,
+		  lpszStrings,
+		  NULL);
 
-	DeregisterEventSource(hEventSource);
-      }
+      DeregisterEventSource(hEventSource);
     }
+  }
 }
-#endif
 
 /* ******************************* */
 

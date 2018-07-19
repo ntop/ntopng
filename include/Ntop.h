@@ -110,8 +110,8 @@ class Ntop {
    *
    * @param logFile A valid path to a log file
    */
-  inline void registerLogFile(const char* logFile)    { getTrace()->set_log_file(logFile);       };
-  inline void rotateLogs(bool force_rotation = false) { getTrace()->rotate_logs(force_rotation); };
+  inline void registerLogFile(const char* logFile) { getTrace()->set_log_file(logFile); };
+  inline void rotateLogs(bool mode)                { getTrace()->rotate_logs(mode);     };
 #ifdef NTOPNG_PRO
   void registerNagios(void);
   inline FlowChecker *getFlowChecker() { return(flow_checker); };

@@ -51,26 +51,22 @@ class Trace {
   char *logFile;
   FILE *logFd;
   Redis *traceRedis;
-  int *logFileTracesCount;
+  int numLogLines;
   volatile u_int8_t traceLevel;
-
-#ifdef WIN32
-  VOID AddToMessageLog(LPTSTR lpszMsg);
   Mutex rotate_mutex;
-#else
-  bool logFileMsg;
-  FILE *logFdShadow;
-  int *logFileTracesCountShadow;
+  void open_log();
+#ifdef WIN32
+  void AddToMessageLog(LPTSTR lpszMsg);
 #endif
-
 
  public:
   Trace();
   ~Trace();
 
   void init();
-  void initRedis(const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id);
-  void rotate_logs(bool force_rotation);
+  void initRedis(const char *redis_host, const char *redis_password,
+		 u_int16_t redis_port, u_int8_t _redis_db_id);
+  void rotate_logs(bool forceRotation);
   void set_log_file(const char *log_file);
   void set_trace_level(u_int8_t id);
   inline u_int8_t get_trace_level() { return(traceLevel); };

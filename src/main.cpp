@@ -366,7 +366,6 @@ int main(int argc, char *argv[])
       snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
       ntop->fixPath(path);
       ntop->registerLogFile(path);
-      ntop->rotateLogs(true /* Force rotation to start clean */);
     }
 
   if(prefs->get_httpbl_key() != NULL)

@@ -1696,8 +1696,6 @@ void Ntop::runHousekeepingTasks() {
   }
 #endif
   
-  ntop->rotateLogs();
-
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
 #endif
