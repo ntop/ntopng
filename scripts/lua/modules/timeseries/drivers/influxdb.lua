@@ -48,7 +48,7 @@ local function influx_query(full_url)
   local res = ntop.httpGet(full_url, "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
 
   if not res then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid reply")
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. full_url)
     return nil
   end
 
@@ -147,10 +147,25 @@ end
 -------------------------------------------------------
 
 local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
+  --[[
+  SELECT NON_NEGATIVE_DERIVATIVE(total_serie) AS total_serie FROM               // derivate the serie, if necessary
+    (SELECT MEAN("total_serie") AS "total_serie" FROM                           // sample the total serie points, if necessary
+      (SELECT SUM("value") AS "total_serie" FROM                                // sum all the series together
+        (SELECT (bytes_sent + bytes_rcvd) AS "value" FROM "host:ndpi"           // possibly sum multiple metrics within same serie
+          WHERE host='192.168.43.18' AND ifid='2'
+          AND time >= 1531916170000000000 AND time <= 1532002570000000000)
+        GROUP BY time(300s))
+      GROUP BY time(600s))
+  ]]
   local query = 'SELECT SUM("value") AS "total_serie" FROM ' ..
     '(SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE ' ..
     table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'..
-    ' GROUP BY time('.. time_step ..'s)'
+    ' GROUP BY time('.. schema.options.step ..'s)'
+
+  if time_step and (schema.options.step ~= time_step) then
+    -- sample the points
+    query = 'SELECT MEAN("total_serie") AS "total_serie" FROM ('.. query ..') GROUP BY time('.. time_step ..'s)'
+  end
 
   if data_type == ts_types.counter then
     query = "SELECT NON_NEGATIVE_DERIVATIVE(total_serie) AS total_serie FROM (" .. query .. ")"
@@ -174,19 +189,18 @@ local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_ste
 
   data = data.series[1]
 
-  local avg = table.remove(data.values, 1)[3]
-  data.columns[3] = nil
-
   local series, count = influx2Series(schema, tstart, tend, tags, options, data, time_step)
-  return series[1].data, avg
+  return series[1].data
 end
 
 -------------------------------------------------------
 
-local function calcStats(schema, tstart, tend, tags, time_step, url)
+-- TODO FIXME: mean/percentile are buggy whith empty/zero points!
+local function calcStats(schema, tstart, tend, tags, url)
   local data_type = schema.options.metrics_type
-  local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
-  query = 'SELECT SUM("total_serie") * ' .. schema.options.step .. ', MEAN("total_serie"), PERCENTILE("total_serie", 95) FROM (' .. query .. ")"
+  local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type)
+  query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..
+    ', MEAN("total_serie"), PERCENTILE("total_serie", 95) FROM (' .. query .. ')'
 
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url)
@@ -245,6 +259,12 @@ function driver:query(schema, tstart, tend, tags, options)
 
   -- NOTE: GROUP BY TIME and FILL do not work well together! Additional zeroes produce non-existent derivative values
   -- Will perform fill manually below
+  --[[
+  SELECT (DERIVATIVE(MEAN("bytes")) / 60) as bytes
+    FROM "iface:ndpi" WHERE protocol='SSL' AND ifid='2'
+    AND time >= 1531991910000000000 AND time <= 1532002710000000000
+    GROUP BY TIME(60s)
+  ]]
   local query = 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
       table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
@@ -260,7 +280,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local stats = nil
 
   if options.calculate_stats then
-    stats = calcStats(schema, tstart, tend, tags, time_step, url)
+    stats = calcStats(schema, tstart, tend, tags, url)
   end
 
   local rv = {
@@ -287,6 +307,12 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   -- NOTE: time based query not currently supported on show tags/series, using select
   -- https://github.com/influxdata/influxdb/issues/5668
+  --[[
+  SELECT * FROM "iface:ndpi_categories"
+    WHERE ifid='2' AND time >= 1531981349000000000
+    GROUP BY category
+    LIMIT 1
+  ]]
   local query = 'SELECT * FROM "' .. schema.name .. '" WHERE ' ..
       table.tconcat(tags_filter, "=", " AND ", nil, "'") ..
       " AND time >= " .. start_time .. "000000000" ..
@@ -350,9 +376,16 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local top_tag = top_tags[1]
+
+  --[[
+  SELECT TOP("value", "protocol", 10) FROM                                      // select top 10 protocols
+    (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value"                      // possibly sum multiple metrics within same serie
+      FROM "host:ndpi" WHERE host='192.168.43.18' AND ifid='2'
+      AND time >= 1531986825000000000 AND time <= 1531994776000000000)
+  ]]
   local query = 'SELECT TOP("value", "'.. top_tag ..'", '.. options.top ..') FROM (SELECT '.. top_tag ..
       ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000);'
+      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000)'
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
 
   local data = influx_query(full_url)
@@ -389,10 +422,10 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local stats = nil
 
   if options.calculate_stats then
-    stats = calcStats(schema, tstart, tend, tags, time_step, url)
+    stats = calcStats(schema, tstart, tend, tags, url)
   end
 
-  local total_serie, avg = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
 
   return {
     topk = sorted,
