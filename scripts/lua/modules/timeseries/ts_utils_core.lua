@@ -17,7 +17,7 @@ Data model:
 local ts_utils = {}
 
 -- Import other modules
-ts_utils.metrics = require "ts_types"
+ts_utils.metrics = (require "ts_common").metrics
 ts_utils.schema = require "ts_schema"
 
 require "lua_trace"
@@ -26,7 +26,7 @@ require "ntop_utils"
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 
------------------------------------------------------------------------
+-- ##############################################
 
 -- All the drivers
 
@@ -90,7 +90,7 @@ function ts_utils.getQueryDriver()
   return driver
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 function ts_utils.append(schema_name, tags_and_metrics, timestamp, verbose)
   timestamp = timestamp or os.time()
@@ -120,7 +120,7 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp, verbose)
   return rv
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 local function getQueryOptions(overrides)
   return table.merge({
@@ -133,7 +133,7 @@ local function getQueryOptions(overrides)
   }, overrides or {})
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 function ts_utils.query(schema_name, tags, tstart, tend, options)
   local query_options = getQueryOptions(options)
@@ -168,7 +168,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
   return rv
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -230,7 +230,7 @@ local function getPrecomputedTops(schema_id, tags, tstart, tend, options)
   return nil
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
   local query_options = getQueryOptions(options)
@@ -324,7 +324,7 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
   return top_items
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 -- List all the data series matching the given filter.
 -- Only data series updated after start_time will be returned.
@@ -354,13 +354,13 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
   return driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 function ts_utils.exists(schema_name, tags_filter)
   return not table.empty(ts_utils.listSeries(schema_name, tags_filter, 0))
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 function ts_utils.flush()
   local rv = true
@@ -372,7 +372,7 @@ function ts_utils.flush()
   return rv
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 function ts_utils.delete(schema_name, tags)
   local schema = ts_utils.getSchema(schema_name)
@@ -395,6 +395,6 @@ function ts_utils.delete(schema_name, tags)
   return rv
 end
 
------------------------------------------------------------------------
+-- ##############################################
 
 return ts_utils

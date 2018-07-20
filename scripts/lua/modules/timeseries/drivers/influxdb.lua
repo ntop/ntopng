@@ -4,7 +4,7 @@
 
 local driver = {}
 
-local ts_types = require("ts_types")
+local ts_common = require("ts_common")
 
 local json = require("dkjson")
 require("ntop_utils")
@@ -18,7 +18,7 @@ require("ntop_utils")
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:new(options)
   local obj = {}
@@ -29,7 +29,7 @@ function driver:new(options)
   return obj
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:append(schema, timestamp, tags, metrics)
   local tags_string = table.tconcat(tags, "=", ",")
@@ -42,7 +42,7 @@ function driver:append(schema, timestamp, tags, metrics)
   return ntop.appendInfluxDB(api_line)
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function influx_query(full_url)
   local res = ntop.httpGet(full_url, "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
@@ -77,7 +77,7 @@ local function influx_query(full_url)
   return jres.results[1]
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function influx2Series(schema, tstart, tend, tags, options, data, time_step)
   local data_type = schema.options.metrics_type
@@ -97,7 +97,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   for idx, values in ipairs(data.values) do
     local cur_t = data.values[idx][1]
 
-    if (idx == 1) and (data_type ~= ts_types.counter) then
+    if (idx == 1) and (data_type ~= ts_common.metrics.counter) then
       -- skip first point when no derivative is performed as an issue with GROUP BY
       goto continue
     end
@@ -144,7 +144,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   return series, count
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
   --[[
@@ -167,14 +167,14 @@ local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_ty
     query = 'SELECT MEAN("total_serie") AS "total_serie" FROM ('.. query ..') GROUP BY time('.. time_step ..'s)'
   end
 
-  if data_type == ts_types.counter then
+  if data_type == ts_common.metrics.counter then
     query = "SELECT NON_NEGATIVE_DERIVATIVE(total_serie) AS total_serie FROM (" .. query .. ")"
   end
 
   return query
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
   local data_type = schema.options.metrics_type
@@ -193,7 +193,7 @@ local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_ste
   return series[1].data
 end
 
--------------------------------------------------------
+-- ##############################################
 
 -- TODO FIXME: mean/percentile are buggy whith empty/zero points!
 local function calcStats(schema, tstart, tend, tags, url)
@@ -209,7 +209,7 @@ local function calcStats(schema, tstart, tend, tags, url)
     local data_stats = data.series[1].values[1]
     local total = data_stats[2]
 
-    if data_type == ts_types.gauge then
+    if data_type == ts_common.metrics.gauge then
       -- no total for gauge values!
       total = nil
     end
@@ -224,7 +224,7 @@ local function calcStats(schema, tstart, tend, tags, url)
   return nil
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function calculateSampledTimeStep(schema, tstart, tend, options)
   local estimed_num_points = math.ceil((tend - tstart) / schema.options.step)
@@ -239,7 +239,7 @@ function calculateSampledTimeStep(schema, tstart, tend, options)
   return time_step
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
@@ -248,7 +248,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   for i, metric in ipairs(schema._metrics) do
     -- NOTE: why we need to device by time_step ? is MEAN+GROUP BY TIME bugged?
-    if data_type == ts_types.counter then
+    if data_type == ts_common.metrics.counter then
       metrics[i] = "(DERIVATIVE(MEAN(\"" .. metric .. "\")) / ".. time_step ..") as " .. metric
     else
       metrics[i] = "MEAN(\"".. metric .."\") as " .. metric
@@ -294,13 +294,13 @@ function driver:query(schema, tstart, tend, tags, options)
   return rv
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:flush()
   return true
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
@@ -365,7 +365,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   return res
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
@@ -436,6 +436,6 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   }
 end
 
--------------------------------------------------------
+-- ##############################################
 
 return driver

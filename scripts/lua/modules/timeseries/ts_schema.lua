@@ -3,7 +3,7 @@
 --
 
 local ts_schema = {}
-local ts_types = require("ts_types")
+local ts_common = require("ts_common")
 
 -- NOTE: to get the actual rentention period, multiply retention_dp * aggregation_dp * step
 ts_schema.supported_steps = {
@@ -43,7 +43,7 @@ ts_schema.supported_steps = {
 
 function ts_schema:new(name, options)
   options = options or {}
-  options.metrics_type = options.metrics_type or ts_types.counter
+  options.metrics_type = options.metrics_type or ts_common.metrics.counter
 
   -- required options
   if not options.step then

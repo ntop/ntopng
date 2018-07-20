@@ -5,7 +5,7 @@
 local driver = {}
 
 local os_utils = require("os_utils")
-local ts_types = require("ts_types")
+local ts_common = require("ts_common")
 require("ntop_utils")
 require("rrd_paths")
 
@@ -13,11 +13,11 @@ local RRD_CONSOLIDATION_FUNCTION = "AVERAGE"
 local use_hwpredict = false
 
 local type_to_rrdtype = {
-  [ts_types.counter] = "DERIVE",
-  [ts_types.gauge] = "GAUGE",
+  [ts_common.metrics.counter] = "DERIVE",
+  [ts_common.metrics.gauge] = "GAUGE",
 }
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:new(options)
   local obj = {
@@ -30,13 +30,13 @@ function driver:new(options)
   return obj
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:flush()
   return true
 end
 
--------------------------------------------------------
+-- ##############################################
 
 -- TODO remove after migrating to the new path format
 -- Maps second tag name to getRRDName
@@ -125,7 +125,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
   return nil
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function getRRAParameters(step, resolution, retention_time)
   local aggregation_dp = math.ceil(resolution / step)
@@ -181,7 +181,7 @@ local function create_rrd(schema, path)
   return true
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function update_rrd(schema, rrdfile, timestamp, data)
   local params = {tolongint(timestamp), }
@@ -193,7 +193,7 @@ local function update_rrd(schema, rrdfile, timestamp, data)
   ntop.rrd_update(rrdfile, table.unpack(params))
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
@@ -209,23 +209,7 @@ function driver:append(schema, timestamp, tags, metrics)
   return true
 end
 
--------------------------------------------------------
-
--- Find the percentile of a list of values
--- N - A list of values.  N must be sorted.
--- P - A float value from 0.0 to 1.0
-local function percentile(N, P)
-   local n = math.floor(math.floor(P * #N + 0.5))
-   return(N[n-1])
-end
-
--- NOTE: N is changed after this call!
-local function ninetififthPercentile(N)
-   table.sort(N) -- <<== Sort first
-   return(percentile(N, 0.95))
-end
-
--------------------------------------------------------
+-- ##############################################
 
 local function makeTotalSerie(series, count)
   local total = {}
@@ -243,7 +227,7 @@ local function makeTotalSerie(series, count)
   return total
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function calcStats(total_serie, step, tdiff)
   local total = 0
@@ -276,7 +260,7 @@ local function calcStats(total_serie, step, tdiff)
   }
 end
 
--------------------------------------------------------
+-- ##############################################
 
 local function sampleSeries(schema, cur_points, step, max_points, series)
   local sampled_dp = math.ceil(cur_points / max_points)
@@ -320,7 +304,7 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
   return step * sampled_dp, count, series
 end
 
--------------------------------------------------------
+-- ##############################################
 
 -- Make sure we do not fetch data from RRDs that have been update too much long ago
 -- as this creates issues with the consolidation functions when we want to compare
@@ -344,7 +328,7 @@ local function touchRRD(rrdname)
   end
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
@@ -393,7 +377,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   if options.calculate_stats then
     stats = calcStats(total_serie, fstep, tend - tstart)
-    stats["95th_percentile"] = ninetififthPercentile(total_serie)
+    stats["95th_percentile"] = ts_common.ninetififthPercentile(total_serie)
   end
 
   return {
@@ -405,7 +389,7 @@ function driver:query(schema, tstart, tend, tags, options)
   }
 end
 
--------------------------------------------------------
+-- ##############################################
 
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
@@ -471,13 +455,13 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_
   return res
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   return _listSeries(schema, tags_filter, wildcard_tags, start_time, true --[[ with l4 protos ]])
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if #top_tags > 1 then
@@ -564,7 +548,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   if options.calculate_stats then
     stats = calcStats(total_serie, step, tend - tstart)
-    stats["95th_percentile"] = ninetififthPercentile(table.clone(total_serie))
+    stats["95th_percentile"] = ts_common.ninetififthPercentile(total_serie)
   end
 
   return {
@@ -576,12 +560,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   }
 end
 
--------------------------------------------------------
+-- ##############################################
 
 function driver:delete(schema, tags)
   tprint("TODO DELETE")
 end
 
--------------------------------------------------------
+-- ##############################################
 
 return driver
