@@ -12,10 +12,6 @@ local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
 
-if ntop.isnEdge() then
-   iface_series[#iface_series + 1] = {schema="iface:nfq_pct",    label=i18n("graphs.num_nfq_pct")}
-end
-
 -- ########################################################
 
 if(ntop.isPro()) then
@@ -268,7 +264,7 @@ function printSeries(options, tags, start_time, base_url, params)
    local needs_separator = false
 
    for _,top in ipairs(series) do
-      if have_nedge and top.nedge_exclude then
+      if (have_nedge and top.nedge_exclude) or (not have_nedge and top.nedge_only) then
          goto continue
       end
 
@@ -278,18 +274,18 @@ function printSeries(options, tags, start_time, base_url, params)
          local k = top.schema
          local v = top.label
 
-	 -- only show if there has been an update within the specified time frame
-	 local res = ts_utils.listSeries(k, tags, start_time)
+         -- only show if there has been an update within the specified time frame
+         local res = ts_utils.listSeries(k, tags, start_time)
    
-	 if not table.empty(res) then
-	    if needs_separator then
+         if not table.empty(res) then
+            if needs_separator then
                -- Only add the separator if there are actually some entries in the group
                graphMenuDivider()
                needs_separator = false
             end
 
-	    populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
-	 end
+            populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
+         end
       end
 
       ::continue::

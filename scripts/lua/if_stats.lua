@@ -904,7 +904,8 @@ elseif(page == "historical") then
          {schema="iface:traffic",               label=i18n("traffic")},
          {schema="iface:packets",               label=i18n("packets")},
          {schema="iface:drops",                 label=i18n("graphs.packet_drops")},
-         
+         {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
+
          {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
          {separator=1, nedge_exclude=1},
          {schema="iface:tcp_lost",              label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
