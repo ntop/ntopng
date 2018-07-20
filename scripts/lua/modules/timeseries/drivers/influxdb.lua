@@ -89,9 +89,11 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   end
 
   -- Time tracking to fill the missing points
-  local prev_t = tstart + time_step
+  local first_t = data.values[1][1]
+  local prev_t = tstart + ((first_t - tstart) % time_step)
+
   local series_idx = 1
-  --tprint(tstart .. " vs " .. data.values[1][1])
+  --tprint(time_step .. ") " .. tstart .. " vs " .. first_t .. " - " .. prev_t)
 
   -- Convert the data
   for idx, values in ipairs(data.values) do
@@ -108,6 +110,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
         serie.data[series_idx] = options.fill_value
       end
 
+      --tprint("FILL [" .. series_idx .."] " .. cur_t .. " vs " .. prev_t)
       series_idx = series_idx + 1
       prev_t = prev_t + time_step
     end
@@ -126,7 +129,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
       end
 
       series_idx = series_idx + 1
-      prev_t = cur_t
+      prev_t = prev_t + time_step
     end
 
     ::continue::
