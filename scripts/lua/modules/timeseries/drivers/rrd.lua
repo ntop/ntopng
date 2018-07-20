@@ -149,6 +149,20 @@ local function map_metrics_to_rrd_columns(schema)
   return nil
 end
 
+-- This is necessary to keep the current RRD format
+local function map_rrd_column_to_metrics(schema, column_name)
+  if (column_name == "num") or (column_name == "sent") or (column_name == "ingress") then
+    return 1
+  elseif (column_name == "rcvd") or (column_name == "egress") then
+    return 2
+  elseif (column_name == "inner") then
+    return 3
+  end
+
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown column name (" .. column_name .. ") in schema " .. schema.name)
+  return nil
+end
+
 local function create_rrd(schema, path)
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
   local rrd_type = type_to_rrdtype[schema.options.metrics_type]
@@ -303,11 +317,11 @@ function driver:query(schema, tstart, tend, tags, options)
   touchRRD(rrdfile)
 
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
-  local serie_idx = 1
   local count = 0
   local series = {}
 
-  for _, serie in pairs(fdata) do
+  for name_key, serie in pairs(fdata) do
+    local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
     count = 0
 
