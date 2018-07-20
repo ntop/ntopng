@@ -28,4 +28,43 @@ end
 
 -- ##############################################
 
+function ts_common.calculateStatistics(total_serie, step, tdiff)
+  local total = 0
+  local min_val, max_val
+  local min_val_pt, max_val_pt
+
+  for idx, val in pairs(total_serie) do
+    -- integrate
+    total = total + val * step
+
+    if (min_val_pt == nil) or (val < min_val) then
+      min_val = val
+      min_val_pt = idx - 1
+    end
+    if (max_val_pt == nil) or (val > max_val) then
+      max_val = val
+      max_val_pt = idx - 1
+    end
+  end
+
+  local avg = total / tdiff
+
+  if data_type == ts_common.metrics.gauge then
+    -- no total for gauge values!
+    total = nil
+  end
+
+  return {
+    total = total,
+    average = avg,
+    min_val = min_val,
+    max_val = max_val,
+    min_val_idx = min_val_pt,
+    max_val_idx = max_val_pt,
+    ["95th_percentile"] = ts_common.ninetififthPercentile(total_serie),
+  }
+end
+
+-- ##############################################
+
 return ts_common

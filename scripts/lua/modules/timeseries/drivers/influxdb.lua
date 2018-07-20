@@ -198,33 +198,34 @@ end
 
 -- ##############################################
 
--- TODO FIXME: mean/percentile are buggy whith empty/zero points!
-local function calcStats(schema, tstart, tend, tags, url)
-  local data_type = schema.options.metrics_type
-  local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type)
-  query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..
-    ', MEAN("total_serie"), PERCENTILE("total_serie", 95) FROM (' .. query .. ')'
+-- NOTE: mean / percentile values are calculated manually because of an issue with
+-- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
+local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+  local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart)
 
-  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url)
+  if time_step ~= schema.options.step then
+    -- NOTE: the total must be manually extracted from influx when sampling occurs
+    local data_type = schema.options.metrics_type
+    local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type)
+    query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..' FROM (' .. query .. ')'
 
-  if (data and data.series and data.series[1] and data.series[1].values[1]) then
-    local data_stats = data.series[1].values[1]
-    local total = data_stats[2]
+    local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+    local data = influx_query(full_url)
 
-    if data_type == ts_common.metrics.gauge then
-      -- no total for gauge values!
-      total = nil
+    if (data and data.series and data.series[1] and data.series[1].values[1]) then
+      local data_stats = data.series[1].values[1]
+      local total = data_stats[2]
+
+      if stats.total then
+        -- only overwrite it if previously set
+        stats.total = total
+      end
+
+      stats.average = total / (tend - tstart)
     end
-
-    return {
-      total = total,
-      average = data_stats[3],
-      ["95th_percentile"] = data_stats[4],
-    }
   end
 
-  return nil
+  return stats
 end
 
 -- ##############################################
@@ -283,7 +284,8 @@ function driver:query(schema, tstart, tend, tags, options)
   local stats = nil
 
   if options.calculate_stats then
-    stats = calcStats(schema, tstart, tend, tags, url)
+    local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
   end
 
   local rv = {
@@ -422,13 +424,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
+  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
   local stats = nil
 
   if options.calculate_stats then
-    stats = calcStats(schema, tstart, tend, tags, url)
+    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
   end
-
-  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
 
   return {
     topk = sorted,
