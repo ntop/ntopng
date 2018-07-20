@@ -343,7 +343,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local stats = nil
 
   if options.calculate_stats then
-    stats = ts_common.calculateStatistics(total_serie, fstep, tend - tstart)
+    stats = ts_common.calculateStatistics(total_serie, fstep, tend - tstart, schema.options.metrics_type)
   end
 
   return {
@@ -513,7 +513,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   total_serie = total_serie[1].data
 
   if options.calculate_stats then
-    stats = ts_common.calculateStatistics(total_serie, step, tend - tstart)
+    stats = ts_common.calculateStatistics(total_serie, step, tend - tstart, schema.options.metrics_type)
   end
 
   return {

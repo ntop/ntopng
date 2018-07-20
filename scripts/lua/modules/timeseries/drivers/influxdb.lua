@@ -201,7 +201,7 @@ end
 -- NOTE: mean / percentile values are calculated manually because of an issue with
 -- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
 local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
-  local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart)
+  local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
   if time_step ~= schema.options.step then
     -- NOTE: the total must be manually extracted from influx when sampling occurs

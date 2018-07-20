@@ -85,6 +85,23 @@ function makeFlatLineValues(tstart, tstep, num, data) {
   return values;
 }
 
+function checkSeriesConsinstency(schema_name, count, series) {
+  var rv = true;
+
+  for(var i=0; i<series.length; i++) {
+    var data = series[i].data;
+
+    if(data.length != count) {
+        console.error("points mismatch: serie '" + getSerieLabel(schema_name, series[i]) +
+          "' has " + data.length + " points, expected " + count);
+
+      rv = false;
+    }
+  }
+
+  return rv;
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var pending_request = null;
@@ -113,7 +130,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
-      if(!data || !data.series) {
+      if(!data || !data.series || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
         update_chart_data([]);
         return;
       }

@@ -28,7 +28,7 @@ end
 
 -- ##############################################
 
-function ts_common.calculateStatistics(total_serie, step, tdiff)
+function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
   local total = 0
   local min_val, max_val
   local min_val_pt, max_val_pt
