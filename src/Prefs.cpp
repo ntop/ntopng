@@ -44,6 +44,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
   enable_active_local_hosts_cache = false, enable_tiny_flows_export = true,
   enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
+  enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
   enable_remote_to_remote_alerts = true,
   enable_dropped_flows_alerts = true,
   enable_syslog_alerts = false, enable_captive_portal = false,
@@ -506,6 +507,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_probing_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING, CONST_DEFAULT_ALERT_PROBING_ENABLED),
     enable_ssl_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL, CONST_DEFAULT_ALERT_SSL_ENABLED),
     enable_dns_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DNS, CONST_DEFAULT_ALERT_DNS_ENABLED),
+    enable_mining_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_MINING, CONST_DEFAULT_ALERT_MINING_ENABLED),
     enable_remote_to_remote_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE,
 							       CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED),
     enable_dropped_flows_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS,

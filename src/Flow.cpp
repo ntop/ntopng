@@ -208,6 +208,9 @@ void Flow::dumpFlowAlert() {
       break;
 
     case status_web_mining_detected:
+      do_dump = ntop->getPrefs()->are_mining_alerts_enabled();
+      break;
+
     case status_blacklisted:
       do_dump = true;
       break;
@@ -3258,7 +3261,7 @@ FlowStatus Flow::getFlowStatus() {
   if(isBlacklistedFlow())
     return status_blacklisted;
 
-  if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_WEB_MINING)
+  if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;
 
 #ifndef HAVE_NEDGE

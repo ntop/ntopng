@@ -968,6 +968,7 @@ local known_parameters = {
    ["toggle_flow_alerts_iface"]                    =  validateBool,
    ["toggle_ssl_alerts"]                           =  validateBool,
    ["toggle_dns_alerts"]                           =  validateBool,
+   ["toggle_mining_alerts"]                        =  validateBool,
    ["toggle_remote_to_remote_alerts"]              =  validateBool,
    ["toggle_dropped_flows_alerts"]                 =  validateBool,
    ["toggle_malware_probing"]                      =  validateBool,

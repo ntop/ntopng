@@ -62,6 +62,7 @@ class Prefs {
   bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,
     enable_probing_alerts, enable_ssl_alerts, enable_ip_reassignment_alerts;
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
+  bool enable_mining_alerts;
   bool enable_dropped_flows_alerts;
   bool enable_syslog_alerts, external_notifications_enabled;
   bool enable_captive_portal, enable_informative_captive_portal;
@@ -285,6 +286,7 @@ class Prefs {
   inline bool are_probing_alerts_enabled()               { return(enable_probing_alerts);               };
   inline bool are_ssl_alerts_enabled()                   { return(enable_ssl_alerts);                   };
   inline bool are_dns_alerts_enabled()                   { return(enable_dns_alerts);                   };
+  inline bool are_mining_alerts_enabled()                { return(enable_mining_alerts);                };
   inline bool are_remote_to_remote_alerts_enabled()      { return(enable_remote_to_remote_alerts);      };
   inline bool are_dropped_flows_alerts_enabled()         { return(enable_dropped_flows_alerts);         };
   inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };

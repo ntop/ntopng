@@ -149,6 +149,9 @@ local menu_subpages = {
     }, toggle_dropped_flows_alerts = {
       title       = i18n("prefs.toggle_dropped_flows_alerts_title"),
       description = i18n("prefs.toggle_dropped_flows_alerts_description"),
+    }, toggle_mining_alerts = {
+      title       = i18n("prefs.toggle_mining_alerts_title"),
+      description = i18n("prefs.toggle_mining_alerts_description"),
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
       description = i18n("prefs.toggle_malware_probing_description", {url="https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"}),

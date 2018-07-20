@@ -339,9 +339,6 @@
 #define CONST_LUA_FLOW_UPDATE       "flowUpdate"
 #define CONST_LUA_FLOW_NDPI_DETECT  "flowProtocolDetected"
 
-#define CUSTOM_CATEGORY_WEB_MINING  99
-#define CUSTOM_CATEGORY_MALWARE     100
-
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)
 #define CONST_PATH_SEP                    '\\'
@@ -362,6 +359,7 @@
 #define CONST_DEFAULT_ALERT_PROBING_ENABLED               0
 #define CONST_DEFAULT_ALERT_SSL_ENABLED                   0
 #define CONST_DEFAULT_ALERT_DNS_ENABLED                   0
+#define CONST_DEFAULT_ALERT_MINING_ENABLED                1
 #define CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED      0
 #define CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED         0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
@@ -484,8 +482,9 @@
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               "ntopng.prefs.thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG               "ntopng.prefs.alerts_syslog"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_PROBING              "ntopng.prefs.probing_alerts"   /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"   /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_DNS                  "ntopng.prefs.dns_alerts"   /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"       /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_DNS                  "ntopng.prefs.dns_alerts"       /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_MINING               "ntopng.prefs.mining_alerts"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE     "ntopng.prefs.remote_to_remote_alerts"
 #define CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS        "ntopng.prefs.dropped_flows_alerts"
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        "ntopng.prefs.alerts_global.min.local_hosts"

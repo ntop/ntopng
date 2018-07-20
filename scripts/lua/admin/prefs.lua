@@ -214,7 +214,7 @@ function printAlerts()
   end
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
-  "row_toggle_malware_probing", "row_toggle_alert_syslog",
+  "row_toggle_malware_probing", "row_toggle_dns_alerts", "row_toggle_alert_syslog",
   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
@@ -307,6 +307,13 @@ function printAlerts()
   hidden = not showElements,
      })
   end
+
+  prefsToggleButton({
+    field = "toggle_mining_alerts",
+    pref = "mining_alerts",
+    default = "1",
+    hidden = not showElements,
+  })
 
   prefsToggleButton({
     field = "toggle_malware_probing",
