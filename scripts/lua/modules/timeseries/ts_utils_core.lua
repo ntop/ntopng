@@ -2,18 +2,6 @@
 -- (C) 2018 - ntop.org
 --
 
---[[
-Data model:
-
-  - schema: a set of <schema_name, tags, metrics, options>
-  - schema_name: a unique schema identifier
-  - tags: an ordered list of <tag_name, tag_value>. A tag is an instance identifier.
-  - metrics: an ordered list of metrics.
-    - metric: a single metric (e.g. byte sent) for the instance within the schema.
-  - options: variable options, divided between driver dependent/independent
-    E.g. {step=60, driver={rrd={ .. RRD specific options ..}}}
-]]
-
 local ts_utils = {}
 
 -- Import other modules
