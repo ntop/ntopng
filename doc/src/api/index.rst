@@ -1,18 +1,14 @@
 API Documentation
 =================
 
-Ntopng provides a Lua API to interact with the core. The API is internally used
-by periodic scripts and gui scripts to extract information or to apply configuration
-changes.
+The ntopng API is split into two parts:
 
-Custom user scripts can use the API, for example, to provide new data visualizations
-or extract the data to send it to an external program.
+- The Lua C API, to interact with the ntopng core.
 
-Since some API functions can return very complex objects, which will not be covered here,
-the suggestion is to use the utility function `tprint` to print out the result a the function
-to figure out its format.
+- The Lua API, a set of utilities and frameworks for ntopng scripting.
 
 .. toctree::
     :maxdepth: 2
 
     lua_c/index
+    lua/index
