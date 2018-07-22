@@ -16,6 +16,7 @@ TARGETS = $(DOC_SOURCES:.lua=.lua.cpp)
 
 # Specific rule for Lua API to document
 TARGETS += $(LUA_API_DIR)/timeseries/ts_utils.lua.cpp
+TARGETS += $(LUA_API_DIR)/timeseries/driver.lua.cpp
 
 # ######################################## #
 
@@ -33,4 +34,7 @@ clean:
 
 # Specific rule for Lua API to document
 $(LUA_API_DIR)/timeseries/ts_utils.lua.cpp : ${MODULES_DIR}/timeseries/ts_utils_core.lua
+	./lua2dox $< > $@
+
+$(LUA_API_DIR)/timeseries/driver.lua.cpp : ${MODULES_DIR}/timeseries/drivers/sample.lua
 	./lua2dox $< > $@

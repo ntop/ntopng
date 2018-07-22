@@ -240,8 +240,8 @@ end
 --! @brief Perform a topk query.
 --! @param schema_name the schema identifier.
 --! @param tags a list of filter tags. All the tags for the given schema must be specified.
---! @param tstart lower time for the query.
---! @param tend upper time for the query.
+--! @param tstart lower time bound for the query.
+--! @param tend upper time bound for the query.
 --! @param options (optional) query options.
 --! @return query result on success, nil on error.
 function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)

@@ -15,6 +15,7 @@ ts_utils API
   - *count*: number of points for each data series.
   - *series*: a list of data series. See below for details.
   - *statistics*: additional statistics. See below for details. Statistics are optional.
+  - *additional_series*: (optional) a list of additional series (e.g. the *total series*).
 
 Data series:
   - *label*: series label.

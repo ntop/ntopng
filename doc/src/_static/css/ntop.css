@@ -25,3 +25,7 @@ span[id^='group__module__interface'] + code.descname:before {
 span[id^='group__module__ts__utils'] + code.descname:before {
     content: "ts_utils." !important;
 }
+
+span[id^='group__module__driver'] + code.descname:before {
+    content: "driver:" !important;
+}

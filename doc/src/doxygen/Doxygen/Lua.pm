@@ -102,12 +102,27 @@ sub parse {
                 my $funcname = $line;
                 $funcname =~ s/function\s+//;
                 $funcname =~ s/\(.*//;
-                my $dot_idx = index($funcname, ".");
 
+                my $dot_idx = index($funcname, ".");
                 if($dot_idx != -1) {
                     my $module = substr $funcname, 0, $dot_idx;
                     $module = "module_" . $module;
                     my $method = substr $funcname, $dot_idx + 1;
+
+                    # remove module from function name
+                    $line =~ s/$funcname/$method/;
+
+                    # assign the module to a group
+                    $result .= "/// \@ingroup $module\n";
+                    $modules{$module} = 1;
+                }
+
+                # note: single colon was replaced with "-" before
+                my $colon_idx = index($funcname, "-");
+                if($colon_idx != -1) {
+                    my $module = substr $funcname, 0, $colon_idx;
+                    $module = "module_" . $module;
+                    my $method = substr $funcname, $colon_idx + 1;
 
                     # remove module from function name
                     $line =~ s/$funcname/$method/;
