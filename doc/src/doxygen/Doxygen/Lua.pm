@@ -64,6 +64,7 @@ sub parse {
     my $block_name = q{};
     my $result = q{};
     my $doc_found = 0;
+    my %modules;
 
     my $mark = $self->mark;
      
@@ -98,6 +99,24 @@ sub parse {
             $line =~ s/:/-/;
 
             if ($doc_found) {
+                my $funcname = $line;
+                $funcname =~ s/function\s+//;
+                $funcname =~ s/\(.*//;
+                my $dot_idx = index($funcname, ".");
+
+                if($dot_idx != -1) {
+                    my $module = substr $funcname, 0, $dot_idx;
+                    $module = "module_" . $module;
+                    my $method = substr $funcname, $dot_idx + 1;
+
+                    # remove module from function name
+                    $line =~ s/$funcname/$method/;
+
+                    # assign the module to a group
+                    $result .= "/// \@ingroup $module\n";
+                    $modules{$module} = 1;
+                }
+
                 $result .= "$line\n";
             }
         }
@@ -136,6 +155,11 @@ sub parse {
                 $doc_found = 0;
             }
         }
+    }
+
+    # define all the used groups
+    for my $module (keys %modules) {
+        $result .= "/// \@defgroup $module\n";
     }
 
     close FH;

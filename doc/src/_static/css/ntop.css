@@ -1,3 +1,27 @@
 .logo {
     width: 120px !important;
 }
+
+/* Add lua module prefixes manually (Doxygen does not allow dots in function names) */
+
+span[id^='group__module_'] + code.descname:before {
+    color: #4665A2 !important;
+}
+
+/* E.g.
+ *  ts_utils.someFunction -> group__module__ts__utils
+ *
+ * Note: underscores are doubled.
+ */
+
+span[id^='group__module__ntop'] + code.descname:before {
+    content: "ntop." !important;
+}
+
+span[id^='group__module__interface'] + code.descname:before {
+    content: "interface." !important;
+}
+
+span[id^='group__module__ts__utils'] + code.descname:before {
+    content: "ts_utils." !important;
+}
