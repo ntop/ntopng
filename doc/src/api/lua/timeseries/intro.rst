@@ -1,5 +1,5 @@
-Base Concepts
-#############
+Basic Concepts and Export
+#########################
 
 Here is a brief introduction to some fundamental concepts of the API.
 
@@ -57,7 +57,7 @@ The "host:ndpi" schema is defined in `ts_5min.lua` as follows:
 In order to extract last hour host `192.168.1.10` information about the
 Facebook protocol, the following API can be used.
 
-To extract data from a Lua script localted within the ntopng directory structure:
+To extract data from a Lua script located within the ntopng directory structure:
 
 .. code-block:: lua
 
@@ -75,5 +75,5 @@ To extract data from an external program:
 
   curl "127.0.0.1:3000/lua/get_ts.lua?ts_schema=host:traffic&ts_query=ifid:1,host:192.168.1.10,protocol:Facebook&tstart=1532180495&tend=1532176895"
 
-JSON data will be returned. Check out the ts_utils module documentation below to
+JSON data will be returned. Check out the `ts_utils` module documentation below to
 learn more about the query response format.

@@ -28,6 +28,9 @@ if not isEmptyString(ntop.getCache("ntopng.prefs.ts_post_data_url")) then
   influxdb_driver = require("influxdb"):new()
 end
 
+--! @brief Define a new timeseries schema.
+--! @param name the schema identifier.
+--! @return the newly created schema.
 function ts_utils.newSchema(name, options)
   local schema = ts_utils.schema:new(name, options)
 
@@ -41,6 +44,9 @@ function ts_utils.newSchema(name, options)
   return schema
 end
 
+--! @brief Find schema by name.
+--! @param name the schema identifier.
+--! @return a schema object on success, nil on error.
 function ts_utils.getSchema(name)
   return loaded_schemas[name]
 end
@@ -80,7 +86,12 @@ end
 
 -- ##############################################
 
-function ts_utils.append(schema_name, tags_and_metrics, timestamp, verbose)
+--! @brief Append a new data point to the specified timeseries.
+--! @param schema_name the schema identifier.
+--! @param tags_and_metrics a table with tag->value and metric->value mappings.
+--! @param timestamp the timestamp associated with the data point.
+--! @return true on success, false on error.
+function ts_utils.append(schema_name, tags_and_metrics, timestamp)
   timestamp = timestamp or os.time()
   local schema = ts_utils.getSchema(schema_name)
 
@@ -97,9 +108,7 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp, verbose)
 
   local rv = true
 
-  if verbose then
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, "TS.UPDATE [".. schema.name .."] " .. table.tconcat(tags_and_metrics, "=", ","))
-  end
+  --traceError(TRACE_NORMAL, TRACE_CONSOLE, "TS.UPDATE [".. schema.name .."] " .. table.tconcat(tags_and_metrics, "=", ","))
 
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
     rv = driver:append(schema, timestamp, tags, data) and rv
@@ -110,6 +119,7 @@ end
 
 -- ##############################################
 
+-- Get some default options to use in queries.
 local function getQueryOptions(overrides)
   return table.merge({
     max_num_points = 240,   -- maximum number of points per data serie
@@ -123,6 +133,13 @@ end
 
 -- ##############################################
 
+--! @brief Perform a query to extract timeseries data.
+--! @param schema_name the schema identifier.
+--! @param tags a list of filter tags. All the tags for the given schema must be specified.
+--! @param tstart lower time for the query.
+--! @param tend upper time for the query.
+--! @param options (optional) query options.
+--! @return query result on success, nil on error.
 function ts_utils.query(schema_name, tags, tstart, tend, options)
   local query_options = getQueryOptions(options)
   local schema = ts_utils.getSchema(schema_name)
@@ -220,7 +237,14 @@ end
 
 -- ##############################################
 
-function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
+--! @brief Perform a topk query.
+--! @param schema_name the schema identifier.
+--! @param tags a list of filter tags. All the tags for the given schema must be specified.
+--! @param tstart lower time for the query.
+--! @param tend upper time for the query.
+--! @param options (optional) query options.
+--! @return query result on success, nil on error.
+function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
   local query_options = getQueryOptions(options)
   local top_items = nil
   local schema = nil
@@ -231,14 +255,14 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
     return nil
   end
 
-  local pre_computed = getPrecomputedTops(schema_id, tags, tstart, tend, query_options)
+  local pre_computed = getPrecomputedTops(schema_name, tags, tstart, tend, query_options)
 
   if pre_computed then
     -- Use precomputed top items
     top_items = pre_computed
     schema = pre_computed.schema
   else
-    schema = ts_utils.getSchema(schema_id)
+    schema = ts_utils.getSchema(schema_name)
 
     if not schema then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
@@ -255,7 +279,7 @@ function ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
 
     if table.empty(top_tags) then
       -- no top tags, just a plain query
-      return ts_utils.query(schema_id, tags, tstart, tend, query_options)
+      return ts_utils.query(schema_name, tags, tstart, tend, query_options)
     end
 
     -- Find the top items
@@ -314,9 +338,11 @@ end
 
 -- ##############################################
 
--- List all the data series matching the given filter.
--- Only data series updated after start_time will be returned.
--- Returns a list of expanded tags based on the matches.
+--! @brief List all available timeseries for the specified schema, tags and time.
+--! @param schema_name the schema identifier.
+--! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
+--! @param start_time time filter. Only timeseries updated after start_time will be returned.
+--! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
 function ts_utils.listSeries(schema_name, tags_filter, start_time)
   local schema = ts_utils.getSchema(schema_name)
 
@@ -344,6 +370,10 @@ end
 
 -- ##############################################
 
+--! @brief A shortcut for ts_utils.listSeries to verify timeseries existance.
+--! @param schema_name the schema identifier.
+--! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
+--! @return true if the specified series exist, false otherwise.
 function ts_utils.exists(schema_name, tags_filter)
   return not table.empty(ts_utils.listSeries(schema_name, tags_filter, 0))
 end
