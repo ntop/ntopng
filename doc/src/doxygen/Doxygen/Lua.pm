@@ -63,6 +63,7 @@ sub parse {
     my $in_function = 0;
     my $block_name = q{};
     my $result = q{};
+    my $doc_found = 0;
 
     my $mark = $self->mark;
      
@@ -85,7 +86,9 @@ sub parse {
         # translate to doxygen mark
         $line =~ s{$mark}{///};
 
+        # documentation string
         if ($line =~ m{^\s*///}) {
+            $doc_found = 1;
             $result .= "$line\n";
         }
         # function start
@@ -93,17 +96,24 @@ sub parse {
             $in_function = 1;
             $line .= q{;};
             $line =~ s/:/-/;
-            $result .= "$line\n";
+
+            if ($doc_found) {
+                $result .= "$line\n";
+            }
         }
 	#local function start
    	elsif ($line =~ /^local.+function/) {
             $in_function = 1;
             $line .= q{;};
             $line =~ s/function\s+/function-/;
-            $result .= "$line\n";
+
+            if ($doc_found) {
+                $result .= "$line\n";
+            }
         }
         # function end
         elsif ($in_function == 1 && $line =~ /^end/) {
+            $doc_found = 0;
             $in_function = 0;
         }
         # block start
@@ -120,7 +130,11 @@ sub parse {
         elsif ($in_function == 0 && $line =~ /=/) {
             $line =~ s/(?=\S)/$block_name./ if $block_name;
             $line =~ s{,?(\s*)(?=///|$)}{;$1};
-            $result .= "$line\n";
+
+            if ($doc_found) {
+                $result .= "$line\n";
+                $doc_found = 0;
+            }
         }
     }
 
