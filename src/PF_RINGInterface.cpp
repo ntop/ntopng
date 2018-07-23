@@ -203,10 +203,10 @@ void PF_RINGInterface::multiPacketPollLoop() {
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
 	  dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
-			       (hdr.extended_hdr.rx_direction == 1) ? 
-			       true /* ingress */ : false /* egress */,
-			       NULL, (const struct pcap_pkthdr *) &hdr, buffer,
-			       &p, &srcHost, &dstHost, &flow);
+			(hdr.extended_hdr.rx_direction == 1) ? 
+			true /* ingress */ : false /* egress */,
+			NULL, (const struct pcap_pkthdr *) &hdr, buffer,
+			&p, &srcHost, &dstHost, &flow);
 	  sleep_time = step_sleep;
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;

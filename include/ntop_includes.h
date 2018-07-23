@@ -252,9 +252,6 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "DnsHostMapping.h"
-#ifndef WIN32
-#include "PacketBridge.h"
-#endif
 #include "TrafficShaper.h"
 #include "L7Policer.h"
 #ifdef HAVE_MYSQL
@@ -270,12 +267,9 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"
-#ifdef HAVE_NETFILTER
+#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
 #include "NetfilterInterface.h"
 #endif
-#endif
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
-#include "DivertInterface.h"
 #endif
 #ifndef HAVE_NEDGE
 #include "ParserInterface.h"

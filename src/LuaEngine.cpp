@@ -3686,7 +3686,7 @@ static int ntop_reload_hide_from_top(lua_State* vm) {
 #ifdef NTOPNG_PRO
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
-#ifdef HAVE_NETFILTER
+#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -3724,7 +3724,7 @@ static int ntop_set_lan_interface(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_policy_change_marker(lua_State* vm) {
-#ifdef HAVE_NETFILTER
+#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))

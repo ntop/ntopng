@@ -185,18 +185,15 @@ int main(int argc, char *argv[])
 	iface = NULL;
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
-	if(strncmp(ifName, "bridge:", 7) == 0)
-	  iface = new PacketBridge(ifName);
+	if(strncmp(ifName, "bridge:", 7) == 0) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Inline/bridge capabilities have now been implemented by ntopng Edge (nEdge)");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "See doc/README.inline for more information about this matter");
+	}
 #endif
 
-#if defined(HAVE_NETFILTER) && defined(NTOPNG_PRO)
+#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new NetfilterInterface(ifName);
-#endif
-
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
-        if(iface == NULL && strncmp(ifName, "divert:", 7) == 0)
-          iface = new DivertInterface(ifName);
 #endif
 	
 #ifdef HAVE_PF_RING
@@ -207,7 +204,8 @@ int main(int argc, char *argv[])
 #endif
       }
     } catch(int err) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during %s interface creation[%d]: %s. Falling back to pcap", ifName, err, strerror(err));
+      ntop->getTrace()->traceEvent(TRACE_INFO, "An exception occurred during %s interface creation[%d]: %s. Falling back to pcap",
+				   ifName, err, strerror(err));
       if(iface) delete iface;
       iface = NULL;
     } catch(...) {
@@ -222,7 +220,8 @@ int main(int argc, char *argv[])
 	errno = 0;
 	iface = new PcapInterface(ifName);
       } catch(int err) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during %s interface creation[%d]: %s", ifName, err, strerror(err));
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during %s interface creation[%d]: %s",
+				     ifName, err, strerror(err));
 	if(iface) delete iface;
 	iface = NULL;
       }
