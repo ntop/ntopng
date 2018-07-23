@@ -311,6 +311,7 @@ void NetworkInterface::init() {
   gettimeofday(&last_frequent_reset, NULL);
   frequentMacs = new FrequentTrafficItems(5);
   frequentProtocols = new FrequentTrafficItems(5);
+  live_captures = new LocklessList(true);
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -687,6 +688,7 @@ NetworkInterface::~NetworkInterface() {
   if(networkStats)   delete []networkStats;
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
+  if(live_captures)  delete live_captures;
   if(interfaceStats) delete interfaceStats;
 
   if(flowHashing) {
@@ -1939,6 +1941,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
   }
+
+  /* Live packet dump to mongoose */
+  deliverLiveCapture(h, packet, flow);
 
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
@@ -4884,7 +4889,10 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
 	|| proto_defaults[i].protoCategory == filter) &&
 	(!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
       snprintf(buf, sizeof(buf), "%d", i);
-      lua_push_str_table_entry(vm, proto_defaults[i].protoName, buf);
+      if(!proto_defaults[i].protoName)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "NULL protoname for index %d!!", i);
+      else
+	lua_push_str_table_entry(vm, proto_defaults[i].protoName, buf);
     }
   }
 }
@@ -6526,4 +6534,89 @@ void NetworkInterface::finishInitialization() {
       if(!db) throw "Not enough memory";
     }
   }
+}
+
+/* *************************************** */
+
+int NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luactx) {
+  lockless_list_item_t *i;
+
+  i = (lockless_list_item_t *) malloc(sizeof(lockless_list_item_t));
+
+  if(luactx && i) {
+    i->value = luactx;
+    live_captures->enqueue(i);
+  }
+
+  return 0;
+}
+
+/* *************************************** */
+
+bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f) {
+  IpAddress *cli_ip = NULL, *srv_ip = NULL;
+
+  if(!luactx || !f)
+    return false;
+
+  if(f && f->get_cli_host())  cli_ip = f->get_cli_host()->get_ip();
+  if(f && f->get_srv_host())  srv_ip = f->get_srv_host()->get_ip();
+
+  if(f->get_vlan_id() == luactx->live_capture.filters.vlan_id
+     && ((cli_ip && cli_ip->equal(&luactx->live_capture.filters.ip))
+	|| (srv_ip && srv_ip->equal(&luactx->live_capture.filters.ip))))
+    return true;
+
+  return false;
+}
+
+/* *************************************** */
+
+int NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f) {
+  struct pcap_file_header pcaphdr;
+  struct pcap_disk_pkthdr pkthdr;
+  struct ntopngLuaContext *c;
+  lockless_list_item_t *i;
+  void *saveptr;
+  int res;
+  bool done;
+
+  i = live_captures->getFirst(&saveptr);
+  while(i) {
+    done = false;
+
+    if(i->value
+       && (c = (struct ntopngLuaContext *)i->value)
+       && c->conn
+       && matchLiveCapture(c, f)) {
+
+      if(!c->live_capture.pcaphdr_sent) {
+	Utils::init_pcap_header(&pcaphdr, this);
+	if((res = mg_write(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
+	  done = true;
+	c->live_capture.pcaphdr_sent = true;
+      }
+
+      if(!done) {
+	/* Cannot use h as the format on disk differs */
+	pkthdr.ts.tv_sec = h->ts.tv_sec, pkthdr.ts.tv_usec = h->ts.tv_usec,
+	  pkthdr.caplen = h->caplen, pkthdr.len = h->len;
+
+	if((res = mg_write(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
+	  done = true;
+	else if((res = mg_write(c->conn, packet, h->caplen)) < (int)h->caplen)
+	  done = true;
+      }
+
+      if(done) {
+	i = live_captures->remove(i, &saveptr);
+	c->live_capture.done = true;
+      }
+    }
+
+    if(!done)
+      i = live_captures->getNext(i, &saveptr);
+  }
+
+  return 0;
 }

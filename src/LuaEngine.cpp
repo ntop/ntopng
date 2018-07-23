@@ -3561,22 +3561,45 @@ static int ntop_interface_set_idle(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-// static int ntop_interface_live_capture(lua_State* vm) {
-//   NetworkInterface *ntop_interface = NULL; // read interface from vm
-//   // Parse params (including mongoose connection conn, filter)
+static int ntop_interface_live_capture(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  struct ntopngLuaContext *c;
 
-//     if(lcr = new LiveCaptureRing()) {
-//       ntop_interface->registerCapture(lcr);
-//     }
+  char *key, buf[64];
+  u_int16_t vlan_id = 0;
 
-//     mg_write(pcap_file_hdr);
-//     while(lrc->receive(&pcap_h, &pkt)) {
-//       mg_write(pcap_h);
-//       mg_write(pkt);
-//     }
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-//     lcr->done();
-// }
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, buf, sizeof(buf));
+
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if(c) {
+    c->live_capture.done = c->live_capture.pcaphdr_sent = false,
+      c->live_capture.filters.ip.set(key), c->live_capture.filters.vlan_id = vlan_id;
+    ntop_interface->registerLiveCapture(c);
+    
+    while(!c->live_capture.done) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
+      sleep(1);
+    }
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Done.");
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
 
 /* ****************************************** */
 
@@ -7470,6 +7493,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* nIndex */
   { "nIndexSelect",                    ntop_nindex_select             },
 #endif
+
+  /* Live Capture */
+  { "liveCapture",            ntop_interface_live_capture             },
 
   /* Packet Capture */
   { "captureToPcap",                   ntop_capture_to_pcap           },

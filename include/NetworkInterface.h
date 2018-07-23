@@ -85,18 +85,10 @@ class NetworkInterface : public Checkpointable {
   MDNS *mdns;
 
   /* Live Capture */
-  /*
-    LocklessList *registering_captures, *active_captures;
+  LocklessList *live_captures;
+  static bool matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f);
+  int deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
 
-    registerCapture(LiveCaptureRing *lcr);
-    sendLiveTraffic(cosnt pcap_hdr * cosnt h, const char * const pkt) {
-    // move registering to active
-    for (each lcr in active captires) { 
-        if(lcr->done) { dequeue lcr from active_captures; delete lcr; continue; };
-        lcr->send(h, pkt);
-     }
-    };
-   */
   string ip_addresses;
   int id;
   bool bridge_interface, is_dynamic_interface;
@@ -520,7 +512,7 @@ class NetworkInterface : public Checkpointable {
 
   PacketDumper *getPacketDumper(void)                  { return pkt_dumper;     }
   PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
-
+  int registerLiveCapture(struct ntopngLuaContext * const luactx);
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();

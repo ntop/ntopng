@@ -139,6 +139,9 @@ class Utils {
   /* Data Format */
   static char* formatTraffic(float numBits, bool bits, char *buf);
   static char* formatPackets(float numPkts, char *buf);
+
+  /* Pcap files utiles */
+  static void init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface);
 };
 
 #endif /* _UTILS_H_ */

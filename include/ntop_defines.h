@@ -121,6 +121,7 @@
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 #define CONST_NTOP_INTERFACE      "ntop_interface"
 
+#define PCAP_MAGIC                0xa1b2c3d4
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
 #define NDPI_MIN_NUM_PACKETS      10
 #define GTP_U_V1_PORT             2152

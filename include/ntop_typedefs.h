@@ -455,6 +455,18 @@ struct ntopngLuaContext {
     pcap_dumper_t *dumper;
     u_int32_t end_capture;
   } pkt_capture;
+
+  /* Live capture written to mongoose socket */
+  struct {
+    /* Filters */
+    struct {
+      IpAddress ip;
+      u_int16_t vlan_id;
+    } filters;
+    /* Status */
+    bool pcaphdr_sent;
+    bool done;
+  } live_capture;
 };
 
 typedef enum {
@@ -501,5 +513,16 @@ typedef enum {
 typedef struct {
   double namelookup, connect, appconnect, pretransfer, redirect, start, total;
 } HTTPTranferStats;
+
+struct pcap_disk_timeval {
+  u_int32_t tv_sec;
+  u_int32_t tv_usec;
+};
+
+struct pcap_disk_pkthdr {
+  struct pcap_disk_timeval ts; /* time stamp                    */
+  u_int32_t caplen;            /* length of portion present     */
+  u_int32_t len;               /* length this packet (off wire) */
+};
 
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -592,7 +592,7 @@ end
    end
    
    if(host["json"] ~= nil) then
-      print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>"..i18n("download").."<A></td></tr>\n")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON<A>&nbsp;/&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/live_traffic.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>pcap<A></td></tr>\n")
    end
 
    if(host["ssdp"] ~= nil) then

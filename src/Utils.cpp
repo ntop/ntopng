@@ -3150,3 +3150,25 @@ u_int8_t* Utils::int2mac(u_int64_t mac, u_int8_t *buf) {
   buf[6] = buf[7] = '\0';
   return(buf);
 }
+
+
+/* ************************************************* */
+
+void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface) {
+  /*
+   * [0000000] c3d4 a1b2 0002 0004 0000 0000 0000 0000
+   * [0000010] 05ea 0000 0001 0000
+   */
+  if(!h || !iface)
+    return;
+
+  memset(h, 0, sizeof(*h));
+
+  h->magic = PCAP_MAGIC;
+  h->version_major = 2;
+  h->version_minor = 4;
+  h->thiszone = 0;
+  h->sigfigs  = 0;
+  h->snaplen  = ntop->getGlobals()->getSnaplen();
+  h->linktype = iface->get_datalink();
+}
