@@ -107,14 +107,31 @@ class LocklessList {
     return l.tail->next == NULL;
   }
 
-  /* The functions below are not lock less - to be used only in case of single thread */
+  /* Iterator with remove operation while iterating */
 
-  inline lockless_list_item_t *getFirst() {
-    return l.tail;
+  inline lockless_list_item_t *getFirst(void **saveptr) {
+    lockless_list_item_t **pprev = &l.tail;
+    (*saveptr) = pprev;
+    return l.tail->next;
   }
 
-  inline lockless_list_item_t *getNext(lockless_list_item_t *i) {
+  inline lockless_list_item_t *getNext(lockless_list_item_t *i, void **saveptr) {
+    lockless_list_item_t **pprev = (lockless_list_item_t **) (*saveptr);
+    pprev = &((*pprev)->next);
+    (*saveptr) = pprev;
     return i->next;
+  }
+
+  /* Removes an item (item->value should be deleted by the caller)
+   * Returns the next item, if any */
+  inline lockless_list_item_t * remove(lockless_list_item_t *i, void **saveptr) {
+    lockless_list_item_t **pprev = (lockless_list_item_t **) (*saveptr);
+    lockless_list_item_t *tmp;
+    i->value = (*pprev)->value;
+    tmp = (*pprev);
+    (*pprev) = i;
+    free(tmp);
+    return i->next; 
   }
 
 };
