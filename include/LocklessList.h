@@ -60,6 +60,19 @@ class LocklessList {
     else
       m = NULL;
   }
+  
+  ~LocklessList() {
+    lockless_list_item_t *i;
+
+    /* Note: all the items should be removed from the list before deleting it,
+     * as the list itself is generic and it cannot delete i->'value' */
+    while (dequeue(&i))
+      free(i);
+
+    free(l.tail);
+
+    if(m) delete m; 
+  }
 
   inline void enqueue(lockless_list_item_t *i) {
     if(m) m->lock(__FILE__, __LINE__);
