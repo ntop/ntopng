@@ -214,6 +214,7 @@ using namespace std;
 #include "PacketDumperGeneric.h"
 #include "PacketDumper.h"
 #include "PacketDumperTuntap.h"
+#include "LiveCaptureRing.h"
 #include "TcpFlowStats.h"
 #include "StoreManager.h"
 #include "StatsManager.h"

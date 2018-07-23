@@ -3560,6 +3560,26 @@ static int ntop_interface_set_idle(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+// static int ntop_interface_live_capture(lua_State* vm) {
+//   NetworkInterface *ntop_interface = NULL; // read interface from vm
+//   // Parse params (including mongoose connection conn, filter)
+
+//     if(lcr = new LiveCaptureRing()) {
+//       ntop_interface->registerCapture(lcr);
+//     }
+
+//     mg_write(pcap_file_hdr);
+//     while(lrc->receive(&pcap_h, &pkt)) {
+//       mg_write(pcap_h);
+//       mg_write(pkt);
+//     }
+
+//     lcr->done();
+// }
+
+/* ****************************************** */
+
 static int ntop_interface_name2id(lua_State* vm) {
   char *if_name;
 

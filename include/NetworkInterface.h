@@ -83,7 +83,20 @@ class NetworkInterface : public Checkpointable {
   /* Network Discovery */
   NetworkDiscovery *discovery;
   MDNS *mdns;
-  
+
+  /* Live Capture */
+  /*
+    LocklessList *registering_captures, *active_captures;
+
+    registerCapture(LiveCaptureRing *lcr);
+    sendLiveTraffic(cosnt pcap_hdr * cosnt h, const char * const pkt) {
+    // move registering to active
+    for (each lcr in active captires) { 
+        if(lcr->done) { dequeue lcr from active_captures; delete lcr; continue; };
+        lcr->send(h, pkt);
+     }
+    };
+   */
   string ip_addresses;
   int id;
   bool bridge_interface, is_dynamic_interface;
