@@ -3961,6 +3961,8 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   struct bpf_program fcode;
   struct ntopngLuaContext *c;
 
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+    
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -4037,6 +4039,8 @@ static int ntop_is_capture_running(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
 
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -4057,6 +4061,8 @@ static int ntop_stop_running_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
 
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
