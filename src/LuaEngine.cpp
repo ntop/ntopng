@@ -1234,6 +1234,39 @@ static int ntop_get_host_information(lua_State* vm) {
 /* ****************************************** */
 
 #ifdef HAVE_NEDGE
+static int ntop_set_bind_addr(lua_State* vm, bool http) {
+  char *addr;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    addr = (char*)lua_tostring(vm, 1);
+    if(http)
+      ntop->getPrefs()->bind_http_to_address(addr);
+    else /* https */
+      ntop->getPrefs()->bind_https_to_address(addr);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+static int ntop_set_http_bind_addr(lua_State* vm) {
+  return ntop_set_bind_addr(vm, true /* http */);
+}
+
+static int ntop_set_https_bind_addr(lua_State* vm) {
+  return ntop_set_bind_addr(vm, false /* https */);
+}
+
+#endif
+ 
+/* ****************************************** */
+
+#ifdef HAVE_NEDGE
 static int ntop_shutdown(lua_State* vm) {
   char *action;
   extern AfterShutdownAction afterShutdownAction;
@@ -7712,11 +7745,14 @@ static const luaL_Reg ntop_reg[] = {
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
   { "getHostInformation",   ntop_get_host_information },
   { "isShutdown",           ntop_is_shutdown          },
+
 #ifdef HAVE_NEDGE
-  { "shutdown",             ntop_shutdown             },
-  { "setRoutingMode",       ntop_set_routing_mode     },
-  { "isRoutingMode",        ntop_is_routing_mode      },
-  { "setLanInterface",      ntop_set_lan_interface    },
+  { "setHTTPBindAddr",      ntop_set_http_bind_addr     },
+  { "setHTTPSBindAddr",     ntop_set_https_bind_addr    },
+  { "shutdown",             ntop_shutdown               },
+  { "setRoutingMode",       ntop_set_routing_mode       },
+  { "isRoutingMode",        ntop_is_routing_mode        },
+  { "setLanInterface",      ntop_set_lan_interface      },
 #endif
   { NULL,          NULL}
 };

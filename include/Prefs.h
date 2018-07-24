@@ -124,9 +124,13 @@ class Prefs {
 
   void setTraceLevelFromRedis();
   void parseHTTPPort(char *arg);
-  void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS);  };
-  void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS); };
 
+  static inline void set_binding_address(char ** const dest, const char * const addr) {
+    if(dest && addr && addr[0] != '\0') {
+      if(*dest) free(*dest);
+      *dest = strdup(addr);
+    }
+  };
   bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
 
  public:
@@ -138,8 +142,7 @@ class Prefs {
   bool is_nedge_edition();
   bool is_nedge_enterprise_edition();
 
-  void bind_http_to_address(char *addr)  { if(http_binding_address)  free(http_binding_address);  http_binding_address  = strdup(addr); };
-  void bind_https_to_address(char *addr) { if(https_binding_address) free(https_binding_address); https_binding_address = strdup(addr); };
+
   
   inline bool is_embedded_edition() {
 #ifdef NTOPNG_EMBEDDED_EDITION
@@ -234,8 +237,19 @@ class Prefs {
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
 
+  inline void bind_http_to_address(const char * const addr)  {
+    if(http_binding_address)  free(http_binding_address);
+    http_binding_address  = strdup(addr);
+  };
+  inline void bind_https_to_address(const char * const addr) {
+    if(https_binding_address) free(https_binding_address);
+    https_binding_address = strdup(addr);
+  };
+  inline void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS);  };
+  inline void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS); };
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
+
   inline bool checkLicenseOnline()               { return(online_license_check);  };
   inline bool checkServiceLicense()              { return(service_license_check); };
   inline void disableServiceLicense()            { service_license_check = false; };
