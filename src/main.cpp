@@ -186,8 +186,11 @@ int main(int argc, char *argv[])
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
 	if(strncmp(ifName, "bridge:", 7) == 0) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Inline/bridge capabilities have now been implemented by ntopng Edge (nEdge)");
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "See doc/README.inline for more information about this matter");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "\n");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Inline/bridge capabilities have now been moved in ntopng Edge (nEdge)");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "For more information and free migration see:");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "https://www.ntop.org/support/faq/migration-of-ntopng-inline-pro-enterprises-licenses-to-ntopng-edge-nedge/");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "\n");
 	}
 #endif
 
