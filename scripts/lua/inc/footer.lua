@@ -71,6 +71,13 @@ if have_nedge then
   )
 end
 
+local is_bridge = isBridgeInterface(_ifstats)
+if is_bridge then
+   print('<br><A HREF="https://www.ntop.org/support/faq/migration-of-ntopng-inline-pro-enterprises-licenses-to-ntopng-edge-nedge/"><span class="badge badge-warning">')
+   print(i18n("about.bridge_migration"))
+   print('</span></a>')
+end
+
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false
 

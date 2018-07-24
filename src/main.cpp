@@ -206,8 +206,14 @@ int main(int argc, char *argv[])
 	iface = NULL;
 
 #if defined(NTOPNG_PRO) && !defined(WIN32)
-	if(strncmp(ifName, "bridge:", 7) == 0)
+	if(strncmp(ifName, "bridge:", 7) == 0) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "\n");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Inline/bridge capabilities will be migrated to ntopng Edge (nEdge) starting from stable release 3.6.");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "For more information and free migration see:");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "https://www.ntop.org/support/faq/migration-of-ntopng-inline-pro-enterprises-licenses-to-ntopng-edge-nedge/");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "\n");
 	  iface = new PacketBridge(ifName);
+	}
 #endif
 
 #if defined(HAVE_NETFILTER) && defined(NTOPNG_PRO)
