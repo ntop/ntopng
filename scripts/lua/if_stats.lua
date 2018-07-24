@@ -593,8 +593,10 @@ print("</script>\n")
       print("<td colspan=3>&nbsp;</td>")
       print("</tr>")
    end
-
+   
    if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/live_traffic.lua?ifid="..ifId.."'>pcap<A></td></tr>\n")
+
       print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 

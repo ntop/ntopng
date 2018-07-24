@@ -20,17 +20,23 @@ local function send_error(error_type)
    print(json.encode({error = msg}))
 end
 
-local host = _GET["host"]
-if isEmptyString(host) then
-   send_error("not_found")
+interface.select(ifname)
+
+local granted = true -- interface.requestLiveTraffic(host)
+
+if not granted then
+   send_error("not_granted")
 else
-   local granted = true -- interface.requestLiveTraffic(host)
-
-   if not granted then
-      send_error("not_granted")
-   else
-      sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..host..'_live.pcap"')
-
-      interface.liveCapture(host)
+   local host = _GET["host"]
+   local fname = ifname
+   
+   if(host ~= nil) then
+      fname = fname .. "_"..host
    end
+
+   fname = fname .."_live.pcap"
+   
+   sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
+   
+   interface.liveCapture(host)
 end

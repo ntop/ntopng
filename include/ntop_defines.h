@@ -878,6 +878,7 @@ inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
 #define MIN_TIME_SPAWN_THREAD_POOL        10 /* sec */
 
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
+#define MAX_NUM_PCAP_CAPTURES             4
 
 #define ALERT_ACTION_ENGAGE           "engage"
 #define ALERT_ACTION_RELEASE          "release"

@@ -125,8 +125,8 @@ NetworkInterface::NetworkInterface(const char *name,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
 				   ifname, pcap_error_buffer);
     } else {
- 
-	
+
+
 	  try {
         discovery = new NetworkDiscovery(this);
 	  } catch (...) {
@@ -311,8 +311,9 @@ void NetworkInterface::init() {
   gettimeofday(&last_frequent_reset, NULL);
   frequentMacs = new FrequentTrafficItems(5);
   frequentProtocols = new FrequentTrafficItems(5);
-  live_captures = new LocklessList(true);
-
+  num_active_captures = 0;
+  memset(live_captures, 0, sizeof(live_captures));
+  
   db = NULL;
 #ifdef NTOPNG_PRO
   aggregated_flows_hash = NULL, flow_interfaces_stats = NULL;
@@ -688,7 +689,6 @@ NetworkInterface::~NetworkInterface() {
   if(networkStats)   delete []networkStats;
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
-  if(live_captures)  delete live_captures;
   if(interfaceStats) delete interfaceStats;
 
   if(flowHashing) {
@@ -722,7 +722,7 @@ NetworkInterface::~NetworkInterface() {
 #endif
   if(hide_from_top)         delete(hide_from_top);
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
-  if(tsExporter) delete tsExporter; 
+  if(tsExporter) delete tsExporter;
 }
 
 /* **************************************************** */
@@ -1943,7 +1943,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   /* Live packet dump to mongoose */
-  deliverLiveCapture(h, packet, flow);
+  if(num_active_captures > 0)
+    deliverLiveCapture(h, packet, flow);
 
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
@@ -1998,10 +1999,10 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
 #if 0
   static u_int n = 0;
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u %s", ++n, ingressPacket ? "RX" : "TX");
 #endif
-  
+
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
     rawsize += sizeof(struct ndpi_ethhdr);
@@ -2589,7 +2590,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       (*dst) = new LocalHost(this, dst_mac, vlanId, _dst_ip);
     else
       (*dst) = new RemoteHost(this, dst_mac, vlanId, _dst_ip);
-    
+
     if(!hosts_hash->add(*dst)) {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *dst;
@@ -4879,7 +4880,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
   int i;
   u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(ndpi_struct);
   ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(ndpi_struct);
-  
+
   lua_newtable(vm);
 
   for(i=0; i<(int)num_supported_protocols; i++) {
@@ -6445,7 +6446,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
     return;
 
   u_int64_t mac = Utils::mac2int(_mac);
-  
+
   if((ipv4 != 0) && (mac != 0)) {
     std::map<u_int32_t, u_int64_t>::iterator it;
 
@@ -6463,7 +6464,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 	  Utils::formatMac(tmp, oldmac, sizeof(oldmac));
 	  Utils::formatMac(_mac, newmac, sizeof(newmac));
 	  ipa = Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf));
-	  
+
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
 				       ipa, oldmac, newmac);
 
@@ -6538,85 +6539,112 @@ void NetworkInterface::finishInitialization() {
 
 /* *************************************** */
 
-int NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luactx) {
-  lockless_list_item_t *i;
+bool NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luactx) {
+  bool ret = false;
 
-  i = (lockless_list_item_t *) malloc(sizeof(lockless_list_item_t));
+  active_captures_lock.lock(__FILE__, __LINE__);
 
-  if(luactx && i) {
-    i->value = luactx;
-    live_captures->enqueue(i);
+  if(num_active_captures < MAX_NUM_PCAP_CAPTURES) {
+    for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
+      if(live_captures[i] == NULL) {
+	live_captures[i] = luactx, num_active_captures++;
+	ret = true;
+	break;
+      }
+    }
+  }
+  
+  active_captures_lock.unlock(__FILE__, __LINE__);
+
+  return(ret);
+}
+
+/* *************************************** */
+
+bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const luactx) {
+  bool ret = false;
+
+  active_captures_lock.lock(__FILE__, __LINE__);
+
+  for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
+    if(live_captures[i] == luactx) {
+      live_captures[i] = NULL, num_active_captures--;
+      ret = true;
+      break;
+    }
   }
 
-  return 0;
+  active_captures_lock.unlock(__FILE__, __LINE__);
+
+  return(ret);
 }
 
 /* *************************************** */
 
 bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f) {
-  IpAddress *cli_ip = NULL, *srv_ip = NULL;
-
-  if(!luactx || !f)
-    return false;
-
-  if(f && f->get_cli_host())  cli_ip = f->get_cli_host()->get_ip();
-  if(f && f->get_srv_host())  srv_ip = f->get_srv_host()->get_ip();
-
-  if(f->get_vlan_id() == luactx->live_capture.filters.vlan_id
-     && ((cli_ip && cli_ip->equal(&luactx->live_capture.filters.ip))
-	|| (srv_ip && srv_ip->equal(&luactx->live_capture.filters.ip))))
-    return true;
+  if((luactx->live_capture.matching_host == NULL)
+     || (luactx->live_capture.matching_host == f->get_cli_host())
+     || (luactx->live_capture.matching_host == f->get_srv_host()))
+    return(true);
 
   return false;
 }
 
 /* *************************************** */
 
-int NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f) {
-  struct pcap_file_header pcaphdr;
-  struct pcap_disk_pkthdr pkthdr;
-  struct ntopngLuaContext *c;
-  lockless_list_item_t *i;
-  void *saveptr;
-  int res;
-  bool done;
+void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
+					  const u_char * const packet, Flow * const f) {
+  u_int num_live_captures = num_active_captures; /* Cache because of (*) */
 
-  i = live_captures->getFirst(&saveptr);
-  while(i) {
-    done = false;
+  for(int i=0, num_found = 0; (i<MAX_NUM_PCAP_CAPTURES) && (num_found < num_live_captures); i++) {
+    if(live_captures[i] != NULL) {
+      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      bool http_client_disconnected = false;
 
-    if(i->value
-       && (c = (struct ntopngLuaContext *)i->value)
-       && c->conn
-       && matchLiveCapture(c, f)) {
+      num_found++;
 
-      if(!c->live_capture.pcaphdr_sent) {
-	Utils::init_pcap_header(&pcaphdr, this);
-	if((res = mg_write(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
-	  done = true;
-	c->live_capture.pcaphdr_sent = true;
+      if(c->live_capture.capture_until < h->ts.tv_sec) {
+	http_client_disconnected = true;
+	mg_close_connection(c->conn);
+      }
+      
+      if((!http_client_disconnected) && c->conn && matchLiveCapture(c, f)) {
+	if(!c->live_capture.pcaphdr_sent) {
+	  struct pcap_file_header pcaphdr;
+	  int res;
+	  
+	  Utils::init_pcap_header(&pcaphdr, this);
+	  
+	  if((res = mg_write(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
+	    http_client_disconnected = true;
+
+	  c->live_capture.pcaphdr_sent = true;
+	}
+
+	if(!http_client_disconnected) {
+	  int res;
+	  struct pcap_disk_pkthdr pkthdr; /* Cannot use h as the format on disk differs */
+
+	  pkthdr.ts.tv_sec = h->ts.tv_sec, pkthdr.ts.tv_usec = h->ts.tv_usec,
+	    pkthdr.caplen = h->caplen, pkthdr.len = h->len;
+
+	  if(
+	    ((res = mg_write(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
+	    || ((res = mg_write(c->conn, packet, h->caplen)) < (int)h->caplen)
+	    )
+	    http_client_disconnected = true;
+	  else {
+	    c->live_capture.num_captured_packets++;
+
+	    if((c->live_capture.capture_max_pkts != 0)
+	       && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts))
+	      http_client_disconnected = true;
+	  }
+	}
       }
 
-      if(!done) {
-	/* Cannot use h as the format on disk differs */
-	pkthdr.ts.tv_sec = h->ts.tv_sec, pkthdr.ts.tv_usec = h->ts.tv_usec,
-	  pkthdr.caplen = h->caplen, pkthdr.len = h->len;
-
-	if((res = mg_write(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
-	  done = true;
-	else if((res = mg_write(c->conn, packet, h->caplen)) < (int)h->caplen)
-	  done = true;
-      }
-
-      if(done) {
-	i = live_captures->remove(i, &saveptr);
-	c->live_capture.done = true;
-      }
+      if(http_client_disconnected)
+	deregisterLiveCapture(c); /* (*) */
     }
-
-    if(!done)
-      i = live_captures->getNext(i, &saveptr);
   }
-
-  return 0;
 }

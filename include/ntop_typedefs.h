@@ -458,11 +458,9 @@ struct ntopngLuaContext {
 
   /* Live capture written to mongoose socket */
   struct {
-    /* Filters */
-    struct {
-      IpAddress ip;
-      u_int16_t vlan_id;
-    } filters;
+    u_int32_t capture_until, capture_max_pkts, num_captured_packets;
+    void *matching_host;
+    
     /* Status */
     bool pcaphdr_sent;
     bool done;

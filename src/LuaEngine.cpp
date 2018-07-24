@@ -130,6 +130,9 @@ LuaEngine::~LuaEngine() {
 	pthread_join(ctx->pkt_capture.captureThreadLoop, NULL);
       }
 
+      if(ctx->iface != NULL)
+	ctx->iface->deregisterLiveCapture(ctx);
+      
       free(ctx);
     }
 
@@ -3565,18 +3568,10 @@ static int ntop_interface_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
 
-  char *key, buf[64];
-  u_int16_t vlan_id = 0;
-
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
-    lua_pushnil(vm);
-    return(CONST_LUA_ERROR);
-  }
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, buf, sizeof(buf));
-
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -3584,18 +3579,35 @@ static int ntop_interface_live_capture(lua_State* vm) {
   c = (struct ntopngLuaContext*)(G(vm)->userdata);
 #endif
 
-  if(c) {
-    c->live_capture.done = c->live_capture.pcaphdr_sent = false,
-      c->live_capture.filters.ip.set(key), c->live_capture.filters.vlan_id = vlan_id;
-    ntop_interface->registerLiveCapture(c);
+  if((!ntop_interface) || (!c))
+    return(CONST_LUA_ERROR);
+  
+  if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
+    Host *h;
+    char *key, host_ip[64];
+    u_int16_t vlan_id = 0;
     
-    while(!c->live_capture.done) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
-      sleep(1);
-    }
+    get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Done.");
+    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+      return(CONST_LUA_ERROR);
+    else {
+      c->live_capture.matching_host = h;
+    }
   }
+
+  c->live_capture.capture_until = time(NULL)+60; /* 1 min max */
+  c->live_capture.num_captured_packets = 100000; /* No more than 100k packets */
+  c->live_capture.done = c->live_capture.pcaphdr_sent = false;
+
+  ntop_interface->registerLiveCapture(c);
+  
+  while(!c->live_capture.done) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
+    sleep(1);
+  }
+  
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Done.");
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -7504,9 +7516,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "liveCapture",            ntop_interface_live_capture             },
 
   /* Packet Capture */
-  { "captureToPcap",                   ntop_capture_to_pcap           },
-  { "isCaptureRunning",                ntop_is_capture_running        },
-  { "stopRunningCapture",              ntop_stop_running_capture      },
+  { "captureToPcap",          ntop_capture_to_pcap                    },
+  { "isCaptureRunning",       ntop_is_capture_running                 },
+  { "stopRunningCapture",     ntop_stop_running_capture               },
 
   /* Alert Generation */
   { "getCachedNumAlerts",     ntop_interface_get_cached_num_alerts    },
