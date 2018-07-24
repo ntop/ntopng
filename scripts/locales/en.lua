@@ -1947,6 +1947,11 @@ local lang = {
     ["you_can_assign_shapers_to_users_protocols"] = "You can assign bandwidth policies to <a href=\"%{url}\">Users</a> specific protocols or set them globally as a <a href=\"%{url2}\">Fallback Policy</a>.",
     ["you_can_set_static_dhcp_lease_here"] = "You can configure static DHCP leases <a href=\"%{url}\">here</a>.",
     ["you_can_use_gateways_in_policies"] = "You can specify gateways priorities in <a href=\"%{url}\">Routing Policies</a>.",
+    ["security"] = "Security",
+    ["restrict_weg_gui_access_title"] = "Management Web GUI Access",
+    ["restrict_weg_gui_access_description"] = "Restrict the access to this management web GUI to make it accessible only from the LAN interface (more secure) or from any interface of the system (less secure).",
+    ["bind_to_lan"] = "LAN Interface",
+    ["bind_to_any"] = "Any Interface",
   },
   ["network_alert_config"] = {
     ["trigger_alerts_for_network"] = "Trigger alerts for Network %{network}",

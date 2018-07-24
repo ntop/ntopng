@@ -1190,6 +1190,7 @@ local known_parameters = {
    ["delete"]                  =  validateEmpty,
    ["reset_quotas"]            =  validateEmpty,
    ["bandwidth_allocation"]    =  validateChoiceInline({"min_guaranteed", "max_enforced"}),
+   ["bind_to"]                 =  validateChoiceInline({"lan", "any"}),
    ["slow_pass_shaper_perc"]   =  validateNumber,
    ["slower_pass_shaper_perc"] =  validateNumber,
    ["skip_critical"]           =  validateBool,
