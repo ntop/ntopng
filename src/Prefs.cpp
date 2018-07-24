@@ -1309,9 +1309,10 @@ int Prefs::checkOptions() {
   ntop->removeTrailingSlash(prefs_dir);
 
   if(http_binding_address == NULL)
-    http_binding_address = strdup((char*)CONST_ANY_ADDRESS);
+    bind_http_to_address((char*)CONST_ANY_ADDRESS);
   if(https_binding_address == NULL)
-    https_binding_address = strdup((char*)CONST_ANY_ADDRESS);
+    bind_https_to_address((char*)CONST_ANY_ADDRESS);
+
   return(0);
 }
 
