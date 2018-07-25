@@ -59,7 +59,7 @@ print[[
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.welcome_to", {product=info["product"]})) print[[</h2>
   <div class="form-group has-feedback">
       <input type="hidden" class="form-control" name="user">
-      <input type="text" class="form-control" name="_username" placeholder="]] print(i18n("login.username_ph")) print[[" pattern="^[\w\.%]{1,}$" required>
+      <input type="text" class="form-control" name="_username" placeholder="]] print(i18n("login.username_ph")) print[[" required>
       <input type="password" class="form-control" name="password" placeholder="]] print(i18n("login.password_ph")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
