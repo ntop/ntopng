@@ -34,9 +34,11 @@ print [[
 
 </script>
 
- <form data-toggle="validator" id="form_add_user" class="form-inline" method="post" action="add_user.lua" >
+ <form data-toggle="validator" id="form_add_user" class="form-inline" method="post" action="add_user.lua" accept-charset="UTF-8">
 			   ]]
+
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
 print [[
 
 <div class="row">
@@ -303,9 +305,9 @@ print[[
       return(false);
     }
 
-    // escape characters to send out valid latin-1 encoded characters
-    $('#password_input').val(escape($('#password_input').val()))
-    $('#confirm_password_input').val(escape($('#confirm_password_input').val()))
+    // Don't do any escape, form contain Unicode UTF-8 encoded chars
+    // ('#password_input').val(escape($('#password_input').val()))
+    // $('#confirm_password_input').val(escape($('#confirm_password_input').val()))
 ]]
 
 if captive_portal_user == false then

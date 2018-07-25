@@ -45,9 +45,11 @@ end
   password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua">
+  <form data-toggle="validator" id="form_password_reset" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
 ]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
 print [[
     <input id="password_dialog_username" type="hidden" name="username" value="" />
 
@@ -299,10 +301,10 @@ print [[<script>
       password_alert.error("Passwords don't match"); return(false);
     }
 
-    // escape characters to send out valid latin-1 encoded characters
-    $('#old_password_input').val(escape($('#old_password_input').val()))
-    $('#new_password_input').val(escape($('#new_password_input').val()))
-    $('#confirm_new_password_input').val(escape($('#confirm_new_password_input').val()))
+    // Don't do any escape, form contain Unicode UTF-8 encoded chars
+    // $('#old_password_input').val(escape($('#old_password_input').val()))
+    // $('#new_password_input').val(escape($('#new_password_input').val()))
+    // $('#confirm_new_password_input').val(escape($('#confirm_new_password_input').val()))
 
     $.ajax({
       type: frmpassreset.attr('method'),
