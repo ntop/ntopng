@@ -1135,22 +1135,22 @@ print [[
 	 if(host["sites"] ~= nil) then
 	    local top_sites = json.decode(host["sites"], 1, nil)
 	    local top_sites_old = json.decode(host["sites.old"], 1, nil)
-	    old_top_len = table.len(top_sites_old)  if(old_top_len > 10) then old_top_len = 10 end
-	    top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
+	    local old_top_len = table.len(top_sites_old)  if(old_top_len > 10) then old_top_len = 10 end
+	    local top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
 	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
 
 	    print("<tr><th rowspan="..(1+num)..">"..i18n("http_page.top_visited_sites").."</th><th>"..i18n("http_page.current_sites").."</th><th>"..i18n("http_page.contacts").."</th><th>"..i18n("http_page.last_5_minutes_sites").."</th><th>"..i18n("http_page.contacts").."</th></tr>\n")
-	    sites = {} 
+	    local sites = {} 
 	    for k,v in pairsByValues(top_sites, rev) do
 	       table.insert(sites, { k, v })
 	    end
 
-	    sites_old = {} 
+	    local sites_old = {} 
 	    for k,v in pairsByValues(top_sites_old, rev) do
 	       table.insert(sites_old, { k, v })
 	    end
 
-	    for i=1,num do
+	    for i = 1,num do
 	       if(sites[i] == nil) then sites[i] = { "", 0 } end
 	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
 	       print("<tr><th>")
@@ -1163,8 +1163,10 @@ print [[
 	       if(sites_old[i][1] ~= "") then 
 		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td></tr>\n")
 	       else
-		  print("&nbsp;</th><td>&nbsp;</td></tr>\n") 
+		  print("<th>&nbsp;</th><td>&nbsp;</td></tr>\n") 
 	       end
+
+	       print("</tr>")
 	    end	    
 	 end
 

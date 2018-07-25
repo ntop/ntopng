@@ -228,7 +228,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
-  void incrVisitedWebSite(char *hostname) {};
+  virtual void incrVisitedWebSite(char *hostname) {};
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
