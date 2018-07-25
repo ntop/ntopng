@@ -9,7 +9,7 @@ PartOf=@SERVICE_WANTS@
 Type=simple
 
 ExecStartPre=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StartPre" >> /var/log/ntop-systemd.log'
-ExecStartPre=/bin/sh -c '/bin/sed "/-e.*$\\|-G.*\\|--daemon.*\\|--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
+ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
 
 ExecStart=/usr/local/bin/ntopng /run/ntopng.conf
 
