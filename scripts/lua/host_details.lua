@@ -1140,12 +1140,12 @@ print [[
 	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
 
 	    print("<tr><th rowspan="..(1+num)..">"..i18n("http_page.top_visited_sites").."</th><th>"..i18n("http_page.current_sites").."</th><th>"..i18n("http_page.contacts").."</th><th>"..i18n("http_page.last_5_minutes_sites").."</th><th>"..i18n("http_page.contacts").."</th></tr>\n")
-	    local sites = {} 
+	    local sites = {}
 	    for k,v in pairsByValues(top_sites, rev) do
 	       table.insert(sites, { k, v })
 	    end
 
-	    local sites_old = {} 
+	    local sites_old = {}
 	    for k,v in pairsByValues(top_sites_old, rev) do
 	       table.insert(sites_old, { k, v })
 	    end
@@ -1154,20 +1154,20 @@ print [[
 	       if(sites[i] == nil) then sites[i] = { "", 0 } end
 	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
 	       print("<tr><th>")
-	       if(sites[i][1] ~= "") then 
-		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n") 
+	       if(sites[i][1] ~= "") then
+		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n")
 	       else
 		  print("&nbsp;</th><td>&nbsp;</td>\n")
 	       end
-	       
-	       if(sites_old[i][1] ~= "") then 
-		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td></tr>\n")
+
+	       if(sites_old[i][1] ~= "") then
+		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td>\n")
 	       else
-		  print("<th>&nbsp;</th><td>&nbsp;</td></tr>\n") 
+		  print("<th>&nbsp;</th><td>&nbsp;</td>\n")
 	       end
 
 	       print("</tr>")
-	    end	    
+	    end
 	 end
 
 	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20%>"..i18n("http_page.requests").."</th><th colspan=2>"..i18n("http_page.distribution").."</th></tr>")
