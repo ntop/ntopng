@@ -1984,10 +1984,14 @@ end
 -- ##############################################
 
 function unescapeHTML (s)
+   local unesc = function (h)
+      local res = string.char(tonumber(h, 16))
+      return res
+   end
+
    s = string.gsub(s, "+", " ")
-   s = string.gsub(s, "%%(%x%x)", function (h)
-				     return string.char(tonumber(h, 16))
-				  end)
+   s = string.gsub(s, "%%(%x%x)", unesc)
+
    return s
 end
 

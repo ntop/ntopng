@@ -2,16 +2,16 @@
 -- (C) 2013 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-username = _POST["username"]
-old_password = _POST["old_password"]
-new_password = _POST["new_password"]
-confirm_new_password = _POST["confirm_password"]
+local username             = _POST["username"]
+local old_password         = _POST["old_password"]
+local new_password         = _POST["new_password"]
+local confirm_new_password = _POST["confirm_password"]
 
 user_group = ntop.getUserGroup()
 if(user_group == "administrator") then
