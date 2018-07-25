@@ -151,7 +151,10 @@ end
 
 -- This is necessary to keep the current RRD format
 local function map_rrd_column_to_metrics(schema, column_name)
-  if (column_name == "num") or (column_name == "sent") or (column_name == "ingress") then
+   if (column_name == "num")  or  (column_name == "num_flows")
+      or (column_name == "sent") or (column_name == "ingress")
+      or (column_name == "bytes") or (column_name == "packets")
+   then
     return 1
   elseif (column_name == "rcvd") or (column_name == "egress") then
     return 2
