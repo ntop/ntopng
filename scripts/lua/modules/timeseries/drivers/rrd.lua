@@ -317,13 +317,18 @@ end
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+
+  if not ntop.exists(rrdfile) then
+     return nil
+  end
+
   touchRRD(rrdfile)
 
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
   local count = 0
   local series = {}
 
-  for name_key, serie in pairs(fdata) do
+  for name_key, serie in pairs(fdata or {}) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
     count = 0
