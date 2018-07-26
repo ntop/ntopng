@@ -1027,43 +1027,74 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
 
       if(strncmp(val, "ldap", 4) == 0) {
+	bool ldap_ret = false;
         bool is_admin;
-        char ldapServer[64] = { 0 }, ldapAccountType[64] = { 0 }, ldapAnonymousBind[32] = { 0 },
-             bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 },
-             search_path[128] = { 0 }, admin_group[64] = { 0 };
+	char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
+	  *bind_dn = NULL, *bind_pwd = NULL, *group = NULL,
+	  *search_path = NULL, *admin_group = NULL;
+
+	if(!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(ldapAccountType = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
+	   || !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
+	   || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(admin_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))) {
+	  static bool ldap_nomem = false;
+
+	  if(!ldap_nomem) {
+	    ntop->getTrace()->traceEvent(TRACE_ERROR,
+					 "Unable to allocate memory for the LDAP authentication");
+	    ldap_nomem = true;
+	  }
+
+ 	  goto ldap_auth_out;
+	}
 
         if(!password || !password[0])
           return false;
 
-        ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
-        ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, sizeof(ldapAccountType));
-        ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, sizeof(ldapAnonymousBind));
-        ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
-        ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, sizeof(bind_pwd));
-        ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, sizeof(search_path));
-        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, sizeof(group));
-        ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, sizeof(admin_group));
+        ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
 
         if(ldapServer[0]) {
-	  bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType,
-						     (atoi(ldapAnonymousBind) == 0) ? false : true,
-						     bind_dn[0] != '\0' ? bind_dn : NULL,
-						     bind_pwd[0] != '\0' ? bind_pwd : NULL,
-						     search_path[0] != '\0' ? search_path : NULL,
-						     user,
-						     password[0] != '\0' ? password : NULL,
-						     group[0] != '\0' ? group : NULL,
-						     admin_group[0] != '\0' ? admin_group : NULL,
-						     &is_admin);
+	  ldap_ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType,
+						       (atoi(ldapAnonymousBind) == 0) ? false : true,
+						       bind_dn[0] != '\0' ? bind_dn : NULL,
+						       bind_pwd[0] != '\0' ? bind_pwd : NULL,
+						       search_path[0] != '\0' ? search_path : NULL,
+						       user,
+						       password[0] != '\0' ? password : NULL,
+						       group[0] != '\0' ? group : NULL,
+						       admin_group[0] != '\0' ? admin_group : NULL,
+						       &is_admin);
 
-	  if(ret) {
+	  if(ldap_ret) {
 	    snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
 	    ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
             snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
 	    ntop->getRedis()->set(key, (char*)"ldap", 0);
-	    return(true);
 	  }
         }
+
+      ldap_auth_out:
+	if(ldapServer) free(ldapServer);
+	if(ldapAnonymousBind) free(ldapAnonymousBind);
+	if(bind_dn) free(bind_dn);
+	if(bind_pwd) free(bind_pwd);
+	if(group) free(group);
+	if(search_path) free(search_path);
+	if(admin_group) free(admin_group);
+
+	if(ldap_ret)
+	  return(true);
       }
     }
   }

@@ -759,6 +759,9 @@
 #define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
 #define PREF_LDAP_GROUP_OF_USER       "ntopng.prefs.ldap.%s.group_of_user"
+#ifdef HAVE_LDAP
+#define MAX_LDAP_LEN     256  /* Keep it in sync with lua preferences file prefs.lua */
+#endif
 #define PREF_USER_TYPE_LOG            "ntopng.prefs.user.%s.type_log"
 
 /* Elastic Search */
