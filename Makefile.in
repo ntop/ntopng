@@ -206,11 +206,6 @@ geoip:
 	  cp ~/dat_files/* httpdocs/geoip; gunzip -f httpdocs/geoip/*.dat.gz ; \
 	else \
 	  cd httpdocs/geoip; \
-	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz; \
-	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLiteCityv6-beta/GeoLiteCityv6.dat.gz; \
-	  $(GET_UTIL) http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz; \
-	  $(GET_UTIL) http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNumv6.dat.gz; \
-	  gunzip -f *.dat.gz ; \
 	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz; \
 	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz; \
 	  tar xfvz GeoLite2-ASN.tar.gz --strip 1 --wildcards "**/*.mmdb"; \

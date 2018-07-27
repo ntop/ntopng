@@ -87,9 +87,10 @@ ntopng-data:
 	@SUDO@ \rm -rf ./usr ./debian/ntopng-data
 	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/ntopng-data
 	cd ../../ ; ./configure; make geoip
-	cp ../../httpdocs/geoip/*.dat  ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
+#       old .dat GeoLite databases are superseded by GeoLite2 .mmdb
+#	cp ../../httpdocs/geoip/*.dat  ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
 	cp ../../httpdocs/geoip/*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
-	find ${NTOPNG_BUILD}/usr/share/ntopng -type f -not -name "*.dat" -not -name "*.mmdb" | xargs /bin/rm -rf
+	find ${NTOPNG_BUILD}/usr/share/ntopng -type f -not -name "*.mmdb" | xargs /bin/rm -rf
 	@echo
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng-data_*deb
