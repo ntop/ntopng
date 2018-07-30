@@ -86,7 +86,7 @@ function getProtoVolume(ifName, start_time, end_time)
       -- NOTE: this could be optimized via a dedicated driver call
       local data = ts_utils.query("iface:ndpi", tags, start_time, end_time)
 
-      if(data ~= nil) then
+      if(data ~= nil) and (data.statistics.total > 0) then
 	 ret[tags.protocol] = data.statistics.total
       end
    end
