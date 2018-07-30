@@ -229,6 +229,9 @@ local menu_subpages = {
     }, toggle_access_log = {
       title       = i18n("prefs.toggle_access_log_title"),
       description = i18n("prefs.toggle_access_log_description", {product=info["product"]}),
+    }, toggle_host_pools_log = {
+      title       = i18n("prefs.toggle_host_pools_log_title"),
+      description = i18n("prefs.toggle_host_pools_log_description", {product=info["product"]}),
     },
   }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(prefs.is_dump_flows_enabled == false), entries={
     toggle_flow_db_dump_export = {

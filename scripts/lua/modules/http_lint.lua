@@ -995,6 +995,7 @@ local known_parameters = {
    ["toggle_pools_rrds"]                           =  validateBool,
    ["toggle_flow_snmp_ports_rrds"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
+   ["toggle_host_pools_log"]                       =  validateBool,
    ["toggle_snmp_rrds"]                            =  validateBool,
    ["toggle_tiny_flows_export"]                    =  validateBool,
    ["toggle_vlan_rrds"]                            =  validateBool,

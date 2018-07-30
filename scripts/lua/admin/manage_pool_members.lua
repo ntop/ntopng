@@ -39,9 +39,15 @@ for _, ifname in pairs(interface.getIfNames()) do
       local pool = info["group"]
       local connectivity = info["connectivity"]
 
+      host_pools_utils.traceHostPoolEvent(TRACE_NORMAL,
+					  string.format("API request. [member: %s][pool: %s][connectivity: %s]", member, pool, connectivity))
+
       if pools_list[pool] == nil then
 	 res["associations"][member]["status"] = "ERROR"
 	 res["associations"][member]["status_msg"] = "Unable to find a group with the specified name"
+
+	 host_pools_utils.traceHostPoolEvent(TRACE_ERROR,
+					     string.format(res["associations"][member]["status_msg"]))
       else
 	 local pool_id = pools_list[pool]["id"]
 	 if connectivity == "pass" then
@@ -54,6 +60,9 @@ for _, ifname in pairs(interface.getIfNames()) do
 	 else
 	    res["associations"][member]["status"] = "ERROR"
 	    res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
+
+	    host_pools_utils.traceHostPoolEvent(TRACE_ERROR,
+						string.format(res["associations"][member]["status_msg"]))
 	 end
       end
 

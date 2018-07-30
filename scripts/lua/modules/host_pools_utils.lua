@@ -71,9 +71,25 @@ function host_pools_utils.setPoolDetail(ifid, pool_id, detail, value)
   return ntop.setHashCache(details_key, detail, tostring(value))
 end
 
+local function traceHostPoolEvent(severity, event)
+    if ntop.getPref("ntopng.prefs.enable_host_pools_log") ~= "1" then
+       return
+    end
+
+    local f_name = debug.getinfo(2, "n").name
+    if f_name ~= nil then
+       f_name = string.format("[%s] ", f_name)
+    end
+
+    traceError(severity, TRACE_CONSOLE, string.format("%s%s", f_name or '', event))
+end
+
 local function addMemberToRedisPool(ifid, pool_id, member_key)
   if pool_id == host_pools_utils.DEFAULT_POOL_ID then
     -- avoid adding default pool members explicitly
+    traceHostPoolEvent(TRACE_NORMAL,
+		       string.format("Setting DEFAULT_POOL_ID (aka 'Not Assigned'). [pool_id: %d][member: %s]",
+				     host_pools_utils.DEFAULT_POOL_ID, member_key))
     return true
   end
 
@@ -81,10 +97,12 @@ local function addMemberToRedisPool(ifid, pool_id, member_key)
   local n = table.len(ntop.getMembersCache(members_key) or {})
 
   if n >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
+    traceHostPoolEvent(TRACE_ERROR, string.format("Unable to set host pool, maximum number of pool members hit. [max num pool members: %d][member: %s] [members_key: %s]", host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS, member_key, members_key))
     return false
   end
 
   ntop.setMembersCache(members_key, member_key)
+  traceHostPoolEvent(TRACE_NORMAL, string.format("Member added to pool. [member: %s] [members_key: %s]", member_key, members_key))
   return true
 end
 
@@ -178,6 +196,10 @@ end
 -- a pool.
 --
 function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info --[[optional]], strict_host_mode --[[optional]])
+  traceHostPoolEvent(TRACE_NORMAL,
+		     string.format("Pool change requested. [member: %s][new_pool: %s][strict_host_mode: %s]",
+				   member_and_vlan, new_pool, tostring(strict_host_mode)))
+
   if not strict_host_mode then
     local hostkey, is_network = host_pools_utils.getMemberKey(member_and_vlan)
 
@@ -215,8 +237,15 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
   end
 
   if prev_pool == new_pool then
+     traceHostPoolEvent(TRACE_ERROR,
+		     string.format("Pool did't change. Exiting. [member: %s][prev_pool: %s][new_pool: %s]",
+				   member_and_vlan, prev_pool, new_pool))
     return false
   end
+
+  traceHostPoolEvent(TRACE_NORMAL,
+		     string.format("Pool change prepared. [member: %s][info.key: %s][prev_pool: %s][new_pool: %s]",
+				   member_and_vlan, tostring(info.key), prev_pool, new_pool))
 
   host_pools_utils.deletePoolMember(ifid, prev_pool, info.key)
   addMemberToRedisPool(ifid, new_pool, info.key)
@@ -224,9 +253,14 @@ function host_pools_utils.changeMemberPool(ifid, member_and_vlan, new_pool, info
 end
 
 function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
+  traceHostPoolEvent(TRACE_NORMAL,
+		     string.format("Pool member addition requested. [member: %s][pool_id: %s]",
+				   member_and_vlan, pool_id))
+
   local member_exists, info = getMembershipInfo(member_and_vlan)
 
   if member_exists then
+     traceHostPoolEvent(TRACE_NORMAL, string.format("Member already in pool. [pool_id: %d] [member: %s]", pool_id, member_and_vlan))
     return false, info
   else
     local rv = addMemberToRedisPool(ifid, pool_id, info.key)
@@ -235,6 +269,10 @@ function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
 end
 
 function host_pools_utils.deletePoolMember(ifid, pool_id, member_and_vlan)
+  traceHostPoolEvent(TRACE_NORMAL,
+		     string.format("Pool member deletion requested. [member: %s][pool_id: %s]",
+				   member_and_vlan, pool_id))
+
   local members_key = get_pool_members_key(ifid, pool_id)
 
   -- Possible delete volatile member
@@ -596,5 +634,7 @@ function host_pools_utils.resetPoolsQuotas(ifid, pool_filter)
   -- Delete the in-memory stats
   interface.resetPoolsQuotas(pool_filter)
 end
+
+host_pools_utils.traceHostPoolEvent = traceHostPoolEvent
 
 return host_pools_utils

@@ -1227,6 +1227,12 @@ function printLogging()
     pref = "enable_access_log",
   })
 
+  prefsToggleButton({
+    field = "toggle_host_pools_log",
+    default = "0",
+    pref = "enable_host_pools_log",
+  })
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
