@@ -433,9 +433,9 @@ if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
    DOWNLOAD_GEOIP=1
    MAXMINDDB_LIB=-lmaxminddb
    AC_DEFINE_UNQUOTED(HAVE_MAXMINDDB, 1, [MaxMind DB support])
-   AC_MSG_RESULT(Building with libmaxminddb (https://github.com/maxmind/libmaxminddb))
 else
-   AC_MSG_RESULT(Building without libmaxminddb (https://github.com/maxmind/libmaxminddb))
+   AC_MSG_RESULT(Please install libmaxminddb-dev (https://github.com/maxmind/libmaxminddb) and try again)
+   exit
 fi
 
 

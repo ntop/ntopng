@@ -202,16 +202,12 @@ veryclean: clean
 	-rm -rf nDPI
 
 geoip:
-	@if test -d ~/dat_files ; then \
-	  cp ~/dat_files/* httpdocs/geoip; gunzip -f httpdocs/geoip/*.dat.gz ; \
-	else \
-	  cd httpdocs/geoip; \
-	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz; \
-	  $(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz; \
-	  tar xfvz GeoLite2-ASN.tar.gz --strip 1 --wildcards "**/*.mmdb"; \
-	  tar xfvz GeoLite2-City.tar.gz --strip 1 --wildcards "**/*.mmdb"; \
-          rm -rf GeoLite2*.tar.gz; \
-	fi
+	$(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz
+	$(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz
+	tar xfvz GeoLite2-ASN.tar.gz --strip 1 --wildcards "**/*.mmdb"
+	tar xfvz GeoLite2-City.tar.gz --strip 1 --wildcards "**/*.mmdb"
+	mv *.mmdb httpdocs/geoip
+	rm -rf GeoLite2*.tar.gz
 
 trackers:
 	./tools/download_trackers.sh httpdocs/other/trackers.txt
