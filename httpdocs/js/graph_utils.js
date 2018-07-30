@@ -26,6 +26,8 @@ function getSerieLabel(schema, serie) {
         return serie.ext_label;
     } else if(serie.tags.device && serie.tags.port) // Flow device
       return serie.tags.port;
+    else if(serie.tags.profile)
+        return serie.tags.profile;
   } else if(data_label != "bytes") { // single series
     if(serie.tags.protocol)
       return serie.tags.protocol + " (" + new_label + ")";
@@ -102,6 +104,56 @@ function checkSeriesConsinstency(schema_name, count, series) {
   return rv;
 }
 
+// intervals can be fractional
+function interpolateSerie(serie, intervals) {
+  var res = [];
+
+  function lerp(v0, v1, t) {
+    return (1 - t) * v0 + t * v1;
+  }
+
+  var num_points = Math.ceil(serie.length * intervals);
+
+  for(var i=0; i<num_points; i++) {
+    var index = i / intervals;
+    var prev_i = Math.floor(index);
+    var next_i = Math.min(Math.ceil(index), serie.length-1);
+    var t = index % 1; // fractional part
+    var v = lerp(serie[prev_i], serie[next_i], t);
+    //console.log(prev_i, next_i, t, ">>", v);
+
+    res.push(v);
+  }
+
+  return res;
+}
+
+// the stacked total serie
+function buildTotalSerie(data_series) {
+  var series = [];
+
+  for(var i=0; i<data_series.length; i++)
+    series.push(data_series[i].data);
+
+  return d3.transpose(series).map(function(x) {
+    return x.map(function(g) {
+      return g;
+    });
+  }).map(function(x) {return d3.sum(x);});
+}
+
+function arrayToNvSerie(serie_data, start, step) {
+  var values = [];
+  var t = start;
+
+  for(var i=0; i<serie_data.length; i++) {
+    values[i] = [t, serie_data[i]];
+    t += step;
+  }
+
+  return values;
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var pending_request = null;
@@ -138,6 +190,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
       // Adapt data
       var res = [];
       var series = data.series;
+      var total_serie;
 
       for(var j=0; j<series.length; j++) {
         var values = [];
@@ -159,14 +212,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
       if(data.additional_series) {
         for(var key in data.additional_series) {
-          var values = [];
           var serie_data = data.additional_series[key];
-
-          var t = data.start;
-          for(var i=0; i<serie_data.length; i++) {
-            values[i] = [t, serie_data[i] ];
-            t += data.step;
-          }
+          var values = arrayToNvSerie(serie_data, data.start, data.step);
 
           res.push({
             key: capitaliseFirstLetter(key),
@@ -178,7 +225,35 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             disabled: true, /* hide additional series by default */
           });
         }
+
+        if(data.additional_series.total)
+          total_serie = data.additional_series.total;
       }
+
+      if(!total_serie)
+        total_serie = buildTotalSerie(series);
+
+      // Smoothed serie
+      var num_smoothed_points = Math.floor(total_serie.length / 5);
+
+      var smoothed = smooth(total_serie, num_smoothed_points);
+      var scale = d3.max(total_serie) / d3.max(smoothed);
+      var scaled = $.map(smoothed, function(x) { return x * scale; });
+      var aligned = interpolateSerie(scaled, total_serie.length / scaled.length).slice(0, total_serie.length);
+
+      res.push({
+        key: "Trend", // TODO localize
+        yAxis: 1,
+        values: arrayToNvSerie(aligned, data.start, data.step),
+        type: "line",
+        color: "#FF4300",
+        disabled: true, /* hidden by default */
+      });
+
+      // TODO pass as parameter
+      var sparkline = $("#trend-sparkline");
+      sparkline.html(smooth(total_serie, 10 /* num_points */).join(","));
+      sparkline.peity("line", { width: 40, height: 22, max: null });
 
       // get the value formatter
       var formatter = getValueFormatter(schema_name, series);
