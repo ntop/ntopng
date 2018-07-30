@@ -261,13 +261,6 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   reloadHideFromTop(false);
-
-  if(ntop->getRedis()) {
-    char url[128];
-
-    if((!ntop->getRedis()->get((char*)CONST_TS_POST_DATA_URL, url, sizeof(url))) && (url[0] != '\0'))
-      tsExporter = new TimeSeriesExporter(this, url);
-  }
 }
 
 /* **************************************************** */

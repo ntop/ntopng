@@ -30,7 +30,6 @@ class TimeSeriesExporter {
   int fd;
   char fbase[PATH_MAX], fname[PATH_MAX];
   NetworkInterface *iface;
-  char *url;
   u_int num_cached_entries; 
   Mutex m;
   bool dbCreated;
@@ -38,7 +37,7 @@ class TimeSeriesExporter {
   void createDump();
   
  public:
-  TimeSeriesExporter(NetworkInterface *_if, char *_url);
+  TimeSeriesExporter(NetworkInterface *_if);
   ~TimeSeriesExporter();
 
   void exportData(char *data, bool do_lock = true);

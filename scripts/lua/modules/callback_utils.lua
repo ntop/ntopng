@@ -221,8 +221,9 @@ end
 
 function callback_utils.uploadTSdata()
    local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
+   local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
 
-   if((url == nil) or (url == "")) then
+   if((url == nil) or (url == "") or (driver ~= "influxdb")) then
       return
    end
 

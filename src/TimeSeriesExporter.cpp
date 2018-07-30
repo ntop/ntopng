@@ -24,10 +24,6 @@
 /* ******************************************************* */
 
 /*
-  Enable it with:
-
-  redis-cli set "ntopng.prefs.ts_post_data_url" "http://localhost:8086/write?db=ntopng" [InfluxDB]
-
   Start Influx
   $ influxd -config /usr/local/etc/influxdb.conf
 
@@ -41,10 +37,8 @@
   Start Chronograf
   $ chronograf
 */
-TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if, char *_url) {
-  fd = -1, iface = _if, url = strdup(_url), num_cached_entries = 0, dbCreated = false;
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Exporting TS data to %s",
-			       iface->get_name(), url);
+TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if) {
+  fd = -1, iface = _if, num_cached_entries = 0, dbCreated = false;
 
   snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), -1);
   ntop->fixPath(fbase);
@@ -60,7 +54,6 @@ TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if, char *_url) {
 
 TimeSeriesExporter::~TimeSeriesExporter() {
   flush();
-  free(url);
 }
 
 /* ******************************************************* */

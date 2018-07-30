@@ -802,6 +802,7 @@ local known_parameters = {
    ["search_path"]             =  validateUnquoted,
    ["user_group"]              =  validateUnquoted,
    ["admin_group"]             =  validateUnquoted,
+   ["ts_post_data_url"]        =  validateUnquoted,             -- URL for influxdb
 
    -- nIndex
    ["select_clause"]           = validateUnquoted,
@@ -1071,6 +1072,7 @@ local known_parameters = {
    ["toggle_host_mask"]                            =  validateChoiceInline({"0", "1", "2"}),
    ["topk_heuristic_precision"]                    =  validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
    ["bridging_policy_target_type"]                 =  validateChoiceInline({"per_protocol", "per_category", "both"}),
+   ["timeseries_driver"]                           =  validateChoiceInline({"rrd", "influxdb"}),
 
    -- Other
    ["flush_alerts_data"]                           =  validateEmpty,

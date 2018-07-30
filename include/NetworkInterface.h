@@ -675,7 +675,7 @@ class NetworkInterface : public Checkpointable {
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif
-  inline TimeSeriesExporter* getTSExporter() { return(tsExporter); }
+  inline TimeSeriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeSeriesExporter(this); return(tsExporter); }
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
 };

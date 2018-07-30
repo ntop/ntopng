@@ -13,9 +13,9 @@ Installation
 By default Influx data export is disabled. You can enabled as follows:
 
 1. run `CREATE DATABASE ntopng` on the Influx server
-2. start ntopng
-3. run `redis-cli set "ntopng.prefs.ts_post_data_url" "http://<host where Influx is running>:8086"`
-4. restart ntopng
+2. from the ntopng Timeseries preferences, select "InfluxDB" as the Timeseries Database
+3. set the `InfluxDB URL` to point to the database: http://<host where Influx is running>:8086"
+4. click save
 
 and then ntopng will push data to Influx.
 

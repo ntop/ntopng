@@ -21,7 +21,9 @@ local INFLUX_QUERY_TIMEMOUT_SEC = 5
 -- ##############################################
 
 function driver:new(options)
-  local obj = {}
+  local obj = {
+    url = options.url,
+  }
 
   setmetatable(obj, self)
   self.__index = self
@@ -360,8 +362,6 @@ function driver:query(schema, tstart, tend, tags, options)
     end
   end
 
-  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
-
   -- NOTE: GROUP BY TIME and FILL do not work well together! Additional zeroes produce non-existent derivative values
   -- Will perform fill manually below
   --[[
@@ -374,6 +374,7 @@ function driver:query(schema, tstart, tend, tags, options)
       table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
 
+  local url = self.url
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url)
 
@@ -409,8 +410,6 @@ end
 -- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
-
   -- NOTE: time based query not currently supported on show tags/series, using select
   -- https://github.com/influxdata/influxdb/issues/5668
   --[[
@@ -425,6 +424,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
       " LIMIT 1"
 
+  local url = self.url
   local full_url = url .. "/query?db=ntopng&q=" .. urlencode(query)
   local data = influx_query(full_url)
 
@@ -474,8 +474,6 @@ end
 -- ##############################################
 
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
-  local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
-
   if #top_tags ~= 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
     return nil
@@ -492,6 +490,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local query = 'SELECT TOP("value", "'.. top_tag ..'", '.. options.top ..') FROM (SELECT '.. top_tag ..
       ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000)'
+  local url = self.url
   local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
 
   local data = influx_query(full_url)

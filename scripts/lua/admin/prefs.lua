@@ -1179,6 +1179,27 @@ function printStatsTimeseries()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
 
+  local elementToSwitch = {"ts_post_data_url"}
+  local showElementArray = {false, true}
+
+  multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
+				    subpage_active.entries["multiple_timeseries_database"].description,
+				    {"RRD", "InfluxDB"}, {"rrd", "influxdb"},
+				    "rrd",
+				    "primary",
+				    "timeseries_driver",
+				    "ntopng.prefs.timeseries_driver", nil,
+				    elementToSwitch, showElementArray, nil, true--[[show]])
+
+  local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_url"].title,
+		       subpage_active.entries["influxdb_url"].description,
+		       "ntopng.prefs.",
+		       "ts_post_data_url",
+		       "",
+		       false, active_driver == "influxdb", nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
+
   mysql_retention = 7
   prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
     "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})

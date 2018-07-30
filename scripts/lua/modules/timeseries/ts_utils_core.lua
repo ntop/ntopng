@@ -16,17 +16,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua
 
 -- ##############################################
 
--- All the drivers
-
---TODO
-local dirs = ntop.getDirs()
-local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
-local influxdb_driver = nil
 local loaded_schemas = {}
-
-if not isEmptyString(ntop.getCache("ntopng.prefs.ts_post_data_url")) then
-  influxdb_driver = require("influxdb"):new()
-end
 
 --! @brief Define a new timeseries schema.
 --! @param name the schema identifier.
@@ -55,23 +45,26 @@ function ts_utils.getLoadedSchemas()
   return loaded_schemas
 end
 
-function ts_utils.listDrivers()
-  -- TODO
-  return {rrd_driver, influxdb_driver}
-end
-
--- Only active drivers
+--! @brief Return a list of active timeseries drivers.
+--! @return list of driver objects.
 function ts_utils.listActiveDrivers()
-  -- TODO
-  return {rrd_driver, influxdb_driver}
-end
+  local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+  local active_drivers = {}
 
-function ts_utils.enableDriver(driver)
-  --TODO
-end
+  if isEmptyString(driver) then
+    driver = "rrd"
+  end
 
-function ts_utils.disableDriver(driver)
-  --TODO
+  if driver == "rrd" then
+    local dirs = ntop.getDirs()
+    local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
+    active_drivers[#active_drivers + 1] = rrd_driver
+  elseif driver == "influxdb" then
+    local influxdb_driver = require("influxdb"):new({url=ntop.getPref("ntopng.prefs.ts_post_data_url")})
+    active_drivers[#active_drivers + 1] = influxdb_driver
+  end
+
+  return active_drivers
 end
 
 -- Get the driver to use to query data
