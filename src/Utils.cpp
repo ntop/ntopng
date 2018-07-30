@@ -1190,7 +1190,7 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) 
 }
 
 bool Utils::postHTTPTextFile(char *username, char *password, char *url,
-			     char *path, HTTPTranferStats *stats) {
+			     char *path, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
   struct stat file_info;
@@ -1233,6 +1233,13 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_READDATA, fd);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (curl_off_t)file_len);
+
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+    
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
     
     res = curl_easy_perform(curl);
 
