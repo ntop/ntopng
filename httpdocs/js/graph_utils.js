@@ -250,11 +250,6 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         disabled: true, /* hidden by default */
       });
 
-      // TODO pass as parameter
-      var sparkline = $("#trend-sparkline");
-      sparkline.html(smooth(total_serie, 10 /* num_points */).join(","));
-      sparkline.peity("line", { width: 40, height: 22, max: null });
-
       // get the value formatter
       var formatter = getValueFormatter(schema_name, series);
       var value_formatter = formatter[0];
