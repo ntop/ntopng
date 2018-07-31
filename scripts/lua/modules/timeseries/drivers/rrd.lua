@@ -374,6 +374,9 @@ function driver:query(schema, tstart, tend, tags, options)
     count = count,
     series = series,
     statistics = stats,
+    additional_series = {
+      total = total_serie,
+    },
   }
 end
 

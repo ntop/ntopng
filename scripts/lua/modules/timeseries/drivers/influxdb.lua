@@ -395,7 +395,10 @@ function driver:query(schema, tstart, tend, tags, options)
     step = time_step,
     count = count,
     series = series,
-    statistics = stats
+    statistics = stats,
+    additional_series = {
+      total = total_serie,
+    },
   }
 
   return rv

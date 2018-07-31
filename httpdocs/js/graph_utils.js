@@ -104,15 +104,16 @@ function checkSeriesConsinstency(schema_name, count, series) {
   return rv;
 }
 
-// intervals can be fractional
-function interpolateSerie(serie, intervals) {
+function interpolateSerie(serie, num_points) {
+  if(num_points == serie.length)
+    return serie;
+
   var res = [];
+  var intervals = num_points / serie.length;
 
   function lerp(v0, v1, t) {
     return (1 - t) * v0 + t * v1;
   }
-
-  var num_points = Math.ceil(serie.length * intervals);
 
   for(var i=0; i<num_points; i++) {
     var index = i / intervals;
@@ -125,7 +126,7 @@ function interpolateSerie(serie, intervals) {
     res.push(v);
   }
 
-  return res;
+  return res.slice(0, num_points);
 }
 
 // the stacked total serie
@@ -212,17 +213,20 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
       if(data.additional_series) {
         for(var key in data.additional_series) {
-          var serie_data = data.additional_series[key];
+          var serie_data = interpolateSerie(data.additional_series[key], data.count);
           var values = arrayToNvSerie(serie_data, data.start, data.step);
+
+          // TODO
+          if(key == "total")
+            continue;
 
           res.push({
             key: capitaliseFirstLetter(key),
             yAxis: 1,
             values: values,
             type: "line",
-            classed: "line-dashed",
-            color: "#ff0000",
-            disabled: true, /* hide additional series by default */
+            classed: "line-animated",
+            color: "#8A0068",
           });
         }
 
@@ -239,7 +243,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
       var smoothed = smooth(total_serie, num_smoothed_points);
       var scale = d3.max(total_serie) / d3.max(smoothed);
       var scaled = $.map(smoothed, function(x) { return x * scale; });
-      var aligned = interpolateSerie(scaled, total_serie.length / scaled.length).slice(0, total_serie.length);
+      var aligned = interpolateSerie(scaled, data.count);
 
       res.push({
         key: "Trend", // TODO localize

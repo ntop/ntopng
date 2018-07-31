@@ -10,6 +10,7 @@ if ntop.isPro() then
 end
 
 require "lua_utils"
+require "graph_utils"
 local ts_utils = require("ts_utils")
 local json = require("dkjson")
 
@@ -17,6 +18,7 @@ local schema_id = _GET["ts_schema"]
 local query = _GET["ts_query"]
 local tstart = tonumber(_GET["epoch_begin"]) or (os.time() - 3600)
 local tend = tonumber(_GET["epoch_end"]) or os.time()
+local compare_backward = _GET["ts_compare"]
 
 -- convert the query into fields
 local tags = tsQueryToTags(_GET["ts_query"])
@@ -27,19 +29,42 @@ end
 
 sendHTTPHeader('application/json')
 
-local res
+local function performQuery(tstart, tend, keep_total)
+  local res
 
-if starts(schema_id, "top:") then
-  local schema_id = split(schema_id, "top:")[2]
+  if starts(schema_id, "top:") then
+    local schema_id = split(schema_id, "top:")[2]
 
-  res = ts_utils.queryTopk(schema_id, tags, tstart, tend)
-else
-  res = ts_utils.query(schema_id, tags, tstart, tend)
+    res = ts_utils.queryTopk(schema_id, tags, tstart, tend)
+  else
+    res = ts_utils.query(schema_id, tags, tstart, tend)
+
+    if(not keep_total) and (res.additional_series) then
+      -- no need for total serie in normal queries
+      res.additional_series.total = nil
+    end
+  end
+
+  return res
 end
+
+local res = performQuery(tstart, tend)
 
 if res == nil then
   print("[]")
   return
+end
+
+if not isEmptyString(compare_backward) then
+  local backward_sec = getZoomDuration(compare_backward)
+  local tstart_cmp = tstart - backward_sec
+  local tend_cmp = tend - backward_sec
+  local res_cmp = performQuery(tstart_cmp, tend_cmp, true)
+
+  if res_cmp and res_cmp.additional_series and res_cmp.additional_series.total then
+    res.additional_series = res.additional_series or {}
+    res.additional_series[compare_backward.. " " ..i18n("details.ago")] = res_cmp.additional_series.total
+  end
 end
 
 -- TODO make a script parameter?
