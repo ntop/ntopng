@@ -165,6 +165,17 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
   $chart.parent().css("position", "relative");
 
+  var chart_colors = [
+    "#87CC9A",
+    "#B3DEB6",
+    "#E5F1A6",
+    "#FFFCC6",
+    "#FEDEA5",
+    "#FFB97B",
+    "#FF8D6D",
+    "#E27B85"
+  ];
+
   var update_chart_data = function(new_data) {
     d3_sel.datum(new_data).transition().duration(500).call(chart);
     nv.utils.windowResize(chart.update);
@@ -208,6 +219,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
           yAxis: 1,
           values: values,
           type: "area",
+          color: chart_colors[j],
         });
       }
 
@@ -225,8 +237,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             yAxis: 1,
             values: values,
             type: "line",
-            classed: "line-animated",
-            color: "#8A0068",
+            classed: "line-dashed line-animated",
+            color: "#7E91A0",
           });
         }
 
@@ -238,7 +250,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         total_serie = buildTotalSerie(series);
 
       // Smoothed serie
-      var num_smoothed_points = Math.floor(total_serie.length / 5);
+      var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
       var smoothed = smooth(total_serie, num_smoothed_points);
       var scale = d3.max(total_serie) / d3.max(smoothed);
@@ -251,7 +263,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         values: arrayToNvSerie(aligned, data.start, data.step),
         type: "line",
         classed: "line-animated",
-        color: "#FF7F58",
+        color: "#62ADF6",
       });
 
       // get the value formatter
@@ -274,7 +286,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             values: values,
             type: "line",
             classed: "line-dashed line-animated",
-            color: "#00ff00",
+            color: "#AC9DDF",
+            disabled: true,
           });
         }
 
@@ -298,7 +311,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             values: values,
             type: "line",
             classed: "line-dashed line-animated",
-            color: "#0000ff",
+            color: "#476DFF",
+            disabled: true,
           });
         }
 

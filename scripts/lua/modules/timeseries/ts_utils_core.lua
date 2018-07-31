@@ -115,11 +115,11 @@ end
 -- Get some default options to use in queries.
 local function getQueryOptions(overrides)
   return table.merge({
-    max_num_points = 240,   -- maximum number of points per data serie
+    max_num_points = 80,   -- maximum number of points per data serie
     fill_value = 0,         -- e.g. 0/0 for nan
     min_value = 0,          -- minimum value of a data point
     max_value = math.huge,  -- maximum value for a data point
-    top = 10,               -- topk number of items
+    top = 8,               -- topk number of items
     calculate_stats = true,      -- calculate stats if possible
   }, overrides or {})
 end
