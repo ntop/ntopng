@@ -18,10 +18,10 @@ maxhits    = _GET["maxhits_clause"]
 begin_time = _GET["begin_time_clause"]
 end_time   = _GET["end_time_clause"]
 
-if(_GET["flow_clause"] == "flows") then
-   aggregated_flows = false
-else
+if(_GET["flow_clause"] == "aggregated_flows") then
    aggregated_flows = true
+else
+   aggregated_flows = false
 end
 
 if(where == nil)  then
