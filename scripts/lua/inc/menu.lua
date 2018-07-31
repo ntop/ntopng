@@ -448,15 +448,24 @@ if(user_group == "administrator") then
 end
 
 
-   print [[
-      <li class="divider"></li>
-      <li><a href="]]
-   print(ntop.getHttpPrefix())
-   print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
+print [[
+      <li class="divider"></li>]]
 
-print[[</ul>
-    </li>
-   ]]
+print [[
+      <li><a href="]]
+print(ntop.getHttpPrefix())
+print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
+
+if(user_group == "administrator") then
+  print [[
+      <li><a href="]]
+  print(ntop.getHttpPrefix())
+  print [[/lua/conf_backup.lua"><i class="fa fa-retweet"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
+end
+
+print[[
+    </ul>
+  </li>]]
 
 if(_COOKIE["user"] ~= nil and _COOKIE["user"] ~= ntop.getNologinUser()) then
 print [[

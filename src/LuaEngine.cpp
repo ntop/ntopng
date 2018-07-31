@@ -238,6 +238,38 @@ static int ntop_dump_file(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_dump_binary_file(lua_State* vm) {
+  char *fname;
+  FILE *fd;
+  struct mg_connection *conn;
+
+  conn = getLuaVMUserdata(vm, conn);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((fname = (char*)lua_tostring(vm, 1)) == NULL)     return(CONST_LUA_PARAM_ERROR);
+
+  ntop->fixPath(fname);
+  if((fd = fopen(fname, "rb")) != NULL) {
+    char tmp[1024];
+    size_t n;
+
+    while((n = fread(tmp, 1, sizeof(tmp), fd)) > 0) {
+      if (mg_write(conn, tmp, n) < (int) n) break;
+    }
+
+    fclose(fd);
+    lua_pushnil(vm);
+    return(CONST_LUA_OK);
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read file %s", fname);
+    return(CONST_LUA_ERROR);
+  }
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_active_interface_id(lua_State* vm) {
   NetworkInterface *iface;
@@ -7612,6 +7644,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getInfo",          ntop_get_info },
   { "getUptime",        ntop_get_uptime },
   { "dumpFile",         ntop_dump_file },
+  { "dumpBinaryFile",   ntop_dump_binary_file },
   { "checkLicense",     ntop_check_license },
   { "systemHostStat",   ntop_system_host_stat },
   { "getCookieAttributes", ntop_get_cookie_attributes },
