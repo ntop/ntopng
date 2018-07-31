@@ -3883,35 +3883,6 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 
 /* ****************************************** */
 
-#ifdef HAVE_NINDEX
-#if 0
-static int8_t ntop_ts_step_to_series_id(u_int16_t step) {
-  switch(step) {
-  case 1: /* 1 sec */
-    return(NSERIES_ID_SECOND);
-    break;
-
-  case 60: /* 1 min */
-    return(NSERIES_ID_MINUTE);
-    break;
-
-  case 300: /* 5 min */
-    return(NSERIES_ID_5_MINUTES);
-    break;
-
-  default:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid step set %u",
-				 step);
-    return(-1);
-  }
-
-  return(-1); /* NOTREACHED */
-}
-#endif
-#endif
-
-/* ****************************************** */
-
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
 
 static int ntop_nindex_select(lua_State* vm) {
@@ -3951,9 +3922,71 @@ static int ntop_nindex_select(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   max_num_hits = (unsigned long)lua_tonumber(vm, id++);
 
-  return(nindex->nIndexSelect(vm, use_aggregated_flows,
-			      timestamp_begin, timestamp_end, select,
-			      where, skip_initial_records, max_num_hits));
+  return(nindex->select(vm, use_aggregated_flows,
+			timestamp_begin, timestamp_end, select,
+			where, skip_initial_records, max_num_hits));
+}
+
+/* ****************************************** */
+
+static int ntop_nindex_topk(lua_State* vm) {
+  u_int8_t id = 1;
+  char *select_keys = NULL, *select_values = NULL,*where = NULL;
+  bool use_aggregated_flows;
+  char *timestamp_begin, *timestamp_end;
+  unsigned long skip_initial_records, max_num_hits;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NIndexFlowDB *nindex;
+  char *_topkOperator;
+  TopKSelectOperator topkOperator = topk_select_operator_sum;
+  bool topToBottomSort;
+  
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    nindex = ntop_interface->getNindex();
+    if(!nindex) return(CONST_LUA_ERROR);
+  }
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  use_aggregated_flows = lua_toboolean(vm, id++) ? true : false;
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((timestamp_begin = (char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((timestamp_end = (char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((select_keys = (char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((select_values = (char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  where = (char*)lua_tostring(vm, id++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  _topkOperator = (char*)lua_tostring(vm, id++);
+
+  if(!strcasecmp(_topkOperator, "sum")) topkOperator = topk_select_operator_sum;
+  else if(!strcasecmp(_topkOperator, "min")) topkOperator = topk_select_operator_min;
+  else topkOperator = topk_select_operator_max;
+    
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  skip_initial_records = (unsigned long)lua_tonumber(vm, id++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  max_num_hits = (unsigned long)lua_tonumber(vm, id++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  topToBottomSort = lua_toboolean(vm, id++) ? true : false;
+  
+  return(nindex->topk(vm, use_aggregated_flows,
+		      timestamp_begin, timestamp_end,
+		      select_keys, select_values,
+		      where, topkOperator, skip_initial_records,
+		      max_num_hits, topToBottomSort));
 }
 
 #endif
@@ -7550,6 +7583,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   /* nIndex */
   { "nIndexSelect",                    ntop_nindex_select             },
+  { "nIndexTopK",                      ntop_nindex_topk               },
 #endif
 
   /* Live Capture */

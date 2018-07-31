@@ -806,10 +806,13 @@ local known_parameters = {
 
    -- nIndex
    ["select_clause"]           = validateUnquoted,
+   ["select_keys_clause"]      = validateUnquoted,
+   ["select_values_clause"]    = validateUnquoted,
    ["where_clause"]            = validateUnquoted,
    ["begin_time_clause"]       = validateUnquoted,
    ["end_time_clause"]         = validateUnquoted,
    ["flow_clause"]             = validateSingleWord,
+   ["topk_clause"]             = validateSingleWord,
    ["maxhits_clause"]          = validateNumber,
    
 -- HOST SPECIFICATION
