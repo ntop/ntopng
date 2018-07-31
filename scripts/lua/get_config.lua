@@ -25,8 +25,7 @@ local function send_error(error_type)
    print(json.encode({error = msg}))
 end
 
-user_group = ntop.getUserGroup()
-if user_group ~= "administrator" then
+if not isAdministrator() then
   send_error("not_granted")
 else
 
