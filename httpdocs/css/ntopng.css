@@ -337,3 +337,16 @@ tr.quotas > td {
   padding-right: 10px;
   min-width: 7em;
 }
+
+.line-animated .nv-line {
+  animation-name: line-appear;
+  animation-delay: 0.25s;
+  animation-duration: 1.2s;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@keyframes line-appear {
+  from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);}
+  to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);}
+}

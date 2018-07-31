@@ -246,8 +246,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         yAxis: 1,
         values: arrayToNvSerie(aligned, data.start, data.step),
         type: "line",
-        color: "#FF4300",
-        disabled: true, /* hidden by default */
+        classed: "line-animated",
+        color: "#FF7F58",
       });
 
       // get the value formatter
@@ -269,7 +269,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             yAxis: 1,
             values: values,
             type: "line",
-            classed: "line-dashed",
+            classed: "line-dashed line-animated",
             color: "#00ff00",
           });
         }
@@ -293,7 +293,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             yAxis: 1,
             values: values,
             type: "line",
-            classed: "line-dashed",
+            classed: "line-dashed line-animated",
             color: "#0000ff",
           });
         }
