@@ -1529,6 +1529,9 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_informative_captive_portal_enabled", enable_informative_captive_portal);
 
   lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
+
+  lua_push_str_table_entry(vm, "config_file", config_file_path ? config_file_path : (char*)"");
+  lua_push_str_table_entry(vm, "ndpi_proto_file", ndpi_proto_path ? ndpi_proto_path : (char*)"");
 }
 
 /* *************************************** */

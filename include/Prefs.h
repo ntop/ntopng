@@ -186,6 +186,8 @@ class Prefs {
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
   inline char* get_if_descr(u_int id)                   { return((id < MAX_NUM_INTERFACES) ? ifNames[id].description : NULL); };
+  inline char* get_config_file_path()                   { return(config_file_path); };
+  inline char* get_ndpi_proto_file_path()               { return(ndpi_proto_path); };
   inline char* get_data_dir()                           { return(data_dir);       };
   inline char* get_docs_dir()                           { return(docs_dir);       }; // HTTP docs
   inline char* get_scripts_dir()                        { return(scripts_dir);    };
