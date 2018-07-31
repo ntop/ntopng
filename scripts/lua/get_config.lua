@@ -25,6 +25,10 @@ local function send_error(error_type)
    print(json.encode({error = msg}))
 end
 
+local function starts_with(str, start_str)
+   return string.sub(str, 1, string.len(start_str)) == start_str
+end
+
 if not isAdministrator() then
   send_error("not_granted")
 else
@@ -59,7 +63,9 @@ else
       send_error("tar_not_found")
     else
 
-      local config_files = "/etc/ntopng"
+      local ntopng_conf_dir = "/etc/ntopng"
+
+      local config_files = ntopng_conf_dir
 
       local license_path = "/etc/ntopng.license"
       if ntop.isnEdge() then
@@ -70,25 +76,25 @@ else
       end
 
       if not isEmptyString(prefs.config_file) then
-        if ntop.exists(prefs.config_file) then
+        if ntop.exists(prefs.config_file) and not starts_with(prefs.config_file, ntopng_conf_dir) then
           config_files = config_files .. " " .. prefs.config_file
         end
       end
 
       local runtimeprefs_path = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
-      if ntop.exists(runtimeprefs_path) then
+      if ntop.exists(runtimeprefs_path) and not starts_with(runtimeprefs_path, ntopng_conf_dir) then
         config_files = config_files .. " " .. runtimeprefs_path
       end
 
       if ntop.isnEdge() then
         local system_config_path = os_utils.fixPath(dirs.workingdir.."/system.config")
-        if ntop.exists(system_config_path) then
+        if ntop.exists(system_config_path) and not starts_with(system_config_path, ntopng_conf_dir) then
           config_files = config_files .. " " .. system_config_path
         end
       end
 
       if not isEmptyString(prefs.ndpi_proto_file) then
-        if ntop.exists(prefs.ndpi_proto_file) then
+        if ntop.exists(prefs.ndpi_proto_file) and not starts_with(prefs.ndpi_proto_file, ntopng_conf_dir) then
           config_files = config_files .. " " .. prefs.ndpi_proto_file
         end
       end
