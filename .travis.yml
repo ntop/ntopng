@@ -1,5 +1,5 @@
 language: c++
-dist: trusty
+dist: xenial
 
 compiler:
   - clang
