@@ -343,7 +343,7 @@ tr.quotas > td {
   animation-delay: 0.25s;
   animation-duration: 1.2s;
   animation-timing-function: linear;
-  animation-fill-mode: both;
+  animation-fill-mode: backwards;
 }
 
 @keyframes line-appear {
