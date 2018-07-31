@@ -39,7 +39,7 @@ if((select_values == nil) or (select_values == "")) then
 end
 
 if(topk == nil)  then
-   topk = "sum"
+   topk = "SUM"
 end
 
 if((maxhits == nil) or (maxhits == "")) then
@@ -143,24 +143,21 @@ print [[
     <label for="aggregation3" class="col-sm-2 col-form-label">Aggregation</label>
     <div class="form-check col-xs-2">
       <select name="topk_clause" class="form-control" id="exampleFormControlSelect1" id="exampleInputTopk1" aria-describedby="topkHelp" placeholder="Enter topk condition">
-        <option]] if(topk == "min") then print(" selected") end print [[>MIN</option>
-        <option]] if(topk == "max") then print(" selected") end print [[>MAX</option>
-        <option]] if(topk == "sum") then print(" selected") end print [[>SUM</option>
+        <option]] if(topk == "MIN") then print(" selected") end print [[>MIN</option>
+        <option]] if(topk == "MAX") then print(" selected") end print [[>MAX</option>
+        <option]] if(topk == "SUM") then print(" selected") end print [[>SUM</option>
       </select>
     </div>
   </div>
   </fieldset>
-
-
-
 
   <button type="submit" class="btn btn-primary">Run query</button>
 </form>
 ]]
 
 
-topToBottomSort = true
-res = interface.nIndexTopK(aggregated_flows, begin_time, end_time, select_keys, select_values, where, topk, 0, tonumber(maxhits), topToBottomSort)
+bottomToTopSort = false
+res = interface.nIndexTopK(aggregated_flows, begin_time, end_time, select_keys, select_values, where, topk, 0, tonumber(maxhits), bottomToTopSort)
 
 -- tprint(res)
 
