@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-07-18 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-08-01 */
 (function(){
 
 // set up main nv object
@@ -17808,7 +17808,8 @@ nv.models.stackedArea = function() {
                 .defined(defined)
                 .x(function(d,i)  { return x(getX(d,i)) })
                 .y0(function(d) { return y(d.display.y0) })
-                .y1(function(d) { return y(d.display.y0) });
+                .y1(function(d) { return y(d.display.y0) })
+                .interpolate(interpolate);
 
             var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
                 .data(function(d) { return d });
