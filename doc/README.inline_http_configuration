@@ -1,0 +1,39 @@
+nEdge can be configured via HTTP. During the startup process,
+it will try to retrieve users configuration from
+a url that has to be specified in file:
+
+/lua/modules/http_bridge_conf_utils.lua
+
+Configuration must be returned in JSON format. An example
+configuration is given in the file mentioned above.
+
+---
+
+For testing purposes, a simple python JSON web server is provided in
+
+tools/serve_bridge_config.py
+
+The aforementioned python file returns a basic JSON configuration that
+can be used/adapted to configure ntopng.
+
+---
+
+Associating members to their host pools is done at runtime using the
+following ntopng endpoint:
+
+/lua/admin/manage_pool_members.lua
+
+A valid JSON must be POSTed to this endpoint. An example
+configuration is given in the file.
+
+The JSON must contain one or more MAC Addresses and, for each MAC,
+a valid host pool and an association rule must be specified.
+
+Using curl, one can configure members as follow:
+
+curl -H "Content-Type: application/json" -X POST -d '{"associations" : { "DE:AD:BE:EE:FF:FF"  : {"group" : "maina" ,  "connectivity" : "pass"}, "AA:BB:CC:DD:EE:FF"  : {"group" : "simon" ,  "connectivity" : "reject"}}}' "http://devel:3000/lua/admin/manage_pool_members.lua"
+
+The endpoint responds with a status for each configured association.
+The status can be used to determine if the association/disassociation
+has completed successfully.
+
