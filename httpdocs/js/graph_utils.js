@@ -198,8 +198,6 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
     "#E27B85"
   ];
 
-  var color_i = 0;
-
   var update_chart_data = function(new_data) {
     d3_sel.datum(new_data).transition().duration(500).call(chart);
     nv.utils.windowResize(chart.update);
@@ -227,6 +225,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
       var res = [];
       var series = data.series;
       var total_serie;
+      var color_i = 0;
 
       for(var j=0; j<series.length; j++) {
         var values = [];
