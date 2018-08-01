@@ -338,7 +338,7 @@ tr.quotas > td {
   min-width: 7em;
 }
 
-#historical-tab-chart .nv-area {
+#historical-tab-chart .nv-area-stroke-hint {
 /*
   fill-opacity: 0.6 !important;
 */
@@ -349,13 +349,13 @@ tr.quotas > td {
 
 @keyframes line-stroke-appear {
   from { stroke-opacity: 0; stroke-width: 0; }
-  to { stroke-opacity: 1; stroke-width: 1.3; }
+  to { stroke-opacity: 1; stroke-width: 1.5; }
 }
 
 .line-animated .nv-line {
   animation-name: line-appear;
   animation-delay: 0.25s;
-  animation-duration: 1.2s;
+  animation-duration: 1.0s;
   animation-fill-mode: backwards;
 }
 

@@ -13345,6 +13345,39 @@ nv.models.multiChart = function() {
                 chart.update();
             });
 
+            /* stroke hints can be used to only stroke selected lines to prevent
+             * aliasing issues on multiple paths.
+             * The current algorithmn is based on peak values comparison. */
+            function set_stroke_hints(container, dataSeries, maxY) {
+                var min_ratio = 0.02;
+                var unstroked_idx = -1;
+
+                function stroke_hint(i, hint) {
+                    //if(hint) console.log("Stroke " + i);
+                    container.selectAll(".nv-area-" + i).classed("nv-area-stroke-hint", hint);
+                }
+
+                dataSeries.filter(function(d){return !d.disabled}).map(function(d, i) {
+                    var max_value = d3.max(d.values, function(pt) {return pt[1]});
+                    var ratio = max_value / maxY;
+                    //console.log(d.key + ": " + ratio + " -> " + (ratio >= min_ratio ? "STROKE" : ""));
+
+                    if(ratio >= min_ratio) {
+                        if(unstroked_idx >= 0)
+                            stroke_hint(unstroked_idx, true);
+
+                        stroke_hint(i, true);
+                        unstroked_idx = -1;
+                    } else {
+                        stroke_hint(i, false);
+                        unstroked_idx = i;
+                    }
+                });
+            }
+
+            set_stroke_hints(stack1Wrap, dataStack1, series1_stacked_y_domain);
+            set_stroke_hints(stack2Wrap, dataStack2, series2_stacked_y_domain);
+
             if(useInteractiveGuideline){
                 interactiveLayer
                     .width(availableWidth)
