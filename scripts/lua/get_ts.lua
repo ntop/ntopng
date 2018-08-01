@@ -39,7 +39,7 @@ local function performQuery(tstart, tend, keep_total)
   else
     res = ts_utils.query(schema_id, tags, tstart, tend)
 
-    if(not keep_total) and (res.additional_series) then
+    if(not keep_total) and (res) and (res.additional_series) then
       -- no need for total serie in normal queries
       res.additional_series.total = nil
     end

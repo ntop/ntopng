@@ -383,10 +383,10 @@ function driver:query(schema, tstart, tend, tags, options)
   end
 
   local series, count = influx2Series(schema, tstart, tend, tags, options, data.series[1], time_step)
+  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
   local stats = nil
 
   if options.calculate_stats then
-    local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
     stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
   end
 
