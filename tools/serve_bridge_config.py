@@ -15,7 +15,7 @@ use option --ndpi-protocols, e.g., --ndpi-protocols /tmp/custom.txt
 '''
 
 sample_bridge_config = {
-    "users":{
+    "users" : {
         "Not Assigned" : {
             "default_policy": "drop",
             "policies" : {10 : "slow_pass",
@@ -41,7 +41,14 @@ sample_bridge_config = {
                           "MyCustomProtocol": "pass",
                           "YouTube": "slower_pass"}
         }
-    }}
+    },
+    "associations" : { 
+        "DE:AD:BE:EE:FF:FF"  : {"group" : "maina" ,        "connectivity" : "pass"},
+        "11:22:33:44:55:66"  : {"group" : "maina" ,        "connectivity" : "pass"},
+        "AA:BB:CC:DD:EE:FF"  : {"group" : "simon" ,        "connectivity" : "pass"},
+        "66:55:44:33:22:11"  : {"group" : "simon" ,        "connectivity" : "pass"},
+    }
+}
 
 # sample_string_config='{"users": {"DEFAULT": {"full_name": "default", "password": "default", "default_policy": "pass", "policies": {"JWP": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "default": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "30min": {"default_policy": "pass", "password": "30min", "full_name": "30min", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "HotelManager": {"default_policy": "pass", "password": "HotelManager", "full_name": "HotelManager", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "30Days": {"default_policy": "pass", "password": "30Days", "full_name": "30Days", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "sociaLogin": {"default_policy": "pass", "password": "sociaLogin", "full_name": "sociaLogin", "policies": {"JWP": "pass", "COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "COMODO": "pass", "JWPLTX": "pass", "119": "slower_pass", "PORTAL_SEAFY": "pass", "PAYMENT": "pass", "126": "slower_pass"}}, "4hours": {"default_policy": "pass", "password": "4hours", "full_name": "4hours", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "4G": {"default_policy": "pass", "password": "4G", "full_name": "4G", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "1hour": {"default_policy": "pass", "password": "1hour", "full_name": "1hour", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "8hours": {"default_policy": "pass", "password": "8hours", "full_name": "8hours", "policies": {"COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "JWP": "pass", "PORTAL_SEAFY": "pass", "JWPLTX": "pass", "PAYMENT": "pass", "COMODO": "pass"}}, "Special": {"default_policy": "pass", "password": "Special", "full_name": "Special", "policies": {"133": "slower_pass", "7": "slower_pass", "JWP": "pass", "142": "slower_pass", "144": "slower_pass", "COMODOCA": "pass", "ENTITJWP": "pass", "STRIPE": "pass", "SEAFY": "pass", "91": "slower_pass", "156": "slower_pass", "COMODO": "pass", "JWPLTX": "pass", "125": "slower_pass", "PORTAL_SEAFY": "pass", "124": "slower_pass", "PAYMENT": "pass"}}}}'
 
