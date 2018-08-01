@@ -10,6 +10,7 @@ local callback_utils = require "callback_utils"
 local template = require "template_utils"
 local json = require("dkjson")
 local host_pools_utils = require("host_pools_utils")
+local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
@@ -2848,7 +2849,7 @@ local function notify_ntopng_status(started)
    then
       -- let's check if we are restarting from an anomalous termination
       -- e.g., from a crash
-      if ntop.getCache(alert_consts.clean_shutdown_key) ~= "1" then
+      if not recovery_utils.check_clean_shutdown() then
 	 -- anomalous termination
 	 msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
 	 severity = alertSeverity("error")
@@ -2891,15 +2892,10 @@ end
 
 function notify_ntopng_start()
    notify_ntopng_status(true)
-   -- delete the 'normal termination' key
-   -- that will be inserted back during shutdown
-   ntop.delCache(alert_consts.clean_shutdown_key)
 end
 
 function notify_ntopng_stop()
    notify_ntopng_status(false)
-   -- set a key to tell we are terminated normally
-   ntop.setCache(alert_consts.clean_shutdown_key, "1")
 end
 
 -- DEBUG: uncomment this to test

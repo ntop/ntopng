@@ -21,6 +21,7 @@ local discover_utils = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local lists_utils = require "lists_utils"
+local recovery_utils = require "recovery_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -107,3 +108,10 @@ end
 
 processAlertNotifications(os.time(), 0, true --[[ force ]])
 notify_ntopng_start()
+
+if not recovery_utils.check_clean_shutdown() then
+   package.path = dirs.installdir .. "/scripts/callbacks/system/?.lua;" .. package.path
+   require("recovery")
+end
+
+recovery_utils.unmark_clean_shutdown()
