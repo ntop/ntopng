@@ -99,14 +99,19 @@ else
         end
       end
 
-      sendHTTPContentTypeHeader('application/x-tar-gz', 'attachment; filename="ntopng_conf_backup.tar.gz"')
+      local tar_file = "ntopng_conf_backup.tar.gz"
+      if ntop.isnEdge() then
+        tar_file = "nedge_conf_backup.tar.gz"
+      end
+
+      sendHTTPContentTypeHeader('application/x-tar-gz', 'attachment; filename="' .. tar_file .. '"')
 
       local cmd = bin_tar .. " czP " .. config_files 
 
       -- Note: we are using os.execute / ntop.dumpBinaryFile as io.popen / print 
       -- cannot be used for dumping binary files directly to the connection
 
-      tmp = os.tmpname()
+      local tmp = os.tmpname()
       os.execute(cmd .. " > " .. tmp)
       ntop.dumpBinaryFile(tmp)
       os.remove(tmp)
