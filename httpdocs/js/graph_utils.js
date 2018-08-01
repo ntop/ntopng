@@ -155,6 +155,27 @@ function arrayToNvSerie(serie_data, start, step) {
   return values;
 }
 
+// computes the difference between visual_total and total_serie
+function buildOtherSerie(total_serie, visual_total) {
+  if(total_serie.length !== visual_total.length) {
+    console.warn("Total/Visual length mismatch: " + total_serie.length + " vs " + visual_total.length);
+    return;
+  }
+
+  var res = [];
+  var max_val = 0;
+
+  for(var i=0; i<total_serie.length; i++) {
+    var value = Math.max(0, total_serie[i] - visual_total[i]);
+    max_val = Math.max(max_val, value);
+
+    res.push(value);
+  }
+
+  if(max_val > 0.1)
+    return res;
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var pending_request = null;
@@ -166,6 +187,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   $chart.parent().css("position", "relative");
 
   var chart_colors = [
+    "#69B87F",
     "#87CC9A",
     "#B3DEB6",
     "#E5F1A6",
@@ -175,6 +197,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
     "#FF8D6D",
     "#E27B85"
   ];
+
+  var color_i = 0;
 
   var update_chart_data = function(new_data) {
     d3_sel.datum(new_data).transition().duration(500).call(chart);
@@ -219,18 +243,39 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
           yAxis: 1,
           values: values,
           type: "area",
-          color: chart_colors[j],
+          color: chart_colors[color_i++],
         });
       }
 
+      var visual_total = buildTotalSerie(series);
+
+      if(data.additional_series && data.additional_series.total) {
+        total_serie = data.additional_series.total;
+
+        /* Total -> Other */
+        var other_serie = buildOtherSerie(total_serie, visual_total);
+
+        if(other_serie) {
+          res.push({
+            key: "Other", // TODO localize
+            yAxis: 1,
+            values: arrayToNvSerie(other_serie, data.start, data.step),
+            type: "area",
+            color: chart_colors[color_i++],
+          });
+        }
+      } else
+        total_serie = visual_total;
+
       if(data.additional_series) {
         for(var key in data.additional_series) {
+          if(key == "total") {
+            // handle manually as "other" above
+            continue;
+          }
+
           var serie_data = interpolateSerie(data.additional_series[key], data.count);
           var values = arrayToNvSerie(serie_data, data.start, data.step);
-
-          // TODO
-          if(key == "total")
-            continue;
 
           res.push({
             key: capitaliseFirstLetter(key),
@@ -241,13 +286,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             color: "#7E91A0",
           });
         }
-
-        if(data.additional_series.total)
-          total_serie = data.additional_series.total;
       }
-
-      if(!total_serie)
-        total_serie = buildTotalSerie(series);
 
       // Smoothed serie
       var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
