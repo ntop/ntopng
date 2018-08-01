@@ -116,6 +116,11 @@ print [[
   </div>
 
 </section>
+
+<b>]] print(i18n('notes')) print[[</b>
+<ul>
+<li>]] print(i18n('conf_backup.manual_restore')) print[[</li>
+</ul>
 ]]
 
 print("</div>")

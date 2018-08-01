@@ -1701,6 +1701,7 @@ local lang = {
     ["restore_tab"] = "Restore",
     ["backup"] = "Backup Configuration",
     ["backup_descr"] = "Download a backup copy of the application configuration.",
+    ["manual_restore"] = "In order to restore the configuration using a backup, place a copy of the tarball under /etc/ntopng/conf.tar.gz and restart the application service.",
     ["restore"] = "Restore Configuration",
     ["restore_descr"] = "Restore the application configuration from a backup copy.",
     ["restore_confirmation"] = "Are you sure you want to overwrite the current configuration?",
