@@ -188,7 +188,7 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
   var chart_colors = [
     "#69B87F",
-    "#87CC9A",
+    "#94CFA4",
     "#B3DEB6",
     "#E5F1A6",
     "#FFFCC6",
@@ -199,7 +199,10 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   ];
 
   var update_chart_data = function(new_data) {
-    d3_sel.datum(new_data).transition().duration(500).call(chart);
+    /* reset chart data so that the next transition animation will be gracefull */
+    d3_sel.datum([]).call(chart);
+
+    d3_sel.datum(new_data).transition().call(chart);
     nv.utils.windowResize(chart.update);
     pending_request = null;
     spinner.remove();

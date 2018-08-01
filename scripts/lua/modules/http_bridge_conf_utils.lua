@@ -75,7 +75,7 @@ function http_bridge_conf_utils.configureBridge()
       local rsp = ntop.httpGet(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
 
       if rsp == nil then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, "Unable to obtain a valid configuration from "..http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
+	 host_pools_utils.traceHostPoolEvent(TRACE_ERROR, "Unable to obtain a valid configuration from "..http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
 	 return
       end
 
@@ -113,7 +113,7 @@ function http_bridge_conf_utils.configureBridge()
             end
 
 	    local pool_id = host_pools_utils.usernameToPoolId(username) or host_pools_utils.DEFAULT_POOL_ID
-	    traceError(TRACE_NORMAL, TRACE_CONSOLE, ifname..": creating user: "..username.. " pool id: "..pool_id)
+	    host_pools_utils.traceHostPoolEvent(TRACE_NORMAL, ifname..": creating user: "..username.. " pool id: "..pool_id)
 
 	    if not isEmptyString(user_config["default_policy"]) then
 	       local default_policy = string.lower(user_config["default_policy"])
@@ -138,6 +138,31 @@ function http_bridge_conf_utils.configureBridge()
 							0 --[[traffic_quota--]], 0--[[time_quota--]])
 			-- tprint({proto=proto, name = interface.getnDPIProtoName(tonumber(proto)), pool_id=pool_id, policy_id=policy.id})
 		     end
+		  end
+	       end
+	    end
+	 end
+
+	 -- must leave it here as well to make sure the C part has updated with the new pools
+	 interface.reloadHostPools()
+
+	 -- SETUP ASSOCIATIONS
+	 for member, info in pairs(rsp["associations"] or {}) do
+	    local pool = info["group"]
+	    local connectivity = info["connectivity"]
+
+	    local pool_id = host_pools_utils.usernameToPoolId(pool)
+
+	    if pool == host_pools_utils.DEFAULT_POOL_NAME then
+	       host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": members are associated automatically with default pool "..host_pools_utils.DEFAULT_POOL_NAME.." skipping association with member: "..member)
+	    elseif not pool_id then
+	       host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": pool: "..pool.. " not existing. Unable to set association with: "..member)
+	    else
+	       if connectivity == "pass" then
+		  if host_pools_utils.addPoolMember(ifid, pool_id, member) == true then
+		     host_pools_utils.traceHostPoolEvent(TRACE_NORMAL, ifname..": member  "..member.. " successfully associated to pool: "..pool)
+		  else
+		     host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": Unable to associate member "..member.. " to pool: "..pool)
 		  end
 	       end
 	    end
