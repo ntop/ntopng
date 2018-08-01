@@ -138,4 +138,7 @@ alert_consts.alert_functions_info = {
    }
 }
 
+-- a redis key used to 'remember' the normal temrination of ntopng
+alert_consts.clean_shutdown_key = "ntopng.clean_shutdown"
+
 return alert_consts

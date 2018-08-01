@@ -2840,16 +2840,32 @@ end
 
 local function notify_ntopng_status(started)
    local info = ntop.getInfo()
-   local pid = info.pid
+   local severity = alertSeverity("info")
    local msg
-   local obj
+   local msg_details = string.format("%s v.%s (%s) [pid: %s][options: %s]", info.product, info.version, info.OS, info.pid, info.command_line)
+   
+   if(started)
+   then
+      -- let's check if we are restarting from an anomalous termination
+      -- e.g., from a crash
+      if ntop.getCache(alert_consts.clean_shutdown_key) ~= "1" then
+	 -- anomalous termination
+	 msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
+	 severity = alertSeverity("error")
+      else
+	 -- normal termination
+	 msg = string.format("%s %s", i18n("alert_messages.ntopng_start"), msg_details)
+      end
+   else
+      msg = string.format("%s %s", i18n("alert_messages.ntopng_stop"), msg_details)
+   end
 
-   msg = 'ntopng v.'..info.version..' ('..info.OS..') '
-   if(started) then msg = msg.."start" else msg = msg.."stop" end
-
-   if(pid ~= nil) then msg = msg .. " [PID: "..pid.."] [ntopng "..info.command_line.."]" end
-
-   obj = { entity_type=1, entity_value="ntopng", type=20, severity=0, message=msg, when=os.time() }
+   obj = {
+      entity_type = alertEntity("host"), entity_value="ntopng",
+      type = alertType("process_notification"),
+      severity = severity,
+      message = msg,
+      when = os.time() }
    
    ntop.rpushCache(alert_process_queue, json.encode(obj))
 end
@@ -2873,8 +2889,18 @@ function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
    ntop.rpushCache(alert_process_queue, json.encode(obj))
 end
 
-function notify_ntopng_start() notify_ntopng_status(true) end
-function notify_ntopng_stop()  notify_ntopng_status(false) end
+function notify_ntopng_start()
+   notify_ntopng_status(true)
+   -- delete the 'normal termination' key
+   -- that will be inserted back during shutdown
+   ntop.delCache(alert_consts.clean_shutdown_key)
+end
+
+function notify_ntopng_stop()
+   notify_ntopng_status(false)
+   -- set a key to tell we are terminated normally
+   ntop.setCache(alert_consts.clean_shutdown_key, "1")
+end
 
 -- DEBUG: uncomment this to test
 --~ scanAlerts("min", "wlan0")

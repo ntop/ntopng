@@ -173,6 +173,9 @@ local lang = {
     ["host_activity"] = "Host Activity",
   },
   ["alert_messages"] = {
+    ["ntopng_start"] = "Started",
+    ["ntopng_stop"] = "Stopped",
+    ["ntopng_anomalous_termination"] = "Started after anomalous termination (<a href=\"%{url}\">bug report</a>)",
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
     ["device_has_connected"] = "The device <a href=\"%{url}\">%{device}</a> has connected to the network.",
     ["device_has_disconnected"] = "The device <a href=\"%{url}\">%{device}</a> has disconnected from the network.",
