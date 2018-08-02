@@ -3,21 +3,26 @@ Introduction
 This readme explains how to integrate ntopng with http://influxdb.org time series database.
 Influx is populated by ntopng periodically pushing data into it, using the TimeSeriesExporter class.
 
-*** THIS WORK IS IN BETA STAGE: IT WILL BE REFINED IN FUTURE VERSIONS AND IT IS SUBJECT TO CHANGES ***
-
-NOTE: ntopng requires influxdb features only available in the latest versions.
+*** NOTE: ntopng requires influxdb features only available in the latest versions 1.5.x and up . ***
 Please install influxdb from the official packages `https://portal.influxdata.com/downloads`.
 
 Installation
 ------------
 By default Influx data export is disabled. You can enabled as follows:
 
-1. run `CREATE DATABASE ntopng` on the Influx server
+1. execute
+
+$ influx
+Connected to http://localhost:8086 version 1.5.1
+InfluxDB shell version: 1.5.1
+> CREATE DATABASE ntopng;
+> 
+
 2. from the ntopng Timeseries preferences, select "InfluxDB" as the Timeseries Database
 3. set the `InfluxDB URL` to point to the database: http://<host where Influx is running>:8086"
 4. click save
 
 and then ntopng will push data to Influx.
 
-At this point you can use Chronograf or Grafana to access your traffic metrics in ntopng.
-
+At this point ntop will use InfluxDB (and not RRD) to store timeseries. As you have exported data onto InfluxDB
+you can also use Chronograf or Grafana to access your traffic metrics produced by ntopng.
