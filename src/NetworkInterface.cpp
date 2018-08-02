@@ -6588,8 +6588,9 @@ bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx, 
 void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 					  const u_char * const packet, Flow * const f) {
   u_int num_live_captures = num_active_captures; /* Cache because of (*) */
-
-  for(int i=0, num_found = 0; (i<MAX_NUM_PCAP_CAPTURES) && (num_found < num_live_captures); i++) {
+  
+  for(u_int i=0, num_found = 0; (i<MAX_NUM_PCAP_CAPTURES)
+	&& (num_found < num_live_captures); i++) {
     if(live_captures[i] != NULL) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
       bool http_client_disconnected = false;

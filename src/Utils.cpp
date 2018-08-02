@@ -438,13 +438,15 @@ int Utils::dropPrivileges() {
   int rv;
 
   if(getgid() && getuid()) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Privileges are not dropped as we're not superuser");
     return -1;
   }
 
   if(Utils::retainWriteCapabilities() != 0) {
 #ifdef HAVE_LIBCAP
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain privileges for privileged file writing");
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Unable to retain privileges for privileged file writing");
 #endif
   }
 
@@ -470,7 +472,11 @@ int Utils::dropPrivileges() {
 				   strerror(errno));
       return -1;
     }
+    
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "User changed to %s", username);
+#ifndef WIN32
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Umask: %#o", umask(0077));
+#endif
   } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate user %s", username);
     return -1;
