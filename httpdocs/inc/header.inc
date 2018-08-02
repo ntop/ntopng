@@ -35,7 +35,7 @@
       <script src="@HTTP_PREFIX@/js/html5shiv.js"></script>
     <![endif]-->
 
-    <link href="@HTTP_PREFIX@/css/ntopng.css" rel="stylesheet">
+    <link href="@HTTP_PREFIX@/css/ntopng.css?@NTOP_STARTUP_EPOCH@" rel="stylesheet">
     <link rel="stylesheet" href="@HTTP_PREFIX@/css/bootstrap-datetimepicker.css" />
 
     <link href="@HTTP_PREFIX@/css/custom_theme.css?@NTOP_STARTUP_EPOCH@" rel="stylesheet">
