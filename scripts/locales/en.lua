@@ -527,7 +527,7 @@ local lang = {
     ["ghost_icon_descr"] = "The %{ghost_icon} icon highlights ghost hosts (i.e. they do not belong to the interface IP address network)",
     ["network_discovery"] = "Network Discovery",
     ["network_discovery_datetime"] = "Last Network Discovery",
-    ["network_discovery_not_enabled"] = "A network discovery is in progress. The page will refresh periodically.",
+    ["network_discovery_not_enabled"] = "Network discovery in progress",
   },
   ["dns_page"] = {
     ["dns_breakdown"] = "DNS Breakdown",

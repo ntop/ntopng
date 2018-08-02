@@ -73,8 +73,39 @@ for _, device in pairs(discovered["devices"] or {}) do
 end
 
 if discovery_requested then
-   print("<script>setTimeout(function(){window.location.href='"..ntop.getHttpPrefix().."/lua/discover.lua'}, 5000);</script>")   
-   print('<div class=\"alert alert-info alert-dismissable\"><i class="fa fa-info-circle fa-lg"></i>&nbsp;'..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fa fa-flask\"></i>"}).." " .. discover.getDiscoveryProgress() .." "..'</div>')
+
+   print('<div class=\"alert alert-info alert-dismissable\">'..'<img src="'..ntop.getHttpPrefix()..'/img/loading.gif"> '..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fa fa-flask\"></i>"})..'<span id="discovery-progress"></span>.</div>')
+
+   print[[
+
+<script type="text/javascript">
+(function worker() {
+  xhr = $.ajax({
+    type: 'GET',]]
+print("url: '"..ntop.getHttpPrefix().."/lua/get_discover_progress.lua?ifid="..tostring(ifId).."', ")
+print[[
+    complete: function() {
+    },
+    error: function() {
+    },
+    success: function(msg){
+      console.log(msg);
+      if(msg.discovery_requested == true) {
+        if(msg.progress != "") {
+          $('#discovery-progress').html(" " + msg.progress);
+        }
+        // Schedule the next request when the current one's complete
+        setTimeout(worker, 3000);
+      } else {
+        window.location.href=']] print(ntop.getHttpPrefix()) print[[/lua/discover.lua';
+      }
+    }
+  });
+})();
+
+</script>
+
+]]
 
 elseif discovered["status"]["code"] == "NOCACHE" then
    -- nothing to show and nothing has been requested
