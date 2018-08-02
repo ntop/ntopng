@@ -381,28 +381,6 @@ function graphGetXAxisTicksFormat(diff_epoch) {
    return(tickFormat);
 }
 
-/* ticks for graph tooltip header */
-function graphGetHeaderTicksFormat(diff_epoch) {
-   var tickFormat;
-
-   /*if(diff_epoch < 86400) {
-      tickFormat = "%H:%M:%S";
-   } else {*/
-   tickFormat = "%b %e, %H:%M:%S";
-
-   return(tickFormat);
-}
-
-function nvGraphSetXTicksFormat(chart, diff_epoch) {
-    /* Set the tooltip displayed on mouse over/move */
-    chart.interactiveLayer.tooltip.headerFormatter(function (d) {
-      return d3.time.format(graphGetHeaderTicksFormat(diff_epoch))(new Date(d*1000));
-    });
-
-    /* Set the x axis format */
-    chart.xAxis.tickFormat(function(d) { return d3.time.format(graphGetXAxisTicksFormat(diff_epoch))(new Date(d*1000)) });
-}
-
 function paramsExtend(defaults, override) {
     return $.extend({}, defaults, override);
 }

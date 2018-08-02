@@ -20,6 +20,10 @@ local tstart = tonumber(_GET["epoch_begin"]) or (os.time() - 3600)
 local tend = tonumber(_GET["epoch_end"]) or os.time()
 local compare_backward = _GET["ts_compare"]
 
+local options = {
+  max_num_points = tonumber(_GET["limit"]),
+}
+
 -- convert the query into fields
 local tags = tsQueryToTags(_GET["ts_query"])
 
@@ -35,9 +39,9 @@ local function performQuery(tstart, tend, keep_total)
   if starts(schema_id, "top:") then
     local schema_id = split(schema_id, "top:")[2]
 
-    res = ts_utils.queryTopk(schema_id, tags, tstart, tend)
+    res = ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
   else
-    res = ts_utils.query(schema_id, tags, tstart, tend)
+    res = ts_utils.query(schema_id, tags, tstart, tend, options)
 
     if(not keep_total) and (res) and (res.additional_series) then
       -- no need for total serie in normal queries
@@ -55,7 +59,7 @@ if res == nil then
   return
 end
 
-if not isEmptyString(compare_backward) then
+if not isEmptyString(compare_backward) and compare_backward ~= "1Y" then
   local backward_sec = getZoomDuration(compare_backward)
   local tstart_cmp = tstart - backward_sec
   local tend_cmp = tend - backward_sec

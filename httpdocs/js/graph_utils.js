@@ -176,6 +176,71 @@ function buildOtherSerie(total_serie, visual_total) {
     return res;
 }
 
+function buildTimeArray(start_time, end_time, step) {
+  var arr = [];
+
+  for(var t=start_time; t<end_time; t+=step)
+    arr.push(t);
+
+  return arr;
+}
+
+function fixTimeRange(chart, params) {
+  var diff_epoch = (params.epoch_end - params.epoch_begin);
+  var frame, align, tick_step, resolution, fmt = "%H:%M:%S";
+
+  // must be sorted by ascending max_diff
+  // max_diff / tick_step indicates the number of ticks, which should be <= 15
+  // max_diff / resolution indicates the number of actual points, which should be ~60
+  var range_params = [
+    // max_diff, resolution, x_format, alignment, tick_step
+    [15, 1, "%H:%M:%S", 1, 1],                          // <= 1 min
+    [60, 1, "%H:%M:%S", 1, 5],                          // <= 1 min
+    [120, 5, "%H:%M:%S", 10, 10],                       // <= 5 min
+    [300, 5, "%H:%M:%S", 10, 30],                       // <= 5 min
+    [600, 10, "%H:%M:%S", 30, 60],                      // <= 10 min
+    [1200, 30, "%H:%M:%S", 60, 120],                    // <= 20 min
+    [3600, 60, "%H:%M:%S", 60, 300],                    // <= 1 h
+    [5400, 120, "%H:%M:%S", 300, 900],                  // <= 1.5 h
+    [10800, 300, "%H:%M:%S", 300, 900],                 // <= 3 h
+    [21600, 300, "%H:%M:%S", 3600, 1800],               // <= 6 h
+    [43200, 600, "%H:%M:%S", 3600, 3600],               // <= 12 h
+    [86400, 600, "%H:%M:%S", 3600, 7200],               // <= 1 d
+    [604800, 3600, "%Y-%m-%d", 86400, 86400],           // <= 7 d
+    [1209600, 7200, "%Y-%m-%d", 86400, 172800],         // <= 14 d
+    [2678400, 21600, "%Y-%m-%d", 86400, 259200],        // <= 1 m
+    [15768000, 175200, "%Y-%m-%d", 2678400, 1314000],   // <= 6 m
+    [31622400, 175200, "%Y-%m-%d", 2678400, 2678400],   // <= 1 y
+  ];
+
+  for(var i=0; i<range_params.length; i++) {
+    var range = range_params[i];
+
+    if(diff_epoch <= range[0]) {
+      frame = range[0];
+      resolution = range[1];
+      fmt = range[2];
+      align = range[3];
+      tick_step = range[4];
+      break;
+    }
+  }
+
+  if(align) {
+    params.epoch_begin -= params.epoch_begin % align;
+    params.epoch_end -= params.epoch_end % align;
+    diff_epoch = (params.epoch_end - params.epoch_begin);
+    params.limit = Math.round(diff_epoch / resolution);
+
+    // align epoch end wrt params.limit
+    params.epoch_end += Math.ceil(diff_epoch / params.limit) * params.limit - diff_epoch;
+
+    chart.xAxis.tickValues(buildTimeArray(params.epoch_begin, params.epoch_end, tick_step));
+  }
+
+  chart.xAxis.tickFormat(function(d) { return d3.time.format(fmt)(new Date(d*1000)) });
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
   var pending_request = null;
@@ -216,6 +281,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
+
+    fixTimeRange(chart, params);
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {

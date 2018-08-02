@@ -349,13 +349,13 @@ tr.quotas > td {
 
 @keyframes line-stroke-appear {
   from { stroke-opacity: 0; stroke-width: 0; }
-  to { stroke-opacity: 1; stroke-width: 1.5; }
+  to { stroke-opacity: 1; stroke-width: 1.2; }
 }
 
 .line-animated .nv-line {
   animation-name: line-appear;
   animation-delay: 0.25s;
-  animation-duration: 1.0s;
+  animation-duration: 1.25s;
   animation-fill-mode: backwards;
 }
 
