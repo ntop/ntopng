@@ -273,6 +273,22 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
     spinner.remove();
   }
 
+  function isLegendDisabled(key, default_val) {
+    if(typeof localStorage !== "undefined") {
+      var val = localStorage.getItem("chart_series.disabled." + key);
+
+      if(val != null)
+        return(val === "true");
+    }
+
+    return default_val;
+  }
+
+  chart.legend.dispatch.on('legendClick', function(d,i) {
+    if(typeof localStorage !== "undefined")
+      localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
+  });
+
   chart.updateStackedChart = function (tstart, tend, no_spinner) {
     if(pending_request)
       pending_request.abort();
@@ -313,6 +329,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
           values: values,
           type: "area",
           color: chart_colors[color_i++],
+          legend_key: series[j].label,
+          disabled: isLegendDisabled(series[j].label, false),
         });
       }
 
@@ -331,6 +349,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             values: arrayToNvSerie(other_serie, data.start, data.step),
             type: "area",
             color: chart_colors[color_i++],
+            legend_key: "other",
+            disabled: isLegendDisabled("other", false),
           });
         }
       } else
@@ -353,6 +373,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             type: "line",
             classed: "line-dashed line-animated",
             color: "#7E91A0",
+            legend_key: key,
+            disabled: isLegendDisabled(key, false),
           });
         }
       }
@@ -372,6 +394,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
         type: "line",
         classed: "line-animated",
         color: "#62ADF6",
+        legend_key: "trend",
+        disabled: isLegendDisabled("trend", false),
       });
 
       // get the value formatter
@@ -395,7 +419,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             type: "line",
             classed: "line-dashed line-animated",
             color: "#AC9DDF",
-            disabled: true,
+            legend_key: "avg",
+            disabled: isLegendDisabled("avg", true),
           });
         }
 
@@ -420,7 +445,8 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
             type: "line",
             classed: "line-dashed line-animated",
             color: "#476DFF",
-            disabled: true,
+            legend_key: "95perc",
+            disabled: isLegendDisabled("95perc", true),
           });
         }
 
