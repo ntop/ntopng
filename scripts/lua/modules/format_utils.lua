@@ -44,10 +44,10 @@ function format_utils.secondsToTime(seconds)
    if(string.len(msg) > 0) then  msg = msg .. ", " end
 
    if(hours > 0) then
-      msg = msg .. string.format("%02d:", hours)
+      msg = msg .. string.format("%02d:", truncate(hours))
    end
-   msg = msg .. string.format("%02d:", minutes)
-   msg = msg .. string.format("%02d", sec);
+   msg = msg .. string.format("%02d:", truncate(minutes))
+   msg = msg .. string.format("%02d", truncate(sec));
 
    return msg
 end
