@@ -783,7 +783,9 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 #ifndef WIN32
     char cli_name[64], srv_name[64];
 
-    if(ntop->getPrefs()->are_alerts_syslog_enabled()) {
+    if(cli && cli_ip_buf
+       && srv && srv_ip_buf
+       && ntop->getPrefs()->are_alerts_syslog_enabled()) {
 
 
       snprintf(alert_json, sizeof(alert_json),
