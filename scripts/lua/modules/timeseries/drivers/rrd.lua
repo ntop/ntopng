@@ -475,7 +475,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local items = {}
   local tag_2_series = {}
   local total_serie = {}
-  local init_total = true
+  local total_valid = true
   local step = 0
 
   for _, serie_tags in pairs(series) do
@@ -487,12 +487,17 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     step = fstep
 
     for _, serie in pairs(fdata) do
-      if init_total then
-        for i=1, #serie do
-          total_serie[i] = 0
-        end
+      if (#total_serie ~= 0) and #total_serie ~= #serie then
+        -- NOTE: even if touchRRD is used, series can still have a different number
+        -- of points when the tend parameter does not correspond to the current time
+        -- e.g. when comparing with the past or manually zooming.
+        -- In this case, total serie il discarded as it's incorrect
+        total_valid = false
+      end
 
-        init_total = false
+      for i=#total_serie + 1, #serie do
+        -- init
+        total_serie[i] = 0
       end
 
       for i, v in pairs(serie) do
@@ -539,6 +544,10 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   if options.calculate_stats then
     stats = ts_common.calculateStatistics(total_serie, step, tend - tstart, schema.options.metrics_type)
+  end
+
+  if not total_valid then
+    total_serie = nil
   end
 
   return {
