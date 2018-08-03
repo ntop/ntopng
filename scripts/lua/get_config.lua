@@ -63,9 +63,12 @@ else
       send_error("tar_not_found")
     else
 
-      local ntopng_conf_dir = "/etc/ntopng"
+      local config_files = ""
 
-      local config_files = ntopng_conf_dir
+      local ntopng_conf_dir = "/etc/ntopng"
+      if ntop.exists(ntopng_conf_dir) then
+        config_files = config_files .. " " .. ntopng_conf_dir
+      end
 
       local license_path = "/etc/ntopng.license"
       if ntop.isnEdge() then
