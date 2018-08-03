@@ -460,7 +460,7 @@ if(user_group == "administrator") then
   print [[
       <li><a href="]]
   print(ntop.getHttpPrefix())
-  print [[/lua/conf_backup.lua"><i class="fa fa-retweet"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
+  print [[/lua/get_config.lua"><i class="fa fa-retweet"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
 end
 
 print[[

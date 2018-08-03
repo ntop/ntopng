@@ -773,7 +773,6 @@ static int handle_lua_request(struct mg_connection *conn) {
       return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
     } else {
       char referer[255];
-
       snprintf(referer, sizeof(referer), "%s%s%s%s",
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      conn->request_info.uri,
