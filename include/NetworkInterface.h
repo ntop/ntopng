@@ -73,7 +73,7 @@ class NetworkInterface : public Checkpointable {
   u_int8_t alertLevel, purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_hashes;
-  
+
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
   set<u_int32_t>  flowHashingIgnoredInterfaces;
@@ -121,7 +121,7 @@ class NetworkInterface : public Checkpointable {
   u_int32_t last_remote_pps, last_remote_bps;
   u_int8_t packet_drops_alert_perc;
   TimeSeriesExporter *tsExporter;
-  
+
   /* Sub-interface views */
   u_int8_t numSubInterfaces;
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
@@ -215,7 +215,7 @@ class NetworkInterface : public Checkpointable {
 		Host *host,
 		Paginator *p,
 		const char *sortColumn);
-  
+
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
@@ -231,7 +231,7 @@ class NetworkInterface : public Checkpointable {
 
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
-  
+
  public:
   /**
   * @brief A Constructor
@@ -336,7 +336,8 @@ class NetworkInterface : public Checkpointable {
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
 
-  inline void _incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
+  inline void _incStats(bool ingressPacket, time_t when,
+			u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
@@ -346,7 +347,7 @@ class NetworkInterface : public Checkpointable {
   };
 
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
-  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,		       
+  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
 #ifdef HAVE_NEDGE
     /* In nedge, we only update the stats periodically with conntrack */
@@ -516,7 +517,7 @@ class NetworkInterface : public Checkpointable {
   PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
   bool registerLiveCapture(struct ntopngLuaContext * const luactx);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
-  
+
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();
@@ -550,7 +551,7 @@ class NetworkInterface : public Checkpointable {
   inline void setBridgeLanInterfaceId(u_int32_t v) { bridge_lan_interface_id = v;     };
   inline u_int32_t getBridgeLanInterfaceId()       { return(bridge_lan_interface_id); };
   inline void setBridgeWanInterfaceId(u_int32_t v) { bridge_wan_interface_id = v;     };
-  inline u_int32_t getBridgeWanInterfaceId()       { return(bridge_wan_interface_id); };  
+  inline u_int32_t getBridgeWanInterfaceId()       { return(bridge_wan_interface_id); };
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
   inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
   inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
@@ -572,7 +573,7 @@ class NetworkInterface : public Checkpointable {
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif
-  
+
   bool passShaperPacket(TrafficShaper *a_shaper, TrafficShaper *b_shaper, struct pcap_pkthdr *h);
   void initL7Policer();
 #endif
@@ -642,9 +643,9 @@ class NetworkInterface : public Checkpointable {
   }
 
   inline bool mdnsQueueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
-    return(mdns ? mdns->queueResolveIPv4(ipv4addr, alsoUseGatewayDNS) : false);    
+    return(mdns ? mdns->queueResolveIPv4(ipv4addr, alsoUseGatewayDNS) : false);
   }
-  
+
   inline void mdnsFetchResolveResponses(lua_State* vm, int32_t timeout_sec = 2) {
     if(mdns) mdns->fetchResolveResponses(vm, timeout_sec);
   }

@@ -3377,14 +3377,13 @@ void Flow::fixAggregatedFlowFields() {
 }
 
 /* ***************************************************** */
+
 #if defined(NTOPNG_PRO) && defined(HAVE_NETFILTER)
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
   u_int overhead = 0;
   bool nf_existing_flow;
-
-  updateSeen();
 
   /* netfilter (depending on configured timeouts) could expire a flow before than
      ntopng. This heuristics attempt to detect such events.
@@ -3397,8 +3396,8 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      and the detection of event NFCT_T_DESTROY.
   */
   nf_existing_flow = !(cli2srv_packets > s2d_pkts || cli2srv_bytes > s2d_bytes
-		    || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
-
+		       || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
+  
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		  nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
 		  nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
@@ -3410,13 +3409,19 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		  nf_existing_flow ? d2s_pkts - srv2cli_packets : d2s_pkts,
 		  overhead);
 
-  if(nf_existing_flow)
+  if(nf_existing_flow) {
     cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes,
       srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
-  else
-    cli2srv_packets += s2d_pkts, cli2srv_bytes += s2d_bytes,
-      srv2cli_packets += d2s_pkts, srv2cli_bytes += d2s_bytes;
+    updateSeen();
+  } else {
+    if((s2d_pkts + d2s_pkts) > 0) {
+      cli2srv_packets += s2d_pkts, cli2srv_bytes += s2d_bytes,
+	srv2cli_packets += d2s_pkts, srv2cli_bytes += d2s_bytes;
+      updateSeen();
+    }
 
+    /* Don't update seen if no traffic has been observed */
+  }
 }
 #endif
 
