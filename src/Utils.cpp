@@ -961,6 +961,35 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL, bool allowD
 
 /* **************************************************** */
 
+/* holder for curl fetch */
+struct curl_fetcher_t {
+  char * const payload;
+  size_t cur_size;
+  const size_t max_size;
+};
+
+static size_t curl_get_writefunc(void *contents, size_t size, size_t nmemb, void *userp) {
+  size_t realsize = size * nmemb;
+  struct curl_fetcher_t *p = (struct curl_fetcher_t*)userp;
+
+  if(!p->max_size)
+    return realsize;
+
+  /* Leave the last position for a '\0' */
+  if(p->cur_size + realsize > p->max_size - 1)
+    realsize = p->max_size - p->cur_size - 1;
+
+  if(realsize) {
+    memcpy(&(p->payload[p->cur_size]), contents, realsize);
+    p->cur_size += realsize;
+    p->payload[p->cur_size] = 0;
+  }
+
+  return realsize;
+}
+
+/* **************************************************** */
+
 /**
  * @brief Implement HTTP POST of JSON data
  *
@@ -1090,6 +1119,12 @@ bool Utils::postHTTPForm(char *username, char *password, char *url, char *form_d
   curl = curl_easy_init();
   if(curl) {
     CURLcode res;
+
+    // TODO return to the caller
+    curl_fetcher_t fetcher = {
+      /* .payload =  */ NULL,
+      /* .cur_size = */ 0,
+      /* .max_size = */ 0};
     
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1112,6 +1147,8 @@ bool Utils::postHTTPForm(char *username, char *password, char *url, char *form_d
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, form_data);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(form_data));
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
 
     res = curl_easy_perform(curl);
 
@@ -1502,32 +1539,6 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
   }
 
   return(ret);
-}
-
-/* **************************************** */
-
-/* holder for curl fetch */
-struct curl_fetcher_t {
-  char * const payload;
-  size_t cur_size;
-  const size_t max_size;
-};
-
-static size_t curl_get_writefunc(void *contents, size_t size, size_t nmemb, void *userp) {
-  size_t realsize = size * nmemb;
-  struct curl_fetcher_t *p = (struct curl_fetcher_t*)userp;
-
-  /* Leave the last position for a '\0' */
-  if(p->cur_size + realsize > p->max_size - 1)
-    realsize = p->max_size - p->cur_size - 1;
-
-  if(realsize) {
-    memcpy(&(p->payload[p->cur_size]), contents, realsize);
-    p->cur_size += realsize;
-    p->payload[p->cur_size] = 0;
-  }
-
-  return realsize;
 }
 
 /* **************************************** */
