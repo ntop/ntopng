@@ -600,7 +600,7 @@ end
    end
 
    if(host["ssdp"] ~= nil) then
-      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link fa-lg\"></i> <A HREF='http://"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
+      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
    end
 
 
