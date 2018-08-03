@@ -22,6 +22,7 @@ sendHTTPContentTypeHeader('text/html')
 
 local show_advanced_prefs = false
 local alerts_disabled = false
+local product = ntop.getInfo().product
 local message_info = ""
 local message_severity = "alert-warning"
 
@@ -60,6 +61,27 @@ if(haveAdminPrivileges()) then
     else
       message_info = i18n("prefs.slack_send_error", {product=product})
       message_severity = "alert-danger"
+    end
+   elseif (_POST["timeseries_driver"] == "influxdb") then
+    local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
+
+    if(url ~= ntop.getPref("ntopng.prefs.ts_post_data_url"))
+        or (_POST["influx_dbname"] ~= ntop.getPref("ntopng.prefs.influxdb_dbname"))
+        or (_POST["influx_retention"] ~= ntop.getPref("ntopng.prefs.influx_retention")) then
+      package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
+      local influxdb = require("influxdb")
+
+      local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]), false --[[verbose]])
+      if not ok then
+        message_info = message
+        message_severity = "alert-danger"
+
+        -- reset driver to the old one
+        _POST["timeseries_driver"] = nil
+      elseif message then
+        message_info = message
+        message_severity = "alert-success"
+      end
     end
    end
 
@@ -1179,7 +1201,7 @@ function printStatsTimeseries()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
 
-  local elementToSwitch = {"ts_post_data_url"}
+  local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention"}
   local showElementArray = {false, true}
 
   multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
@@ -1192,13 +1214,20 @@ function printStatsTimeseries()
 				    elementToSwitch, showElementArray, nil, true--[[show]])
 
   local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+  local influx_active = (active_driver == "influxdb")
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_url"].title,
 		       subpage_active.entries["influxdb_url"].description,
 		       "ntopng.prefs.",
 		       "ts_post_data_url",
-		       "",
-		       false, active_driver == "influxdb", nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
+		       "http://localhost:8086",
+		       false, influx_active, nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
+      "ntopng.prefs.", "influx_dbname", product, nil, nil, nil, nil, {pattern="[^\\s]+"})
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
+      "ntopng.prefs.", "influx_retention", 365, "number", nil, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
 
   mysql_retention = 7
   prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",

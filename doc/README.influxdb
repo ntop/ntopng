@@ -10,17 +10,9 @@ Installation
 ------------
 By default Influx data export is disabled. You can enabled as follows:
 
-1. execute
-
-$ influx
-Connected to http://localhost:8086 version 1.5.1
-InfluxDB shell version: 1.5.1
-> CREATE DATABASE ntopng;
-> 
-
-2. from the ntopng Timeseries preferences, select "InfluxDB" as the Timeseries Database
-3. set the `InfluxDB URL` to point to the database: http://<host where Influx is running>:8086"
-4. click save
+1. from the ntopng Timeseries preferences, select "InfluxDB" as the Timeseries Database
+2. set the `InfluxDB URL` to point to the database: http://<host where Influx is running>:8086"
+3. click save
 
 and then ntopng will push data to Influx.
 

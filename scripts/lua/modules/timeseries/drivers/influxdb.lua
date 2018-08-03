@@ -17,12 +17,14 @@ require("ntop_utils")
 --
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
+local MIN_INFLUXDB_SUPPORTED_VERSION = "1.6.0"
 
 -- ##############################################
 
 function driver:new(options)
   local obj = {
     url = options.url,
+    db = options.db,
   }
 
   setmetatable(obj, self)
@@ -282,11 +284,11 @@ end
 
 -- ##############################################
 
-local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, db)
   local data_type = schema.options.metrics_type
   local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
 
-  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+  local full_url = url .. "/query?db=".. db .."&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url)
 
   if not data then
@@ -303,7 +305,7 @@ end
 
 -- NOTE: mean / percentile values are calculated manually because of an issue with
 -- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
-local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step, db)
   local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
   if time_step ~= schema.options.step then
@@ -312,7 +314,7 @@ local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step
     local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type)
     query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..' FROM (' .. query .. ')'
 
-    local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+    local full_url = url .. "/query?db=".. db .."&epoch=s&q=" .. urlencode(query)
     local data = influx_query(full_url)
 
     if (data and data.series and data.series[1] and data.series[1].values[1]) then
@@ -375,7 +377,7 @@ function driver:query(schema, tstart, tend, tags, options)
       " GROUP BY TIME(".. time_step .."s)"
 
   local url = self.url
-  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url)
 
   if not data then
@@ -383,11 +385,11 @@ function driver:query(schema, tstart, tend, tags, options)
   end
 
   local series, count = influx2Series(schema, tstart, tend, tags, options, data.series[1], time_step)
-  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, self.db)
   local stats = nil
 
   if options.calculate_stats then
-    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step, self.db)
   end
 
   local rv = {
@@ -428,7 +430,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       " LIMIT 1"
 
   local url = self.url
-  local full_url = url .. "/query?db=ntopng&q=" .. urlencode(query)
+  local full_url = url .. "/query?db=".. self.db .."&q=" .. urlencode(query)
   local data = influx_query(full_url)
 
   if not data then
@@ -494,7 +496,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000)'
   local url = self.url
-  local full_url = url .. "/query?db=ntopng&epoch=s&q=" .. urlencode(query)
+  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
 
   local data = influx_query(full_url)
 
@@ -527,11 +529,11 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
-  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, self.db)
   local stats = nil
 
   if options.calculate_stats then
-    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step, self.db)
   end
 
   return {
@@ -541,6 +543,68 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       total = total_serie,
     },
   }
+end
+
+-- ##############################################
+
+local function isCompatibleVersion(version)
+  local parts = split(version, "%.")
+  local required = split(MIN_INFLUXDB_SUPPORTED_VERSION, "%.")
+
+  return (parts[1] == required[1]) -- major
+    and (tonumber(parts[2]) ~= nil)
+    and (tonumber(required[2]) ~= nil)
+    and (tonumber(parts[2]) >= tonumber(required[2])) -- minor
+end
+
+function driver.init(dbname, url, days_retention, verbose)
+  -- Check version
+  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Contacting influxdb at " .. url .. " ...") end
+
+  local res = ntop.httpGet(url .. "/ping", "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
+  if res == nil then
+    local err = i18n("prefs.could_not_contact_influxdb")
+
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false, err
+  end
+
+  local content = res.CONTENT or ""
+  local version = string.match(content, "\nX%-Influxdb%-Version: ([%d|%.]+)")
+
+  if not version or not isCompatibleVersion(version) then
+    local err = i18n("prefs.incompatible_influxdb_version",
+      {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version})
+
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false, err
+  end
+
+  -- Create database
+  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Creating database " .. dbname .. " ...") end
+  local query = "CREATE DATABASE \"" .. dbname .. "\""
+
+  local res = ntop.postHTTPform("", "", url .. "/query", "q=" .. query)
+  if not res then
+    local err = i18n("prefs.influxdb_create_error", {db=dbname})
+
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false, err
+  end
+
+  -- Set retention
+  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
+  local query = "ALTER RETENTION POLICY autogen ON \"".. dbname .."\" DURATION ".. days_retention .."d"
+
+  local res = ntop.postHTTPform("", "", url .. "/query", "q=" .. query)
+  if not res then
+    local err = i18n("prefs.influxdb_retention_error", {db=dbname})
+
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false, err
+  end
+
+  return true, i18n("prefs.successfully_connected_influxdb", {db=dbname, version=version})
 end
 
 -- ##############################################

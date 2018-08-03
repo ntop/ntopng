@@ -221,6 +221,7 @@ end
 
 function callback_utils.uploadTSdata()
    local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
+   local dbname = ntop.getPref("ntopng.prefs.influx_dbname")
    local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
 
    if((url == nil) or (url == "") or (driver ~= "influxdb")) then
@@ -244,7 +245,7 @@ function callback_utils.uploadTSdata()
 
       -- Delete the file after POST
       local delete_file_after_post = true
-      ret = ntop.postHTTPTextFile("", "", url .. "/write?db=ntopng", fname, delete_file_after_post, 5 --[[ timeout ]])
+      ret = ntop.postHTTPTextFile("", "", url .. "/write?db=" .. dbname, fname, delete_file_after_post, 5 --[[ timeout ]])
       --print(fname .. "\n")
 
       if(ret ~= true) then

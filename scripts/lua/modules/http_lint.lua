@@ -1019,6 +1019,7 @@ local known_parameters = {
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["mysql_retention"]                             =  validateNumber,
+   ["influx_retention"]                            =  validateNumber,
    ["rrd_files_retention"]                         =  validateNumber,
    ["minute_top_talkers_retention"]                =  validateNumber,
    ["max_num_alerts_per_entity"]                   =  validateNumber,
@@ -1058,6 +1059,7 @@ local known_parameters = {
    ["email_sender"]                                =  validateSingleWord,
    ["email_recipient"]                             =  validateSingleWord,
    ["smtp_server"]                                 =  validateSingleWord,
+   ["influx_dbname"]                               =  validateSingleWord,
 
    -- Multiple Choice
    ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id"}),
