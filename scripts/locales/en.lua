@@ -1231,6 +1231,7 @@ local lang = {
     ["top_receivers"] = "Top Receivers",
     ["top_senders"] = "Top Senders",
     ["zmq_received_flows"] = "ZMQ Received Flows",
+    ["zoom_out"] = "Zoom Out",
     ["metrics_prefixes"] = {
       ["broadcast_bytes"] = "Broadcast Bytes",
       ["drops"] = "Drops",

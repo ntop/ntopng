@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-08-01 */
+/* nvd3 version 1.8.6-dev (https://github.com/novus/nvd3) 2018-08-03 */
 (function(){
 
 // set up main nv object
@@ -13041,7 +13041,6 @@ nv.models.multiChart = function() {
         useInteractiveGuideline = false,
         zoomType = null,
         legendRightAxisHint = ' (right axis)',
-        zoom_stack = [],
         duration = 250
         ;
 
@@ -13396,56 +13395,6 @@ nv.models.multiChart = function() {
                 wrap.select(".nv-zoomLayer").call(zoomLayer);
             }
 
-            if (zoomType && zoomType === 'x') {
-                if (wrap.selectAll(".nv-zoomLayer g.button").node() == null) {
-                    var resetZoomButton = wrap.select(".nv-zoomLayer")
-                        .append('g')
-                        .attr('class', 'button')
-                        .attr('cursor', 'pointer')
-                    resetZoomButton.append('rect')
-                        .attr('x', availableWidth - 72 - 20)
-                        .attr('y', 4)
-                        .attr('rx', 2)
-                        .attr('ry', 2)
-                        .attr('width', 78)
-                        .attr('height', 25)
-                        .attr('fill', '#fff')
-                        .attr('stroke', '#999')
-                        .attr('strokeWidth', 1)
-
-                    resetZoomButton
-                        .append('text')
-                        .attr('x', availableWidth - 72 - 10)
-                        .attr('y', 22)
-                        .text('Zoom Out');
-
-                    resetZoomButton.on('click', function() {
-                        if(!zoom_stack.length)
-                            return;
-
-                        var new_zoom = zoom_stack.pop();
-                        var min = new_zoom[0];
-                        var max = new_zoom[1];
-
-                        chart.options({
-                            xDomain: [min, max]
-                        });
-
-                        dispatch.zoom({
-                            type: 'reset',
-                            xDomain: [min, max]
-                        });
-
-                        chart.update();
-                    });
-                } else {
-                    wrap.select(".nv-zoomLayer g.button rect")
-                        .attr('x', availableWidth - 72 - 20)
-                    wrap.select(".nv-zoomLayer g.button text")
-                        .attr('x', availableWidth - 72 - 10)
-                }
-            }
-
             //============================================================
             // Event Handling/Dispatching
             //------------------------------------------------------------
@@ -13704,29 +13653,11 @@ nv.models.multiChart = function() {
                         var MIN_X_DISTANCE = 3;
 
                         if (Math.abs(dragStartXValue - currentXValue) >= MIN_X_DISTANCE) {
-                            var min = d3.min(container.data()[0], function(d) {
-                                return d3.min(d.values, function(d) {
-                                    return chart.x()(d);
-                                })
-                            });
-                            var max = d3.max(container.data()[0], function(d) {
-                                return d3.max(d.values, function(d) {
-                                    return chart.x()(d);
-                                })
-                            });
-
-                            // save current zoom
-                            zoom_stack.push([min, max]);
-
                             var xDomain = [
                                 d3.min([dragStartXValue, currentXValue]),
                                 d3.max([dragStartXValue, currentXValue])
                             ];
-                            chart.options({
-                                xDomain: xDomain
-                            });
 
-                            chart.update();
                             dispatch.zoom({
                                 type: 'zoom',
                                 xDomain: xDomain

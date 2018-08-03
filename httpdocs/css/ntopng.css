@@ -363,3 +363,14 @@ tr.quotas > td {
   from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);}
   to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);}
 }
+
+.zoom-reset {
+  position: absolute;
+  top: 14%;
+  right: 12%;
+  font-size: 0.75em;
+}
+
+.zoom-reset:hover, .zoom-reset:focus {
+  outline:0 !important;
+}

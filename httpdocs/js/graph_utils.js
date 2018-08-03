@@ -242,10 +242,13 @@ function fixTimeRange(chart, params) {
 }
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
+function attachStackedChartCallback(chart, schema_name, url, chart_id, zoom_out_id, params, step) {
   var pending_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
+  var $zoom_out = $(zoom_out_id);
+  var is_max_zoom = false;
+  var zoom_stack = [];
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
@@ -289,16 +292,64 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
   });
 
+  chart.dispatch.on("zoom", function(e) {
+    var cur_zoom = [params.epoch_begin, params.epoch_end];
+    var t_start = Math.floor(e.xDomain[0]);
+    var t_end = Math.ceil(e.xDomain[1]);
+
+    if(chart.updateStackedChart(t_start, t_end)) {
+      chart.is_zoomed = true;
+      zoom_stack.push(cur_zoom);
+      $zoom_out.show();
+    }
+  });
+
+  $zoom_out.on("click", function() {
+    if(zoom_stack.length) {
+      var zoom = zoom_stack.pop();
+      var t_start = zoom[0];
+      var t_end = zoom[1];
+
+      chart.updateStackedChart(t_start, t_end);
+
+      if(!zoom_stack.length)
+        $zoom_out.hide();
+    }
+  });
+
+  var old_start, old_end;
+
+  /* Returns false if zoom update is rejected. */
   chart.updateStackedChart = function (tstart, tend, no_spinner) {
+    if(tstart) params.epoch_begin = tstart;
+    if(tend) params.epoch_end = tend;
+
+    var max_interval = step * 8;
+    var cur_interval = (params.epoch_end - params.epoch_begin);
+
+    if(cur_interval < max_interval) {
+      if(is_max_zoom)
+        return false;
+
+      var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
+      params.epoch_begin = Math.floor(epoch - max_interval / 2);
+      params.epoch_end = Math.ceil(epoch + max_interval / 2);
+      is_max_zoom = true;
+    } else
+      is_max_zoom = false;
+
+    fixTimeRange(chart, params);
+
+    if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
+      return false;
+
+    old_start = params.epoch_begin;
+    old_end = params.epoch_end;
+
     if(pending_request)
       pending_request.abort();
     else if(!no_spinner)
       spinner.appendTo($chart.parent());
-
-    if(tstart) params.epoch_begin = tstart;
-    if(tend) params.epoch_end = tend;
-
-    fixTimeRange(chart, params);
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
@@ -461,8 +512,14 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, params) {
 
       update_chart_data(res);
     }).fail(function(xhr, status, error) {
+      if (xhr.statusText =='abort') {
+        return;
+      }
+
       console.error("Error while retrieving the timeseries data [" + status + "]: " + error);
       update_chart_data([]);
     });
+
+    return true;
   }
 }
