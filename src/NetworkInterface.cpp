@@ -1954,13 +1954,13 @@ void NetworkInterface::purgeIdle(time_t when) {
 
     last_pkt_rcvd = when;
 
-    n = purgeIdleFlows();
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
-				 n, getNumFlows(), ifname);
+    if((n = purgeIdleFlows()) > 0)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Purged %u/%u idle flows on %s",
+				   n, getNumFlows(), ifname);
 
-    m = purgeIdleHostsMacsASesVlans();
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
-				 m, getNumHosts()+getNumMacs(), ifname);
+    if((m = purgeIdleHostsMacsASesVlans()) > 0)
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
+				   m, getNumHosts()+getNumMacs(), ifname);
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
