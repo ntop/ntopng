@@ -1224,10 +1224,10 @@ function printStatsTimeseries()
 		       false, influx_active, nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
-      "ntopng.prefs.", "influx_dbname", product, nil, nil, nil, nil, {pattern="[^\\s]+"})
+      "ntopng.prefs.", "influx_dbname", product, nil, influx_active, nil, nil, {pattern="[^\\s]+"})
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
-      "ntopng.prefs.", "influx_retention", 365, "number", nil, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
+      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
 
   mysql_retention = 7
   prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
