@@ -241,14 +241,29 @@ function fixTimeRange(chart, params) {
   chart.xAxis.tickFormat(function(d) { return d3.time.format(fmt)(new Date(d*1000)) });
 }
 
+function populateFlowsTable(table, params, data) {
+  var tstart = params.epoch_begin;
+  var tend = params.epoch_end;
+
+  table.empty();
+  var row = $("<tr></tr>");
+  $("<td>TODO</td>").appendTo(row);
+
+  row.appendTo(table);
+}
+
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, url, chart_id, zoom_out_id, params, step) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, flows_id, params, step) {
   var pending_request = null;
+  var pending_flows_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
   var $zoom_out = $(zoom_out_id);
+  var $flows_table = $(flows_id);
   var is_max_zoom = false;
   var zoom_stack = [];
+  var url = http_prefix + "/lua/get_ts.lua";
+  var flows_url = http_prefix + "/lua/pro/get_flows.lua";
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
@@ -518,6 +533,26 @@ function attachStackedChartCallback(chart, schema_name, url, chart_id, zoom_out_
 
       console.error("Error while retrieving the timeseries data [" + status + "]: " + error);
       update_chart_data([]);
+    });
+
+    if(pending_flows_request)
+      pending_flows_request.abort();
+
+    pending_flows_request = $.get(flows_url, params, function(data) {
+      if (!data || !data.length)
+        $flows_table.hide();
+      else {
+        populateFlowsTable($flows_table, params, data);
+        $flows_table.show();
+      }
+
+      pending_flows_request = null;
+    }).fail(function(xhr, status, error) {
+      if (xhr.statusText =='abort') {
+        return;
+      }
+
+      console.error("Error while retrieving the flows data [" + status + "]: " + error);
     });
 
     return true;

@@ -16,6 +16,8 @@ print[[
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
       "showing_x_to_y_rows": "]] print(i18n("showing_x_to_y_rows", {x="{0}", y="{1}", tot="{2}"})) print[[",
    };
+
+   var http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 </script>]]
 
 if ntop.isnEdge() then
