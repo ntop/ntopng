@@ -23,7 +23,8 @@
 
 /* ************************************ */
 
-MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) : GenericHash(_iface, _num_hashes, _max_hash_size) {
+MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) :
+  GenericHash(_iface, _num_hashes, _max_hash_size, "MacHash") {
   ;
 }
 

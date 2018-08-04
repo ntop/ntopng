@@ -38,7 +38,7 @@
 class GenericHash {
  protected:
   GenericHashEntry **table; /**< Entry table. It is used for maintain an update history.*/
-
+  char *name;
   u_int32_t num_hashes; /**< Number of hash.*/
   u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements).*/
   u_int32_t max_hash_size; /**< Max size of hash.*/
@@ -55,9 +55,11 @@ class GenericHash {
    * @param _iface Network interface pointer for the new hash.
    * @param _num_hashes Number of hashes.
    * @param _max_hash_size Max size of new hash.
+   * @param _name Hash name (debug)
    * @return A new Instance of GenericHash.
    */
-  GenericHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size);
+  GenericHash(NetworkInterface *_iface, u_int _num_hashes,
+	      u_int _max_hash_size, const char *_name);
 
   /**
    * @brief A Destructor

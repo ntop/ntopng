@@ -23,10 +23,12 @@
 
 /* ************************************ */
 
-GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) {
+GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
+			 u_int _max_hash_size, const char *_name) {
   num_hashes = _num_hashes, max_hash_size = _max_hash_size, current_size = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
-  
+  name = strdup(_name ? _name : "???");
+		
   iface = _iface;
   table = new GenericHashEntry*[num_hashes];
   for(u_int i = 0; i < num_hashes; i++)
@@ -47,6 +49,7 @@ GenericHash::~GenericHash() {
 
   for(u_int i = 0; i < num_hashes; i++) delete(locks[i]);
   delete[] locks;
+  free(name);
 }
 
 /* ************************************ */
@@ -140,18 +143,18 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 		       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data) {
   bool found = false;
   u_int16_t tot_matched = 0;
-  
-  if(ntop->getGlobals()->isShutdown())     
+
+  if(ntop->getGlobals()->isShutdown())
     return(found);
 
-  for(u_int hash_id = *begin_slot; hash_id < num_hashes; hash_id++) {    
+  for(u_int hash_id = *begin_slot; hash_id < num_hashes; hash_id++) {
     if(table[hash_id] != NULL) {
       GenericHashEntry *head;
 
 #if WALK_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]", hash_id, locks[hash_id]);
 #endif
-      
+
       locks[hash_id]->lock(__FILE__, __LINE__);
       head = table[hash_id];
 
@@ -163,13 +166,13 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 	  bool rc = walker(head, user_data, &matched);
 
 	  if(matched) tot_matched++;
-	  
+
 	  if(rc) {
 	    found = true;
 	    break;
 	  }
 	}
-	
+
 	head = next;
       } /* while */
 
@@ -179,18 +182,18 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       if((tot_matched >= MIN_NUM_HASH_WALK_ELEMS) /* At least a few entries have been returned */
 	 && (!walk_all)) {
 	u_int32_t next_slot  = (hash_id == (num_hashes-1)) ? 0 /* start over */ : (hash_id+1);
-	
+
 	*begin_slot = next_slot;
 #if WALK_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [nextSlot: %u][hash_id: %u][tot_matched: %u]",
 				     next_slot, hash_id, tot_matched);
 #endif
-	
+
 	return(found);
       }
-      
+
       if(found)
-	break;      
+	break;
     }
   }
 
@@ -200,7 +203,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 #if WALK_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [tot_matched: %u]", tot_matched);
 #endif
-  
+
   return(found);
 }
 
@@ -213,12 +216,17 @@ bool GenericHash::walk(u_int32_t *begin_slot,
  */
 
 u_int GenericHash::purgeIdle() {
-  u_int i, num_purged = 0;
+  u_int i, num_purged = 0, buckets_checked = 0;
 
   if(ntop->getGlobals()->isShutdown()
      || purgeLock.is_locked())
     return(0);
 
+#if WALK_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u]",
+				 name, iface->get_name(), last_purged_hash, purge_step);
+#endif
+    
   disablePurge();
 
   for(u_int j = 0; j < purge_step; j++) {
@@ -235,13 +243,14 @@ u_int GenericHash::purgeIdle() {
       while(head) {
 	GenericHashEntry *next = head->next();
 
+	buckets_checked++;
 	if(head->is_ready_to_be_purged()) {
 	  if(prev == NULL) {
 	    table[i] = next;
 	  } else {
 	    prev->set_next(next);
 	  }
-	  
+
 	  num_purged++, current_size--;
 	  delete(head);
 	  head = next;
@@ -252,7 +261,7 @@ u_int GenericHash::purgeIdle() {
 	  /* Purge at the next run */
 	  if(head->idle())
 	    head->set_to_purge();
-	  
+
 	  prev = head;
 	  head = next;
 	}
@@ -264,6 +273,14 @@ u_int GenericHash::purgeIdle() {
   }
 
   enablePurge();
+
+#if WALK_DEBUG
+  if((num_purged > 0) && (!strcmp(name, "FlowHash")))
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[%s @ %s] purgeIdle() [num_purged: %u][num_checked: %u][end index: %u][purge step: %u]",
+				 name, iface->get_name(), num_purged, buckets_checked, last_purged_hash, purge_step);
+#endif
+     
   return(num_purged);
 }
 
