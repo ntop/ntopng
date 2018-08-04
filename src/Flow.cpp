@@ -2161,6 +2161,10 @@ void Flow::addFlowStats(bool cli2srv_direction,
 			u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
 			time_t last_seen) {
+
+  /* Don't update seen if no traffic has been observed */
+  if((in_pkts == 0) && (out_pkts == 0)) return;
+  
   updateSeen(last_seen);
 
   if(cli2srv_direction)
@@ -3412,15 +3416,9 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   if(nf_existing_flow) {
     cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes,
       srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
-    updateSeen();
   } else {
-    if((s2d_pkts + d2s_pkts) > 0) {
-      cli2srv_packets += s2d_pkts, cli2srv_bytes += s2d_bytes,
-	srv2cli_packets += d2s_pkts, srv2cli_bytes += d2s_bytes;
-      updateSeen();
-    }
-
-    /* Don't update seen if no traffic has been observed */
+    cli2srv_packets += s2d_pkts, cli2srv_bytes += s2d_bytes,
+      srv2cli_packets += d2s_pkts, srv2cli_bytes += d2s_bytes;
   }
 }
 #endif

@@ -579,7 +579,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
     updateSeen();
 
-    /* Paket stats sent_stats and rcvd_stats are incremented in Flow::incStats */
+    /* Packet stats sent_stats and rcvd_stats are incremented in Flow::incStats */
 
     switch(l4_proto) {
     case 0:

@@ -626,7 +626,10 @@ print("</script>\n")
       print("<td width=20%><span id=nfq_handling_failed>"..formatValue(st.failures.handle_packet).."</span> <span id=nfq_handling_failed_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_enobufs").."</th>")
       print("<td width=20%><span id=nfq_enobufs>"..formatValue(st.failures.no_buffers).."</span> <span id=nfq_enobufs_trend></span></td>")
+      print("</tr>")
 
+      print("<tr><th nowrap>Conntrack Flow Entries</th><td colspan=5>")
+      print("<span id=num_conntrack_entries>"..formatValue(st.nfq.num_conntrack_entries).."</span></td>")
       print("</tr>")
   end
 
@@ -2452,7 +2455,7 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
    print("var last_nfq_queue_total = ".. st.nfq.queue_total .. ";\n")
    print("var last_nfq_handling_failed = ".. st.failures.handle_packet .. ";\n")
    print("var last_nfq_enobufs = ".. st.failures.no_buffers .. ";\n")
-
+   
    print[[
         if(rsp.netfilter.nfq.queue_pct > 80) {
           $('#nfq_queue_total').addClass("label label-danger");
@@ -2465,6 +2468,7 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
         $('#nfq_handling_failed_trend').html(get_trend(last_nfq_handling_failed, rsp.netfilter.failures.handle_packet));
 	$('#nfq_enobufs').html(fint(rsp.netfilter.failures.no_buffers));
         $('#nfq_enobufs_trend').html(get_trend(last_nfq_enobufs, rsp.netfilter.failures.no_buffers));
+	$('#num_conntrack_entries').html(fint(rsp.netfilter.nfq.num_conntrack_entries)+ " [" + fint((rsp.netfilter.nfq.num_conntrack_entries*100)/rsp.num_flows) + " %]");
 ]]
 end
 
