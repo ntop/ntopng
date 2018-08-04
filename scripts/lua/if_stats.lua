@@ -621,7 +621,7 @@ print("</script>\n")
       if st.nfq.queue_pct > 80 then
 	 span_class = "class='label label-danger'"
       end
-      print("<td width=20%><span id=nfq_queue_total "..span_class..">"..string.format("%d [%d %%]", formatValue(st.nfq.queue_total), formatValue(st.nfq.queue_pct)).." </span> <span id=nfq_queue_total_trend></span></td>")
+      print("<td width=20%><span id=nfq_queue_total "..span_class..">"..string.format("%s [%s %%]", formatValue(st.nfq.queue_total), formatValue(st.nfq.queue_pct)).." </span> <span id=nfq_queue_total_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_handle_packet_failed").."</th>")
       print("<td width=20%><span id=nfq_handling_failed>"..formatValue(st.failures.handle_packet).."</span> <span id=nfq_handling_failed_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_enobufs").."</th>")
