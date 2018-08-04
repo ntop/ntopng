@@ -43,8 +43,11 @@ Flow::Flow(NetworkInterface *_iface,
     flow_packets_head = flow_packets_tail = NULL,
     dump_flow_traffic = false,
     memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol));
-    doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
-
+  doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
+#ifdef HAVE_NEDGE
+  last_conntrack_update = 0;
+#endif
+  
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
@@ -1726,24 +1729,45 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-bool Flow::isReadyToPurge() {
-  u_int8_t tcp_flags;
+bool Flow::isReadyToPurge() 
+{
+#ifdef HAVE_NEDGE
+  if(iface->getIfType() == interface_type_NETFILTER) {
+    /* 
+       Note that on netfilter interfaces we never observe the 
+       FIN/RST flags as they have been offloaded to kernel
 
-  if(!iface->is_purge_idle_interface()) return(false);
+       Hence on netfilter interfaces flows are purged only for
+       inactivity based on lastSeen updates
+    */
 
-  tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
-
-  /* If this flow is idle for at least MAX_TCP_FLOW_IDLE */
-  if((protocol == IPPROTO_TCP)
-     && ((tcp_flags & TH_FIN) || (tcp_flags & TH_RST))
-     && (doNotExpireBefore >= iface->getTimeLastPktRcvd())
-     && isIdle(MAX_TCP_FLOW_IDLE /* sec */)) {
-    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
-    return(true);
+    if(last_conntrack_update > 0) {
+      if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(2*MIN_CONNTRACK_UPDATE)))
+	return(true);
+    }
   }
-
+  else
+#endif
+    {
+      if(!iface->is_purge_idle_interface())
+	return(false);
+    
+      if(protocol == IPPROTO_TCP) {
+	u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
+      
+	/* If this flow is idle for at least MAX_TCP_FLOW_IDLE */
+	if(((tcp_flags & TH_FIN) || (tcp_flags & TH_RST))
+	   /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
+	   && (doNotExpireBefore >= iface->getTimeLastPktRcvd()) 
+	   && isIdle(MAX_TCP_FLOW_IDLE /* sec */)) {
+	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
+	  return(true);
+	}
+      }
+    }
+  
   return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
-};
+}
 
 /* *************************************** */
 
@@ -3383,6 +3407,7 @@ void Flow::fixAggregatedFlowFields() {
 /* ***************************************************** */
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NETFILTER)
+
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
@@ -3401,6 +3426,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   nf_existing_flow = !(cli2srv_packets > s2d_pkts || cli2srv_bytes > s2d_bytes
 		       || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
+  last_conntrack_update = now;
   
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		  nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,

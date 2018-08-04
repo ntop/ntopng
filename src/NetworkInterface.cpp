@@ -1459,7 +1459,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   if((srcMac = getMac(eth->h_source, true))) {
-/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+    /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     srcMac->incSentStats(1, rawsize);
 #endif
@@ -1484,7 +1484,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   if((dstMac = getMac(eth->h_dest, true))) {
-/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+    /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     dstMac->incRcvdStats(1, rawsize);
 #endif
@@ -2453,7 +2453,7 @@ decode_packet_eth:
     Mac *srcMac = getMac(ethernet->h_source, true);
     Mac *dstMac = getMac(ethernet->h_dest, true);
 
-/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+    /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     if(srcMac) srcMac->incSentStats(1, rawsize);
     if(dstMac) dstMac->incRcvdStats(1, rawsize);

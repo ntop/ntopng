@@ -96,7 +96,10 @@ class Flow : public GenericHashEntry {
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
   bool dump_flow_traffic;
-
+#ifdef HAVE_NEDGE
+  u_int32_t last_conntrack_update; 
+#endif
+  
   union {
     struct {
       char *last_url, *last_method;
@@ -456,7 +459,10 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
-
+#ifdef HAVE_NEDGE
+  inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }
+#endif
+  
 #ifdef NTOPNG_PRO
 
 #ifdef HAVE_NETFILTER
