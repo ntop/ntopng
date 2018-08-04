@@ -1465,11 +1465,19 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     if(username || password) {
       char auth[64];
 
-      snprintf(auth, sizeof(auth), "%s:%s",
-	       username ? username : "",
-	       password ? password : "");
-      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
-      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+      if(use_cookie_authentication) {
+	snprintf(auth, sizeof(auth),
+		 "user=%s; password=%s",
+		 username ? username : "",
+		 password ? password : "");
+	curl_easy_setopt(curl, CURLOPT_COOKIE, auth);
+      } else {
+	snprintf(auth, sizeof(auth), "%s:%s",
+		 username ? username : "",
+		 password ? password : "");
+	curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+      }
     }
 
     if(!strncmp(url, "https", 5)) {
