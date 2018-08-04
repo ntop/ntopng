@@ -18,8 +18,6 @@ local sortColumn  = _GET["sortColumn"]
 local sortOrder   = _GET["sortOrder"]
 
 local group_col   = _GET["grouped_by"]
-local as_n        = _GET["asn"]
-local vlan_n      = _GET["vlan"]
 local network_n   = _GET["network"]
 local country_n   = _GET["country"]
 local os_n        = _GET["os"]
@@ -73,7 +71,7 @@ if (all ~= nil) then
    currentPage = 0
 end
 
-if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
+if (network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 end
 local num = 0
@@ -88,8 +86,8 @@ local stats_by_group_key = interface.getGroupedHosts(false, -- do not show detai
    "column_"..group_col, -- group column
    country_n,            -- country filter
    os_n,                 -- OS filter
-   tonumber(vlan_n),     -- VLAN filter
-   tonumber(as_n),       -- ASN filter
+   nil,                  -- VLAN filter
+   nil,                  -- ASN filter
    tonumber(network_n),  -- Network filter
    tonumber(pool_n),     -- Host Pool filter
    tonumber(ipver_n))    -- IP version filter (4 or 6)
@@ -112,9 +110,7 @@ local function print_single_group(value)
    print ('\"key\" : \"'..value["id"]..'\",')
 
    print ("\"column_id\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/")
-   if (group_col == "asn" or as_n ~= nil) then
-      print("hosts_stats.lua?asn=" ..tostring(value["id"]) .. "'>")
-   elseif (group_col == "country" or country_n ~= nil) then
+   if (group_col == "country" or country_n ~= nil) then
       print("hosts_stats.lua?country="..value["id"].."'>")
       print(getFlag(value["country"]).."&nbsp&nbsp")
    elseif (group_col == "os" or os_n ~= nil) then        
@@ -213,9 +209,7 @@ local function print_single_group(value)
    print('", ')
 
    --- TODO: name for VLANs?
-   if (group_col == "asn" or as_n ~= nil) then
-      print("\"column_name\" : \""..printASN(value["id"], value["name"]))
-   elseif ( group_col == "country" or country_n ~= nil) then
+   if ( group_col == "country" or country_n ~= nil) then
       local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
       if(charts_enabled) then
          print("\"column_chart\" : \"")
@@ -258,17 +252,8 @@ local function print_single_group(value)
    print("\" } ")
 end
 
-
-if (as_n ~= nil) then
-   as_val = stats_by_group_col[tonumber(as_n)]
-   if (as_val == nil)then
-      print('{}')
-   else
-      print_single_group(as_val)
-   end
-   stats_by_group_col = {}
-elseif (country_n ~= nil) then
-   country_val = stats_by_group_col[country_n]
+if (country_n ~= nil) then
+   country_val = find_stats(country_n)
    if (country_val == nil) then
       print('{}')
    else
@@ -277,23 +262,15 @@ elseif (country_n ~= nil) then
    stats_by_group_col = {}
 
 elseif (os_n ~= nil) then
-   os_val = stats_by_group_col[os_n]
+   os_val = find_stats(os_n)
    if (os_val == nil) then
       print('{}')
    else
       print_single_group(os_val)
    end
    stats_by_group_col = {}
-elseif (vlan_n ~= nil) then
-   vlan_val = stats_by_group_col[tonumber(vlan_n)]
-   if (vlan_val == nil) then
-      print('{}')
-   else
-      print_single_group(vlan_val)
-   end
-   stats_by_group_col = {}
 elseif (network_n ~= nil) then
-   network_val = stats_by_group_col[tonumber(network_n)]
+   network_val = find_stats(tonumber(network_n))
    if (network_val == nil) then
       print('{}')
    else
@@ -381,7 +358,7 @@ for _key, _val in iterator(vals, funct) do
    end
 end -- for
 
-if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
+if (network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("\n], \"perPage\" : " .. perPage .. ",\n")
 end
 
@@ -393,7 +370,7 @@ if(sortOrder == nil) then
    sortOrder = ""
 end
 
-if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
+if (network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("\"sort\" : [ [ \"" .. sortColumn .. "\", \"" .. sortOrder .."\" ] ],\n")
    print ("\"totalRows\" : " .. total .. " \n}")
 end
