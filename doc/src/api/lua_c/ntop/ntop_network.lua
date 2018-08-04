@@ -3,9 +3,10 @@
 --! @param username for HTTP authentication.
 --! @param pwd the password for HTTP authentication.
 --! @param timeout maximum connection timeout in seconds.
+--! @param cookie_auth Use basic (default) or cookie (used by ntopng) authentication
 --! @param return_content enable sending response content back to the caller.
 --! @return table (RESPONSE_CODE, CONTENT_TYPE, EFFECTIVE_URL), with additional CONTENT and CONTENT_LEN if return_content is enabled on success, nil otherwise.
-function ntop.httpGet(string url, string username=nil, string pwd=nil, int timeout=nil, bool return_content=false)
+function ntop.httpGet(string url, string username=nil, string pwd=nil, int timeout=nil, bool return_content=false, bool cookie_auth=false)
 
 --! @brief Send an HTTP POST request with json content.
 --! @param username for HTTP authentication. Pass empty string to disable authentication.

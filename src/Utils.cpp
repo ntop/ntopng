@@ -1369,7 +1369,7 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
 
 /* curl calls this routine to get more data */
 static size_t curl_writefunc_to_lua(char *buffer, size_t size,
-				 size_t nitems, void *userp) {
+				    size_t nitems, void *userp) {
   DownloadState *state = (DownloadState*)userp;
   int len = size*nitems, diff;
   
@@ -1445,7 +1445,9 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
 
 bool Utils::httpGet(lua_State* vm, char *url, char *username,
 		    char *password, int timeout,
-		    bool return_content, HTTPTranferStats *stats) {
+		    bool return_content,
+		    bool use_cookie_authentication,
+		    HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
 

@@ -4624,7 +4624,7 @@ static int ntop_http_redirect(lua_State* vm) {
 static int ntop_http_get(lua_State* vm) {
   char *url, *username = NULL, *pwd = NULL;
   int timeout = 30;
-  bool return_content = true;
+  bool return_content = true, use_cookie_authentication = false;
   HTTPTranferStats stats;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4651,12 +4651,16 @@ static int ntop_http_get(lua_State* vm) {
 	*/
 	if(lua_type(vm, 5) == LUA_TBOOLEAN) {
 	  return_content = lua_toboolean(vm, 5) ? true : false;
+	  if(lua_type(vm, 6) == LUA_TBOOLEAN) {
+	    use_cookie_authentication = lua_toboolean(vm, 6) ? true : false;
+	  }
 	}
       }
     }
   }
 
-  if(Utils::httpGet(vm, url, username, pwd, timeout, return_content, &stats))
+  if(Utils::httpGet(vm, url, username, pwd, timeout, return_content,
+		    use_cookie_authentication, &stats))
     return(CONST_LUA_OK);
   else
     return(CONST_LUA_ERROR);
