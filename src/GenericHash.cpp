@@ -28,7 +28,7 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   num_hashes = _num_hashes, max_hash_size = _max_hash_size, current_size = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
   name = strdup(_name ? _name : "???");
-		
+
   iface = _iface;
   table = new GenericHashEntry*[num_hashes];
   for(u_int i = 0; i < num_hashes; i++)
@@ -226,7 +226,7 @@ u_int GenericHash::purgeIdle() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u]",
 				 name, iface->get_name(), last_purged_hash, purge_step);
 #endif
-    
+
   disablePurge();
 
   for(u_int j = 0; j < purge_step; j++) {
@@ -275,12 +275,12 @@ u_int GenericHash::purgeIdle() {
   enablePurge();
 
 #if WALK_DEBUG
-  if((num_purged > 0) && (!strcmp(name, "FlowHash")))
+  if(/* (num_purged > 0) && */ (!strcmp(name, "FlowHash")))
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "[%s @ %s] purgeIdle() [num_purged: %u][num_checked: %u][end index: %u][purge step: %u]",
-				 name, iface->get_name(), num_purged, buckets_checked, last_purged_hash, purge_step);
+				 "[%s @ %s] purgeIdle() [num_purged: %u][num_checked: %u][end index: %u][current_size: %u]",
+				 name, iface->get_name(), num_purged, buckets_checked, last_purged_hash, current_size);
 #endif
-     
+
   return(num_purged);
 }
 

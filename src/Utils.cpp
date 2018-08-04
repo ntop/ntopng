@@ -894,13 +894,13 @@ bool Utils::isPrintableChar(u_char c) {
 
 /* ************************************************************ */
 
-void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL, bool allowDots) {
+bool Utils::purifyHTTPparam(char *param, bool strict, bool allowURL, bool allowDots) {
   if(strict) {
     for(int i=0; xssAttempts[i] != NULL; i++) {
       if(strstr(param, xssAttempts[i])) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s [%s]", param, xssAttempts[i]);
 	param[0] = '\0';
-	return;
+	return(true);
       }
     }
   }
@@ -957,6 +957,8 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL, bool allowD
       param[i-1] = '_', param[i] = '_'; /* Invalidate the path */
     }
   }
+
+  return(false);
 }
 
 /* **************************************************** */

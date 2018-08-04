@@ -863,7 +863,18 @@ static int handle_lua_request(struct mg_connection *conn) {
 	return(send_error(conn, 500 /* Internal server error */,
 			  "Internal server error", "%s", "Unable to start Lua interpreter"));
       } else {
-	l->handle_script_request(conn, request_info, path);
+	bool attack_attempt;
+	
+	l->handle_script_request(conn, request_info, path, &attack_attempt);
+
+	if(attack_attempt) {
+	  char buf[32];
+	  
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Potential attack from %s on %s",
+				       Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+				       request_info->uri);
+	}
+
 	delete l;
 	return(1); /* Handled */
       }

@@ -8143,13 +8143,14 @@ void LuaEngine::setInterface(const char *user) {
 
 /* ****************************************** */
 
-void LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
+bool LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
 			       const char* query) const {
   char outbuf[FILENAME_MAX];
   char *where;
   char *tok;
   char *query_string = query ? strdup(query) : NULL;
-
+  bool ret = false;
+  
   lua_newtable(L);
 
   if(query_string) {
@@ -8174,16 +8175,23 @@ void LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
+	  bool rsp = false;
+	  FILE *fd;
+	  
           Utils::urlDecode(_equal, decoded_buf, len+1);
 
 	  /* Allow multiple dots in password fields */
 	  bool allow_dots = (strstr(tok, "password") != NULL);
 
-	  Utils::purifyHTTPparam(tok, true, false, false);
-	  Utils::purifyHTTPparam(decoded_buf, false, false, allow_dots);
+	  rsp |= Utils::purifyHTTPparam(tok, true, false, false);
+	  rsp |= Utils::purifyHTTPparam(decoded_buf, false, false, allow_dots);
 
+	  if(rsp) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Invalid '%s'", query);
+	    ret = true;
+	  }
+	  
 	  /* Now make sure that decoded_buf is not a file path */
-	  FILE *fd;
 	  if((decoded_buf[0] == '.')
 	     && ((fd = fopen(decoded_buf, "r"))
 		 || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
@@ -8214,13 +8222,15 @@ void LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
     lua_setglobal(L, table_name);
   else
     lua_setglobal(L, (char*)"_GET"); /* Default */
+
+  return(ret);
 }
 
 /* ****************************************** */
 
 int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
-				     char *script_path) {
+				     char *script_path, bool *attack_attempt) {
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
@@ -8231,6 +8241,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char rsp[32];
   char csrf[64] = { '\0' };
 
+  *attack_attempt = false;
+  
   if(!L) return(-1);
 
   luaL_openlibs(L); /* Load base libraries */
@@ -8270,7 +8282,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     if(valid_csrf) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
-	setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
+	*attack_attempt = setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
 	/* application/json" */
 
@@ -8279,19 +8291,19 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	lua_setglobal(L, "_POST");
       }
     } else
-      setParamsTable(L, "_POST", NULL /* Empty */);
+      *attack_attempt = setParamsTable(L, "_POST", NULL /* Empty */);
 
     if(post_data)
       free(post_data);
   } else
-    setParamsTable(L, "_POST", NULL /* Empty */);
+    *attack_attempt = setParamsTable(L, "_POST", NULL /* Empty */);
 
   /* Put the GET params into the environment */
   if(request_info->query_string)
-    setParamsTable(L, "_GET", request_info->query_string);
+    *attack_attempt = setParamsTable(L, "_GET", request_info->query_string);
   else
-    setParamsTable(L, "_GET", NULL /* Empty */);
-
+    *attack_attempt = setParamsTable(L, "_GET", NULL /* Empty */);
+  
   /* _SERVER */
   lua_newtable(L);
   lua_push_str_table_entry(L, "REQUEST_METHOD", (char*)request_info->request_method);
