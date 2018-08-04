@@ -461,6 +461,7 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }
+  bool isNetfilterIdleFlow();
 #endif
   
 #ifdef NTOPNG_PRO
@@ -485,6 +486,7 @@ class Flow : public GenericHashEntry {
 #endif
   void addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet);
   void flushBufferedPackets();
+  void housekeep();
 };
 
 #endif /* _FLOW_H_ */

@@ -1733,20 +1733,9 @@ bool Flow::isReadyToPurge()
 {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER) {
-    /* 
-       Note that on netfilter interfaces we never observe the 
-       FIN/RST flags as they have been offloaded to kernel
-
-       Hence on netfilter interfaces flows are purged only for
-       inactivity based on lastSeen updates
-    */
-
-    if(last_conntrack_update > 0) {
-      if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(2*MIN_CONNTRACK_UPDATE)))
-	return(true);
-    }
-  }
-  else
+    if(isNetfilterIdleFlow())
+      return(true);
+  } else
 #endif
     {
       if(!iface->is_purge_idle_interface())
@@ -2035,13 +2024,51 @@ json_object* Flow::flow2json() {
 
 /* *************************************** */
 
+#ifdef HAVE_NEDGE
+bool Flow::isNetfilterIdleFlow() {
+  /* 
+     Note that on netfilter interfaces we never observe the 
+     FIN/RST flags as they have been offloaded to kernel
+     
+     Hence on netfilter interfaces flows are purged only for
+     inactivity based on lastSeen updates
+  */
+  
+  if(last_conntrack_update > 0) {
+    if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(2*MIN_CONNTRACK_UPDATE)))
+      return(true);
+  }
+  
+  return(false);
+}
+#endif
+
+/* *************************************** */
+
+void Flow::housekeep() {
+#ifdef HAVE_NEDGE
+  if(iface->getIfType() == interface_type_NETFILTER) {
+    if(isNetfilterIdleFlow()) {
+      set_to_purge();
+    }
+  }
+#endif
+}
+
+/* *************************************** */
+
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
 bool Flow::isIdleFlow() {
   time_t now = iface->getTimeLastPktRcvd();
 
+#ifdef HAVE_NEDGE
+  if(iface->getIfType() == interface_type_NETFILTER)
+    return(isNetfilterIdleFlow());
+#endif
+
   if(iface->getIfType() != interface_type_ZMQ) {
     u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
-
+    
     if(protocol == IPPROTO_TCP) {
       if(!twh_over) {
 	if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
@@ -3407,7 +3434,6 @@ void Flow::fixAggregatedFlowFields() {
 /* ***************************************************** */
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NETFILTER)
-
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
@@ -3426,15 +3452,22 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   nf_existing_flow = !(cli2srv_packets > s2d_pkts || cli2srv_bytes > s2d_bytes
 		       || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
+
+  updateSeen();
+
 #ifdef HAVE_NEDGE
+  /* 
+     We need to set last_conntrack_update even with 0 packtes/bytes
+     as this function has been called only within netfilter through
+     the conntrack handler, and thus the flow is still alive.
+  */
   last_conntrack_update = now;
 #endif
   
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
-		  nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
-		  nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
-		  overhead);
-
+		   nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
+		   nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
+		   overhead);
 
   iface->_incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		  nf_existing_flow ? d2s_bytes - srv2cli_bytes : d2s_bytes,
