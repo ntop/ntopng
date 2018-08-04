@@ -95,11 +95,19 @@ local stats_by_group_key = interface.getGroupedHosts(false, -- do not show detai
    tonumber(ipver_n))    -- IP version filter (4 or 6)
 stats_by_group_col = stats_by_group_key
 
+local function find_stats(value_id)
+   for _, group in pairs(stats_by_group_col or {}) do
+      if group["id"] == value_id then
+	 return group
+      end
+   end
+end
+
 --[[
 Prepares a json containing table data, together with HTML.
 --]]
 
-function print_single_group(value)
+local function print_single_group(value)
    print ('{ ')
    print ('\"key\" : \"'..value["id"]..'\",')
 
@@ -293,7 +301,7 @@ elseif (network_n ~= nil) then
    end
    stats_by_group_col = {}
 elseif (pool_n ~= nil) then
-   pool_val = stats_by_group_col[tonumber(pool_n)]
+   pool_val = find_stats(tonumber(pool_n))
    if (pool_val == nil) then
       print('{}')
    else
