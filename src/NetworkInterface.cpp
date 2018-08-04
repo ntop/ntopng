@@ -4614,7 +4614,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
   Grouper *gper;
 
   disablePurge(false);
-
+  
   // sort hosts according to the grouping criterion
   if(sortHosts(begin_slot, walk_all,
 	       &retriever, 0 /* bridge_iface_idx TODO */,

@@ -866,8 +866,8 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   if(lua_type(vm, 5) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 6);
   if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7);
-  if(lua_type(vm, 8) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 9);
-  if(lua_type(vm, 9) == LUA_TNUMBER) ipver_filter   = (u_int8_t)lua_tonumber(vm, 10);
+  if(lua_type(vm, 8) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 8);
+  if(lua_type(vm, 9) == LUA_TNUMBER) ipver_filter   = (u_int8_t)lua_tonumber(vm, 9);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsGroup(vm,
