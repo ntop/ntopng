@@ -5,7 +5,7 @@ JQUERY_BOOTSTRAP_MIN_JS_SRC=jquery.js jquery-ui.js bootstrap.js\
 			    d3.v3.js jquery.peity.js bootstrap-slider.js			    
 
 DEP_MIN_JS=deps.min.js
-DEP_MIN_JS_SRC=rickshaw.js pie-chart.js gauge.js \
+DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
 		  crossfilter.js validator.js validator.js \
 		  dc.js cal-heatmap.js nv.d3.js \
 		  jquery.bootstrap-duallistbox.js jquery.are-you-sure.js \
