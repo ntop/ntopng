@@ -1659,6 +1659,7 @@ local lang = {
     ["password_pattern_error"] = "Please enter at least 5 valid characters.",
     ["password_ph"] = "Password (default admin)",
     ["passwords_dont_match"] = "Passwords don't match.",
+    ["unsupported_browser"] = "Your browser is not supported.<br>Please consider using a recent Firefox or Chrome.",
     ["username"] = "Username",
     ["username_ph"] = "Username (default admin)",
     ["web_users"] = "Web Users",

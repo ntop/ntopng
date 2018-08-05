@@ -101,7 +101,10 @@ else
 end
 
 end
-      print[[</div>
+      print[[<div id="unsupported-browser" style="display:none">
+        <b>]] print(i18n("traffic_profiles.note")) print[[</b>: <small>]] print(i18n("login.unsupported_browser")) print[[</small>
+       </div>
+      </div>
     </div>
   </form>
 
@@ -116,6 +119,19 @@ end
     origin.removeAttr("name");
     return true;
   }
+
+  function isIeBrowser() {
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+
+    if (msie > 0 || navigator.userAgent.match(/Trident.*rv\:11\./))
+      return true;
+
+    return false;
+  }
+
+  if(isIeBrowser())
+    $("#unsupported-browser").show();
 </script>
 
 </div> <!-- /container -->
