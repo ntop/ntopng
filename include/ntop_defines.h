@@ -240,6 +240,9 @@
 #define CONST_MAX_NUM_PACKETS_PER_DUMP 1000000
 #define CONST_MAX_DUMP                 500000000
 
+#define MIN_CONNTRACK_UPDATE           3  /* sec */
+#define MIN_NETFILTER_UPDATE           30 /* sec */
+
 #define CONST_EST_MAX_FLOWS            200000
 #define CONST_EST_MAX_HOSTS            200000
 #define MIN_HOST_RESOLUTION_FREQUENCY  60  /* 1 min */

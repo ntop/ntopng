@@ -2035,7 +2035,17 @@ bool Flow::isNetfilterIdleFlow() {
   */
   
   if(last_conntrack_update > 0) {
-    if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(2*MIN_CONNTRACK_UPDATE)))
+    /*
+      - At latest every MIN_CONNTRACK_UPDATE the scan is performed 
+      - the conntrack scan time that we  assume is less than MIN_CONNTRACK_UPDATE 
+      - in the worst case this method is called when iface->getTimeLastPktRcvd()
+        is almost MIN_CONNTRACK_UPDATE past the last scan
+
+      Thuis in total we assume that every 3*MIN_CONNTRACK_UPDATE
+      seconds an active flow should have been updated
+      by conntrack
+    */
+    if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(3*MIN_CONNTRACK_UPDATE)))
       return(true);
   }
   
