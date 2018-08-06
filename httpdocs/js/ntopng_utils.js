@@ -103,33 +103,24 @@ function fbits_from_bytes(bytes) {
 function fpackets(pps) {
     var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
     if(pps == 0) return '0';
-    var i = parseInt(Math.floor(Math.log(pps) / Math.log(1000)));
-    if (i < 0 || isNaN(i)) {
-	i = 0;
-    }
+    var res = scaleValue(pps, sizes, 1000);
+
     // Round to two decimal digits
-    return Math.round(pps / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
 function fflows(fps) {
     var sizes = ['fps', 'Kfps', 'Mfps', 'Gfps', 'Tfps'];
     if(fps == 0) return '0';
-    var i = parseInt(Math.floor(Math.log(fps) / Math.log(1000)));
-    if (i < 0 || isNaN(i)) {
-	i = 0;
-    }
+    var res = scaleValue(fps, sizes, 1000);
+
     // Round to two decimal digits
-    return Math.round(fps / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
 function fint(value) {
     var x = Math.round(value);
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function fmillis(value) {
-    var x = Math.round(value);
-    return x.toString() + " ms";
 }
 
 function fdate(when) {
@@ -262,6 +253,25 @@ function addCommas(nStr) {
   return x1 + x2;
 }
 
+function scaleValue(val, sizes, scale) {
+  if(val == 0) return [0, sizes[0]];
+
+  var i = parseInt(Math.floor(Math.log(val) / Math.log(scale)));
+  if (i < 0 || isNaN(i)) {
+    i = 0;
+  } else if (i >= sizes.length)
+    i = sizes.length - 1;
+
+  return [val / Math.pow(scale, i), sizes[i]];
+}
+
+function formatValue(val) {
+  var sizes = ['', 'K', 'M', 'G', 'T'];
+  var res = scaleValue(val, sizes, 1000);
+
+  return Math.round(res[0] * 100) / 100 + res[1];
+}
+
 function formatPackets(n) {
   return(addCommas(n.toFixed(2))+" Pkts");
 }
@@ -270,11 +280,19 @@ function formatFlows(n) {
   return(addCommas(n.toFixed(0))+" Flows");
 }
 
+function fmillis(value) {
+  var x = Math.round(value);
+  var res = scaleValue(x, ["ms", "s"], 1000);
+
+  return res[0] + " " + res[1];
+}
+
 function bytesToVolume(bytes) {
   var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  if (bytes == 0) return '0 Bytes';
-  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+  if(bytes == 0) return '0 Bytes';
+  var res = scaleValue(bytes, sizes, 1024);
+
+  return res[0].toFixed(2) + " " + res[1];
 };
 
 function bytesToVolumeAndLabel(bytes) {
@@ -285,11 +303,12 @@ function bytesToVolumeAndLabel(bytes) {
 };
 
 function bitsToSize(bits, factor) {
+  factor = factor || 1000;
   var sizes = ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
   if (bits == 0) return '0 bps';
-  var i = parseInt(Math.floor(Math.log(bits) / Math.log(1000)));
-  if (i == 0) return bits + ' ' + sizes[i];
-  return (bits / Math.pow(factor, i)).toFixed(2) + ' ' + sizes[i];
+  var res = scaleValue(bits, sizes, factor);
+
+  return res[0].toFixed(2) + " " + res[1];
 };
 
 function secondsToTime(seconds) {

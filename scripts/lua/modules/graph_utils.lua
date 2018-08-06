@@ -133,7 +133,7 @@ end
 zoom_vals = {
    { "1m",  "now-60s",  60},
    { "5m",  "now-300s", 60*5},
-   { "10m", "now-600s", 60*10},
+   { "30m", "now-1800s", 60*30},
    { "1h",  "now-1h",   60*60*1},
    { "3h",  "now-3h",   60*60*3},
    { "6h",  "now-6h",   60*60*6},
@@ -335,7 +335,7 @@ function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, optio
    local debug_rrd = false
    options = options or {}
 
-   if(zoomLevel == nil) then zoomLevel = "1h" end
+   if(zoomLevel == nil) then zoomLevel = "5m" end
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
       -- Refresh the page every minute unless:

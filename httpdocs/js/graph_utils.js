@@ -66,7 +66,7 @@ function getValueFormatter(schema, series) {
     else if(label.contains("packets"))
       return [fpackets, formatPackets];
     else if(label.contains("flows"))
-      return [formatFlows, formatFlows];
+      return [formatValue, formatFlows, formatFlows];
     else if(label.contains("millis"))
       return [fmillis, fmillis];
   }
@@ -185,7 +185,7 @@ function buildTimeArray(start_time, end_time, step) {
   return arr;
 }
 
-function fixTimeRange(chart, params) {
+function fixTimeRange(chart, params, step) {
   var diff_epoch = (params.epoch_end - params.epoch_begin);
   var frame, align, tick_step, resolution, fmt = "%H:%M:%S";
 
@@ -201,11 +201,11 @@ function fixTimeRange(chart, params) {
     [600, 10, "%H:%M:%S", 30, 60],                      // <= 10 min
     [1200, 30, "%H:%M:%S", 60, 120],                    // <= 20 min
     [3600, 60, "%H:%M:%S", 60, 300],                    // <= 1 h
-    [5400, 120, "%H:%M:%S", 300, 900],                  // <= 1.5 h
-    [10800, 300, "%H:%M:%S", 300, 900],                 // <= 3 h
-    [21600, 300, "%H:%M:%S", 3600, 1800],               // <= 6 h
-    [43200, 600, "%H:%M:%S", 3600, 3600],               // <= 12 h
-    [86400, 600, "%H:%M:%S", 3600, 7200],               // <= 1 d
+    [5400, 120, "%H:%M", 300, 900],                     // <= 1.5 h
+    [10800, 300, "%H:%M", 300, 900],                    // <= 3 h
+    [21600, 300, "%H:%M", 3600, 1800],                  // <= 6 h
+    [43200, 600, "%H:%M", 3600, 3600],                  // <= 12 h
+    [86400, 600, "%H:%M", 3600, 7200],                  // <= 1 d
     [604800, 3600, "%Y-%m-%d", 86400, 86400],           // <= 7 d
     [1209600, 7200, "%Y-%m-%d", 86400, 172800],         // <= 14 d
     [2678400, 21600, "%Y-%m-%d", 86400, 259200],        // <= 1 m
@@ -227,6 +227,7 @@ function fixTimeRange(chart, params) {
   }
 
   if(align) {
+    align = Math.max(align, step);
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
@@ -260,6 +261,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
   var $chart = $(chart_id);
   var $zoom_out = $(zoom_out_id);
   var $flows_table = $(flows_id);
+  var max_interval = step * 8;
   var is_max_zoom = false;
   var zoom_stack = [];
   var url = http_prefix + "/lua/get_ts.lua";
@@ -339,7 +341,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
 
-    var max_interval = step * 8;
     var cur_interval = (params.epoch_end - params.epoch_begin);
 
     if(cur_interval < max_interval) {
@@ -353,7 +354,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     } else
       is_max_zoom = false;
 
-    fixTimeRange(chart, params);
+    fixTimeRange(chart, params, step);
 
     if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
       return false;
@@ -449,25 +450,29 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
       var smoothed = smooth(total_serie, num_smoothed_points);
-      var scale = d3.max(total_serie) / d3.max(smoothed);
-      var scaled = $.map(smoothed, function(x) { return x * scale; });
-      var aligned = interpolateSerie(scaled, data.count);
+      var max_val = d3.max(smoothed);
+      if(max_val > 0) {
+        var scale = d3.max(total_serie) / max_val;
+        var scaled = $.map(smoothed, function(x) { return x * scale; });
+        var aligned = interpolateSerie(scaled, data.count);
 
-      res.push({
-        key: "Trend", // TODO localize
-        yAxis: 1,
-        values: arrayToNvSerie(aligned, data.start, data.step),
-        type: "line",
-        classed: "line-animated",
-        color: "#62ADF6",
-        legend_key: "trend",
-        disabled: isLegendDisabled("trend", false),
-      });
+        res.push({
+          key: "Trend", // TODO localize
+          yAxis: 1,
+          values: arrayToNvSerie(aligned, data.start, data.step),
+          type: "line",
+          classed: "line-animated",
+          color: "#62ADF6",
+          legend_key: "trend",
+          disabled: isLegendDisabled("trend", false),
+        });
+      }
 
       // get the value formatter
       var formatter = getValueFormatter(schema_name, series);
       var value_formatter = formatter[0];
       var tot_formatter = formatter[1];
+      var stats_formatter = formatter[2] || value_formatter;
       chart.yAxis1.tickFormat(value_formatter);
       chart.interactiveLayer.tooltip.valueFormatter(value_formatter);
 
@@ -494,13 +499,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
         if(stats.total)
           stats_table.find(".graph-val-total").show().find("span").html(tot_formatter(stats.total));
         if(stats.average)
-          stats_table.find(".graph-val-average").show().find("span").html(value_formatter(stats.average));
+          stats_table.find(".graph-val-average").show().find("span").html(stats_formatter(stats.average));
         if(stats.min_val)
-          stats_table.find(".graph-val-min").show().find("span").html(value_formatter(stats.min_val) + "@" + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
+          stats_table.find(".graph-val-min").show().find("span").html(stats_formatter(stats.min_val) + "@" + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
         if(stats.max_val)
-          stats_table.find(".graph-val-max").show().find("span").html(value_formatter(stats.max_val) + "@" + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
+          stats_table.find(".graph-val-max").show().find("span").html(stats_formatter(stats.max_val) + "@" + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
         if(stats["95th_percentile"]) {
-          stats_table.find(".graph-val-95percentile").show().find("span").html(value_formatter(stats["95th_percentile"]));
+          stats_table.find(".graph-val-95percentile").show().find("span").html(stats_formatter(stats["95th_percentile"]));
 
           var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
 
