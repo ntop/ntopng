@@ -6395,12 +6395,12 @@ static int ntop_mkdir_tree(lua_State* vm) {
 
 static int ntop_list_reports(lua_State* vm) {
   DIR *dir;
-  char fullpath[MAX_PATH];
+  char fullpath[MAX_PATH+8];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
-  snprintf(fullpath, sizeof(fullpath), "%s/%s", ntop->get_working_dir(), "reports");
+  snprintf(fullpath, sizeof(fullpath)-1, "%s/%s", ntop->get_working_dir(), "reports");
   ntop->fixPath(fullpath);
   if((dir = opendir(fullpath)) != NULL) {
     struct dirent *ent;

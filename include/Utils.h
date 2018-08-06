@@ -52,6 +52,7 @@ class Utils {
   static size_t file_read(const char *path, char **content);
   static bool file_exists(const char *path);
   static bool mkdir_tree(char *path);
+  static int mkdir(const char *pathname, mode_t mode);
   static const char* trend2str(ValueTrend t);
   static int dropPrivileges();
   static std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);

@@ -4687,22 +4687,6 @@ static const char *ssl_error(void) {
   return err == 0 ? "" : ERR_error_string(err, NULL);
 }
 
-static void ssl_locking_callback(int mode, int mutex_num, const char *file,
-				 int line) {
-  (void) line;
-  (void) file;
-
-  if (mode & 1) {  // 1 is CRYPTO_LOCK
-    (void) pthread_mutex_lock(&ssl_mutexes[mutex_num]);
-  } else {
-    (void) pthread_mutex_unlock(&ssl_mutexes[mutex_num]);
-  }
-}
-
-static unsigned long ssl_id_callback(void) {
-  return (unsigned long) pthread_self();
-}
-
 #if !defined(NO_SSL_DL)
 static int load_dll(struct mg_context *ctx, const char *dll_name,
 		    struct ssl_func *sw) {
@@ -4741,6 +4725,23 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
   return 1;
 }
 #endif // NO_SSL_DL
+
+static unsigned long ssl_id_callback(void) {
+  return (unsigned long) pthread_self();
+}
+
+static void ssl_locking_callback(int mode, int mutex_num, const char *file,
+				 int line) {
+  (void) line;
+  (void) file;
+
+  if (mode & 1) {  // 1 is CRYPTO_LOCK
+    (void) pthread_mutex_lock(&ssl_mutexes[mutex_num]);
+  } else {
+    (void) pthread_mutex_unlock(&ssl_mutexes[mutex_num]);
+  }
+}
+
 
 // Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
 static int set_ssl_option(struct mg_context *ctx) {
@@ -4934,8 +4935,10 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
 
   if (host == NULL) {
     snprintf(ebuf, ebuf_len, "%s", "NULL host");
+#if 0
   } else if (use_ssl && SSLv23_client_method == NULL) {
     snprintf(ebuf, ebuf_len, "%s", "SSL is not initialized");
+#endif
   } else if ((he = gethostbyname(host)) == NULL) {
     snprintf(ebuf, ebuf_len, "gethostbyname(%s): %s", host, strerror(ERRNO));
   } else if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {

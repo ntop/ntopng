@@ -1456,14 +1456,14 @@ void Ntop::fixPath(char *str, bool replaceDots) {
 /* ******************************************* */
 
 char* Ntop::getValidPath(char *__path) {
-  char _path[MAX_PATH];
+  char _path[MAX_PATH+8];
   struct stat buf;
 #ifdef WIN32
   const char *install_dir = (const char *)get_install_dir();
 #endif
 
   if(strncmp(__path, "./", 2) == 0) {
-    snprintf(_path, MAX_PATH, "%s/%s", startup_dir, &__path[2]);
+    snprintf(_path, sizeof(_path), "%s/%s", startup_dir, &__path[2]);
     fixPath(_path);
 
     if(stat(_path, &buf) == 0) {
