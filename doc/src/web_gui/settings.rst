@@ -31,8 +31,8 @@ Preferences
 Preferences menu entry enables the user to change runtime configurations. A thorough help is reported
 below every preference directly into ntopng web GUI.
 
-Export Data
------------
+Manage Stored Data
+------------------
 
 Ntopng is able to export monitored hosts information. It allows to export data in JSON format giving the
 user the ability to include ntopng information in a user created GUI.
@@ -42,3 +42,22 @@ user the ability to include ntopng information in a user created GUI.
   :alt: Export Data
 
   The Export Data Page
+
+Backup Configuration
+--------------------
+
+The Backup Configuration entry downloads a copy of the ntopng configuration, as compressed 
+tarball (.tar.gz), including:
+
+- Configuration file (unless command line is used for providing the options)
+- /etc/ntopng folder
+- Runtime configuration (runtimeprefs.json)
+- License file
+
+Please note that on Windows systems the runtime configuration file only is provided.
+
+The backup can be used to restore the configuration, placing a copy of the tarball
+under /etc/ntopng/conf.tar.gz and restarting the ntopng service. Please note
+that after restoring the configuration, the backup copy under /etc/ntopng/conf.tar.gz
+is automatically deleted.
+
