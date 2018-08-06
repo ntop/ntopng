@@ -4,8 +4,9 @@
 
 local ts_utils = {}
 
--- Import other modules
-ts_utils.metrics = (require "ts_common").metrics
+local ts_common = require "ts_common"
+
+ts_utils.metrics = ts_common.metrics
 ts_utils.schema = require "ts_schema"
 
 require "lua_trace"
@@ -290,6 +291,9 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
 
   -- Query the top items data
   local options = table.merge(query_options, {calculate_stats = false})
+  local count = 0
+  local step = 0
+  local start = 0
 
   for _, top in ipairs(top_items.topk) do
     local top_res = driver:query(schema, tstart, tend, top.tags, options)
@@ -316,10 +320,12 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
       top_res.series = {{label="bytes", data=aggregated}}
     end
 
-    -- TODO add more checks on consistency?
-    top_items.step = top_res.step
-    top_items.count = top_res.count
-    top_items.start = top_res.start
+    for _, serie in pairs(top_res.series) do
+      count = math.max(#serie.data, count)
+    end
+
+    start = top_res.start
+    step = math.max(step, top_res.step)
 
     for _, serie in ipairs(top_res.series) do
       serie.tags = top.tags
@@ -328,6 +334,24 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
 
     ::continue::
   end
+
+  -- Possibly fix series inconsistencies due to RRA steps
+  for _, serie in pairs(top_items.series) do
+    if count > #serie.data then
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. table.tconcat(serie.tags, "=", ",") .. " from " .. #serie.data .. " to " .. count)
+      serie.data = ts_common.interpolateSerie(serie.data, count)
+    end
+  end
+  for key, serie in pairs(top_items.additional_series) do
+    if count > #serie then
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. key .. " from " .. #serie .. " to " .. count)
+      top_items.additional_series[key] = ts_common.interpolateSerie(serie, count)
+    end
+  end
+
+  top_items.count = count
+  top_items.step = step
+  top_items.start = start
 
   return top_items
 end
