@@ -476,14 +476,18 @@ void Flow::guessProtocol() {
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
     ndpiDetectedProtocol = proto_id;
-     
+
+    /* Let the client SSL certificate win over the server SSL certificate
+       this addresses detection for youtube, e.g., when the client
+       requests s.youtube.com but the server responds with google.com */
     if((proto_id.master_protocol == NDPI_PROTOCOL_SSL)
        && (get_packets() < NDPI_MIN_NUM_PACKETS)
+       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] == '\0')
        && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
       get_ndpi_flow()->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
       return;
     }
-    
+
     processDetectedProtocol();
     detection_completed = true;
   } else if(forceDetection
