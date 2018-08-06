@@ -81,6 +81,7 @@ class LuaEngine {
 			    char *script_path, bool *attack_attempt);
 
   bool setParamsTable(lua_State* vm,
+		      const struct mg_request_info *request_info,
 		      const char* table_name,
 		      const char* query) const;
 

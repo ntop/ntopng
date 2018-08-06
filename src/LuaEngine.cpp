@@ -8143,7 +8143,9 @@ void LuaEngine::setInterface(const char *user) {
 
 /* ****************************************** */
 
-bool LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
+bool LuaEngine::setParamsTable(lua_State* vm,
+			       const struct mg_request_info *request_info,
+			       const char* table_name,
 			       const char* query) const {
   char outbuf[FILENAME_MAX];
   char *where;
@@ -8153,7 +8155,9 @@ bool LuaEngine::setParamsTable(lua_State* vm, const char* table_name,
   
   lua_newtable(L);
 
-  if(query_string) {
+  if(query_string
+     && strcmp(request_info->uri, CAPTIVE_PORTAL_INFO_URL) /* Ignore informative portal */
+     ) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
 
     tok = strtok_r(query_string, "&", &where);
@@ -8282,7 +8286,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     if(valid_csrf) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
-	*attack_attempt = setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
+	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
 	/* application/json" */
 
@@ -8291,18 +8295,18 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	lua_setglobal(L, "_POST");
       }
     } else
-      *attack_attempt = setParamsTable(L, "_POST", NULL /* Empty */);
+      *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
 
     if(post_data)
       free(post_data);
   } else
-    *attack_attempt = setParamsTable(L, "_POST", NULL /* Empty */);
+    *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
 
   /* Put the GET params into the environment */
   if(request_info->query_string)
-    *attack_attempt = setParamsTable(L, "_GET", request_info->query_string);
+    *attack_attempt = setParamsTable(L, request_info, "_GET", request_info->query_string);
   else
-    *attack_attempt = setParamsTable(L, "_GET", NULL /* Empty */);
+    *attack_attempt = setParamsTable(L, request_info, "_GET", NULL /* Empty */);
   
   /* _SERVER */
   lua_newtable(L);
