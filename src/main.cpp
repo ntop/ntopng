@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
+#if defined(HAVE_NEDGE)
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new NetfilterInterface(ifName);
 #endif

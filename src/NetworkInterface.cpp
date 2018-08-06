@@ -1610,7 +1610,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
     if(new_flow)
       flow->setIngress2EgressDirection(ingressPacket);
 #endif
@@ -1892,7 +1892,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     flow->processDetectedProtocol();
 
-#if defined(NTOPNG_PRO) && !defined(WIN32)
+#ifdef HAVE_NEDGE
     if(is_bridge_interface()) {
       struct tm now;
       time_t t_now = time(NULL);
@@ -2883,7 +2883,7 @@ void NetworkInterface::refreshHostPools() {
   begin_slot = 0;
   macs_hash->walk(&begin_slot, walk_all, update_l2_device_host_pool, NULL);
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   if(update_host.update_l7policy)
     updateFlowsL7Policy();
 #endif
@@ -2891,18 +2891,13 @@ void NetworkInterface::refreshHostPools() {
 
 /* **************************************************** */
 
-#ifdef NTOPNG_PRO
-
-/* **************************************************** */
+#ifdef HAVE_NEDGE
 
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
 
   *matched = true;
   f->updateFlowShapers();
-#ifndef HAVE_NEDGE
-  f->updateProfile();
-#endif
   return(false); /* false = keep on walking */
 }
 
@@ -2966,7 +2961,11 @@ static bool host_reset_quotas(GenericHashEntry *host, void *user_data, bool *mat
   return(false); /* false = keep on walking */
 }
 
+#endif
+
 /* **************************************************** */
+
+#ifdef NTOPNG_PRO
 
 void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
   struct tm now;
@@ -2974,6 +2973,11 @@ void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
   localtime_r(&t_now, &now);
 
   if(host_pools) {
+    disablePurge(true);
+
+    host_pools->resetPoolsStats(pool_filter);
+
+#ifdef HAVE_NEDGE
     u_int32_t begin_slot = 0;
     bool walk_all = true;
     struct resetPoolsStatsData data;
@@ -2981,12 +2985,10 @@ void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
     data.pool_filter = pool_filter;
     data.now = &now;
 
-    disablePurge(true);
-
-    host_pools->resetPoolsStats(pool_filter);
     walker(&begin_slot, walk_all,  walker_hosts, host_reset_quotas, &data);
     begin_slot = 0;
     walker(&begin_slot, walk_all,  walker_flows, flow_recheck_quota_walker, &data);
+#endif
 
     enablePurge(true);
   }
@@ -3365,7 +3367,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t asn_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
 
@@ -3449,7 +3451,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   || (!alerted_flows && f->getFlowStatus() != status_normal)))
       return(false);
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
     if(retriever->pag
        && retriever->pag->filteredFlows(&filtered_flows)
        && ((filtered_flows && f->isPassVerdict())

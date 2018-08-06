@@ -172,7 +172,7 @@ class Flow : public GenericHashEntry {
     u_int32_t last_dump;
   } last_db_dump;
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   struct {
     struct {
       TrafficShaper *ingress, *egress;
@@ -220,7 +220,6 @@ class Flow : public GenericHashEntry {
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
-  bool updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
@@ -265,7 +264,7 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlags()        { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   bool checkPassVerdict(const struct tm *now);
   bool isPassVerdict();
 #endif
@@ -417,13 +416,10 @@ class Flow : public GenericHashEntry {
   FlowSSLEncryptionStatus getSSLEncryptionStatus();
   void setDumpFlowTraffic(bool what)   { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)        { return dump_flow_traffic; }
-#ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
-#endif
-  void updateFlowShapers(bool first_update=false);
-  void recheckQuota(const struct tm *now);
 #endif
   inline float getFlowRTT() { return(rttSec); }
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
@@ -464,12 +460,8 @@ class Flow : public GenericHashEntry {
   bool isNetfilterIdleFlow();
 #endif
   
-#ifdef NTOPNG_PRO
-
-#ifdef HAVE_NETFILTER
+#ifdef HAVE_NEDGE
   void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int64_t s2d_bytes, u_int64_t d2s_bytes);  
-#endif
-
   void getFlowShapers(bool src2dst_direction, TrafficShaper **shaper_ingress, TrafficShaper **shaper_egress) {
     if(src2dst_direction) {
       *shaper_ingress = flowShaperIds.cli2srv.ingress,
@@ -479,7 +471,9 @@ class Flow : public GenericHashEntry {
 	*shaper_egress = flowShaperIds.srv2cli.egress;
     }
   }
-
+  bool updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
+  void updateFlowShapers(bool first_update=false);
+  void recheckQuota(const struct tm *now);
   inline u_int8_t getFlowRoutingTableId() { return(routing_table_id); }
   inline void setIngress2EgressDirection(bool _ingress2egress) { ingress2egress_direction = _ingress2egress; }
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }

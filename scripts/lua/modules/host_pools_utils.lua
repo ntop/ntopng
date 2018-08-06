@@ -551,9 +551,7 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
   end
 
   if empty then
-    local url = ternary(not ntop.isnEdge(),
-          "/lua/if_stats.lua?page=filtering&pool="..pool_id,
-          "/lua/pro/nedge/admin/nf_edit_user.lua?page=protocols&username=" .. host_pools_utils.poolIdToUsername(pool_id))
+    local url = "/lua/pro/nedge/admin/nf_edit_user.lua?page=protocols&username=" .. host_pools_utils.poolIdToUsername(pool_id)
 
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("shaping.no_quota_data")..
       ". " .. i18n("host_pools.create_new_quotas_here", {url=ntop.getHttpPrefix()..url}) .. "</div>")

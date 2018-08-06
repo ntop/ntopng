@@ -79,8 +79,8 @@ int FlowGrouper::incStats(Flow *flow) {
   if(flow->get_last_seen() > stats.last_seen)
     stats.last_seen = flow->get_last_seen();
 
-#ifdef NTOPNG_PRO
-  if(! flow->isPassVerdict())
+#ifdef HAVE_NEDGE
+  if(!flow->isPassVerdict())
 #endif
     stats.num_blocked_flows++;
 

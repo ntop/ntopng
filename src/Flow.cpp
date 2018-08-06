@@ -112,8 +112,8 @@ Flow::Flow(NetworkInterface *_iface,
   trafficProfile = NULL;
 #else
   cli2srv_in = cli2srv_out = srv2cli_in = srv2cli_out = DEFAULT_SHAPER_ID;
-#endif
   memset(&flowShaperIds, 0, sizeof(flowShaperIds));
+#endif
 #endif
 
   switch(protocol) {
@@ -251,11 +251,13 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_remote_to_remote_alerts_enabled();
       break;
 
-#ifdef NTOPNG_PRO
     case status_blocked:
+#ifdef HAVE_NEDGE
       do_dump = ntop->getPrefs()->are_dropped_flows_alerts_enabled();
-      break;
+#else
+      do_dump = false;
 #endif
+      break;
     }
 
     if(do_dump)
@@ -494,7 +496,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   }
 
   if(detection_completed) {
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
     updateFlowShapers(true);
 #endif
     flushBufferedPackets();
@@ -820,7 +822,7 @@ bool Flow::dumpFlow(bool idle_flow) {
 /* *************************************** */
 
 void Flow::setDropVerdict() {
-#if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
+#if defined(HAVE_NEDGE)
   if((iface->getIfType() == interface_type_NETFILTER) && (passVerdict == true))
    ((NetfilterInterface *) iface)->setPolicyChanged();
 #endif
@@ -1543,7 +1545,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
     if(iface->is_bridge_interface())
       lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
 #endif
@@ -1593,7 +1595,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_int_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
     }
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
     if(cli_host && srv_host) {
       /* Shapers */
       lua_push_int_table_entry(vm,
@@ -2013,7 +2015,7 @@ json_object* Flow::flow2json() {
   if(isSSL() && protos.ssl.certificate)
     json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   if(iface && iface->is_bridge_interface())
     json_object_object_add(my_object, "verdict.pass",
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
@@ -3016,7 +3018,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
 
 bool Flow::isPassVerdict() {
   if(!passVerdict)
@@ -3056,7 +3058,7 @@ bool Flow::dumpFlowTraffic() {
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
 
 bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper) {
   bool verdict = true;
@@ -3066,19 +3068,15 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
       *ingress_shaper = srv_host->get_ingress_shaper(ndpiDetectedProtocol),
 	*egress_shaper = cli_host->get_egress_shaper(ndpiDetectedProtocol);
 
-#ifdef HAVE_NEDGE
       if(*ingress_shaper) srv2cli_in = (*ingress_shaper)->get_shaper_id();
       if(*egress_shaper) cli2srv_out = (*egress_shaper)->get_shaper_id();
-#endif
 
     } else {
       *ingress_shaper = cli_host->get_ingress_shaper(ndpiDetectedProtocol),
 	*egress_shaper = srv_host->get_egress_shaper(ndpiDetectedProtocol);
 
-#ifdef HAVE_NEDGE
       if(*ingress_shaper) cli2srv_in = (*ingress_shaper)->get_shaper_id();
       if(*egress_shaper) srv2cli_out = (*egress_shaper)->get_shaper_id();
-#endif
     }
 
     if((*ingress_shaper && (*ingress_shaper)->shaping_enabled() && (*ingress_shaper)->get_max_rate_kbit_sec() == 0)
@@ -3092,18 +3090,13 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
-
 void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
-#if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
   bool old_verdict = passVerdict;
-
   u_int16_t old_cli2srv_in = cli2srv_in,
     old_cli2srv_out = cli2srv_out,
     old_srv2cli_in = srv2cli_in,
     old_srv2cli_out = srv2cli_out;
-#endif
 
   /* Check if this application protocol is allowd for the specified device type */
   if(cli_host && srv_host && cli_host->getMac() && srv_host->getMac()) {
@@ -3127,7 +3120,6 @@ void Flow::updateFlowShapers(bool first_update) {
   srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
   passVerdict = (cli2srv_verdict && srv2cli_verdict);
 
-#if defined(HAVE_NEDGE) && defined(HAVE_NETFILTER)
   if((!first_update) && (iface->getIfType() == interface_type_NETFILTER) &&
            (((old_verdict != passVerdict)) ||
             (old_cli2srv_in != cli2srv_in) ||
@@ -3135,7 +3127,6 @@ void Flow::updateFlowShapers(bool first_update) {
             (old_srv2cli_in != srv2cli_in) ||
             (old_srv2cli_out != srv2cli_out)))
    ((NetfilterInterface *) iface)->setPolicyChanged();
-#endif
 
 #ifdef SHAPER_DEBUG
   {
@@ -3145,7 +3136,6 @@ void Flow::updateFlowShapers(bool first_update) {
   }
 #endif
 }
-#endif
 
 /* *************************************** */
 
@@ -3318,7 +3308,7 @@ FlowStatus Flow::getFlowStatus() {
 #endif
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   if(iface->is_bridge_interface() && !isPassVerdict())
     return status_blocked;
 #endif
@@ -3443,7 +3433,7 @@ void Flow::fixAggregatedFlowFields() {
 
 /* ***************************************************** */
 
-#if defined(NTOPNG_PRO) && defined(HAVE_NETFILTER)
+#ifdef HAVE_NEDGE
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
@@ -3465,14 +3455,12 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
   updateSeen();
 
-#ifdef HAVE_NEDGE
   /* 
      We need to set last_conntrack_update even with 0 packtes/bytes
      as this function has been called only within netfilter through
      the conntrack handler, and thus the flow is still alive.
   */
   last_conntrack_update = now;
-#endif
   
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		   nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,

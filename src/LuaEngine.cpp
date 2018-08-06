@@ -3803,10 +3803,9 @@ static int ntop_reload_hide_from_top(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
-#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -3818,7 +3817,6 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
 
   if(ntop->get_HTTPserver())
     ntop->get_HTTPserver()->setCaptiveRedirectAddress(ip);
-#endif
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -3826,7 +3824,6 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef HAVE_NEDGE
 static int ntop_set_lan_interface(lua_State* vm) {
   char *lan_ifname;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3839,18 +3836,15 @@ static int ntop_set_lan_interface(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
-#endif
 
 /* ****************************************** */
 
 static int ntop_get_policy_change_marker(lua_State* vm) {
-#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
     lua_pushnumber(vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
   else
-#endif
     lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -5415,6 +5409,8 @@ static int ntop_get_top_macs_protos(lua_State *vm) {
 
 /* *******************************************/
 
+#ifdef HAVE_NEDGE
+
 static int ntop_reload_l7_rules(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5423,7 +5419,6 @@ static int ntop_reload_l7_rules(lua_State *vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_interface) {
-#ifdef NTOPNG_PRO
     u_int16_t host_pool_id = (u_int16_t)lua_tonumber(vm, 1);
 
 #ifdef SHAPER_DEBUG
@@ -5433,7 +5428,6 @@ static int ntop_reload_l7_rules(lua_State *vm) {
     ntop_interface->refreshL7Rules();
     ntop_interface->updateHostsL7Policy(host_pool_id);
     ntop_interface->updateFlowsL7Policy();
-#endif
 
     lua_pushnil(vm);
     return(CONST_LUA_OK);
@@ -5456,6 +5450,8 @@ static int ntop_reload_shapers(lua_State *vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+
+#endif
 
 /* ****************************************** */
 
@@ -7568,10 +7564,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getVLANsInfo",                     ntop_get_interface_vlans_info },
   { "getVLANInfo",                      ntop_get_interface_vlan_info } ,
 
-  /* L7 */
-  { "reloadL7Rules",                    ntop_reload_l7_rules },
-  { "reloadShapers",                    ntop_reload_shapers },
-
   /* Host pools */
   { "reloadHostPools",                  ntop_reload_host_pools                },
   { "findMemberPool",                   ntop_find_member_pool                 },
@@ -7588,15 +7580,20 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostUsedQuotasStats",           ntop_get_host_used_quotas_stats       },
 
   /* SNMP */
-  { "getSNMPStats",                     ntop_interface_get_snmp_stats },
+  { "getSNMPStats",                     ntop_interface_get_snmp_stats         },
 
   /* Flow Devices */
-  { "getFlowDevices",                  ntop_get_flow_devices     },
-  { "getFlowDeviceInfo",               ntop_get_flow_device_info },
+  { "getFlowDevices",                   ntop_get_flow_devices                  },
+  { "getFlowDeviceInfo",                ntop_get_flow_device_info              },
 
-  { "setLanIpAddress",                 ntop_set_lan_ip_address },
-  { "getPolicyChangeMarker",           ntop_get_policy_change_marker },
-  { "updateFlowsShapers",              ntop_update_flows_shapers },
+#ifdef HAVE_NEDGE
+  /* L7 */
+  { "reloadL7Rules",                    ntop_reload_l7_rules                   },
+  { "reloadShapers",                    ntop_reload_shapers                    },
+  { "setLanIpAddress",                  ntop_set_lan_ip_address                },
+  { "getPolicyChangeMarker",            ntop_get_policy_change_marker          },
+  { "updateFlowsShapers",               ntop_update_flows_shapers              },
+#endif
 #endif
 
   /* Network Discovery */
@@ -7836,14 +7833,15 @@ static const luaL_Reg ntop_reg[] = {
   { "getHostInformation",   ntop_get_host_information },
   { "isShutdown",           ntop_is_shutdown          },
 
-#ifdef HAVE_NEDGE
-  { "setHTTPBindAddr",      ntop_set_http_bind_addr     },
-  { "setHTTPSBindAddr",     ntop_set_https_bind_addr    },
-  { "shutdown",             ntop_shutdown               },
-  { "setRoutingMode",       ntop_set_routing_mode       },
-  { "isRoutingMode",        ntop_is_routing_mode        },
-  { "setLanInterface",      ntop_set_lan_interface      },
+#ifdef HAVE_NEDGE  
+  { "setHTTPBindAddr",       ntop_set_http_bind_addr       },
+  { "setHTTPSBindAddr",      ntop_set_https_bind_addr      },
+  { "shutdown",              ntop_shutdown                 },
+  { "setRoutingMode",        ntop_set_routing_mode         },
+  { "isRoutingMode",         ntop_is_routing_mode          },
+  { "setLanInterface",       ntop_set_lan_interface        },
 #endif
+
   { NULL,          NULL}
 };
 
