@@ -519,7 +519,17 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
   <div id="flows-per-pair-container"> </div>
 </div>
 
-]] historicalDownloadButtonsBar("pcap-button-top-talkers", "historical-container", not(isv6), isv6) print [[
+]] historicalDownloadButtonsBar("pcap-button-top-talkers", "historical-container", not(isv6), isv6)
+
+if allowedNetworksRestrictions() then
+   print("<b>"..i18n("notes").."</b>")
+   print("<li>"..i18n("note_flow_search_allowed_networks",{nets=ntop.getAllowedNetworks()}).."</li>")
+   print("<li>"..i18n("note_flow_search_allowed_networks_ipv6").."</li>")
+   print("<li>"..i18n("note_flow_search_allowed_networks_talkers").."</li>")
+end
+
+print [[
+
 
 <script type="text/javascript">
 ]] commonJsUtils() print[[
@@ -829,7 +839,7 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
 
-	if useAggregatedFlows() == false then
+	if not useAggregatedFlows() and not allowedNetworksRestrictions() then
 	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
 	   print("+ '&limit=' + num_flows")
 	end
@@ -969,7 +979,16 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host, vlan
   <div id="flows-per-pair-by-app-container"> </div>
 </div>
 
-]] historicalDownloadButtonsBar("pcap-button-top-protocols", "historical-apps-container", not(isv6), isv6) print [[
+]] historicalDownloadButtonsBar("pcap-button-top-protocols", "historical-apps-container", not(isv6), isv6)
+
+if allowedNetworksRestrictions() then
+   print("<b>"..i18n("notes").."</b>")
+   print("<li>"..i18n("note_flow_search_allowed_networks",{nets=ntop.getAllowedNetworks()}).."</li>")
+   print("<li>"..i18n("note_flow_search_allowed_networks_ipv6").."</li>")
+   print("<li>"..i18n("note_flow_search_allowed_networks_applications").."</li>")
+end
+
+print [[
 
 <script type="text/javascript">
 var totalRows = -1;
@@ -1278,7 +1297,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
 	
-	if useAggregatedFlows() == false then
+	if not useAggregatedFlows() and not allowedNetworksRestrictions() then
 	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
 	   print("+ '&limit=' + num_flows")
 	end
@@ -1627,7 +1646,7 @@ print [[
            <tr>
              <th>&nbsp;</th>]]
 
-if useAggregatedFlows() == false then -- pointless to show counters for aggregations to the user
+if not useAggregatedFlows() then -- pointless to show counters for aggregations to the user
    print[[<th>]] print(i18n("db_explorer.total_flows"))print[[</th>]]
 end
 
@@ -1636,6 +1655,9 @@ print[[<th>]] print(i18n("db_explorer.traffic_volume")) print[[</th>
            </tr>
         </table>
       </div>
+]]
+
+print[[
     </div>
 ]]
 
@@ -1658,10 +1680,20 @@ print[[<th>]] print(i18n("db_explorer.traffic_volume")) print[[</th>
     </div>
 ]]
 
+if allowedNetworksRestrictions() then
+   print("<b>"..i18n("notes").."</b>")
+   print("<li>"..i18n("note_flow_search_allowed_networks",{nets=ntop.getAllowedNetworks()}).."</li>")
+   print("<li>"..i18n("note_flow_search_allowed_networks_ipv6").."</li>")
+   print("<li>"..i18n("note_flow_search_allowed_networks_counter").."</li>")
+end
+
 print [[
   </div>
 </div>
 
+]]
+
+print[[
 <script type="text/javascript">
 
 var xhr;
@@ -1742,7 +1774,7 @@ print[[
         tr += "<tr><th>" + ipvers + "</th>"
 ]]
 
-if useAggregatedFlows() == false then -- only show flow counters when querying from raw flows
+if not useAggregatedFlows() then -- only show flow counters when querying from raw flows
 print[[
         tr += "<td align='right'>" + item.tot_flows + " Flows</td>"
 ]]
@@ -1750,6 +1782,7 @@ end
 
 print[[
         tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
+debugger;
         tr += "<td align='right'>" + formatPackets(item.tot_packets) + "</td>"
         tr += "<td align='right'>" + fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
         tr += "<td align='right'>" + fpackets(item.tot_packets / msg.timespan) + "</td>"
@@ -1836,7 +1869,7 @@ print [[
 print [[
   var url_update4 = "]] print(url_update) print [[&version=4]]
 
-if useAggregatedFlows() == false then
+if not useAggregatedFlows() and not allowedNetworksRestrictions() then
    print[[&limit=" + $("#tab-ipv4").attr("num_flows")]]
 else
    -- limit computed dynamically
@@ -1987,7 +2020,7 @@ print [[
 
 	    var url_update6 = "]] print(url_update) print [[&version=6]]
 
-if useAggregatedFlows() == false then
+if not useAggregatedFlows() and not allowedNetworksRestrictions() then
    print[[&limit=" + $("#tab-ipv6").attr("num_flows")]]
 else
    -- limit computed dynamically

@@ -273,7 +273,7 @@ function formatValue(val) {
 }
 
 function formatPackets(n) {
-  return(addCommas(n.toFixed(2))+" Pkts");
+  return(addCommas(n.toFixed(0))+" Pkts");
 }
 
 function formatFlows(n) {

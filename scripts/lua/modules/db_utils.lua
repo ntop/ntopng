@@ -2,7 +2,7 @@
 -- (C) 2014-15 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
@@ -15,7 +15,7 @@ local db_utils = {}
 
 -- ########################################################
 
-function iptonumber(str)
+local function iptonumber(str)
    local num = 0
    for elem in str:gmatch("%d+") do
       num = num * 256 + assert(tonumber(elem))
@@ -28,7 +28,7 @@ end
 function expandIpV4Network(net)
    local address, prefix = splitNetworkPrefix(net)
 
-   if(prefix == nil or prefix > 32 or prefix <= 0) then prefix = 32 end
+   if(prefix == nil or prefix > 32 or prefix < 0) then prefix = 32 end
 
    local num_hosts = 2^(32-prefix)
    local addr = iptonumber(address)
@@ -42,7 +42,7 @@ end
 
 -- ########################################################
 
-function flowsTableName(version, force_raw)
+local function flowsTableName(version, force_raw)
    if tblname_prefs == nil then
       tblname_prefs = ntop.getPrefs()
    end
@@ -57,6 +57,103 @@ function flowsTableName(version, force_raw)
 
    -- return "flowsv"..version -- FIXX: remove this line when ready
    return tblname
+end
+
+-- ########################################################
+
+local function allowedNetworksIter(version)
+   if version ~= 4 and version ~= 6 then
+      return function() return nil end
+   end
+
+   local an = ntop.getAllowedNetworks()..","
+   local spl = an:split(",")
+   local pos = 0
+
+   return function()
+      while pos < #spl do
+	 pos = pos + 1
+	 local net = spl[pos]
+	 local v6_net = not isIPv4Network(net)
+
+	 if (v6_net and version == 6) or (not v6_net and version == 4) then
+	    return net
+	 end
+      end
+   end
+end
+
+-- ########################################################
+
+function allowedNetworksRestrictions()
+   for net in allowedNetworksIter(6) do
+      if net:match('[1-9a-fA-F]') then
+	 return true
+      end
+   end
+
+   for net in allowedNetworksIter(4) do
+      local expanded = expandIpV4Network(net)
+      if (expanded[1] > 0 or expanded[2] < 2^32 - 1) then
+	 return true
+      end
+   end
+
+   return false
+end
+
+-- ########################################################
+
+local function allowedNetworksFilter(follow, version, filter_src, filter_dst)
+   local an = ntop.getAllowedNetworks()..","
+   local v4_expanded = {}
+   local expanded_src = {}
+   local expanded_dst = {}
+
+   for net in allowedNetworksIter(version) do
+      -- tprint({net=net, match=net:match('[1-9]'), version=version})
+
+      if version == 6 and net:match('[1-9a-fA-F]') then
+	 -- no results when we've a non-zero ipv6 allowed network
+	 return follow.." AND 1 = 0 "
+      end
+
+      if version == 4 then
+	 local expanded = expandIpV4Network(net)
+	 local filter = {}
+
+	 if filter_src and (expanded[1] > 0 or expanded[2] < 2^32 - 1) then
+	    expanded_src[#expanded_src + 1] = string.format(" (IP_SRC_ADDR >= %d AND IP_SRC_ADDR <= %d) ", expanded[1], expanded[2])
+	 end
+
+	 if filter_dst and (expanded[1] > 0 or expanded[2] < 2^32 - 1) then
+	    expanded_dst[#expanded_dst + 1] = string.format(" (IP_DST_ADDR >= %d AND IP_DST_ADDR <= %d) ", expanded[1], expanded[2])
+	 end
+      end
+   end
+
+   local res = "1 = 1"
+   if version == 4 then
+      -- multiple allowed networks must be evaluated in OR
+      local r = {}
+
+      if table.len(expanded_src) > 0 then
+	 r[#r + 1] = string.format(" (%s) ", table.concat(expanded_src, " OR "))
+      end
+
+      if table.len(expanded_dst) > 0 then
+	 r[#r + 1] = string.format(" (%s) ", table.concat(expanded_dst, " OR "))
+      end
+
+      if table.len(r) > 0 then
+	 res = table.concat(r, " AND ")
+      end
+
+   elseif version == 6 then
+      -- TODO: implement filtering for ipv6 networks
+   end
+
+   return string.format("%s AND (%s)", follow, res)
 end
 
 -- ########################################################
@@ -105,6 +202,8 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
       end
    end
 
+   follow = allowedNetworksFilter(follow, version, true, true)
+
    follow = follow .." order by "..sort_column.." "..sort_order.." limit "..max_num_flows.." OFFSET "..offset
 
    sql = sql .. follow
@@ -152,7 +251,7 @@ end
 
 -- ########################################################
 
-function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, vlan, profile, begin_epoch, end_epoch, force_raw_flows)
+function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, vlan, profile, begin_epoch, end_epoch, force_raw_flows, enforce_allowed_networks)
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -205,6 +304,10 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       else
 	 sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
       end
+   end
+
+   if enforce_allowed_networks then
+      sql = allowedNetworksFilter(sql, version, true, true)
    end
 
    if(db_debug == true) then io.write(sql.."\n") end
@@ -270,6 +373,13 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    if((profile ~= nil) and (profile ~= "")) then
       sql = sql .." AND PROFILE='"..profile.."'"
    end
+
+   if src_or_dst     == "IP_DST_ADDR" then
+      sql = allowedNetworksFilter(sql, v4_or_v6, false, true)
+   elseif src_or_dst == "IP_SRC_ADDR" then
+      sql = allowedNetworksFilter(sql, v4_or_v6, true, false)
+   end
+
    return sql..'\n'
 end
 
@@ -398,6 +508,8 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, v
       sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
    end
 
+   sql = allowedNetworksFilter(sql, version, true, true)
+
    sql = sql..") peers"
 
    -- we don't care about the order so we group by least and greatest
@@ -495,6 +607,13 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
    if((profile ~= nil) and (profile ~= "")) then
       sql = sql .." AND PROFILE='"..profile.."'"
    end
+
+   if src_or_dst     == "IP_DST_ADDR" then
+      sql = allowedNetworksFilter(sql, v4_or_v6, false, true)
+   elseif src_or_dst == "IP_SRC_ADDR" then
+      sql = allowedNetworksFilter(sql, v4_or_v6, true, false)
+   end
+
    return sql..'\n'
 end
 
@@ -565,9 +684,10 @@ end
 -- ########################################################
 
 function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+   -- tprint({n="getTopApplications", peer1=peer1, peer2=peer2})
    -- if both peers are nil, top applications are overall in the time range
-   -- if peer1 is nil nad peer2 is not nil, then top apps are for peer1
-   -- if peer2 is nil nad peer1 is not nil, then top apps are for peer2
+   -- if peer1 is nil and peer2 is not nil, then top apps are for peer1
+   -- if peer2 is nil and peer1 is not nil, then top apps are for peer2
    -- if both peer2 and peer2 are not nil, then top apps are computed between peer1 and peer2
    -- sort_column and sort_order are used to sort the results
    -- offset and limit are used to paginate the results
@@ -615,7 +735,6 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
 	 sql = sql .." AND (IP_SRC_ADDR='"..peer2.."' OR IP_DST_ADDR='"..peer2.."')"
       end
    end
-
 
    sql = sql.." group by L7_PROTO "
 
