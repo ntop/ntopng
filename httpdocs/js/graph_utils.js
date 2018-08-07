@@ -275,7 +275,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
 
   var chart_colors_min = [
     "#69B87F",
-    "#B3DEB6",
+    "#C1E3C4",
     "#E5F1A6",
   ];
 

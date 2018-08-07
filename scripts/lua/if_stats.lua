@@ -872,6 +872,7 @@ elseif(page == "historical") then
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
          {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},
+         {schema="custom:flows_vs_traffic",     label=i18n("graphs.flows_vs_traffic"), check={"iface:flows", "iface:traffic"}, step=60},
          {schema="iface:devices",               label=i18n("graphs.active_devices")},
          {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
          {schema="iface:traffic",               label=i18n("traffic")},
