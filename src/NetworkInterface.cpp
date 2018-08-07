@@ -6563,6 +6563,8 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
 
   for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
     if(live_captures[i] == luactx) {
+      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      c->live_capture.done = true;
       live_captures[i] = NULL, num_active_captures--;
       ret = true;
       break;
@@ -6599,7 +6601,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       num_found++;
 
-      if(c->live_capture.capture_until < h->ts.tv_sec) {
+      if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped) {
 	http_client_disconnected = true;
 	mg_close_connection(c->conn);
       }
@@ -6690,3 +6692,26 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
 
   active_captures_lock.unlock(__FILE__, __LINE__);
 }
+
+/* *************************************** */
+
+void NetworkInterface::stopLiveCapture(char *user, Host *h) {
+
+  active_captures_lock.lock(__FILE__, __LINE__);
+
+  for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
+    if((live_captures[i] != NULL)
+       && (!strcmp(live_captures[i]->live_capture.username, user))) {
+      Host *matching_host = (Host * )live_captures[i]->live_capture.matching_host;
+      if (matching_host == h) {
+        struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+        c->live_capture.stopped = true; 
+      }
+    }
+  }
+
+  active_captures_lock.unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+

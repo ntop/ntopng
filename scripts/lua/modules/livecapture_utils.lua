@@ -20,8 +20,8 @@ function drawHostLiveCaptureButton(if_id, host_info)
       </div>
       <div class="modal-footer">
         <!--button class="btn btn-default" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print[[</button-->
-        <button type="submit" class="btn btn-primary" name="start" onclick="hostLiveCapture(1)">]] print(i18n("start")) print[[</button>
-        <!--button type="submit" class="btn btn-primary" name="stop" onclick="hostLiveCapture(0)" disabled>]] print(i18n("stop")) print[[</button-->
+        <button type="submit" class="btn btn-primary" name="start" onclick="hostLiveCapture()">]] print(i18n("start")) print[[</button>
+        <!--button type="submit" class="btn btn-primary" name="stop" onclick="stopHostLiveCapture()" disabled>]] print(i18n("stop")) print[[</button-->
       </div>
     </div>
   </div>
@@ -30,24 +30,24 @@ function drawHostLiveCaptureButton(if_id, host_info)
 <a href='#' onclick="$('#hostLiveCaptureModal').modal('show');">pcap</a>
 
 <script>
-  function hostLiveCapture(start) {
+  function hostLiveCapture() {
     var params = {};
 
-    params.ifid = "]] print(if_id) print[[";
+    params.ifid = "]] print(tostring(if_id)) print[[";
     params.host = "]] print(host_info["host"]) print[[";
-    if (start) {
-      params.action = 'start';
-      $("#hostLiveCaptureModal button[name=start]").prop('disabled', true);
-      $("#hostLiveCaptureModal button[name=stop]").prop('disabled', false);
-    } else {
-      params.action = 'stop';
-      $("#hostLiveCaptureModal button[name=start]").prop('disabled', false);
-      $("#hostLiveCaptureModal button[name=stop]").prop('disabled', true);
-    }
+    params.action = 'start';
+    $("#hostLiveCaptureModal button[name=start]").prop('disabled', true);
+    $("#hostLiveCaptureModal button[name=stop]").prop('disabled', false);
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
  
-    var form = paramsToForm('<form action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print[[" method="post"></form>', params);
+    var form = paramsToForm('<form action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print[[" method="get"></form>', params);
     form.appendTo('body').submit();
+  }
+
+  function stopHostLiveCapture() {
+    $("#hostLiveCaptureModal button[name=start]").prop('disabled', false);
+    $("#hostLiveCaptureModal button[name=stop]").prop('disabled', true);
+    /* todo: use an async request here */
   }
 
 </script>

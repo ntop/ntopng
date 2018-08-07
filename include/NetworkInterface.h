@@ -518,6 +518,7 @@ class NetworkInterface : public Checkpointable {
   bool registerLiveCapture(struct ntopngLuaContext * const luactx);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
+  void stopLiveCapture(char *user, Host *h);
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
   void updateHostsL7Policy(u_int16_t host_pool_id);

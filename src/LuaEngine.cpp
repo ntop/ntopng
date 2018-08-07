@@ -3675,14 +3675,15 @@ static int ntop_interface_live_capture(lua_State* vm) {
   
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     Host *h;
-    char *key, host_ip[64];
+    char host_ip[64];
+    char *key;
     u_int16_t vlan_id = 0;
     
     get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
 
-    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL)) {
       return(CONST_LUA_ERROR);
-    else {
+    } else {
       c->live_capture.matching_host = h;
     }
   }
@@ -3690,20 +3691,63 @@ static int ntop_interface_live_capture(lua_State* vm) {
   c->live_capture.capture_until = time(NULL)+60; /* 1 min max */
   c->live_capture.capture_max_pkts = 100000; /* No more than 100k packets */
   c->live_capture.num_captured_packets = 0;
-  c->live_capture.done = c->live_capture.pcaphdr_sent = false;
+  c->live_capture.stopped = c->live_capture.done = c->live_capture.pcaphdr_sent = false;
   snprintf(c->live_capture.username, sizeof(c->live_capture.username), "%s", c->user);
   ntop_interface->registerLiveCapture(c);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Starting live capture for user %s",
 			       c->live_capture.username);
-  
+
   while(!c->live_capture.done) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
     sleep(1);
   }
   
   ntop->getTrace()->traceEvent(TRACE_INFO, "Done.");
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_interface_stop_live_capture(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  struct ntopngLuaContext *c;
+  Host *h = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if((!ntop_interface) || (!c))
+    return(CONST_LUA_ERROR);
+  
+  if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
+    char *key;
+    char host_ip[64];
+    u_int16_t vlan_id = 0;
+    
+    get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
+
+    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+      return(CONST_LUA_ERROR);
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Stopping live capture for user %s",
+			       c->user);
+
+  ntop_interface->stopLiveCapture(c->user, h);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -7652,6 +7696,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Live Capture */
   { "liveCapture",            ntop_interface_live_capture             },
+  { "stopLiveCapture",        ntop_interface_stop_live_capture        },
   { "dumpLiveCaptures",       ntop_interface_dump_live_captures       },
 
   /* Packet Capture */
