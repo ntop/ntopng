@@ -45,7 +45,6 @@ ifstats = interface.getStats()
 is_loopback = isLoopback(ifname)
 iface_id = interface.name2id(ifname)
 
-
 -- Load from or set in redis the refresh frequency for the top flow sankey
 
 refresh = _GET["refresh"]

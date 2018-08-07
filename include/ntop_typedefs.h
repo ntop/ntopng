@@ -460,6 +460,7 @@ struct ntopngLuaContext {
   struct {
     u_int32_t capture_until, capture_max_pkts, num_captured_packets;
     void *matching_host;
+    char username[32];
     
     /* Status */
     bool pcaphdr_sent;

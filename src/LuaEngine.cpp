@@ -3629,6 +3629,32 @@ static int ntop_interface_set_idle(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_interface_dump_live_captures(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  struct ntopngLuaContext *c;
+  NetworkInterface *iface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if((!ntop_interface) || (!c))
+    return(CONST_LUA_ERROR);
+
+  iface->dumpLiveCaptures(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_interface_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
@@ -3662,10 +3688,15 @@ static int ntop_interface_live_capture(lua_State* vm) {
   }
 
   c->live_capture.capture_until = time(NULL)+60; /* 1 min max */
-  c->live_capture.num_captured_packets = 100000; /* No more than 100k packets */
+  c->live_capture.capture_max_pkts = 100000; /* No more than 100k packets */
+  c->live_capture.num_captured_packets = 0;
   c->live_capture.done = c->live_capture.pcaphdr_sent = false;
-
+  snprintf(c->live_capture.username, sizeof(c->live_capture.username), "%s", c->user);
   ntop_interface->registerLiveCapture(c);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Starting live capture for user %s",
+			       c->live_capture.username);
   
   while(!c->live_capture.done) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
@@ -7621,6 +7652,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Live Capture */
   { "liveCapture",            ntop_interface_live_capture             },
+  { "dumpLiveCaptures",       ntop_interface_dump_live_captures       },
 
   /* Packet Capture */
   { "captureToPcap",          ntop_capture_to_pcap                    },

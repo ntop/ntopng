@@ -6644,3 +6644,49 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
     }
   }
 }
+
+/* *************************************** */
+
+void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
+  struct ntopngLuaContext *c;
+  
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  active_captures_lock.lock(__FILE__, __LINE__);
+
+  lua_newtable(vm);
+
+  for(int i=0, capture_id=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
+    if((live_captures[i] != NULL)
+       && (!strcmp(live_captures[i]->live_capture.username, c->user))) {
+      lua_newtable(vm);
+
+      lua_push_int_table_entry(vm, "capture_until",
+			       live_captures[i]->live_capture.capture_until);
+      lua_push_int_table_entry(vm, "capture_max_pkts",
+			       live_captures[i]->live_capture.capture_max_pkts);
+      lua_push_int_table_entry(vm, "num_captured_packets",
+			       live_captures[i]->live_capture.num_captured_packets);
+
+      if(live_captures[i]->live_capture.matching_host != NULL) {
+	Host *h = (Host*)live_captures[i]->live_capture.matching_host;
+	char buf[64];
+	
+	lua_push_str_table_entry(vm, "host",
+				 h->get_ip()->print(buf, sizeof(buf)));
+      }
+      
+      lua_pushnumber(vm, ++capture_id);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  }
+
+
+  active_captures_lock.unlock(__FILE__, __LINE__);
+}

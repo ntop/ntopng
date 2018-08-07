@@ -90,7 +90,7 @@ class NetworkInterface : public Checkpointable {
   struct ntopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
   static bool matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f);
   void deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
-
+  
   string ip_addresses;
   int id;
   bool bridge_interface, is_dynamic_interface;
@@ -517,7 +517,7 @@ class NetworkInterface : public Checkpointable {
   PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
   bool registerLiveCapture(struct ntopngLuaContext * const luactx);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
-
+  void dumpLiveCaptures(lua_State* vm);
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
   void updateHostsL7Policy(u_int16_t host_pool_id);
