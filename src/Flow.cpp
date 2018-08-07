@@ -47,7 +47,7 @@ Flow::Flow(NetworkInterface *_iface,
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
 #endif
-  
+
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
@@ -63,7 +63,7 @@ Flow::Flow(NetworkInterface *_iface,
   pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   cli2srv_last_bytes = 0, prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = 0, prev_srv2cli_last_bytes = 0;
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
-  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
+  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0, idle_flow = false;
 
   last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0,
@@ -169,7 +169,7 @@ void Flow::freeDPIMemory() {
 Flow::~Flow() {
   if(flow_packets_head)
     flushBufferedPackets();
-  
+
   if(cli_host) cli_host->decNumFlows(true),  cli_host->decUses();
   if(srv_host) srv_host->decNumFlows(false), srv_host->decUses();
 
@@ -738,12 +738,12 @@ return(buf);
 
 /* *************************************** */
 
-bool Flow::dumpFlow(bool idle_flow) {
+bool Flow::dumpFlow() {
   bool rc = false;
   time_t now;
 
   dumpFlowAlert();
-  
+
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
       return(rc);
@@ -871,7 +871,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
   bool cli_and_srv_in_same_country = false;
-  bool is_idle_flow;
   int16_t cli_network_id, srv_network_id;
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Vlan *vl;
@@ -883,7 +882,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     setDetectedProtocol(proto_id, true);
   }
 
-  if((is_idle_flow = isReadyToPurge())) {
+  if((idle_flow |= isReadyToPurge())) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
     set_to_purge();
   }
@@ -1079,7 +1078,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
 
 #if 0
-    /* Actually, the refresh interval is controlled with ntop->getPrefs()->get_housekeeping_frequency() 
+    /* Actually, the refresh interval is controlled with ntop->getPrefs()->get_housekeeping_frequency()
        so there is no need to set an a-priori minimum check interval */
     if((iface->getIfType() == interface_type_ZMQ)
        && (tdiff_msec < 5000)) {
@@ -1152,7 +1151,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if(!is_idle_flow /* set_to_purge() deals with low goodput flows when they become idle */
+	if(!idle_flow /* set_to_purge() deals with low goodput flows when they become idle */
 	   && iface->getIfType() != interface_type_ZMQ
 	   && protocol == IPPROTO_TCP
 	   && get_goodput_bytes() > 0
@@ -1226,7 +1225,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(is_idle_flow /* whether this is an active or idle flow */)) {
+  if(dumpFlow()) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets,
       last_db_dump.cli2srv_bytes = cli2srv_bytes,
@@ -1701,7 +1700,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
   }
 
-  lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow());
+  lua_push_bool_table_entry(vm, "flow.idle", idle_flow);
   lua_push_int_table_entry(vm, "flow.status", getFlowStatus());
 
   // this is used to dynamicall update entries in the GUI
@@ -1735,33 +1734,34 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-bool Flow::isReadyToPurge() 
-{
+bool Flow::isReadyToPurge() {
+  if(idle_flow) return(idle_flow);
+
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER) {
     if(isNetfilterIdleFlow())
-      return(true);
+      return(idle_flow = true);
   } else
 #endif
     {
       if(!iface->is_purge_idle_interface())
 	return(false);
-    
+
       if(protocol == IPPROTO_TCP) {
 	u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
-      
+
 	/* If this flow is idle for at least MAX_TCP_FLOW_IDLE */
 	if(((tcp_flags & TH_FIN) || (tcp_flags & TH_RST))
 	   /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
-	   && (doNotExpireBefore >= iface->getTimeLastPktRcvd()) 
+	   && (doNotExpireBefore >= iface->getTimeLastPktRcvd())
 	   && isIdle(MAX_TCP_FLOW_IDLE /* sec */)) {
 	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
-	  return(true);
+	  return(idle_flow = true);
 	}
       }
     }
-  
-  return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
+
+  return(idle_flow |= isIdle(ntop->getPrefs()->get_flow_max_idle()));
 }
 
 /* *************************************** */
@@ -2031,19 +2031,22 @@ json_object* Flow::flow2json() {
 /* *************************************** */
 
 #ifdef HAVE_NEDGE
+
 bool Flow::isNetfilterIdleFlow() {
-  /* 
-     Note that on netfilter interfaces we never observe the 
+  if(idle_flow) return(idle_flow);
+
+  /*
+     Note that on netfilter interfaces we never observe the
      FIN/RST flags as they have been offloaded to kernel
-     
+
      Hence on netfilter interfaces flows are purged only for
      inactivity based on lastSeen updates
   */
-  
+
   if(last_conntrack_update > 0) {
     /*
-      - At latest every MIN_CONNTRACK_UPDATE the scan is performed 
-      - the conntrack scan time that we  assume is less than MIN_CONNTRACK_UPDATE 
+      - At latest every MIN_CONNTRACK_UPDATE the scan is performed
+      - the conntrack scan time that we  assume is less than MIN_CONNTRACK_UPDATE
       - in the worst case this method is called when iface->getTimeLastPktRcvd()
         is almost MIN_CONNTRACK_UPDATE past the last scan
 
@@ -2052,9 +2055,9 @@ bool Flow::isNetfilterIdleFlow() {
       by conntrack
     */
     if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(3*MIN_CONNTRACK_UPDATE)))
-      return(true);
+      return(idle_flow = true);
   }
-  
+
   return(false);
 }
 #endif
@@ -2075,7 +2078,7 @@ void Flow::housekeep() {
 
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
 bool Flow::isIdleFlow() {
-  time_t now = iface->getTimeLastPktRcvd();
+  if(idle_flow) return(idle_flow);
 
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
@@ -2084,12 +2087,13 @@ bool Flow::isIdleFlow() {
 
   if(iface->getIfType() != interface_type_ZMQ) {
     u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
+    time_t now = iface->getTimeLastPktRcvd();
     
     if(protocol == IPPROTO_TCP) {
       if(!twh_over) {
 	if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
 	   && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
-	  return(true); /* The client has not completed the 3WH within the expected time */
+	  return(idle_flow = true); /* The client has not completed the 3WH within the expected time */
 
 	if(synTime.tv_sec > 0) {
 	  /* We have seen the beginning of the flow */
@@ -2102,11 +2106,11 @@ bool Flow::isIdleFlow() {
 				     the connection is idle after its setup */
 	   && (ackTime.tv_sec > 0)
 	   && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
-	  return(true);  /* Connection established and no data exchanged yet */
+	  return(idle_flow = true);  /* Connection established and no data exchanged yet */
 
 	else if((getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)
 		|| ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)))
-	  return(true);
+	  return(idle_flow = true);
 	else {
 	  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
 	  case NDPI_PROTOCOL_SSL:
@@ -2115,7 +2119,7 @@ bool Flow::isIdleFlow() {
 	       || (protos.ssl.deltaTime_data > CONST_MAX_SSL_IDLE_TIME)
 	       || (getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)
 	       || ((srv2cli_packets > 0) && getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)) {
-	      return(true);
+	      return(idle_flow = true);
 	    }
             break;
 	  }
@@ -2126,7 +2130,7 @@ bool Flow::isIdleFlow() {
     /* Check if there is no traffic for a long time on this flow */
     if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
        || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms)))
-      return(true);
+      return(idle_flow = true);
   }
 
   return(false); /* Not idle */
@@ -2231,7 +2235,7 @@ void Flow::addFlowStats(bool cli2srv_direction,
 
   /* Don't update seen if no traffic has been observed */
   if((in_pkts == 0) && (out_pkts == 0)) return;
-  
+
   updateSeen(last_seen);
 
   if(cli2srv_direction)
@@ -2676,7 +2680,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	     // && (cli_host->getMac()->getOperatingSystem() == os_unknown)
 	     ) {
 	    /*
-	      https://en.wikipedia.org/wiki/User_agent 
+	      https://en.wikipedia.org/wiki/User_agent
 
 	      Most Web browsers use a User-Agent string value as follows:
 	      Mozilla/[version] ([system and browser information]) [platform] ([platform details]) [extensions]
@@ -2712,7 +2716,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 #endif
 
 		  if(!(cli_host->get_ip()->isBroadcastAddress()
-		       || cli_host->get_ip()->isMulticastAddress()))		     
+		       || cli_host->get_ip()->isMulticastAddress()))
 		  cli_host->getMac()->setOperatingSystem(os);
 		}
 	      }
@@ -2808,9 +2812,9 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     u_int16_t rsp_type, data_len;
     bool device_info = false;
     DeviceType dtype = device_unknown;
-    
+
     memset(_name, 0, sizeof(_name));
-    
+
     for(j=0; (i < payload_len) && (j < (sizeof(_name)-1)); i++) {
       if(payload[i] == 0x0) {
 	i++;
@@ -2833,14 +2837,14 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       nested_dns_definition:
 	offset = payload[i+1] - 12;
 	i = offset;
-	
+
 	if((offset > i)|| (i > payload_len) || (num_loops > max_nested_loops)) {
 #ifdef DEBUG_DISCOVERY
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid MDNS packet");
 #endif
 	  return; /* Invalid packet */
 	} else {
-	  /* Pointer back */  
+	  /* Pointer back */
 	  while((i < payload_len)
 		&& (payload[i] != 0)
 		&& (j < (sizeof(_name)-1))) {
@@ -2874,11 +2878,11 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
     /* Skip lenght for strings >= 32 with head length */
     name = &_name[((data_len <= 32) || (_name[0] >= '0'))? 0 : 1];
-    
+
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]", ntohs(rsp.rsp_type) & 0xFFFF, name, data_len);
 #endif
-    
+
     if(strstr(name, "._device-info._"))
       device_info = true;
     else if(strstr(name, "._airplay._") || strstr(name, "._spotify-connect._") )
@@ -2895,14 +2899,14 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       dtype = device_iot;
     else if(strstr(name, "_pdl-datastream._"))
       dtype = device_printer;
-    
+
     if((dtype != device_unknown) && cli_host && cli_host->getMac()) {
       Mac *m = cli_host->getMac();
-      
+
       if(m->getDeviceType() == device_unknown)
 	m->setDeviceType(dtype);
     }
-  
+
     switch(rsp_type) {
     case 0x1C: /* AAAA */
     case 0x01: /* AA */
@@ -2910,7 +2914,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       {
 	int len = strlen(name);
 	char *c;
-	
+
 	if((len > 6) && (strcmp(&name[len-6], ".local") == 0))
 	  name[len-6] = 0;
 
@@ -2921,7 +2925,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
       if(cli_host)
 	cli_host->setName(name); /* See (**) */
-      
+
       if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
 	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
 	u_int16_t off = 0;
@@ -2936,7 +2940,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
 	    if(txt_len > 0) {
 	      char *model = NULL;
-	      
+
 	      strncpy(txt_buf, &txt[off], txt_len);
 	      txt_buf[txt_len] = '\0';
 	      off += txt_len;
@@ -2944,7 +2948,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 #ifdef DEBUG_DISCOVERY
 	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [TXT][%s]", txt_buf);
 #endif
-	      
+
 	      if(strncmp(txt_buf, "am=", 3 /* Apple Model */) == 0) model = &txt_buf[3];
 	      else if(strncmp(txt_buf, "model=", 6) == 0)           model = &txt_buf[6];
 	      else if(strncmp(txt_buf, "md=", 3) == 0)              model = &txt_buf[3];
@@ -3007,7 +3011,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 	      && (payload[0] != '\n')
 	      && (payload[0] != '\r'); payload++, payload_len--) {
 	  if(*payload == ' ')       continue;
-	  if(i == sizeof(url) - 1)  break;	
+	  if(i == sizeof(url) - 1)  break;
 	  url[i++] = *payload;
 	}
 
@@ -3339,6 +3343,7 @@ FlowStatus Flow::getFlowStatus() {
   } else {
     /* Packet flows */
     bool isIdle = isIdleFlow();
+
 #ifndef HAVE_NEDGE
     bool lowGoodput = isLowGoodput();
 #endif
@@ -3459,13 +3464,13 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
   updateSeen();
 
-  /* 
+  /*
      We need to set last_conntrack_update even with 0 packtes/bytes
      as this function has been called only within netfilter through
      the conntrack handler, and thus the flow is still alive.
   */
   last_conntrack_update = now;
-  
+
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol,
 		   nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
 		   nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
@@ -3527,7 +3532,7 @@ void Flow::flushBufferedPackets() {
 
       /* Initial bytes are in and some data is present */
       if((getTcpFlags() & mask) == mask)
-	do_dump_to_disk = true;	
+	do_dump_to_disk = true;
       else
 	do_dump_to_disk = false; /* Initial flow bytes are missing */
     } else
@@ -3538,7 +3543,7 @@ void Flow::flushBufferedPackets() {
       time_t when = flow_packets_head->h.ts.tv_sec;
       pcap_dumper_t *dumper;
       char buf1[32], buf2[32];
-    
+
       when -= when % 3600; /* Hourly directories */
       strftime(hour_path, sizeof(hour_path), "%Y/%m/%d/%H", localtime(&when));
       snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/ndpi_unknown/%s/",
@@ -3559,7 +3564,7 @@ void Flow::flushBufferedPackets() {
       else {
 	u_int num_pkts = 0;
 	PacketDumper *pkt_dumper;
-	
+
 	while(flow_packets_head) {
 	  struct buffered_packet *tmp;
 

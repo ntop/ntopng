@@ -76,7 +76,7 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
   BufferedPacket *flow_packets_head, *flow_packets_tail;
-  bool detection_completed, protocol_processed,
+  bool detection_completed, protocol_processed, idle_flow,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
@@ -363,7 +363,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
   void handle_process(ProcessInfo *pinfo, bool client_process);
-  inline bool idle() { return(false); } /* Idle flows are checked in Flow::update_hosts_stats */
+  inline bool idle() { return(idle_flow); }
   bool isReadyToPurge();
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
@@ -380,7 +380,7 @@ class Flow : public GenericHashEntry {
 	     bool *src2srv_direction);
   void sumStats(nDPIStats *stats);
   void guessProtocol();
-  bool dumpFlow(bool idle_flow);
+  bool dumpFlow();
   bool dumpFlowTraffic(void);
   bool match(AddressTree *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
