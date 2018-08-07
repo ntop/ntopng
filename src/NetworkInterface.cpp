@@ -6603,7 +6603,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped) {
 	http_client_disconnected = true;
-	mg_close_connection(c->conn);
+	//mg_close_connection(c->conn); /* this was causing crashes in mongoose */
       }
       
       if((!http_client_disconnected) && c->conn && matchLiveCapture(c, f)) {
