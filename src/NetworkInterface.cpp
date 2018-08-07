@@ -676,7 +676,6 @@ NetworkInterface::~NetworkInterface() {
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
-  if(mdns)           delete mdns;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;
@@ -706,7 +705,7 @@ NetworkInterface::~NetworkInterface() {
   if(db) delete db;
 
 #ifdef NTOPNG_PRO
-  if(policer)       delete(policer);
+  if(policer)               delete(policer);
 #ifndef HAVE_NEDGE
   if(flow_profiles)         delete(flow_profiles);
   if(shadow_flow_profiles)  delete(shadow_flow_profiles);
@@ -715,7 +714,8 @@ NetworkInterface::~NetworkInterface() {
 #endif
   if(hide_from_top)         delete(hide_from_top);
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
-  if(tsExporter) delete tsExporter;
+  if(tsExporter)            delete tsExporter;
+  if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
 }
 
 /* **************************************************** */
