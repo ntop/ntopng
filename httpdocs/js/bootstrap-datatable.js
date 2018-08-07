@@ -200,7 +200,7 @@
           this.$loading = $("<div></div>")
             .css({
                 position: 'absolute'
-              , top: parseInt($e.position().top) + 5
+              , top: parseInt($e.position().top) + 5 + (o.loadingYOffset || 0)
               , left: parseInt($e.position().left) + parseInt($e.css("marginLeft")) + Math.floor($e.width() / 4)
               , width: Math.floor($e.width() / 2) + "px"
             })
