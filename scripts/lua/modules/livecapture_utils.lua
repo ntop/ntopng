@@ -21,7 +21,7 @@ function drawHostLiveCaptureButton(if_id, host_info)
       <div class="modal-footer">
         <!--button class="btn btn-default" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print[[</button-->
         <button type="submit" class="btn btn-primary" name="start" onclick="hostLiveCapture()">]] print(i18n("start")) print[[</button>
-        <!--button type="submit" class="btn btn-primary" name="stop" onclick="stopHostLiveCapture()" disabled>]] print(i18n("stop")) print[[</button-->
+        <button type="submit" class="btn btn-primary" name="stop" onclick="stopHostLiveCapture()" disabled>]] print(i18n("stop")) print[[</button>
       </div>
     </div>
   </div>
@@ -30,6 +30,29 @@ function drawHostLiveCaptureButton(if_id, host_info)
 <a href='#' onclick="$('#hostLiveCaptureModal').modal('show');">pcap</a>
 
 <script>
+  var updateHostLiveCaptureStatus_started = 0;
+  function updateHostLiveCaptureStatus() {
+    $.ajax({
+      type: 'GET',
+      url: ']] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print[[',
+      data: { 
+        ifid: ']] print(tostring(if_id)) print [[',
+        host: ']] print(host_info["host"]) print [[',
+        action: 'status',
+        csrf: ']] print(ntop.getRandomCSRFValue()) print[['
+      },
+      success: function(status) {
+        if (status.status == 'running') {
+          $("#hostLiveCaptureModal button[name=start]").prop('disabled', true);
+          $("#hostLiveCaptureModal button[name=stop]").prop('disabled', false);
+        } else {
+          $("#hostLiveCaptureModal button[name=start]").prop('disabled', false);
+          $("#hostLiveCaptureModal button[name=stop]").prop('disabled', true);
+        }
+      }
+    });
+  }
+
   function hostLiveCapture() {
     var params = {};
 
@@ -42,12 +65,28 @@ function drawHostLiveCaptureButton(if_id, host_info)
  
     var form = paramsToForm('<form action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print[[" method="get"></form>', params);
     form.appendTo('body').submit();
+
+    if (!updateHostLiveCaptureStatus_started) {
+      updateHostLiveCaptureStatus_started = 1;
+      setInterval(updateHostLiveCaptureStatus, 2000);
+    }
   }
 
   function stopHostLiveCapture() {
-    $("#hostLiveCaptureModal button[name=start]").prop('disabled', false);
-    $("#hostLiveCaptureModal button[name=stop]").prop('disabled', true);
-    /* todo: use an async request here */
+    $.ajax({
+      type: 'GET',
+      url: ']] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print[[',
+      data: { 
+        ifid: ']] print(tostring(if_id)) print [[',
+        host: ']] print(host_info["host"]) print [[',
+        action: 'stop',
+        csrf: ']] print(ntop.getRandomCSRFValue()) print[['
+      },
+      success: function(content) {
+        $("#hostLiveCaptureModal button[name=start]").prop('disabled', false);
+        $("#hostLiveCaptureModal button[name=stop]").prop('disabled', true);
+      }
+    });
   }
 
 </script>
