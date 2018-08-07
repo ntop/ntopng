@@ -373,3 +373,8 @@ tr.quotas > td {
 .zoom-reset:hover, .zoom-reset:focus {
   outline:0 !important;
 }
+
+/* Hide second axis lines */
+#historical-tab-chart .nv-y2 .tick line {
+  display: none;
+}

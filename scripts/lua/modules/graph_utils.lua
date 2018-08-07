@@ -200,7 +200,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id)
       html = entry_str,
       label = label,
       schema = params.ts_schema,
-      params = entry_params, -- for graphMenuGetTitle
+      params = entry_params, -- for graphMenuGetActive
    }
 end
 
@@ -208,7 +208,7 @@ function graphMenuDivider()
    graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="divider"></li>'}
 end
 
-function graphMenuGetTitle(schema, params)
+function graphMenuGetActive(schema, params)
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then
 	 for k, v in pairs(params) do
@@ -217,13 +217,13 @@ function graphMenuGetTitle(schema, params)
 	    end
 	 end
 
-	 return entry.label
+	 return entry
       end
 
       ::continue::
    end
 
-   return i18n("prefs.timeseries")
+   return nil
 end
 
 function printGraphMenuEntries()
@@ -238,21 +238,43 @@ function printSeries(options, tags, start_time, base_url, params)
    local series = options.timeseries
    local needs_separator = false
 
-   for _,top in ipairs(series) do
-      if (have_nedge and top.nedge_exclude) or (not have_nedge and top.nedge_only) then
+   for _, serie in ipairs(series) do
+      if (have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only) then
          goto continue
       end
 
-      if top.separator then
+      if serie.separator then
          needs_separator = true
      else
-         local k = top.schema
-         local v = top.label
+         local k = serie.schema
+         local v = serie.label
+         local exists = false
 
-         -- only show if there has been an update within the specified time frame
-         local res = ts_utils.listSeries(k, tags, start_time)
+         if starts(k, "custom:") then
+            if not ntop.isPro() then
+               goto continue
+            end
+
+            -- exists by default, otherwise specify a serie.check below
+            exists = true
+         end
+
+         if serie.check ~= nil then
+            exists = true
+
+            for _, serie in pairs(serie.check) do
+               exists = exists and ts_utils.listSeries(serie, tags, start_time)
+
+               if not exists then
+                  break
+               end
+            end
+         elseif not exists then
+            -- only show if there has been an update within the specified time frame
+            exists = (ts_utils.listSeries(k, tags, start_time) ~= nil)
+         end
    
-         if not table.empty(res) then
+         if exists then
             if needs_separator then
                -- Only add the separator if there are actually some entries in the group
                graphMenuDivider()

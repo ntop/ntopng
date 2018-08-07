@@ -93,19 +93,22 @@ function checkSeriesConsinstency(schema_name, count, series) {
   for(var i=0; i<series.length; i++) {
     var data = series[i].data;
 
-    if(data.length != count) {
+    if(data.length > count) {
         console.error("points mismatch: serie '" + getSerieLabel(schema_name, series[i]) +
           "' has " + data.length + " points, expected " + count);
 
       rv = false;
+    } else if(data.length < count) {
+      /* upsample */
+      upsampleSerie(data, count);
     }
   }
 
   return rv;
 }
 
-function interpolateSerie(serie, num_points) {
-  if(num_points == serie.length)
+function upsampleSerie(serie, num_points) {
+  if(num_points <= serie.length)
     return serie;
 
   var res = [];
@@ -258,7 +261,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
   $chart.parent().css("position", "relative");
 
-  var chart_colors = [
+  var chart_colors_full = [
     "#69B87F",
     "#94CFA4",
     "#B3DEB6",
@@ -268,6 +271,12 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     "#FFB97B",
     "#FF8D6D",
     "#E27B85"
+  ];
+
+  var chart_colors_min = [
+    "#69B87F",
+    "#B3DEB6",
+    "#E5F1A6",
   ];
 
   var update_chart_data = function(new_data) {
@@ -367,6 +376,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       var total_serie;
       var color_i = 0;
 
+      var chart_colors = (series.length <= chart_colors_min.length) ? chart_colors_min : chart_colors_full;
+
       for(var j=0; j<series.length; j++) {
         var values = [];
         var serie_data = series[j].data;
@@ -379,9 +390,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
 
         res.push({
           key: getSerieLabel(schema_name, series[j]),
-          yAxis: 1,
+          yAxis: series[j].axis || 1,
           values: values,
-          type: "area",
+          type: series[j].type || "area",
           color: chart_colors[color_i++],
           legend_key: series[j].label,
           disabled: isLegendDisabled(series[j].label, false),
@@ -417,7 +428,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
             continue;
           }
 
-          var serie_data = interpolateSerie(data.additional_series[key], data.count);
+          var serie_data = upsampleSerie(data.additional_series[key], data.count);
           var values = arrayToNvSerie(serie_data, data.start, data.step);
 
           res.push({
@@ -433,26 +444,28 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
         }
       }
 
-      // Smoothed serie
-      var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
+      if(!data.no_trend) {
+        // Smoothed serie
+        var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
-      var smoothed = smooth(total_serie, num_smoothed_points);
-      var max_val = d3.max(smoothed);
-      if(max_val > 0) {
-        var scale = d3.max(total_serie) / max_val;
-        var scaled = $.map(smoothed, function(x) { return x * scale; });
-        var aligned = interpolateSerie(scaled, data.count);
+        var smoothed = smooth(total_serie, num_smoothed_points);
+        var max_val = d3.max(smoothed);
+        if(max_val > 0) {
+          var scale = d3.max(total_serie) / max_val;
+          var scaled = $.map(smoothed, function(x) { return x * scale; });
+          var aligned = upsampleSerie(scaled, data.count);
 
-        res.push({
-          key: "Trend", // TODO localize
-          yAxis: 1,
-          values: arrayToNvSerie(aligned, data.start, data.step),
-          type: "line",
-          classed: "line-animated",
-          color: "#62ADF6",
-          legend_key: "trend",
-          disabled: isLegendDisabled("trend", false),
-        });
+          res.push({
+            key: "Trend", // TODO localize
+            yAxis: 1,
+            values: arrayToNvSerie(aligned, data.start, data.step),
+            type: "line",
+            classed: "line-animated",
+            color: "#62ADF6",
+            legend_key: "trend",
+            disabled: isLegendDisabled("trend", false),
+          });
+        }
       }
 
       // get the value formatter

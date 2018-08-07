@@ -72,6 +72,12 @@ schema:addMetric("num_hosts")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:local_hosts", {step=60, rrd_fname="num_local_hosts", metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("num_hosts")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:devices", {step=60, rrd_fname="num_devices", metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addMetric("num_devices")

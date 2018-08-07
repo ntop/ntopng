@@ -69,7 +69,11 @@ end
 
 -- NOTE: this corresponds to graph_utils interpolateSerie
 -- This is approximate
-function ts_common.interpolateSerie(serie, num_points)
+function ts_common.upsampleSerie(serie, num_points)
+  if num_points <= #serie then
+    return serie
+  end
+
   local res = {}
   local intervals = num_points / #serie;
 
