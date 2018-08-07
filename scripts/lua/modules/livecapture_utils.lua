@@ -12,11 +12,11 @@ function drawHostLiveCaptureButton(if_id, host_info)
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-        <h3>Live Capture</h3>
+        <h3>]] print(i18n("live_capture.live_capture")) print[[</h3>
       </div>
 
       <div class="modal-body">
-        <div class="alert alert-info">Capture live traffic for host ]] print(host_info["host"]) print[[. The stream will automatically stop after 1 minute or 100k packets.</div>
+        <div class="alert alert-info"> ]] print(i18n("live_capture.note", {hostinfo=host_info["host"]})) print[[</div>
       </div>
       <div class="modal-footer">
         <!--button class="btn btn-default" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print[[</button-->
