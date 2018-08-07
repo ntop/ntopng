@@ -16,6 +16,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+require "livecapture_utils"
 
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
@@ -592,17 +593,19 @@ end
    end
    
    if(host["json"] ~= nil) then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON<A>&nbsp;")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A>")
 
       if(isAdministrator()) then
-	 print("/&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/live_traffic.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>pcap<A></td></tr>\n")
+	 print("&nbsp;/")
+         drawHostLiveCaptureButton(ifId, host_info)
       end
+
+      print("</td></tr>\n")
    end
 
    if(host["ssdp"] ~= nil) then
       print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
    end
-
 
    print("</table>\n")
 
