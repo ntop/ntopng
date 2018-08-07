@@ -127,27 +127,6 @@ function dumpInterfaceStats(interface_name)
       res["tcpPacketStats"]["retransmissions"] = ifstats.tcpPacketStats.retransmissions
       res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order
       res["tcpPacketStats"]["lost"]            = ifstats.tcpPacketStats.lost
-      
-      if(ifstats["bridge.device_a"] ~= nil) then
-	 res["a_to_b_in_pkts"]       = ifstats["bridge.a_to_b.in_pkts"]
-	 res["a_to_b_in_bytes"]      = ifstats["bridge.a_to_b.in_bytes"]
-	 res["a_to_b_out_pkts"]      = ifstats["bridge.a_to_b.out_pkts"]
-	 res["a_to_b_out_bytes"]     = ifstats["bridge.a_to_b.out_bytes"]
-	 res["a_to_b_filtered_pkts"] = ifstats["bridge.a_to_b.filtered_pkts"]
-	 res["a_to_b_shaped_pkts"]   = ifstats["bridge.a_to_b.shaped_pkts"]
-
-	 res["b_to_a_in_pkts"]       = ifstats["bridge.b_to_a.in_pkts"]
-	 res["b_to_a_in_bytes"]      = ifstats["bridge.b_to_a.in_bytes"]
-	 res["b_to_a_out_pkts"]      = ifstats["bridge.b_to_a.out_pkts"]
-	 res["b_to_a_out_bytes"]     = ifstats["bridge.b_to_a.out_bytes"]
-	 res["b_to_a_filtered_pkts"] = ifstats["bridge.b_to_a.filtered_pkts"]
-	 res["b_to_a_shaped_pkts"]   = ifstats["bridge.b_to_a.shaped_pkts"]
-
-	 res["a_to_b_num_pkts_send_buffer_full"] = ifstats["bridge.a_to_b.num_pkts_send_buffer_full"]
-	 res["a_to_b_num_pkts_send_error"]       = ifstats["bridge.a_to_b.num_pkts_send_error"]
-	 res["b_to_a_num_pkts_send_buffer_full"] = ifstats["bridge.b_to_a.num_pkts_send_buffer_full"]
-	 res["b_to_a_num_pkts_send_error"]       = ifstats["bridge.b_to_a.num_pkts_send_error"] 
-      end
 
       if(ifstats["profiles"] ~= nil) then
 	 res["profiles"] = ifstats["profiles"]

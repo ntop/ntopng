@@ -67,4 +67,62 @@ end
 
 -- ##############################################
 
+-- NOTE: this corresponds to graph_utils interpolateSerie
+-- This is approximate
+function ts_common.interpolateSerie(serie, num_points)
+  local res = {}
+  local intervals = num_points / #serie;
+
+  local lerp = function(v0, v1, t)
+    return (1 - t) * v0 + t * v1
+  end
+
+  for i=1,num_points do
+    local index = (i-1) / (intervals)
+    local _, t = math.modf(index)
+    local prev_i = math.floor(index)
+    local next_i = math.min(math.ceil(index), #serie - 1)
+
+    local v = lerp(serie[prev_i+1], serie[next_i+1], t)
+    res[i] = v
+  end
+
+  return res
+end
+
+-- test for ts_common.interpolateSerie
+local function test_interpolateSerie()
+  local serie = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+  local target_points = 19
+  local max_err_perc = 10
+  local res = interpolateSerie(serie, target_points)
+
+  if not(#res == target_points) then
+    io.write("test_influx2Series ASSERTION FAILED: target_points == #res\n")
+    return false
+  end
+
+  local sum = function(a)
+    local s = 0
+    for _, x in pairs(a) do
+      s = s + x
+    end
+    return s
+  end
+
+  local avg1 = sum(serie) / #serie
+  local avg2 = sum(res) / #res
+  local err = math.abs(avg1 - avg2)
+  local err_perc = err * 100 / avg1
+
+  if not(err_perc <= max_err_perc) then
+    io.write("test_influx2Series ASSERTION FAILED: err <= ".. max_err_perc .."%\n")
+    return false
+  end
+
+  return true
+end
+
+-- ##############################################
+
 return ts_common

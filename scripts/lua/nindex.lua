@@ -49,6 +49,8 @@ select = select:gsub("%s+", "")
 -- where = where:gsub("%s+", "")
 
 print [[
+<p align=right>[ <A HREF=nindex_topk.lua>TopK</A> ]</P>
+
   <form method=get action=nindex.lua>
 
   <fieldset class="form-group"> 

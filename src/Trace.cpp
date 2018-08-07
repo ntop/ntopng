@@ -76,7 +76,9 @@ void Trace::open_log() {
 
     if(!logFd)
       traceEvent(TRACE_ERROR, "Unable to create log %s", logFile);
-    
+    else
+      chmod(logFile, CONST_DEFAULT_FILE_MODE);
+	    
     numLogLines = 0;
   }
 }

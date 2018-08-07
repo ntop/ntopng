@@ -60,6 +60,8 @@ select_values = select_values:gsub("%s+", "")
 -- where = where:gsub("%s+", "")
 
 print [[
+  <p align=right>[ <A HREF=nindex.lua>Select</A> ]</P>
+
   <form method=get action=nindex_topk.lua>
 
   <fieldset class="form-group"> 

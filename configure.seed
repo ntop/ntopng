@@ -21,6 +21,24 @@ NEDGE=0
 if test "${with_nedge+set}" = set; then
    AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
    NEDGE=1
+
+   AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
+   AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
+   AC_CHECK_LIB([nfnetlink], [nfnl_rcvbufsiz])
+   AC_CHECK_LIB([netfilter_conntrack], [nfct_filter_dump_create], nfct=true)
+   AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
+
+   if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" != xyes; then
+      AC_MSG_RESULT(Cannot build nedge without Netfilter, exiting.)
+      exit 1
+   fi
+
+   if test x$nfct = x; then
+      AC_MSG_RESULT(Cannot build nedge without Conntrack, exiting.)
+      exit 1
+   fi
+
+   LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink -lnetfilter_conntrack"
 fi
 
 #
@@ -136,7 +154,7 @@ if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
    echo "Could not find nDPI"
    echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
    echo "and try again"
-   exit
+   exit 1
 fi
 dnl finish: nDPI handling
 
@@ -279,7 +297,7 @@ if test "${with_nedge+set}" != set; then
        echo "Using PF_RING installed in ${PF_RING_HOME}"
      else
        echo "Found PF_RING but the userland libs have not been compiled"
-       exit
+       exit 1
      fi
   else
      if test -d "/opt/pfring"; then
@@ -297,12 +315,12 @@ if test "${with_nedge+set}" != set; then
 	  if test x$pcap = x
 	  then
 	    echo "Found /usr/local/lib/libpfring.a but missing header files."
-	    exit
+	    exit 1
 	  fi
 	else
 	  echo "Found /usr/local/lib/libpfring.a  but missing libpcap.a in the same directory"
 	  echo "Please make sure you have installed your PF_RING libraries and try again"
-	  exit
+	  exit 1
         fi
       fi
     fi
@@ -316,16 +334,9 @@ else
   if test x$pcap = x
   then
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
-    exit
+    exit 1
   fi
  fi
-fi
-
-AC_CHECK_LIB([netfilter_conntrack], [nfct_filter_dump_create], nfct=true)
-if test x$nfct != x
-then
-   AC_DEFINE([HAVE_CONNTRACK],[1],[Support for Linux conntrack])
-   LDFLAGS="${LDFLAGS} -lnetfilter_conntrack"
 fi
 
 if test "${with_nedge+set}" != set; then
@@ -338,16 +349,6 @@ if test "${with_nedge+set}" != set; then
  if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
   PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
  fi
-fi
-
-AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
-AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
-AC_CHECK_LIB([nfnetlink], [nfnl_rcvbufsiz])
-AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
-
-if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" = xyes; then
-  AC_DEFINE_UNQUOTED(HAVE_NETFILTER, 1, [NFQ is present])
-  LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink"
 fi
 
 AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
@@ -382,7 +383,7 @@ AC_CHECK_LIB([dl], [dlopen], [LDFLAGS="${LDFLAGS} -ldl"])
 AC_CHECK_LIB([curl], [curl_easy_perform], [LDFLAGS="${LDFLAGS} -lcurl"])
 if test ${ac_cv_lib_curl_curl_easy_perform} = "no"; then
     echo "Please install libcurl(-dev) (http://curl.haxx.se/)"
-    exit
+    exit 1
 else
     dnl> libcurl has CURLOPT_MAIL_RCPT only starting at version 7.20.0
     dnl> https://github.com/curl/curl/blob/curl-7_20_0/TODO-RELEASE
@@ -435,9 +436,8 @@ if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
    AC_DEFINE_UNQUOTED(HAVE_MAXMINDDB, 1, [MaxMind DB support])
 else
    AC_MSG_RESULT(Please install libmaxminddb-dev (https://github.com/maxmind/libmaxminddb) and try again)
-   exit
+   exit 1
 fi
-
 
 AC_CHECK_LIB([sqlite3], [sqlite3_open], sqlite=true)
 if test x$sqlite = xtrue
@@ -446,7 +446,7 @@ then
   SQLITE_LIB="-lsqlite3"
 else
   echo "SQLite 3.x missing (libsqlite3-dev): please install it and try again"
-  exit
+  exit 1
 fi
 
 if test "${with_nedge+set}" != set; then
@@ -476,7 +476,7 @@ if test -n "$MYSQLTOOL"; then
    AC_CHECK_LIB([wrap], [main])
  else
    echo "MySQL libraries not found. Please install them as specified in README.compilation"
-   exit 0
+   exit 1
  fi
 fi
 

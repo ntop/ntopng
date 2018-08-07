@@ -116,7 +116,7 @@ extern "C" {
 #include "pfring.h"
 #include "pfring_zc.h"
 #endif
-#ifdef HAVE_NETFILTER
+#ifdef HAVE_NEDGE
 #include <linux/types.h>
 #include <linux/netfilter.h> /* for NF_ACCEPT */
 #include <libnfnetlink/libnfnetlink.h>
@@ -267,7 +267,7 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"
-#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
+#ifdef HAVE_NEDGE
 #include "NetfilterInterface.h"
 #endif
 #endif

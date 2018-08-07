@@ -67,7 +67,8 @@ void TimeSeriesExporter::createDump() {
 #ifdef WIN32
   fd = open(fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
 #else
-  fd = open(fname, O_RDWR | O_CREAT | O_EXCL | S_IREAD | S_IWRITE);
+  fd = open(fname, O_RDWR | O_CREAT | O_EXCL | S_IREAD | S_IWRITE,
+	    CONST_DEFAULT_FILE_MODE);
 #endif
 
   if(fd == -1)

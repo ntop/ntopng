@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-#if defined(HAVE_NETFILTER) && defined(HAVE_NEDGE)
+#if defined(HAVE_NEDGE)
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new NetfilterInterface(ifName);
 #endif
@@ -287,7 +287,10 @@ int main(int argc, char *argv[])
 
     fd = fopen(prefs->get_pid_path(), "w");
     if(fd != NULL) {
-      int n = fprintf(fd, "%u\n", getpid());
+      int n;
+
+      chmod(prefs->get_pid_path(), CONST_DEFAULT_FILE_MODE);
+      n = fprintf(fd, "%u\n", getpid());
       fclose(fd);
 
       if(n > 0) {
@@ -353,6 +356,7 @@ int main(int argc, char *argv[])
 				 ntop->get_working_dir(), path, strerror(errno));
     exit(EXIT_FAILURE);
   } else {
+    chmod(path, CONST_DEFAULT_FILE_MODE);
     fclose(fd); /* All right */
     unlink(path);
   }

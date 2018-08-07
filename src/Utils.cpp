@@ -263,6 +263,7 @@ size_t Utils::file_write(const char *path, const char *content, size_t content_l
   if(fd == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to write file %s", path);
   } else {
+    chmod(path, CONST_DEFAULT_FILE_MODE);
     ret = fwrite(content, content_len, 1, fd);
     fclose(fd);
   }
@@ -309,8 +310,6 @@ bool Utils::mkdir_tree(char *path) {
   ntop->fixPath(path);
 
   if(stat(path, &s) != 0) {
-    int permission = 0700;
-
     /* Start at 1 to skip the root */
     for(int i=1; path[i] != '\0'; i++)
       if(path[i] == CONST_PATH_SEP) {
@@ -327,16 +326,40 @@ bool Utils::mkdir_tree(char *path) {
          */
         if(path[i+1] == '\0')
           break;
+	
 	path[i] = '\0';
-	rc = ntop_mkdir(path, permission);
+	rc = Utils::mkdir(path, CONST_DEFAULT_FILE_MODE);
+	
 	path[i] = CONST_PATH_SEP;
       }
 
-    rc = ntop_mkdir(path, permission);
+    rc = Utils::mkdir(path, CONST_DEFAULT_FILE_MODE);
 
-	return(((rc == 0) || (errno == EEXIST/* Already existing */)) ? true : false);
+    return(((rc == 0) || (errno == EEXIST/* Already existing */)) ? true : false);
   } else
     return(true); /* Already existing */
+}
+
+/* **************************************************** */
+
+int Utils::mkdir(const char *path, mode_t mode) {
+#ifdef WIN32
+  return(_mkdir(path, mode));
+#else
+  int rc = ::mkdir(path, mode);
+
+  if(rc == -1) {
+    if(errno != EEXIST)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "mkdir(%s) failed [%d/%s]",
+				   path, errno, strerror(errno));
+  } else {
+    if(chmod(path, CONST_DEFAULT_FILE_MODE) == -1) /* Ubuntu 18 */
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "chmod(%s) failed [%d/%s]",
+				   path, errno, strerror(errno));
+  }
+  
+  return(rc);
+#endif
 }
 
 /* **************************************************** */
@@ -1858,8 +1881,8 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 /* **************************************** */
 
 bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seconds) {
-  struct dirent entry, *result = NULL;
-  int path_length, ret;
+  struct dirent *result;
+  int path_length;
   char path[MAX_PATH];
   DIR *d;
   struct stat file_stats;
@@ -1870,9 +1893,9 @@ bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seco
   d = opendir(dir_name);
   if(!d) return false;
 
-  for (ret = readdir_r(d, &entry, &result); result && !ret; ret = readdir_r(d, &entry, &result)) {
-    if(entry.d_type & DT_REG) {
-      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, entry.d_name)) <= MAX_PATH) {
+  while((result = readdir(d)) != NULL) {
+    if(result->d_type & DT_REG) {
+      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
 	ntop->fixPath(path);
 
 	if(!stat(path, &file_stats)) {
@@ -1880,9 +1903,9 @@ bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seco
 	    unlink(path);
 	}
       }
-    } else if(entry.d_type & DT_DIR) {
-      if(strncmp(entry.d_name, "..", 2) && strncmp(entry.d_name, ".", 1)) {
-        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, entry.d_name)) <= MAX_PATH) {
+    } else if(result->d_type & DT_DIR) {
+      if(strncmp(result->d_name, "..", 2) && strncmp(result->d_name, ".", 1)) {
+        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
 	  ntop->fixPath(path);
 
 	  ntop_delete_old_files(path, now, older_than_seconds);

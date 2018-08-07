@@ -344,15 +344,14 @@
 #define CONST_LUA_FLOW_NDPI_DETECT  "flowProtocolDetected"
 
 #ifdef WIN32
-#define ntop_mkdir(a, b) _mkdir(a)
-#define CONST_PATH_SEP                    '\\'
+#define CONST_PATH_SEP              '\\'
 #else
-#define ntop_mkdir(a, b) mkdir(a, b)
-#define CONST_PATH_SEP                    '/'
+#define CONST_PATH_SEP              '/'
 #endif
 
+#define CONST_DEFAULT_FILE_MODE      0700
 #define CONST_MAX_LEN_REDIS_KEY      256
-#define CONST_MAX_LEN_REDIS_VALUE  2*65526
+#define CONST_MAX_LEN_REDIS_VALUE    2*65526
 
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
