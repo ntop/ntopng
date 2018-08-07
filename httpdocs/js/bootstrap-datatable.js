@@ -189,6 +189,12 @@
 
     , loading: function ( show ) {
         var $e = this.$element;
+        var o = this.options;
+
+        if(o.customLoading) {
+          o.customLoading(this, show);
+          return;
+        }
 
         if(!this.$loading) {
           this.$loading = $("<div></div>")
