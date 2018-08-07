@@ -469,12 +469,17 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       }
 
       // get the value formatter
-      var formatter = getValueFormatter(schema_name, series);
-      var value_formatter = formatter[0];
-      var tot_formatter = formatter[1];
-      var stats_formatter = formatter[2] || value_formatter;
+      var formatter1 = getValueFormatter(schema_name, series.filter(function(d) { return(d.axis != 2); }));
+      var value_formatter = formatter1[0];
+      var tot_formatter = formatter1[1];
+      var stats_formatter = formatter1[2] || value_formatter;
       chart.yAxis1.tickFormat(value_formatter);
-      chart.interactiveLayer.tooltip.valueFormatter(value_formatter);
+      chart.yAxis1_formatter = value_formatter;
+
+      var formatter2 = getValueFormatter(schema_name, series.filter(function(d) { return(d.axis == 2); }));
+      var value_formatter2 = formatter2[0];
+      chart.yAxis2.tickFormat(value_formatter2);
+      chart.yAxis2_formatter = value_formatter2;
 
       var stats_table = $chart.closest("table").find(".graph-statistics");
       var stats = data.statistics;

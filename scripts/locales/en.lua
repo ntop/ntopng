@@ -1206,6 +1206,7 @@ local lang = {
     ["average_traffic"] = "Average Traffic/sec",
     ["blocked_flows"] = "Blocked Flows",
     ["flows_vs_local_hosts"] = "Active Flows vs Local Hosts",
+    flows_vs_traffic = "Active Flows vs Traffic",
     ["graph_info"] = "Graph Info",
     ["hover_the_mouse_to"] = "Hover the mouse on the chart to display minute top traffic statistics",
     ["max"] = "Max",

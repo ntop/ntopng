@@ -13575,7 +13575,8 @@ nv.models.multiChart = function() {
                             value: pointYValue,
                             color: color(series,series.seriesIndex),
                             data: point,
-                            yAxis: series.yAxis == 2 ? yAxis2 : yAxis1
+                            yAxis: series.yAxis == 2 ? yAxis2 : yAxis1,
+                            yAxis_idx: series.yAxis
                         });
                     });
 
