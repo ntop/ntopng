@@ -64,7 +64,9 @@ else
       -- when flow aggregation is used, requests can be made with a nil limit so it is important to re-calculate it
       local count = getNumFlows(ifId, ip_version, host, (l4proto or ""), (port or ""), (l7proto or ""), (info or ""),
 				(vlan or ""), (profile or ""),
-				epoch_begin, epoch_end, true --[[ force count from the raw flows table --]])
+				epoch_begin, epoch_end,
+				true --[[ force count from the raw flows table --]],
+				true --[[ enforce allowed networks when counting --]])
       if count ~= nil and count[1] ~= nil then
 	 limit = count[1]["TOT_FLOWS"]
       end
