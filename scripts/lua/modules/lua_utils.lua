@@ -771,11 +771,7 @@ function tmin(t)
 end
 
 function formatEpoch(epoch)
-  if epoch == 0 then
-    return("-")
-  else
-    return(os.date("%d/%m/%Y %X", epoch))
-  end
+   return(format_utils.formatEpoch(epoch))
 end
 
 function starts(String,Start)

@@ -132,7 +132,7 @@ LuaEngine::~LuaEngine() {
 
       if(ctx->iface != NULL)
 	ctx->iface->deregisterLiveCapture(ctx);
-      
+
       free(ctx);
     }
 
@@ -1298,7 +1298,7 @@ static int ntop_set_https_bind_addr(lua_State* vm) {
 }
 
 #endif
- 
+
 /* ****************************************** */
 
 #ifdef HAVE_NEDGE
@@ -3633,11 +3633,11 @@ static int ntop_interface_dump_live_captures(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
   NetworkInterface *iface = getCurrentInterface(vm);
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  
+
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -3658,11 +3658,12 @@ static int ntop_interface_dump_live_captures(lua_State* vm) {
 static int ntop_interface_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
+  int capture_id;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  
+
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -3672,13 +3673,13 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
-  
+
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     Host *h;
     char host_ip[64];
     char *key;
     u_int16_t vlan_id = 0;
-    
+
     get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL)) {
@@ -3692,19 +3693,21 @@ static int ntop_interface_live_capture(lua_State* vm) {
   c->live_capture.capture_max_pkts = 100000; /* No more than 100k packets */
   c->live_capture.num_captured_packets = 0;
   c->live_capture.stopped = c->live_capture.done = c->live_capture.pcaphdr_sent = false;
+  c->live_capture.bpfFilterSet = false;
   snprintf(c->live_capture.username, sizeof(c->live_capture.username), "%s", c->user);
-  ntop_interface->registerLiveCapture(c);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Starting live capture for user %s",
-			       c->live_capture.username);
+  if(ntop_interface->registerLiveCapture(c, &capture_id)) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Starting live capture id %d for user %s",
+				 capture_id, c->live_capture.username);
 
-  while(!c->live_capture.done) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
-    sleep(1);
+    while(!c->live_capture.done) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
+      sleep(1);
+    }
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Capture completed");
   }
-  
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Done.");
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -3716,12 +3719,13 @@ static int ntop_interface_live_capture(lua_State* vm) {
 static int ntop_interface_stop_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
-  Host *h = NULL;
-
+  int capture_id;
+  bool rc;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  
+
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -3731,23 +3735,16 @@ static int ntop_interface_stop_live_capture(lua_State* vm) {
 
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  capture_id = (int)lua_tointeger(vm, 1);
+
+  rc = ntop_interface->stopLiveCapture(c->user, capture_id);
   
-  if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
-    char *key;
-    char host_ip[64];
-    u_int16_t vlan_id = 0;
-    
-    get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
-
-    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
-      return(CONST_LUA_ERROR);
-  }
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Stopping live capture for user %s",
-			       c->user);
-
-  ntop_interface->stopLiveCapture(c->user, h);
+			       "Stopping live capture %d for user %s: %s",
+			       capture_id, c->user,
+			       rc ? "stopped" : "error");
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -4041,7 +4038,7 @@ static int ntop_nindex_topk(lua_State* vm) {
   char *_topkOperator;
   TopKSelectOperator topkOperator = topk_select_operator_sum;
   bool topToBottomSort;
-  
+
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else {
@@ -4073,7 +4070,7 @@ static int ntop_nindex_topk(lua_State* vm) {
   if(!strcasecmp(_topkOperator, "sum")) topkOperator = topk_select_operator_sum;
   else if(!strcasecmp(_topkOperator, "min")) topkOperator = topk_select_operator_min;
   else topkOperator = topk_select_operator_max;
-    
+
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   skip_initial_records = (unsigned long)lua_tonumber(vm, id++);
 
@@ -4082,7 +4079,7 @@ static int ntop_nindex_topk(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   topToBottomSort = lua_toboolean(vm, id++) ? true : false;
-  
+
   return(nindex->topk(vm, use_aggregated_flows,
 		      timestamp_begin, timestamp_end,
 		      select_keys, select_values,
@@ -4101,10 +4098,10 @@ static void* pcapDumpLoop(void* ptr) {
     u_char *pkt;
     struct pcap_pkthdr *h;
     int rc = pcap_next_ex(c->pkt_capture.pd, &h, (const u_char **) &pkt);
-    
+
     if(rc > 0) {
       pcap_dump((u_char*)c->pkt_capture.dumper, (const struct pcap_pkthdr*)h, pkt);
-      
+
       if(h->ts.tv_sec > c->pkt_capture.end_capture)
 	break;
     } else if(rc < 0) {
@@ -4119,12 +4116,12 @@ static void* pcapDumpLoop(void* ptr) {
     pcap_dump_close(c->pkt_capture.dumper);
     c->pkt_capture.dumper = NULL;
   }
-  
+
   if(c->pkt_capture.pd) {
     pcap_close(c->pkt_capture.pd);
     c->pkt_capture.pd = NULL;
   }
-  
+
   c->pkt_capture.captureInProgress = false;
 
   return(NULL);
@@ -4141,7 +4138,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   struct ntopngLuaContext *c;
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-    
+
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -4153,8 +4150,8 @@ static int ntop_capture_to_pcap(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   if(c->pkt_capture.pd != NULL /* Another capture is in progress */)
-    return(CONST_LUA_ERROR);  
-   
+    return(CONST_LUA_ERROR);
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   capture_duration = (u_int32_t)lua_tonumber(vm, 1);
 
@@ -4165,7 +4162,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   if(Utils::gainWriteCapabilities() == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
-  
+
   if((c->pkt_capture.pd = pcap_open_live(ntop_interface->get_name(),
 					 1514, 0 /* promisc */, 500, errbuf)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s for capture: %s",
@@ -4173,7 +4170,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
 #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
     Utils::dropWriteCapabilities();
 #endif
-    
+
     return(CONST_LUA_ERROR);
   }
 
@@ -4190,7 +4187,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
 #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
   Utils::dropWriteCapabilities();
 #endif
-  
+
   snprintf(ftemplate, sizeof(ftemplate), "/tmp/ntopng_%s_%u.pcap",
 	   ntop_interface->get_name(), (unsigned int)time(NULL));
   c->pkt_capture.dumper = pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);
@@ -4207,7 +4204,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
 
   c->pkt_capture.captureInProgress = true;
   pthread_create(&c->pkt_capture.captureThreadLoop, NULL, pcapDumpLoop, (void*)c);
-  
+
   lua_pushstring(vm, ftemplate);
   return(CONST_LUA_OK);
 }
@@ -4219,7 +4216,7 @@ static int ntop_is_capture_running(lua_State* vm) {
   struct ntopngLuaContext *c;
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  
+
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -4241,7 +4238,7 @@ static int ntop_stop_running_capture(lua_State* vm) {
   struct ntopngLuaContext *c;
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  
+
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
   c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
@@ -4253,7 +4250,7 @@ static int ntop_stop_running_capture(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   c->pkt_capture.end_capture = 0;
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -5193,7 +5190,7 @@ void lua_push_int_table_entry(lua_State *L, const char *key, u_int64_t value) {
       lua_pushnumber(L, (lua_Number)value);
     else
       lua_pushinteger(L, (lua_Integer)value);
-    
+
     lua_settable(L, -3);
   }
 }
@@ -7910,7 +7907,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getHostInformation",   ntop_get_host_information },
   { "isShutdown",           ntop_is_shutdown          },
 
-#ifdef HAVE_NEDGE  
+#ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },
   { "setHTTPSBindAddr",      ntop_set_https_bind_addr      },
   { "shutdown",              ntop_shutdown                 },
@@ -8227,7 +8224,7 @@ bool LuaEngine::setParamsTable(lua_State* vm,
   char *tok;
   char *query_string = query ? strdup(query) : NULL;
   bool ret = false;
-  
+
   lua_newtable(L);
 
   if(query_string
@@ -8256,7 +8253,7 @@ bool LuaEngine::setParamsTable(lua_State* vm,
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
 	  bool rsp = false;
 	  FILE *fd;
-	  
+
           Utils::urlDecode(_equal, decoded_buf, len+1);
 
 	  /* Allow multiple dots in password fields */
@@ -8269,7 +8266,7 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Invalid '%s'", query);
 	    ret = true;
 	  }
-	  
+
 	  /* Now make sure that decoded_buf is not a file path */
 	  if((decoded_buf[0] == '.')
 	     && ((fd = fopen(decoded_buf, "r"))
@@ -8321,7 +8318,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char csrf[64] = { '\0' };
 
   *attack_attempt = false;
-  
+
   if(!L) return(-1);
 
   luaL_openlibs(L); /* Load base libraries */
@@ -8382,7 +8379,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     *attack_attempt = setParamsTable(L, request_info, "_GET", request_info->query_string);
   else
     *attack_attempt = setParamsTable(L, request_info, "_GET", NULL /* Empty */);
-  
+
   /* _SERVER */
   lua_newtable(L);
   lua_push_str_table_entry(L, "REQUEST_METHOD", (char*)request_info->request_method);

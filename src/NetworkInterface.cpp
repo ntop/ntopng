@@ -304,7 +304,7 @@ void NetworkInterface::init() {
   gettimeofday(&last_frequent_reset, NULL);
   frequentMacs = new FrequentTrafficItems(5);
   frequentProtocols = new FrequentTrafficItems(5);
-  num_active_captures = 0;
+  num_live_captures = 0;
   memset(live_captures, 0, sizeof(live_captures));
   
   db = NULL;
@@ -1936,7 +1936,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   /* Live packet dump to mongoose */
-  if(num_active_captures > 0)
+  if(num_live_captures > 0)
     deliverLiveCapture(h, packet, flow);
 
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
@@ -5002,7 +5002,8 @@ void NetworkInterface::lua(lua_State *vm) {
   nDPIStats _ndpiStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
-
+  int num_live_captures = 0;
+  
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", get_name());
@@ -5028,7 +5029,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
-
+  lua_push_int_table_entry(vm, "num_live_captures", num_live_captures);
+    
 #ifndef HAVE_NEDGE
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
@@ -6534,16 +6536,17 @@ void NetworkInterface::finishInitialization() {
 
 /* *************************************** */
 
-bool NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luactx) {
+bool NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luactx, int *id) {
   bool ret = false;
 
+  *id = -1;
   active_captures_lock.lock(__FILE__, __LINE__);
-
-  if(num_active_captures < MAX_NUM_PCAP_CAPTURES) {
+  
+  if(num_live_captures < MAX_NUM_PCAP_CAPTURES) {
     for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
       if(live_captures[i] == NULL) {
-	live_captures[i] = luactx, num_active_captures++;
-	ret = true;
+	live_captures[i] = luactx, num_live_captures++;
+	ret = true, *id = i;
 	break;
       }
     }
@@ -6565,7 +6568,7 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
     if(live_captures[i] == luactx) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
       c->live_capture.done = true;
-      live_captures[i] = NULL, num_active_captures--;
+      live_captures[i] = NULL, num_live_captures--;
       ret = true;
       break;
     }
@@ -6591,8 +6594,6 @@ bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx, 
 
 void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 					  const u_char * const packet, Flow * const f) {
-  u_int num_live_captures = num_active_captures; /* Cache because of (*) */
-  
   for(u_int i=0, num_found = 0; (i<MAX_NUM_PCAP_CAPTURES)
 	&& (num_found < num_live_captures); i++) {
     if(live_captures[i] != NULL) {
@@ -6665,9 +6666,11 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
 
   for(int i=0, capture_id=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
     if((live_captures[i] != NULL)
+       && (!live_captures[i]->live_capture.stopped)
        && (!strcmp(live_captures[i]->live_capture.username, c->user))) {
       lua_newtable(vm);
 
+      lua_push_int_table_entry(vm, "id", i);
       lua_push_int_table_entry(vm, "capture_until",
 			       live_captures[i]->live_capture.capture_until);
       lua_push_int_table_entry(vm, "capture_max_pkts",
@@ -6695,22 +6698,26 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::stopLiveCapture(char *user, Host *h) {
+bool NetworkInterface::stopLiveCapture(char *user, int capture_id) {
+  bool rc = false;
 
-  active_captures_lock.lock(__FILE__, __LINE__);
-
-  for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
-    if((live_captures[i] != NULL)
-       && (!strcmp(live_captures[i]->live_capture.username, user))) {
-      Host *matching_host = (Host * )live_captures[i]->live_capture.matching_host;
-      if (matching_host == h) {
-        struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
-        c->live_capture.stopped = true; 
-      }
+  if((capture_id >= 0) && (capture_id < MAX_NUM_PCAP_CAPTURES)) {
+    active_captures_lock.lock(__FILE__, __LINE__);
+    
+    if((live_captures[capture_id] != NULL)
+       && (!strcmp(live_captures[capture_id]->live_capture.username, user))) {
+      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[capture_id];
+      c->live_capture.stopped = true, rc = true;
+      if(c->live_capture.bpfFilterSet)
+	pcap_freecode(&c->live_capture.fcode);
+      /* live_captures[capture_id] = NULL; */ /* <-- not necessary as mongoose will clean it */
+      num_live_captures--;
     }
+    
+    active_captures_lock.unlock(__FILE__, __LINE__);
   }
-
-  active_captures_lock.unlock(__FILE__, __LINE__);
+  
+  return(rc);
 }
 
 /* *************************************** */

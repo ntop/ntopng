@@ -20,11 +20,12 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local rc = interface.dumpLiveCaptures()
 
+print("<HR><H2>"..i18n("live_capture.active_live_captures").."</H2>")
+
 print [[
        <div id="livecaptures"></div>
 
        <script>
-       var livecaptures = null;
        $("#livecaptures").datatable({
          title: "",
          url: "/lua/live_capture_data.lua",
@@ -45,8 +46,16 @@ print [[
          ],
       });
 
-      livecaptures = $("#livecaptures").data("datatable");
-      </script>
+      function reloadTable() {
+        $("#livecaptures").data("datatable").render();
+        setTimeout(reloadTable, 10000); /* Refresh content every a few seconds */
+      }
+
+     $(document).ready(function() {
+       setTimeout(reloadTable, 10000); /* Refresh content every a few seconds */
+     });
+
+     </script>
 ]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/footer.inc")
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

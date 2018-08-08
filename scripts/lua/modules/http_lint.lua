@@ -903,7 +903,8 @@ local known_parameters = {
    ["max_pkts_file"]           =  validateEmptyOr(validateNumber), --
    ["max_sec_file"]            =  validateEmptyOr(validateNumber), --
    ["max_files"]               =  validateEmptyOr(validateNumber), --
-
+   ["capture_id"]              =  validateNumber,                -- Live capture id
+   
 -- OTHER
    ["_"]                       =  validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      =  validateUnquoted,              -- see LDAP prefs page

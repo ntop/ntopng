@@ -178,4 +178,12 @@ function format_utils.maxRateToString(max_rate)
    end
 end
 
+function format_utils.formatEpoch(epoch)
+  if epoch == 0 then
+    return("-")
+  else
+    return(os.date("%d/%m/%Y %X", epoch))
+  end
+end
+
 return format_utils

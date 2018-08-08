@@ -411,6 +411,15 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 		}
 	    }
 
+	    if((typeof rsp.num_live_captures !== "undefined") && (rsp.num_live_captures > 0)) {               
+   	        msg += "&nbsp;<a href=\"]]
+                print (ntop.getHttpPrefix())
+                print [[/lua/live_capture_stats.lua\">";
+ 	        msg += "<span class=\"label label-primary\">";
+		msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
+	    }
+
+
 		$('#network-load').html(msg);
 
 

@@ -1630,7 +1630,7 @@ local lang = {
     ["top_flow_talkers"] = "Top Flow Talkers",
   },
   ["live_capture"] = {
-    ["live_capture"] = "Live Capture",
+    ["active_live_captures"] = "Live Captures",
     ["note"] = "Capture live traffic for host %{hostinfo}. The stream will automatically stop after 1 minute or 100k packets.",
   },
   ["local_flow_matrix"] = {

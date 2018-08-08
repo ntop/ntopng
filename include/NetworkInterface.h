@@ -86,7 +86,7 @@ class NetworkInterface : public Checkpointable {
 
   /* Live Capture */
   Mutex active_captures_lock;
-  u_int8_t num_active_captures;
+  u_int8_t num_live_captures;
   struct ntopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
   static bool matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f);
   void deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
@@ -515,10 +515,10 @@ class NetworkInterface : public Checkpointable {
 
   PacketDumper *getPacketDumper(void)                  { return pkt_dumper;     }
   PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
-  bool registerLiveCapture(struct ntopngLuaContext * const luactx);
+  bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
-  void stopLiveCapture(char *user, Host *h);
+  bool stopLiveCapture(char *user, int capture_id);
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
   void updateHostsL7Policy(u_int16_t host_pool_id);
