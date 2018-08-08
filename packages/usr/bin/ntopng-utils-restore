@@ -5,6 +5,7 @@ ARCHIVE=""
 ARCHIVE_RUNTIMEPREFS=""
 ARCHIVE_SYSTEMCONFIG=""
 ARCHIVE_DATADIR=""
+ARCHIVE_LICENSE=""
 SAVED_SUFFIX=".saved"
 
 echo "Executing ntopng configuration restore utility"
@@ -40,6 +41,13 @@ function check_tar_contents() {
     if ! `tar tf ${ARCHIVE} /etc/ntopng/ >/dev/null 2>&1`; then
 	echo "Compressed archive $1 does not contain /etc/ntopng/"
 	exit 1
+    fi
+
+    # could contain a license file
+    if `tar tf ${ARCHIVE} /etc/ntopng.license >/dev/null 2>&1`; then
+	ARCHIVE_LICENSE="/etc/ntopng.license"
+    elif `tar tf ${ARCHIVE} /etc/nedge.license >/dev/null 2>&1`; then
+	ARCHIVE_LICENSE="/etc/nedge.license"
     fi
 
     # could contain files:
@@ -103,11 +111,11 @@ function check_current_system_dirs() {
 
 function save_existing() {
     if [ ! -z "$1" ]; then
-	if [ ! -f "$1" ] && [ ! -d "$1"] ; then
+	if [ ! -f "$1" ] && [ ! -d "$1" ] ; then
 	    return
 	else
 	    local DST="$1${SAVED_SUFFIX}"
-	    echo "Copying to ${DST}"
+	    echo "Saving $1 to to ${DST}"
 	    rm -rf "${DST}"
 	    cp -Rp "$1" "${DST}"
 	fi
@@ -126,6 +134,7 @@ function save_existing_files() {
 
     save_existing "${ARCHIVE_RUNTIMEPREFS}"
     save_existing "${ARCHIVE_SYSTEMCONFIG}"
+    save_existing "${ARCHIVE_LICENSE}"
 }
 
 function restore_ntopng_conf_dir() {
@@ -140,6 +149,20 @@ function restore_ntopng_conf_dir() {
 
     echo "Restoring..."
     tar Pxfvz ${ARCHIVE} /etc/ntopng || exit 1
+}
+
+function restore_file() {
+    if [ ! -z "$1" ]; then
+	# nothing to do
+	return
+    fi
+
+    echo "Restoring $1"
+    # restore the file passed as first argument
+    tar Pxfvz "${ARCHIVE}" "$1" || exit 1
+    # changes the permissions of the restored file as specified in the
+    # second argument
+    chown "$2" "$1"
 }
 
 function restore_files() {
@@ -159,20 +182,11 @@ function restore_files() {
 	exit 1
     fi
 
-    # restore archive runtimeprefs and we're sure it's
+    # restore archives and we're sure it's
     # going to be in an existing directory
-    if [ ! -z "${ARCHIVE_RUNTIMEPREFS}" ]; then
-	echo "Restoring..."
-	tar Pxfvz ${ARCHIVE} ${ARCHIVE_RUNTIMEPREFS} || exit 1
-	chown "${USER_GROUP}" ${ARCHIVE_RUNTIMEPREFS}
-    fi
-
-    # same for the systemconfig
-    if [ ! -z "${ARCHIVE_SYSTEMCONFIG}" ]; then
-	echo "Restoring..."
-	tar Pxfvz ${ARCHIVE} ${ARCHIVE_SYSTEMCONFIG} || exit 1
-	chown "${USER_GROUP}" ${ARCHIVE_SYSTEMCONFIG}
-    fi
+    restore_file ${ARCHIVE_RUNTIMEPREFS} ${USER_GROUP}
+    restore_file ${ARCHIVE_SYSTEMCONFIG} ${USER_GROUP}
+    restore_file ${ARCHIVE_LICENSE} ${USER_GROUP}
 }
 
 # preliminary checks
