@@ -44,6 +44,8 @@ function getSerieLabel(schema, serie) {
         return serie.tags.category;
       else if(serie.tags.profile)
         return serie.tags.profile;
+      else if(data_label == "bytes")
+        return "Traffic"; // TODO localize
   }
 
   if(schema_2_label[schema])
@@ -274,11 +276,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     "#E27B85"
   ];
 
-  var chart_colors_min = [
-    "#69B87F",
-    "#C1E3C4",
-    "#E5F1A6",
-  ];
+  var chart_colors_min = ["#94CFA4", "#FCD384", "#FD977B"];
 
   var update_chart_data = function(new_data) {
     /* reset chart data so that the next transition animation will be gracefull */
@@ -318,21 +316,30 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     }
   });
 
-  var zoom_out_callback = function() {
-    if(zoom_stack.length) {
-      var zoom = zoom_stack.pop();
-      var t_start = zoom[0];
-      var t_end = zoom[1];
+  function updateZoom(zoom) {
+    var t_start = zoom[0];
+    var t_end = zoom[1];
 
-      chart.updateStackedChart(t_start, t_end);
+    chart.updateStackedChart(t_start, t_end);
 
-      if(!zoom_stack.length)
-        $zoom_out.hide();
-    }
+    if(!zoom_stack.length)
+      $zoom_out.hide();
   }
 
-  $chart.on('dblclick', zoom_out_callback);
-  $zoom_out.on("click", zoom_out_callback);
+  $chart.on('dblclick', function() {
+    if(zoom_stack.length) {
+      var zoom = zoom_stack.pop();
+      updateZoom(zoom);
+    }
+  });
+
+  $zoom_out.on("click", function() {
+    if(zoom_stack.length) {
+      var zoom = zoom_stack[0];
+      zoom_stack = [];
+      updateZoom(zoom);
+    }
+  });
 
   var old_start, old_end;
 
@@ -347,12 +354,18 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       if(is_max_zoom)
         return false;
 
-      var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
-      params.epoch_begin = Math.floor(epoch - max_interval / 2);
-      params.epoch_end = Math.ceil(epoch + max_interval / 2);
+      if(!first_load) {
+        var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
+        params.epoch_begin = Math.floor(epoch - max_interval / 2);
+        params.epoch_end = Math.ceil(epoch + max_interval / 2);
+      }
+
       is_max_zoom = true;
-    } else
+      chart.zoomType(null); // disable zoom
+    } else {
       is_max_zoom = false;
+      chart.zoomType('x'); // enable zoom
+    }
 
     fixTimeRange(chart, params, step);
 

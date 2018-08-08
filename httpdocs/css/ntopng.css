@@ -338,10 +338,11 @@ tr.quotas > td {
   min-width: 7em;
 }
 
-#historical-tab-chart .nv-area-stroke-hint {
-/*
-  fill-opacity: 0.6 !important;
+/* NOTE: this is commented to avoid highliting overlapping line issues due to
+ * curves interpolation.
 */
+/*
+#historical-tab-chart .nv-area-stroke-hint {
   animation-name: line-stroke-appear;
   animation-duration: 1.5s;
   animation-fill-mode: both;
@@ -351,6 +352,7 @@ tr.quotas > td {
   from { stroke-opacity: 0; stroke-width: 0; }
   to { stroke-opacity: 1; stroke-width: 1.2; }
 }
+*/
 
 .line-animated .nv-line {
   animation-name: line-appear;
@@ -365,7 +367,6 @@ tr.quotas > td {
 }
 
 .zoom-reset {
-  float: right;
   margin-right: 90px;
   font-size: 0.75em;
 }

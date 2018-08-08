@@ -269,7 +269,7 @@ function formatValue(val) {
   var sizes = ['', 'K', 'M', 'G', 'T'];
   var res = scaleValue(val, sizes, 1000);
 
-  return Math.round(res[0] * 100) / 100 + res[1];
+  return Math.round(res[0]) + res[1];
 }
 
 function formatPackets(n) {
